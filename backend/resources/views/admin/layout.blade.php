@@ -12,8 +12,6 @@
     <nav>
         <a href="/admin">Dashboard</a>
         <a href="/admin/seasons">Temporadas</a>
-        <a href="/admin/championships">Campeonatos</a>
-        <a href="/admin/categories">Categorías</a>
 
         <form method="POST" action="{{ route('admin.logout') }}" style="display:inline">
             @csrf

@@ -29,7 +29,19 @@ Route::prefix('admin')->group(function () {
         Route::put('/seasons/{season}', [AdminSeasonController::class, 'update'])->name('admin.seasons.update');
         Route::delete('/seasons/{season}', [AdminSeasonController::class, 'destroy'])->name('admin.seasons.destroy');
 
+        Route::get('/seasons/{season}/championships', [AdminSeasonController::class, 'championships'])
+            ->name('admin.seasons.championships');
+
+        Route::get('/seasons/{season}/championships/create', [AdminChampionshipController::class, 'create'])->name('admin.championships.create');
+        Route::post('/seasons/{season}/championships', [AdminChampionshipController::class, 'store'])->name('admin.championships.store');
+
+        //Campeonatos
         Route::get('/championships', [AdminChampionshipController::class, 'index'])->name('admin.championships.index');
+        Route::get('/championships/{championship}/edit', [AdminChampionshipController::class, 'edit'])->name('admin.championships.edit');
+        Route::put('/championships/{championship}', [AdminChampionshipController::class, 'update'])->name('admin.championships.update');
+        Route::delete('/championships/{championship}', [AdminChampionshipController::class, 'destroy'])->name('admin.championships.destroy');
+
+        //Categorías
         Route::get('/categories', [AdminCategoryController::class, 'index'])->name('admin.categories.index');
     });
 });

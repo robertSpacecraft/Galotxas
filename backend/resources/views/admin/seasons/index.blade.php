@@ -29,19 +29,20 @@
                     <td>{{ $season->name }}</td>
                     <td>{{ $season->status }}</td>
                     <td>
-                        <a href="{{ route('admin.seasons.edit', $season) }}">Editar</a>
 
-                        <form
-                            method="POST"
-                            action="{{ route('admin.seasons.destroy', $season) }}"
-                            style="display:inline"
-                            onsubmit="return confirm('¿Eliminar temporada?')"
-                        >
+                        <a href="{{ route('admin.seasons.championships', $season) }}">
+                            Campeonatos
+                        </a>
+                        <a href="{{ route('admin.seasons.edit', $season) }}">
+                            Editar
+                        </a>
+                        <form method="POST"
+                              action="{{ route('admin.seasons.destroy', $season) }}"
+                              style="display:inline"
+                              onsubmit="return confirm('¿Eliminar temporada?')">
                             @csrf
                             @method('DELETE')
-
                             <button type="submit">Eliminar</button>
-
                         </form>
                     </td>
                 </tr>

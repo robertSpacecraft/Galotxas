@@ -61,4 +61,11 @@ class SeasonController extends Controller
             ->route('admin.seasons.index')
             ->with('success', 'Temporada eliminada.');
     }
+
+    public function championships(Season $season)
+    {
+        $season->load('championships');
+
+        return view('admin.seasons.championships', compact('season'));
+    }
 }
