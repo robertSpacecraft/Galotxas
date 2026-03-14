@@ -43,5 +43,17 @@ Route::prefix('admin')->group(function () {
 
         //Categorías
         Route::get('/categories', [AdminCategoryController::class, 'index'])->name('admin.categories.index');
+        Route::get('/championships/{championship}/categories', [AdminCategoryController::class, 'index'])
+            ->name('admin.championships.categories');
+        Route::get('/championships/{championship}/categories/create', [AdminCategoryController::class, 'create'])
+            ->name('admin.categories.create');
+        Route::post('/championships/{championship}/categories', [AdminCategoryController::class, 'store'])
+            ->name('admin.categories.store');
+        Route::get('/categories/{category}/edit', [AdminCategoryController::class, 'edit'])
+            ->name('admin.categories.edit');
+        Route::put('/categories/{category}', [AdminCategoryController::class, 'update'])
+            ->name('admin.categories.update');
+        Route::delete('/categories/{category}', [AdminCategoryController::class, 'destroy'])
+            ->name('admin.categories.destroy');
     });
 });

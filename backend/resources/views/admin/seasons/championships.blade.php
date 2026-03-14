@@ -46,7 +46,9 @@
                             <button type="submit">Eliminar</button>
                         </form>
 
-                        <span>Categorías próximamente</span>
+                        <a href="{{ route('admin.championships.categories', $championship) }}">
+                            Categorías
+                        </a>
                     </td>
                 </tr>
             @endforeach
