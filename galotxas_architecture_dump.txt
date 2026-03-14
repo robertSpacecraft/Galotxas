@@ -1,0 +1,1302 @@
+]1341;command_started;command=6563686f20223d3d3d3d3d20524f55544553203d3d3d3d3d22===== ROUTES =====
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+<?php
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\SeasonController;
+use App\Http\Controllers\Api\V1\CategoryController;
+use App\Http\Controllers\Api\V1\MatchController;
+
+use App\Http\Controllers\Api\V1\Admin\SeasonController as AdminSeasonController;
+use App\Http\Controllers\Api\V1\Admin\ChampionshipController as AdminChampionshipController;
+use App\Http\Controllers\Api\V1\Admin\CategoryController as AdminCategoryController;
+
+Route::prefix('v1')->group(function () {
+    // Auth
+    Route::post('/auth/login', [AuthController::class, 'login']);
+
+    // Public reading
+    Route::get('/seasons', [SeasonController::class, 'index']);
+    Route::get('/categories/{category}', [CategoryController::class, 'show']);
+    Route::get('/categories/{category}/standings', [CategoryController::class, 'standings']);
+    Route::get('/categories/{category}/schedule', [CategoryController::class, 'schedule']);
+    Route::get('/matches/{gameMatch}', [MatchController::class, 'show']);
+
+    // Authenticated
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/me', [AuthController::class, 'me']);
+        Route::post('/matches/{gameMatch}/submit-result', [MatchController::class, 'submitResult']);
+
+        // Admin
+        Route::prefix('admin')->middleware(\App\Http\Middleware\IsAdmin::class)->group(function () {
+            Route::apiResource('seasons', AdminSeasonController::class);
+            Route::apiResource('championships', AdminChampionshipController::class);
+            Route::apiResource('categories', AdminCategoryController::class);
+            Route::post('/categories/{category}/entries', [AdminCategoryController::class, 'storeEntry']);
+            Route::post('/matches/{gameMatch}/validate-result', [App\Http\Controllers\Api\V1\Admin\MatchController::class, 'validateResult']);
+        });
+    });
+});
+
+===== MIDDLEWARE =====
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+
+class IsAdmin
+{
+    /**
+     * Handle an incoming request.
+     */
+    public function handle(Request $request, Closure $next)
+    {
+        if ($request->user() && $request->user()->role === 'admin') {
+            return $next($request);
+        }
+        abort(403, 'Unauthorized action.');
+    }
+}
+
+===== USER MODEL =====
+<?php
+
+namespace App\Models;
+
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+use Laravel\Sanctum\HasApiTokens;
+
+class User extends Authenticatable
+{
+    /** @use HasFactory<UserFactory> */
+    use HasApiTokens, HasFactory, Notifiable;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'role',
+        'player_id',
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+
+    public function player()
+    {
+        return $this->belongsTo(Player::class);
+    }
+}
+
+===== API CONTROLLERS =====
+<?php
+
+namespace App\Http\Controllers\Api\V1;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class AuthController extends Controller
+{
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if (Auth::attempt($credentials)) {
+            $user = Auth::user();
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return response()->json([
+                'user' => $user->load('player'),
+                'token' => $token,
+            ]);
+        }
+
+        return response()->json(['message' => 'Invalid credentials'], 401);
+    }
+
+    public function me(Request $request)
+    {
+        return response()->json($request->user()->load('player'));
+    }
+}
+
+<?php
+
+namespace App\Http\Controllers\Api\V1;
+
+use App\Http\Controllers\Controller;
+use App\Models\Season;
+use Illuminate\Http\Request;
+
+class SeasonController extends Controller
+{
+    public function index()
+    {
+        $seasons = Season::with(['championships.categories'])->orderBy('start_date', 'desc')->get();
+        return response()->json($seasons);
+    }
+}
+
+<?php
+
+namespace App\Http\Controllers\Api\V1;
+
+use App\Http\Controllers\Controller;
+use App\Models\Category;
+use App\Services\StandingsCalculatorService;
+use Illuminate\Http\Request;
+
+class CategoryController extends Controller
+{
+    public function show(Category $category)
+    {
+        return response()->json($category->load(['championship.season']));
+    }
+
+    public function schedule(Category $category)
+    {
+        $rounds = $category->rounds()->with([
+            'matches.homeEntry.player', 'matches.homeEntry.team',
+            'matches.awayEntry.player', 'matches.awayEntry.team',
+            'matches.venue'
+        ])->get();
+
+        return response()->json($rounds);
+    }
+
+    public function standings(Category $category, StandingsCalculatorService $calculator)
+    {
+        $standings = $calculator->calculate($category);
+        return response()->json($standings);
+    }
+}
+
+<?php
+
+namespace App\Http\Controllers\Api\V1;
+
+use App\Http\Controllers\Controller;
+use App\Models\GameMatch;
+use Illuminate\Http\Request;
+
+class MatchController extends Controller
+{
+    public function show(GameMatch $gameMatch)
+    {
+        return response()->json($gameMatch->load([
+            'homeEntry.player', 'homeEntry.team',
+            'awayEntry.player', 'awayEntry.team',
+            'venue', 'round.category.championship.season'
+        ]));
+    }
+
+    public function submitResult(Request $request, GameMatch $gameMatch)
+    {
+        $validated = $request->validate([
+            'home_score' => 'required|integer|min:0',
+            'away_score' => 'required|integer|min:0',
+        ]);
+
+        if ($gameMatch->status === 'validated') {
+            return response()->json(['message' => 'Match is already validated and cannot be changed.'], 403);
+        }
+
+        $gameMatch->update([
+            'home_score' => $validated['home_score'],
+            'away_score' => $validated['away_score'],
+            'status' => 'submitted',
+            'submitted_by' => $request->user()->id,
+        ]);
+
+        return response()->json($gameMatch);
+    }
+}
+
+===== ADMIN API CONTROLLERS =====
+<?php
+
+namespace App\Http\Controllers\Api\V1\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Season;
+use Illuminate\Http\Request;
+
+class SeasonController extends Controller
+{
+    public function index() { return Season::all(); }
+    public function store(Request $request) { return Season::create($request->all()); }
+    public function show(Season $season) { return $season; }
+    public function update(Request $request, Season $season) { $season->update($request->all()); return $season; }
+    public function destroy(Season $season) { $season->delete(); return response()->noContent(); }
+}
+
+<?php
+
+namespace App\Http\Controllers\Api\V1\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Championship;
+use Illuminate\Http\Request;
+
+class ChampionshipController extends Controller
+{
+    public function index() { return Championship::all(); }
+    public function store(Request $request) { return Championship::create($request->all()); }
+    public function show(Championship $championship) { return $championship; }
+    public function update(Request $request, Championship $championship) { $championship->update($request->all()); return $championship; }
+    public function destroy(Championship $championship) { $championship->delete(); return response()->noContent(); }
+}
+
+<?php
+
+namespace App\Http\Controllers\Api\V1\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Category;
+use Illuminate\Http\Request;
+
+class CategoryController extends Controller
+{
+    public function index() { return Category::all(); }
+    public function store(Request $request) { return Category::create($request->all()); }
+    public function show(Category $category) { return $category; }
+    public function update(Request $request, Category $category) { $category->update($request->all()); return $category; }
+    public function destroy(Category $category) { $category->delete(); return response()->noContent(); }
+
+    public function storeEntry(Request $request, Category $category) {
+        $validated = $request->validate([
+            'entry_type' => 'required|in:player,team',
+            'player_id' => 'nullable|exists:players,id',
+            'team_id' => 'nullable|exists:teams,id',
+        ]);
+        return $category->entries()->create($validated);
+    }
+}
+
+<?php
+
+namespace App\Http\Controllers\Api\V1\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\GameMatch;
+use Illuminate\Http\Request;
+
+class MatchController extends Controller
+{
+    public function validateResult(Request $request, GameMatch $gameMatch)
+    {
+        $gameMatch->update([
+            'status' => 'validated',
+            'validated_by' => $request->user()->id,
+        ]);
+
+        return response()->json($gameMatch);
+    }
+}
+
+===== AUTH CONFIG =====
+<?php
+
+use App\Models\User;
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication Defaults
+    |--------------------------------------------------------------------------
+    |
+    | This option defines the default authentication "guard" and password
+    | reset "broker" for your application. You may change these values
+    | as required, but they're a perfect start for most applications.
+    |
+    */
+
+    'defaults' => [
+        'guard' => env('AUTH_GUARD', 'web'),
+        'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication Guards
+    |--------------------------------------------------------------------------
+    |
+    | Next, you may define every authentication guard for your application.
+    | Of course, a great default configuration has been defined for you
+    | which utilizes session storage plus the Eloquent user provider.
+    |
+    | All authentication guards have a user provider, which defines how the
+    | users are actually retrieved out of your database or other storage
+    | system used by the application. Typically, Eloquent is utilized.
+    |
+    | Supported: "session"
+    |
+    */
+
+    'guards' => [
+        'web' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | User Providers
+    |--------------------------------------------------------------------------
+    |
+    | All authentication guards have a user provider, which defines how the
+    | users are actually retrieved out of your database or other storage
+    | system used by the application. Typically, Eloquent is utilized.
+    |
+    | If you have multiple user tables or models you may configure multiple
+    | providers to represent the model / table. These providers may then
+    | be assigned to any extra authentication guards you have defined.
+    |
+    | Supported: "database", "eloquent"
+    |
+    */
+
+    'providers' => [
+        'users' => [
+            'driver' => 'eloquent',
+            'model' => env('AUTH_MODEL', User::class),
+        ],
+
+        // 'users' => [
+        //     'driver' => 'database',
+        //     'table' => 'users',
+        // ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Resetting Passwords
+    |--------------------------------------------------------------------------
+    |
+    | These configuration options specify the behavior of Laravel's password
+    | reset functionality, including the table utilized for token storage
+    | and the user provider that is invoked to actually retrieve users.
+    |
+    | The expiry time is the number of minutes that each reset token will be
+    | considered valid. This security feature keeps tokens short-lived so
+    | they have less time to be guessed. You may change this as needed.
+    |
+    | The throttle setting is the number of seconds a user must wait before
+    | generating more password reset tokens. This prevents the user from
+    | quickly generating a very large amount of password reset tokens.
+    |
+    */
+
+    'passwords' => [
+        'users' => [
+            'provider' => 'users',
+            'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Password Confirmation Timeout
+    |--------------------------------------------------------------------------
+    |
+    | Here you may define the number of seconds before a password confirmation
+    | window expires and users are asked to re-enter their password via the
+    | confirmation screen. By default, the timeout lasts for three hours.
+    |
+    */
+
+    'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
+
+];
+
+<?php
+
+use Laravel\Sanctum\Sanctum;
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Stateful Domains
+    |--------------------------------------------------------------------------
+    |
+    | Requests from the following domains / hosts will receive stateful API
+    | authentication cookies. Typically, these should include your local
+    | and production domains which access your API via a frontend SPA.
+    |
+    */
+
+    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
+        '%s%s',
+        'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1',
+        Sanctum::currentApplicationUrlWithPort(),
+        // Sanctum::currentRequestHost(),
+    ))),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Sanctum Guards
+    |--------------------------------------------------------------------------
+    |
+    | This array contains the authentication guards that will be checked when
+    | Sanctum is trying to authenticate a request. If none of these guards
+    | are able to authenticate the request, Sanctum will use the bearer
+    | token that's present on an incoming request for authentication.
+    |
+    */
+
+    'guard' => ['web'],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Expiration Minutes
+    |--------------------------------------------------------------------------
+    |
+    | This value controls the number of minutes until an issued token will be
+    | considered expired. This will override any values set in the token's
+    | "expires_at" attribute, but first-party sessions are not affected.
+    |
+    */
+
+    'expiration' => null,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Token Prefix
+    |--------------------------------------------------------------------------
+    |
+    | Sanctum can prefix new tokens in order to take advantage of numerous
+    | security scanning initiatives maintained by open source platforms
+    | that notify developers if they commit tokens into repositories.
+    |
+    | See: https://docs.github.com/en/code-security/secret-scanning/about-secret-scanning
+    |
+    */
+
+    'token_prefix' => env('SANCTUM_TOKEN_PREFIX', ''),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Sanctum Middleware
+    |--------------------------------------------------------------------------
+    |
+    | When authenticating your first-party SPA with Sanctum you may need to
+    | customize some of the middleware Sanctum uses while processing the
+    | request. You may change the middleware listed below as required.
+    |
+    */
+
+    'middleware' => [
+        'authenticate_session' => Laravel\Sanctum\Http\Middleware\AuthenticateSession::class,
+        'encrypt_cookies' => Illuminate\Cookie\Middleware\EncryptCookies::class,
+        'validate_csrf_token' => Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
+    ],
+
+];
+
+===== FRONTEND ROUTER =====
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.jsx'
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import Home from './pages/Home';
+import Standings from './pages/Standings';
+import Schedule from './pages/Schedule';
+import MatchDetails from './pages/MatchDetails';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import './index.css';
+
+function Navigation() {
+  const { isAuthenticated, logout } = useAuth();
+  
+  return (
+    <nav className="navbar">
+      <div className="navbar-brand">
+        <Link to="/">Galotxas</Link>
+      </div>
+      <div className="navbar-links">
+        <Link to="/">Inicio</Link>
+        {isAuthenticated ? (
+          <>
+            <Link to="/dashboard">Panel</Link>
+            <button onClick={logout} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.95rem', fontWeight: '500' }}>Salir</button>
+          </>
+        ) : (
+          <Link to="/login">Acceder</Link>
+        )}
+      </div>
+    </nav>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <div className="app-layout">
+          <Navigation />
+        
+        <main className="main-content">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/categories/:categoryId/standings" element={<Standings />} />
+            <Route path="/categories/:categoryId/schedule" element={<Schedule />} />
+            <Route path="/matches/:matchId" element={<MatchDetails />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </main>
+      </div>
+    </Router>
+    </AuthProvider>
+  );
+}
+
+export default App;
+
+===== AUTH CONTEXT =====
+import { createContext, useContext, useState, useEffect } from 'react';
+import api from '../api/client';
+
+const AuthContext = createContext(null);
+
+export const AuthProvider = ({ children }) => {
+    const [user, setUser] = useState(null);
+    const [token, setToken] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const storedToken = localStorage.getItem('token');
+        const storedUser = localStorage.getItem('user');
+        
+        if (storedToken && storedUser) {
+            setToken(storedToken);
+            setUser(JSON.parse(storedUser));
+        }
+        setLoading(false);
+    }, []);
+
+    const login = async (email, password) => {
+        const response = await api.post('/auth/login', { email, password });
+        const { token: newToken, user: userData } = response.data;
+        
+        localStorage.setItem('token', newToken);
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        setToken(newToken);
+        setUser(userData);
+        return userData;
+    };
+
+    const logout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setToken(null);
+        setUser(null);
+    };
+
+    const value = {
+        user,
+        token,
+        login,
+        logout,
+        isAuthenticated: !!token,
+        isAdmin: user?.role === 'admin'
+    };
+
+    return (
+        <AuthContext.Provider value={value}>
+            {!loading && children}
+        </AuthContext.Provider>
+    );
+};
+
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
+};
+
+===== PROTECTED ROUTE =====
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+export default function ProtectedRoute({ children, requireAdmin = false }) {
+    const { isAuthenticated, isAdmin } = useAuth();
+
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace />;
+    }
+
+    if (requireAdmin && !isAdmin) {
+        return <Navigate to="/dashboard" replace />; // Redirect non-admins to their dashboard
+    }
+
+    return children;
+}
+
+===== LOGIN =====
+import { useState, useEffect } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+export default function Login() {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
+    const { login, isAuthenticated } = useAuth();
+
+    if (isAuthenticated) {
+        return <Navigate to="/dashboard" replace />;
+    }
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setError(null);
+        setLoading(true);
+        try {
+            await login(email, password);
+            navigate('/dashboard', { replace: true });
+        } catch (err) {
+            setError(err.response?.data?.message || 'Credenciales incorrectas o error de conexión');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="page-container" style={{ maxWidth: '400px', margin: '4rem auto' }}>
+            <h2 style={{ textAlign: 'center', marginBottom: '2rem' }}>Acceso Jugadores</h2>
+            
+            {error && <div style={{ color: '#ff7b72', marginBottom: '1.5rem', background: 'rgba(248,81,73,0.1)', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(248,81,73,0.3)', fontSize: '0.9rem' }}>{error}</div>}
+            
+            <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Correo Electrónico</label>
+                    <input 
+                        type="email" 
+                        value={email} onChange={e => setEmail(e.target.value)} 
+                        required 
+                        style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '8px', border: '1px solid var(--surface-border)', background: 'rgba(0,0,0,0.2)', color: 'white', outline: 'none' }}
+                        placeholder="tu@email.com"
+                    />
+                </div>
+                <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Contraseña</label>
+                    <input 
+                        type="password" 
+                        value={password} onChange={e => setPassword(e.target.value)} 
+                        required 
+                        style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '8px', border: '1px solid var(--surface-border)', background: 'rgba(0,0,0,0.2)', color: 'white', outline: 'none' }}
+                        placeholder="••••••••"
+                    />
+                </div>
+                
+                <button type="submit" disabled={loading} className="card-hover" style={{ 
+                    padding: '1rem', 
+                    borderRadius: '8px', 
+                    border: 'none', 
+                    background: 'var(--brand-gradient)', 
+                    color: 'white', 
+                    fontWeight: 'bold', 
+                    fontSize: '1rem',
+                    opacity: loading ? 0.7 : 1,
+                    marginTop: '1rem'
+                }}>
+                    {loading ? 'Accediendo...' : 'Iniciar Sesión'}
+                </button>
+            </form>
+        </div>
+    );
+}
+
+===== DASHBOARD =====
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import api from '../api/client';
+
+export default function Dashboard() {
+    const { user, logout } = useAuth();
+
+    return (
+        <div className="page-container">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <h1>Panel de {user.role === 'admin' ? 'Administrador' : 'Jugador'}</h1>
+                <button onClick={logout} style={{ background: 'transparent', border: '1px solid var(--danger)', color: 'var(--danger)', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer' }}>Cerrar Sesión</button>
+            </div>
+            
+            <div style={{ background: 'rgba(255,255,255,0.02)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--surface-border)', display: 'grid', gap: '1rem' }}>
+                <div>
+                    <span style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '0.85rem' }}>Nombre</span>
+                    <span style={{ fontSize: '1.2rem', fontWeight: '500' }}>{user.name}</span>
+                </div>
+                <div>
+                    <span style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '0.85rem' }}>Email</span>
+                    <span style={{ fontSize: '1.2rem', fontWeight: '500' }}>{user.email}</span>
+                </div>
+                <div>
+                    <span style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '0.85rem' }}>Vínculo a Jugador Base de Datos</span>
+                    <span style={{ fontSize: '1.2rem', fontWeight: '500', color: user.player ? 'var(--success)' : 'var(--text-secondary)' }}>
+                        {user.player ? user.player.name : 'No vinculado a un perfil público'}
+                    </span>
+                </div>
+            </div>
+
+            <div style={{ marginTop: '3rem' }}>
+                <h3 style={{ marginBottom: '1.5rem', color: 'var(--brand-primary)' }}>Acciones Rápidas</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                    <Link to="/" style={{ textDecoration: 'none' }}>
+                        <div className="card-hover" style={{ background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--surface-border)' }}>
+                            <h4 style={{ color: 'white', marginBottom: '0.5rem' }}>Buscar partidos &rarr;</h4>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Navega por el calendario para buscar un partido y enviar el resultado.</p>
+                        </div>
+                    </Link>
+                    {user.role === 'admin' && (
+                        <div style={{ background: 'rgba(88,166,255,0.05)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--brand-primary)', opacity: 0.8 }}>
+                            <h4 style={{ color: 'var(--brand-primary)', marginBottom: '0.5rem' }}>Validación Admin (Próximamente) &rarr;</h4>
+                            <p style={{ color: 'var(--brand-primary)', fontSize: '0.9rem' }}>El panel para validar resultados estará implementado en la siguiente fase.</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+===== PUBLIC PAGES =====
+import { useState, useEffect } from 'react';
+import api from '../api/client';
+import CategoryCard from '../components/CategoryCard';
+
+export default function Home() {
+    const [seasons, setSeasons] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        api.get('/seasons')
+            .then(response => {
+                setSeasons(response.data);
+                setLoading(false);
+            })
+            .catch(error => {
+                console.error("Error fetching seasons", error);
+                setLoading(false);
+            });
+    }, []);
+
+    if (loading) return <div className="page-container"><p>Cargando temporadas...</p></div>;
+
+    return (
+        <div className="page-container">
+            <h1>Competiciones Galotxas</h1>
+            <p>Selecciona una categoría para ver clasificaciones y resultados.</p>
+
+            {seasons.map(season => (
+                <div key={season.id} className="season-block" style={{ marginTop: '2rem' }}>
+                    <h2 style={{ borderBottom: '1px solid var(--surface-border)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
+                        {season.name}
+                    </h2>
+                    
+                    {season.championships?.map(championship => (
+                        <div key={championship.id} className="championship-block" style={{ marginBottom: '2rem' }}>
+                            <h3 style={{ color: 'var(--brand-primary)', marginBottom: '1rem' }}>{championship.name}</h3>
+                            
+                            <div className="category-grid" style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                                gap: '1.5rem'
+                            }}>
+                                {championship.categories?.map(category => (
+                                    <CategoryCard key={category.id} category={category} />
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ))}
+            
+            {seasons.length === 0 && <p style={{ marginTop: '2rem' }}>No hay competiciones activas en este momento.</p>}
+        </div>
+    );
+}
+
+import { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import api from '../api/client';
+import MatchCard from '../components/MatchCard';
+
+export default function Schedule() {
+    const { categoryId } = useParams();
+    const [category, setCategory] = useState(null);
+    const [schedule, setSchedule] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        api.get(`/categories/${categoryId}/schedule`)
+            .then(response => {
+                const data = response.data.data;
+                setCategory(data);
+                setSchedule(data.rounds || []);
+                setLoading(false);
+            })
+            .catch(error => {
+                console.error(error);
+                setLoading(false);
+            });
+    }, [categoryId]);
+
+    if (loading) return <div className="page-container"><p>Cargando calendario...</p></div>;
+    if (!category) return <div className="page-container"><p>Categoría no encontrada.</p></div>;
+
+    const translateStatus = (status) => {
+        const statuses = {
+             'scheduled': 'Programado',
+             'submitted': 'Pendiente de Validar',
+             'validated': 'Finalizado',
+             'postponed': 'Aplazado',
+             'cancelled': 'Cancelado'
+        };
+        return statuses[status] || status;
+    };
+
+    return (
+        <div className="page-container">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
+                <div>
+                    <h1 style={{ marginBottom: '0.5rem' }}>{category.name}</h1>
+                    <p style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <span style={{ background: 'rgba(255,255,255,0.1)', padding: '4px 10px', borderRadius: '16px', fontSize: '0.85rem' }}>{category.championship?.name}</span>
+                        <span style={{ color: 'var(--text-secondary)' }}>Calendario de partidos</span>
+                    </p>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', background: 'rgba(0,0,0,0.2)', padding: '0.4rem', borderRadius: '8px' }}>
+                    <Link to={`/categories/${categoryId}/standings`} style={{ padding: '0.5rem 1rem', borderRadius: '6px', color: 'var(--text-secondary)', textDecoration: 'none' }}>Clasificación</Link>
+                    <Link to={`/categories/${categoryId}/schedule`} style={{ background: 'var(--surface-color)', padding: '0.5rem 1rem', borderRadius: '6px', color: 'var(--text-primary)', fontWeight: 'bold', textDecoration: 'none', boxShadow: 'var(--shadow-sm)' }}>Calendario & Resultados</Link>
+                </div>
+            </div>
+
+            {schedule.length === 0 ? (
+                <p>No hay jornadas configuradas todavía.</p>
+            ) : (
+                schedule.map(round => (
+                    <div key={round.id} style={{ marginBottom: '3rem' }}>
+                        <h2 style={{ borderBottom: '1px solid var(--surface-border)', paddingBottom: '0.5rem', marginBottom: '1.5rem', color: 'var(--brand-primary)' }}>
+                            {round.name}
+                        </h2>
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
+                            {round.matches?.map(match => (
+                                <MatchCard key={match.id} match={match} translateStatus={translateStatus} />
+                            ))}
+                            {(!round.matches || round.matches.length === 0) && (
+                                <p style={{ color: 'var(--text-secondary)' }}>No hay partidos programados en esta jornada.</p>
+                            )}
+                        </div>
+                    </div>
+                ))
+            )}
+        </div>
+    );
+}
+
+import { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import api from '../api/client';
+
+export default function Standings() {
+    const { categoryId } = useParams();
+    const [category, setCategory] = useState(null);
+    const [standings, setStandings] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        Promise.all([
+            api.get(`/categories/${categoryId}`),
+            api.get(`/categories/${categoryId}/standings`)
+        ]).then(([catRes, stdRes]) => {
+            setCategory(catRes.data.data);
+            setStandings(stdRes.data.data);
+            setLoading(false);
+        }).catch(error => {
+            console.error(error);
+            setLoading(false);
+        });
+    }, [categoryId]);
+
+    if (loading) return <div className="page-container"><p>Cargando clasificación...</p></div>;
+    if (!category) return <div className="page-container"><p>Categoría no encontrada.</p></div>;
+
+    return (
+        <div className="page-container">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
+                <div>
+                    <h1 style={{ marginBottom: '0.5rem' }}>{category.name}</h1>
+                    <p style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <span style={{ background: 'rgba(255,255,255,0.1)', padding: '4px 10px', borderRadius: '16px', fontSize: '0.85rem' }}>{category.championship?.name}</span>
+                        <span style={{ color: 'var(--text-secondary)' }}>•</span>
+                        <span style={{ color: 'var(--text-secondary)' }}>{category.championship?.season?.name}</span>
+                    </p>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', background: 'rgba(0,0,0,0.2)', padding: '0.4rem', borderRadius: '8px' }}>
+                    <Link to={`/categories/${categoryId}/standings`} style={{ background: 'var(--surface-color)', padding: '0.5rem 1rem', borderRadius: '6px', color: 'var(--text-primary)', fontWeight: 'bold', textDecoration: 'none', boxShadow: 'var(--shadow-sm)' }}>Clasificación</Link>
+                    <Link to={`/categories/${categoryId}/schedule`} style={{ padding: '0.5rem 1rem', borderRadius: '6px', color: 'var(--text-secondary)', textDecoration: 'none' }}>Calendario & Resultados</Link>
+                </div>
+            </div>
+
+            <div style={{ overflowX: 'auto', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid var(--surface-border)' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
+                    <thead>
+                        <tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid var(--surface-border)' }}>
+                            <th style={{ padding: '1.2rem', color: 'var(--text-secondary)', fontWeight: '600', width: '60px', textAlign: 'center' }}>#</th>
+                            <th style={{ padding: '1.2rem', color: 'var(--text-secondary)', fontWeight: '600' }}>Participante</th>
+                            <th style={{ padding: '1.2rem', color: 'var(--text-secondary)', fontWeight: '600', textAlign: 'center' }}>PJ</th>
+                            <th style={{ padding: '1.2rem', color: 'var(--text-secondary)', fontWeight: '600', textAlign: 'center' }}>V</th>
+                            <th style={{ padding: '1.2rem', color: 'var(--text-secondary)', fontWeight: '600', textAlign: 'center' }}>D</th>
+                            <th style={{ padding: '1.2rem', color: 'var(--text-secondary)', fontWeight: '600', textAlign: 'center' }}>JF</th>
+                            <th style={{ padding: '1.2rem', color: 'var(--text-secondary)', fontWeight: '600', textAlign: 'center' }}>JC</th>
+                            <th style={{ padding: '1.2rem', color: 'var(--text-secondary)', fontWeight: '600', textAlign: 'center' }}>Dif</th>
+                            <th style={{ padding: '1.2rem', color: 'var(--brand-primary)', fontWeight: '700', textAlign: 'center' }}>PTS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {standings.map((row, index) => (
+                            <tr key={row.entry_id} style={{ borderBottom: '1px solid rgba(240,246,252,0.05)', transition: 'background 0.2s ease', cursor: 'default' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                                <td style={{ padding: '1.2rem', fontWeight: 'bold', textAlign: 'center', color: index < 4 ? 'var(--brand-primary)' : 'var(--text-secondary)' }}>{index + 1}</td>
+                                <td style={{ padding: '1.2rem', fontWeight: '500' }}>{row.name}</td>
+                                <td style={{ padding: '1.2rem', textAlign: 'center' }}>{row.matches_played}</td>
+                                <td style={{ padding: '1.2rem', textAlign: 'center', color: 'var(--success)' }}>{row.wins}</td>
+                                <td style={{ padding: '1.2rem', textAlign: 'center', color: 'var(--danger)' }}>{row.losses}</td>
+                                <td style={{ padding: '1.2rem', textAlign: 'center' }}>{row.games_for}</td>
+                                <td style={{ padding: '1.2rem', textAlign: 'center' }}>{row.games_against}</td>
+                                <td style={{ padding: '1.2rem', textAlign: 'center', fontWeight: '500', color: row.games_diff > 0 ? 'var(--success)' : (row.games_diff < 0 ? 'var(--danger)' : 'inherit') }}>{row.games_diff > 0 ? `+${row.games_diff}` : row.games_diff}</td>
+                                <td style={{ padding: '1.2rem', fontWeight: '800', textAlign: 'center', color: 'var(--brand-primary)', fontSize: '1.1rem', background: 'rgba(88,166,255,0.05)' }}>{row.points}</td>
+                            </tr>
+                        ))}
+                        {standings.length === 0 && (
+                            <tr>
+                                <td colSpan="9" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No hay participantes o resultados todavía.</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+}
+
+import { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import api from '../api/client';
+
+export default function MatchDetails() {
+    const { matchId } = useParams();
+    const { user, token } = useAuth();
+    
+    const [submitLoading, setSubmitLoading] = useState(false);
+    const [homeScore, setHomeScore] = useState('');
+    const [awayScore, setAwayScore] = useState('');
+    const [submitError, setSubmitError] = useState(null);
+    
+    const [match, setMatch] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    const fetchMatch = () => {
+        api.get(`/matches/${matchId}`)
+            .then(response => {
+                setMatch(response.data.data);
+                setLoading(false);
+            })
+            .catch(error => {
+                console.error(error);
+                setLoading(false);
+            });
+    };
+
+    useEffect(() => {
+        fetchMatch();
+    }, [matchId]);
+
+    const handleResultSubmit = async (e) => {
+        e.preventDefault();
+        if (!token) return;
+        
+        setSubmitLoading(true);
+        setSubmitError(null);
+        
+        try {
+            await api.post(`/matches/${matchId}/submit-result`, {
+                home_score: parseInt(homeScore),
+                away_score: parseInt(awayScore)
+            });
+            // Refresh match data
+            fetchMatch();
+        } catch (err) {
+            setSubmitError(err.response?.data?.message || 'Error enviando el resultado');
+        } finally {
+            setSubmitLoading(false);
+        }
+    };
+
+    const handleValidateResult = async () => {
+        if (!token || user?.role !== 'admin') return;
+        
+        setSubmitLoading(true);
+        setSubmitError(null);
+        
+        try {
+            await api.post(`/admin/matches/${matchId}/validate-result`);
+            fetchMatch();
+        } catch (err) {
+            setSubmitError(err.response?.data?.message || 'Error validando el resultado');
+        } finally {
+            setSubmitLoading(false);
+        }
+    };
+
+    if (loading) return <div className="page-container"><p>Cargando detalles...</p></div>;
+    if (!match) return <div className="page-container"><p>Partido no encontrado.</p></div>;
+
+    const translateStatus = (status) => {
+        const statuses = {
+             'scheduled': 'Programado',
+             'submitted': 'Pendiente de Validar',
+             'validated': 'Finalizado',
+             'postponed': 'Aplazado',
+             'cancelled': 'Cancelado'
+        };
+        return statuses[status] || status;
+    };
+
+    return (
+        <div className="page-container">
+            <div style={{ marginBottom: '2rem' }}>
+               <Link to={`/categories/${match.round?.category_id}/schedule`} style={{ color: 'var(--brand-primary)', textDecoration: 'none' }}>
+                    &larr; Volver al calendario
+               </Link>
+            </div>
+
+            <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+                <div style={{ display: 'inline-block', background: 'rgba(255,255,255,0.05)', padding: '6px 16px', borderRadius: '20px', fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+                    {match.round?.name} • {match.scheduled_date ? new Date(match.scheduled_date).toLocaleString() : 'Fecha sin definir'}
+                </div>
+                
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '2rem' }}>
+                    <div style={{ flex: 1, textAlign: 'right', fontSize: '1.5rem', fontWeight: 'bold' }}>
+                        {match.home_team_name}
+                    </div>
+                    
+                    <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        gap: '1rem', 
+                        background: 'rgba(255,255,255,0.03)', 
+                        padding: '1rem 2rem', 
+                        borderRadius: '16px',
+                        border: '1px solid var(--surface-border)'
+                    }}>
+                        <span style={{ fontSize: '3rem', fontWeight: '900', color: match.status === 'validated' ? 'var(--brand-primary)' : 'var(--text-secondary)' }}>
+                            {match.home_score !== null ? match.home_score : '-'}
+                        </span>
+                        <span style={{ color: 'var(--text-secondary)' }}>vs</span>
+                        <span style={{ fontSize: '3rem', fontWeight: '900', color: match.status === 'validated' ? 'var(--brand-primary)' : 'var(--text-secondary)' }}>
+                            {match.away_score !== null ? match.away_score : '-'}
+                        </span>
+                    </div>
+
+                    <div style={{ flex: 1, textAlign: 'left', fontSize: '1.5rem', fontWeight: 'bold' }}>
+                        {match.away_team_name}
+                    </div>
+                </div>
+
+                <div style={{ marginTop: '2rem' }}>
+                    <span style={{ 
+                        background: match.status === 'validated' ? 'var(--success)' : 'rgba(255,255,255,0.1)',
+                        color: match.status === 'validated' ? '#fff' : 'inherit',
+                        padding: '6px 16px', borderRadius: '20px', fontSize: '0.9rem', fontWeight: 'bold' 
+                    }}>
+                        {translateStatus(match.status)}
+                    </span>
+                </div>
+            </div>
+
+            {user && match.status === 'scheduled' && (
+                <div style={{ 
+                    background: 'rgba(56, 139, 253, 0.1)', 
+                    borderRadius: '12px', 
+                    padding: '2rem', 
+                    border: '1px solid var(--brand-secondary)',
+                    marginBottom: '2rem'
+                }}>
+                    <h3 style={{ marginBottom: '1rem', color: 'var(--brand-primary)' }}>Introducir Resultado</h3>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Como jugador autenticado puedes registrar el marcador final de este partido.</p>
+                    
+                    {submitError && <div style={{ color: '#ff7b72', marginBottom: '1.5rem', background: 'rgba(248,81,73,0.1)', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(248,81,73,0.3)', fontSize: '0.9rem' }}>{submitError}</div>}
+                    
+                    <form onSubmit={handleResultSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1.5rem', alignItems: 'end' }}>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Juegos {match.home_team_name}</label>
+                            <input 
+                                type="number" min="0" max="15" 
+                                value={homeScore} onChange={e => setHomeScore(e.target.value)} 
+                                required 
+                                style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--surface-border)', background: 'rgba(0,0,0,0.3)', color: 'white', fontSize: '1.2rem', textAlign: 'center' }}
+                            />
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Juegos {match.away_team_name}</label>
+                            <input 
+                                type="number" min="0" max="15" 
+                                value={awayScore} onChange={e => setAwayScore(e.target.value)} 
+                                required 
+                                style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--surface-border)', background: 'rgba(0,0,0,0.3)', color: 'white', fontSize: '1.2rem', textAlign: 'center' }}
+                            />
+                        </div>
+                        <button type="submit" disabled={submitLoading || homeScore === '' || awayScore === ''} style={{ 
+                            padding: '0.8rem', 
+                            borderRadius: '8px', 
+                            border: 'none', 
+                            background: 'var(--brand-gradient)', 
+                            color: 'white', 
+                            fontWeight: 'bold', 
+                            cursor: (submitLoading || homeScore === '' || awayScore === '') ? 'not-allowed' : 'pointer',
+                            opacity: (submitLoading || homeScore === '' || awayScore === '') ? 0.5 : 1,
+                            height: '50px'
+                        }}>
+                            {submitLoading ? 'Enviando...' : 'Enviar Resultado'}
+                        </button>
+                    </form>
+                </div>
+            )}
+
+            {user?.role === 'admin' && match.status === 'submitted' && (
+                <div style={{ 
+                    background: 'rgba(46, 160, 67, 0.1)', 
+                    borderRadius: '12px', 
+                    padding: '2rem', 
+                    border: '1px solid var(--success)',
+                    marginBottom: '2rem',
+                    textAlign: 'center'
+                }}>
+                    <h3 style={{ marginBottom: '1rem', color: 'var(--success)' }}>Validación de Administración</h3>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Este resultado ha sido introducido y está pendiente de validación oficial.</p>
+                    
+                    {submitError && <div style={{ color: '#ff7b72', marginBottom: '1.5rem', background: 'rgba(248,81,73,0.1)', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(248,81,73,0.3)', fontSize: '0.9rem' }}>{submitError}</div>}
+                    
+                    <button onClick={handleValidateResult} disabled={submitLoading} style={{ 
+                        padding: '1rem 2rem', 
+                        borderRadius: '8px', 
+                        border: 'none', 
+                        background: 'var(--success)', 
+                        color: 'white', 
+                        fontWeight: 'bold', 
+                        cursor: submitLoading ? 'not-allowed' : 'pointer',
+                        opacity: submitLoading ? 0.7 : 1,
+                        fontSize: '1.1rem'
+                    }}>
+                        {submitLoading ? 'Validando...' : 'Aprobar Resultado Definitivo'}
+                    </button>
+                </div>
+            )}
+
+            <div style={{ 
+                background: 'rgba(0,0,0,0.2)', 
+                borderRadius: '12px', 
+                padding: '2rem', 
+                border: '1px solid var(--surface-border)' 
+            }}>
+                <h3 style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)' }}>Detalles de la partida</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                    <div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Instalación</div>
+                        <div style={{ fontWeight: '500' }}>{match.venue?.name || 'No especificada'}</div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{match.venue?.location}</div>
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Categoría</div>
+                        <div style={{ fontWeight: '500' }}>{match.round?.category?.name || 'Desconocida'}</div>
+                    </div>
+                    {match.submitted_by && (
+                        <div>
+                            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Resultado enviado por</div>
+                            <div style={{ fontWeight: '500' }}>{match.submitted_by_user?.name || `Usuario ID: ${match.submitted_by}`}</div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
