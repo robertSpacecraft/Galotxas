@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\PlayerController;
+use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -42,7 +44,6 @@ Route::prefix('admin')->group(function () {
         Route::delete('/championships/{championship}', [AdminChampionshipController::class, 'destroy'])->name('admin.championships.destroy');
 
         //Categorías
-        Route::get('/categories', [AdminCategoryController::class, 'index'])->name('admin.categories.index');
         Route::get('/championships/{championship}/categories', [AdminCategoryController::class, 'index'])
             ->name('admin.championships.categories');
         Route::get('/championships/{championship}/categories/create', [AdminCategoryController::class, 'create'])
@@ -55,5 +56,34 @@ Route::prefix('admin')->group(function () {
             ->name('admin.categories.update');
         Route::delete('/categories/{category}', [AdminCategoryController::class, 'destroy'])
             ->name('admin.categories.destroy');
+
+        //Jugadores
+        Route::get('/players', [PlayerController::class, 'index'])
+            ->name('admin.players.index');
+        Route::get('/players/create', [PlayerController::class, 'create'])
+            ->name('admin.players.create');
+        Route::post('/players', [PlayerController::class, 'store'])
+            ->name('admin.players.store');
+        Route::get('/players/{player}/edit', [PlayerController::class, 'edit'])
+            ->name('admin.players.edit');
+        Route::put('/players/{player}', [PlayerController::class, 'update'])
+            ->name('admin.players.update');
+        Route::delete('/players/{player}', [PlayerController::class, 'destroy'])
+            ->name('admin.players.destroy');
+
+        //Usuarios
+        //Usuarios
+        Route::get('/users', [UserController::class, 'index'])
+            ->name('admin.users.index');
+        Route::get('/users/create', [UserController::class, 'create'])
+            ->name('admin.users.create');
+        Route::post('/users', [UserController::class, 'store'])
+            ->name('admin.users.store');
+        Route::get('/users/{user}/edit', [UserController::class, 'edit'])
+            ->name('admin.users.edit');
+        Route::put('/users/{user}', [UserController::class, 'update'])
+            ->name('admin.users.update');
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])
+            ->name('admin.users.destroy');
     });
 });

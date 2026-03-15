@@ -2,29 +2,47 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Enums\PlayerGender;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Player extends Model
 {
     use HasFactory;
+
     protected $fillable = [
-        'name',
+        'user_id',
         'slug',
-        'active',
         'dni',
         'birth_date',
         'gender',
-        'level'
+        'level',
+        'active',
     ];
 
-    public function user()
+    protected $casts = [
+        'birth_date' => 'date',
+        'gender' => PlayerGender::class,
+        'level' => 'integer',
+        'active' => 'boolean',
+    ];
+
+    public function user(): BelongsTo
     {
-        return $this->hasOne(User::class);
+        return $this->belongsTo(User::class);
     }
 
-    public function teams()
+    public function teams(): BelongsToMany
     {
-        return $this->belongsToMany(Team::class, 'team_members');
+        return $this->belongsToMany(Team::class, 'team_members')
+            ->withTimestamps();
+    }
+
+    public function entries(): HasMany
+    {
+        return $this->hasMany(CategoryEntry::class);
     }
 }

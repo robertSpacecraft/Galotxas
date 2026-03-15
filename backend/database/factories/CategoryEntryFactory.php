@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Category;
+use App\Models\Player;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -20,6 +21,8 @@ class CategoryEntryFactory extends Factory
         return [
             'category_id' => Category::factory(),
             'entry_type' => 'player',
+            'player_id' => Player::factory(),
+            'team_id' => null,
             'status' => 'approved',
         ];
     }

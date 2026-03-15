@@ -7,7 +7,6 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -25,7 +24,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'player_id',
+        'active',
     ];
 
     /**
@@ -48,11 +47,12 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'active' => 'boolean',
         ];
     }
 
     public function player()
     {
-        return $this->belongsTo(Player::class);
+        return $this->hasOne(Player::class);
     }
 }

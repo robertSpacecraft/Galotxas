@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\CategoryGender;
 use App\Models\Championship;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -11,20 +12,20 @@ use Illuminate\Support\Str;
  */
 class CategoryFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
-        $name = $this->faker->randomElement(['1ª Categoría', '2ª Categoría', '3ª Categoría', 'Femenina']);
+        $level = $this->faker->numberBetween(1, 6);
+
         return [
             'championship_id' => Championship::factory(),
-            'name' => $name,
-            'slug' => Str::slug($name . '-' . Str::random(5)),
-            'level' => $this->faker->numberBetween(1, 4),
-            'category_type' => $this->faker->randomElement(['open', 'female', 'mixed']),
+            'name' => $level . 'ª Categoría',
+            'slug' => Str::slug($level . 'a-categoria-' . Str::random(5)),
+            'level' => $level,
+            'gender' => $this->faker->randomElement([
+                CategoryGender::MALE->value,
+                CategoryGender::FEMALE->value,
+                CategoryGender::MIXED->value,
+            ]),
             'status' => 'active',
         ];
     }

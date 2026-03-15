@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('players', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
             $table->string('slug')->unique();
             $table->string('dni')->nullable();
             $table->date('birth_date')->nullable();
-            $table->string('gender', 10)->nullable();
+            $table->enum('gender', ['male', 'female', 'other'])->nullable();
             $table->integer('level')->default(1);
             $table->boolean('active')->default(true);
             $table->timestamps();

@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\CategoryGender;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreCategoryRequest;
+use App\Http\Requests\Admin\UpdateCategoryRequest;
 use App\Models\Category;
 use App\Models\Championship;
-use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class CategoryController extends Controller
@@ -19,21 +21,22 @@ class CategoryController extends Controller
 
     public function create(Championship $championship)
     {
-        return view('admin.categories.create', compact('championship'));
+        $genderOptions = CategoryGender::options();
+        $levelOptions = range(1, 10);
+
+        return view('admin.categories.create', compact('championship', 'genderOptions', 'levelOptions'));
     }
 
-    public function store(Request $request, Championship $championship)
+    public function store(StoreCategoryRequest $request, Championship $championship)
     {
-        $validated = $request->validate([
-            'name' => 'required|max:255',
-            'level' => 'required|integer',
-        ]);
+        $validated = $request->validated();
 
         Category::create([
             'championship_id' => $championship->id,
             'name' => $validated['name'],
             'slug' => Str::slug($validated['name']),
             'level' => $validated['level'],
+            'gender' => $validated['gender'],
         ]);
 
         return redirect()
@@ -43,20 +46,21 @@ class CategoryController extends Controller
 
     public function edit(Category $category)
     {
-        return view('admin.categories.edit', compact('category'));
+        $genderOptions = CategoryGender::options();
+        $levelOptions = range(1, 10);
+
+        return view('admin.categories.edit', compact('category', 'genderOptions', 'levelOptions'));
     }
 
-    public function update(Request $request, Category $category)
+    public function update(UpdateCategoryRequest $request, Category $category)
     {
-        $validated = $request->validate([
-            'name' => 'required|max:255',
-            'level' => 'required|integer',
-        ]);
+        $validated = $request->validated();
 
         $category->update([
             'name' => $validated['name'],
             'slug' => Str::slug($validated['name']),
             'level' => $validated['level'],
+            'gender' => $validated['gender'],
         ]);
 
         return redirect()

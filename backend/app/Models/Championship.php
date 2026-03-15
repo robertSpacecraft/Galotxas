@@ -2,18 +2,24 @@
 
 namespace App\Models;
 
+use App\Enums\ChampionshipType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Championship extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'season_id',
         'name',
         'description',
         'type',
         'status',
+    ];
+
+    protected $casts = [
+        'type' => ChampionshipType::class,
     ];
 
     public function season()

@@ -28,13 +28,26 @@
 
         <div style="margin-bottom: 1rem;">
             <label for="level">Nivel</label><br>
-            <input
-                id="level"
-                type="number"
-                name="level"
-                value="{{ old('level') }}"
-                required
-            >
+            <select id="level" name="level" required>
+                <option value="">Selecciona un nivel</option>
+                @foreach ($levelOptions as $level)
+                    <option value="{{ $level }}" {{ (string) old('level') === (string) $level ? 'selected' : '' }}>
+                        {{ $level }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <label for="gender">Género</label><br>
+            <select id="gender" name="gender" required>
+                <option value="">Selecciona un género</option>
+                @foreach ($genderOptions as $option)
+                    <option value="{{ $option['value'] }}" {{ old('gender') === $option['value'] ? 'selected' : '' }}>
+                        {{ $option['label'] }}
+                    </option>
+                @endforeach
+            </select>
         </div>
 
         <button type="submit">Guardar categoría</button>

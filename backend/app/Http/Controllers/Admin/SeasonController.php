@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreSeasonRequest;
+use App\Http\Requests\Admin\UpdateSeasonRequest;
 use App\Models\Season;
-use Illuminate\Http\Request;
 
 class SeasonController extends Controller
 {
@@ -20,14 +21,9 @@ class SeasonController extends Controller
         return view('admin.seasons.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreSeasonRequest $request)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'status' => ['required', 'in:planned,active,finished,cancelled'],
-        ]);
-
-        Season::create($validated);
+        Season::create($request->validated());
 
         return redirect()
             ->route('admin.seasons.index')
@@ -39,14 +35,9 @@ class SeasonController extends Controller
         return view('admin.seasons.edit', compact('season'));
     }
 
-    public function update(Request $request, Season $season)
+    public function update(UpdateSeasonRequest $request, Season $season)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'status' => ['required', 'in:planned,active,finished,cancelled'],
-        ]);
-
-        $season->update($validated);
+        $season->update($request->validated());
 
         return redirect()
             ->route('admin.seasons.index')

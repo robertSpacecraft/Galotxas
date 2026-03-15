@@ -12,6 +12,8 @@
     <nav>
         <a href="/admin">Dashboard</a>
         <a href="/admin/seasons">Temporadas</a>
+        <a href="{{ route('admin.players.index') }}">Jugadores</a>
+        <a href="{{ route('admin.users.index') }}">Usuarios</a>
 
         <form method="POST" action="{{ route('admin.logout') }}" style="display:inline">
             @csrf
