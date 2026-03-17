@@ -15,11 +15,15 @@ class Player extends Model
 
     protected $fillable = [
         'user_id',
+        'nickname',
         'slug',
         'dni',
         'birth_date',
         'gender',
         'level',
+        'license_number',
+        'dominant_hand',
+        'notes',
         'active',
     ];
 

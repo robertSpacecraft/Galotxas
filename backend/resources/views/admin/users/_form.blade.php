@@ -7,6 +7,14 @@
     <input type="text"
            name="name"
            value="{{ old('name', $user->name ?? '') }}">
+</div>
+<div>
+
+    <label>Apellidos</label>
+
+    <input type="text"
+           name="lastname"
+           value="{{ old('lastname', $user->lastname ?? '') }}">
 
 </div>
 

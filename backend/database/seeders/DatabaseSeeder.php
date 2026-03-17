@@ -27,17 +27,23 @@ class DatabaseSeeder extends Seeder
     {
         // 1. Users
         $adminUser = User::create([
-            'name' => 'Admin Galotxas',
+            'name' => 'Admin',
+            'lastname' => 'Galotxas',
             'email' => 'admin@galotxas.com',
             'password' => Hash::make('password'),
             'role' => UserRole::ADMIN->value,
+            'active' => true,
+            'profile_photo_path' => null,
         ]);
 
         $participantUser = User::create([
-            'name' => 'Paco Pilotari',
+            'name' => 'Paco',
+            'lastname' => 'Pilotari',
             'email' => 'jugador@galotxas.com',
             'password' => Hash::make('password'),
             'role' => UserRole::USER->value,
+            'active' => true,
+            'profile_photo_path' => null,
         ]);
 
         // 2. Player profile linked to Paco's user
@@ -66,7 +72,13 @@ class DatabaseSeeder extends Seeder
         $singlesChamp = Championship::factory()->create([
             'season_id' => $season->id,
             'name' => 'Campionat Mà a Mà',
+            'slug' => Str::slug('Campionat Mà a Mà'),
+            'description' => 'Campeonato individual principal de la temporada.',
             'type' => 'singles',
+            'start_date' => '2026-01-15',
+            'end_date' => '2026-06-15',
+            'image_path' => null,
+            'status' => 'active',
         ]);
 
         $singlesCat1 = Category::factory()->create([
@@ -75,13 +87,22 @@ class DatabaseSeeder extends Seeder
             'slug' => Str::slug('1a-categoria-singles'),
             'level' => 1,
             'gender' => 'male',
+            'description' => 'Categoría principal del campeonato individual.',
+            'image_path' => null,
+            'status' => 'active',
         ]);
 
         // 7. Doubles championship
         $doublesChamp = Championship::factory()->create([
             'season_id' => $season->id,
             'name' => 'Campionat de Dobles',
+            'slug' => Str::slug('Campionat de Dobles'),
+            'description' => 'Campeonato por parejas principal de la temporada.',
             'type' => 'doubles',
+            'start_date' => '2026-01-15',
+            'end_date' => '2026-06-15',
+            'image_path' => null,
+            'status' => 'active',
         ]);
 
         $doublesCat1 = Category::factory()->create([
@@ -90,6 +111,9 @@ class DatabaseSeeder extends Seeder
             'slug' => Str::slug('1a-categoria-dobles'),
             'level' => 1,
             'gender' => 'male',
+            'description' => 'Categoría principal del campeonato de dobles.',
+            'image_path' => null,
+            'status' => 'active',
         ]);
 
         // 8. Category entries - singles

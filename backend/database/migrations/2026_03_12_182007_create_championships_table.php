@@ -15,8 +15,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('season_id')->constrained()->cascadeOnDelete();
             $table->string('name');
-            $table->string('description')->nullable();
+            $table->string('slug')->unique();
+            $table->text('description')->nullable();
             $table->enum('type', ['singles', 'doubles']);
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
+            $table->string('image_path')->nullable();
             $table->string('status')->default('pending');
             $table->timestamps();
         });

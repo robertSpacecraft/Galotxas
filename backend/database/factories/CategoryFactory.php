@@ -15,17 +15,20 @@ class CategoryFactory extends Factory
     public function definition(): array
     {
         $level = $this->faker->numberBetween(1, 6);
+        $name = $level . 'ª Categoría';
 
         return [
             'championship_id' => Championship::factory(),
-            'name' => $level . 'ª Categoría',
-            'slug' => Str::slug($level . 'a-categoria-' . Str::random(5)),
+            'name' => $name,
+            'slug' => Str::slug($name . '-' . Str::random(5)),
             'level' => $level,
             'gender' => $this->faker->randomElement([
                 CategoryGender::MALE->value,
                 CategoryGender::FEMALE->value,
                 CategoryGender::MIXED->value,
             ]),
+            'description' => $this->faker->sentence(),
+            'image_path' => null,
             'status' => 'active',
         ];
     }

@@ -17,7 +17,9 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug')->unique();
             $table->unsignedTinyInteger('level')->nullable();
-            $table->enum('category_type', ['open', 'female', 'mixed']);
+            $table->enum('gender', ['male', 'female', 'mixed']);
+            $table->text('description')->nullable();
+            $table->string('image_path')->nullable();
             $table->string('status')->default('pending');
             $table->timestamps();
         });

@@ -62,6 +62,8 @@ Route::prefix('admin')->group(function () {
             ->name('admin.players.index');
         Route::get('/players/create', [PlayerController::class, 'create'])
             ->name('admin.players.create');
+        Route::get('/players/{player}', [PlayerController::class, 'show'])
+            ->name('admin.players.show');
         Route::post('/players', [PlayerController::class, 'store'])
             ->name('admin.players.store');
         Route::get('/players/{player}/edit', [PlayerController::class, 'edit'])
@@ -72,11 +74,12 @@ Route::prefix('admin')->group(function () {
             ->name('admin.players.destroy');
 
         //Usuarios
-        //Usuarios
         Route::get('/users', [UserController::class, 'index'])
             ->name('admin.users.index');
         Route::get('/users/create', [UserController::class, 'create'])
             ->name('admin.users.create');
+        Route::get('/users/{user}', [UserController::class, 'show'])
+            ->name('admin.users.show');
         Route::post('/users', [UserController::class, 'store'])
             ->name('admin.users.store');
         Route::get('/users/{user}/edit', [UserController::class, 'edit'])

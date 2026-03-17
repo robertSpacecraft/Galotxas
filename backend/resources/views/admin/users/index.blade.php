@@ -4,7 +4,25 @@
 
     <h1>Usuarios</h1>
 
-    <a href="{{ route('admin.users.create') }}">Crear usuario</a>
+    <div style="margin-bottom: 16px;">
+        <a href="{{ route('admin.users.create') }}">Crear usuario</a>
+    </div>
+
+    <form method="GET" action="{{ route('admin.users.index') }}" style="margin-bottom: 16px;">
+        <label for="player_filter">Filtrar:</label>
+
+        <select name="player_filter" id="player_filter">
+            <option value="all" {{ $playerFilter === 'all' ? 'selected' : '' }}>Todos</option>
+            <option value="with_player" {{ $playerFilter === 'with_player' ? 'selected' : '' }}>Solo jugadores</option>
+            <option value="without_player" {{ $playerFilter === 'without_player' ? 'selected' : '' }}>Solo no jugadores</option>
+        </select>
+
+        <button type="submit">Aplicar</button>
+
+        @if($playerFilter !== 'all')
+            <a href="{{ route('admin.users.index') }}">Quitar filtro</a>
+        @endif
+    </form>
 
     @if(session('success'))
         <p style="color:green">{{ session('success') }}</p>
@@ -20,10 +38,11 @@
         <tr>
             <th>ID</th>
             <th>Nombre</th>
+            <th>Apellidos</th>
             <th>Email</th>
             <th>Rol</th>
             <th>Activo</th>
-            <th>Player</th>
+            <th>Jugador</th>
             <th>Acciones</th>
         </tr>
         </thead>
@@ -36,7 +55,13 @@
 
                 <td>{{ $user->id }}</td>
 
-                <td>{{ $user->name }}</td>
+                <td>
+                    <a href="{{ route('admin.users.show', $user) }}">
+                        {{ $user->name }}
+                    </a>
+                </td>
+
+                <td>{{ $user->lastname ?: '—' }}</td>
 
                 <td>{{ $user->email }}</td>
 
@@ -59,6 +84,12 @@
                 </td>
 
                 <td>
+
+                    <a href="{{ route('admin.users.show', $user) }}">
+                        Ver
+                    </a>
+
+                    |
 
                     <a href="{{ route('admin.users.edit', $user) }}">
                         Editar

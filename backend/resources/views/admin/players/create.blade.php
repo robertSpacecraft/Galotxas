@@ -33,11 +33,23 @@
                         @foreach ($users as $user)
                             <option value="{{ $user->id }}"
                                 {{ old('user_id') == $user->id ? 'selected' : '' }}>
-                                {{ $user->name }} ({{ $user->email }})
+                                {{ trim(($user->name ?? '') . ' ' . ($user->lastname ?? '')) }} ({{ $user->email }})
                             </option>
                         @endforeach
 
                     </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Apodo</label>
+
+                    <input
+                        type="text"
+                        name="nickname"
+                        class="form-control"
+                        value="{{ old('nickname') }}"
+                        placeholder="Opcional"
+                    >
                 </div>
 
                 <div class="mb-3">
@@ -61,6 +73,9 @@
                         class="form-control"
                         value="{{ old('birth_date') }}"
                     >
+                    <div class="form-text">
+                        Si el jugador es mayor de edad, deberá indicarse el DNI.
+                    </div>
                 </div>
 
                 <div class="mb-3">
@@ -91,6 +106,44 @@
                         max="10"
                         required
                     >
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Número de licencia</label>
+
+                    <input
+                        type="text"
+                        name="license_number"
+                        class="form-control"
+                        value="{{ old('license_number') }}"
+                        placeholder="Opcional"
+                    >
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Mano dominante</label>
+
+                    <select name="dominant_hand" class="form-select">
+                        <option value="">Sin especificar</option>
+
+                        @foreach ($dominantHandOptions as $value => $label)
+                            <option value="{{ $value }}"
+                                {{ old('dominant_hand') == $value ? 'selected' : '' }}>
+                                {{ $label }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Notas</label>
+
+                    <textarea
+                        name="notes"
+                        class="form-control"
+                        rows="4"
+                        placeholder="Observaciones opcionales sobre el jugador"
+                    >{{ old('notes') }}</textarea>
                 </div>
 
                 <div class="form-check mb-4">

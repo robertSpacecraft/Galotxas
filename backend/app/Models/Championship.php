@@ -13,13 +13,19 @@ class Championship extends Model
     protected $fillable = [
         'season_id',
         'name',
+        'slug',
         'description',
         'type',
+        'start_date',
+        'end_date',
+        'image_path',
         'status',
     ];
 
     protected $casts = [
         'type' => ChampionshipType::class,
+        'start_date' => 'date',
+        'end_date' => 'date',
     ];
 
     public function season()

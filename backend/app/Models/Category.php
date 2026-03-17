@@ -18,6 +18,8 @@ class Category extends Model
         'slug',
         'level',
         'gender',
+        'description',
+        'image_path',
         'status',
     ];
 

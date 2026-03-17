@@ -14,11 +14,15 @@ return new class extends Migration
         Schema::create('players', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
+            $table->string('nickname')->nullable();
             $table->string('slug')->unique();
-            $table->string('dni')->nullable();
+            $table->string('dni')->nullable()->unique();
             $table->date('birth_date')->nullable();
             $table->enum('gender', ['male', 'female', 'other'])->nullable();
-            $table->integer('level')->default(1);
+            $table->unsignedTinyInteger('level')->default(1);
+            $table->string('license_number')->nullable()->unique();
+            $table->enum('dominant_hand', ['right', 'left', 'both'])->nullable();
+            $table->text('notes')->nullable();
             $table->boolean('active')->default(true);
             $table->timestamps();
         });

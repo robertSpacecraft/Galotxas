@@ -25,9 +25,11 @@
                         <thead class="table-light">
                         <tr>
                             <th>ID</th>
+                            <th>Jugador</th>
                             <th>Usuario</th>
                             <th>Email</th>
                             <th>DNI</th>
+                            <th>Licencia</th>
                             <th>Género</th>
                             <th>Nivel</th>
                             <th>Activo</th>
@@ -38,9 +40,15 @@
                         @foreach ($players as $player)
                             <tr>
                                 <td>{{ $player->id }}</td>
-                                <td>{{ $player->user?->name ?? '—' }}</td>
+                                <td>
+                                    <a href="{{ route('admin.players.show', $player) }}">
+                                        {{ $player->nickname ?: (trim(($player->user?->name ?? '') . ' ' . ($player->user?->lastname ?? '')) ?: '—') }}
+                                    </a>
+                                </td>
+                                <td>{{ trim(($player->user?->name ?? '') . ' ' . ($player->user?->lastname ?? '')) ?: '—' }}</td>
                                 <td>{{ $player->user?->email ?? '—' }}</td>
                                 <td>{{ $player->dni ?: '—' }}</td>
+                                <td>{{ $player->license_number ?: '—' }}</td>
                                 <td>{{ $player->gender?->label() ?? '—' }}</td>
                                 <td>{{ $player->level }}</td>
                                 <td>
@@ -51,6 +59,10 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
+                                    <a href="{{ route('admin.players.show', $player) }}" class="btn btn-sm btn-outline-secondary">
+                                        Ver
+                                    </a>
+
                                     <a href="{{ route('admin.players.edit', $player) }}" class="btn btn-sm btn-outline-primary">
                                         Editar
                                     </a>
