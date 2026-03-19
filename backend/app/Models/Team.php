@@ -9,11 +9,21 @@ class Team extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name'];
+    protected $fillable = [
+        'category_id',
+        'name',
+    ];
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
 
     public function players()
     {
-        return $this->belongsToMany(Player::class, 'team_members');
+        return $this->belongsToMany(Player::class, 'team_members')
+            ->withPivot('role_in_team')
+            ->withTimestamps();
     }
 
     public function entries()

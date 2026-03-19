@@ -50,6 +50,10 @@
                             Eliminar
                         </button>
                     </form>
+
+                    <a href="{{ route('admin.categories.show', $category) }}">
+                        Ver
+                    </a>
                 </td>
             </tr>
         @empty

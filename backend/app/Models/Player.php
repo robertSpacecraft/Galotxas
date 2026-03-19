@@ -42,11 +42,17 @@ class Player extends Model
     public function teams(): BelongsToMany
     {
         return $this->belongsToMany(Team::class, 'team_members')
+            ->withPivot('role_in_team')
             ->withTimestamps();
     }
 
     public function entries(): HasMany
     {
         return $this->hasMany(CategoryEntry::class);
+    }
+
+    public function registrations(): HasMany
+    {
+        return $this->hasMany(CategoryRegistration::class);
     }
 }

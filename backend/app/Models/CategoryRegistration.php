@@ -5,15 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class CategoryEntry extends Model
+class CategoryRegistration extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'category_id',
-        'entry_type',
         'player_id',
-        'team_id',
         'status',
     ];
 
@@ -25,10 +23,5 @@ class CategoryEntry extends Model
     public function player()
     {
         return $this->belongsTo(Player::class);
-    }
-
-    public function team()
-    {
-        return $this->belongsTo(Team::class);
     }
 }

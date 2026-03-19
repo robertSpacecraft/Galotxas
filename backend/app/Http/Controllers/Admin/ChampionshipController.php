@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\StoreChampionshipRequest;
 use App\Http\Requests\Admin\UpdateChampionshipRequest;
 use App\Models\Championship;
 use App\Models\Season;
+use Illuminate\Support\Str;
 
 class ChampionshipController extends Controller
 {
@@ -24,9 +25,18 @@ class ChampionshipController extends Controller
 
     public function store(StoreChampionshipRequest $request, Season $season)
     {
+        $validated = $request->validated();
+
         Championship::create([
             'season_id' => $season->id,
-            ...$request->validated(),
+            'name' => $validated['name'],
+            'slug' => Str::slug($validated['name']),
+            'description' => $validated['description'] ?? null,
+            'type' => $validated['type'],
+            'start_date' => $validated['start_date'] ?? null,
+            'end_date' => $validated['end_date'] ?? null,
+            'image_path' => $validated['image_path'] ?? null,
+            'status' => $validated['status'] ?? 'pending',
         ]);
 
         return redirect()
@@ -43,7 +53,18 @@ class ChampionshipController extends Controller
 
     public function update(UpdateChampionshipRequest $request, Championship $championship)
     {
-        $championship->update($request->validated());
+        $validated = $request->validated();
+
+        $championship->update([
+            'name' => $validated['name'],
+            'slug' => Str::slug($validated['name']),
+            'description' => $validated['description'] ?? null,
+            'type' => $validated['type'],
+            'start_date' => $validated['start_date'] ?? null,
+            'end_date' => $validated['end_date'] ?? null,
+            'image_path' => $validated['image_path'] ?? null,
+            'status' => $validated['status'] ?? $championship->status,
+        ]);
 
         return redirect()
             ->route('admin.seasons.championships', $championship->season)

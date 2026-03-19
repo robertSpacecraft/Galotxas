@@ -14,6 +14,8 @@ class Round extends Model
         'name',
         'order',
         'type',
+        'phase',
+        'stage',
     ];
 
     public function category()

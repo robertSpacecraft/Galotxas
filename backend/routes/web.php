@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\CategoryRegistrationController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
@@ -50,12 +51,31 @@ Route::prefix('admin')->group(function () {
             ->name('admin.categories.create');
         Route::post('/championships/{championship}/categories', [AdminCategoryController::class, 'store'])
             ->name('admin.categories.store');
+
+        Route::get('/categories/{category}', [AdminCategoryController::class, 'show'])
+            ->name('admin.categories.show');
         Route::get('/categories/{category}/edit', [AdminCategoryController::class, 'edit'])
             ->name('admin.categories.edit');
         Route::put('/categories/{category}', [AdminCategoryController::class, 'update'])
             ->name('admin.categories.update');
         Route::delete('/categories/{category}', [AdminCategoryController::class, 'destroy'])
             ->name('admin.categories.destroy');
+
+        Route::post('categories/{category}/registrations', [CategoryRegistrationController::class, 'store'])
+            ->name('admin.categories.registrations.store');
+        Route::delete('categories/{category}/registrations/{registration}', [CategoryRegistrationController::class, 'destroy'])
+            ->name('admin.categories.registrations.destroy');
+
+        Route::post('/categories/{category}/teams', [\App\Http\Controllers\Admin\CategoryTeamController::class, 'store'])
+            ->name('admin.categories.teams.store');
+        Route::delete('/categories/{category}/teams/{team}', [\App\Http\Controllers\Admin\CategoryTeamController::class, 'destroy'])
+            ->name('admin.categories.teams.destroy');
+
+        Route::post('/categories/{category}/generate-league', [AdminCategoryController::class, 'generateLeague'])
+            ->name('admin.categories.generate-league');
+
+        Route::patch('/categories/{category}/matches/{match}', [\App\Http\Controllers\Admin\GameMatchController::class, 'update'])
+            ->name('admin.categories.matches.update');
 
         //Jugadores
         Route::get('/players', [PlayerController::class, 'index'])

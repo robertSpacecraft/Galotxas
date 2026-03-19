@@ -37,8 +37,18 @@ class Category extends Model
         return $this->hasMany(CategoryEntry::class);
     }
 
+    public function registrations(): HasMany
+    {
+        return $this->hasMany(CategoryRegistration::class);
+    }
+
     public function rounds(): HasMany
     {
         return $this->hasMany(Round::class);
+    }
+
+    public function teams(): HasMany
+    {
+        return $this->hasMany(Team::class);
     }
 }
