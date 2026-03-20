@@ -74,6 +74,9 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.users.index') }}">Usuarios</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('admin.rankings.history') }}">Ranking histórico</a>
+                </li>
             </ul>
 
             <form method="POST" action="{{ route('admin.logout') }}" class="d-flex">

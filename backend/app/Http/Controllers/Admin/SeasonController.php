@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreSeasonRequest;
 use App\Http\Requests\Admin\UpdateSeasonRequest;
 use App\Models\Season;
+use App\Services\Ranking\BuildSeasonRankingService;
 
 class SeasonController extends Controller
 {
@@ -28,6 +29,18 @@ class SeasonController extends Controller
         return redirect()
             ->route('admin.seasons.index')
             ->with('success', 'Temporada creada correctamente.');
+    }
+
+    public function show(Season $season, BuildSeasonRankingService $rankingService)
+    {
+        $season->load('championships');
+
+        $seasonRanking = $rankingService->build($season);
+
+        return view('admin.seasons.show', [
+            'season' => $season,
+            'seasonRanking' => $seasonRanking,
+        ]);
     }
 
     public function edit(Season $season)
@@ -55,8 +68,13 @@ class SeasonController extends Controller
 
     public function championships(Season $season)
     {
-        $season->load('championships');
+        $championships = $season->championships()
+            ->orderBy('id')
+            ->get();
 
-        return view('admin.seasons.championships', compact('season'));
+        return view('admin.seasons.championships', [
+            'season' => $season,
+            'championships' => $championships,
+        ]);
     }
 }

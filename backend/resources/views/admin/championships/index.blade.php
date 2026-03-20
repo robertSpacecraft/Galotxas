@@ -2,31 +2,44 @@
 
 @section('content')
 
-    <h1>Campeonatos</h1>
+    <div class="container mt-4">
 
-    @if ($championships->isEmpty())
-        <p>No hay campeonatos registrados.</p>
-    @else
-        <table border="1" cellpadding="8" cellspacing="0">
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Tipo</th>
-                <th>Temporada</th>
-            </tr>
-            </thead>
-            <tbody>
-            @foreach ($championships as $championship)
+        <h1 class="mb-4">Campeonatos</h1>
+
+        @if ($championships->isEmpty())
+            <div class="alert alert-info">
+                No hay campeonatos registrados.
+            </div>
+        @else
+            <table class="table table-bordered table-striped">
+                <thead class="table-dark">
                 <tr>
-                    <td>{{ $championship->id }}</td>
-                    <td>{{ $championship->name }}</td>
-                    <td>{{ $championship->type }}</td>
-                    <td>{{ $championship->season?->name }}</td>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Temporada</th>
+                    <th>Acciones</th>
                 </tr>
-            @endforeach
-            </tbody>
-        </table>
-    @endif
+                </thead>
+                <tbody>
+                @foreach ($championships as $championship)
+                    <tr>
+                        <td>{{ $championship->id }}</td>
+                        <td>{{ $championship->name }}</td>
+                        <td>{{ $championship->type }}</td>
+                        <td>{{ $championship->season?->name }}</td>
+                        <td>
+                            <a href="{{ route('admin.championships.show', $championship) }}"
+                               class="btn btn-sm btn-primary">
+                                Ver
+                            </a>
+                        </td>
+                    </tr>
+                @endforeach
+                </tbody>
+            </table>
+        @endif
+
+    </div>
 
 @endsection

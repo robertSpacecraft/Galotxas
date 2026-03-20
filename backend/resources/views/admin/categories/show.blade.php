@@ -10,14 +10,16 @@
                         <div>
                             <h1 class="h3 mb-2">Detalle de categoría</h1>
                             <p class="text-secondary mb-0">
-                                Gestión de inscripciones, equipos y calendario de liga
+                                Gestión de inscripciones, equipos, calendario y resultados
                             </p>
                         </div>
 
-                        <a href="{{ route('admin.championships.categories', $category->championship) }}"
-                           class="btn btn-outline-secondary">
-                            Volver a categorías
-                        </a>
+                        <div class="d-flex gap-2">
+                            <a href="{{ route('admin.championships.categories', $category->championship) }}"
+                               class="btn btn-outline-secondary">
+                                Volver a categorías
+                            </a>
+                        </div>
                     </div>
 
                     <hr>
@@ -74,24 +76,33 @@
                             </div>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="border rounded p-3 bg-light">
                                 <div class="small text-secondary">Campeonato</div>
                                 <div class="fw-semibold">{{ $category->championship->name }}</div>
                             </div>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="border rounded p-3 bg-light">
                                 <div class="small text-secondary">Tipo</div>
                                 <div class="fw-semibold">{{ $category->championship->type?->value }}</div>
                             </div>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="border rounded p-3 bg-light">
                                 <div class="small text-secondary">Temporada</div>
                                 <div class="fw-semibold">{{ $category->championship->season->name ?? '-' }}</div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="border rounded p-3 bg-light">
+                                <div class="small text-secondary">Tanteo objetivo</div>
+                                <div class="fw-semibold">
+                                    {{ $category->championship->type?->value === 'doubles' ? '12 juegos' : '10 juegos' }}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -266,6 +277,231 @@
             </div>
         @endif
 
+        {{-- Ranking de categoría --}}
+        <div class="col-12">
+            <div class="card page-card">
+                <div class="card-body">
+                    <h2 class="h4 section-title">Ranking de categoría</h2>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped align-middle mb-0">
+                            <thead class="table-dark">
+                            <tr>
+                                <th>Puesto</th>
+                                <th>Participante</th>
+                                <th>PJ</th>
+                                <th>PG</th>
+                                <th>PP</th>
+                                <th>Puntos</th>
+                                <th>JF</th>
+                                <th>JC</th>
+                                <th>Dif.</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @forelse ($categoryRanking as $row)
+                                <tr>
+                                    <td>{{ $row['position'] }}</td>
+                                    <td>{{ $row['name'] }}</td>
+                                    <td>{{ $row['played'] }}</td>
+                                    <td>{{ $row['wins'] }}</td>
+                                    <td>{{ $row['losses'] }}</td>
+                                    <td><strong>{{ $row['points'] }}</strong></td>
+                                    <td>{{ $row['games_for'] }}</td>
+                                    <td>{{ $row['games_against'] }}</td>
+                                    <td>{{ $row['games_diff'] }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="9" class="text-center text-secondary">
+                                        No hay datos suficientes para calcular el ranking todavía.
+                                    </td>
+                                </tr>
+                            @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-3 small text-secondary">
+                        Criterios: puntos, enfrentamiento directo (si aplica), diferencia de juegos y juegos a favor.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Copa --}}
+        <div class="col-12">
+            <div class="card page-card">
+                <div class="card-body">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+                        <h2 class="h4 section-title mb-0">Copa</h2>
+
+                        <div class="d-flex gap-2">
+                            <form method="POST" action="{{ route('admin.categories.generate-cup', $category) }}">
+                                @csrf
+                                <button type="submit"
+                                        class="btn btn-warning"
+                                        onclick="return confirm('¿Generar o regenerar las semifinales de copa desde el ranking actual?')">
+                                    Generar copa
+                                </button>
+                            </form>
+
+                            <form method="POST" action="{{ route('admin.categories.delete-cup', $category) }}">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                        class="btn btn-outline-danger"
+                                        onclick="return confirm('¿Eliminar la copa actual?')">
+                                    Eliminar copa
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ route('admin.categories.generate-finals', $category) }}">
+                                @csrf
+                                <button type="submit"
+                                        class="btn btn-success"
+                                        onclick="return confirm('¿Generar final y 3º/4º desde semifinales validadas?')">
+                                    Generar finales
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    @forelse ($cupRounds as $round)
+                        <div class="mb-4">
+                            <h3 class="h5 mb-3">{{ $round->name }}</h3>
+
+                            <div class="table-responsive">
+                                <table class="table table-bordered align-middle mb-0">
+                                    <thead class="table-dark">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Hora</th>
+                                        <th>Pista</th>
+                                        <th>Local</th>
+                                        <th>Marcador</th>
+                                        <th>Visitante</th>
+                                        <th>Status</th>
+                                        <th class="text-center">Guardar</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach ($round->matches->sortBy('id') as $match)
+                                        @php
+                                            $formId = 'cup-match-form-' . $match->id;
+                                        @endphp
+
+                                        <form id="{{ $formId }}" method="POST" action="{{ route('admin.categories.matches.update', [$category, $match]) }}">
+                                            @csrf
+                                            @method('PATCH')
+                                        </form>
+
+                                        <tr class="match-form-row">
+                                            <td>
+                                                <input
+                                                    type="date"
+                                                    name="scheduled_date"
+                                                    form="{{ $formId }}"
+                                                    value="{{ $match->scheduled_date ? $match->scheduled_date->format('Y-m-d') : '' }}"
+                                                    class="form-control form-control-sm"
+                                                    required
+                                                >
+                                            </td>
+
+                                            <td>
+                                                <input
+                                                    type="time"
+                                                    name="scheduled_time"
+                                                    form="{{ $formId }}"
+                                                    value="{{ $match->scheduled_date ? $match->scheduled_date->format('H:i') : '' }}"
+                                                    class="form-control form-control-sm"
+                                                    required
+                                                >
+                                            </td>
+
+                                            <td>
+                                                <select name="venue_id" form="{{ $formId }}" class="form-select form-select-sm" required>
+                                                    @foreach ($venues as $venue)
+                                                        <option value="{{ $venue->id }}" {{ $match->venue_id == $venue->id ? 'selected' : '' }}>
+                                                            {{ $venue->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </td>
+
+                                            <td>
+                                                @if ($match->homeEntry?->entry_type === 'player')
+                                                    {{ $match->homeEntry->player->nickname ?: ($match->homeEntry->player->user->name . ' ' . $match->homeEntry->player->user->lastname) }}
+                                                @elseif ($match->homeEntry?->entry_type === 'team')
+                                                    {{ $match->homeEntry->team->name }}
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>
+
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        name="home_score"
+                                                        form="{{ $formId }}"
+                                                        value="{{ $match->home_score }}"
+                                                        class="form-control form-control-sm"
+                                                        style="max-width: 80px;"
+                                                    >
+                                                    <span>-</span>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        name="away_score"
+                                                        form="{{ $formId }}"
+                                                        value="{{ $match->away_score }}"
+                                                        class="form-control form-control-sm"
+                                                        style="max-width: 80px;"
+                                                    >
+                                                </div>
+                                            </td>
+
+                                            <td>
+                                                @if ($match->awayEntry?->entry_type === 'player')
+                                                    {{ $match->awayEntry->player->nickname ?: ($match->awayEntry->player->user->name . ' ' . $match->awayEntry->player->user->lastname) }}
+                                                @elseif ($match->awayEntry?->entry_type === 'team')
+                                                    {{ $match->awayEntry->team->name }}
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>
+
+                                            <td>
+                                                <select name="status" form="{{ $formId }}" class="form-select form-select-sm" required>
+                                                    <option value="scheduled" {{ $match->status === 'scheduled' ? 'selected' : '' }}>scheduled</option>
+                                                    <option value="submitted" {{ $match->status === 'submitted' ? 'selected' : '' }}>submitted</option>
+                                                    <option value="validated" {{ $match->status === 'validated' ? 'selected' : '' }}>validated</option>
+                                                    <option value="postponed" {{ $match->status === 'postponed' ? 'selected' : '' }}>postponed</option>
+                                                    <option value="cancelled" {{ $match->status === 'cancelled' ? 'selected' : '' }}>cancelled</option>
+                                                </select>
+                                            </td>
+
+                                            <td class="text-center">
+                                                <button type="submit" form="{{ $formId }}" class="btn btn-sm btn-primary">
+                                                    Guardar
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="alert alert-secondary mb-0">
+                            No hay copa generada todavía.
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
         {{-- Liga --}}
         <div class="col-12">
             <div class="card page-card">
@@ -294,6 +530,7 @@
                                         <th>Hora</th>
                                         <th>Pista</th>
                                         <th>Local</th>
+                                        <th>Marcador</th>
                                         <th>Visitante</th>
                                         <th>Status</th>
                                         <th class="text-center">Guardar</th>
@@ -349,6 +586,30 @@
                                                 @else
                                                     {{ $match->homeEntry->team->name }}
                                                 @endif
+                                            </td>
+
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        name="home_score"
+                                                        form="{{ $formId }}"
+                                                        value="{{ $match->home_score }}"
+                                                        class="form-control form-control-sm"
+                                                        style="max-width: 80px;"
+                                                    >
+                                                    <span>-</span>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        name="away_score"
+                                                        form="{{ $formId }}"
+                                                        value="{{ $match->away_score }}"
+                                                        class="form-control form-control-sm"
+                                                        style="max-width: 80px;"
+                                                    >
+                                                </div>
                                             </td>
 
                                             <td>

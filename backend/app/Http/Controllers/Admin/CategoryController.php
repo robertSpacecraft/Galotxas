@@ -9,7 +9,9 @@ use App\Http\Requests\Admin\UpdateCategoryRequest;
 use App\Models\Category;
 use App\Models\Championship;
 use App\Models\Player;
+use App\Services\GenerateCupService;
 use App\Services\GenerateLeagueScheduleService;
+use App\Services\Ranking\BuildCategoryRankingService;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -47,12 +49,14 @@ class CategoryController extends Controller
             ->with('success', 'Categoría creada');
     }
 
-    public function show(Category $category)
+    public function show(Category $category, BuildCategoryRankingService $rankingService)
     {
         $category->load([
             'championship.season',
             'registrations.player.user',
             'teams.players.user',
+            'entries.player.user',
+            'entries.team.players.user',
             'rounds.matches.homeEntry.player.user',
             'rounds.matches.homeEntry.team.players.user',
             'rounds.matches.awayEntry.player.user',
@@ -90,7 +94,14 @@ class CategoryController extends Controller
             ->sortBy('order')
             ->values();
 
+        $cupRounds = $category->rounds
+            ->where('type', 'cup')
+            ->sortBy('order')
+            ->values();
+
         $venues = \App\Models\Venue::orderBy('id')->get();
+
+        $categoryRanking = $rankingService->build($category);
 
         return view('admin.categories.show', [
             'category' => $category,
@@ -100,6 +111,8 @@ class CategoryController extends Controller
             'teamSelectablePlayers' => $teamSelectablePlayers,
             'leagueRounds' => $leagueRounds,
             'venues' => $venues,
+            'categoryRanking' => $categoryRanking,
+            'cupRounds' => $cupRounds,
         ]);
     }
 
@@ -147,5 +160,39 @@ class CategoryController extends Controller
         return redirect()
             ->route('admin.championships.categories', $championship)
             ->with('success', 'Categoría eliminada');
+    }
+
+    //Para generar la copa:
+    public function generateCup(Category $category, GenerateCupService $cupService)
+    {
+        try {
+            $cupService->generateSemifinals($category);
+
+            return back()->with('success', 'Semifinales de copa generadas correctamente.');
+        } catch (Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function deleteCup(Category $category, GenerateCupService $cupService)
+    {
+        try {
+            $cupService->deleteCup($category);
+
+            return back()->with('success', 'Copa eliminada correctamente.');
+        } catch (Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function generateFinals(Category $category, GenerateCupService $cupService)
+    {
+        try {
+            $cupService->generateFinals($category);
+
+            return back()->with('success', 'Final y 3º/4º generados correctamente.');
+        } catch (Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 }

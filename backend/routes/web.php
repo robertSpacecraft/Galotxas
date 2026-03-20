@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\SeasonController as AdminSeasonController;
 use App\Http\Controllers\Admin\ChampionshipController as AdminChampionshipController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\RankingController as AdminRankingController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -38,8 +39,13 @@ Route::prefix('admin')->group(function () {
         Route::get('/seasons/{season}/championships/create', [AdminChampionshipController::class, 'create'])->name('admin.championships.create');
         Route::post('/seasons/{season}/championships', [AdminChampionshipController::class, 'store'])->name('admin.championships.store');
 
+        Route::get('/seasons/{season}', [AdminSeasonController::class, 'show'])
+            ->name('admin.seasons.show');
+
         //Campeonatos
         Route::get('/championships', [AdminChampionshipController::class, 'index'])->name('admin.championships.index');
+        Route::get('/championships/{championship}', [AdminChampionshipController::class, 'show'])
+            ->name('admin.championships.show');
         Route::get('/championships/{championship}/edit', [AdminChampionshipController::class, 'edit'])->name('admin.championships.edit');
         Route::put('/championships/{championship}', [AdminChampionshipController::class, 'update'])->name('admin.championships.update');
         Route::delete('/championships/{championship}', [AdminChampionshipController::class, 'destroy'])->name('admin.championships.destroy');
@@ -76,6 +82,18 @@ Route::prefix('admin')->group(function () {
 
         Route::patch('/categories/{category}/matches/{match}', [\App\Http\Controllers\Admin\GameMatchController::class, 'update'])
             ->name('admin.categories.matches.update');
+
+        Route::post('/categories/{category}/generate-cup', [AdminCategoryController::class, 'generateCup'])
+            ->name('admin.categories.generate-cup');
+
+        Route::delete('/categories/{category}/cup', [AdminCategoryController::class, 'deleteCup'])
+            ->name('admin.categories.delete-cup');
+        Route::post('/categories/{category}/generate-finals', [AdminCategoryController::class, 'generateFinals'])
+            ->name('admin.categories.generate-finals');
+
+        //Ranking
+        Route::get('/rankings/history', [AdminRankingController::class, 'historical'])
+            ->name('admin.rankings.history');
 
         //Jugadores
         Route::get('/players', [PlayerController::class, 'index'])

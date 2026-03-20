@@ -2,63 +2,97 @@
 
 @section('content')
 
-    <h1>Campeonatos de la temporada: {{ $season->name }}</h1>
+    <div class="container mt-4">
 
-    <p>
-        <a href="{{ route('admin.championships.create', $season) }}">Crear nuevo campeonato</a>
-    </p>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+            <div>
+                <h1 class="mb-2">Campeonatos de la temporada: {{ $season->name }}</h1>
+                <p class="text-secondary mb-0">Listado de campeonatos asociados a esta temporada</p>
+            </div>
 
-    @if (session('success'))
-        <p>{{ session('success') }}</p>
-    @endif
+            <a href="{{ route('admin.championships.create', $season) }}" class="btn btn-primary">
+                Crear nuevo campeonato
+            </a>
+        </div>
 
-    @if ($season->championships->isEmpty())
-        <p>No hay campeonatos.</p>
-    @else
+        @if(session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
 
-        <table border="1" cellpadding="8">
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Tipo</th>
-                <th>Acciones</th>
-            </tr>
-            </thead>
+        @if(session('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
+            </div>
+        @endif
 
-            <tbody>
-            @foreach($season->championships as $championship)
-                <tr>
-                    <td>{{ $championship->id }}</td>
-                    <td>{{ $championship->name }}</td>
-                    <td>{{ $championship->type }}</td>
-                    <td>
-                        <a href="{{ route('admin.championships.edit', $championship) }}">Editar</a>
+        @if ($championships->isEmpty())
+            <div class="alert alert-info">
+                No hay campeonatos registrados para esta temporada.
+            </div>
+        @else
+            <div class="card page-card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped align-middle mb-0">
+                            <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Tipo</th>
+                                <th class="text-center" style="width: 340px;">Acciones</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach ($championships as $championship)
+                                <tr>
+                                    <td>{{ $championship->id }}</td>
+                                    <td>{{ $championship->name }}</td>
+                                    <td>{{ $championship->type?->value ?? $championship->type }}</td>
+                                    <td class="text-center">
+                                        <div class="d-flex flex-wrap justify-content-center gap-2">
+                                            <a href="{{ route('admin.championships.show', $championship) }}"
+                                               class="btn btn-sm btn-outline-primary">
+                                                Ver
+                                            </a>
 
-                        <form
-                            method="POST"
-                            action="{{ route('admin.championships.destroy', $championship) }}"
-                            style="display:inline"
-                            onsubmit="return confirm('¿Eliminar campeonato?')"
-                        >
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit">Eliminar</button>
-                        </form>
+                                            <a href="{{ route('admin.championships.edit', $championship) }}"
+                                               class="btn btn-sm btn-outline-secondary">
+                                                Editar
+                                            </a>
 
-                        <a href="{{ route('admin.championships.categories', $championship) }}">
-                            Categorías
-                        </a>
-                    </td>
-                </tr>
-            @endforeach
-            </tbody>
-        </table>
+                                            <a href="{{ route('admin.championships.categories', $championship) }}"
+                                               class="btn btn-sm btn-outline-info">
+                                                Categorías
+                                            </a>
 
-    @endif
+                                            <form method="POST"
+                                                  action="{{ route('admin.championships.destroy', $championship) }}"
+                                                  onsubmit="return confirm('¿Eliminar campeonato?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    Eliminar
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        @endif
 
-    <p>
-        <a href="{{ route('admin.seasons.index') }}">← Volver a temporadas</a>
-    </p>
+        <div class="mt-4">
+            <a href="{{ route('admin.seasons.index') }}" class="btn btn-outline-secondary">
+                Volver a temporadas
+            </a>
+        </div>
+
+    </div>
 
 @endsection

@@ -7,13 +7,16 @@ use App\Http\Requests\Admin\StoreChampionshipRequest;
 use App\Http\Requests\Admin\UpdateChampionshipRequest;
 use App\Models\Championship;
 use App\Models\Season;
+use App\Services\Ranking\BuildChampionshipRankingService;
 use Illuminate\Support\Str;
 
 class ChampionshipController extends Controller
 {
     public function index()
     {
-        $championships = Championship::with('season')->orderByDesc('id')->get();
+        $championships = Championship::with('season')
+            ->orderByDesc('id')
+            ->get();
 
         return view('admin.championships.index', compact('championships'));
     }
@@ -42,6 +45,21 @@ class ChampionshipController extends Controller
         return redirect()
             ->route('admin.seasons.championships', $season)
             ->with('success', 'Campeonato creado correctamente.');
+    }
+
+    public function show(Championship $championship, BuildChampionshipRankingService $rankingService)
+    {
+        $championship->load([
+            'season',
+            'categories',
+        ]);
+
+        $championshipRanking = $rankingService->build($championship);
+
+        return view('admin.championships.show', [
+            'championship' => $championship,
+            'championshipRanking' => $championshipRanking,
+        ]);
     }
 
     public function edit(Championship $championship)
@@ -74,6 +92,7 @@ class ChampionshipController extends Controller
     public function destroy(Championship $championship)
     {
         $season = $championship->season;
+
         $championship->delete();
 
         return redirect()
