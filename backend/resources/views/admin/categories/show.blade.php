@@ -473,12 +473,17 @@
                                             </td>
 
                                             <td>
+                                                @php
+                                                    $currentStatus = $match->status?->value ?? $match->status;
+                                                @endphp
+
                                                 <select name="status" form="{{ $formId }}" class="form-select form-select-sm" required>
-                                                    <option value="scheduled" {{ $match->status === 'scheduled' ? 'selected' : '' }}>scheduled</option>
-                                                    <option value="submitted" {{ $match->status === 'submitted' ? 'selected' : '' }}>submitted</option>
-                                                    <option value="validated" {{ $match->status === 'validated' ? 'selected' : '' }}>validated</option>
-                                                    <option value="postponed" {{ $match->status === 'postponed' ? 'selected' : '' }}>postponed</option>
-                                                    <option value="cancelled" {{ $match->status === 'cancelled' ? 'selected' : '' }}>cancelled</option>
+                                                    <option value="scheduled" {{ $currentStatus === 'scheduled' ? 'selected' : '' }}>scheduled</option>
+                                                    <option value="submitted" {{ $currentStatus === 'submitted' ? 'selected' : '' }}>submitted</option>
+                                                    <option value="validated" {{ $currentStatus === 'validated' ? 'selected' : '' }}>validated</option>
+                                                    <option value="under_review" {{ $currentStatus === 'under_review' ? 'selected' : '' }}>under_review</option>
+                                                    <option value="postponed" {{ $currentStatus === 'postponed' ? 'selected' : '' }}>postponed</option>
+                                                    <option value="cancelled" {{ $currentStatus === 'cancelled' ? 'selected' : '' }}>cancelled</option>
                                                 </select>
                                             </td>
 
@@ -621,12 +626,17 @@
                                             </td>
 
                                             <td>
+                                                @php
+                                                    $currentStatus = $match->status?->value ?? $match->status;
+                                                @endphp
+
                                                 <select name="status" form="{{ $formId }}" class="form-select form-select-sm" required>
-                                                    <option value="scheduled" {{ $match->status === 'scheduled' ? 'selected' : '' }}>scheduled</option>
-                                                    <option value="submitted" {{ $match->status === 'submitted' ? 'selected' : '' }}>submitted</option>
-                                                    <option value="validated" {{ $match->status === 'validated' ? 'selected' : '' }}>validated</option>
-                                                    <option value="postponed" {{ $match->status === 'postponed' ? 'selected' : '' }}>postponed</option>
-                                                    <option value="cancelled" {{ $match->status === 'cancelled' ? 'selected' : '' }}>cancelled</option>
+                                                    <option value="scheduled" {{ $currentStatus === 'scheduled' ? 'selected' : '' }}>scheduled</option>
+                                                    <option value="submitted" {{ $currentStatus === 'submitted' ? 'selected' : '' }}>submitted</option>
+                                                    <option value="validated" {{ $currentStatus === 'validated' ? 'selected' : '' }}>validated</option>
+                                                    <option value="under_review" {{ $currentStatus === 'under_review' ? 'selected' : '' }}>under_review</option>
+                                                    <option value="postponed" {{ $currentStatus === 'postponed' ? 'selected' : '' }}>postponed</option>
+                                                    <option value="cancelled" {{ $currentStatus === 'cancelled' ? 'selected' : '' }}>cancelled</option>
                                                 </select>
                                             </td>
 

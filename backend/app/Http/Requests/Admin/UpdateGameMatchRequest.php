@@ -17,7 +17,7 @@ class UpdateGameMatchRequest extends FormRequest
             'scheduled_date' => ['required', 'date'],
             'scheduled_time' => ['required', 'date_format:H:i'],
             'venue_id' => ['required', 'exists:venues,id'],
-            'status' => ['required', 'in:scheduled,submitted,validated,postponed,cancelled'],
+            'status' => ['required', 'in:scheduled,submitted,validated,under_review,postponed,cancelled'],
             'home_score' => ['nullable', 'integer', 'min:0'],
             'away_score' => ['nullable', 'integer', 'min:0'],
         ];

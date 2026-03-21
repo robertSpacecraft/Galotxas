@@ -55,4 +55,9 @@ class Player extends Model
     {
         return $this->hasMany(CategoryRegistration::class);
     }
+
+    public function matchResultReports(): HasMany
+    {
+        return $this->hasMany(MatchResultReport::class);
+    }
 }

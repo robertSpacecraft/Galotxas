@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\ChampionshipType;
+use App\Enums\GameMatchStatus;
 use App\Models\GameMatch;
 use InvalidArgumentException;
 
@@ -19,7 +20,11 @@ class MatchResultService
 
     public function validateScores(GameMatch $match, ?int $homeScore, ?int $awayScore, string $status): void
     {
-        $statusesWithScores = ['submitted', 'validated'];
+        $statusesWithScores = [
+            GameMatchStatus::SUBMITTED->value,
+            GameMatchStatus::VALIDATED->value,
+            GameMatchStatus::UNDER_REVIEW->value,
+        ];
 
         if (in_array($status, ['scheduled', 'postponed', 'cancelled'], true)) {
             return;
@@ -37,42 +42,25 @@ class MatchResultService
             throw new InvalidArgumentException('Los tanteos no pueden ser negativos.');
         }
 
+        $targetScore = $this->getTargetScore($match);
+
         if ($homeScore === $awayScore) {
-            throw new InvalidArgumentException('No puede haber empate en una partida.');
+            throw new InvalidArgumentException('No puede haber empate en Galotxas.');
         }
 
-        $target = $this->getTargetScore($match);
-
-        $oneReachedTarget = $homeScore === $target || $awayScore === $target;
-
-        if (!$oneReachedTarget) {
-            throw new InvalidArgumentException("Uno de los dos tanteos debe alcanzar exactamente {$target} juegos.");
+        if ($homeScore !== $targetScore && $awayScore !== $targetScore) {
+            throw new InvalidArgumentException("Uno de los dos equipos/jugadores debe alcanzar {$targetScore} juegos.");
         }
 
-        if ($homeScore > $target || $awayScore > $target) {
-            throw new InvalidArgumentException("Ningún tanteo puede superar {$target} juegos.");
-        }
-
-        if ($homeScore === $target && $awayScore >= $target) {
-            throw new InvalidArgumentException('El rival debe quedar por debajo del tanteo máximo.');
-        }
-
-        if ($awayScore === $target && $homeScore >= $target) {
-            throw new InvalidArgumentException('El rival debe quedar por debajo del tanteo máximo.');
+        if ($homeScore > $targetScore || $awayScore > $targetScore) {
+            throw new InvalidArgumentException("No se pueden superar los {$targetScore} juegos.");
         }
     }
 
-    public function resolveWinnerSide(GameMatch $match, ?int $homeScore, ?int $awayScore): ?string
+    public function resolveWinnerEntryId(GameMatch $match, int $homeScore, int $awayScore): int
     {
-        if ($homeScore === null || $awayScore === null) {
-            return null;
-        }
-
-        return $homeScore > $awayScore ? 'home' : 'away';
-    }
-
-    public function getCategoryPointsForLoser(int $loserScore): int
-    {
-        return $loserScore >= 8 ? 1 : 0;
+        return $homeScore > $awayScore
+            ? $match->home_entry_id
+            : $match->away_entry_id;
     }
 }

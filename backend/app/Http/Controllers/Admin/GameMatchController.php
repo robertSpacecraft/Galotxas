@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\GameMatchStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateGameMatchRequest;
 use App\Models\Category;
@@ -36,30 +37,49 @@ class GameMatchController extends Controller
         $awayScore = $validated['away_score'] !== null ? (int) $validated['away_score'] : null;
         $status = $validated['status'];
 
-        try {
-            $matchResultService->validateScores($match, $homeScore, $awayScore, $status);
-        } catch (InvalidArgumentException $e) {
-            return back()->with('error', $e->getMessage());
+        if (in_array($status, ['submitted', 'validated'], true)) {
+            try {
+                $matchResultService->validateScores($match, $homeScore, $awayScore, $status);
+            } catch (InvalidArgumentException $e) {
+                return back()->with('error', $e->getMessage());
+            }
         }
 
         $updateData = [
             'scheduled_date' => $scheduledAt,
             'venue_id' => $validated['venue_id'],
             'status' => $status,
-            'home_score' => $homeScore,
-            'away_score' => $awayScore,
         ];
 
-        if ($status === 'submitted') {
-            $updateData['submitted_by'] = Auth::id();
-        }
+        if ($status === GameMatchStatus::VALIDATED->value) {
+            $winnerEntryId = $matchResultService->resolveWinnerEntryId(
+                $match,
+                $homeScore,
+                $awayScore
+            );
 
-        if ($status === 'validated') {
+            $updateData['home_score'] = $homeScore;
+            $updateData['away_score'] = $awayScore;
+            $updateData['winner_entry_id'] = $winnerEntryId;
             $updateData['submitted_by'] = $match->submitted_by ?? Auth::id();
             $updateData['validated_by'] = Auth::id();
-        }
-
-        if (in_array($status, ['scheduled', 'postponed', 'cancelled'], true)) {
+        } elseif ($status === GameMatchStatus::SUBMITTED->value) {
+            $updateData['home_score'] = $homeScore;
+            $updateData['away_score'] = $awayScore;
+            $updateData['winner_entry_id'] = null;
+            $updateData['submitted_by'] = Auth::id();
+            $updateData['validated_by'] = null;
+        } elseif ($status === GameMatchStatus::UNDER_REVIEW->value) {
+            $updateData['home_score'] = null;
+            $updateData['away_score'] = null;
+            $updateData['winner_entry_id'] = null;
+            $updateData['submitted_by'] = null;
+            $updateData['validated_by'] = null;
+        } else {
+            $updateData['home_score'] = null;
+            $updateData['away_score'] = null;
+            $updateData['winner_entry_id'] = null;
+            $updateData['submitted_by'] = null;
             $updateData['validated_by'] = null;
         }
 
