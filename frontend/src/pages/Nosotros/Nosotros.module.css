@@ -1,0 +1,202 @@
+.container {
+  width: 100%;
+  color: #1a1a1a;
+  overflow-x: hidden;
+  background-color: #f8f9fa;
+}
+
+.heroSection {
+  position: relative;
+  height: 60vh;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.heroImageWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.heroImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.heroOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 100%);
+}
+
+.heroContent {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 0 2rem;
+  max-width: 1000px;
+}
+
+.heroTitle {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  color: #ffffff;
+  font-weight: 800;
+  text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  line-height: 1.2;
+}
+
+.contentWrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+}
+
+.section {
+  display: flex;
+  gap: 4rem;
+  margin-bottom: 6rem;
+  align-items: center;
+}
+
+.reverseSection {
+  flex-direction: row-reverse;
+}
+
+.textBlock {
+  flex: 1;
+}
+
+.imageBlock {
+  flex: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.sectionImage {
+  width: 100%;
+  display: block;
+  transition: transform 0.5s ease;
+}
+
+.sectionImage:hover {
+  transform: scale(1.05);
+}
+
+.sectionTitle {
+  font-size: 2rem;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  position: relative;
+  padding-bottom: 0.75rem;
+}
+
+.sectionTitle::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 4px;
+  background-color: #27ae60;
+  border-radius: 2px;
+}
+
+.paragraph {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: #555;
+  margin-bottom: 1.5rem;
+}
+
+.valuesList {
+  list-style: none;
+  padding: 0;
+}
+
+.valuesList li {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.valuesList li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #27ae60;
+  font-weight: bold;
+}
+
+.boardSection {
+  margin-top: 6rem;
+}
+
+.boardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.boardMember {
+  text-align: center;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  transition: transform 0.3s ease;
+}
+
+.boardMember:hover {
+  transform: translateY(-10px);
+}
+
+.memberPhotoPlaceholder {
+  width: 120px;
+  height: 120px;
+  background-color: #e0e0e0;
+  border-radius: 50%;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  font-weight: bold;
+}
+
+.boardMember h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: #2c3e50;
+}
+
+.boardMember p {
+  color: #27ae60;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .section, .reverseSection {
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .heroSection {
+    height: 40vh;
+  }
+  
+  .contentWrapper {
+    padding: 2rem 1rem;
+  }
+}

@@ -1,0 +1,123 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 5%;
+  /* Slightly reduced vertical padding as logo is larger */
+  background-color: #ffffff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  font-family: 'Outfit', sans-serif;
+}
+
+.logoContainer {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.logoImage {
+  height: 160px;
+  /* Increased from 85px for maximum visibility */
+  width: auto;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.logoImage:hover {
+  transform: scale(1.05);
+}
+
+.navLinks {
+  display: flex;
+  gap: 1.5rem;
+  list-style: none;
+}
+
+.navItem {
+  text-decoration: none;
+  color: #333;
+  font-size: 1.25rem;
+  /* Increased from 1.1rem */
+  font-weight: 700;
+  transition: color 0.3s ease;
+  position: relative;
+}
+
+.navItem:hover {
+  color: #003366;
+}
+
+.navItem::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -4px;
+  left: 0;
+  background-color: #003366;
+  transition: width 0.3s ease;
+}
+
+.navItem:hover::after {
+  width: 100%;
+}
+
+.playerAreaBtn {
+  background: linear-gradient(135deg, #003366 0%, #004080 100%);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 1.15rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 5px 10px rgba(0, 51, 102, 0.25);
+}
+
+.playerAreaBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(0, 51, 102, 0.35);
+}
+
+.userGreeting {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  font-weight: 700;
+  color: #003366;
+  font-size: 1.2rem;
+}
+
+.welcomeText {
+  font-size: 1.15rem;
+  color: #666;
+}
+
+.userName {
+  color: #003366;
+  font-weight: 800;
+}
+
+.logoutBtn {
+  background: transparent;
+  border: 1px solid #ddd;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.logoutBtn:hover {
+  background-color: #f5f5f5;
+  border-color: #ccc;
+}
+
+@media (max-width: 1024px) {
+  .navLinks {
+    display: none;
+  }
+}
