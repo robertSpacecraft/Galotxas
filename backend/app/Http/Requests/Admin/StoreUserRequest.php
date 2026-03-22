@@ -4,8 +4,8 @@ namespace App\Http\Requests\Admin;
 
 use App\Enums\UserRole;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class StoreUserRequest extends FormRequest
 {
@@ -25,7 +25,7 @@ class StoreUserRequest extends FormRequest
             'lastname' => [
                 'required',
                 'string',
-                'max:255'
+                'max:255',
             ],
             'email' => [
                 'required',
@@ -62,12 +62,13 @@ class StoreUserRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name' => ['required','string','max:255'],
-            'lastname' => ['required','string','max:255'],
-            'email' => ['required','email','max:255','unique:users,email'],
-            'password' => ['required','string','min:8','confirmed'],
-            'role' => ['required','in:admin,user'],
-            'active' => ['boolean'],
+            'name' => 'nombre',
+            'lastname' => 'apellidos',
+            'email' => 'correo electrónico',
+            'password' => 'contraseña',
+            'password_confirmation' => 'confirmación de contraseña',
+            'role' => 'rol',
+            'active' => 'activo',
         ];
     }
 }

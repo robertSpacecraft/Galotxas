@@ -1,15 +1,19 @@
 @extends('admin.layout')
 
+@section('title', 'Editar usuario')
+
 @section('content')
+    <div class="mb-4">
+        <h1 class="h3 mb-0">Editar usuario</h1>
+    </div>
 
-    <h1>Editar usuario</h1>
+    <div class="card page-card">
+        <div class="card-body">
+            <form method="POST" action="{{ route('admin.users.update', $user) }}" novalidate>
+                @method('PUT')
 
-    <form method="POST" action="{{ route('admin.users.update', $user) }}">
-
-        @method('PUT')
-
-        @include('admin.users._form')
-
-    </form>
-
+                @include('admin.users._form')
+            </form>
+        </div>
+    </div>
 @endsection
