@@ -40,6 +40,9 @@ class ChampionshipController extends Controller
             'end_date' => $validated['end_date'] ?? null,
             'image_path' => $validated['image_path'] ?? null,
             'status' => $validated['status'] ?? 'pending',
+            'registration_status' => $validated['registration_status'],
+            'registration_starts_at' => $validated['registration_starts_at'] ?? null,
+            'registration_ends_at' => $validated['registration_ends_at'] ?? null,
         ]);
 
         return redirect()
@@ -82,6 +85,9 @@ class ChampionshipController extends Controller
             'end_date' => $validated['end_date'] ?? null,
             'image_path' => $validated['image_path'] ?? null,
             'status' => $validated['status'] ?? $championship->status,
+            'registration_status' => $validated['registration_status'],
+            'registration_starts_at' => $validated['registration_starts_at'] ?? null,
+            'registration_ends_at' => $validated['registration_ends_at'] ?? null,
         ]);
 
         return redirect()

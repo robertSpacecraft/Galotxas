@@ -18,6 +18,9 @@ class UpdateChampionshipRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', new Enum(ChampionshipType::class)],
+            'registration_status' => ['required', 'in:open,closed'],
+            'registration_starts_at' => ['nullable', 'date'],
+            'registration_ends_at' => ['nullable', 'date', 'after_or_equal:registration_starts_at'],
         ];
     }
 }

@@ -72,4 +72,9 @@ class GameMatch extends Model
     {
         return $this->hasMany(MatchResultReport::class);
     }
+
+    public function rescheduleRequests(): HasMany
+    {
+        return $this->hasMany(MatchRescheduleRequest::class);
+    }
 }
