@@ -14,24 +14,18 @@ use App\Http\Controllers\Api\V1\Admin\ChampionshipController as AdminChampionshi
 use App\Http\Controllers\Api\V1\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Api\V1\Admin\MatchController as AdminMatchController;
 use App\Http\Controllers\Api\V1\Admin\ChampionshipRegistrationController as AdminChampionshipRegistrationController;
+use App\Http\Controllers\Api\V1\ChampionshipRankingController;
 
 Route::prefix('v1')->group(function () {
-    /*
-    |--------------------------------------------------------------------------
-    | Auth
-    |--------------------------------------------------------------------------
-    */
+    //Auth
     Route::post('/auth/login', [AuthController::class, 'login']);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Public API
-    |--------------------------------------------------------------------------
-    */
+    //Public API
     Route::get('/seasons', [SeasonController::class, 'index']);
 
     Route::get('/championships', [ChampionshipController::class, 'index']);
     Route::get('/championships/{championship}', [ChampionshipController::class, 'show']);
+    Route::get('championships/{championship}/ranking', ChampionshipRankingController::class);
 
     Route::get('/categories/{category}', [CategoryController::class, 'show']);
     Route::get('/categories/{category}/standings', [CategoryController::class, 'standings']);
@@ -39,17 +33,9 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/matches/{gameMatch}', [MatchController::class, 'show']);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Authenticated API
-    |--------------------------------------------------------------------------
-    */
+    //Authenticated API
     Route::middleware('auth:sanctum')->group(function () {
-        /*
-        |--------------------------------------------------------------------------
-        | Me
-        |--------------------------------------------------------------------------
-        */
+        //Me
         Route::get('/me', [AuthController::class, 'me']);
         Route::get('/me/player-profile', [AuthController::class, 'myPlayerProfile']);
         Route::patch('/me/player-profile', [AuthController::class, 'updateMyPlayerProfile']);
@@ -57,11 +43,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/me/matches', [MatchController::class, 'myMatches']);
         Route::get('/me/matches/pending-actions', [MatchController::class, 'pendingActions']);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Player match flow
-        |--------------------------------------------------------------------------
-        */
+
+        //Player match flow
         Route::get('/matches/{gameMatch}/workflow', [MatchController::class, 'workflow']);
         Route::post('/matches/{gameMatch}/submit-result', [MatchController::class, 'submitResult']);
         Route::post('/matches/{gameMatch}/confirm-result', [MatchController::class, 'confirmResult']);
@@ -70,19 +53,12 @@ Route::prefix('v1')->group(function () {
         Route::post('/matches/{gameMatch}/request-reschedule', [MatchController::class, 'requestReschedule']);
         Route::post('/matches/{gameMatch}/confirm-reschedule', [MatchController::class, 'confirmReschedule']);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Championship registration requests (player)
-        |--------------------------------------------------------------------------
-        */
+
+        //Championship registration requests (player)
         Route::get('/championships/{championship}/registration', [ChampionshipRegistrationController::class, 'show']);
         Route::post('/championships/{championship}/register', [ChampionshipRegistrationController::class, 'submit']);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Admin API
-        |--------------------------------------------------------------------------
-        */
+        //Admin API
         Route::prefix('admin')
             ->middleware(\App\Http\Middleware\IsAdmin::class)
             ->group(function () {
@@ -92,21 +68,13 @@ Route::prefix('v1')->group(function () {
 
                 Route::post('/categories/{category}/entries', [AdminCategoryController::class, 'storeEntry']);
 
-                /*
-                |--------------------------------------------------------------------------
-                | Match conflict management
-                |--------------------------------------------------------------------------
-                */
+                //Match conflict management
                 Route::get('/matches/under-review', [AdminMatchController::class, 'underReview']);
                 Route::get('/matches/{gameMatch}/conflict', [AdminMatchController::class, 'showConflict']);
                 Route::post('/matches/{gameMatch}/resolve-conflict', [AdminMatchController::class, 'resolveConflict']);
                 Route::post('/matches/{gameMatch}/validate-result', [AdminMatchController::class, 'validateResult']);
 
-                /*
-                |--------------------------------------------------------------------------
-                | Championship registration requests (admin)
-                |--------------------------------------------------------------------------
-                */
+                //Championship registration requests (admin)
                 Route::get(
                     '/championships/{championship}/registration-requests',
                     [AdminChampionshipRegistrationController::class, 'index']
