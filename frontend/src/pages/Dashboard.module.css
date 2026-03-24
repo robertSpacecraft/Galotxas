@@ -1,0 +1,29 @@
+.profileCard {
+    background: rgba(255, 255, 255, 0.02);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid var(--surface-border);
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.label {
+    color: var(--text-secondary);
+    display: block;
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+}
+
+.value {
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.successValue {
+    color: var(--success);
+}
+
+.secondaryValue {
+    color: var(--text-secondary);
+}

@@ -29,8 +29,8 @@ export const Navbar = () => {
             <span className={styles.welcomeText}>
               Hola, <span className={styles.userName}>{user?.name}</span>!
             </span>
-            <Link to="/player" className={styles.navItem} style={{ fontSize: '0.85rem', marginLeft: '1rem' }}>Mi Panel</Link>
-            <button onClick={logout} className={styles.logoutBtn} style={{ marginLeft: '1rem' }}>Salir</button>
+            <Link to="/player" className={styles.miPanelLink}>Mi Panel</Link>
+            <button onClick={logout} className={styles.logoutBtn}>Salir</button>
           </div>
         ) : (
           <Link to="/login" className={styles.playerAreaBtn}>Área de jugadores</Link>

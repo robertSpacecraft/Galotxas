@@ -1,4 +1,5 @@
 import { useAuth } from '../context/AuthContext';
+import styles from './Dashboard.module.css';
 
 export default function Dashboard() {
     const { user } = useAuth();
@@ -7,42 +8,20 @@ export default function Dashboard() {
         <div className="page-container">
             <h1>Mi panel de jugador</h1>
 
-            <div style={{
-                background: 'rgba(255,255,255,0.02)',
-                padding: '2rem',
-                borderRadius: '12px',
-                border: '1px solid var(--surface-border)',
-                display: 'grid',
-                gap: '1rem',
-                marginTop: '2rem'
-            }}>
+            <div className={styles.profileCard}>
                 <div>
-                    <span style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '0.85rem' }}>
-                        Nombre
-                    </span>
-                    <span style={{ fontSize: '1.2rem', fontWeight: '500' }}>
-                        {user.name}
-                    </span>
+                    <span className={styles.label}>Nombre</span>
+                    <span className={styles.value}>{user.name}</span>
                 </div>
 
                 <div>
-                    <span style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '0.85rem' }}>
-                        Email
-                    </span>
-                    <span style={{ fontSize: '1.2rem', fontWeight: '500' }}>
-                        {user.email}
-                    </span>
+                    <span className={styles.label}>Email</span>
+                    <span className={styles.value}>{user.email}</span>
                 </div>
 
                 <div>
-                    <span style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '0.85rem' }}>
-                        Perfil de jugador
-                    </span>
-                    <span style={{
-                        fontSize: '1.2rem',
-                        fontWeight: '500',
-                        color: user.player ? 'var(--success)' : 'var(--text-secondary)'
-                    }}>
+                    <span className={styles.label}>Perfil de jugador</span>
+                    <span className={`${styles.value} ${user.player ? styles.successValue : styles.secondaryValue}`}>
                         {user.player ? user.player.name : 'No vinculado a jugador'}
                     </span>
                 </div>

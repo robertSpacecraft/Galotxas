@@ -1,0 +1,37 @@
+.layoutWrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main {
+    flex: 1;
+}
+
+.footer {
+    background-color: #001f3f;
+    color: #fff;
+    padding: 3rem 5%;
+    margin-top: auto;
+    text-align: center;
+}
+
+.footerBrand {
+    margin-bottom: 2rem;
+}
+
+.footerTitle {
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+.footerSubtitle {
+    opacity: 0.7;
+}
+
+.footerBottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 2rem;
+    font-size: 0.8rem;
+    opacity: 0.5;
+}

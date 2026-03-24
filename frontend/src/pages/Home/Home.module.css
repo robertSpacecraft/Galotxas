@@ -1,0 +1,69 @@
+.welcomeSection {
+    padding: 5rem 10%;
+    background-color: #f9f9f9;
+    text-align: center;
+}
+
+.welcomeTitle {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #003366;
+    margin-bottom: 1.5rem;
+}
+
+.welcomeText {
+    font-size: 1.1rem;
+    color: #666;
+    line-height: 1.6;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.contentGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 0 10% 5rem;
+    background-color: #f9f9f9;
+}
+
+.card {
+    background: #fff;
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    text-align: left;
+    border: 1px solid #eee;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.cardTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #003366;
+    margin-bottom: 1rem;
+}
+
+.cardText {
+    color: #666;
+    line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+    .welcomeSection {
+        padding: 3rem 5%;
+    }
+    
+    .welcomeTitle {
+        font-size: 2rem;
+    }
+    
+    .contentGrid {
+        padding: 0 5% 3rem;
+    }
+}

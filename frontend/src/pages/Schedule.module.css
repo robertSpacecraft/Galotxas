@@ -1,0 +1,73 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.title {
+    margin-bottom: 0.5rem;
+}
+
+.meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.badge {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 0.85rem;
+}
+
+.metaText {
+    color: var(--text-secondary);
+}
+
+.nav {
+    display: flex;
+    gap: 0.5rem;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.4rem;
+    border-radius: 8px;
+}
+
+.navLink {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.navLinkActive {
+    background: var(--surface-color);
+    color: var(--text-primary);
+    font-weight: bold;
+    box-shadow: var(--shadow-sm);
+}
+
+.roundSection {
+    margin-bottom: 3rem;
+}
+
+.roundTitle {
+    border-bottom: 1px solid var(--surface-border);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--brand-primary);
+}
+
+.matchesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.emptyMessage {
+    color: var(--text-secondary);
+}

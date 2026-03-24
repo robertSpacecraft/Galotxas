@@ -1,0 +1,34 @@
+.seasonBlock {
+    margin-top: 2rem;
+}
+
+.seasonTitle {
+    border-bottom: 1px solid var(--surface-border);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.championshipBlock {
+    margin-bottom: 2rem;
+    padding: 1rem 0;
+}
+
+.championshipTitle {
+    color: var(--brand-primary);
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+}
+
+.categoryGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.noSeasons {
+    margin-top: 2rem;
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 3rem;
+}

@@ -1,0 +1,234 @@
+.rankingBox {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    padding: 2rem;
+    margin-top: 1rem;
+}
+
+.filterBar {
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.select {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    background: white;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.infoBox {
+    background-color: #eaf6ff;
+    border-left: 4px solid #3498db;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 4px;
+    color: #2c3e50;
+    font-size: 0.95rem;
+}
+
+.tableWrapper {
+    overflow-x: auto;
+    margin-bottom: 1.5rem;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+}
+
+.table th {
+    text-align: left;
+    padding: 1rem;
+    background: #f1f3f5;
+    font-weight: 700;
+    color: #495057;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table td {
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+    color: #444;
+    font-size: 0.95rem;
+}
+
+.center {
+    text-align: center;
+}
+
+.topThree {
+    background-color: rgba(39, 174, 96, 0.05);
+}
+
+.positionCell {
+    width: 60px;
+}
+
+.posNum {
+    font-weight: 800;
+    font-size: 1.1rem;
+}
+
+.playerName {
+    font-weight: 600;
+    color: #2c3e50;
+    min-width: 200px;
+}
+
+.bold {
+    font-weight: 700;
+}
+
+.positive {
+    color: #27ae60;
+    font-weight: 600;
+}
+
+.negative {
+    color: #e74c3c;
+    font-weight: 600;
+}
+
+.statusBadgeOk {
+    background: #e1f5e9;
+    color: #27ae60;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.statusBadgeNo {
+    background: #fff3e0;
+    color: #ef6c00;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: help;
+}
+
+.noOfficial {
+    color: #adb5bd;
+    font-style: italic;
+}
+
+.loadMore {
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.loadMore button {
+    padding: 0.75rem 2.5rem;
+    background: white;
+    border: 2px solid #27ae60;
+    color: #27ae60;
+    border-radius: 30px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.loadMore button:hover {
+    background: #27ae60;
+    color: white;
+}
+
+.footerInfo {
+    margin-top: 2rem;
+    border-top: 1px solid #eee;
+    padding-top: 1.5rem;
+}
+
+.legendToggle {
+    background: none;
+    border: none;
+    color: #3498db;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.95rem;
+    padding: 0;
+}
+
+.legendToggle:hover {
+    text-decoration: underline;
+}
+
+.legend {
+    margin-top: 1.5rem;
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    animation: fadeIn 0.3s ease;
+}
+
+.legend h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
+.legend ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 0.5rem 2rem;
+}
+
+.legend li {
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.orderNote {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #dee2e6;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.loading, .error, .noData {
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+    font-style: italic;
+}
+
+.error {
+    color: #e74c3c;
+}
+
+.inlineLoading {
+    font-size: 0.85rem;
+    color: #27ae60;
+    margin-left: 1rem;
+}
+
+.catCount {
+    background: #eee;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

@@ -1,0 +1,103 @@
+.rankingContainer {
+  margin-top: 4rem;
+  background: white;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.title {
+  font-size: 1.75rem;
+  color: #2c3e50;
+  margin-bottom: 2rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #27ae60;
+  display: inline-block;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.rankingTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.rankingTable th {
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  color: #333;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: none;
+  border-bottom: 2px solid #eee;
+}
+
+.rankingTable td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #eee;
+  color: #444;
+  vertical-align: middle;
+  font-size: 0.9rem;
+}
+
+.topThree {
+  background-color: rgba(39, 174, 96, 0.03);
+}
+
+.position {
+  font-weight: 800;
+  color: #27ae60;
+  width: 50px;
+}
+
+.name {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.points {
+  font-weight: 600;
+  color: #333;
+}
+
+.weightedPoints {
+  font-weight: 700;
+  color: #27ae60;
+}
+
+.diff {
+  font-weight: 600;
+}
+
+.center {
+  text-align: center;
+}
+
+.categoriesList {
+  font-size: 0.8rem;
+  color: #666;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.noData {
+  text-align: center;
+  padding: 2rem;
+  color: #888;
+  font-style: italic;
+}
+
+@media (max-width: 600px) {
+  .hideMobile {
+    display: none;
+  }
+  
+  .rankingContainer {
+    padding: 1.5rem;
+  }
+}

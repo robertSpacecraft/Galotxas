@@ -1,0 +1,69 @@
+.tableWrapper {
+  overflow-x: auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  border: 1px solid #eee;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  min-width: 800px;
+}
+
+.table th {
+  padding: 1.2rem;
+  background-color: #f8f9fa;
+  color: #666;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  border-bottom: 2px solid #eee;
+}
+
+.table td {
+  padding: 1.2rem;
+  border-bottom: 1px solid #f0f0f0;
+  color: #444;
+  font-size: 0.95rem;
+}
+
+.center { text-align: center; }
+
+.pos {
+  font-weight: 800;
+  color: #888;
+}
+
+.leader {
+  color: #27ae60;
+}
+
+.name {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.win { color: #27ae60; }
+.loss { color: #e74c3c; }
+
+.points {
+  font-weight: 800;
+  color: #27ae60;
+  font-size: 1.1rem;
+  background-color: rgba(39, 174, 96, 0.05);
+}
+
+.highlight {
+  color: #27ae60 !important;
+}
+
+.noData {
+  text-align: center;
+  padding: 3rem;
+  color: #888;
+  background: white;
+  border-radius: 12px;
+}

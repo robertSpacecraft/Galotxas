@@ -1,0 +1,255 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: #f8f9fa;
+  min-height: 80vh;
+}
+
+.listHeader {
+  margin-bottom: 2.5rem;
+}
+
+.title {
+  font-size: 2.5rem;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.loading, .noResults {
+  text-align: center;
+  padding: 4rem;
+  font-size: 1.2rem;
+  color: #888;
+}
+
+/* Detail Styles */
+.backLink {
+  display: inline-block;
+  margin-bottom: 2rem;
+  color: #27ae60;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.detailHeader {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  margin-bottom: 2rem;
+}
+
+.seasonBadge {
+  background-color: #e8f5e9;
+  color: #27ae60;
+  padding: 0.3rem 0.8rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  display: inline-block;
+}
+
+.detailTitle {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  color: #666;
+}
+
+.metaItem strong {
+  color: #333;
+}
+
+.detailBody {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+}
+
+.subTitle {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #eee;
+  color: #2c3e50;
+}
+
+.descriptionSection {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.descriptionText {
+  line-height: 1.8;
+  color: #444;
+  white-space: pre-wrap;
+}
+
+.categoriesSection {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.categoriesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.categoryCard {
+  border: 1px solid #e0e0e0;
+  padding: 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  transition: all 0.3s ease;
+  min-height: 160px;
+}
+
+.categoryCard:hover {
+  border-color: #27ae60;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+.categoryCard h3 {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  color: #1a1a1a;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.catLink {
+  color: #3498db;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.registrationBox {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.boxTitle {
+  font-size: 1.25rem;
+  margin-bottom: 1.5rem;
+  color: #2c3e50;
+}
+
+.regStatus {
+  margin-bottom: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.open { color: #27ae60; font-weight: 700; }
+.closed { color: #e74c3c; font-weight: 700; }
+
+.regDates {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.mainRegisterBtn:hover {
+  background-color: #219150;
+  opacity: 1;
+}
+
+/* Tabs */
+.tabsContainer {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.1rem;
+}
+
+.tabLink {
+  padding: 1rem 2rem;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-weight: 700;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1rem;
+}
+
+.tabLink:hover {
+  color: #27ae60;
+}
+
+.activeTab {
+  color: #27ae60;
+  border-bottom-color: #27ae60;
+}
+
+/* Schedule */
+.roundSection {
+  margin-bottom: 4rem;
+}
+
+.roundTitle {
+  font-size: 1.5rem;
+  color: #27ae60;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.matchesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .detailBody {
+    grid-template-columns: 1fr;
+  }
+  
+  .tabLink {
+    padding: 1rem;
+    flex: 1;
+    font-size: 0.9rem;
+  }
+}

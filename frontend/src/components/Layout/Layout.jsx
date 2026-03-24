@@ -1,23 +1,18 @@
 import React from 'react';
+import styles from './Layout.module.css';
 
 export const Layout = ({ children }) => {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <main style={{ flex: 1 }}>
+    <div className={styles.layoutWrapper}>
+      <main className={styles.main}>
         {children}
       </main>
-      <footer style={{ 
-        backgroundColor: '#001f3f', 
-        color: '#fff', 
-        padding: '3rem 5%', 
-        marginTop: 'auto',
-        textAlign: 'center'
-      }}>
-        <div style={{ marginBottom: '2rem' }}>
-          <h3 style={{ fontSize: '1.5rem', fontWeight: 800 }}>GALOTXAS</h3>
-          <p style={{ opacity: 0.7 }}>Federación de Galotxas - Monóvar y comarca</p>
+      <footer className={styles.footer}>
+        <div className={styles.footerBrand}>
+          <h3 className={styles.footerTitle}>GALOTXAS</h3>
+          <p className={styles.footerSubtitle}>Federación de Galotxas - Monóvar y comarca</p>
         </div>
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '2rem', fontSize: '0.8rem', opacity: 0.5 }}>
+        <div className={styles.footerBottom}>
           © 2026 Galotxas. Todos los derechos reservados.
         </div>
       </footer>
