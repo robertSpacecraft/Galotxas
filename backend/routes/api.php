@@ -15,6 +15,8 @@ use App\Http\Controllers\Api\V1\Admin\CategoryController as AdminCategoryControl
 use App\Http\Controllers\Api\V1\Admin\MatchController as AdminMatchController;
 use App\Http\Controllers\Api\V1\Admin\ChampionshipRegistrationController as AdminChampionshipRegistrationController;
 use App\Http\Controllers\Api\V1\ChampionshipRankingController;
+use App\Http\Controllers\Api\V1\AllTimeRankingController;
+use App\Http\Controllers\Api\V1\SeasonRankingController;
 
 Route::prefix('v1')->group(function () {
     //Auth
@@ -32,6 +34,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/categories/{category}/schedule', [CategoryController::class, 'schedule']);
 
     Route::get('/matches/{gameMatch}', [MatchController::class, 'show']);
+
+    Route::get('seasons/{season}/ranking', SeasonRankingController::class);
+    Route::get('rankings/all-time', AllTimeRankingController::class);
 
     //Authenticated API
     Route::middleware('auth:sanctum')->group(function () {
