@@ -20,7 +20,10 @@ use App\Http\Controllers\Api\V1\SeasonRankingController;
 
 Route::prefix('v1')->group(function () {
     //Auth
+    Route::post('/auth/register', [AuthController::class, 'register']);
     Route::post('/auth/login', [AuthController::class, 'login']);
+    Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
 
     //Public API
     Route::get('/seasons', [SeasonController::class, 'index']);
@@ -43,6 +46,7 @@ Route::prefix('v1')->group(function () {
         //Me
         Route::get('/me', [AuthController::class, 'me']);
         Route::get('/me/player-profile', [AuthController::class, 'myPlayerProfile']);
+        Route::post('/me/player-profile', [AuthController::class, 'createMyPlayerProfile']);
         Route::patch('/me/player-profile', [AuthController::class, 'updateMyPlayerProfile']);
 
         Route::get('/me/matches', [MatchController::class, 'myMatches']);
