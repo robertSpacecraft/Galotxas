@@ -160,6 +160,7 @@ class AuthController extends Controller
         return $this->successResponse(
             new PlayerProfileResource($player),
             'Perfil de jugador creado correctamente.',
+            [],
             201
         );
     }

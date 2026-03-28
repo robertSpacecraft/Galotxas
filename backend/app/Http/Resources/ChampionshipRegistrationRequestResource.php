@@ -31,6 +31,13 @@ class ChampionshipRegistrationRequestResource extends JsonResource
                     'slug' => $this->championship?->slug,
                     'type' => $this->championship?->type?->value ?? $this->championship?->type,
                     'registration_status' => $this->championship?->registration_status?->value ?? $this->championship?->registration_status,
+                    'season' => $this->championship?->relationLoaded('season')
+                        ? [
+                            'id' => $this->championship?->season?->id,
+                            'name' => $this->championship?->season?->name,
+                            'status' => $this->championship?->season?->status?->value ?? $this->championship?->season?->status,
+                        ]
+                        : null,
                 ];
             }),
 

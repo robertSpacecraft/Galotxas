@@ -74,6 +74,128 @@
             </div>
         </div>
 
+        <div class="card page-card mt-4">
+            <div class="card-body">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+                    <div>
+                        <h2 class="h4 mb-1">Solicitudes de inscripción</h2>
+                        <p class="text-secondary mb-0">
+                            Gestión de jugadores inscritos en el campeonato y su estado
+                        </p>
+                    </div>
+
+                    <form method="POST"
+                          action="{{ route('admin.championships.registration-requests.approve-all', $championship) }}"
+                          onsubmit="return confirm('¿Aprobar todas las solicitudes pendientes de este campeonato?')">
+                        @csrf
+                        <button type="submit" class="btn btn-success">
+                            Aprobar todas las pendientes
+                        </button>
+                    </form>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped align-middle mb-0">
+                        <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Jugador</th>
+                            <th>Email</th>
+                            <th>Categoría sugerida</th>
+                            <th>Estado</th>
+                            <th>Pago</th>
+                            <th>Comentario</th>
+                            <th class="text-center" style="width: 240px;">Acciones</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @forelse ($registrationRequests as $registrationRequest)
+                            @php
+                                $playerName = $registrationRequest->player
+                                    ? ($registrationRequest->player->nickname ?: (($registrationRequest->player->user->name ?? '') . ' ' . ($registrationRequest->player->user->lastname ?? '')))
+                                    : (($registrationRequest->user->name ?? '') . ' ' . ($registrationRequest->user->lastname ?? ''));
+                            @endphp
+                            <tr>
+                                <td>{{ $registrationRequest->id }}</td>
+                                <td>{{ trim($playerName) ?: '-' }}</td>
+                                <td>{{ $registrationRequest->user->email ?? '-' }}</td>
+                                <td>{{ $registrationRequest->suggestedCategory->name ?? '-' }}</td>
+                                <td>
+                                    @php
+                                        $status = $registrationRequest->status?->value ?? $registrationRequest->status;
+                                        $statusLabel = $registrationRequest->status?->label() ?? ucfirst((string) $status);
+                                    @endphp
+
+                                    @if ($status === 'approved')
+                                        <span class="badge text-bg-success">{{ $statusLabel }}</span>
+                                    @elseif ($status === 'rejected')
+                                        <span class="badge text-bg-danger">{{ $statusLabel }}</span>
+                                    @elseif ($status === 'cancelled')
+                                        <span class="badge text-bg-secondary">{{ $statusLabel }}</span>
+                                    @else
+                                        <span class="badge text-bg-warning">{{ $statusLabel }}</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @php
+                                        $paymentStatus = $registrationRequest->payment_status?->value ?? $registrationRequest->payment_status;
+                                        $paymentStatusLabel = $registrationRequest->payment_status?->label() ?? ucfirst((string) $paymentStatus);
+                                    @endphp
+
+                                    <form method="POST"
+                                          action="{{ route('admin.championships.registration-requests.update-payment-status', [$championship, $registrationRequest]) }}"
+                                          class="d-flex gap-2 align-items-center">
+                                        @csrf
+
+                                        <select name="payment_status" class="form-select form-select-sm" onchange="this.form.submit()">
+                                            <option value="pending" {{ $paymentStatus === 'pending' ? 'selected' : '' }}>Pendiente</option>
+                                            <option value="paid" {{ $paymentStatus === 'paid' ? 'selected' : '' }}>Pagado</option>
+                                            <option value="failed" {{ $paymentStatus === 'failed' ? 'selected' : '' }}>Fallido</option>
+                                            <option value="refunded" {{ $paymentStatus === 'refunded' ? 'selected' : '' }}>Reembolsado</option>
+                                            <option value="not_required" {{ $paymentStatus === 'not_required' ? 'selected' : '' }}>No requerido</option>
+                                        </select>
+                                    </form>
+                                </td>
+                                <td>{{ $registrationRequest->comment ?: '-' }}</td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                        @if ($registrationRequest->status !== 'approved')
+                                            <form method="POST"
+                                                  action="{{ route('admin.championships.registration-requests.approve', [$championship, $registrationRequest]) }}"
+                                                  onsubmit="return confirm('¿Aprobar esta solicitud?')">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-outline-success">
+                                                    Aprobar
+                                                </button>
+                                            </form>
+                                        @endif
+
+                                        @if ($registrationRequest->status !== 'rejected')
+                                            <form method="POST"
+                                                  action="{{ route('admin.championships.registration-requests.reject', [$championship, $registrationRequest]) }}"
+                                                  onsubmit="return confirm('¿Rechazar esta solicitud?')">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    Rechazar
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" class="text-center text-secondary">
+                                    No hay solicitudes de inscripción para este campeonato.
+                                </td>
+                            </tr>
+                        @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <div class="card page-card">
             <div class="card-body">
                 <h2 class="h4 section-title">Ranking de campeonato</h2>

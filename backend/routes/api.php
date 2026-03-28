@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\MyDashboardController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\V1\AuthController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\Api\V1\Admin\ChampionshipRegistrationController as Admi
 use App\Http\Controllers\Api\V1\ChampionshipRankingController;
 use App\Http\Controllers\Api\V1\AllTimeRankingController;
 use App\Http\Controllers\Api\V1\SeasonRankingController;
+use App\Http\Controllers\Api\V1\MyChampionshipRegistrationController;
 
 Route::prefix('v1')->group(function () {
     //Auth
@@ -30,7 +32,7 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/championships', [ChampionshipController::class, 'index']);
     Route::get('/championships/{championship}', [ChampionshipController::class, 'show']);
-    Route::get('championships/{championship}/ranking', ChampionshipRankingController::class);
+    Route::get('/championships/{championship}/ranking', ChampionshipRankingController::class);
 
     Route::get('/categories/{category}', [CategoryController::class, 'show']);
     Route::get('/categories/{category}/standings', [CategoryController::class, 'standings']);
@@ -38,8 +40,8 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/matches/{gameMatch}', [MatchController::class, 'show']);
 
-    Route::get('seasons/{season}/ranking', SeasonRankingController::class);
-    Route::get('rankings/all-time', AllTimeRankingController::class);
+    Route::get('/seasons/{season}/ranking', SeasonRankingController::class);
+    Route::get('/rankings/all-time', AllTimeRankingController::class);
 
     //Authenticated API
     Route::middleware('auth:sanctum')->group(function () {
@@ -49,9 +51,11 @@ Route::prefix('v1')->group(function () {
         Route::post('/me/player-profile', [AuthController::class, 'createMyPlayerProfile']);
         Route::patch('/me/player-profile', [AuthController::class, 'updateMyPlayerProfile']);
 
+        Route::get('/me/championship-registrations', [MyChampionshipRegistrationController::class, 'index']);
         Route::get('/me/matches', [MatchController::class, 'myMatches']);
         Route::get('/me/matches/pending-actions', [MatchController::class, 'pendingActions']);
-
+        Route::get('/me/calendar', [MyDashboardController::class, 'calendar']);
+        Route::get('/me/rankings', [MyDashboardController::class, 'rankings']);
 
         //Player match flow
         Route::get('/matches/{gameMatch}/workflow', [MatchController::class, 'workflow']);
@@ -61,7 +65,6 @@ Route::prefix('v1')->group(function () {
         Route::get('/matches/{gameMatch}/reschedule-workflow', [MatchController::class, 'rescheduleWorkflow']);
         Route::post('/matches/{gameMatch}/request-reschedule', [MatchController::class, 'requestReschedule']);
         Route::post('/matches/{gameMatch}/confirm-reschedule', [MatchController::class, 'confirmReschedule']);
-
 
         //Championship registration requests (player)
         Route::get('/championships/{championship}/registration', [ChampionshipRegistrationController::class, 'show']);

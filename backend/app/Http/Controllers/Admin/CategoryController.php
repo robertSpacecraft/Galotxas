@@ -68,11 +68,28 @@ class CategoryController extends Controller
 
         $registeredIds = $registrations->pluck('player_id');
 
-        $availablePlayers = Player::query()
-            ->with('user')
-            ->whereNotIn('id', $registeredIds)
-            ->orderBy('id')
-            ->get();
+        $championshipId = $category->championship_id;
+
+        $assignedInChampionshipIds = \App\Models\CategoryRegistration::query()
+            ->whereHas('category', function ($query) use ($championshipId) {
+                $query->where('championship_id', $championshipId);
+            })
+            ->pluck('player_id');
+
+        $availablePlayers = \App\Models\ChampionshipRegistrationRequest::query()
+            ->with(['player.user'])
+            ->where('championship_id', $championshipId)
+            ->where('status', 'approved')
+            ->whereNotNull('player_id')
+            ->whereNotIn('player_id', $assignedInChampionshipIds)
+            ->get()
+            ->pluck('player')
+            ->filter()
+            ->unique('id')
+            ->sortBy(function ($player) {
+                return $player->nickname ?: trim(($player->user->name ?? '') . ' ' . ($player->user->lastname ?? ''));
+            })
+            ->values();
 
         $teams = $category->teams;
 

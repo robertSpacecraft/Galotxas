@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\CategoryEntry;
 use App\Models\CategoryRegistration;
+use App\Models\ChampionshipRegistrationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -22,12 +23,35 @@ class CategoryRegistrationController extends Controller
 
         $playerId = (int) $validated['player_id'];
 
-        $exists = CategoryRegistration::where('category_id', $category->id)
+        $hasApprovedChampionshipRequest = ChampionshipRegistrationRequest::query()
+            ->where('championship_id', $category->championship_id)
+            ->where('player_id', $playerId)
+            ->where('status', 'approved')
+            ->exists();
+
+        if (!$hasApprovedChampionshipRequest) {
+            return back()->with('error', 'El jugador no tiene una solicitud aprobada en este campeonato.');
+        }
+
+        $existsInThisCategory = CategoryRegistration::query()
+            ->where('category_id', $category->id)
             ->where('player_id', $playerId)
             ->exists();
 
-        if ($exists) {
-            return back()->with('error', 'El jugador ya está inscrito en esta categoría');
+        if ($existsInThisCategory) {
+            return back()->with('error', 'El jugador ya está inscrito en esta categoría.');
+        }
+
+        $existsInAnotherCategoryOfSameChampionship = CategoryRegistration::query()
+            ->where('player_id', $playerId)
+            ->whereHas('category', function ($query) use ($category) {
+                $query->where('championship_id', $category->championship_id)
+                    ->where('id', '!=', $category->id);
+            })
+            ->exists();
+
+        if ($existsInAnotherCategoryOfSameChampionship) {
+            return back()->with('error', 'El jugador ya está asignado a otra categoría de este campeonato.');
         }
 
         DB::transaction(function () use ($category, $playerId) {
@@ -37,7 +61,6 @@ class CategoryRegistrationController extends Controller
                 'status' => 'approved',
             ]);
 
-            // En individuales, la inscripción ya implica participante competitivo final.
             if ($category->championship->type === ChampionshipType::SINGLES) {
                 CategoryEntry::firstOrCreate([
                     'category_id' => $category->id,
@@ -50,7 +73,7 @@ class CategoryRegistrationController extends Controller
             }
         });
 
-        return back()->with('success', 'Jugador inscrito correctamente');
+        return back()->with('success', 'Jugador inscrito correctamente en la categoría.');
     }
 
     public function destroy(Category $category, CategoryRegistration $registration)

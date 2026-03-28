@@ -120,9 +120,9 @@
                         @csrf
 
                         <div class="col-md-6 col-lg-4">
-                            <label for="player_id" class="form-label">Jugador</label>
+                            <label for="player_id" class="form-label">Jugador inscrito en el campeonato</label>
                             <select name="player_id" id="player_id" class="form-select" required>
-                                <option value="">Selecciona un jugador</option>
+                                <option value="">Selecciona un jugador aprobado</option>
                                 @foreach ($availablePlayers as $player)
                                     <option value="{{ $player->id }}" {{ old('player_id') == $player->id ? 'selected' : '' }}>
                                         {{ $player->nickname ?: ($player->user->name . ' ' . $player->user->lastname) }}

@@ -9,6 +9,7 @@ use App\Models\Championship;
 use App\Models\Season;
 use App\Services\Ranking\BuildChampionshipRankingService;
 use Illuminate\Support\Str;
+use App\Models\ChampionshipRegistrationRequest;
 
 class ChampionshipController extends Controller
 {
@@ -59,9 +60,20 @@ class ChampionshipController extends Controller
 
         $championshipRanking = $rankingService->build($championship);
 
+        $registrationRequests = ChampionshipRegistrationRequest::query()
+            ->with([
+                'user',
+                'player.user',
+                'suggestedCategory',
+            ])
+            ->where('championship_id', $championship->id)
+            ->latest()
+            ->get();
+
         return view('admin.championships.show', [
             'championship' => $championship,
             'championshipRanking' => $championshipRanking,
+            'registrationRequests' => $registrationRequests,
         ]);
     }
 

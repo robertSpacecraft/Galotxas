@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\SeasonController as AdminSeasonController;
 use App\Http\Controllers\Admin\ChampionshipController as AdminChampionshipController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\RankingController as AdminRankingController;
+use App\Http\Controllers\Admin\ChampionshipRegistrationController as AdminChampionshipRegistrationController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -50,6 +51,27 @@ Route::prefix('admin')->group(function () {
         Route::put('/championships/{championship}', [AdminChampionshipController::class, 'update'])->name('admin.championships.update');
         Route::delete('/championships/{championship}', [AdminChampionshipController::class, 'destroy'])->name('admin.championships.destroy');
 
+        //Campeonatos (aprobación)
+        Route::post(
+            '/championships/{championship}/registration-requests/approve-all',
+            [AdminChampionshipRegistrationController::class, 'approveAllPending']
+        )->name('admin.championships.registration-requests.approve-all');
+
+        Route::post(
+            '/championships/{championship}/registration-requests/{registrationRequest}/approve',
+            [AdminChampionshipRegistrationController::class, 'approve']
+        )->name('admin.championships.registration-requests.approve');
+
+        Route::post(
+            '/championships/{championship}/registration-requests/{registrationRequest}/reject',
+            [AdminChampionshipRegistrationController::class, 'reject']
+        )->name('admin.championships.registration-requests.reject');
+
+        Route::post(
+            '/championships/{championship}/registration-requests/{registrationRequest}/payment-status',
+            [AdminChampionshipRegistrationController::class, 'updatePaymentStatus']
+        )->name('admin.championships.registration-requests.update-payment-status');
+
         //Categorías
         Route::get('/championships/{championship}/categories', [AdminCategoryController::class, 'index'])
             ->name('admin.championships.categories');
@@ -57,6 +79,9 @@ Route::prefix('admin')->group(function () {
             ->name('admin.categories.create');
         Route::post('/championships/{championship}/categories', [AdminCategoryController::class, 'store'])
             ->name('admin.categories.store');
+
+
+
 
         Route::get('/categories/{category}', [AdminCategoryController::class, 'show'])
             ->name('admin.categories.show');
