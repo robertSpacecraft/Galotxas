@@ -11,6 +11,9 @@ import StandingsPage from './pages/Standings';
 import SchedulePage from './pages/Schedule';
 import MatchDetails from './pages/MatchDetails';
 import Login from './pages/Login';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import { Rankings } from './pages/Rankings/Rankings';
 import './index.css';
@@ -33,6 +36,9 @@ function App() {
               <Route path="/categories/:categoryId/schedule" element={<SchedulePage />} />
               <Route path="/matches/:matchId" element={<MatchDetails />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route
                 path="/player"
                 element={

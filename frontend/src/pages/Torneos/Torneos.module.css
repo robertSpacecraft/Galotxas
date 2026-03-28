@@ -188,9 +188,28 @@
   margin-bottom: 2rem;
 }
 
-.mainRegisterBtn:hover {
+.mainRegisterBtn {
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.mainRegisterBtn:hover:not(:disabled) {
   background-color: #219150;
-  opacity: 1;
+  box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
+}
+
+.mainRegisterBtn:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+  opacity: 0.8;
 }
 
 /* Tabs */

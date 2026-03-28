@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import styles from './Login.module.css';
 
@@ -18,10 +18,10 @@ export default function Login() {
     const handleLogin = async (e) => {
         e.preventDefault();
         setError(null);
-        setLoading(true);
         try {
             await login(email, password);
-            navigate('/player', { replace: true });
+            const from = location.state?.from || '/player';
+            navigate(from, { replace: true });
         } catch (err) {
             setError(err.response?.data?.message || 'Credenciales incorrectas o error de conexión');
         } finally {
@@ -61,6 +61,11 @@ export default function Login() {
                     {loading ? 'Accediendo...' : 'Iniciar Sesión'}
                 </button>
             </form>
+
+            <div className={styles.authLinks}>
+                <Link to="/register" className={styles.link}>¿No tienes cuenta? Regístrate</Link>
+                <Link to="/forgot-password" className={styles.link}>No puedo iniciar sesión</Link>
+            </div>
         </div>
     );
 }

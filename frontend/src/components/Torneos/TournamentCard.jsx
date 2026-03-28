@@ -19,6 +19,7 @@ export const TournamentCard = ({ tournament }) => {
       draft: 'Borrador',
       published: 'Próximamente',
       ongoing: 'En curso',
+      active: 'En curso',
       finished: 'Finalizado'
     };
     return statuses[status] || status;
@@ -54,7 +55,7 @@ export const TournamentCard = ({ tournament }) => {
       <div className={styles.cardFooter}>
         <Link to={`/torneos/${id}`} className={styles.viewBtn}>Ver Torneo</Link>
         {registration_is_open && (
-          <button className={styles.registerBtn} disabled>Inscribirme</button>
+           <Link to={`/torneos/${id}`} className={styles.registerBtn}>Inscribirme</Link>
         )}
       </div>
     </div>

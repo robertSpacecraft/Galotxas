@@ -1,14 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { championshipsService } from '../../api/championships';
 import { TournamentRanking } from '../../components/Torneos/TournamentRanking';
+import { useAuth } from '../../context/AuthContext';
 import styles from './Torneos.module.css';
 
 export const TournamentDetail = () => {
   const { championshipId } = useParams();
+  const { user, isAuthenticated } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [tournament, setTournament] = useState(null);
   const [ranking, setRanking] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  const [regStatus, setRegStatus] = useState(null);
+  const [regLoading, setRegLoading] = useState(false);
+  const [regError, setRegError] = useState(null);
+  const [regSuccess, setRegSuccess] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -27,6 +37,59 @@ export const TournamentDetail = () => {
     };
     loadData();
   }, [championshipId]);
+
+  useEffect(() => {
+    if (isAuthenticated && user?.player && tournament) {
+      checkRegistrationStatus();
+    }
+  }, [isAuthenticated, user, tournament]);
+
+  const checkRegistrationStatus = async () => {
+    try {
+      const statusData = await championshipsService.getRegistrationStatus(championshipId);
+      // The backend returns an object with a 'request' key. If it's null, we are not registered.
+      if (statusData && statusData.request) {
+        setRegStatus(statusData.request);
+      } else {
+        setRegStatus(null);
+      }
+    } catch (err) {
+      if (err.response && err.response.status !== 404) {
+        console.error("Error checking registration status:", err);
+      }
+      setRegStatus(null);
+    }
+  };
+
+  const handleRegisterClick = async () => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: location.pathname } });
+      return;
+    }
+
+    if (!user?.player) {
+      navigate('/player', { state: { action: 'createProfile', from: location.pathname } });
+      return;
+    }
+
+    if (!window.confirm(`¿Estás seguro de que deseas enviar la solicitud de inscripción al campeonato "${tournament.name}"?`)) {
+        return;
+    }
+
+    setRegLoading(true);
+    setRegError(null);
+    setRegSuccess(false);
+
+    try {
+      await championshipsService.registerChampionship(championshipId);
+      setRegSuccess(true);
+      await checkRegistrationStatus();
+    } catch (err) {
+      setRegError(err.response?.data?.message || 'Hubo un error al procesar tu inscripción.');
+    } finally {
+      setRegLoading(false);
+    }
+  };
 
   if (loading) return <div className={styles.loading}>Cargando detalle del torneo...</div>;
   if (!tournament) return <div className={styles.noResults}>Torneo no encontrado.</div>;
@@ -101,9 +164,32 @@ export const TournamentDetail = () => {
               <p>Abierta desde: {new Date(registration_starts_at).toLocaleDateString()}</p>
               <p>Hasta: {new Date(registration_ends_at).toLocaleDateString()}</p>
             </div>
-            {registration_is_open && (
-              <button className={styles.mainRegisterBtn} disabled>Acceder a inscripción</button>
-            )}
+            
+            <div className={styles.registrationActionArea} style={{ marginTop: '1.5rem' }}>
+              {regStatus ? (
+                <div className={styles.statusBox} style={{ padding: '1rem', backgroundColor: '#2a2f3a', borderRadius: '8px', border: '1px solid #4ade80' }}>
+                  <h4 style={{ margin: '0 0 0.5rem 0', color: '#4ade80' }}>Estado de tu inscripción</h4>
+                  <p style={{ margin: 0 }}>
+                    Tu solicitud está: <strong style={{ textTransform: 'capitalize' }}>{regStatus.status || 'Registrada'}</strong>
+                  </p>
+                </div>
+              ) : registration_is_open ? (
+                <>
+                  <button 
+                    className={styles.mainRegisterBtn} 
+                    onClick={handleRegisterClick}
+                    disabled={regLoading}
+                    style={{ width: '100%', cursor: regLoading ? 'not-allowed' : 'pointer' }}
+                  >
+                    {regLoading ? 'Procesando...' : 'Inscribirme'}
+                  </button>
+                  {regError && <div style={{ color: '#ef4444', marginTop: '0.5rem', fontSize: '0.9rem' }}>{regError}</div>}
+                  {regSuccess && <div style={{ color: '#4ade80', marginTop: '0.5rem', fontSize: '0.9rem' }}>¡Solicitud enviada correctamente!</div>}
+                </>
+              ) : (
+                <p style={{ fontSize: '0.9rem', color: '#aaa', textAlign: 'center' }}>Las inscripciones no están disponibles en este momento.</p>
+              )}
+            </div>
           </div>
         </aside>
       </div>

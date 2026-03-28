@@ -11,8 +11,7 @@ export const TournamentList = () => {
   const [filters, setFilters] = useState({
     season_id: '',
     type: '',
-    status: '',
-    registration_open: ''
+    status: ''
   });
 
   useEffect(() => {

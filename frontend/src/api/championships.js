@@ -120,15 +120,53 @@ export const championshipsService = {
     }
   },
 
-  /**
-   * Get the all-time ranking
-   */
   getAllTimeRanking: async () => {
     try {
       const response = await api.get('/rankings/all-time');
       return response.data.data;
     } catch (error) {
       console.error('Error fetching all-time ranking:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Check registration status for a championship
+   * @param {string|number} id - Championship ID
+   */
+  getRegistrationStatus: async (id) => {
+    try {
+      const response = await api.get(`/championships/${id}/registration`);
+      return response.data.data;
+    } catch (error) {
+      console.error(`Error fetching registration status for championship ${id}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Register for a championship
+   * @param {string|number} id - Championship ID
+   */
+  registerChampionship: async (id) => {
+    try {
+      const response = await api.post(`/championships/${id}/register`);
+      return response.data.data;
+    } catch (error) {
+      console.error(`Error registering for championship ${id}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get my championship registrations
+   */
+  getMyRegistrations: async () => {
+    try {
+      const response = await api.get('/me/championship-registrations');
+      return response.data.data;
+    } catch (error) {
+      console.error('Error fetching my registrations:', error);
       throw error;
     }
   }

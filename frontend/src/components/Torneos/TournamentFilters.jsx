@@ -4,10 +4,21 @@ import styles from './TournamentFilters.module.css';
 export const TournamentFilters = ({ seasons, currentFilters, onFilterChange }) => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    onFilterChange({
-      ...currentFilters,
-      [name]: type === 'checkbox' ? (checked ? '1' : '') : value
-    });
+    
+    if (type === 'checkbox') {
+      const newFilters = { ...currentFilters };
+      if (checked) {
+        newFilters[name] = '1';
+      } else {
+        delete newFilters[name];
+      }
+      onFilterChange(newFilters);
+    } else {
+      onFilterChange({
+        ...currentFilters,
+        [name]: value
+      });
+    }
   };
 
   return (
@@ -38,7 +49,6 @@ export const TournamentFilters = ({ seasons, currentFilters, onFilterChange }) =
           <option value="">Todos</option>
           <option value="singles">Individual</option>
           <option value="doubles">Parejas</option>
-          <option value="triples">Tríos</option>
         </select>
       </div>
 
@@ -51,9 +61,7 @@ export const TournamentFilters = ({ seasons, currentFilters, onFilterChange }) =
           onChange={handleChange}
         >
           <option value="">Cualquiera</option>
-          <option value="draft">Borrador</option>
-          <option value="published">Publicado</option>
-          <option value="ongoing">En curso</option>
+          <option value="active">En curso</option>
           <option value="finished">Finalizado</option>
         </select>
       </div>

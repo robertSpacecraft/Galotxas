@@ -1,0 +1,212 @@
+.registerContainer {
+    max-width: 600px;
+    margin: 4rem auto;
+    padding: 0 1rem;
+}
+
+.title {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    font-size: 2rem;
+    background: var(--brand-gradient);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 2.5rem;
+    border-radius: 16px;
+    border: 1px solid var(--surface-border);
+    backdrop-filter: blur(10px);
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+@media (max-width: 600px) {
+    .row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.fieldGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    position: relative;
+}
+
+.fieldGroup label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.inputWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    padding-right: 2.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--surface-border);
+    background: rgba(0, 0, 0, 0.2);
+    color: white;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.input:focus {
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 2px rgba(var(--brand-primary-rgb), 0.1);
+}
+
+.validationIcon {
+    position: absolute;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.success {
+    color: #4caf50;
+}
+
+.error {
+    color: #f44336;
+}
+
+.checkboxGroup {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin: 1rem 0;
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 2px solid var(--brand-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.checkbox.checked {
+    background: var(--brand-primary);
+}
+
+.playerSection {
+    margin-top: 1rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--surface-border);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.sectionTitle {
+    font-size: 1.2rem;
+    color: var(--brand-primary);
+    margin-bottom: 0.5rem;
+}
+
+.select {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--surface-border);
+    background: #1c2128; /* Solid dark background */
+    color: white;
+    outline: none;
+    cursor: pointer;
+}
+
+.select option {
+    background-color: #1c2128;
+    color: white;
+    padding: 10px;
+}
+
+.textarea {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--surface-border);
+    background: rgba(0,0,0,0.2);
+    color: white;
+    outline: none;
+    min-height: 100px;
+    resize: vertical;
+}
+
+.submitBtn {
+    padding: 1rem;
+    border-radius: 8px;
+    border: none;
+    background: var(--brand-gradient);
+    color: white;
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-top: 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.submitBtn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.submitBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.errorMsg {
+    color: #ff7b72;
+    background: rgba(248, 81, 73, 0.1);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(248, 81, 73, 0.3);
+    font-size: 0.9rem;
+}
+
+.loginLink {
+    margin-top: 2rem;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.link {
+    color: var(--brand-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.link:hover {
+    text-decoration: underline;
+}

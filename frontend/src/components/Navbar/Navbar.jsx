@@ -27,7 +27,7 @@ export const Navbar = () => {
         {isAuthenticated ? (
           <div className={styles.userGreeting}>
             <span className={styles.welcomeText}>
-              Hola, <span className={styles.userName}>{user?.name}</span>!
+              Hola, <span className={styles.userName} title={user?.name}>{user?.name}</span>!
             </span>
             <Link to="/player" className={styles.miPanelLink}>Mi Panel</Link>
             <button onClick={logout} className={styles.logoutBtn}>Salir</button>

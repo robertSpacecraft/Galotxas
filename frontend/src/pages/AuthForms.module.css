@@ -1,32 +1,41 @@
-.loginContainer {
+.container {
     max-width: 400px;
     margin: 4rem auto;
+    padding: 0 1rem;
 }
 
 .title {
     text-align: center;
     margin-bottom: 2rem;
+    font-size: 1.8rem;
 }
 
-.error {
-    color: #ff7b72;
-    margin-bottom: 1.5rem;
-    background: rgba(248, 81, 73, 0.1);
-    padding: 0.8rem;
-    border-radius: 8px;
-    border: 1px solid rgba(248, 81, 73, 0.3);
-    font-size: 0.9rem;
+.description {
+    text-align: center;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
 }
 
 .form {
     display: flex;
     flex-direction: column;
-    gap: 1.2rem;
+    gap: 1.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid var(--surface-border);
+}
+
+.fieldGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 .fieldGroup label {
-    display: block;
-    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
     color: var(--text-secondary);
 }
 
@@ -52,46 +61,49 @@
     background: var(--brand-gradient);
     color: white;
     font-weight: bold;
-    font-size: 1rem;
-    margin-top: 1rem;
     cursor: pointer;
-    transition: transform 0.2s ease, opacity 0.2s;
+    transition: transform 0.2s;
 }
 
 .submitBtn:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .submitBtn:disabled {
-    opacity: 0.7;
+    opacity: 0.6;
     cursor: not-allowed;
 }
 
-.authLinks {
-    margin-top: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
+.errorMsg {
+    color: #ff7b72;
+    background: rgba(248, 81, 73, 0.1);
+    padding: 0.8rem;
+    border-radius: 8px;
+    border: 1px solid rgba(248, 81, 73, 0.3);
+    font-size: 0.9rem;
+}
+
+.successMsg {
+    color: #7ee787;
+    background: rgba(46, 160, 67, 0.1);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(46, 160, 67, 0.3);
+    font-size: 0.95rem;
     text-align: center;
-    border-top: 1px solid var(--surface-border);
-    padding-top: 1.5rem;
+}
+
+.backLink {
+    margin-top: 2rem;
+    text-align: center;
 }
 
 .link {
     color: var(--brand-primary);
     text-decoration: none;
     font-size: 0.9rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
 }
 
 .link:hover {
-    color: white;
-    transform: translateY(-1px);
-}
-
-.link:hover {
-    color: var(--brand-primary);
     text-decoration: underline;
 }
