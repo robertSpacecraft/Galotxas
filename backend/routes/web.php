@@ -68,6 +68,11 @@ Route::prefix('admin')->group(function () {
         )->name('admin.championships.registration-requests.reject');
 
         Route::post(
+            '/championships/{championship}/registration-requests/{registrationRequest}/mark-as-pending',
+            [AdminChampionshipRegistrationController::class, 'markAsPending']
+        )->name('admin.championships.registration-requests.mark-as-pending');
+
+        Route::post(
             '/championships/{championship}/registration-requests/{registrationRequest}/payment-status',
             [AdminChampionshipRegistrationController::class, 'updatePaymentStatus']
         )->name('admin.championships.registration-requests.update-payment-status');

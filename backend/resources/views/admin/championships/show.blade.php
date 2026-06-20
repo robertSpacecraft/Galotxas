@@ -74,16 +74,46 @@
             </div>
         </div>
 
+        @php
+            $pendingRegistrationRequests = $registrationRequests->filter(function ($registrationRequest) {
+                $status = $registrationRequest->status;
+                $statusValue = $status instanceof \BackedEnum ? $status->value : (string) $status;
+
+                return $statusValue === 'pending';
+            });
+
+            $approvedRegistrationRequests = $registrationRequests->filter(function ($registrationRequest) {
+                $status = $registrationRequest->status;
+                $statusValue = $status instanceof \BackedEnum ? $status->value : (string) $status;
+
+                return $statusValue === 'approved';
+            });
+
+            $rejectedRegistrationRequests = $registrationRequests->filter(function ($registrationRequest) {
+                $status = $registrationRequest->status;
+                $statusValue = $status instanceof \BackedEnum ? $status->value : (string) $status;
+
+                return $statusValue === 'rejected';
+            });
+        @endphp
+
+        @foreach ([$pendingRegistrationRequests, $approvedRegistrationRequests, $rejectedRegistrationRequests] as $registrationRequestGroup)
+            @php
+                $isPendingGroup = $loop->first;
+                $isApprovedGroup = $loop->iteration === 2;
+                $isRejectedGroup = $loop->last;
+            @endphp
         <div class="card page-card mt-4">
             <div class="card-body">
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
                     <div>
-                        <h2 class="h4 mb-1">Solicitudes de inscripción</h2>
+                        <h2 class="h4 mb-1">{{ $isPendingGroup ? 'Solicitudes pendientes' : ($isApprovedGroup ? 'Solicitudes aprobadas' : 'Solicitudes rechazadas') }}</h2>
                         <p class="text-secondary mb-0">
-                            Gestión de jugadores inscritos en el campeonato y su estado
+                            {{ $isPendingGroup ? 'Solicitudes de inscripción que requieren revisión' : ($isApprovedGroup ? 'Jugadores cuya inscripción ya ha sido aprobada' : 'Solicitudes rechazadas que pueden volver a revisión') }}
                         </p>
                     </div>
 
+                    @if ($isPendingGroup)
                     <form method="POST"
                           action="{{ route('admin.championships.registration-requests.approve-all', $championship) }}"
                           onsubmit="return confirm('¿Aprobar todas las solicitudes pendientes de este campeonato?')">
@@ -92,8 +122,14 @@
                             Aprobar todas las pendientes
                         </button>
                     </form>
+                    @endif
                 </div>
 
+                @if ($registrationRequestGroup->isEmpty())
+                    <div class="alert {{ $isPendingGroup ? 'alert-info' : 'alert-light border' }} mb-0">
+                        {{ $isPendingGroup ? 'No hay solicitudes pendientes.' : ($isApprovedGroup ? 'No hay solicitudes aprobadas.' : 'No hay solicitudes rechazadas.') }}
+                    </div>
+                @else
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped align-middle mb-0">
                         <thead class="table-dark">
@@ -109,7 +145,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        @forelse ($registrationRequests as $registrationRequest)
+                        @foreach ($registrationRequestGroup as $registrationRequest)
                             @php
                                 $playerName = $registrationRequest->player
                                     ? ($registrationRequest->player->nickname ?: (($registrationRequest->player->user->name ?? '') . ' ' . ($registrationRequest->player->user->lastname ?? '')))
@@ -122,8 +158,13 @@
                                 <td>{{ $registrationRequest->suggestedCategory->name ?? '-' }}</td>
                                 <td>
                                     @php
-                                        $status = $registrationRequest->status?->value ?? $registrationRequest->status;
-                                        $statusLabel = $registrationRequest->status?->label() ?? ucfirst((string) $status);
+                                        $requestStatus = $registrationRequest->status;
+                                        $status = $requestStatus instanceof \BackedEnum
+                                            ? $requestStatus->value
+                                            : (string) $requestStatus;
+                                        $statusLabel = is_object($requestStatus) && method_exists($requestStatus, 'label')
+                                            ? $requestStatus->label()
+                                            : ucfirst($status);
                                     @endphp
 
                                     @if ($status === 'approved')
@@ -159,7 +200,7 @@
                                 <td>{{ $registrationRequest->comment ?: '-' }}</td>
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-2 flex-wrap">
-                                        @if ($registrationRequest->status !== 'approved')
+                                        @if ($isPendingGroup)
                                             <form method="POST"
                                                   action="{{ route('admin.championships.registration-requests.approve', [$championship, $registrationRequest]) }}"
                                                   onsubmit="return confirm('¿Aprobar esta solicitud?')">
@@ -170,7 +211,16 @@
                                             </form>
                                         @endif
 
-                                        @if ($registrationRequest->status !== 'rejected')
+                                        @if ($isRejectedGroup)
+                                            <form method="POST"
+                                                  action="{{ route('admin.championships.registration-requests.mark-as-pending', [$championship, $registrationRequest]) }}"
+                                                  onsubmit="return confirm('¿Devolver esta solicitud al estado pendiente?')">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-outline-warning">
+                                                    Devolver a pendiente
+                                                </button>
+                                            </form>
+                                        @else
                                             <form method="POST"
                                                   action="{{ route('admin.championships.registration-requests.reject', [$championship, $registrationRequest]) }}"
                                                   onsubmit="return confirm('¿Rechazar esta solicitud?')">
@@ -183,18 +233,15 @@
                                     </div>
                                 </td>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="text-center text-secondary">
-                                    No hay solicitudes de inscripción para este campeonato.
-                                </td>
-                            </tr>
-                        @endforelse
+                        @endforeach
                         </tbody>
                     </table>
                 </div>
+                @endif
             </div>
         </div>
+
+        @endforeach
 
         <div class="card page-card">
             <div class="card-body">

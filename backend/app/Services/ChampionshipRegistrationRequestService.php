@@ -89,4 +89,18 @@ class ChampionshipRegistrationRequestService
             'suggestedCategory',
         ]);
     }
+
+    public function markAsPending(ChampionshipRegistrationRequest $request): ChampionshipRegistrationRequest
+    {
+        $request->update([
+            'status' => ChampionshipRegistrationRequestStatus::PENDING->value,
+        ]);
+
+        return $request->fresh([
+            'championship',
+            'user',
+            'player.user',
+            'suggestedCategory',
+        ]);
+    }
 }

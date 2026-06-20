@@ -40,6 +40,20 @@ class ChampionshipRegistrationController extends Controller
         return back()->with('success', 'Solicitud rechazada correctamente.');
     }
 
+    public function markAsPending(
+        Championship $championship,
+        ChampionshipRegistrationRequest $registrationRequest,
+        ChampionshipRegistrationRequestService $service
+    ) {
+        if ((int) $registrationRequest->championship_id !== (int) $championship->id) {
+            abort(404);
+        }
+
+        $service->markAsPending($registrationRequest);
+
+        return back()->with('success', 'Solicitud devuelta a pendiente correctamente.');
+    }
+
     public function approveAllPending(
         Championship $championship,
         ChampionshipRegistrationRequestService $service
