@@ -23,10 +23,14 @@ use App\Http\Controllers\Api\V1\MyChampionshipRegistrationController;
 
 Route::prefix('v1')->group(function () {
     //Auth
-    Route::post('/auth/register', [AuthController::class, 'register']);
-    Route::post('/auth/login', [AuthController::class, 'login']);
-    Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
-    Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
+    Route::post('/auth/register', [AuthController::class, 'register'])
+        ->middleware('throttle:auth.register');
+    Route::post('/auth/login', [AuthController::class, 'login'])
+        ->middleware('throttle:auth.login');
+    Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword'])
+        ->middleware('throttle:auth.password');
+    Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])
+        ->middleware('throttle:auth.password');
 
     //Public API
     Route::get('/seasons', [SeasonController::class, 'index']);
@@ -64,8 +68,10 @@ Route::prefix('v1')->group(function () {
 
         //Player match flow
         Route::get('/matches/{gameMatch}/workflow', [MatchController::class, 'workflow']);
-        Route::post('/matches/{gameMatch}/submit-result', [MatchController::class, 'submitResult']);
-        Route::post('/matches/{gameMatch}/confirm-result', [MatchController::class, 'confirmResult']);
+        Route::post('/matches/{gameMatch}/submit-result', [MatchController::class, 'submitResult'])
+            ->middleware('throttle:match.results');
+        Route::post('/matches/{gameMatch}/confirm-result', [MatchController::class, 'confirmResult'])
+            ->middleware('throttle:match.results');
 
         Route::get('/matches/{gameMatch}/reschedule-workflow', [MatchController::class, 'rescheduleWorkflow']);
         Route::post('/matches/{gameMatch}/request-reschedule', [MatchController::class, 'requestReschedule']);
