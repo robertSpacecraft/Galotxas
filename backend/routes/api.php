@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\MyDashboardController;
+use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\V1\AuthController;
@@ -44,8 +45,10 @@ Route::prefix('v1')->group(function () {
     Route::get('/rankings/all-time', AllTimeRankingController::class);
 
     //Authenticated API
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::post('/auth/logout', [AuthController::class, 'logout']);
+    Route::post('/auth/logout', [AuthController::class, 'logout'])
+        ->middleware('auth:sanctum');
+
+    Route::middleware(['auth:sanctum', EnsureUserIsActive::class])->group(function () {
 
         //Me
         Route::get('/me', [AuthController::class, 'me']);
