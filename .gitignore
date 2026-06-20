@@ -40,7 +40,6 @@ pnpm-debug.log*
 /backend/storage/framework/views/
 /backend/storage/logs/
 /backend/bootstrap/cache/*.php
-/backend/database/*.sqlite
 /backend/public/storage
 
 # PHPUnit / coverage

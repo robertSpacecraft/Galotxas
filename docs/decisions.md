@@ -239,3 +239,26 @@ Permite:
 - gestionar históricos
 - registrar jugadores sin cuenta
 - vincular cuentas posteriormente
+
+---
+
+# AD-010 — MariaDB como único motor de base de datos
+
+## Contexto
+
+El proyecto se inició con valores predeterminados de un motor embebido, pero la infraestructura y las migraciones evolucionaron para MariaDB. Algunas migraciones utilizan operaciones específicas compatibles con MariaDB, como actualizaciones con INNER JOIN y modificaciones de columnas ENUM.
+
+## Decisión
+
+MariaDB 11.4 es el único motor de base de datos soportado para desarrollo, pruebas y despliegue.
+
+- Laravel usa la conexión mariadb.
+- PHP mantiene pdo_mysql, que es el controlador requerido para conectarse a MariaDB.
+- Las pruebas de integración se ejecutan contra una instancia MariaDB aislada y desechable.
+- No se admite ningún otro motor como alternativa ni como entorno de pruebas.
+
+## Consecuencias
+
+- Las migraciones y consultas se validan contra el mismo motor utilizado por la aplicación.
+- Se evita ocultar incompatibilidades de tipos, restricciones, ENUM y SQL específico.
+- La suite de integración requiere Docker y no debe apuntar a la base de desarrollo.
