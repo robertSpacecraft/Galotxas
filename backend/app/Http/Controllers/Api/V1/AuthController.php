@@ -93,6 +93,13 @@ class AuthController extends Controller
         ], 'Login correcto.');
     }
 
+    public function logout(Request $request): JsonResponse
+    {
+        $request->user()->currentAccessToken()->delete();
+
+        return $this->successResponse(null, 'Logout correcto.');
+    }
+
     public function me(Request $request): JsonResponse
     {
         $user = $request->user()->load('player.user');

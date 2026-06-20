@@ -45,6 +45,8 @@ Route::prefix('v1')->group(function () {
 
     //Authenticated API
     Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/auth/logout', [AuthController::class, 'logout']);
+
         //Me
         Route::get('/me', [AuthController::class, 'me']);
         Route::get('/me/player-profile', [AuthController::class, 'myPlayerProfile']);
