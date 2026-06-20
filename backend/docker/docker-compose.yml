@@ -32,10 +32,10 @@ services:
     container_name: galotxas_db
     restart: unless-stopped
     environment:
-      MARIADB_DATABASE: ${DB_DATABASE}
-      MARIADB_USER: ${DB_USERNAME}
-      MARIADB_PASSWORD: ${DB_PASSWORD}
-      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: galotxas
+      MARIADB_USER: galotxas
+      MARIADB_PASSWORD: galotxas
+      MARIADB_ROOT_PASSWORD: root
     ports:
       - "3307:3306"
     volumes:
