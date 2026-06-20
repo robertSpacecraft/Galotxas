@@ -42,7 +42,7 @@ class ApiRateLimitingTest extends TestCase
         for ($attempt = 1; $attempt <= 5; $attempt++) {
             $this->postJson('/api/v1/auth/forgot-password', [
                 'email' => 'missing@example.com',
-            ])->assertUnprocessable();
+            ])->assertOk();
         }
 
         $this->postJson('/api/v1/auth/forgot-password', [

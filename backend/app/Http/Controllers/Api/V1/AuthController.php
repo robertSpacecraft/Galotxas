@@ -199,17 +199,13 @@ class AuthController extends Controller
 
     public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
     {
-        $status = Password::sendResetLink([
+        Password::sendResetLink([
             'email' => $request->validated('email'),
         ]);
 
-        if ($status !== Password::RESET_LINK_SENT) {
-            return $this->errorResponse(__($status), [], 422);
-        }
-
         return $this->successResponse(
             null,
-            'Si el correo existe, se ha enviado un enlace para restablecer la contraseña.'
+            'Si el correo existe, recibirás instrucciones para restablecer la contraseña.'
         );
     }
 
@@ -221,7 +217,6 @@ class AuthController extends Controller
             [
                 'email' => $validated['email'],
                 'password' => $validated['password'],
-                'password_confirmation' => $validated['password_confirmation'],
                 'token' => $validated['token'],
             ],
             function ($user, $password) {
