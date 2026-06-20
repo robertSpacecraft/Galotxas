@@ -7,6 +7,7 @@ use App\Enums\MatchResultReportSide;
 use App\Http\Controllers\Concerns\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\MatchResource;
+use App\Http\Resources\PublicMatchResource;
 use App\Http\Resources\MatchResultReportResource;
 use App\Models\CategoryEntry;
 use App\Models\GameMatch;
@@ -34,14 +35,10 @@ class MatchController extends Controller
             'winnerEntry.team.players.user',
             'venue',
             'round.category.championship.season',
-            'resultReports.user',
-            'resultReports.player.user',
-            'submittedBy',
-            'validatedBy',
         ]);
 
         return $this->successResponse(
-            new MatchResource($gameMatch)
+            new PublicMatchResource($gameMatch)
         );
     }
 
