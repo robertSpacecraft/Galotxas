@@ -2,6 +2,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
   padding: 0.8rem 5%;
   /* Slightly reduced vertical padding as logo is larger */
   background-color: #ffffff;
@@ -15,6 +16,7 @@
 .logoContainer {
   display: flex;
   align-items: center;
+  flex: 0 0 auto;
   text-decoration: none;
 }
 
@@ -32,7 +34,12 @@
 
 .navLinks {
   display: flex;
-  gap: 1.5rem;
+  justify-content: center;
+  gap: clamp(0.75rem, 1.3vw, 1.5rem);
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
   list-style: none;
 }
 
@@ -85,7 +92,10 @@
 .userGreeting {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 1.5rem;
+  min-width: 0;
   font-weight: 700;
   color: #003366;
   font-size: 1.2rem;
@@ -115,7 +125,6 @@
   font-size: 0.8rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-left: 1rem;
 }
 
 .logoutBtn:hover {
@@ -129,15 +138,59 @@
   font-size: 0.85rem;
   font-weight: 700;
   transition: color 0.3s ease;
-  margin-left: 1rem;
 }
 
 .miPanelLink:hover {
   color: #003366;
 }
 
+@media (max-width: 1500px) {
+  .navbar {
+    flex-wrap: wrap;
+  }
+
+  .navLinks {
+    order: 3;
+    flex-basis: 100%;
+  }
+}
+
 @media (max-width: 1024px) {
   .navLinks {
     display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .navbar {
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .logoImage {
+    height: 80px;
+  }
+
+  .authSection {
+    min-width: 0;
+  }
+
+  .userGreeting {
+    gap: 0.5rem;
+    font-size: 1rem;
+  }
+
+  .welcomeText {
+    display: none;
+  }
+
+  .miPanelLink,
+  .logoutBtn {
+    font-size: 0.8rem;
+  }
+
+  .playerAreaBtn {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
   }
 }
