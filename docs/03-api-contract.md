@@ -106,6 +106,36 @@ Esta heterogeneidad es conocida y forma parte del estado actual del proyecto.
 
 La normalización completa del contrato API constituye una fase específica del roadmap.
 
+## Usuario autenticado
+
+`GET /api/v1/me` mantiene el envelope habitual y devuelve la cuenta autenticada junto con su perfil de jugador, si existe:
+
+```json
+{
+    "message": null,
+    "data": {
+        "user": {
+            "id": 1,
+            "name": "Nom",
+            "lastname": "Cognoms",
+            "email": "jugador@example.com",
+            "role": "user",
+            "active": true,
+            "has_player": true
+        },
+        "player": {}
+    }
+}
+```
+
+`user` se serializa mediante `UserResource` y solo expone los campos explícitos del contrato. No incluye credenciales, token de sesión, estado de verificación de email, timestamps ni otros atributos internos del modelo.
+
+La respuesta completa se compone mediante `MeResource`, que delega el perfil deportivo en `PlayerProfileResource`. Cuando el usuario no tiene perfil de jugador, `has_player` es `false` y `player` es `null`.
+
+Los nombres de campos y la estructura consumida por React se mantienen sin cambios.
+
+---
+
 ## Calendario privado
 
 `GET /api/v1/me/calendar` mantiene el envelope habitual y agrupa los partidos por día:

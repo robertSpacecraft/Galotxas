@@ -37,6 +37,16 @@ No se pretende una reescritura masiva únicamente para homogeneizar la serializa
 
 ---
 
+## Resources del usuario autenticado
+
+`MeResource` compone la respuesta de `GET /api/v1/me` sin exponer modelos Eloquent directamente.
+
+Delega los datos de cuenta en `UserResource` y el perfil deportivo opcional en `PlayerProfileResource`.
+
+`UserResource` expone únicamente `id`, `name`, `lastname`, `email`, `role`, `active` y `has_player`. No serializa credenciales, tokens, verificación de email, timestamps ni otros campos internos.
+
+---
+
 ## Resource de calendario privado
 
 `CalendarDayResource` serializa cada día devuelto por `GET /api/v1/me/calendar`.

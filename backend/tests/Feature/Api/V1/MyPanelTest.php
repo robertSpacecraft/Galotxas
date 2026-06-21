@@ -22,8 +22,30 @@ class MyPanelTest extends TestCase
     {
         [$user, $player] = $this->createAuthenticatedPlayer();
 
-        $this->getJson('/api/v1/me')
+        $response = $this->getJson('/api/v1/me');
+
+        $response
             ->assertOk()
+            ->assertJsonStructure([
+                'message',
+                'data' => [
+                    'user' => [
+                        'id',
+                        'name',
+                        'lastname',
+                        'email',
+                        'role',
+                        'active',
+                        'has_player',
+                    ],
+                    'player',
+                ],
+            ])
+            ->assertJsonMissingPath('data.user.password')
+            ->assertJsonMissingPath('data.user.remember_token')
+            ->assertJsonMissingPath('data.user.email_verified_at')
+            ->assertJsonMissingPath('data.user.created_at')
+            ->assertJsonMissingPath('data.user.updated_at')
             ->assertJsonPath('message', null)
             ->assertJsonPath('data.user.id', $user->id)
             ->assertJsonPath('data.user.email', $user->email)
@@ -31,6 +53,16 @@ class MyPanelTest extends TestCase
             ->assertJsonPath('data.user.has_player', true)
             ->assertJsonPath('data.player.id', $player->id)
             ->assertJsonPath('data.player.nickname', $player->nickname);
+
+        $this->assertSame([
+            'id' => $user->id,
+            'name' => $user->name,
+            'lastname' => $user->lastname,
+            'email' => $user->email,
+            'role' => $user->role,
+            'active' => true,
+            'has_player' => true,
+        ], $response->json('data.user'));
     }
 
     public function test_me_returns_null_player_when_user_has_no_player_profile(): void

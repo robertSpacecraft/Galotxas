@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Concerns\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\UpdateMyPlayerProfileRequest;
+use App\Http\Resources\MeResource;
 use App\Http\Resources\PlayerProfileResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -104,18 +105,7 @@ class AuthController extends Controller
     {
         $user = $request->user()->load('player.user');
 
-        return $this->successResponse([
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'lastname' => $user->lastname,
-                'email' => $user->email,
-                'role' => $user->role,
-                'active' => $user->active,
-                'has_player' => $user->player !== null,
-            ],
-            'player' => $user->player ? new PlayerProfileResource($user->player) : null,
-        ]);
+        return $this->successResponse(new MeResource($user));
     }
 
     public function myPlayerProfile(Request $request): JsonResponse
