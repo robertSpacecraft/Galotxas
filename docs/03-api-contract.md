@@ -106,6 +106,28 @@ Esta heterogeneidad es conocida y forma parte del estado actual del proyecto.
 
 La normalización completa del contrato API constituye una fase específica del roadmap.
 
+## Calendario privado
+
+`GET /api/v1/me/calendar` mantiene el envelope habitual y agrupa los partidos por día:
+
+```json
+{
+    "message": null,
+    "data": [
+        {
+            "date": "2026-07-15",
+            "matches": []
+        }
+    ]
+}
+```
+
+Cada elemento de `matches` se serializa mediante `MatchResource`.
+
+El endpoint no devuelve modelos Eloquent directamente ni expone relaciones completas de forma implícita.
+
+Los nombres de los campos se mantienen en `snake_case`.
+
 ---
 
 # 8. Compatibilidad

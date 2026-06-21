@@ -213,6 +213,11 @@ class MyPanelTest extends TestCase
     public function test_calendar_groups_the_authenticated_players_scheduled_matches_by_date(): void
     {
         [, $player] = $this->createAuthenticatedPlayer();
+        $player->update(['nickname' => null]);
+        $player->user()->update([
+            'name' => 'Jugador',
+            'lastname' => 'Calendario',
+        ]);
         $match = $this->createSinglesMatchFor($player, [
             'scheduled_date' => '2026-07-15 18:30:00',
         ]);
@@ -222,7 +227,13 @@ class MyPanelTest extends TestCase
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.date', '2026-07-15')
             ->assertJsonPath('data.0.matches.0.id', $match->id)
-            ->assertJsonPath('data.0.matches.0.home_entry_id', $match->home_entry_id);
+            ->assertJsonPath('data.0.matches.0.home_entry_id', $match->home_entry_id)
+            ->assertJsonPath('data.0.matches.0.home_entry.player.id', $player->id)
+            ->assertJsonPath('data.0.matches.0.home_entry.player.name', 'Jugador')
+            ->assertJsonPath('data.0.matches.0.home_entry.player.lastname', 'Calendario')
+            ->assertJsonPath('data.0.matches.0.round.category.id', $match->round->category_id)
+            ->assertJsonMissingPath('data.0.matches.0.home_entry.player.user')
+            ->assertJsonMissingPath('data.0.matches.0.home_entry.player.dni');
     }
 
     public function test_calendar_returns_an_empty_collection_when_user_has_no_player_profile(): void

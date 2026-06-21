@@ -17,6 +17,11 @@ export default function MatchCard({ match, entryNames = {}, translateStatus }) {
             // Prioridad: Nickname > Nombre Real > ID fallback
             if (entry.player.nickname) return entry.player.nickname;
             
+            const directFullName = `${entry.player.name || ''} ${entry.player.lastname || ''}`.trim();
+            if (directFullName) {
+                return directFullName;
+            }
+
             if (entry.player.user) {
                 const fullName = `${entry.player.user.name || ''} ${entry.player.user.lastname || ''}`.trim();
                 if (fullName) return fullName;

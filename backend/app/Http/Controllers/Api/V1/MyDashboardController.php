@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Concerns\ApiResponse;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\CalendarDayResource;
 use App\Models\Category;
 use App\Models\CategoryEntry;
 use App\Models\GameMatch;
@@ -39,7 +40,9 @@ class MyDashboardController extends Controller
             })
             ->values();
 
-        return $this->successResponse($calendar);
+        return $this->successResponse(
+            CalendarDayResource::collection($calendar)
+        );
     }
 
     //Rankings

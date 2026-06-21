@@ -37,6 +37,14 @@ No se pretende una reescritura masiva únicamente para homogeneizar la serializa
 
 ---
 
+## Resource de calendario privado
+
+`CalendarDayResource` serializa cada día devuelto por `GET /api/v1/me/calendar`.
+
+Mantiene la agrupación mediante `date` y delega la serialización de cada partido en `MatchResource`, evitando devolver modelos Eloquent directamente.
+
+---
+
 # 3. Responsabilidades
 
 Un Resource debe:
