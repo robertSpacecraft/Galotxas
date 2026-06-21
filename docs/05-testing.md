@@ -82,6 +82,7 @@ Alta prioridad:
 - autorización;
 - usuarios activos;
 - inscripción;
+- área privada “Mi Panel”;
 - resultados;
 - rankings;
 - Resources;
@@ -131,7 +132,22 @@ Las pruebas manuales complementan, pero no sustituyen, las pruebas automáticas.
 
 ---
 
-# 9. Evolución
+# 9. Cobertura Feature actual
+
+El backend dispone de cobertura Feature para los endpoints privados de “Mi Panel”:
+
+- datos del usuario autenticado;
+- consulta, creación y actualización del perfil de jugador;
+- solicitudes de inscripción propias;
+- partidos propios;
+- calendario;
+- rankings;
+- comportamiento de usuarios sin perfil de jugador;
+- rechazo de acceso no autenticado.
+
+---
+
+# 10. Evolución
 
 La cobertura de pruebas debe crecer junto con el proyecto.
 
