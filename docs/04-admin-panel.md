@@ -8,6 +8,16 @@ El panel administrativo es la herramienta principal para gestionar la competici�
 
 Describe procesos funcionales, no detalles visuales. Las reglas de estilo se encuentran en `backend/BACKEND_STYLE.md`.
 
+## Vistas Principales
+
+### Dashboard
+
+El panel de inicio actúa como el centro de mando (hub) para la gestión del sistema.
+
+- **Métricas Operativas**: Muestra de forma inmediata una tabla de **Solicitudes de inscripción pendientes** de revisión (limitadas a las últimas 20 por razones de rendimiento).
+- Desde el dashboard, el administrador puede revisar qué requiere atención inmediata sin necesidad de navegar a través del árbol de competiciones.
+- Contiene accesos rápidos a la creación y listado de Temporadas, Campeonatos, Usuarios y Jugadores.
+
 ---
 
 # 1. Naturaleza del panel

@@ -22,6 +22,74 @@
         </div>
     </div>
 
+    <div class="card page-card mb-4 border-warning">
+        <div class="card-header bg-warning bg-opacity-10 text-warning-emphasis d-flex justify-content-between align-items-center">
+            <h2 class="h5 mb-0">Solicitudes de inscripción pendientes</h2>
+            @if($pendingRequests->isNotEmpty())
+                <span class="badge bg-warning text-dark">{{ $pendingRequests->count() }} @if($pendingRequests->count() == 20) (últimas 20) @endif</span>
+            @endif
+        </div>
+        <div class="card-body p-0">
+            @if($pendingRequests->isEmpty())
+                <div class="p-4 text-center text-secondary">
+                    <p class="mb-0">No hay solicitudes pendientes de revisión.</p>
+                </div>
+            @else
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Jugador</th>
+                                <th>Campeonato</th>
+                                <th>Categoría Sugerida</th>
+                                <th class="text-end">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($pendingRequests as $request)
+                                <tr>
+                                    <td>
+                                        <div title="{{ $request->created_at->format('d/m/Y H:i') }}">
+                                            {{ $request->created_at->diffForHumans() }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-medium">
+                                            @if($request->player)
+                                                {{ $request->player->nickname ?: $request->player->user->name . ' ' . $request->player->user->lastname }}
+                                            @else
+                                                {{ $request->user->name }} {{ $request->user->lastname }}
+                                            @endif
+                                        </div>
+                                        <div class="small text-secondary">{{ $request->user->email }}</div>
+                                    </td>
+                                    <td>
+                                        <a href="{{ route('admin.championships.show', $request->championship) }}" class="text-decoration-none text-body fw-medium">
+                                            {{ $request->championship->name }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        @if($request->suggestedCategory)
+                                            <span class="badge bg-light text-dark border">{{ $request->suggestedCategory->name }}</span>
+                                        @else
+                                            <span class="text-secondary small">Ninguna</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{{ route('admin.championships.show', $request->championship) }}#solicitudes" class="btn btn-sm btn-outline-primary">
+                                            Revisar
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </div>
+    </div>
+
     <div class="row g-4">
         <div class="col-md-6 col-xl-3">
             <div class="card page-card h-100">

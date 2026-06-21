@@ -108,14 +108,16 @@ Objetivo:
 
 Mejorar productividad del administrador.
 
+Estado:
+En progreso.
+
 Líneas previstas:
 
-- dashboard con métricas;
-- tareas pendientes;
-- filtros;
-- navegación;
-- mejoras de usabilidad;
-- reducción de clics.
+- [x] Tareas pendientes en el dashboard (Bloque 1).
+- [ ] Acciones rápidas (Bloque 2).
+- [ ] Vista de huérfanos sin categoría (Bloque 3).
+- [ ] Asignación rápida de categoría (Bloque 4).
+- [ ] Métricas y filtros avanzados (Bloque 5).
 
 ---
 

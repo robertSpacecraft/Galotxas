@@ -136,6 +136,10 @@ Las pruebas manuales complementan, pero no sustituyen, las pruebas automáticas.
 
 El backend dispone de cobertura automatizada Feature para componentes críticos del dominio:
 
+## Panel Administrativo
+- acceso seguro y protección de sesiones activas;
+- visualización dinámica de solicitudes pendientes en el dashboard (limitadas a 20).
+
 ## Área Privada "Mi Panel"
 - datos del usuario autenticado;
 - consulta, creación y actualización del perfil de jugador;
