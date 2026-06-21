@@ -138,7 +138,8 @@ El backend dispone de cobertura automatizada Feature para componentes críticos 
 
 ## Panel Administrativo
 - acceso seguro y protección de sesiones activas;
-- visualización dinámica de solicitudes pendientes en el dashboard (limitadas a 20).
+- visualización dinámica de solicitudes pendientes en el dashboard (limitadas a 20);
+- ejecución y redirección correcta de acciones rápidas (aprobar/rechazar) desde el dashboard.
 
 ## Área Privada "Mi Panel"
 - datos del usuario autenticado;

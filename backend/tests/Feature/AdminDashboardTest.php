@@ -19,7 +19,7 @@ class AdminDashboardTest extends TestCase
         $admin = User::factory()->admin()->create();
         $player = Player::factory()->create();
         $championship = Championship::factory()->create();
-        
+
         $pendingRequest = ChampionshipRegistrationRequest::query()->create([
             'championship_id' => $championship->id,
             'user_id' => $player->user_id,
@@ -62,5 +62,60 @@ class AdminDashboardTest extends TestCase
         $response->assertSee('No hay solicitudes pendientes de revisión.');
         $response->assertDontSee($playerApproved->nickname ?: $playerApproved->user->name);
         $response->assertDontSee($playerRejected->nickname ?: $playerRejected->user->name);
+    }
+
+    public function test_admin_can_approve_pending_request_from_dashboard(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $player = Player::factory()->create();
+        $championship = Championship::factory()->create();
+
+        $pendingRequest = ChampionshipRegistrationRequest::query()->create([
+            'championship_id' => $championship->id,
+            'user_id' => $player->user_id,
+            'player_id' => $player->id,
+            'status' => ChampionshipRegistrationRequestStatus::PENDING->value,
+        ]);
+
+        // Simular que el origen de la petición es el dashboard para verificar la redirección (back())
+        $response = $this->actingAs($admin)->from(route('admin.dashboard'))->post(route(
+            'admin.championships.registration-requests.approve',
+            [$championship, $pendingRequest]
+        ));
+
+        $response->assertRedirect(route('admin.dashboard'));
+        $response->assertSessionHas('success', 'Solicitud aprobada correctamente.');
+
+        $this->assertDatabaseHas('championship_registration_requests', [
+            'id' => $pendingRequest->id,
+            'status' => ChampionshipRegistrationRequestStatus::APPROVED->value,
+        ]);
+    }
+
+    public function test_admin_can_reject_pending_request_from_dashboard(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $player = Player::factory()->create();
+        $championship = Championship::factory()->create();
+
+        $pendingRequest = ChampionshipRegistrationRequest::query()->create([
+            'championship_id' => $championship->id,
+            'user_id' => $player->user_id,
+            'player_id' => $player->id,
+            'status' => ChampionshipRegistrationRequestStatus::PENDING->value,
+        ]);
+
+        $response = $this->actingAs($admin)->from(route('admin.dashboard'))->post(route(
+            'admin.championships.registration-requests.reject',
+            [$championship, $pendingRequest]
+        ));
+
+        $response->assertRedirect(route('admin.dashboard'));
+        $response->assertSessionHas('success', 'Solicitud rechazada correctamente.');
+
+        $this->assertDatabaseHas('championship_registration_requests', [
+            'id' => $pendingRequest->id,
+            'status' => ChampionshipRegistrationRequestStatus::REJECTED->value,
+        ]);
     }
 }

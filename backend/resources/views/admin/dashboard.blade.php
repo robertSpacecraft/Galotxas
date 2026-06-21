@@ -77,9 +77,25 @@
                                         @endif
                                     </td>
                                     <td class="text-end">
-                                        <a href="{{ route('admin.championships.show', $request->championship) }}#solicitudes" class="btn btn-sm btn-outline-primary">
-                                            Revisar
-                                        </a>
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <form action="{{ route('admin.championships.registration-requests.approve', [$request->championship, $request]) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-success" title="Aprobar solicitud">
+                                                    Aprobar
+                                                </button>
+                                            </form>
+
+                                            <form action="{{ route('admin.championships.registration-requests.reject', [$request->championship, $request]) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Seguro que deseas rechazar esta solicitud?');">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-danger" title="Rechazar solicitud">
+                                                    Rechazar
+                                                </button>
+                                            </form>
+
+                                            <a href="{{ route('admin.championships.show', $request->championship) }}#solicitudes" class="btn btn-sm btn-outline-primary" title="Revisar campeonato">
+                                                Revisar
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
