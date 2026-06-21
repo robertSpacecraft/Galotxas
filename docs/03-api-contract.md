@@ -130,6 +130,38 @@ Los nombres de los campos se mantienen en `snake_case`.
 
 ---
 
+## Rankings privados del participante
+
+`GET /api/v1/me/rankings` mantiene el envelope habitual y devuelve una fila por cada categoría en la que se localiza al jugador autenticado:
+
+```json
+{
+    "message": null,
+    "data": [
+        {
+            "championship": { "id": 1, "name": "Mà a mà" },
+            "category": { "id": 4, "name": "Primera" },
+            "entry_type": "player",
+            "entry_name": "Jugador",
+            "position": 1,
+            "played": 3,
+            "wins": 2,
+            "losses": 1,
+            "points": 6,
+            "games_for": 28,
+            "games_against": 19,
+            "games_diff": 9
+        }
+    ]
+}
+```
+
+La respuesta se serializa mediante `MyRankingResource`. El cálculo y la localización de la fila del jugador se realizan en `BuildMyRankingsService`, que reutiliza el ranking de categoría existente.
+
+El endpoint no devuelve `CategoryEntry` ni otros modelos Eloquent. Los nombres de los campos y el comportamiento para usuarios sin perfil de jugador (`data: []`) se mantienen sin cambios.
+
+---
+
 # 8. Compatibilidad
 
 Antes de modificar un endpoint debe comprobarse:

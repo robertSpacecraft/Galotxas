@@ -5,11 +5,10 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Concerns\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CalendarDayResource;
-use App\Models\Category;
-use App\Models\CategoryEntry;
+use App\Http\Resources\MyRankingResource;
 use App\Models\GameMatch;
 use App\Models\Player;
-use App\Services\Ranking\BuildCategoryRankingService;
+use App\Services\Ranking\BuildMyRankingsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -46,7 +45,10 @@ class MyDashboardController extends Controller
     }
 
     //Rankings
-    public function rankings(Request $request): JsonResponse
+    public function rankings(
+        Request $request,
+        BuildMyRankingsService $buildMyRankingsService
+    ): JsonResponse
     {
         $player = $request->user()->player;
 
@@ -54,68 +56,9 @@ class MyDashboardController extends Controller
             return $this->successResponse([]);
         }
 
-        $categories = Category::query()
-            ->whereHas('entries', function ($query) use ($player) {
-                $query->where(function ($subQuery) use ($player) {
-                    $subQuery->where('player_id', $player->id)
-                        ->orWhereHas('team.players', function ($teamQuery) use ($player) {
-                            $teamQuery->where('players.id', $player->id);
-                        });
-                });
-            })
-            ->with('championship')
-            ->get();
-
-        $data = [];
-
-        foreach ($categories as $category) {
-            $ranking = app(BuildCategoryRankingService::class)->build($category);
-
-            $myRow = collect($ranking)->first(function ($row) use ($player) {
-                if (!is_array($row) || !isset($row['entry']) || !$row['entry'] instanceof CategoryEntry) {
-                    return false;
-                }
-
-                $entry = $row['entry'];
-
-                if ($entry->entry_type === 'player') {
-                    return (int) $entry->player_id === (int) $player->id;
-                }
-
-                if ($entry->entry_type === 'team' && $entry->team) {
-                    return $entry->team->players->contains('id', $player->id);
-                }
-
-                return false;
-            });
-
-            if (!is_array($myRow)) {
-                continue;
-            }
-
-            $data[] = [
-                'championship' => [
-                    'id' => $category->championship->id,
-                    'name' => $category->championship->name,
-                ],
-                'category' => [
-                    'id' => $category->id,
-                    'name' => $category->name,
-                ],
-                'entry_type' => $myRow['entry']->entry_type,
-                'entry_name' => $myRow['name'],
-                'position' => $myRow['position'],
-                'played' => $myRow['played'],
-                'wins' => $myRow['wins'],
-                'losses' => $myRow['losses'],
-                'points' => $myRow['points'],
-                'games_for' => $myRow['games_for'],
-                'games_against' => $myRow['games_against'],
-                'games_diff' => $myRow['games_diff'],
-            ];
-        }
-
-        return $this->successResponse($data);
+        return $this->successResponse(
+            MyRankingResource::collection($buildMyRankingsService->build($player))
+        );
     }
 
     //Helpers

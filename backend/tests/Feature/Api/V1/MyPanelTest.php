@@ -260,6 +260,24 @@ class MyPanelTest extends TestCase
         $this->getJson('/api/v1/me/rankings')
             ->assertOk()
             ->assertJsonCount(1, 'data')
+            ->assertJsonStructure([
+                'message',
+                'data' => [[
+                    'championship' => ['id', 'name'],
+                    'category' => ['id', 'name'],
+                    'entry_type',
+                    'entry_name',
+                    'position',
+                    'played',
+                    'wins',
+                    'losses',
+                    'points',
+                    'games_for',
+                    'games_against',
+                    'games_diff',
+                ]],
+            ])
+            ->assertJsonMissingPath('data.0.entry')
             ->assertJsonPath('data.0.championship.id', $match->round->category->championship_id)
             ->assertJsonPath('data.0.category.id', $match->round->category_id)
             ->assertJsonPath('data.0.entry_type', 'player')

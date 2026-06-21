@@ -155,6 +155,10 @@ Actualmente la autorización del proyecto se basa principalmente en Middleware y
 
 Las Policies forman parte de la arquitectura objetivo y podrán incorporarse progresivamente cuando aporten una mejora clara respecto a la implementación existente.
 
+En el área privada, `BuildMyRankingsService` coordina el caso de uso de rankings del participante. Localiza sus categorías, reutiliza `BuildCategoryRankingService` para el cálculo deportivo y entrega una estructura explícita al Resource, evitando que el controlador gestione consultas, búsqueda de posición o modelos Eloquent.
+
+Esta extracción no sustituye ni modifica el servicio de ranking de categoría.
+
 ---
 
 # 8. Organización del frontend

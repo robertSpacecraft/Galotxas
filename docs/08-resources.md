@@ -45,6 +45,14 @@ Mantiene la agrupación mediante `date` y delega la serialización de cada parti
 
 ---
 
+## Resource de rankings privados
+
+`MyRankingResource` serializa cada fila devuelta por `GET /api/v1/me/rankings`.
+
+Recibe una estructura explícita preparada por `BuildMyRankingsService` y expone únicamente campeonato, categoría, tipo y nombre de inscripción, posición y estadísticas deportivas. No expone el modelo `CategoryEntry` utilizado internamente para localizar al jugador.
+
+---
+
 # 3. Responsabilidades
 
 Un Resource debe:
