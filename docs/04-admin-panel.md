@@ -16,6 +16,7 @@ El panel de inicio actúa como el centro de mando (hub) para la gestión del sis
 
 - **Métricas Operativas**: Muestra de forma inmediata una tabla de **Solicitudes de inscripción pendientes** de revisión (limitadas a las últimas 20 por razones de rendimiento).
 - **Acciones Rápidas**: Permite **Aprobar** o **Rechazar** solicitudes directamente desde la tabla del dashboard, sin necesidad de entrar al detalle de cada campeonato, agilizando enormemente el flujo de revisión.
+- **Aprobados pendientes de categoría**: Muestra una segunda tabla con las solicitudes ya aprobadas cuyo jugador todavía no ha sido asignado a ninguna categoría del campeonato correspondiente (limitadas a las últimas 20). Incluye un enlace directo a la gestión de categorías del campeonato para facilitar la asignación.
 - Desde el dashboard, el administrador puede revisar qué requiere atención inmediata sin necesidad de navegar a través del árbol de competiciones.
 - Contiene accesos rápidos a la creación y listado de Temporadas, Campeonatos, Usuarios y Jugadores.
 

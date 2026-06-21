@@ -5,10 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\ChampionshipRegistrationRequestStatus;
 use App\Http\Controllers\Controller;
 use App\Models\ChampionshipRegistrationRequest;
+use App\Services\ResolveApprovedUnassignedRequestsService;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(ResolveApprovedUnassignedRequestsService $unassignedService)
     {
         $pendingRequests = ChampionshipRegistrationRequest::query()
             ->with([
@@ -22,6 +23,8 @@ class DashboardController extends Controller
             ->limit(20)
             ->get();
 
-        return view('admin.dashboard', compact('pendingRequests'));
+        $approvedUnassignedRequests = $unassignedService->resolve();
+
+        return view('admin.dashboard', compact('pendingRequests', 'approvedUnassignedRequests'));
     }
 }

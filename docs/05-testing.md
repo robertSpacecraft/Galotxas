@@ -139,7 +139,11 @@ El backend dispone de cobertura automatizada Feature para componentes críticos 
 ## Panel Administrativo
 - acceso seguro y protección de sesiones activas;
 - visualización dinámica de solicitudes pendientes en el dashboard (limitadas a 20);
-- ejecución y redirección correcta de acciones rápidas (aprobar/rechazar) desde el dashboard.
+- ejecución y redirección correcta de acciones rápidas (aprobar/rechazar) desde el dashboard;
+- visualización de solicitudes aprobadas pendientes de asignación a categoría;
+- exclusión correcta de solicitudes pendientes, rechazadas y ya asignadas de la sección de aprobados sin categoría;
+- enlace de navegación a categorías del campeonato desde la sección de aprobados sin categoría;
+- rechazo de acceso al dashboard para usuarios no administradores.
 
 ## Área Privada "Mi Panel"
 - datos del usuario autenticado;
