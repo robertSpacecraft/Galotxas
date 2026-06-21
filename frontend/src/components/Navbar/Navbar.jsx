@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import styles from './Navbar.module.css';
 import logo from '../../assets/images/Logo_Galotxas_Femenino.png';
 

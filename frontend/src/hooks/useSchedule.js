@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../api/api';
 
 export const useSchedule = (categoryId) => {
-  const [schedule, setSchedule] = round => useState([]);
+  const [schedule, setSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 

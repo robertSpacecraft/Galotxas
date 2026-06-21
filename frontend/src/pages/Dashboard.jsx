@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { meService } from '../api/me';
 import MatchCard from '../components/MatchCard';
 import styles from './Dashboard.module.css';
@@ -41,7 +41,7 @@ export default function Dashboard() {
 
     useEffect(() => {
         refreshUser().catch(err => console.error("Initial refresh failed", err));
-    }, []);
+    }, [refreshUser]);
 
     useEffect(() => {
         if (!isPlayer) return;
@@ -50,7 +50,7 @@ export default function Dashboard() {
             setRegsLoading(true);
             meService.getRegistrations()
                 .then(data => setRegistrations(data || []))
-                .catch(err => setRegsError("No se pudieron cargar tus inscripciones en este momento."))
+                .catch(() => setRegsError("No se pudieron cargar tus inscripciones en este momento."))
                 .finally(() => setRegsLoading(false));
         }
 
@@ -58,7 +58,7 @@ export default function Dashboard() {
             setMatchesLoading(true);
             meService.getMatches()
                 .then(data => setMatches(data || []))
-                .catch(err => setMatchesError("No se pudieron cargar tus partidos en este momento."))
+                .catch(() => setMatchesError("No se pudieron cargar tus partidos en este momento."))
                 .finally(() => setMatchesLoading(false));
         }
 
@@ -66,7 +66,7 @@ export default function Dashboard() {
             setCalendarLoading(true);
             meService.getCalendar()
                 .then(data => setCalendar(data || []))
-                .catch(err => setCalendarError("No se pudo cargar tu calendario en este momento."))
+                .catch(() => setCalendarError("No se pudo cargar tu calendario en este momento."))
                 .finally(() => setCalendarLoading(false));
         }
 
@@ -74,10 +74,10 @@ export default function Dashboard() {
             setRankingsLoading(true);
             meService.getRankings()
                 .then(data => setRankings(data || []))
-                .catch(err => setRankingsError("No se pudieron cargar tus rankings en este momento."))
+                .catch(() => setRankingsError("No se pudieron cargar tus rankings en este momento."))
                 .finally(() => setRankingsLoading(false));
         }
-    }, [isPlayer, activeTab]);
+    }, [isPlayer, activeTab, registrations.length, matches.length, calendar.length, rankings.length]);
 
     const [playerData, setPlayerData] = useState({
         nickname: '',
@@ -107,7 +107,7 @@ export default function Dashboard() {
             };
 
             const filteredPlayerProfile = Object.fromEntries(
-                Object.entries(preparedPlayerData).filter(([_, v]) => v !== '' && v !== null)
+                Object.entries(preparedPlayerData).filter(([, value]) => value !== '' && value !== null)
             );
             
             console.log('Enviando actualización de perfil de jugador:', filteredPlayerProfile);

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { championshipsService } from '../../api/championships';
 import { TournamentRanking } from '../../components/Torneos/TournamentRanking';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import styles from './Torneos.module.css';
 
 export const TournamentDetail = () => {
@@ -19,6 +19,23 @@ export const TournamentDetail = () => {
   const [regLoading, setRegLoading] = useState(false);
   const [regError, setRegError] = useState(null);
   const [regSuccess, setRegSuccess] = useState(false);
+
+  const checkRegistrationStatus = useCallback(async () => {
+    try {
+      const statusData = await championshipsService.getRegistrationStatus(championshipId);
+      // The backend returns an object with a 'request' key. If it's null, we are not registered.
+      if (statusData && statusData.request) {
+        setRegStatus(statusData.request);
+      } else {
+        setRegStatus(null);
+      }
+    } catch (err) {
+      if (err.response && err.response.status !== 404) {
+        console.error("Error checking registration status:", err);
+      }
+      setRegStatus(null);
+    }
+  }, [championshipId]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -42,24 +59,7 @@ export const TournamentDetail = () => {
     if (isAuthenticated && user?.player && tournament) {
       checkRegistrationStatus();
     }
-  }, [isAuthenticated, user, tournament]);
-
-  const checkRegistrationStatus = async () => {
-    try {
-      const statusData = await championshipsService.getRegistrationStatus(championshipId);
-      // The backend returns an object with a 'request' key. If it's null, we are not registered.
-      if (statusData && statusData.request) {
-        setRegStatus(statusData.request);
-      } else {
-        setRegStatus(null);
-      }
-    } catch (err) {
-      if (err.response && err.response.status !== 404) {
-        console.error("Error checking registration status:", err);
-      }
-      setRegStatus(null);
-    }
-  };
+  }, [isAuthenticated, user?.player, tournament, checkRegistrationStatus]);
 
   const handleRegisterClick = async () => {
     if (!isAuthenticated) {

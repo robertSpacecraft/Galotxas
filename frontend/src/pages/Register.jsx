@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import styles from './Register.module.css';
 
 const CheckIcon = () => (
@@ -17,7 +17,6 @@ const XIcon = () => (
 );
 
 export default function Register() {
-    const navigate = useNavigate();
     const { register, createPlayerProfile } = useAuth();
     
     const [formData, setFormData] = useState({
@@ -89,7 +88,7 @@ export default function Register() {
 
                 // Filter empty optional fields
                 const filteredPlayerProfile = Object.fromEntries(
-                    Object.entries(preparedPlayerData).filter(([_, v]) => v !== '' && v !== null)
+                    Object.entries(preparedPlayerData).filter(([, value]) => value !== '' && value !== null)
                 );
                 
                 try {

@@ -1,7 +1,6 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import api from '../api/client';
-
-const AuthContext = createContext(null);
+import { AuthContext } from './authContext';
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
@@ -74,7 +73,20 @@ export const AuthProvider = ({ children }) => {
         return newPlayer;
     };
 
-    const refreshUser = async () => {
+    const logout = useCallback(async () => {
+        try {
+            await api.post('/auth/logout');
+        } catch (error) {
+            console.error("Error revoking current access token:", error);
+        } finally {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setToken(null);
+            setUser(null);
+        }
+    }, []);
+
+    const refreshUser = useCallback(async () => {
         try {
             const response = await api.get('/me');
             const rawData = response.data.data;
@@ -94,7 +106,7 @@ export const AuthProvider = ({ children }) => {
             }
             throw error;
         }
-    };
+    }, [logout]);
 
     const forgotPassword = async (email) => {
         const response = await api.post('/auth/forgot-password', { email });
@@ -104,19 +116,6 @@ export const AuthProvider = ({ children }) => {
     const resetPassword = async (data) => {
         const response = await api.post('/auth/reset-password', data);
         return response.data;
-    };
-
-    const logout = async () => {
-        try {
-            await api.post('/auth/logout');
-        } catch (error) {
-            console.error("Error revoking current access token:", error);
-        } finally {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            setToken(null);
-            setUser(null);
-        }
     };
 
     const value = {
@@ -138,12 +137,4 @@ export const AuthProvider = ({ children }) => {
             {!loading && children}
         </AuthContext.Provider>
     );
-};
-
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
 };

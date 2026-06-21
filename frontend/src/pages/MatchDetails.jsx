@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import api from '../api/client';
 import styles from './MatchDetails.module.css';
 
@@ -16,7 +16,7 @@ export default function MatchDetails() {
     const [match, setMatch] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    const fetchMatch = () => {
+    const fetchMatch = useCallback(() => {
         api.get(`/matches/${matchId}`)
             .then(response => {
                 setMatch(response.data.data);
@@ -26,11 +26,11 @@ export default function MatchDetails() {
                 console.error(error);
                 setLoading(false);
             });
-    };
+    }, [matchId]);
 
     useEffect(() => {
         fetchMatch();
-    }, [matchId]);
+    }, [fetchMatch]);
 
     const handleResultSubmit = async (e) => {
         e.preventDefault();
