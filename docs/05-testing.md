@@ -134,8 +134,9 @@ Las pruebas manuales complementan, pero no sustituyen, las pruebas automáticas.
 
 # 9. Cobertura Feature actual
 
-El backend dispone de cobertura Feature para los endpoints privados de “Mi Panel”:
+El backend dispone de cobertura automatizada Feature para componentes críticos del dominio:
 
+## Área Privada "Mi Panel"
 - datos del usuario autenticado;
 - consulta, creación y actualización del perfil de jugador;
 - solicitudes de inscripción propias;
@@ -145,7 +146,16 @@ El backend dispone de cobertura Feature para los endpoints privados de “Mi Pan
 - comportamiento de usuarios sin perfil de jugador;
 - rechazo de acceso no autenticado.
 
----
+## Flujo de Inscripción y Administración (Fase 3 Core)
+- prevención de inscripciones si el campeonato está cerrado;
+- prevención de inscripciones duplicadas;
+- creación exitosa de inscripciones en estado pendiente;
+- rechazo de usuarios sin perfil de jugador al intentar inscribirse;
+- acciones administrativas (aprobar/rechazar/devolver a pendiente);
+- asignación de categoría exclusiva para jugadores con solicitudes aprobadas;
+- prevención de asignaciones duplicadas a la misma categoría;
+- protección de accesos administrativos frente a usuarios normales.
+
 
 # 10. Evolución
 

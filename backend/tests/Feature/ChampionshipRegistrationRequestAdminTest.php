@@ -67,4 +67,83 @@ class ChampionshipRegistrationRequestAdminTest extends TestCase
             'status' => ChampionshipRegistrationRequestStatus::REJECTED->value,
         ]);
     }
+
+    public function test_admin_can_approve_a_pending_request(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $player = Player::factory()->create();
+        $championship = Championship::factory()->create();
+        $registrationRequest = ChampionshipRegistrationRequest::query()->create([
+            'championship_id' => $championship->id,
+            'user_id' => $player->user_id,
+            'player_id' => $player->id,
+            'status' => ChampionshipRegistrationRequestStatus::PENDING->value,
+            'payment_status' => ChampionshipRegistrationPaymentStatus::PENDING->value,
+        ]);
+
+        $response = $this->actingAs($admin)->post(route(
+            'admin.championships.registration-requests.approve',
+            [$championship, $registrationRequest]
+        ));
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success', 'Solicitud aprobada correctamente.');
+        $this->assertDatabaseHas('championship_registration_requests', [
+            'id' => $registrationRequest->id,
+            'status' => ChampionshipRegistrationRequestStatus::APPROVED->value,
+        ]);
+    }
+
+    public function test_admin_can_reject_a_pending_request(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $player = Player::factory()->create();
+        $championship = Championship::factory()->create();
+        $registrationRequest = ChampionshipRegistrationRequest::query()->create([
+            'championship_id' => $championship->id,
+            'user_id' => $player->user_id,
+            'player_id' => $player->id,
+            'status' => ChampionshipRegistrationRequestStatus::PENDING->value,
+            'payment_status' => ChampionshipRegistrationPaymentStatus::PENDING->value,
+        ]);
+
+        $response = $this->actingAs($admin)->post(route(
+            'admin.championships.registration-requests.reject',
+            [$championship, $registrationRequest]
+        ));
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success', 'Solicitud rechazada correctamente.');
+        $this->assertDatabaseHas('championship_registration_requests', [
+            'id' => $registrationRequest->id,
+            'status' => ChampionshipRegistrationRequestStatus::REJECTED->value,
+        ]);
+    }
+
+    public function test_non_admin_cannot_approve_reject_or_return_request(): void
+    {
+        $user = User::factory()->create();
+        $player = Player::factory()->create();
+        $championship = Championship::factory()->create();
+        $registrationRequest = ChampionshipRegistrationRequest::query()->create([
+            'championship_id' => $championship->id,
+            'user_id' => $player->user_id,
+            'player_id' => $player->id,
+            'status' => ChampionshipRegistrationRequestStatus::PENDING->value,
+            'payment_status' => ChampionshipRegistrationPaymentStatus::PENDING->value,
+        ]);
+
+        $responseApprove = $this->actingAs($user)->post(route(
+            'admin.championships.registration-requests.approve',
+            [$championship, $registrationRequest]
+        ));
+
+        $responseReject = $this->actingAs($user)->post(route(
+            'admin.championships.registration-requests.reject',
+            [$championship, $registrationRequest]
+        ));
+
+        $responseApprove->assertForbidden();
+        $responseReject->assertForbidden();
+    }
 }
