@@ -11,20 +11,15 @@ class DashboardController extends Controller
 {
     public function index(ResolveApprovedUnassignedRequestsService $unassignedService)
     {
-        $pendingRequests = ChampionshipRegistrationRequest::query()
-            ->with([
-                'user',
-                'player.user',
-                'championship',
-                'suggestedCategory'
-            ])
+        $pendingRequestsCount = ChampionshipRegistrationRequest::query()
             ->where('status', ChampionshipRegistrationRequestStatus::PENDING->value)
-            ->latest()
-            ->limit(20)
-            ->get();
+            ->count();
 
-        $approvedUnassignedRequests = $unassignedService->resolve();
+        $approvedUnassignedRequestsCount = $unassignedService->count();
 
-        return view('admin.dashboard', compact('pendingRequests', 'approvedUnassignedRequests'));
+        return view('admin.dashboard', compact(
+            'pendingRequestsCount',
+            'approvedUnassignedRequestsCount'
+        ));
     }
 }

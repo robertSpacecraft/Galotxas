@@ -66,6 +66,9 @@
                     <a class="nav-link" href="/admin">Dashboard</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="{{ route('admin.registration-requests.index') }}">Solicitudes</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="/admin/seasons">Temporadas</a>
                 </li>
                 <li class="nav-item">

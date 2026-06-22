@@ -14,11 +14,20 @@ Describe procesos funcionales, no detalles visuales. Las reglas de estilo se enc
 
 El panel de inicio actúa como el centro de mando (hub) para la gestión del sistema.
 
-- **Métricas Operativas**: Muestra de forma inmediata una tabla de **Solicitudes de inscripción pendientes** de revisión (limitadas a las últimas 20 por razones de rendimiento).
-- **Acciones Rápidas**: Permite **Aprobar** o **Rechazar** solicitudes directamente desde la tabla del dashboard, sin necesidad de entrar al detalle de cada campeonato, agilizando enormemente el flujo de revisión.
-- **Aprobados pendientes de categoría**: Muestra una segunda tabla con las solicitudes ya aprobadas cuyo jugador todavía no ha sido asignado a ninguna categoría del campeonato correspondiente (limitadas a las últimas 20). Incluye un enlace directo a la gestión de categorías del campeonato para facilitar la asignación.
-- Desde el dashboard, el administrador puede revisar qué requiere atención inmediata sin necesidad de navegar a través del árbol de competiciones.
+- **Resumen operativo**: Muestra el número total de solicitudes pendientes de revisión y de solicitudes aprobadas pendientes de categoría.
+- **Acceso a gestión**: Incluye un enlace claro a la sección específica de solicitudes e inscripciones.
+- No contiene formularios de aprobación, rechazo o asignación de categoría; esas acciones se concentran en la pantalla operativa correspondiente.
 - Contiene accesos rápidos a la creación y listado de Temporadas, Campeonatos, Usuarios y Jugadores.
+
+### Solicitudes e inscripciones
+
+La ruta `/admin/registration-requests` centraliza la gestión operativa del flujo de inscripción.
+
+- Muestra las últimas 20 solicitudes pendientes y permite aprobarlas o rechazarlas mediante las rutas existentes.
+- Muestra las últimas 20 solicitudes aprobadas cuyo jugador todavía no tiene categoría en el campeonato.
+- Permite seleccionar una categoría del campeonato y asignar al jugador reutilizando `CategoryRegistrationController@store`.
+- Preselecciona la categoría sugerida cuando pertenece al campeonato.
+- Si el campeonato no tiene categorías, ofrece enlaces para crearlas o gestionarlas.
 
 ---
 
@@ -79,7 +88,7 @@ El administrador puede gestionar:
 
 ---
 
-# 5. Ciclo de vida del jugador
+# 5. Ciclo de vida del jugado
 
 Desde el punto de vista administrativo un jugador pasa por:
 
@@ -122,6 +131,10 @@ Actualmente el pago puede gestionarse manualmente.
 # 7. Asignación a categorías
 
 Una vez aprobada una solicitud el administrador asigna al jugador mediante `CategoryRegistration`.
+
+La asignación puede realizarse desde la vista de una categoría o desde la sección específica de solicitudes e inscripciones. Ambos formularios reutilizan la misma ruta y el mismo controlador, por lo que aplican idénticas validaciones, creación de participantes competitivos y reglas de exclusividad dentro del campeonato.
+
+La pantalla de solicitudes solo ofrece categorías pertenecientes al campeonato de la solicitud y mantiene el enlace a la gestión completa de categorías.
 
 Reglas funcionales:
 

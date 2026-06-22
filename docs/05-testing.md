@@ -39,7 +39,7 @@ Backend:
 - PHPUnit
 - Laravel Testing
 - RefreshDatabase cuando proceda
-- Docker
+- Docke
 
 Frontend:
 - La estrategia de pruebas del frontend se documentará conforme aumente la cobertura.
@@ -138,12 +138,19 @@ El backend dispone de cobertura automatizada Feature para componentes críticos 
 
 ## Panel Administrativo
 - acceso seguro y protección de sesiones activas;
-- visualización dinámica de solicitudes pendientes en el dashboard (limitadas a 20);
-- ejecución y redirección correcta de acciones rápidas (aprobar/rechazar) desde el dashboard;
-- visualización de solicitudes aprobadas pendientes de asignación a categoría;
-- exclusión correcta de solicitudes pendientes, rechazadas y ya asignadas de la sección de aprobados sin categoría;
-- enlace de navegación a categorías del campeonato desde la sección de aprobados sin categoría;
-- rechazo de acceso al dashboard para usuarios no administradores.
+- contadores de solicitudes pendientes y aprobadas sin categoría en el dashboard;
+- enlace desde el dashboard a la sección específica de solicitudes e inscripciones;
+- ausencia de formularios operativos de aprobación o asignación en el dashboard;
+- acceso administrativo y protección frente a usuarios no administradores en la nueva sección;
+- visualización de solicitudes pendientes y aprobadas sin categoría en sus bloques correspondientes;
+- exclusión de solicitudes rechazadas y aprobadas ya asignadas;
+- aprobación y rechazo desde la sección reutilizando las rutas existentes;
+- formulario de asignación rápida con las categorías del campeonato correspondiente;
+- preselección de la categoría sugerida cuando pertenece al campeonato;
+- asignación desde la sección reutilizando `CategoryRegistrationController@store`;
+- desaparición de la solicitud del bloque pendiente tras crear `CategoryRegistration`;
+- rechazo de asignaciones a categorías de otro campeonato;
+- ausencia del formulario cuando el campeonato no tiene categorías disponibles;
 
 ## Área Privada "Mi Panel"
 - datos del usuario autenticado;

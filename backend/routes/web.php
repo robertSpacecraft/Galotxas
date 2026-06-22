@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\RegistrationRequestController;
 use App\Http\Controllers\Admin\SeasonController as AdminSeasonController;
 use App\Http\Controllers\Admin\ChampionshipController as AdminChampionshipController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
@@ -24,6 +25,8 @@ Route::prefix('admin')->group(function () {
 
     Route::middleware(['auth', \App\Http\Middleware\IsAdmin::class])->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
+        Route::get('/registration-requests', [RegistrationRequestController::class, 'index'])
+            ->name('admin.registration-requests.index');
         Route::post('/logout', [AuthController::class, 'logout'])->name('admin.logout');
 
         //Temporadas

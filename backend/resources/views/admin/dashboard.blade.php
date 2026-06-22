@@ -22,158 +22,45 @@
         </div>
     </div>
 
-    <div class="card page-card mb-4 border-warning">
-        <div class="card-header bg-warning bg-opacity-10 text-warning-emphasis d-flex justify-content-between align-items-center">
-            <h2 class="h5 mb-0">Solicitudes de inscripción pendientes</h2>
-            @if($pendingRequests->isNotEmpty())
-                <span class="badge bg-warning text-dark">{{ $pendingRequests->count() }} @if($pendingRequests->count() == 20) (últimas 20) @endif</span>
-            @endif
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card page-card h-100 border-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                            <h2 class="h5 mb-2">Solicitudes pendientes</h2>
+                            <p class="text-secondary mb-0">Solicitudes que requieren aprobación o rechazo.</p>
+                        </div>
+                        <span id="pending-requests-count" data-count="{{ $pendingRequestsCount }}" class="badge text-bg-warning fs-6">
+                            {{ $pendingRequestsCount }}
+                        </span>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-body p-0">
-            @if($pendingRequests->isEmpty())
-                <div class="p-4 text-center text-secondary">
-                    <p class="mb-0">No hay solicitudes pendientes de revisión.</p>
-                </div>
-            @else
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Jugador</th>
-                                <th>Campeonato</th>
-                                <th>Categoría Sugerida</th>
-                                <th class="text-end">Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($pendingRequests as $request)
-                                <tr>
-                                    <td>
-                                        <div title="{{ $request->created_at->format('d/m/Y H:i') }}">
-                                            {{ $request->created_at->diffForHumans() }}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="fw-medium">
-                                            @if($request->player)
-                                                {{ $request->player->nickname ?: $request->player->user->name . ' ' . $request->player->user->lastname }}
-                                            @else
-                                                {{ $request->user->name }} {{ $request->user->lastname }}
-                                            @endif
-                                        </div>
-                                        <div class="small text-secondary">{{ $request->user->email }}</div>
-                                    </td>
-                                    <td>
-                                        <a href="{{ route('admin.championships.show', $request->championship) }}" class="text-decoration-none text-body fw-medium">
-                                            {{ $request->championship->name }}
-                                        </a>
-                                    </td>
-                                    <td>
-                                        @if($request->suggestedCategory)
-                                            <span class="badge bg-light text-dark border">{{ $request->suggestedCategory->name }}</span>
-                                        @else
-                                            <span class="text-secondary small">Ninguna</span>
-                                        @endif
-                                    </td>
-                                    <td class="text-end">
-                                        <div class="d-flex justify-content-end gap-2">
-                                            <form action="{{ route('admin.championships.registration-requests.approve', [$request->championship, $request]) }}" method="POST" class="d-inline">
-                                                @csrf
-                                                <button type="submit" class="btn btn-sm btn-success" title="Aprobar solicitud">
-                                                    Aprobar
-                                                </button>
-                                            </form>
 
-                                            <form action="{{ route('admin.championships.registration-requests.reject', [$request->championship, $request]) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Seguro que deseas rechazar esta solicitud?');">
-                                                @csrf
-                                                <button type="submit" class="btn btn-sm btn-danger" title="Rechazar solicitud">
-                                                    Rechazar
-                                                </button>
-                                            </form>
-
-                                            <a href="{{ route('admin.championships.show', $request->championship) }}#solicitudes" class="btn btn-sm btn-outline-primary" title="Revisar campeonato">
-                                                Revisar
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+        <div class="col-md-6">
+            <div class="card page-card h-100 border-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                            <h2 class="h5 mb-2">Aprobadas pendientes de categoría</h2>
+                            <p class="text-secondary mb-0">Jugadores aprobados que todavía requieren asignación.</p>
+                        </div>
+                        <span id="approved-unassigned-requests-count" data-count="{{ $approvedUnassignedRequestsCount }}" class="badge text-bg-info fs-6">
+                            {{ $approvedUnassignedRequestsCount }}
+                        </span>
+                    </div>
                 </div>
-            @endif
+            </div>
+        </div>
+
+        <div class="col-12">
+            <a href="{{ route('admin.registration-requests.index') }}" class="btn btn-primary">
+                Gestionar solicitudes e inscripciones
+            </a>
         </div>
     </div>
-
-    <div class="card page-card mb-4 border-info">
-        <div class="card-header bg-info bg-opacity-10 text-info-emphasis d-flex justify-content-between align-items-center">
-            <h2 class="h5 mb-0">Solicitudes aprobadas pendientes de categoría</h2>
-            @if($approvedUnassignedRequests->isNotEmpty())
-                <span class="badge bg-info text-dark">{{ $approvedUnassignedRequests->count() }} @if($approvedUnassignedRequests->count() == 20) (últimas 20) @endif</span>
-            @endif
-        </div>
-        <div class="card-body p-0">
-            @if($approvedUnassignedRequests->isEmpty())
-                <div class="p-4 text-center text-secondary">
-                    <p class="mb-0">No hay solicitudes aprobadas pendientes de asignación a categoría.</p>
-                </div>
-            @else
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Aprobada</th>
-                                <th>Jugador</th>
-                                <th>Campeonato</th>
-                                <th>Categoría Sugerida</th>
-                                <th class="text-end">Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($approvedUnassignedRequests as $request)
-                                <tr>
-                                    <td>
-                                        <div title="{{ $request->updated_at->format('d/m/Y H:i') }}">
-                                            {{ $request->updated_at->diffForHumans() }}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="fw-medium">
-                                            @if($request->player)
-                                                {{ $request->player->nickname ?: $request->player->user->name . ' ' . $request->player->user->lastname }}
-                                            @else
-                                                {{ $request->user->name }} {{ $request->user->lastname }}
-                                            @endif
-                                        </div>
-                                        <div class="small text-secondary">{{ $request->user->email }}</div>
-                                    </td>
-                                    <td>
-                                        <a href="{{ route('admin.championships.show', $request->championship) }}" class="text-decoration-none text-body fw-medium">
-                                            {{ $request->championship->name }}
-                                        </a>
-                                    </td>
-                                    <td>
-                                        @if($request->suggestedCategory)
-                                            <span class="badge bg-light text-dark border">{{ $request->suggestedCategory->name }}</span>
-                                        @else
-                                            <span class="text-secondary small">Ninguna</span>
-                                        @endif
-                                    </td>
-                                    <td class="text-end">
-                                        <a href="{{ route('admin.championships.categories', $request->championship) }}" class="btn btn-sm btn-outline-primary" title="Ver categorías del campeonato">
-                                            Asignar categoría
-                                        </a>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @endif
-        </div>
-    </div>
-
     <div class="row g-4">
         <div class="col-md-6 col-xl-3">
             <div class="card page-card h-100">

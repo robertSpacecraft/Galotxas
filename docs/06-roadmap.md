@@ -116,7 +116,7 @@ Líneas previstas:
 - [x] Tareas pendientes en el dashboard (Bloque 1).
 - [x] Acciones rápidas (Bloque 2).
 - [x] Vista de huérfanos sin categoría (Bloque 3).
-- [ ] Asignación rápida de categoría (Bloque 4).
+- [x] Asignación rápida de categoría en la sección específica de solicitudes (Bloque 4).
 - [ ] Métricas y filtros avanzados (Bloque 5).
 
 ---
