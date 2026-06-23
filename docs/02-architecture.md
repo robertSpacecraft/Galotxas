@@ -94,6 +94,14 @@ No existe compatibilidad con SQLite.
 
 Las pruebas utilizan una instancia MariaDB completamente aislada.
 
+## Arquitectura prevista CMS (Futuro)
+
+Cuando se implemente la gestión de contenidos, la arquitectura seguirá el mismo patrón:
+
+- **Panel Blade**: CRUD administrativo para gestores (Noticias, Documentos, Páginas, Formularios).
+- **API Pública**: Endpoints de solo lectura para entregar los contenidos.
+- **React**: Consumo de la API pública y renderizado de los componentes de contenido (mediante bloques estructurados, sin HTML libre).
+
 ---
 
 # 5. Interfaces del sistema

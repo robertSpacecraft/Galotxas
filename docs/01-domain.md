@@ -197,7 +197,11 @@ Las siguientes capacidades forman parte del roadmap y no deben considerarse impl
 - asignación automática de categorías;
 - sugerencias inteligentes de categoría;
 - notificaciones automáticas;
-- mejoras avanzadas de rankings.
+- mejoras avanzadas de rankings;
+- sistema de gestión de contenidos públicos (CMS);
+- páginas editables y noticias mediante bloques de contenido;
+- gestión de documentos públicos;
+- formularios públicos de interés.
 
 ---
 

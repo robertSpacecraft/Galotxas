@@ -195,6 +195,8 @@ El objetivo arquitectónico es que todos los endpoints relevantes utilicen Resou
 
 La adopción se realizará de forma progresiva conforme evolucionen los distintos módulos del proyecto.
 
+Con la futura llegada del sistema de gestión de contenidos (CMS), se aplicará de forma estricta la separación de Resources: existirán Resources administrativos (que incluyan metadatos, fechas de borrador, notas internas) y Resources públicos (para noticias, bloques y documentos), garantizando que React reciba únicamente la información que debe ser visible para usuarios anónimos.
+
 ---
 
 ## Mantenimiento

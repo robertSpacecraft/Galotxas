@@ -218,7 +218,20 @@ Estas mejoras deberán abordarse de forma coordinada y no mezclarse con pequeño
 
 ---
 
-# 10. Relación con otros documentos
+# 10. Contrato previsto CMS (Futuro)
+
+En la futura fase de implementación del CMS de contenidos públicos, el contrato API no definirá HTML cerrado, sino una estructura JSON de bloques.
+
+Se prevé incorporar endpoints públicos para lectura de contenidos publicados y recepción controlada de formularios, por ejemplo:
+- `GET /api/v1/news` (Listado de noticias publicadas)
+- `GET /api/v1/news/{slug}` (Detalle con sus bloques de contenido)
+- `POST /api/v1/forms/interest` (Envío de formularios públicos con protección antispam)
+
+*Nota: Estos contratos se encuentran en fase de diseño preliminar y no son definitivos.*
+
+---
+
+# 11. Relación con otros documentos
 
 - `00-glossary.md`
 - `01-domain.md`

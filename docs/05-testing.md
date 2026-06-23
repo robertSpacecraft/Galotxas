@@ -179,6 +179,12 @@ La cobertura de pruebas debe crecer junto con el proyecto.
 
 Las nuevas funcionalidades relevantes deberían incorporar pruebas desde su primera implementación.
 
+La evolución prevista incluye extender la cobertura funcional al futuro módulo CMS, validando:
+- gestión de contenidos (borrador/publicado);
+- renderizado de bloques en la API pública;
+- validaciones de seguridad de archivos adjuntos;
+- prevención de spam en formularios públicos.
+
 ---
 
 ## Mantenimiento

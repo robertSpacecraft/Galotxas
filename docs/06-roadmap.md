@@ -36,13 +36,18 @@ No describe el funcionamiento del sistema; únicamente indica el estado del proy
 - Usuarios activos en API.
 - Usuarios activos en panel Blade.
 - Rate limiting.
-- Flujo completo de inscripción.
-- Gestión administrativa de solicitudes.
-- Gestión de categorías.
+- Flujo completo de inscripción (solicitudes, aprobación, asignación).
+- Gestión administrativa de solicitudes (`/admin/registration-requests`).
+- Gestión de temporadas, campeonatos y categorías.
 - Equipos de dobles.
-- Generación de competición.
-- Rankings.
+- Generación de competición, partidos y resultados.
+- Rankings y API privada ("Mi Panel").
 - Separación de Resources públicos.
+
+### Frontend
+
+- React básico.
+- Panel privado.
 
 ### Infraestructura
 
@@ -157,7 +162,7 @@ Incluye:
 
 ---
 
-# Fase 6 — Funcionalidades futuras
+# Fase 6 — Funcionalidades futuras (Competición)
 
 No prioritarias actualmente:
 
@@ -168,8 +173,84 @@ No prioritarias actualmente:
 - notificaciones;
 - mejoras avanzadas de rankings;
 - aplicación móvil;
-- API administrativa completa;
-- contenidos dinámicos.
+- API administrativa completa.
+
+---
+
+# Mini-fase de cierre competitivo
+
+Objetivo:
+
+Antes de implementar CMS/contenidos públicos, realizar una revisión técnica orientada al cierre competitivo de la primera fase.
+
+Pendientes prioritarios:
+
+1. **Cerrar Mi Panel React**:
+   - adaptar calendario al contrato agrupado por días;
+   - adaptar rankings privados a los objetos `championship`/`category`;
+   - corregir estados de inscripción `pending`/`approved`/`rejected`;
+   - revisar `getRankings()` y cliente Axios duplicado.
+2. **Corregir bug potencial de finales de copa**:
+   - `GameMatch.status` está casteado a enum;
+   - `GenerateCupService::generateFinals()` no debe comparar estrictamente contra string si el modelo devuelve enum.
+3. **Revisar/documentar estrategia de autenticación/token**:
+   - situación actual con bearer token en localStorage;
+   - logout y revocación ya implementados;
+   - usuario activo ya implementado;
+   - Sanctum expiration null;
+   - decidir si mantener bearer token mejorado en MVP o planificar migración posterior a cookie HttpOnly/SameSite/CSRF.
+
+---
+
+# Fase CMS — Contenidos públicos (Futuro)
+
+Objetivo:
+
+Dotar al sistema de una parte pública administrable, independiente del sistema competitivo.
+
+Esta fase incluirá:
+
+1. **Prensa y media / Noticias**:
+   - CRUD admin;
+   - contenido mediante bloques;
+   - imagen principal;
+   - estado borrador/publicado;
+   - API pública;
+   - listado y detalle en React.
+2. **Documentos públicos**:
+   - CRUD admin;
+   - subida segura de documentos;
+   - categorías;
+   - visibilidad;
+   - consulta/descarga desde React.
+3. **Federación / Federarse**:
+   - página informativa editable;
+   - explicación del papel del club en federaciones y seguros;
+   - enlaces oficiales;
+   - posible formulario de interés.
+4. **Academy / Escuela**:
+   - página promocional editable;
+   - información de escuela;
+   - aprendizaje/normas básicas;
+   - galería o bloques visuales;
+   - formulario de inscripción/interés.
+5. **Sistema de bloques de contenido**:
+   - se elige enfoque de bloques controlados, no HTML libre tipo editor Word;
+   - bloques iniciales: encabezado, texto, lista, imagen, galería simple, enlace/botón, documento relacionado;
+   - React renderizará los bloques con componentes controlados.
+6. **Formularios públicos de interés**:
+   - federarse;
+   - academy;
+   - rate limit;
+   - antispam/honeypot o captcha futuro;
+   - estados internos en admin.
+7. **Seguridad CMS**:
+   - validación MIME;
+   - límites de tamaño;
+   - almacenamiento seguro;
+   - sanitización o evitar HTML libre;
+   - separación borrador/publicado;
+   - permisos admin/editor si procede.
 
 ---
 

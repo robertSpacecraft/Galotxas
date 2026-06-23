@@ -229,7 +229,11 @@ Debe priorizar:
 - sugerencias de categoría;
 - filtros avanzados;
 - auditoría ampliada;
-- panel de métricas avanzado.
+- panel de métricas avanzado;
+- administración de contenidos públicos (noticias, información estática);
+- gestión de documentos públicos (subida segura, visibilidad);
+- páginas editables y bloques de contenido estructurado;
+- recepción y gestión de formularios públicos de interés.
 
 ---
 
