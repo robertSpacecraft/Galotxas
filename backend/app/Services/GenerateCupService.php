@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\GameMatchStatus;
 use App\Models\Category;
 use App\Models\GameMatch;
 use App\Models\Round;
@@ -94,7 +95,7 @@ class GenerateCupService
             }
 
             $validated = $matches->filter(function ($match) {
-                return $match->status === 'validated'
+                return $match->status === GameMatchStatus::VALIDATED
                     && !is_null($match->home_score)
                     && !is_null($match->away_score);
             });

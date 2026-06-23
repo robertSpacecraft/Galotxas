@@ -190,9 +190,9 @@ Pendientes prioritarios:
    - adaptar rankings privados a los objetos `championship`/`category`;
    - corregir estados de inscripción `pending`/`approved`/`rejected`;
    - revisar `getRankings()` y cliente Axios duplicado.
-2. **Corregir bug potencial de finales de copa**:
+2. **Finales de copa con status enum** (corregido):
    - `GameMatch.status` está casteado a enum;
-   - `GenerateCupService::generateFinals()` no debe comparar estrictamente contra string si el modelo devuelve enum.
+   - GenerateCupService::generateFinals() compara contra GameMatchStatus::VALIDATED y queda cubierto por test de regresión.
 3. **Revisar/documentar estrategia de autenticación/token**:
    - situación actual con bearer token en localStorage;
    - logout y revocación ya implementados;

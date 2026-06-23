@@ -152,6 +152,12 @@ El backend dispone de cobertura automatizada Feature para componentes críticos 
 - rechazo de asignaciones a categorías de otro campeonato;
 - ausencia del formulario cuando el campeonato no tiene categorías disponibles;
 
+## Competición
+- regresión de finales de copa: semifinales validadas con GameMatch.status casteado a enum generan final y tercer puesto;
+- protección frente a generación de finales con semifinales no validadas;
+- regeneración de finales de copa sin duplicados;
+- cobertura de generación normal de semifinales de copa.
+
 ## Área Privada "Mi Panel"
 - datos del usuario autenticado;
 - consulta, creación y actualización del perfil de jugador;
