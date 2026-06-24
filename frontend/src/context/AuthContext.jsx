@@ -1,5 +1,6 @@
 import { useCallback, useState, useEffect } from 'react';
 import api from '../api/client';
+import { AUTH_SESSION_CLEARED_EVENT, clearStoredAuth, getStoredAuthToken } from '../api/authSession';
 import { AuthContext } from './authContext';
 
 export const AuthProvider = ({ children }) => {
@@ -9,21 +10,34 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         try {
-            const storedToken = localStorage.getItem('token');
+            const storedToken = getStoredAuthToken();
             const storedUser = localStorage.getItem('user');
             
             if (storedToken && storedUser) {
                 setToken(storedToken);
                 setUser(JSON.parse(storedUser));
+            } else if (storedToken || storedUser) {
+                clearStoredAuth();
             }
         } catch (error) {
             console.error("Error loading auth from localStorage", error);
-            // Clear corrupted data
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
+            clearStoredAuth();
         } finally {
             setLoading(false);
         }
+    }, []);
+
+    useEffect(() => {
+        const handleSessionCleared = () => {
+            setToken(null);
+            setUser(null);
+        };
+
+        window.addEventListener(AUTH_SESSION_CLEARED_EVENT, handleSessionCleared);
+
+        return () => {
+            window.removeEventListener(AUTH_SESSION_CLEARED_EVENT, handleSessionCleared);
+        };
     }, []);
 
     const login = async (email, password) => {
@@ -74,13 +88,16 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = useCallback(async () => {
+        const currentToken = getStoredAuthToken();
+
         try {
-            await api.post('/auth/logout');
+            if (currentToken) {
+                await api.post('/auth/logout');
+            }
         } catch (error) {
             console.error("Error revoking current access token:", error);
         } finally {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
+            clearStoredAuth();
             setToken(null);
             setUser(null);
         }
@@ -101,7 +118,7 @@ export const AuthProvider = ({ children }) => {
             return userData;
         } catch (error) {
             console.error("Error refreshing user data:", error);
-            if (error.response?.status === 401) {
+            if (error.response?.status === 401 || error.response?.status === 403) {
                 logout();
             }
             throw error;
@@ -128,7 +145,7 @@ export const AuthProvider = ({ children }) => {
         forgotPassword,
         resetPassword,
         refreshUser,
-        isAuthenticated: !!token,
+        isAuthenticated: !!token && !!user,
         isAdmin: user?.role === 'admin'
     };
 

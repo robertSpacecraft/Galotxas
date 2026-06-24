@@ -130,6 +130,19 @@ Antes de cerrar funcionalidades importantes se recomienda ejecutar flujos comple
 
 Las pruebas manuales complementan, pero no sustituyen, las pruebas automáticas.
 
+## Validación manual de auth/token frontend
+
+Para cambios en la autenticación de React deben validarse al menos estos flujos:
+
+- login correcto y almacenamiento de `token` y `user`;
+- acceso a `/player` con sesión válida;
+- logout correcto, incluyendo llamada a backend cuando existe token;
+- acceso a `/player` tras logout, que debe redirigir a login;
+- comportamiento con token ausente o inválido, limpiando `token` y `user`;
+- consola del navegador sin errores relevantes.
+
+Estas comprobaciones deben acompañarse de `npm run lint`, `npm run build` y `git diff --check` cuando el cambio afecte al frontend.
+
 ---
 
 # 9. Cobertura Feature actual

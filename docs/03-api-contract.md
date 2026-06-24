@@ -82,6 +82,21 @@ La API distingue claramente entre:
 
 Los datos sensibles nunca deben exponerse mediante endpoints públicos.
 
+## Autenticación desde React
+
+El frontend React consume la API autenticada mediante tokens Bearer emitidos por Laravel Sanctum en los endpoints de autenticación.
+
+Estrategia actual:
+
+- el token se conserva en `localStorage` bajo la clave `token`;
+- los datos mínimos del usuario autenticado se conservan en `localStorage` bajo la clave `user`;
+- el cliente Axios añade `Authorization: Bearer <token>` cuando existe token local;
+- `GET /api/v1/me` se utiliza para refrescar los datos de la cuenta y su perfil de jugador;
+- `POST /api/v1/auth/logout` revoca el token actual en backend;
+- ante respuestas `401` o `403` en peticiones autenticadas, React elimina `token` y `user` para evitar sesiones locales desincronizadas.
+
+La estrategia forma parte del estado MVP actual. Una futura migración a cookies `HttpOnly`/`SameSite` con protección CSRF requerirá un bloque específico porque modifica el modelo de consumo del frontend y no debe mezclarse con cambios funcionales menores.
+
 ---
 
 # 7. Formato de las respuestas

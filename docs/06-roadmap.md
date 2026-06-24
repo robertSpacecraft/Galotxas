@@ -190,16 +190,15 @@ Pendientes prioritarios:
    - [x] adaptar rankings privados a los objetos championship/category;
    - [x] corregir estados de inscripción pending/approved/rejected;
    - [x] corregir getRankings() para consumir el payload funcional;
-   - [ ] unificar o eliminar la duplicidad entre clientes Axios (api.js / client.js) en un bloque específico si procede.
+   - [x] reducir la duplicidad entre clientes Axios dejando `api.js` como alias compatible de `client.js`.
 2. **Finales de copa con status enum** (corregido):
    - `GameMatch.status` está casteado a enum;
    - GenerateCupService::generateFinals() compara contra GameMatchStatus::VALIDATED y queda cubierto por test de regresión.
-3. **Revisar/documentar estrategia de autenticación/token**:
-   - situación actual con bearer token en localStorage;
-   - logout y revocación ya implementados;
-   - usuario activo ya implementado;
-   - Sanctum expiration null;
-   - decidir si mantener bearer token mejorado en MVP o planificar migración posterior a cookie HttpOnly/SameSite/CSRF.
+3. **Revisar/documentar estrategia de autenticación/token** (completado en C3):
+   - [x] mantener bearer token en `localStorage` como estrategia MVP actual;
+   - [x] logout con revocación backend y limpieza local garantizada;
+   - [x] limpieza de `token` y `user` ante `401`/`403`;
+   - [x] documentar como deuda futura una posible migración a cookie HttpOnly/SameSite/CSRF en bloque específico.
 
 ---
 

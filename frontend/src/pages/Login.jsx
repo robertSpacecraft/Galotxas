@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Navigate, Link } from 'react-router-dom';
+import { useNavigate, Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import styles from './Login.module.css';
 
@@ -9,6 +9,7 @@ export default function Login() {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
     const { login, isAuthenticated } = useAuth();
 
     if (isAuthenticated) {
@@ -18,6 +19,7 @@ export default function Login() {
     const handleLogin = async (e) => {
         e.preventDefault();
         setError(null);
+        setLoading(true);
         try {
             await login(email, password);
             const from = location.state?.from || '/player';

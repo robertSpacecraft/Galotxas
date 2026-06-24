@@ -120,6 +120,30 @@ Consecuencias:
 
 ---
 
+# ADR-008 — Estrategia auth/token del frontend MVP
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-06
+
+Contexto:
+- El backend Laravel Sanctum ya emite tokens Bearer para la API.
+- El frontend React consume endpoints privados de Mi Panel y mantiene rutas protegidas.
+- Existían dos clientes Axios (`api.js` y `client.js`) con gestión parcial y divergente de errores de autenticación.
+
+Decisión:
+- Mantener en el MVP la autenticación Bearer con `token` y `user` en `localStorage`.
+- Consolidar la instancia real de Axios en `client.js` y dejar `api.js` como alias compatible para evitar un refactor amplio.
+- Limpiar siempre `token` y `user` ante `401`/`403` para impedir estado React/localStorage desincronizado.
+- Mantener la migración a cookies `HttpOnly`/`SameSite`/CSRF como decisión futura, no incluida en este bloque.
+
+Consecuencias:
+- Los imports heredados de `api.js` y los nuevos de `client.js` comparten interceptores y comportamiento.
+- `/player` depende de token y usuario local, y una sesión inválida termina limpiándose en el siguiente fallo autenticado.
+- La estrategia actual sigue siendo adecuada para el MVP, pero no cierra la discusión de endurecimiento posterior con cookies seguras.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.
