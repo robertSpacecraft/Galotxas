@@ -34,7 +34,7 @@ export const meService = {
   getRankings: async () => {
     try {
       const response = await api.get('/me/rankings');
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
       console.error('Error fetching rankings:', error);
       throw error;

@@ -5,6 +5,81 @@ import { meService } from '../api/me';
 import MatchCard from '../components/MatchCard';
 import styles from './Dashboard.module.css';
 
+const registrationStatusLabels = {
+    pending: 'Pendiente',
+    approved: 'Aprobada',
+    rejected: 'Rechazada'
+};
+
+const paymentStatusLabels = {
+    pending: 'Pendiente',
+    paid: 'Pagado',
+    refunded: 'Reembolsado',
+    cancelled: 'Cancelado'
+};
+
+const registrationStatusClasses = {
+    pending: styles.statusPending,
+    approved: styles.statusApproved,
+    rejected: styles.statusRejected
+};
+
+const getRegistrationStatusLabel = (status) => registrationStatusLabels[status] || status || 'Desconocido';
+
+const getPaymentStatusLabel = (status) => paymentStatusLabels[status] || status || 'No indicado';
+
+const getDisplayName = (value, fallback = '-') => {
+    if (value === null || value === undefined || value === '') {
+        return fallback;
+    }
+
+    if (typeof value === 'string' || typeof value === 'number') {
+        return value;
+    }
+
+    return value.name || value.title || fallback;
+};
+
+const formatCalendarDate = (date) => {
+    if (!date) {
+        return 'Por programar';
+    }
+
+    const parsedDate = new Date(date + 'T00:00:00');
+
+    if (Number.isNaN(parsedDate.getTime())) {
+        return date;
+    }
+
+    return parsedDate.toLocaleDateString('es-ES', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+};
+
+const normalizeCalendarDays = (calendarItems) => {
+    if (!Array.isArray(calendarItems)) {
+        return [];
+    }
+
+    const isGroupedByDay = calendarItems.every(item => item && Array.isArray(item.matches));
+
+    if (isGroupedByDay) {
+        return calendarItems.map(day => ({
+            date: day.date,
+            matches: day.matches || []
+        }));
+    }
+
+    return Object.entries(calendarItems.reduce((acc, match) => {
+        const dateKey = match.scheduled_date ? match.scheduled_date.slice(0, 10) : 'Por programar';
+        acc[dateKey] = [...(acc[dateKey] || []), match];
+        return acc;
+    }, {})).map(([date, matches]) => ({ date, matches }));
+};
+
 export default function Dashboard() {
     const { user, createPlayerProfile, refreshUser } = useAuth();
     const location = useLocation();
@@ -136,32 +211,16 @@ export default function Dashboard() {
             </div>
         );
 
-        // Group by scheduled_date if the backend returns a flat list of matches
-        // First check if it's already grouped (e.g. an object with dates as keys)
-        let groupedCalendar = calendar;
-        if (Array.isArray(calendar)) {
-            groupedCalendar = calendar.reduce((acc, match) => {
-                const dateKey = match.scheduled_date ? new Date(match.scheduled_date).toLocaleDateString() : 'Por programar';
-                if (!acc[dateKey]) acc[dateKey] = [];
-                acc[dateKey].push(match);
-                return acc;
-            }, {});
-        }
-
-        const dates = Object.keys(groupedCalendar).sort((a, b) => {
-            if (a === 'Por programar') return 1;
-            if (b === 'Por programar') return -1;
-            return new Date(a) - new Date(b); // Sort chronologically
-        });
+        const calendarDays = normalizeCalendarDays(calendar);
 
         return (
             <div className={styles.tabContent}>
                 <h2 className={styles.sectionTitle}>Mi Calendario</h2>
-                {dates.map(date => (
-                    <div key={date} className={styles.calendarDay}>
-                        <h3 className={styles.calendarDateTitle}>{date}</h3>
+                {calendarDays.map(day => (
+                    <div key={day.date || 'unscheduled'} className={styles.calendarDay}>
+                        <h3 className={styles.calendarDateTitle}>{formatCalendarDate(day.date)}</h3>
                         <div className={styles.matchesGrid}>
-                            {groupedCalendar[date].map(match => (
+                            {day.matches.map(match => (
                                 <MatchCard key={match.id} match={match} />
                             ))}
                         </div>
@@ -408,8 +467,13 @@ export default function Dashboard() {
                                     <div>
                                         <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem', color: 'white' }}>{reg.championship?.name || 'Torneo'}</h3>
                                         <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                                            Estado de la solicitud: <strong style={{ color: reg.status === 'registered' ? '#4ade80' : 'var(--brand-primary)', textTransform: 'capitalize' }}>{reg.status}</strong>
+                                            Estado de la solicitud: <span className={styles.statusBadge + ' ' + (registrationStatusClasses[reg.status] || styles.statusUnknown)}>{getRegistrationStatusLabel(reg.status)}</span>
                                         </p>
+                                        {reg.payment_status && (
+                                            <p style={{ margin: '0.35rem 0 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                                                Estado de pago: <span className={styles.statusBadge}>{getPaymentStatusLabel(reg.payment_status)}</span>
+                                            </p>
+                                        )}
                                     </div>
                                     <Link to={`/torneos/${reg.championship_id}`} style={{ padding: '0.6rem 1.2rem', background: 'var(--brand-primary)', color: 'white', textDecoration: 'none', borderRadius: '6px', fontSize: '0.9rem', fontWeight: 'bold', transition: 'all 0.2s' }}>
                                         Ver torneo
@@ -478,8 +542,8 @@ export default function Dashboard() {
                                             <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{rk.entry_type === 'team' ? 'Equipo' : 'Individual'}</div>
                                         </td>
                                         <td>
-                                            <div style={{ fontWeight: 'bold', color: '#e2e8f0' }}>{rk.championship || '-'}</div>
-                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{rk.category || '-'}</div>
+                                            <div style={{ fontWeight: 'bold', color: '#e2e8f0' }}>{getDisplayName(rk.championship)}</div>
+                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{getDisplayName(rk.category)}</div>
                                         </td>
                                         <td>{rk.played !== undefined ? rk.played : '-'}</td>
                                         <td>{rk.wins !== undefined ? rk.wins : '-'}</td>

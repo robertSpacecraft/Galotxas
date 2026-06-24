@@ -185,11 +185,12 @@ Antes de implementar CMS/contenidos públicos, realizar una revisión técnica o
 
 Pendientes prioritarios:
 
-1. **Cerrar Mi Panel React**:
-   - adaptar calendario al contrato agrupado por días;
-   - adaptar rankings privados a los objetos `championship`/`category`;
-   - corregir estados de inscripción `pending`/`approved`/`rejected`;
-   - revisar `getRankings()` y cliente Axios duplicado.
+1. **Cerrar Mi Panel React** (completado):
+   - [x] adaptar calendario al contrato agrupado por días;
+   - [x] adaptar rankings privados a los objetos championship/category;
+   - [x] corregir estados de inscripción pending/approved/rejected;
+   - [x] corregir getRankings() para consumir el payload funcional;
+   - [ ] unificar o eliminar la duplicidad entre clientes Axios (api.js / client.js) en un bloque específico si procede.
 2. **Finales de copa con status enum** (corregido):
    - `GameMatch.status` está casteado a enum;
    - GenerateCupService::generateFinals() compara contra GameMatchStatus::VALIDATED y queda cubierto por test de regresión.
