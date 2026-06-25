@@ -204,6 +204,7 @@ Reglas:
 - Solo las páginas publicadas pueden leerse desde la API pública.
 - Las páginas en borrador no son visibles públicamente.
 - Una página con fecha de publicación futura todavía no es visible públicamente.
+- Si un administrador marca una página como publicada sin indicar `published_at`, el backend completa la fecha con el momento actual.
 - Los bloques se devuelven ordenados por el backend.
 - El contenido de los bloques se almacena como datos estructurados, no como HTML libre.
 
@@ -217,7 +218,7 @@ Tipos iniciales de bloque:
 - `button`;
 - `document_link`.
 
-La administración de estas páginas y la subida de documentos o imágenes todavía no forman parte de esta base técnica.
+El panel administrativo permite crear y editar páginas CMS con título, `slug`, estado, `published_at` y metadatos SEO mínimos. La gestión de bloques y la subida de documentos o imágenes todavía no forman parte de esta base técnica.
 
 ---
 
@@ -230,7 +231,7 @@ Las siguientes capacidades forman parte del roadmap y no deben considerarse impl
 - sugerencias inteligentes de categoría;
 - notificaciones automáticas;
 - mejoras avanzadas de rankings;
-- panel administrativo para gestionar contenidos públicos CMS;
+- panel administrativo para gestionar bloques de contenidos públicos CMS;
 - noticias mediante bloques de contenido;
 - gestión de documentos públicos;
 - formularios públicos de interés.

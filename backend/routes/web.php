@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\CategoryRegistrationController;
+use App\Http\Controllers\Admin\CmsPageController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +29,14 @@ Route::prefix('admin')->group(function () {
         Route::get('/registration-requests', [RegistrationRequestController::class, 'index'])
             ->name('admin.registration-requests.index');
         Route::post('/logout', [AuthController::class, 'logout'])->name('admin.logout');
+
+        //CMS
+        Route::get('/cms/pages', [CmsPageController::class, 'index'])->name('admin.cms-pages.index');
+        Route::get('/cms/pages/create', [CmsPageController::class, 'create'])->name('admin.cms-pages.create');
+        Route::post('/cms/pages', [CmsPageController::class, 'store'])->name('admin.cms-pages.store');
+        Route::get('/cms/pages/{cmsPage}', [CmsPageController::class, 'show'])->name('admin.cms-pages.show');
+        Route::get('/cms/pages/{cmsPage}/edit', [CmsPageController::class, 'edit'])->name('admin.cms-pages.edit');
+        Route::put('/cms/pages/{cmsPage}', [CmsPageController::class, 'update'])->name('admin.cms-pages.update');
 
         //Temporadas
         Route::get('/seasons', [AdminSeasonController::class, 'index'])->name('admin.seasons.index');

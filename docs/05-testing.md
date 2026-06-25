@@ -199,6 +199,14 @@ El backend dispone de cobertura automatizada Feature para componentes críticos 
 - serialización de bloques ordenados;
 - ocultación de campos internos del CMS en el Resource público.
 
+## CMS administrativo
+- acceso del administrador al listado de páginas CMS;
+- creación de página CMS desde panel admin;
+- edición de página CMS desde panel admin;
+- validación de unicidad de `slug`;
+- conservación del propio `slug` durante edición;
+- protección de acceso frente a usuarios no administradores.
+
 
 # 10. Evolución
 

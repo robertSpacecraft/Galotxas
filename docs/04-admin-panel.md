@@ -29,6 +29,17 @@ La ruta `/admin/registration-requests` centraliza la gestión operativa del fluj
 - Preselecciona la categoría sugerida cuando pertenece al campeonato.
 - Si el campeonato no tiene categorías, ofrece enlaces para crearlas o gestionarlas.
 
+### Páginas CMS
+
+La ruta `/admin/cms/pages` centraliza la gestión básica de páginas públicas CMS.
+
+- Muestra el listado de páginas con título, `slug`, estado, fecha de publicación y número de bloques.
+- Permite crear páginas con título, `slug`, estado, `published_at` y metadatos SEO mínimos.
+- Permite editar esos mismos campos.
+- La publicación y despublicación se realiza modificando el campo de estado.
+- Si una página se marca como publicada sin `published_at`, el backend completa la fecha con el momento actual.
+- La gestión de bloques no forma parte de esta pantalla y queda reservada para CMS-3.
+
 ---
 
 # 1. Naturaleza del panel
@@ -67,7 +78,8 @@ El administrador puede gestionar:
 - calendarios;
 - partidos;
 - resultados;
-- rankings.
+- rankings;
+- páginas públicas CMS.
 
 ---
 
@@ -221,7 +233,23 @@ Debe priorizar:
 
 ---
 
-# 14. Funcionalidades futuras
+# 14. Gestión CMS
+
+El panel administrativo incluye una primera gestión de páginas CMS.
+
+Responsabilidades actuales:
+
+- listar páginas CMS;
+- crear páginas;
+- editar título, `slug`, estado, fecha de publicación y campos SEO;
+- cambiar entre borrador y publicada mediante el formulario de edición;
+- mantener visible el número de bloques asociados sin gestionarlos todavía.
+
+La gestión de bloques de contenido se incorporará en una fase posterior.
+
+---
+
+# 15. Funcionalidades futuras
 
 - pagos online;
 - notificaciones;
@@ -230,9 +258,9 @@ Debe priorizar:
 - filtros avanzados;
 - auditoría ampliada;
 - panel de métricas avanzado;
-- administración de contenidos públicos (noticias, información estática);
+- administración avanzada de contenidos públicos (noticias, bloques);
 - gestión de documentos públicos (subida segura, visibilidad);
-- páginas editables y bloques de contenido estructurado;
+- bloques de contenido estructurado;
 - recepción y gestión de formularios públicos de interés.
 
 ---

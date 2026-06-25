@@ -44,6 +44,7 @@ No describe el funcionamiento del sistema; únicamente indica el estado del proy
 - Rankings y API privada ("Mi Panel").
 - Separación de Resources públicos.
 - CMS-1: base backend pública de páginas CMS y bloques controlados.
+- CMS-2: gestión admin básica de páginas CMS.
 
 ### Frontend
 
@@ -221,41 +222,48 @@ Esta fase incluirá:
    - [x] endpoint público `GET /api/v1/cms/pages/{slug}`;
    - [x] Resources públicos para página y bloques;
    - [x] tests de publicación, borrador, fecha futura, inexistente, orden y ocultación de campos internos.
-1. **Prensa y media / Noticias**:
+1. **Gestión admin básica de páginas CMS (CMS-2)**:
+   - [x] listado de páginas CMS en Blade;
+   - [x] creación y edición de páginas CMS;
+   - [x] gestión de estado `draft`/`published` y `published_at`;
+   - [x] campos SEO mínimos;
+   - [x] enlace desde navegación admin;
+   - [x] tests de listado, creación, edición, slug único y acceso no admin.
+2. **Prensa y media / Noticias**:
    - CRUD admin;
    - contenido mediante bloques;
    - imagen principal;
    - estado borrador/publicado;
    - API pública;
    - listado y detalle en React.
-2. **Documentos públicos**:
+3. **Documentos públicos**:
    - CRUD admin;
    - subida segura de documentos;
    - categorías;
    - visibilidad;
    - consulta/descarga desde React.
-3. **Federación / Federarse**:
+4. **Federación / Federarse**:
    - página informativa editable;
    - explicación del papel del club en federaciones y seguros;
    - enlaces oficiales;
    - posible formulario de interés.
-4. **Academy / Escuela**:
+5. **Academy / Escuela**:
    - página promocional editable;
    - información de escuela;
    - aprendizaje/normas básicas;
    - galería o bloques visuales;
    - formulario de inscripción/interés.
-5. **Sistema de bloques de contenido**:
+6. **Sistema de bloques de contenido**:
    - se elige enfoque de bloques controlados, no HTML libre tipo editor Word;
    - bloques iniciales: encabezado, texto, lista, imagen, galería simple, enlace/botón, documento relacionado;
    - React renderizará los bloques con componentes controlados.
-6. **Formularios públicos de interés**:
+7. **Formularios públicos de interés**:
    - federarse;
    - academy;
    - rate limit;
    - antispam/honeypot o captcha futuro;
    - estados internos en admin.
-7. **Seguridad CMS**:
+8. **Seguridad CMS**:
    - validación MIME;
    - límites de tamaño;
    - almacenamiento seguro;

@@ -167,6 +167,29 @@ Consecuencias:
 
 ---
 
+# ADR-010 — Autocompletar `published_at` al publicar páginas CMS
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-06
+
+Contexto:
+- El panel admin permite cambiar una página CMS entre `draft` y `published`.
+- El endpoint público solo considera visible una página publicada cuando `published_at` está vacío o no está en el futuro.
+- En edición manual puede ocurrir que un administrador seleccione `published` sin introducir fecha.
+
+Decisión:
+- Cuando una página CMS se guarda con estado `published` y `published_at` vacío, el backend completa `published_at` con `now()`.
+- Si el administrador proporciona una fecha, se respeta.
+- Si el estado es `draft`, no se fuerza fecha de publicación.
+
+Consecuencias:
+- Publicar desde el panel tiene efecto inmediato aunque el campo de fecha quede vacío.
+- Sigue siendo posible programar publicación introduciendo una fecha futura.
+- La regla queda centralizada en el controlador admin de páginas CMS y cubierta por tests de creación.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.
