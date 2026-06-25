@@ -286,6 +286,14 @@ Tipos iniciales de bloque:
 
 El campo `data` es JSON estructurado y su forma depende del tipo de bloque. Esta base no incorpora todavía endpoints de noticias, formularios públicos ni subida de documentos o imágenes.
 
+## Consumo desde React
+
+El frontend público consume este endpoint mediante la ruta:
+
+`/contenidos/{slug}`
+
+React renderiza los bloques con componentes controlados por `type` y no interpreta HTML libre. La ruta se mantiene bajo el prefijo `/contenidos` para evitar conflictos con rutas públicas ya existentes.
+
 ---
 
 # 11. Relación con otros documentos

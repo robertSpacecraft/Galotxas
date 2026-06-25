@@ -96,6 +96,8 @@ Estructura pública actual de `data`:
 - `button`: `label` y `url`;
 - `document_link`: `label` y `url`.
 
+El frontend React consume estos Resources desde `/contenidos/:slug` y renderiza cada bloque mediante componentes controlados por `type`, sin interpretar HTML libre.
+
 ---
 
 # 3. Responsabilidades

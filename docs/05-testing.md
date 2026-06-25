@@ -143,6 +143,18 @@ Para cambios en la autenticación de React deben validarse al menos estos flujos
 
 Estas comprobaciones deben acompañarse de `npm run lint`, `npm run build` y `git diff --check` cuando el cambio afecte al frontend.
 
+## Validación manual de CMS público React
+
+Para cambios en el renderizado público de páginas CMS deben validarse al menos estos flujos:
+
+- carga correcta de `/contenidos/{slug}` para una página publicada;
+- renderizado de bloques `heading`, `text`, `list`, `button` y `document_link` cuando existan;
+- estado de carga;
+- estado de página inexistente o no publicada;
+- consola del navegador sin errores relevantes.
+
+Estas comprobaciones deben acompañarse de `npm run lint`, `npm run build` y `git diff --check`.
+
 ---
 
 # 9. Cobertura Feature actual
@@ -213,6 +225,12 @@ El backend dispone de cobertura automatizada Feature para componentes críticos 
 - validación de datos mínimos según tipo de bloque;
 - protección frente a edición de bloques desde una página ajena;
 - comprobación de que los bloques creados desde admin salen por el endpoint público.
+
+## CMS público React
+- consumo del endpoint `GET /api/v1/cms/pages/{slug}` desde el cliente API existente;
+- ruta pública `/contenidos/:slug`;
+- renderizado controlado de bloques sin HTML libre;
+- estados de carga y no encontrado.
 
 
 # 10. Evolución

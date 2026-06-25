@@ -220,6 +220,29 @@ Consecuencias:
 
 ---
 
+# ADR-012 — Ruta pública React para páginas CMS
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-06
+
+Contexto:
+- Las páginas CMS públicas se identifican por `slug`.
+- El frontend ya dispone de rutas públicas específicas para home, torneos, rankings, jugador y otras secciones.
+- Una ruta raíz dinámica como `/:slug` podría colisionar con rutas presentes o futuras.
+
+Decisión:
+- Renderizar páginas CMS públicas bajo `/contenidos/:slug`.
+- No introducir todavía un catch-all raíz.
+- Consumir `GET /api/v1/cms/pages/{slug}` desde el servicio frontend CMS.
+
+Consecuencias:
+- Se evita romper rutas públicas existentes.
+- Las páginas CMS quedan disponibles de forma explícita y reversible.
+- Una futura fase podrá estudiar rutas limpias si se define una estrategia global de routing público.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.
