@@ -189,7 +189,39 @@ Las siguientes reglas forman parte del comportamiento esperado del sistema:
 
 ---
 
-# 11. Funcionalidades previstas
+# 11. Contenidos públicos CMS
+
+El sistema incorpora una primera base técnica para páginas públicas gestionables mediante CMS.
+
+Conceptos:
+
+- Página CMS: contenido público identificado por `slug`, con título, estado y metadatos SEO mínimos.
+- Estado de página: una página puede estar en borrador (`draft`) o publicada (`published`).
+- Bloque CMS: unidad estructurada de contenido asociada a una página.
+
+Reglas:
+
+- Solo las páginas publicadas pueden leerse desde la API pública.
+- Las páginas en borrador no son visibles públicamente.
+- Una página con fecha de publicación futura todavía no es visible públicamente.
+- Los bloques se devuelven ordenados por el backend.
+- El contenido de los bloques se almacena como datos estructurados, no como HTML libre.
+
+Tipos iniciales de bloque:
+
+- `heading`;
+- `text`;
+- `list`;
+- `image`;
+- `gallery`;
+- `button`;
+- `document_link`.
+
+La administración de estas páginas y la subida de documentos o imágenes todavía no forman parte de esta base técnica.
+
+---
+
+# 12. Funcionalidades previstas
 
 Las siguientes capacidades forman parte del roadmap y no deben considerarse implementadas salvo que se indique expresamente:
 
@@ -198,8 +230,8 @@ Las siguientes capacidades forman parte del roadmap y no deben considerarse impl
 - sugerencias inteligentes de categoría;
 - notificaciones automáticas;
 - mejoras avanzadas de rankings;
-- sistema de gestión de contenidos públicos (CMS);
-- páginas editables y noticias mediante bloques de contenido;
+- panel administrativo para gestionar contenidos públicos CMS;
+- noticias mediante bloques de contenido;
 - gestión de documentos públicos;
 - formularios públicos de interés.
 

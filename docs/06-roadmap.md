@@ -43,6 +43,7 @@ No describe el funcionamiento del sistema; únicamente indica el estado del proy
 - Generación de competición, partidos y resultados.
 - Rankings y API privada ("Mi Panel").
 - Separación de Resources públicos.
+- CMS-1: base backend pública de páginas CMS y bloques controlados.
 
 ### Frontend
 
@@ -202,14 +203,24 @@ Pendientes prioritarios:
 
 ---
 
-# Fase CMS — Contenidos públicos (Futuro)
+# Fase CMS — Contenidos públicos
 
 Objetivo:
 
 Dotar al sistema de una parte pública administrable, independiente del sistema competitivo.
 
+Estado:
+
+En progreso.
+
 Esta fase incluirá:
 
+0. **Base backend pública de contenidos controlados (CMS-1)**:
+   - [x] modelo de página pública con `slug`, título, estado y SEO mínimo;
+   - [x] modelo de bloques controlados con orden y datos JSON;
+   - [x] endpoint público `GET /api/v1/cms/pages/{slug}`;
+   - [x] Resources públicos para página y bloques;
+   - [x] tests de publicación, borrador, fecha futura, inexistente, orden y ocultación de campos internos.
 1. **Prensa y media / Noticias**:
    - CRUD admin;
    - contenido mediante bloques;

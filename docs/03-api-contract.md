@@ -233,16 +233,58 @@ Estas mejoras deberán abordarse de forma coordinada y no mezclarse con pequeño
 
 ---
 
-# 10. Contrato previsto CMS (Futuro)
+# 10. CMS público
 
-En la futura fase de implementación del CMS de contenidos públicos, el contrato API no definirá HTML cerrado, sino una estructura JSON de bloques.
+La API pública incorpora lectura de páginas CMS publicadas mediante una estructura JSON de bloques.
 
-Se prevé incorporar endpoints públicos para lectura de contenidos publicados y recepción controlada de formularios, por ejemplo:
-- `GET /api/v1/news` (Listado de noticias publicadas)
-- `GET /api/v1/news/{slug}` (Detalle con sus bloques de contenido)
-- `POST /api/v1/forms/interest` (Envío de formularios públicos con protección antispam)
+## Obtener página publicada por slug
 
-*Nota: Estos contratos se encuentran en fase de diseño preliminar y no son definitivos.*
+`GET /api/v1/cms/pages/{slug}`
+
+Reglas:
+
+- es público y no requiere autenticación;
+- devuelve únicamente páginas con estado `published`;
+- si `published_at` tiene una fecha futura, la página todavía no se considera visible;
+- las páginas inexistentes o en borrador devuelven `404`;
+- los bloques se devuelven ordenados por `order`;
+- no expone identificadores internos, estado, timestamps ni claves foráneas del CMS.
+
+Respuesta:
+
+```json
+{
+    "message": null,
+    "data": {
+        "slug": "federarse",
+        "title": "Federarse",
+        "seo_title": "Federarse en Galotxas",
+        "seo_description": "Información pública para federarse.",
+        "published_at": "2026-06-24T10:00:00.000000Z",
+        "blocks": [
+            {
+                "type": "heading",
+                "order": 10,
+                "data": {
+                    "text": "Federarse"
+                }
+            }
+        ]
+    }
+}
+```
+
+Tipos iniciales de bloque:
+
+- `heading`;
+- `text`;
+- `list`;
+- `image`;
+- `gallery`;
+- `button`;
+- `document_link`.
+
+El campo `data` es JSON estructurado y su forma depende del tipo de bloque. Esta base no incorpora todavía endpoints de noticias, formularios públicos, administración CMS ni subida de documentos o imágenes.
 
 ---
 

@@ -191,6 +191,14 @@ El backend dispone de cobertura automatizada Feature para componentes críticos 
 - prevención de asignaciones duplicadas a la misma categoría;
 - protección de accesos administrativos frente a usuarios normales.
 
+## CMS público
+- lectura pública de una página publicada por `slug`;
+- respuesta `404` para páginas inexistentes;
+- respuesta `404` para páginas en borrador;
+- respuesta `404` para páginas publicadas con fecha futura;
+- serialización de bloques ordenados;
+- ocultación de campos internos del CMS en el Resource público.
+
 
 # 10. Evolución
 
@@ -198,9 +206,8 @@ La cobertura de pruebas debe crecer junto con el proyecto.
 
 Las nuevas funcionalidades relevantes deberían incorporar pruebas desde su primera implementación.
 
-La evolución prevista incluye extender la cobertura funcional al futuro módulo CMS, validando:
-- gestión de contenidos (borrador/publicado);
-- renderizado de bloques en la API pública;
+La evolución prevista incluye extender la cobertura funcional del módulo CMS conforme crezca, validando:
+- gestión administrativa de contenidos;
 - validaciones de seguridad de archivos adjuntos;
 - prevención de spam en formularios públicos.
 

@@ -94,13 +94,16 @@ No existe compatibilidad con SQLite.
 
 Las pruebas utilizan una instancia MariaDB completamente aislada.
 
-## Arquitectura prevista CMS (Futuro)
+## Arquitectura CMS pública
 
-Cuando se implemente la gestión de contenidos, la arquitectura seguirá el mismo patrón:
+La primera base backend del CMS público sigue el mismo patrón general del proyecto:
 
-- **Panel Blade**: CRUD administrativo para gestores (Noticias, Documentos, Páginas, Formularios).
-- **API Pública**: Endpoints de solo lectura para entregar los contenidos.
-- **React**: Consumo de la API pública y renderizado de los componentes de contenido (mediante bloques estructurados, sin HTML libre).
+- **Backend Laravel**: modelos `CmsPage` y `CmsBlock`, migraciones MariaDB y enums de estado/tipo.
+- **API pública**: endpoint de solo lectura para entregar páginas publicadas por `slug`.
+- **Resources públicos**: `PublicCmsPageResource` y `PublicCmsBlockResource` controlan el contrato serializado.
+- **React futuro**: consumo de la API pública y renderizado de bloques estructurados, sin HTML libre.
+
+El panel Blade de administración, la subida de documentos o imágenes y los formularios públicos quedan fuera de esta base inicial y se abordarán en bloques posteriores.
 
 ---
 

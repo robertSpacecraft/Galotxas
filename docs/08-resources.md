@@ -61,6 +61,31 @@ Mantiene la agrupación mediante `date` y delega la serialización de cada parti
 
 Recibe una estructura explícita preparada por `BuildMyRankingsService` y expone únicamente campeonato, categoría, tipo y nombre de inscripción, posición y estadísticas deportivas. No expone el modelo `CategoryEntry` utilizado internamente para localizar al jugador.
 
+## Resources públicos CMS
+
+`PublicCmsPageResource` serializa la respuesta de `GET /api/v1/cms/pages/{slug}`.
+
+Expone únicamente:
+
+- `slug`;
+- `title`;
+- `seo_title`;
+- `seo_description`;
+- `published_at`;
+- `blocks`.
+
+No expone el id interno de la página, estado, timestamps ni datos administrativos.
+
+`PublicCmsBlockResource` serializa cada bloque público de una página CMS.
+
+Expone únicamente:
+
+- `type`;
+- `order`;
+- `data`.
+
+No expone id interno, `cms_page_id`, `sort_order` ni timestamps. El campo `data` contiene JSON estructurado y controlado por el tipo de bloque.
+
 ---
 
 # 3. Responsabilidades
@@ -195,7 +220,7 @@ El objetivo arquitectónico es que todos los endpoints relevantes utilicen Resou
 
 La adopción se realizará de forma progresiva conforme evolucionen los distintos módulos del proyecto.
 
-Con la futura llegada del sistema de gestión de contenidos (CMS), se aplicará de forma estricta la separación de Resources: existirán Resources administrativos (que incluyan metadatos, fechas de borrador, notas internas) y Resources públicos (para noticias, bloques y documentos), garantizando que React reciba únicamente la información que debe ser visible para usuarios anónimos.
+Con la evolución del sistema de gestión de contenidos (CMS), deberá mantenerse de forma estricta la separación de Resources: los Resources administrativos podrán incluir metadatos, estado de borrador o trazabilidad, mientras que los Resources públicos seguirán entregando únicamente información visible para usuarios anónimos.
 
 ---
 

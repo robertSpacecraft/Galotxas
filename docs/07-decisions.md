@@ -144,6 +144,29 @@ Consecuencias:
 
 ---
 
+# ADR-009 — Datos de bloques CMS en JSON MariaDB
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-06
+
+Contexto:
+- El CMS público necesita una base flexible para bloques controlados sin introducir HTML libre.
+- Los tipos iniciales de bloque comparten una estructura común (`type`, orden y datos), pero cada tipo necesita atributos propios.
+- MariaDB es el único motor soportado por el proyecto.
+
+Decisión:
+- Persistir los bloques CMS en `cms_blocks` con una columna `data` de tipo JSON gestionada por Laravel.
+- Mantener el tipo de bloque en un enum controlado (`heading`, `text`, `list`, `image`, `gallery`, `button`, `document_link`).
+- Serializar `data` mediante `PublicCmsBlockResource`, sin exponer campos internos como ids, claves foráneas o timestamps.
+
+Consecuencias:
+- La API pública entrega datos estructurados y evita almacenar HTML libre.
+- React podrá renderizar componentes controlados por tipo de bloque.
+- La validación fina de la forma de `data` deberá incorporarse cuando exista administración CMS o endpoints de escritura.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

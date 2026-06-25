@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\SeasonController;
 use App\Http\Controllers\Api\V1\ChampionshipController;
 use App\Http\Controllers\Api\V1\CategoryController;
+use App\Http\Controllers\Api\V1\CmsPageController;
 use App\Http\Controllers\Api\V1\MatchController;
 use App\Http\Controllers\Api\V1\ChampionshipRegistrationController;
 
@@ -44,6 +45,8 @@ Route::prefix('v1')->group(function () {
     Route::get('/categories/{category}/schedule', [CategoryController::class, 'schedule']);
 
     Route::get('/matches/{gameMatch}', [MatchController::class, 'show']);
+
+    Route::get('/cms/pages/{slug}', [CmsPageController::class, 'show']);
 
     Route::get('/seasons/{season}/ranking', SeasonRankingController::class);
     Route::get('/rankings/all-time', AllTimeRankingController::class);
