@@ -99,12 +99,12 @@ Las pruebas utilizan una instancia MariaDB completamente aislada.
 La primera base backend del CMS público sigue el mismo patrón general del proyecto:
 
 - **Backend Laravel**: modelos `CmsPage` y `CmsBlock`, migraciones MariaDB y enums de estado/tipo.
-- **Panel Blade**: gestión administrativa básica de páginas CMS, estado de publicación y metadatos SEO.
+- **Panel Blade**: gestión administrativa básica de páginas CMS, estado de publicación, metadatos SEO y bloques estructurados.
 - **API pública**: endpoint de solo lectura para entregar páginas publicadas por `slug`.
 - **Resources públicos**: `PublicCmsPageResource` y `PublicCmsBlockResource` controlan el contrato serializado.
 - **React futuro**: consumo de la API pública y renderizado de bloques estructurados, sin HTML libre.
 
-La gestión administrativa de bloques, la subida de documentos o imágenes y los formularios públicos quedan fuera de esta base inicial y se abordarán en bloques posteriores.
+La subida de documentos o imágenes y los formularios públicos quedan fuera de esta base inicial y se abordarán en bloques posteriores.
 
 ---
 

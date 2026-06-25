@@ -45,6 +45,7 @@ No describe el funcionamiento del sistema; únicamente indica el estado del proy
 - Separación de Resources públicos.
 - CMS-1: base backend pública de páginas CMS y bloques controlados.
 - CMS-2: gestión admin básica de páginas CMS.
+- CMS-3: gestión admin básica de bloques CMS.
 
 ### Frontend
 
@@ -229,41 +230,48 @@ Esta fase incluirá:
    - [x] campos SEO mínimos;
    - [x] enlace desde navegación admin;
    - [x] tests de listado, creación, edición, slug único y acceso no admin.
-2. **Prensa y media / Noticias**:
+2. **Gestión admin básica de bloques CMS (CMS-3)**:
+   - [x] listado de bloques dentro del detalle de página CMS;
+   - [x] creación, edición y eliminación de bloques;
+   - [x] validación mínima de `data` por tipo de bloque;
+   - [x] orden manual mediante `sort_order`;
+   - [x] protección frente a bloques de otra página;
+   - [x] tests de CRUD, orden, validación, autorización y salida pública.
+3. **Prensa y media / Noticias**:
    - CRUD admin;
    - contenido mediante bloques;
    - imagen principal;
    - estado borrador/publicado;
    - API pública;
    - listado y detalle en React.
-3. **Documentos públicos**:
+4. **Documentos públicos**:
    - CRUD admin;
    - subida segura de documentos;
    - categorías;
    - visibilidad;
    - consulta/descarga desde React.
-4. **Federación / Federarse**:
+5. **Federación / Federarse**:
    - página informativa editable;
    - explicación del papel del club en federaciones y seguros;
    - enlaces oficiales;
    - posible formulario de interés.
-5. **Academy / Escuela**:
+6. **Academy / Escuela**:
    - página promocional editable;
    - información de escuela;
    - aprendizaje/normas básicas;
    - galería o bloques visuales;
    - formulario de inscripción/interés.
-6. **Sistema de bloques de contenido**:
+7. **Sistema de bloques de contenido**:
    - se elige enfoque de bloques controlados, no HTML libre tipo editor Word;
-   - bloques iniciales: encabezado, texto, lista, imagen, galería simple, enlace/botón, documento relacionado;
+   - [x] bloques iniciales: encabezado, texto, lista, imagen, galería simple, enlace/botón, documento relacionado;
    - React renderizará los bloques con componentes controlados.
-7. **Formularios públicos de interés**:
+8. **Formularios públicos de interés**:
    - federarse;
    - academy;
    - rate limit;
    - antispam/honeypot o captcha futuro;
    - estados internos en admin.
-8. **Seguridad CMS**:
+9. **Seguridad CMS**:
    - validación MIME;
    - límites de tamaño;
    - almacenamiento seguro;

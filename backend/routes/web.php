@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\CategoryRegistrationController;
+use App\Http\Controllers\Admin\CmsBlockController;
 use App\Http\Controllers\Admin\CmsPageController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\UserController;
@@ -37,6 +38,16 @@ Route::prefix('admin')->group(function () {
         Route::get('/cms/pages/{cmsPage}', [CmsPageController::class, 'show'])->name('admin.cms-pages.show');
         Route::get('/cms/pages/{cmsPage}/edit', [CmsPageController::class, 'edit'])->name('admin.cms-pages.edit');
         Route::put('/cms/pages/{cmsPage}', [CmsPageController::class, 'update'])->name('admin.cms-pages.update');
+        Route::get('/cms/pages/{cmsPage}/blocks/create', [CmsBlockController::class, 'create'])
+            ->name('admin.cms-pages.blocks.create');
+        Route::post('/cms/pages/{cmsPage}/blocks', [CmsBlockController::class, 'store'])
+            ->name('admin.cms-pages.blocks.store');
+        Route::get('/cms/pages/{cmsPage}/blocks/{cmsBlock}/edit', [CmsBlockController::class, 'edit'])
+            ->name('admin.cms-pages.blocks.edit');
+        Route::put('/cms/pages/{cmsPage}/blocks/{cmsBlock}', [CmsBlockController::class, 'update'])
+            ->name('admin.cms-pages.blocks.update');
+        Route::delete('/cms/pages/{cmsPage}/blocks/{cmsBlock}', [CmsBlockController::class, 'destroy'])
+            ->name('admin.cms-pages.blocks.destroy');
 
         //Temporadas
         Route::get('/seasons', [AdminSeasonController::class, 'index'])->name('admin.seasons.index');

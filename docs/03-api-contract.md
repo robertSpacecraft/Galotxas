@@ -276,15 +276,15 @@ Respuesta:
 
 Tipos iniciales de bloque:
 
-- `heading`;
-- `text`;
-- `list`;
-- `image`;
-- `gallery`;
-- `button`;
-- `document_link`.
+- `heading`: `{ "text": "...", "level": 2 }`;
+- `text`: `{ "text": "..." }`;
+- `list`: `{ "items": ["..."] }`;
+- `image`: `{ "url": "...", "alt": "..." }`;
+- `gallery`: `{ "urls": ["..."] }`;
+- `button`: `{ "label": "...", "url": "..." }`;
+- `document_link`: `{ "label": "...", "url": "..." }`.
 
-El campo `data` es JSON estructurado y su forma depende del tipo de bloque. Esta base no incorpora todavía endpoints de noticias, formularios públicos, administración CMS ni subida de documentos o imágenes.
+El campo `data` es JSON estructurado y su forma depende del tipo de bloque. Esta base no incorpora todavía endpoints de noticias, formularios públicos ni subida de documentos o imágenes.
 
 ---
 

@@ -206,6 +206,13 @@ El backend dispone de cobertura automatizada Feature para componentes críticos 
 - validación de unicidad de `slug`;
 - conservación del propio `slug` durante edición;
 - protección de acceso frente a usuarios no administradores.
+- visualización de bloques CMS de una página;
+- creación, edición y eliminación de bloques CMS;
+- ordenación de bloques por `sort_order`;
+- validación de tipo de bloque;
+- validación de datos mínimos según tipo de bloque;
+- protección frente a edición de bloques desde una página ajena;
+- comprobación de que los bloques creados desde admin salen por el endpoint público.
 
 
 # 10. Evolución

@@ -190,6 +190,36 @@ Consecuencias:
 
 ---
 
+# ADR-011 — Estructura MVP de `data` para bloques CMS
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-06
+
+Contexto:
+- Los bloques CMS se almacenan como JSON para mantener flexibilidad sin HTML libre.
+- El panel admin necesita validar una estructura mínima antes de persistir cada bloque.
+- Todavía no existe subida real de imágenes o documentos.
+
+Decisión:
+- Mantener una estructura `data` explícita por tipo:
+  - `heading`: `text` y `level`;
+  - `text`: `text`;
+  - `list`: `items`;
+  - `image`: `url` y `alt`;
+  - `gallery`: `urls`;
+  - `button`: `label` y `url`;
+  - `document_link`: `label` y `url`.
+- Aceptar URLs `http(s)` y rutas internas que comiencen por `/`, excluyendo valores protocol-relative que empiezan por `//`.
+- Convertir listas y galerías desde texto multilínea del panel admin a arrays.
+
+Consecuencias:
+- El endpoint público mantiene un contrato estable y sin HTML libre.
+- React podrá renderizar por tipo de bloque sin interpretar contenido arbitrario.
+- La futura subida de archivos deberá sustituir o complementar las URLs manuales sin romper el contrato público.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

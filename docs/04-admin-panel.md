@@ -38,7 +38,18 @@ La ruta `/admin/cms/pages` centraliza la gestión básica de páginas públicas 
 - Permite editar esos mismos campos.
 - La publicación y despublicación se realiza modificando el campo de estado.
 - Si una página se marca como publicada sin `published_at`, el backend completa la fecha con el momento actual.
-- La gestión de bloques no forma parte de esta pantalla y queda reservada para CMS-3.
+- Desde el detalle de una página permite gestionar sus bloques CMS.
+
+### Bloques CMS
+
+Las rutas `/admin/cms/pages/{cmsPage}/blocks/*` centralizan la gestión básica de bloques de una página CMS.
+
+- Los bloques se muestran dentro del detalle de la página ordenados por `sort_order` e `id`.
+- Permite crear, editar y eliminar bloques.
+- El orden se edita manualmente mediante `sort_order`.
+- El formulario valida el tipo de bloque y los campos mínimos de `data` según el tipo seleccionado.
+- La eliminación de un bloque usa confirmación simple y no elimina la página.
+- La subida real de imágenes o documentos no forma parte de esta pantalla; los bloques usan URLs o rutas ya existentes.
 
 ---
 
@@ -235,7 +246,7 @@ Debe priorizar:
 
 # 14. Gestión CMS
 
-El panel administrativo incluye una primera gestión de páginas CMS.
+El panel administrativo incluye gestión básica de páginas y bloques CMS.
 
 Responsabilidades actuales:
 
@@ -243,9 +254,10 @@ Responsabilidades actuales:
 - crear páginas;
 - editar título, `slug`, estado, fecha de publicación y campos SEO;
 - cambiar entre borrador y publicada mediante el formulario de edición;
-- mantener visible el número de bloques asociados sin gestionarlos todavía.
+- mantener visible el número de bloques asociados;
+- crear, editar, ordenar manualmente y eliminar bloques estructurados.
 
-La gestión de bloques de contenido se incorporará en una fase posterior.
+La subida real de imágenes y documentos se incorporará en una fase posterior.
 
 ---
 
@@ -258,9 +270,8 @@ La gestión de bloques de contenido se incorporará en una fase posterior.
 - filtros avanzados;
 - auditoría ampliada;
 - panel de métricas avanzado;
-- administración avanzada de contenidos públicos (noticias, bloques);
+- administración avanzada de contenidos públicos (noticias);
 - gestión de documentos públicos (subida segura, visibilidad);
-- bloques de contenido estructurado;
 - recepción y gestión de formularios públicos de interés.
 
 ---

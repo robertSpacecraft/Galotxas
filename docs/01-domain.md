@@ -207,18 +207,20 @@ Reglas:
 - Si un administrador marca una página como publicada sin indicar `published_at`, el backend completa la fecha con el momento actual.
 - Los bloques se devuelven ordenados por el backend.
 - El contenido de los bloques se almacena como datos estructurados, no como HTML libre.
+- Los bloques pertenecen siempre a una única página CMS.
+- El panel administrativo permite crear, editar, ordenar manualmente y eliminar bloques.
 
 Tipos iniciales de bloque:
 
-- `heading`;
-- `text`;
-- `list`;
-- `image`;
-- `gallery`;
-- `button`;
-- `document_link`.
+- `heading`: `text` obligatorio y `level` controlado entre 1 y 6;
+- `text`: `text` obligatorio;
+- `list`: `items` como lista de textos;
+- `image`: `url` obligatoria y `alt` opcional;
+- `gallery`: `urls` como lista simple de URLs o rutas internas;
+- `button`: `label` y `url` obligatorios;
+- `document_link`: `label` y `url` obligatorios.
 
-El panel administrativo permite crear y editar páginas CMS con título, `slug`, estado, `published_at` y metadatos SEO mínimos. La gestión de bloques y la subida de documentos o imágenes todavía no forman parte de esta base técnica.
+El panel administrativo permite crear y editar páginas CMS con título, `slug`, estado, `published_at` y metadatos SEO mínimos. También permite gestionar sus bloques estructurados. La subida de documentos o imágenes todavía no forma parte de esta base técnica; los bloques de imagen, galería y documento trabajan con URLs o rutas ya existentes.
 
 ---
 
@@ -231,7 +233,6 @@ Las siguientes capacidades forman parte del roadmap y no deben considerarse impl
 - sugerencias inteligentes de categoría;
 - notificaciones automáticas;
 - mejoras avanzadas de rankings;
-- panel administrativo para gestionar bloques de contenidos públicos CMS;
 - noticias mediante bloques de contenido;
 - gestión de documentos públicos;
 - formularios públicos de interés.

@@ -86,6 +86,16 @@ Expone únicamente:
 
 No expone id interno, `cms_page_id`, `sort_order` ni timestamps. El campo `data` contiene JSON estructurado y controlado por el tipo de bloque.
 
+Estructura pública actual de `data`:
+
+- `heading`: `text` y `level`;
+- `text`: `text`;
+- `list`: `items`;
+- `image`: `url` y `alt`;
+- `gallery`: `urls`;
+- `button`: `label` y `url`;
+- `document_link`: `label` y `url`.
+
 ---
 
 # 3. Responsabilidades

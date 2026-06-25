@@ -41,6 +41,7 @@ class CmsPageController extends Controller
 
     public function show(CmsPage $cmsPage)
     {
+        $cmsPage->load(['blocks']);
         $cmsPage->loadCount('blocks');
 
         return view('admin.cms-pages.show', [
