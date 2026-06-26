@@ -47,6 +47,7 @@ No describe el funcionamiento del sistema; únicamente indica el estado del proy
 - CMS-2: gestión admin básica de páginas CMS.
 - CMS-3: gestión admin básica de bloques CMS.
 - CMS-4: renderizado público de páginas CMS en React.
+- CMS-5: índice público de páginas CMS publicadas.
 
 ### Frontend
 
@@ -244,41 +245,48 @@ Esta fase incluirá:
    - [x] página React con estados de carga, error y no encontrado;
    - [x] renderizadores controlados para bloques iniciales;
    - [x] renderizado sin HTML libre ni `dangerouslySetInnerHTML`.
-4. **Prensa y media / Noticias**:
+4. **Índice público de páginas CMS (CMS-5)**:
+   - [x] endpoint público `GET /api/v1/cms/pages`;
+   - [x] Resource resumen sin bloques ni campos internos;
+   - [x] orden estable por `published_at` descendente e `id` descendente;
+   - [x] ruta React `/contenidos`;
+   - [x] página índice con estados de carga, error, vacío y contenido;
+   - [x] enlace público conservador desde la navegación principal.
+5. **Prensa y media / Noticias**:
    - CRUD admin;
    - contenido mediante bloques;
    - imagen principal;
    - estado borrador/publicado;
    - API pública;
    - listado y detalle en React.
-5. **Documentos públicos**:
+6. **Documentos públicos**:
    - CRUD admin;
    - subida segura de documentos;
    - categorías;
    - visibilidad;
    - consulta/descarga desde React.
-6. **Federación / Federarse**:
+7. **Federación / Federarse**:
    - página informativa editable;
    - explicación del papel del club en federaciones y seguros;
    - enlaces oficiales;
    - posible formulario de interés.
-7. **Academy / Escuela**:
+8. **Academy / Escuela**:
    - página promocional editable;
    - información de escuela;
    - aprendizaje/normas básicas;
    - galería o bloques visuales;
    - formulario de inscripción/interés.
-8. **Sistema de bloques de contenido**:
+9. **Sistema de bloques de contenido**:
    - se elige enfoque de bloques controlados, no HTML libre tipo editor Word;
    - [x] bloques iniciales: encabezado, texto, lista, imagen, galería simple, enlace/botón, documento relacionado;
    - [x] React renderiza los bloques con componentes controlados.
-9. **Formularios públicos de interés**:
+10. **Formularios públicos de interés**:
    - federarse;
    - academy;
    - rate limit;
    - antispam/honeypot o captcha futuro;
    - estados internos en admin.
-10. **Seguridad CMS**:
+11. **Seguridad CMS**:
    - validación MIME;
    - límites de tamaño;
    - almacenamiento seguro;

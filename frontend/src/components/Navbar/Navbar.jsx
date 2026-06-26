@@ -19,7 +19,7 @@ export const Navbar = () => {
         <li><Link to="/prensa" className={styles.navItem}>Prensa & Media</Link></li>
         <li><Link to="/nosotros" className={styles.navItem}>Nosotros</Link></li>
         <li><Link to="/federaciones" className={styles.navItem}>Federaciones</Link></li>
-        <li><Link to="/documentos" className={styles.navItem}>Documentos</Link></li>
+        <li><Link to="/contenidos" className={styles.navItem}>Contenidos</Link></li>
         <li><Link to="/academy" className={styles.navItem}>Academy</Link></li>
       </ul>
 

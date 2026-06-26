@@ -46,6 +46,7 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/matches/{gameMatch}', [MatchController::class, 'show']);
 
+    Route::get('/cms/pages', [CmsPageController::class, 'index']);
     Route::get('/cms/pages/{slug}', [CmsPageController::class, 'show']);
 
     Route::get('/seasons/{season}/ranking', SeasonRankingController::class);

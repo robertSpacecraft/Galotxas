@@ -243,6 +243,28 @@ Consecuencias:
 
 ---
 
+# ADR-013 — Orden del índice público CMS
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-06
+
+Contexto:
+- El índice público de páginas CMS debe ser descubrible y estable sin implementar todavía orden manual, categorías ni paginación.
+- Las páginas ya tienen `published_at` como fecha funcional de publicación.
+
+Decisión:
+- Ordenar `GET /api/v1/cms/pages` por `published_at` descendente.
+- Usar `id` descendente como desempate estable.
+- No añadir campos nuevos de orden manual en CMS-5.
+
+Consecuencias:
+- Las páginas más recientes aparecen primero.
+- El contrato queda documentado sin ampliar la base de datos.
+- Una futura fase podrá introducir orden manual si se define una necesidad editorial clara.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

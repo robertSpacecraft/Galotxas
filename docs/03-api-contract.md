@@ -237,6 +237,36 @@ Estas mejoras deberán abordarse de forma coordinada y no mezclarse con pequeño
 
 La API pública incorpora lectura de páginas CMS publicadas mediante una estructura JSON de bloques.
 
+## Listar páginas publicadas
+
+`GET /api/v1/cms/pages`
+
+Reglas:
+
+- es público y no requiere autenticación;
+- devuelve únicamente páginas con estado `published`;
+- excluye páginas con `published_at` futuro;
+- no devuelve bloques;
+- no expone identificadores internos, estado, timestamps ni campos administrativos;
+- el orden es `published_at` descendente y, en caso de empate, `id` descendente.
+
+Respuesta:
+
+```json
+{
+    "message": null,
+    "data": [
+        {
+            "slug": "federarse",
+            "title": "Federarse",
+            "seo_description": "Información pública para federarse.",
+            "published_at": "2026-06-24T10:00:00.000000Z",
+            "url": "/contenidos/federarse"
+        }
+    ]
+}
+```
+
 ## Obtener página publicada por slug
 
 `GET /api/v1/cms/pages/{slug}`

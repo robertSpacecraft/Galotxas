@@ -63,6 +63,18 @@ Recibe una estructura explícita preparada por `BuildMyRankingsService` y expone
 
 ## Resources públicos CMS
 
+`PublicCmsPageSummaryResource` serializa cada elemento de `GET /api/v1/cms/pages`.
+
+Expone únicamente:
+
+- `slug`;
+- `title`;
+- `seo_description`;
+- `published_at`;
+- `url`.
+
+No expone bloques, id interno, estado, timestamps ni datos administrativos. El frontend React lo consume desde `/contenidos` para construir el índice público.
+
 `PublicCmsPageResource` serializa la respuesta de `GET /api/v1/cms/pages/{slug}`.
 
 Expone únicamente:

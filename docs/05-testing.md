@@ -147,9 +147,12 @@ Estas comprobaciones deben acompañarse de `npm run lint`, `npm run build` y `gi
 
 Para cambios en el renderizado público de páginas CMS deben validarse al menos estos flujos:
 
+- carga correcta de `/contenidos` con el índice de páginas publicadas;
 - carga correcta de `/contenidos/{slug}` para una página publicada;
+- exclusión en el índice de páginas borrador y páginas con `published_at` futuro;
 - renderizado de bloques `heading`, `text`, `list`, `button` y `document_link` cuando existan;
 - estado de carga;
+- estado vacío del índice cuando no existan páginas publicadas;
 - estado de página inexistente o no publicada;
 - consola del navegador sin errores relevantes.
 
@@ -204,6 +207,10 @@ El backend dispone de cobertura automatizada Feature para componentes críticos 
 - protección de accesos administrativos frente a usuarios normales.
 
 ## CMS público
+- listado público de páginas publicadas en `GET /api/v1/cms/pages`;
+- exclusión de borradores y páginas futuras del listado público;
+- ausencia de bloques y campos internos en el listado público;
+- orden estable del listado por `published_at` descendente e `id` descendente;
 - lectura pública de una página publicada por `slug`;
 - respuesta `404` para páginas inexistentes;
 - respuesta `404` para páginas en borrador;
@@ -227,8 +234,11 @@ El backend dispone de cobertura automatizada Feature para componentes críticos 
 - comprobación de que los bloques creados desde admin salen por el endpoint público.
 
 ## CMS público React
+- consumo del endpoint `GET /api/v1/cms/pages` desde el cliente API existente;
+- ruta pública `/contenidos`;
 - consumo del endpoint `GET /api/v1/cms/pages/{slug}` desde el cliente API existente;
 - ruta pública `/contenidos/:slug`;
+- índice público con estados de carga, error, vacío y contenido;
 - renderizado controlado de bloques sin HTML libre;
 - estados de carga y no encontrado.
 

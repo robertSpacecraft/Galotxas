@@ -16,6 +16,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import { Rankings } from './pages/Rankings/Rankings';
+import { CmsPageIndex } from './pages/CmsPageIndex/CmsPageIndex';
 import { CmsPage } from './pages/CmsPage/CmsPage';
 import './index.css';
 
@@ -36,6 +37,7 @@ function App() {
               <Route path="/categories/:categoryId/standings" element={<StandingsPage />} />
               <Route path="/categories/:categoryId/schedule" element={<SchedulePage />} />
               <Route path="/matches/:matchId" element={<MatchDetails />} />
+              <Route path="/contenidos" element={<CmsPageIndex />} />
               <Route path="/contenidos/:slug" element={<CmsPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />

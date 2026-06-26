@@ -12,6 +12,69 @@ class PublicCmsPageTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_public_index_returns_only_current_published_pages_without_blocks(): void
+    {
+        $publishedPage = CmsPage::factory()->published()->create([
+            'slug' => 'federarse',
+            'title' => 'Federarse',
+            'seo_description' => 'Información para federarse.',
+        ]);
+
+        CmsBlock::factory()->for($publishedPage, 'page')->create([
+            'type' => CmsBlockType::TEXT->value,
+            'data' => ['text' => 'Contenido interno del detalle.'],
+        ]);
+
+        CmsPage::factory()->draft()->create([
+            'slug' => 'borrador',
+            'title' => 'Borrador',
+        ]);
+
+        CmsPage::factory()->published()->create([
+            'slug' => 'programada',
+            'title' => 'Programada',
+            'published_at' => now()->addDay(),
+        ]);
+
+        $this->getJson('/api/v1/cms/pages')
+            ->assertOk()
+            ->assertJsonPath('message', null)
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.slug', 'federarse')
+            ->assertJsonPath('data.0.title', 'Federarse')
+            ->assertJsonPath('data.0.seo_description', 'Información para federarse.')
+            ->assertJsonPath('data.0.url', '/contenidos/federarse')
+            ->assertJsonMissingPath('data.0.blocks')
+            ->assertJsonMissingPath('data.0.id')
+            ->assertJsonMissingPath('data.0.status')
+            ->assertJsonMissingPath('data.0.created_at')
+            ->assertJsonMissingPath('data.0.updated_at');
+    }
+
+    public function test_public_index_orders_pages_by_published_at_desc_then_id_desc(): void
+    {
+        $olderPage = CmsPage::factory()->published()->create([
+            'slug' => 'primera',
+            'published_at' => now()->subDays(3),
+        ]);
+
+        $sameDateFirstPage = CmsPage::factory()->published()->create([
+            'slug' => 'segunda',
+            'published_at' => now()->subDay(),
+        ]);
+
+        $sameDateSecondPage = CmsPage::factory()->published()->create([
+            'slug' => 'tercera',
+            'published_at' => $sameDateFirstPage->published_at,
+        ]);
+
+        $this->getJson('/api/v1/cms/pages')
+            ->assertOk()
+            ->assertJsonPath('data.0.slug', $sameDateSecondPage->slug)
+            ->assertJsonPath('data.1.slug', $sameDateFirstPage->slug)
+            ->assertJsonPath('data.2.slug', $olderPage->slug);
+    }
+
     public function test_public_endpoint_returns_a_published_page_by_slug(): void
     {
         $page = CmsPage::factory()->published()->create([
