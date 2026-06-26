@@ -16,11 +16,11 @@ export const Navbar = () => {
         <li><Link to="/" className={styles.navItem}>Inicio</Link></li>
         <li><Link to="/torneos" className={styles.navItem}>Torneos</Link></li>
         <li><Link to="/rankings" className={styles.navItem}>Rankings</Link></li>
-        <li><Link to="/prensa" className={styles.navItem}>Prensa & Media</Link></li>
-        <li><Link to="/nosotros" className={styles.navItem}>Nosotros</Link></li>
-        <li><Link to="/federaciones" className={styles.navItem}>Federaciones</Link></li>
+        <li><Link to="/contenidos/prensa-media" className={styles.navItem}>Prensa & Media</Link></li>
+        <li><Link to="/contenidos/nosotros" className={styles.navItem}>Nosotros</Link></li>
+        <li><Link to="/contenidos/federaciones" className={styles.navItem}>Federaciones</Link></li>
         <li><Link to="/contenidos" className={styles.navItem}>Contenidos</Link></li>
-        <li><Link to="/academy" className={styles.navItem}>Academy</Link></li>
+        <li><Link to="/contenidos/academy" className={styles.navItem}>Academy</Link></li>
       </ul>
 
       <div className={styles.authSection}>

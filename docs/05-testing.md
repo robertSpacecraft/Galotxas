@@ -149,6 +149,7 @@ Para cambios en el renderizado público de páginas CMS deben validarse al menos
 
 - carga correcta de `/contenidos` con el índice de páginas publicadas;
 - carga correcta de `/contenidos/{slug}` para una página publicada;
+- navegación desde el navbar hacia `/contenidos/prensa-media`, `/contenidos/nosotros`, `/contenidos/federaciones`, `/contenidos/academy` y `/contenidos`;
 - exclusión en el índice de páginas borrador y páginas con `published_at` futuro;
 - renderizado de bloques `heading`, `text`, `list`, `button` y `document_link` cuando existan;
 - estado de carga;
@@ -238,9 +239,16 @@ El backend dispone de cobertura automatizada Feature para componentes críticos 
 - ruta pública `/contenidos`;
 - consumo del endpoint `GET /api/v1/cms/pages/{slug}` desde el cliente API existente;
 - ruta pública `/contenidos/:slug`;
+- enlaces institucionales del navbar apuntando a rutas CMS;
 - índice público con estados de carga, error, vacío y contenido;
 - renderizado controlado de bloques sin HTML libre;
 - estados de carga y no encontrado.
+
+## CMS seeders
+- creación no destructiva de páginas institucionales base;
+- slugs institucionales `prensa-media`, `nosotros`, `federaciones`, `academy`, `documentos` y `federarse`;
+- creación de bloques mínimos `heading` y `text` para páginas nuevas;
+- preservación de páginas CMS existentes con el mismo slug.
 
 
 # 10. Evolución

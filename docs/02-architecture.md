@@ -103,6 +103,7 @@ La primera base backend del CMS público sigue el mismo patrón general del proy
 - **API pública**: endpoints de solo lectura para listar páginas publicadas y entregar una página publicada por `slug`.
 - **Resources públicos**: `PublicCmsPageSummaryResource`, `PublicCmsPageResource` y `PublicCmsBlockResource` controlan el contrato serializado.
 - **React**: consumo de la API pública desde `/contenidos` y `/contenidos/:slug`, con renderizado de bloques estructurados, sin HTML libre.
+- **Navegación pública**: los enlaces institucionales del navbar apuntan a slugs CMS bajo `/contenidos/{slug}`.
 
 La subida de documentos o imágenes y los formularios públicos quedan fuera de esta base inicial y se abordarán en bloques posteriores.
 

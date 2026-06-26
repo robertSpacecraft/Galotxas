@@ -265,6 +265,30 @@ Consecuencias:
 
 ---
 
+# ADR-014 — Slugs institucionales CMS y seeder explícito
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-06
+
+Contexto:
+- El CMS MVP debe servir páginas informativas enlazadas desde la navegación pública.
+- El navbar no debe depender de rutas informativas estáticas o no implementadas.
+- En desarrollo conviene disponer de páginas base sin sobrescribir contenido creado desde el panel.
+
+Decisión:
+- Fijar los slugs institucionales MVP: `prensa-media`, `nosotros`, `federaciones`, `academy`, `documentos` y `federarse`.
+- Enlazar desde React a `/contenidos/{slug}` para las entradas institucionales principales.
+- Crear `InstitutionalCmsPageSeeder` como seeder explícito, no llamado automáticamente desde `DatabaseSeeder`.
+- El seeder solo crea páginas y bloques mínimos cuando el slug no existe.
+
+Consecuencias:
+- La navegación pública queda alineada con el CMS.
+- Los entornos de desarrollo pueden poblar contenido institucional mínimo con un comando controlado.
+- El contenido existente no se sobrescribe si un administrador ya ha creado una página con el mismo slug.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

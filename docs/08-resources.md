@@ -108,7 +108,18 @@ Estructura pública actual de `data`:
 - `button`: `label` y `url`;
 - `document_link`: `label` y `url`.
 
-El frontend React consume estos Resources desde `/contenidos/:slug` y renderiza cada bloque mediante componentes controlados por `type`, sin interpretar HTML libre.
+El frontend React consume el resumen desde `/contenidos` y la página completa desde `/contenidos/:slug`. Los bloques se renderizan mediante componentes controlados por `type`, sin interpretar HTML libre.
+
+Slugs institucionales recomendados para el CMS MVP:
+
+- `prensa-media`;
+- `nosotros`;
+- `federaciones`;
+- `academy`;
+- `documentos`;
+- `federarse`.
+
+El seeder `InstitutionalCmsPageSeeder` puede crear estas páginas y sus bloques mínimos en entornos de desarrollo sin sobrescribir páginas existentes.
 
 ---
 

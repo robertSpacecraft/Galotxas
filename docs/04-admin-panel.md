@@ -39,6 +39,8 @@ La ruta `/admin/cms/pages` centraliza la gestión básica de páginas públicas 
 - La publicación y despublicación se realiza modificando el campo de estado.
 - Si una página se marca como publicada sin `published_at`, el backend completa la fecha con el momento actual.
 - Desde el detalle de una página permite gestionar sus bloques CMS.
+- Las páginas institucionales recomendadas para el MVP usan los slugs `prensa-media`, `nosotros`, `federaciones`, `academy`, `documentos` y `federarse`.
+- En entornos de desarrollo puede crearse una base mínima no destructiva con `php artisan db:seed --class=InstitutionalCmsPageSeeder`.
 
 ### Bloques CMS
 
@@ -256,6 +258,7 @@ Responsabilidades actuales:
 - cambiar entre borrador y publicada mediante el formulario de edición;
 - mantener visible el número de bloques asociados;
 - crear, editar, ordenar manualmente y eliminar bloques estructurados.
+- mantener los slugs institucionales enlazados desde la navegación pública cuando se quiera editar su contenido.
 
 La subida real de imágenes y documentos se incorporará en una fase posterior.
 
