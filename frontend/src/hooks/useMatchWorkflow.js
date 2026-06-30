@@ -1,21 +1,27 @@
 import { useState, useCallback } from 'react';
-import api from '../api/api';
+import { matchesService } from '../api/matches';
 
 export const useMatchWorkflow = (matchId) => {
+  const [match, setMatch] = useState(null);
   const [workflow, setWorkflow] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [message, setMessage] = useState(null);
 
   const fetchWorkflow = useCallback(async () => {
-    if (!matchId) return;
+    if (!matchId) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
-      const res = await api.get(`/matches/${matchId}/workflow`);
-      setWorkflow(res.data?.data || res.data);
+      const data = await matchesService.getWorkflow(matchId);
+      setMatch(data?.match ?? null);
+      setWorkflow(data?.workflow ?? null);
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Error fetching workflow');
+      setError(err.response?.data?.message || err.message || 'No se ha podido cargar el flujo del partido.');
     } finally {
       setLoading(false);
     }
@@ -25,26 +31,30 @@ export const useMatchWorkflow = (matchId) => {
     try {
       setActionLoading(true);
       setError(null);
-      await api.post(`/matches/${matchId}/submit-result`, params);
-      await fetchWorkflow(); // Reload the workflow state
+      setMessage(null);
+      const response = await matchesService.submitResult(matchId, params);
+      setMessage(response?.message ?? 'Resultado enviado correctamente.');
+      await fetchWorkflow();
       return true;
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Error submitting result');
+      setError(err.response?.data?.message || err.message || 'No se ha podido enviar el resultado.');
       return false;
     } finally {
       setActionLoading(false);
     }
   };
 
-  const confirmResult = async () => {
+  const confirmResult = async (comment = null) => {
     try {
       setActionLoading(true);
       setError(null);
-      await api.post(`/matches/${matchId}/confirm-result`);
-      await fetchWorkflow(); // Reload the workflow state
+      setMessage(null);
+      const response = await matchesService.confirmResult(matchId, comment);
+      setMessage(response?.message ?? 'Resultado confirmado correctamente.');
+      await fetchWorkflow();
       return true;
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Error confirming result');
+      setError(err.response?.data?.message || err.message || 'No se ha podido confirmar el resultado.');
       return false;
     } finally {
       setActionLoading(false);
@@ -52,10 +62,12 @@ export const useMatchWorkflow = (matchId) => {
   };
 
   return {
+    match,
     workflow,
     loading,
     actionLoading,
     error,
+    message,
     fetchWorkflow,
     submitResult,
     confirmResult

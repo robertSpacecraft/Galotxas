@@ -1,205 +1,194 @@
-import { useCallback, useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { MatchWorkflow } from '../components/MatchWorkflow/MatchWorkflow';
+import { matchesService } from '../api/matches';
 import { useAuth } from '../hooks/useAuth';
-import api from '../api/client';
 import styles from './MatchDetails.module.css';
+
+const statusLabels = {
+    scheduled: 'Programado',
+    submitted: 'Pendiente de confirmación',
+    validated: 'Finalizado',
+    under_review: 'En revisión',
+    postponed: 'Aplazado',
+    cancelled: 'Cancelado',
+};
+
+const getStatusLabel = (status) => statusLabels[status] || status || 'Desconocido';
+
+const getEntryName = (entry) => {
+    if (!entry) {
+        return 'Por determinar';
+    }
+
+    if (entry.team) {
+        return entry.team.name || `Equipo #${entry.team.id}`;
+    }
+
+    if (entry.player) {
+        return entry.player.nickname
+            || `${entry.player.name || ''} ${entry.player.lastname || ''}`.trim()
+            || `Jugador #${entry.player.id}`;
+    }
+
+    return 'Participante';
+};
+
+const formatDateTime = (value) => {
+    if (!value) {
+        return 'Fecha sin definir';
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+
+    return new Intl.DateTimeFormat('es-ES', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+    }).format(date);
+};
+
+const scoreValue = (value) => value ?? '-';
 
 export default function MatchDetails() {
     const { matchId } = useParams();
-    const { user, token } = useAuth();
-    
-    const [submitLoading, setSubmitLoading] = useState(false);
-    const [homeScore, setHomeScore] = useState('');
-    const [awayScore, setAwayScore] = useState('');
-    const [submitError, setSubmitError] = useState(null);
-    
+    const { token } = useAuth();
+
     const [match, setMatch] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    const fetchMatch = useCallback(() => {
-        api.get(`/matches/${matchId}`)
-            .then(response => {
-                setMatch(response.data.data);
-                setLoading(false);
-            })
-            .catch(error => {
-                console.error(error);
-                setLoading(false);
-            });
+    const fetchMatch = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const data = await matchesService.getMatch(matchId);
+            setMatch(data);
+        } catch (err) {
+            setError(err.response?.data?.message || 'No se ha podido cargar el partido.');
+            setMatch(null);
+        } finally {
+            setLoading(false);
+        }
     }, [matchId]);
 
     useEffect(() => {
         fetchMatch();
     }, [fetchMatch]);
 
-    const handleResultSubmit = async (e) => {
-        e.preventDefault();
-        if (!token) return;
-        
-        setSubmitLoading(true);
-        setSubmitError(null);
-        
-        try {
-            await api.post(`/matches/${matchId}/submit-result`, {
-                home_score: parseInt(homeScore),
-                away_score: parseInt(awayScore)
-            });
-            // Refresh match data
-            fetchMatch();
-        } catch (err) {
-            setSubmitError(err.response?.data?.message || 'Error enviando el resultado');
-        } finally {
-            setSubmitLoading(false);
-        }
-    };
+    const handleWorkflowMatchChange = useCallback((updatedMatch) => {
+        setMatch(updatedMatch);
+    }, []);
 
-    const handleValidateResult = async () => {
-        if (!token || user?.role !== 'admin') return;
-        
-        setSubmitLoading(true);
-        setSubmitError(null);
-        
-        try {
-            await api.post(`/admin/matches/${matchId}/validate-result`);
-            fetchMatch();
-        } catch (err) {
-            setSubmitError(err.response?.data?.message || 'Error validando el resultado');
-        } finally {
-            setSubmitLoading(false);
-        }
-    };
+    if (loading) {
+        return (
+            <div className={styles.container}>
+                <p className={styles.stateMessage}>Cargando detalles...</p>
+            </div>
+        );
+    }
 
-    if (loading) return <div className={styles.container}><p>Cargando detalles...</p></div>;
-    if (!match) return <div className={styles.container}><p>Partido no encontrado.</p></div>;
+    if (error) {
+        return (
+            <div className={styles.container}>
+                <p className={styles.error}>{error}</p>
+            </div>
+        );
+    }
 
-    const translateStatus = (status) => {
-        const statuses = {
-             'scheduled': 'Programado',
-             'submitted': 'Pendiente de Validar',
-             'validated': 'Finalizado',
-             'postponed': 'Aplazado',
-             'cancelled': 'Cancelado'
-        };
-        return statuses[status] || status;
-    };
+    if (!match) {
+        return (
+            <div className={styles.container}>
+                <p className={styles.stateMessage}>Partido no encontrado.</p>
+            </div>
+        );
+    }
 
-    const getEntryName = (entry) => {
-        if (!entry) return 'Por determinar';
-        if (entry.team) return entry.team.name;
-        if (entry.player) {
-            if (entry.player.nickname) return entry.player.nickname;
-            const fullName = `${entry.player.name || ''} ${entry.player.lastname || ''}`.trim();
-            return fullName || `Jugador #${entry.player.id}`;
-        }
-        return 'Participante';
-    };
+    const category = match.round?.category;
+    const championship = category?.championship;
+    const backTarget = category?.id ? `/categories/${category.id}` : '/torneos';
+    const homeName = getEntryName(match.home_entry);
+    const awayName = getEntryName(match.away_entry);
 
     return (
         <div className={styles.container}>
             <div className={styles.spacingBottom}>
-               <Link to={`/categories/${match.round?.category?.id || match.round?.category_id}`} className={styles.backLink}>
-                    &larr; Volver al calendario
-               </Link>
+                <Link to={backTarget} className={styles.backLink}>
+                    Volver al calendario
+                </Link>
             </div>
 
-            <div className={styles.header}>
+            <header className={styles.header}>
                 <div className={styles.matchMeta}>
-                    {match.round?.name} • {match.scheduled_date ? new Date(match.scheduled_date).toLocaleString() : 'Fecha sin definir'}
+                    {championship?.name || 'Campeonato'} · {category?.name || 'Categoría'} · {match.round?.name || 'Jornada'}
                 </div>
-                
+
                 <div className={styles.scoreboard}>
                     <div className={`${styles.teamName} ${styles.homeTeam}`}>
-                        {getEntryName(match.home_entry)}
+                        {homeName}
                     </div>
-                    
-                    <div className={styles.scoreBox}>
+
+                    <div className={styles.scoreBox} aria-label={`${homeName} contra ${awayName}`}>
                         <span className={`${styles.score} ${match.status === 'validated' ? styles.scoreValidated : styles.scorePending}`}>
-                            {match.home_score !== null ? match.home_score : '-'}
+                            {scoreValue(match.home_score)}
                         </span>
                         <span className={styles.vs}>vs</span>
                         <span className={`${styles.score} ${match.status === 'validated' ? styles.scoreValidated : styles.scorePending}`}>
-                            {match.away_score !== null ? match.away_score : '-'}
+                            {scoreValue(match.away_score)}
                         </span>
                     </div>
 
                     <div className={`${styles.teamName} ${styles.awayTeam}`}>
-                        {getEntryName(match.away_entry)}
+                        {awayName}
                     </div>
                 </div>
 
                 <div className={styles.statusContainer}>
-                    <span className={`${styles.statusBadge} ${match.status === 'validated' ? styles.statusValidated : styles.statusDefault}`}>
-                        {translateStatus(match.status)}
+                    <span className={`${styles.statusBadge} ${styles[`status_${match.status}`] || styles.statusDefault}`}>
+                        {getStatusLabel(match.status)}
                     </span>
                 </div>
-            </div>
+            </header>
 
-            {user && match.status === 'scheduled' && (
-                <div className={styles.actionPanel}>
-                    <h3 className={styles.panelTitle}>Introducir Resultado</h3>
-                    <p className={styles.panelSubtitle}>Como jugador autenticado puedes registrar el marcador final de este partido.</p>
-                    
-                    {submitError && <div className={styles.error}>{submitError}</div>}
-                    
-                    <form onSubmit={handleResultSubmit} className={styles.submitForm}>
-                        <div className={styles.fieldGroup}>
-                            <label>Juegos {getEntryName(match.home_entry)}</label>
-                            <input 
-                                type="number" min="0" max="15" 
-                                value={homeScore} onChange={e => setHomeScore(e.target.value)} 
-                                required 
-                                className={styles.scoreInput}
-                            />
-                        </div>
-                        <div className={styles.fieldGroup}>
-                            <label>Juegos {getEntryName(match.away_entry)}</label>
-                            <input 
-                                type="number" min="0" max="15" 
-                                value={awayScore} onChange={e => setAwayScore(e.target.value)} 
-                                required 
-                                className={styles.scoreInput}
-                            />
-                        </div>
-                        <button type="submit" disabled={submitLoading || homeScore === '' || awayScore === ''} className={styles.submitBtn}>
-                            {submitLoading ? 'Enviando...' : 'Enviar Resultado'}
-                        </button>
-                    </form>
-                </div>
+            {token ? (
+                <MatchWorkflow matchId={matchId} onMatchChange={handleWorkflowMatchChange} />
+            ) : (
+                <section className={styles.workflowPrompt}>
+                    <h2>Gestión del resultado</h2>
+                    <p>
+                        Inicia sesión como participante para enviar o confirmar el resultado de este partido.
+                    </p>
+                    <Link to="/login" className={styles.loginLink}>Iniciar sesión</Link>
+                </section>
             )}
 
-            {user?.role === 'admin' && match.status === 'submitted' && (
-                <div className={styles.adminPanel}>
-                    <h3 className={`${styles.panelTitle} ${styles.adminTitle}`}>Validación de Administración</h3>
-                    <p className={styles.panelSubtitle}>Este resultado ha sido introducido y está pendiente de validación oficial.</p>
-                    
-                    {submitError && <div className={styles.error}>{submitError}</div>}
-                    
-                    <button onClick={handleValidateResult} disabled={submitLoading} className={styles.adminBtn}>
-                        {submitLoading ? 'Validando...' : 'Aprobar Resultado Definitivo'}
-                    </button>
-                </div>
-            )}
-
-            <div className={styles.detailsSection}>
-                <h3 className={styles.sectionTitle}>Detalles de la partida</h3>
+            <section className={styles.detailsSection}>
+                <h2 className={styles.sectionTitle}>Detalles de la partida</h2>
                 <div className={styles.detailsGrid}>
+                    <div>
+                        <div className={styles.detailItemLabel}>Fecha</div>
+                        <div className={styles.detailItemValue}>{formatDateTime(match.scheduled_date)}</div>
+                    </div>
                     <div>
                         <div className={styles.detailItemLabel}>Pista</div>
                         <div className={styles.detailItemValue}>{match.venue?.name || 'No especificada'}</div>
-                        <div className={styles.detailItemSubValue}>{match.venue?.location}</div>
                     </div>
                     <div>
                         <div className={styles.detailItemLabel}>Categoría</div>
-                        <div className={styles.detailItemValue}>{match.round?.category?.name || 'Desconocida'}</div>
+                        <div className={styles.detailItemValue}>{category?.name || 'Desconocida'}</div>
                     </div>
-                    {match.submitted_by && (
-                        <div>
-                            <div className={styles.detailItemLabel}>Resultado enviado por</div>
-                            <div className={styles.detailItemValue}>{match.submitted_by_user?.name || `Usuario ID: ${match.submitted_by}`}</div>
-                        </div>
-                    )}
+                    <div>
+                        <div className={styles.detailItemLabel}>Campeonato</div>
+                        <div className={styles.detailItemValue}>{championship?.name || 'Desconocido'}</div>
+                        {championship?.season?.name ? (
+                            <div className={styles.detailItemSubValue}>{championship.season.name}</div>
+                        ) : null}
+                    </div>
                 </div>
-            </div>
+            </section>
         </div>
     );
 }

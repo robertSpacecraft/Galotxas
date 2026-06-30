@@ -113,7 +113,7 @@ El administrador puede gestionar:
 
 ---
 
-# 5. Ciclo de vida del jugado
+# 5. Ciclo de vida del jugador
 
 Desde el punto de vista administrativo un jugador pasa por:
 

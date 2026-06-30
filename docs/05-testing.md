@@ -39,7 +39,7 @@ Backend:
 - PHPUnit
 - Laravel Testing
 - RefreshDatabase cuando proceda
-- Docke
+- Docker
 
 Frontend:
 - La estrategia de pruebas del frontend se documentará conforme aumente la cobertura.
@@ -155,6 +155,21 @@ Para cambios en el renderizado público de páginas CMS deben validarse al menos
 - estado de carga;
 - estado vacío del índice cuando no existan páginas publicadas;
 - estado de página inexistente o no publicada;
+- consola del navegador sin errores relevantes.
+
+Estas comprobaciones deben acompañarse de `npm run lint`, `npm run build` y `git diff --check`.
+
+## Validación manual de resultados de partidos React
+
+Para cambios en `/matches/{id}` y el workflow de resultados deben validarse al menos estos flujos:
+
+- carga del detalle público de partido sin sesión;
+- acceso autenticado al workflow del participante;
+- envío de resultado con mensaje de éxito o error backend visible;
+- confirmación de resultado rival cuando exista `opposite_report`;
+- visualización clara de partido validado;
+- visualización clara de partido `under_review`;
+- navegación desde Mi Panel o calendario hacia `/matches/{id}`;
 - consola del navegador sin errores relevantes.
 
 Estas comprobaciones deben acompañarse de `npm run lint`, `npm run build` y `git diff --check`.

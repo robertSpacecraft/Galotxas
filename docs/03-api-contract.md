@@ -207,6 +207,35 @@ El endpoint no devuelve `CategoryEntry` ni otros modelos Eloquent. Los nombres d
 
 ---
 
+## Resultados de partidos para participantes
+
+El detalle público `GET /api/v1/matches/{gameMatch}` utiliza `PublicMatchResource`. Es accesible sin autenticación y oculta tanteos, ganador y trazabilidad interna mientras el partido no está validado.
+
+La gestión privada del resultado se realiza con endpoints autenticados bajo Sanctum y usuario activo:
+
+- `GET /api/v1/matches/{gameMatch}/workflow`;
+- `POST /api/v1/matches/{gameMatch}/submit-result`;
+- `POST /api/v1/matches/{gameMatch}/confirm-result`.
+
+`GET /workflow` devuelve el partido mediante `MatchResource` y un bloque `workflow` con:
+
+- `participates`;
+- `user_side`;
+- `can_report`;
+- `blocked_reason`;
+- `my_report`;
+- `same_side_report_by_teammate`;
+- `opposite_report`;
+- `match_status`.
+
+React consume este contrato desde la pantalla `/matches/{id}`. El frontend solo representa estados y acciones disponibles; la validación deportiva del tanteo, la confirmación automática y la detección de conflicto pertenecen al backend.
+
+Cuando el primer participante envía un resultado, el partido queda normalmente en `submitted`. Si el rival confirma el mismo tanteo, el backend valida el partido. Si el rival reporta un tanteo distinto, el partido pasa a `under_review` para resolución administrativa.
+
+La reprogramación dispone de endpoints backend independientes, pero su UI React no forma parte del bloque MATCH-1.
+
+---
+
 # 8. Compatibilidad
 
 Antes de modificar un endpoint debe comprobarse:

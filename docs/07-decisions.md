@@ -105,9 +105,9 @@ Las decisiones relevantes deben reflejarse en `/docs` y los principios estables 
 
 # ADR-007 — Enfoque CMS basado en bloques estructurados
 
-Estado: Aceptada (Futura implementación)
+Estado: Aceptada
 
-Se decide que la futura gestión de contenidos públicos (Noticias, Páginas) se realizará mediante un sistema de bloques controlados (encabezado, texto, lista, imagen, documento) en lugar de permitir la inserción de HTML libre tipo WYSIWYG.
+Se decide que la gestión de contenidos públicos se realizará mediante un sistema de bloques controlados (encabezado, texto, lista, imagen, documento) en lugar de permitir la inserción de HTML libre tipo WYSIWYG.
 
 Contexto:
 - El uso de HTML libre incrementa el riesgo de inyecciones XSS si la sanitización no es estricta.

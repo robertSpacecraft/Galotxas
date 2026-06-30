@@ -54,6 +54,7 @@ No describe el funcionamiento del sistema; únicamente indica el estado del proy
 
 - React básico.
 - Panel privado.
+- Detalle de partido React unificado para consulta pública y workflow autenticado de resultados.
 
 ### Infraestructura
 
@@ -205,6 +206,10 @@ Pendientes prioritarios:
    - [x] logout con revocación backend y limpieza local garantizada;
    - [x] limpieza de `token` y `user` ante `401`/`403`;
    - [x] documentar como deuda futura una posible migración a cookie HttpOnly/SameSite/CSRF en bloque específico.
+4. **MATCH-1 — Unificar flujo React de resultados** (completado):
+   - [x] conectar `/matches/{id}` con el workflow backend de resultados;
+   - [x] consolidar envío, confirmación, conflicto y estados cerrados en una única experiencia visible;
+   - [x] mantener reprogramación fuera del alcance de este bloque.
 
 ---
 
