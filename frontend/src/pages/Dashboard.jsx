@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { meService } from '../api/me';
+import { matchesService } from '../api/matches';
 import MatchCard from '../components/MatchCard';
+import { PendingMatchActions } from '../components/PendingMatchActions/PendingMatchActions';
 import styles from './Dashboard.module.css';
 
 const registrationStatusLabels = {
@@ -112,6 +114,11 @@ export default function Dashboard() {
     const [rankingsLoading, setRankingsLoading] = useState(false);
     const [rankingsError, setRankingsError] = useState(null);
 
+    // Pending match actions
+    const [pendingActions, setPendingActions] = useState([]);
+    const [pendingActionsLoading, setPendingActionsLoading] = useState(false);
+    const [pendingActionsError, setPendingActionsError] = useState(null);
+
     const isPlayer = !!user?.player;
 
     useEffect(() => {
@@ -153,6 +160,30 @@ export default function Dashboard() {
                 .finally(() => setRankingsLoading(false));
         }
     }, [isPlayer, activeTab, registrations.length, matches.length, calendar.length, rankings.length]);
+
+    useEffect(() => {
+        if (!isPlayer) return;
+
+        let active = true;
+
+        setPendingActionsLoading(true);
+        setPendingActionsError(null);
+
+        matchesService.getPendingActions()
+            .then(data => {
+                if (active) setPendingActions(Array.isArray(data) ? data : []);
+            })
+            .catch(() => {
+                if (active) setPendingActionsError('No se pudieron cargar tus acciones pendientes en este momento.');
+            })
+            .finally(() => {
+                if (active) setPendingActionsLoading(false);
+            });
+
+        return () => {
+            active = false;
+        };
+    }, [isPlayer]);
 
     const [playerData, setPlayerData] = useState({
         nickname: '',
@@ -315,6 +346,14 @@ export default function Dashboard() {
                     </div>
                 )}
             </div>
+
+            {isPlayer && (
+                <PendingMatchActions
+                    actions={pendingActions}
+                    loading={pendingActionsLoading}
+                    error={pendingActionsError}
+                />
+            )}
 
             {!isPlayer && isRegistering && (
                 <div className={styles.playerFormSection}>

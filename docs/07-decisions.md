@@ -448,6 +448,32 @@ Consecuencias:
 
 ---
 
+# ADR-021 — Contrato específico para acciones pendientes e inclusión informativa de revisiones
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-07
+
+Contexto:
+- El endpoint de acciones pendientes agrupaba partidos en varias colecciones solapadas y reutilizaba `MatchResource`, que contiene identificadores, responsables y trazabilidad innecesarios para Mi Panel.
+- Un partido con reporte rival aparecía simultáneamente como pendiente de reporte y de confirmación.
+- Los partidos `under_review` requieren visibilidad para el jugador, pero el dominio no permite nuevos reportes mientras se resuelve el conflicto.
+
+Decisión:
+- Devolver una colección plana con una única entrada por partido y los tipos `submit_result`, `confirm_result` o `under_review`.
+- Crear `PendingMatchActionResource` como contrato del contexto y delegar la representación segura del partido en `ParticipantMatchResource`.
+- Considerar `under_review` un aviso informativo enlazado al detalle, nunca una autorización para editar o reportar.
+- Devolver una colección vacía a usuarios autenticados sin perfil de jugador.
+- Mantener la representación por lado en dobles: ambos integrantes comparten la acción, pero cada consulta contiene una sola entrada por partido.
+
+Consecuencias:
+- React no deduce reglas deportivas ni combina colecciones potencialmente contradictorias.
+- El Dashboard puede mostrar un contador directo a partir de la longitud de la colección.
+- No se exponen reportes, comentarios, emails, usuarios ni trazabilidad administrativa.
+- Cambiar o añadir tipos de acción exige revisar el contrato, los tests y su representación en Mi Panel.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

@@ -228,6 +228,47 @@ Los consumidores deben añadir únicamente el formato visual del porcentaje. No 
 
 ## Resultados de partidos para participantes
 
+### Acciones pendientes de Mi Panel
+
+`GET /api/v1/me/matches/pending-actions` requiere Sanctum y usuario activo. Devuelve una colección plana con una entrada por partido relevante para el jugador autenticado:
+
+```json
+{
+    "message": null,
+    "data": [
+        {
+            "type": "confirm_result",
+            "match": {
+                "id": 42,
+                "scheduled_date": "2026-07-15T18:30:00.000000Z",
+                "status": "submitted",
+                "home_score": null,
+                "away_score": null,
+                "home_entry": {},
+                "away_entry": {},
+                "winner_entry": null,
+                "venue": {},
+                "round": {}
+            }
+        }
+    ]
+}
+```
+
+Tipos estables:
+
+- `submit_result`: el lado del jugador todavía no ha reportado y no existe reporte rival;
+- `confirm_result`: existe un reporte del lado rival y el lado del jugador todavía puede actuar;
+- `under_review`: aviso informativo de discrepancia; no habilita escritura.
+
+Los partidos `validated`, `cancelled` y `postponed` no aparecen. Un lado que ya ha reportado tampoco recibe otra acción. En dobles, los dos integrantes representan al mismo lado y obtienen la misma única acción por partido, nunca una acción duplicada por integrante.
+
+El partido se serializa en este contexto mediante `ParticipantMatchResource`, envuelto por `PendingMatchActionResource`. No se incluyen reportes, comentarios, emails, usuarios, responsables, claves de trazabilidad ni timestamps internos. Un usuario autenticado sin perfil de jugador o un jugador sin acciones recibe `data: []`; un jugador ajeno nunca recibe el partido.
+
+React construye el enlace `/matches/{id}` a partir del identificador y resuelve allí cualquier envío, confirmación o discrepancia.
+
+---
+
 El detalle público `GET /api/v1/matches/{gameMatch}` utiliza `PublicMatchResource`. Es accesible sin autenticación y oculta tanteos, ganador y trazabilidad interna mientras el partido no está validado.
 
 La gestión privada del resultado se realiza con endpoints autenticados bajo Sanctum y usuario activo:

@@ -89,6 +89,17 @@ No expone reportes agregados, responsables internos, emails, claves foráneas de
 
 Cuando el usuario autenticado no tiene perfil de jugador o no participa en el partido, el workflow utiliza `PublicMatchResource` y no entrega ningún reporte.
 
+## Resource de acciones pendientes de partidos
+
+`PendingMatchActionResource` serializa cada elemento de `GET /api/v1/me/matches/pending-actions`.
+
+Expone únicamente:
+
+- `type`, con uno de los valores `submit_result`, `confirm_result` o `under_review`;
+- `match`, delegado en `ParticipantMatchResource`.
+
+No incluye reportes, comentarios, usuarios, emails, responsables, claves de trazabilidad ni timestamps internos. `under_review` representa un aviso informativo y no una acción editable. En dobles, el contrato mantiene una única entrada por partido para cada jugador que consulta, aunque los dos integrantes compartan la representación del mismo lado.
+
 ## Resources públicos CMS
 
 `PublicCmsPageSummaryResource` serializa cada elemento de `GET /api/v1/cms/pages`.

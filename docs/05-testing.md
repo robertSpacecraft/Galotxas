@@ -268,6 +268,23 @@ Las pruebas de integración se ejecutan exclusivamente sobre la instancia MariaD
 - comportamiento de usuarios sin perfil de jugador;
 - rechazo de acceso no autenticado.
 
+## PANEL-1 — Acciones pendientes de partidos
+
+La cobertura Feature verifica:
+
+- autenticación obligatoria y colección vacía segura para usuarios sin perfil;
+- colección vacía para jugadores sin partidos pendientes;
+- `submit_result` para partidos `scheduled` sin reportes;
+- `confirm_result` únicamente para el lado rival de un reporte existente;
+- ausencia de segunda acción para el jugador o compañero cuyo lado ya reportó;
+- exclusión de partidos `validated`, `cancelled` y `postponed`;
+- inclusión de `under_review` exclusivamente como aviso informativo;
+- representación compartida del lado en dobles, sin duplicados y con confirmación solo para la pareja rival;
+- aislamiento frente a terceros ajenos al partido;
+- ausencia de emails, reportes, comentarios, responsables e identificadores de trazabilidad en el contrato.
+
+En frontend, PANEL-1 se valida mediante ESLint y build de producción. La futura fase FE-TEST-1 añadirá pruebas automatizadas de los estados loading, error, empty y content del componente.
+
 ## Flujo de Inscripción y Administración (Fase 3 Core)
 - prevención de inscripciones si el campeonato está cerrado;
 - prevención de inscripciones duplicadas;

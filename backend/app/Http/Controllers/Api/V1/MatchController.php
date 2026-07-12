@@ -12,6 +12,7 @@ use App\Http\Resources\MatchRescheduleRequestResource;
 use App\Http\Resources\MatchResource;
 use App\Http\Resources\ParticipantMatchResource;
 use App\Http\Resources\ParticipantMatchResultReportResource;
+use App\Http\Resources\PendingMatchActionResource;
 use App\Http\Resources\PublicMatchResource;
 use App\Models\CategoryEntry;
 use App\Models\GameMatch;
@@ -94,7 +95,7 @@ class MatchController extends Controller
         $player = $user?->player;
 
         if (! $player) {
-            return $this->errorResponse('El usuario autenticado no tiene un perfil de jugador asociado.');
+            return $this->successResponse([]);
         }
 
         $matches = $this->basePlayerMatchesQuery($player)
@@ -102,10 +103,7 @@ class MatchController extends Controller
             ->orderBy('id')
             ->get();
 
-        $pendingReport = collect();
-        $pendingConfirmation = collect();
-        $underReview = collect();
-        $upcoming = collect();
+        $actions = collect();
 
         foreach ($matches as $match) {
             $userSide = $this->resolvePlayerSide($match, $player);
@@ -130,49 +128,34 @@ class MatchController extends Controller
             );
 
             if ($match->status === GameMatchStatus::UNDER_REVIEW) {
-                $underReview->push($match);
+                $actions->push([
+                    'type' => 'under_review',
+                    'match' => $match,
+                ]);
+
+                continue;
             }
 
-            if (
-                $match->scheduled_date !== null
-                && $match->scheduled_date->isFuture()
-                && in_array($match->status?->value, [
-                    GameMatchStatus::SCHEDULED->value,
-                    GameMatchStatus::SUBMITTED->value,
-                    GameMatchStatus::UNDER_REVIEW->value,
-                ], true)
-            ) {
-                $upcoming->push($match);
+            if (! in_array($match->status, [
+                GameMatchStatus::SCHEDULED,
+                GameMatchStatus::SUBMITTED,
+            ], true)) {
+                continue;
             }
 
-            if (
-                in_array($match->status?->value, [
-                    GameMatchStatus::SCHEDULED->value,
-                    GameMatchStatus::SUBMITTED->value,
-                ], true)
-                && $myReport === null
-                && $sameSideReportByTeammate === null
-            ) {
-                $pendingReport->push($match);
-
-                if ($oppositeReport !== null) {
-                    $pendingConfirmation->push($match);
-                }
+            if ($myReport !== null || $sameSideReportByTeammate !== null) {
+                continue;
             }
+
+            $actions->push([
+                'type' => $oppositeReport === null ? 'submit_result' : 'confirm_result',
+                'match' => $match,
+            ]);
         }
 
-        return $this->successResponse([
-            'pending_report' => MatchResource::collection($pendingReport->values()),
-            'pending_confirmation' => MatchResource::collection($pendingConfirmation->values()),
-            'under_review' => MatchResource::collection($underReview->values()),
-            'upcoming' => MatchResource::collection($upcoming->take(10)->values()),
-            'counts' => [
-                'pending_report' => $pendingReport->count(),
-                'pending_confirmation' => $pendingConfirmation->count(),
-                'under_review' => $underReview->count(),
-                'upcoming' => $upcoming->count(),
-            ],
-        ]);
+        return $this->successResponse(
+            PendingMatchActionResource::collection($actions->values())
+        );
     }
 
     public function workflow(Request $request, GameMatch $gameMatch): JsonResponse

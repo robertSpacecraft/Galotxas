@@ -255,6 +255,13 @@ Pendientes prioritarios:
    - [x] conservar los reportes en conflicto como trazabilidad tras la resolución administrativa;
    - [x] verificar estados cerrados, permisos, ganador, rankings y contrato seguro mediante tests Feature;
    - [x] confirmar que React ya representa correctamente los estados y errores sin cambios de frontend.
+11. **PANEL-1 — Acciones pendientes de partidos en Mi Panel** (completado):
+   - [x] normalizar el endpoint como colección de `submit_result`, `confirm_result` y `under_review`;
+   - [x] usar un contrato específico y seguro sin reportes ni trazabilidad;
+   - [x] devolver colección vacía a usuarios autenticados sin perfil de jugador;
+   - [x] cubrir individuales, dobles, estados cerrados, revisión y aislamiento mediante tests Feature;
+   - [x] añadir una sección compacta con loading, error, vacío, contenido y acceso a `/matches/{id}`;
+   - [x] refrescar la lista al montar de nuevo Mi Panel sin polling ni WebSockets.
 
 ---
 

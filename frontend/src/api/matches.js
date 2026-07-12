@@ -3,6 +3,11 @@ import api from './api';
 const payload = (response) => response.data?.data ?? response.data;
 
 export const matchesService = {
+  getPendingActions: async () => {
+    const response = await api.get('/me/matches/pending-actions');
+    return payload(response);
+  },
+
   getMatch: async (matchId) => {
     const response = await api.get(`/matches/${matchId}`);
     return payload(response);

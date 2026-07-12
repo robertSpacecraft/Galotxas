@@ -1,0 +1,140 @@
+.section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 12px;
+  background: var(--surface-color);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.3rem;
+}
+
+.subtitle,
+.description,
+.meta,
+.state,
+.empty,
+.error {
+  color: var(--text-secondary);
+}
+
+.subtitle {
+  margin: 0.35rem 0 0;
+}
+
+.count {
+  min-width: 2rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: var(--brand-primary);
+  color: var(--bg-color);
+  font-weight: 800;
+  text-align: center;
+}
+
+.state,
+.empty,
+.error {
+  margin: 0;
+  padding: 1rem;
+  border: 1px dashed var(--surface-border);
+  border-radius: 8px;
+}
+
+.error {
+  color: var(--danger);
+}
+
+.list {
+  display: grid;
+  gap: 1rem;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 10px;
+  background: var(--bg-color);
+}
+
+.cardContent {
+  min-width: 0;
+}
+
+.actionType {
+  display: inline-flex;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--success);
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.reviewType {
+  background: var(--brand-secondary);
+}
+
+.participants {
+  margin: 0.7rem 0 0.35rem;
+  color: var(--text-primary);
+  font-size: 1.05rem;
+}
+
+.participants span {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.description,
+.meta {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+}
+
+.actionLink {
+  flex: 0 0 auto;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  background: var(--brand-primary);
+  color: var(--bg-color);
+  font-weight: 800;
+  text-decoration: none;
+  text-align: center;
+}
+
+.actionLink:hover,
+.actionLink:focus-visible {
+  background: var(--brand-secondary);
+  color: var(--text-primary);
+}
+
+@media (max-width: 640px) {
+  .section {
+    padding: 1rem;
+  }
+
+  .card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actionLink {
+    width: 100%;
+  }
+}

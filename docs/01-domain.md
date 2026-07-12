@@ -126,6 +126,8 @@ Los tanteos son enteros no negativos, no admiten empate y deben respetar el obje
 
 Los estados `validated`, `cancelled`, `postponed` y `under_review` están cerrados al envío o confirmación de nuevos reportes. El proceso de envío, comparación y cambio de estado se ejecuta atómicamente para no dejar reportes o estados parciales ante un error.
 
+Mi Panel resume la intervención que corresponde al jugador en cada partido. Un partido programado sin reporte de su lado genera la acción de enviar resultado; si solo existe el reporte rival, genera la acción de confirmarlo o revisarlo desde el workflow. Cuando el partido está `under_review`, puede aparecer como aviso informativo, pero nunca como acción editable. Los estados `validated`, `cancelled` y `postponed` no generan acciones pendientes.
+
 Entre otros procesos permiten:
 
 - determinar clasificaciones;

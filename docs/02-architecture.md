@@ -219,6 +219,8 @@ Los elementos principales son:
 
 Cada capa debe tener una responsabilidad clara.
 
+Mi Panel consulta `GET /api/v1/me/matches/pending-actions` al montar el Dashboard del jugador. El backend determina el tipo de intervención y lo serializa mediante `PendingMatchActionResource`; React se limita a representar la etiqueta, los estados remotos y el enlace a `/matches/{id}`. Al abandonar el detalle y volver a Mi Panel, el Dashboard se monta de nuevo y vuelve a solicitar el resumen, sin polling ni estado deportivo duplicado en el cliente.
+
 ## Configuración del cliente API
 
 El frontend centraliza todas las peticiones HTTP en la instancia Axios de `frontend/src/api/client.js`.
