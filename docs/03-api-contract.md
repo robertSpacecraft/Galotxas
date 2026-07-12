@@ -90,6 +90,7 @@ Estrategia actual:
 
 - el token se conserva en `localStorage` bajo la clave `token`;
 - los datos mínimos del usuario autenticado se conservan en `localStorage` bajo la clave `user`;
+- el cliente Axios obtiene su URL base de `VITE_API_BASE_URL`; sin variable usa el backend local durante desarrollo y `/api/v1` en producción;
 - el cliente Axios añade `Authorization: Bearer <token>` cuando existe token local;
 - `GET /api/v1/me` se utiliza para refrescar los datos de la cuenta y su perfil de jugador;
 - `POST /api/v1/auth/logout` revoca el token actual en backend;

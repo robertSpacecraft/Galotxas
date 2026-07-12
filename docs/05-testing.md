@@ -143,6 +143,16 @@ Para cambios en la autenticación de React deben validarse al menos estos flujos
 
 Estas comprobaciones deben acompañarse de `npm run lint`, `npm run build` y `git diff --check` cuando el cambio afecte al frontend.
 
+## Validación de la URL API del frontend
+
+Cuando cambie la configuración del cliente HTTP deben comprobarse al menos estos escenarios:
+
+- desarrollo sin `VITE_API_BASE_URL`: usa `http://localhost:8080/api/v1`;
+- build de producción sin variable: usa `/api/v1` y no incorpora localhost como base efectiva;
+- build con `VITE_API_BASE_URL` explícita: incorpora el valor configurado tras eliminar espacios exteriores;
+- los interceptores de autenticación y la instancia Axios única se mantienen activos;
+- `npm run lint`, `npm run build` y `git diff --check` finalizan correctamente.
+
 ## Validación manual de CMS público React
 
 Para cambios en el renderizado público de páginas CMS deben validarse al menos estos flujos:

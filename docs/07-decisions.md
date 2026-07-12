@@ -316,6 +316,31 @@ Consecuencias:
 
 ---
 
+# ADR-016 — Resolución de la URL API del frontend por entorno
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-07
+
+Contexto:
+- `frontend/.env.example` ya declaraba `VITE_API_BASE_URL`, pero el cliente Axios ignoraba la variable y fijaba `http://localhost:8080/api/v1`.
+- Un build de producción con esa URL intentaría acceder al localhost del visitante.
+- El proyecto mantiene una única instancia Axios compartida por los servicios frontend.
+
+Decisión:
+- Dar prioridad a `VITE_API_BASE_URL` y eliminar espacios exteriores antes de utilizarla.
+- Usar `http://localhost:8080/api/v1` únicamente como fallback del servidor de desarrollo.
+- Usar `/api/v1` como fallback de producción para permitir despliegue bajo el mismo dominio mediante proxy inverso.
+- Mantener toda la resolución en `frontend/src/api/client.js`, sin duplicarla en servicios.
+
+Consecuencias:
+- Los builds de producción sin configuración explícita dejan de apuntar al localhost del visitante.
+- Los despliegues con API en otro dominio deben proporcionar `VITE_API_BASE_URL` durante el build.
+- El desarrollo local sigue funcionando sin crear un `.env` real.
+- Los interceptores Bearer y de limpieza de sesión permanecen independientes de la URL configurada.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

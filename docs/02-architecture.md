@@ -189,6 +189,18 @@ Los elementos principales son:
 
 Cada capa debe tener una responsabilidad clara.
 
+## Configuración del cliente API
+
+El frontend centraliza todas las peticiones HTTP en la instancia Axios de `frontend/src/api/client.js`.
+
+La URL base se resuelve por entorno:
+
+- `VITE_API_BASE_URL`, cuando se configura, tiene prioridad y se normaliza eliminando espacios exteriores;
+- durante desarrollo, si no existe variable, se utiliza `http://localhost:8080/api/v1`;
+- en builds de producción sin variable se utiliza `/api/v1`, asumiendo un proxy inverso bajo el mismo dominio.
+
+Los servicios funcionales no deben duplicar esta resolución ni definir URLs base propias. Los despliegues con frontend y API en dominios distintos deben configurar `VITE_API_BASE_URL` durante el build.
+
 ---
 
 # 9. Contrato API

@@ -216,6 +216,12 @@ Pendientes prioritarios:
    - [x] eliminar emails, usuarios completos, reportes agregados y trazabilidad interna del workflow del participante;
    - [x] sanear también las respuestas de envío y confirmación;
    - [x] cubrir seguridad, autorización funcional y dobles con tests Feature.
+6. **DEPLOY-1 — Configurar la URL API del frontend por entorno** (completado):
+   - [x] usar `VITE_API_BASE_URL` desde el cliente Axios central;
+   - [x] eliminar espacios exteriores del valor configurado;
+   - [x] mantener localhost únicamente como fallback de desarrollo;
+   - [x] usar `/api/v1` como fallback de producción para despliegues bajo el mismo dominio;
+   - [x] validar builds con y sin variable explícita.
 
 ---
 
