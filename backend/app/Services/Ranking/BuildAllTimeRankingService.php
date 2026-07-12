@@ -13,8 +13,7 @@ class BuildAllTimeRankingService
 
     public function __construct(
         private readonly ResolveEntryPlayerContributionsService $contributionsService
-    ) {
-    }
+    ) {}
 
     public function build(): Collection
     {
@@ -38,7 +37,7 @@ class BuildAllTimeRankingService
             $category = $match->round?->category;
             $championship = $category?->championship;
 
-            if (!$category || !$championship) {
+            if (! $category || ! $championship) {
                 continue;
             }
 
@@ -156,16 +155,21 @@ class BuildAllTimeRankingService
                     return $b['weighted_points'] <=> $a['weighted_points'];
                 }
 
-                return strcmp($a['name'], $b['name']);
+                $nameComparison = strcmp($a['name'], $b['name']);
+
+                return $nameComparison !== 0
+                    ? $nameComparison
+                    : $a['player_id'] <=> $b['player_id'];
             })
             ->values()
             ->map(function (array $row, int $index) {
                 $row['position'] = $index + 1;
+
                 return $row;
             });
 
         $nonOfficial = $table
-            ->filter(fn (array $row) => !$row['official_ranking'])
+            ->filter(fn (array $row) => ! $row['official_ranking'])
             ->sort(function (array $a, array $b) {
                 if ($a['played'] !== $b['played']) {
                     return $b['played'] <=> $a['played'];
@@ -175,11 +179,16 @@ class BuildAllTimeRankingService
                     return $b['weighted_points_per_match'] <=> $a['weighted_points_per_match'];
                 }
 
-                return strcmp($a['name'], $b['name']);
+                $nameComparison = strcmp($a['name'], $b['name']);
+
+                return $nameComparison !== 0
+                    ? $nameComparison
+                    : $a['player_id'] <=> $b['player_id'];
             })
             ->values()
             ->map(function (array $row) {
                 $row['position'] = null;
+
                 return $row;
             });
 
@@ -191,7 +200,7 @@ class BuildAllTimeRankingService
         return $table->get($player->id, [
             'player_id' => $player->id,
             'player' => $player,
-            'name' => $player->nickname ?: trim(($player->user->name ?? '') . ' ' . ($player->user->lastname ?? '')),
+            'name' => $player->nickname ?: trim(($player->user->name ?? '').' '.($player->user->lastname ?? '')),
             'played' => 0,
             'wins' => 0,
             'losses' => 0,

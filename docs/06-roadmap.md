@@ -42,6 +42,7 @@ No describe el funcionamiento del sistema; únicamente indica el estado del proy
 - Equipos de dobles.
 - Generación de competición, partidos y resultados.
 - Rankings y API privada ("Mi Panel").
+- RANK-1: porcentaje histórico correcto y desempates deterministas de rankings.
 - Separación de Resources públicos.
 - VENUE-1: CRUD administrativo de pistas, borrado seguro y seeder explícito no destructivo.
 - SCHEDULE-1: generación de ligas con pistas dinámicas, deterministas y sin IDs mágicos.
@@ -238,6 +239,14 @@ Pendientes prioritarios:
    - [x] conservar siete huecos por pista y jornada sin colisiones;
    - [x] revertir atómicamente la generación si la capacidad resulta insuficiente;
    - [x] cubrir IDs arbitrarios, nombres personalizados, una y varias pistas, individuales, dobles y regeneración.
+9. **RANK-1 — Corrección y endurecimiento de rankings** (completado):
+   - [x] mostrar `win_rate` histórico sin multiplicarlo de nuevo por 100;
+   - [x] formatear números y strings numéricos sin producir `NaN`;
+   - [x] aplicar enfrentamiento directo solo a empates de exactamente dos entradas;
+   - [x] resolver empates múltiples mediante criterios globales transitivos;
+   - [x] añadir identificadores estables como último desempate técnico;
+   - [x] cubrir ciclo triple, igualdad total, cero partidos, dobles, agregados, histórico y Mi Panel;
+   - [ ] FE-TEST-1: añadir infraestructura de tests frontend y cobertura automática del formateador.
 
 ---
 

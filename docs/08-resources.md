@@ -61,6 +61,12 @@ Mantiene la agrupación mediante `date` y delega la serialización de cada parti
 
 Recibe una estructura explícita preparada por `BuildMyRankingsService` y expone únicamente campeonato, categoría, tipo y nombre de inscripción, posición y estadísticas deportivas. No expone el modelo `CategoryEntry` utilizado internamente para localizar al jugador.
 
+`CategoryRankingResource` serializa la clasificación de una categoría para individuales y equipos. Expone posición, identidad visible de la entrada y estadísticas calculadas por `BuildCategoryRankingService`; el Resource no recalcula desempates.
+
+`ChampionshipRankingResource` se utiliza en los rankings agregados de campeonato y temporada y redondea los valores ponderados sin alterar el orden preparado por sus Services.
+
+`AllTimeRankingResource` serializa el ranking histórico. El campo `win_rate` es numérico, se redondea a dos decimales y representa un porcentaje en escala `0–100`. Un consumidor debe mostrar `50` como `50 %`, sin volver a multiplicarlo por `100`.
+
 ## Resources del workflow de resultados
 
 `ParticipantMatchResource` serializa el partido devuelto a un participante desde:

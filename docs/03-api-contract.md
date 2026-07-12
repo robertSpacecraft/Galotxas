@@ -208,6 +208,24 @@ El endpoint no devuelve `CategoryEntry` ni otros modelos Eloquent. Los nombres d
 
 ---
 
+## Ranking histórico
+
+`GET /api/v1/rankings/all-time` devuelve el ranking histórico serializado mediante `AllTimeRankingResource`.
+
+El campo `win_rate` utiliza escala `0–100`, no una fracción `0–1`:
+
+```json
+{
+    "played": 2,
+    "wins": 1,
+    "win_rate": 50.0
+}
+```
+
+Los consumidores deben añadir únicamente el formato visual del porcentaje. No deben multiplicar el valor por `100`. El Resource redondea `win_rate` a dos decimales y mantiene valores numéricos válidos.
+
+---
+
 ## Resultados de partidos para participantes
 
 El detalle público `GET /api/v1/matches/{gameMatch}` utiliza `PublicMatchResource`. Es accesible sin autenticación y oculta tanteos, ganador y trazabilidad interna mientras el partido no está validado.

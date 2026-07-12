@@ -2,17 +2,16 @@
 
 namespace App\Services\Ranking;
 
+use App\Models\GameMatch;
 use App\Models\Player;
 use App\Models\Season;
-use App\Models\GameMatch;
 use Illuminate\Support\Collection;
 
 class BuildSeasonRankingService
 {
     public function __construct(
         private readonly ResolveEntryPlayerContributionsService $contributionsService
-    ) {
-    }
+    ) {}
 
     public function build(Season $season): Collection
     {
@@ -38,7 +37,7 @@ class BuildSeasonRankingService
             $category = $match->round?->category;
             $championship = $category?->championship;
 
-            if (!$category || !$championship) {
+            if (! $category || ! $championship) {
                 continue;
             }
 
@@ -60,7 +59,7 @@ class BuildSeasonRankingService
             $awayRawPoints = $homeWon ? ($awayScore >= 8 ? 1 : 0) : 3;
 
             foreach ($homeContributions as $contribution) {
-                /** @var \App\Models\Player $player */
+                /** @var Player $player */
                 $player = $contribution['player'];
                 $weight = (float) $contribution['weight'];
 
@@ -80,7 +79,7 @@ class BuildSeasonRankingService
             }
 
             foreach ($awayContributions as $contribution) {
-                /** @var \App\Models\Player $player */
+                /** @var Player $player */
                 $player = $contribution['player'];
                 $weight = (float) $contribution['weight'];
 
@@ -129,11 +128,16 @@ class BuildSeasonRankingService
                 return $b['games_for'] <=> $a['games_for'];
             }
 
-            return strcmp($a['name'], $b['name']);
+            $nameComparison = strcmp($a['name'], $b['name']);
+
+            return $nameComparison !== 0
+                ? $nameComparison
+                : $a['player_id'] <=> $b['player_id'];
         })->values();
 
         return $sorted->map(function (array $row, int $index) {
             $row['position'] = $index + 1;
+
             return $row;
         });
     }
@@ -143,7 +147,7 @@ class BuildSeasonRankingService
         return $table->get($player->id, [
             'player_id' => $player->id,
             'player' => $player,
-            'name' => $player->nickname ?: trim(($player->user->name ?? '') . ' ' . ($player->user->lastname ?? '')),
+            'name' => $player->nickname ?: trim(($player->user->name ?? '').' '.($player->user->lastname ?? '')),
             'played' => 0,
             'wins' => 0,
             'losses' => 0,

@@ -212,6 +212,23 @@ El backend dispone de cobertura automatizada Feature para componentes críticos 
 - regeneración de finales de copa sin duplicados;
 - cobertura de generación normal de semifinales de copa.
 
+## Rankings deterministas
+
+RANK-1 incorpora cobertura Feature para:
+
+- cálculo básico de puntos, estadísticas y posiciones;
+- enfrentamiento directo cuando exactamente dos entradas empatan a puntos;
+- empate triple con ciclo A vence a B, B vence a C y C vence a A;
+- omisión del enfrentamiento directo por parejas en grupos de tres o más;
+- igualdad total resuelta de forma reproducible mediante `entry_id`;
+- participantes aprobados sin partidos y estadísticas a cero;
+- equipos de dobles identificados y ordenados correctamente;
+- `win_rate` histórico en escala `0–100`, incluido el caso 1/2 = `50`;
+- coherencia entre categoría, campeonato y temporada;
+- conservación del contrato privado de Mi Panel.
+
+El frontend no dispone todavía de tests unitarios. La función pura que formatea porcentajes se valida mediante lint y build; FE-TEST-1 deberá incorporar cobertura automatizada de números, strings numéricos y valores inválidos.
+
 ## Workflow seguro de resultados
 - mantenimiento del contrato público anónimo sin trazabilidad interna;
 - respuesta limitada y sin datos privados para usuarios autenticados sin perfil de jugador;

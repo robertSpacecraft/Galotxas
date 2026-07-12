@@ -62,7 +62,7 @@ class BuildCategoryRankingService
             $homeId = $match->home_entry_id;
             $awayId = $match->away_entry_id;
 
-            if (!$table->has($homeId) || !$table->has($awayId)) {
+            if (! $table->has($homeId) || ! $table->has($awayId)) {
                 continue;
             }
 
@@ -101,39 +101,23 @@ class BuildCategoryRankingService
 
         $table = $table->map(function (array $row) {
             $row['games_diff'] = $row['games_for'] - $row['games_against'];
+
             return $row;
         })->values();
 
         $headToHeadMatrix = $this->buildHeadToHeadMatrix($matches);
 
-        $sorted = $table->sort(function (array $a, array $b) use ($headToHeadMatrix) {
-            // 1) puntos
-            if ($a['points'] !== $b['points']) {
-                return $b['points'] <=> $a['points'];
-            }
-
-            // 2) enfrentamiento directo solo si el empate es entre 2 participantes
-            $headToHead = $this->compareHeadToHead($a['entry_id'], $b['entry_id'], $headToHeadMatrix);
-            if ($headToHead !== 0) {
-                return $headToHead;
-            }
-
-            // 3) diferencia de juegos
-            if ($a['games_diff'] !== $b['games_diff']) {
-                return $b['games_diff'] <=> $a['games_diff'];
-            }
-
-            // 4) juegos a favor
-            if ($a['games_for'] !== $b['games_for']) {
-                return $b['games_for'] <=> $a['games_for'];
-            }
-
-            // 5) orden estable
-            return strcmp($a['name'], $b['name']);
-        })->values();
+        $sorted = $table
+            ->groupBy('points')
+            ->sortKeysDesc()
+            ->flatMap(
+                fn (Collection $tiedRows): Collection => $this->sortPointsGroup($tiedRows, $headToHeadMatrix)
+            )
+            ->values();
 
         return $sorted->map(function (array $row, int $index) {
             $row['position'] = $index + 1;
+
             return $row;
         });
     }
@@ -142,14 +126,14 @@ class BuildCategoryRankingService
     {
         if ($entry->entry_type === 'player' && $entry->player) {
             return $entry->player->nickname
-                ?: trim($entry->player->user->name . ' ' . $entry->player->user->lastname);
+                ?: trim($entry->player->user->name.' '.$entry->player->user->lastname);
         }
 
         if ($entry->entry_type === 'team' && $entry->team) {
             return $entry->team->name;
         }
 
-        return 'Participante #' . $entry->id;
+        return 'Participante #'.$entry->id;
     }
 
     private function buildHeadToHeadMatrix(Collection $matches): array
@@ -162,11 +146,11 @@ class BuildCategoryRankingService
             $homeScore = (int) $match->home_score;
             $awayScore = (int) $match->away_score;
 
-            if (!isset($matrix[$homeId][$awayId])) {
+            if (! isset($matrix[$homeId][$awayId])) {
                 $matrix[$homeId][$awayId] = ['wins' => 0, 'games_diff' => 0];
             }
 
-            if (!isset($matrix[$awayId][$homeId])) {
+            if (! isset($matrix[$awayId][$homeId])) {
                 $matrix[$awayId][$homeId] = ['wins' => 0, 'games_diff' => 0];
             }
 
@@ -197,5 +181,49 @@ class BuildCategoryRankingService
         }
 
         return 0;
+    }
+
+    private function sortPointsGroup(Collection $rows, array $headToHeadMatrix): Collection
+    {
+        $rows = $rows->values();
+
+        if ($rows->count() === 2) {
+            $first = $rows->get(0);
+            $second = $rows->get(1);
+            $headToHead = $this->compareHeadToHead(
+                $first['entry_id'],
+                $second['entry_id'],
+                $headToHeadMatrix
+            );
+
+            if ($headToHead < 0) {
+                return collect([$first, $second]);
+            }
+
+            if ($headToHead > 0) {
+                return collect([$second, $first]);
+            }
+        }
+
+        return $rows->sort(fn (array $a, array $b): int => $this->compareGlobalCriteria($a, $b))->values();
+    }
+
+    private function compareGlobalCriteria(array $a, array $b): int
+    {
+        if ($a['games_diff'] !== $b['games_diff']) {
+            return $b['games_diff'] <=> $a['games_diff'];
+        }
+
+        if ($a['games_for'] !== $b['games_for']) {
+            return $b['games_for'] <=> $a['games_for'];
+        }
+
+        $nameComparison = strcmp($a['name'], $b['name']);
+
+        if ($nameComparison !== 0) {
+            return $nameComparison;
+        }
+
+        return $a['entry_id'] <=> $b['entry_id'];
     }
 }

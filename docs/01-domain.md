@@ -139,6 +139,26 @@ Cada uno utiliza criterios propios definidos por el dominio.
 
 Los algoritmos concretos pertenecen a la implementación del backend.
 
+## Desempates del ranking de categoría
+
+El ranking de categoría conserva este orden:
+
+1. puntos, de mayor a menor;
+2. si exactamente dos participantes están empatados a puntos, enfrentamiento directo entre ambos;
+3. diferencia de juegos, de mayor a menor;
+4. juegos a favor, de mayor a menor;
+5. nombre y, si todavía existe igualdad total, `entry_id` ascendente como criterio técnico estable.
+
+Cuando tres o más participantes empatan a puntos, no se comparan enfrentamientos directos por parejas. Se aplican directamente diferencia de juegos, juegos a favor, nombre e identificador. El identificador solo garantiza un resultado reproducible y no concede una ventaja deportiva adicional.
+
+La regla se aplica por igual a entradas individuales y de equipo. Los participantes aprobados sin partidos aparecen con estadísticas numéricas a cero.
+
+## Porcentaje del ranking histórico
+
+`win_rate` representa el porcentaje de victorias sobre partidos jugados y se expresa siempre en escala `0–100`. Por ejemplo, una victoria en dos partidos equivale a `50`, que las interfaces muestran como `50 %`.
+
+El backend evita la división por cero. En el ranking histórico solo se crean filas para jugadores con contribuciones en partidos validados; en rankings de categoría, las entradas sin partidos mantienen estadísticas a cero.
+
 ---
 
 # 8. Responsabilidades del administrador

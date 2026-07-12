@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { championshipsService } from '../../api/championships';
+import { formatPercentage } from '../../utils/formatPercentage';
 import styles from './RankingTables.module.css';
 
 export const AllTimeRanking = () => {
@@ -87,7 +88,7 @@ export const AllTimeRanking = () => {
                                     <td className={styles.center}>{row.wins}</td>
                                     <td className={styles.center}>{row.losses}</td>
                                     <td className={styles.center}>
-                                        {(row.win_rate * 100).toFixed(1)}%
+                                        {formatPercentage(row.win_rate)}
                                     </td>
                                     <td className={styles.center}>{row.played_singles}</td>
                                     <td className={styles.center}>{row.played_doubles}</td>

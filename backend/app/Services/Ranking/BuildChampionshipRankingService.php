@@ -11,8 +11,7 @@ class BuildChampionshipRankingService
 {
     public function __construct(
         private readonly ResolveEntryPlayerContributionsService $contributionsService
-    ) {
-    }
+    ) {}
 
     public function build(Championship $championship): Collection
     {
@@ -37,7 +36,7 @@ class BuildChampionshipRankingService
         foreach ($matches as $match) {
             $category = $match->round?->category;
 
-            if (!$category) {
+            if (! $category) {
                 continue;
             }
 
@@ -59,7 +58,7 @@ class BuildChampionshipRankingService
             $awayRawPoints = $homeWon ? ($awayScore >= 8 ? 1 : 0) : 3;
 
             foreach ($homeContributions as $contribution) {
-                /** @var \App\Models\Player $player */
+                /** @var Player $player */
                 $player = $contribution['player'];
                 $weight = (float) $contribution['weight'];
 
@@ -78,7 +77,7 @@ class BuildChampionshipRankingService
             }
 
             foreach ($awayContributions as $contribution) {
-                /** @var \App\Models\Player $player */
+                /** @var Player $player */
                 $player = $contribution['player'];
                 $weight = (float) $contribution['weight'];
 
@@ -123,11 +122,16 @@ class BuildChampionshipRankingService
                 return $b['games_for'] <=> $a['games_for'];
             }
 
-            return strcmp($a['name'], $b['name']);
+            $nameComparison = strcmp($a['name'], $b['name']);
+
+            return $nameComparison !== 0
+                ? $nameComparison
+                : $a['player_id'] <=> $b['player_id'];
         })->values();
 
         return $sorted->map(function (array $row, int $index) {
             $row['position'] = $index + 1;
+
             return $row;
         });
     }
@@ -137,7 +141,7 @@ class BuildChampionshipRankingService
         return $table->get($player->id, [
             'player_id' => $player->id,
             'player' => $player,
-            'name' => $player->nickname ?: trim(($player->user->name ?? '') . ' ' . ($player->user->lastname ?? '')),
+            'name' => $player->nickname ?: trim(($player->user->name ?? '').' '.($player->user->lastname ?? '')),
             'played' => 0,
             'wins' => 0,
             'losses' => 0,

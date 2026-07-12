@@ -395,6 +395,33 @@ Consecuencias:
 
 ---
 
+# ADR-019 — Desempates transitivos y deterministas en rankings
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-07
+
+Contexto:
+- El ranking de categoría aplicaba enfrentamiento directo dentro de un comparador por parejas aunque el empate a puntos incluyera tres o más entradas.
+- Un ciclo A vence a B, B vence a C y C vence a A produce relaciones no transitivas y puede hacer depender el resultado del algoritmo de ordenación.
+- Los servicios agregados utilizaban el nombre como último criterio, pero dos jugadores pueden compartirlo.
+
+Decisión:
+- Agrupar primero el ranking de categoría por puntos.
+- Aplicar enfrentamiento directo solo cuando el grupo empatado contiene exactamente dos entradas.
+- Para grupos de tres o más, omitir el directo y ordenar por diferencia de juegos, juegos a favor, nombre y `entry_id`.
+- Mantener el nombre como criterio heredado y usar el identificador únicamente cuando persiste la igualdad total.
+- Añadir `player_id` como último criterio técnico en campeonato, temporada e histórico.
+- Considerar `win_rate` un porcentaje en escala `0–100` en todo el contrato histórico.
+
+Consecuencias:
+- El comparador general vuelve a ser transitivo para empates múltiples.
+- Repetir un cálculo con los mismos datos produce el mismo orden, incluso con nombres duplicados.
+- El identificador garantiza estabilidad técnica; no representa mérito ni ventaja deportiva.
+- No se introducen nuevos criterios como sets, average, fair play o miniligas entre empatados.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.
