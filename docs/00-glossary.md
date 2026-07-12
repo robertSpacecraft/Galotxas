@@ -184,6 +184,14 @@ Puede pertenecer a una fase de liga o de copa.
 
 ---
 
+# Pista (Venue)
+
+Espacio físico configurable donde se programa un partido.
+
+Una pista dispone de nombre y, opcionalmente, ubicación y descripción. Puede utilizarse tanto en la programación original como en una solicitud de reprogramación.
+
+---
+
 # Resultado enviado
 
 Resultado comunicado por un participante competitivo.

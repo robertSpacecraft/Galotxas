@@ -53,6 +53,19 @@ Las rutas `/admin/cms/pages/{cmsPage}/blocks/*` centralizan la gestión básica 
 - La eliminación de un bloque usa confirmación simple y no elimina la página.
 - La subida real de imágenes o documentos no forma parte de esta pantalla; los bloques usan URLs o rutas ya existentes.
 
+### Pistas
+
+La ruta `/admin/venues` centraliza la configuración básica de pistas.
+
+- El listado muestra nombre, ubicación, descripción y número de partidos asociados.
+- Permite crear y editar los campos reales `name`, `location` y `description`.
+- El nombre es obligatorio y único en los formularios; ubicación y descripción son opcionales.
+- El modelo actual no incluye estado activo, por lo que la pantalla no ofrece activación o desactivación.
+- Una pista sin uso puede eliminarse con confirmación.
+- El borrado se deshabilita y se rechaza en backend si existen partidos o solicitudes de reprogramación asociadas.
+- La navegación principal del panel incluye el acceso “Pistas”.
+- El conjunto mínimo de desarrollo se crea explícitamente con `php artisan db:seed --class=DefaultVenueSeeder`; repetir el comando no duplica ni sobrescribe pistas.
+
 ---
 
 # 1. Naturaleza del panel
@@ -194,6 +207,10 @@ Fase base de la competición.
 Fase eliminatoria generada a partir de la clasificación de liga.
 
 La lógica pertenece a Services, no a Blade.
+
+## Configuración de pistas
+
+El administrador mantiene las pistas antes de generar o reprogramar partidos. VENUE-1 proporciona esa configuración sin cambiar las reglas deportivas del calendario. La eliminación de IDs concretos en la selección automática corresponde a `SCHEDULE-1`.
 
 ---
 

@@ -72,6 +72,9 @@
                     <a class="nav-link" href="/admin/seasons">Temporadas</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="{{ route('admin.venues.index') }}">Pistas</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.players.index') }}">Jugadores</a>
                 </li>
                 <li class="nav-item">

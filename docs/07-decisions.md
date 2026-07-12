@@ -341,6 +341,32 @@ Consecuencias:
 
 ---
 
+# ADR-017 — Pistas base explícitas y borrado administrativo conservador
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-07
+
+Contexto:
+- El generador de liga heredado espera determinadas pistas, pero una instalación limpia no las crea de forma reproducible.
+- `venues` solo contiene `name`, `location` y `description`; no existe un estado activo.
+- Los partidos usan una clave foránea `nullOnDelete`, mientras que las solicitudes de reprogramación restringen el borrado de la pista solicitada.
+
+Decisión:
+- Gestionar pistas desde un CRUD Blade exclusivo para administradores usando únicamente los campos existentes.
+- Crear `DefaultVenueSeeder` como seeder explícito, no incluido en `DatabaseSeeder`, con los nombres estables `Pista 1` a `Pista 5` y sin asumir IDs.
+- Usar creación idempotente por nombre y no modificar registros que ya existan.
+- Bloquear desde el panel el borrado de cualquier pista asociada a partidos o solicitudes de reprogramación, aunque una de las claves foráneas permita dejar el partido sin pista.
+- No añadir `active` ni modificar todavía la selección principal de `GenerateLeagueScheduleService`.
+
+Consecuencias:
+- Una instalación puede preparar de forma controlada las pistas mínimas y gestionarlas posteriormente desde Blade.
+- Repetir el seeder conserva la configuración administrativa existente.
+- El calendario y la trazabilidad de reprogramaciones quedan protegidos frente a borrados administrativos accidentales.
+- `SCHEDULE-1` sigue siendo necesario para eliminar los IDs mágicos y definir la consulta de pistas aptas para generación automática.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

@@ -107,6 +107,16 @@ La primera base backend del CMS público sigue el mismo patrón general del proy
 
 La subida de documentos o imágenes y los formularios públicos quedan fuera de esta base inicial y se abordarán en bloques posteriores.
 
+## Gestión de pistas y generación de calendarios
+
+La configuración de pistas se mantiene en el backend mediante el modelo `Venue` y un CRUD web protegido por el middleware administrativo. Los Form Requests validan los tres campos persistidos actualmente (`name`, `location` y `description`). No existe todavía un campo `active` en el esquema.
+
+`Venue` expone relaciones explícitas con `GameMatch` y `MatchRescheduleRequest`. El panel solo permite borrar una pista cuando ninguna de esas relaciones existe, aunque la clave foránea histórica de `game_matches` admita `nullOnDelete`; esta defensa de aplicación evita perder la pista asignada a un partido.
+
+`DefaultVenueSeeder` es un seeder de ejecución explícita, no registrado en `DatabaseSeeder`. Crea por nombre un conjunto mínimo estable y usa `firstOrCreate`, por lo que no necesita ni fuerza IDs concretos y no modifica pistas preexistentes.
+
+`GenerateLeagueScheduleService` sigue conteniendo temporalmente la selección heredada por IDs. VENUE-1 garantiza gestión y datos base; `SCHEDULE-1` deberá centralizar la consulta de pistas aptas y eliminar por completo esas referencias mágicas. No se ha añadido un scope `active()` porque el modelo no soporta ese estado.
+
 ---
 
 # 5. Interfaces del sistema

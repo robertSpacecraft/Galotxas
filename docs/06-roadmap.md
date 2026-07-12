@@ -43,6 +43,7 @@ No describe el funcionamiento del sistema; únicamente indica el estado del proy
 - Generación de competición, partidos y resultados.
 - Rankings y API privada ("Mi Panel").
 - Separación de Resources públicos.
+- VENUE-1: CRUD administrativo de pistas, borrado seguro y seeder explícito no destructivo.
 - CMS-1: base backend pública de páginas CMS y bloques controlados.
 - CMS-2: gestión admin básica de páginas CMS.
 - CMS-3: gestión admin básica de bloques CMS.
@@ -222,6 +223,13 @@ Pendientes prioritarios:
    - [x] mantener localhost únicamente como fallback de desarrollo;
    - [x] usar `/api/v1` como fallback de producción para despliegues bajo el mismo dominio;
    - [x] validar builds con y sin variable explícita.
+7. **VENUE-1 — Gestión básica y configuración reproducible de pistas** (completado):
+   - [x] CRUD Blade protegido para listar, crear, editar y eliminar pistas;
+   - [x] validación de nombre único y longitudes sobre los campos reales;
+   - [x] bloqueo de borrado cuando existen partidos o solicitudes de reprogramación;
+   - [x] `DefaultVenueSeeder` explícito, idempotente y basado en nombres estables;
+   - [x] tests Feature de permisos, validación, CRUD, borrado y seeder;
+   - [ ] SCHEDULE-1: sustituir la selección heredada de IDs por configuración explícita de pistas aptas.
 
 ---
 

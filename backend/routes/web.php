@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CmsBlockController;
 use App\Http\Controllers\Admin\CmsPageController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\VenueController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -48,6 +49,14 @@ Route::prefix('admin')->group(function () {
             ->name('admin.cms-pages.blocks.update');
         Route::delete('/cms/pages/{cmsPage}/blocks/{cmsBlock}', [CmsBlockController::class, 'destroy'])
             ->name('admin.cms-pages.blocks.destroy');
+
+        // Pistas
+        Route::get('/venues', [VenueController::class, 'index'])->name('admin.venues.index');
+        Route::get('/venues/create', [VenueController::class, 'create'])->name('admin.venues.create');
+        Route::post('/venues', [VenueController::class, 'store'])->name('admin.venues.store');
+        Route::get('/venues/{venue}/edit', [VenueController::class, 'edit'])->name('admin.venues.edit');
+        Route::put('/venues/{venue}', [VenueController::class, 'update'])->name('admin.venues.update');
+        Route::delete('/venues/{venue}', [VenueController::class, 'destroy'])->name('admin.venues.destroy');
 
         //Temporadas
         Route::get('/seasons', [AdminSeasonController::class, 'index'])->name('admin.seasons.index');

@@ -285,6 +285,20 @@ El backend dispone de cobertura automatizada Feature para componentes críticos 
 - creación de bloques mínimos `heading` y `text` para páginas nuevas;
 - preservación de páginas CMS existentes con el mismo slug.
 
+## Pistas administrativas y seeder
+
+VENUE-1 incorpora cobertura Feature para:
+
+- listado, creación y edición de pistas por un administrador;
+- denegación de acceso a usuarios no administradores;
+- obligatoriedad y unicidad del nombre, conservación del nombre propio en edición y longitudes máximas;
+- eliminación de una pista sin relaciones;
+- bloqueo de eliminación de una pista utilizada por un partido;
+- creación de `Pista 1` a `Pista 5` mediante `DefaultVenueSeeder`;
+- idempotencia del seeder y preservación de datos existentes.
+
+El modelo no dispone de `active`, por lo que no existe un scope de activas que probar en este bloque. Las pruebas se ejecutan sobre el MariaDB aislado de Docker, igual que el resto de pruebas Feature.
+
 
 # 10. Evolución
 

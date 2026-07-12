@@ -189,7 +189,25 @@ Las siguientes reglas forman parte del comportamiento esperado del sistema:
 
 ---
 
-# 11. Contenidos públicos CMS
+# 11. Pistas
+
+Una pista (`Venue`) representa el espacio físico donde se programa un partido.
+
+Reglas actuales:
+
+- el administrador puede listar, crear y editar pistas desde el panel Blade;
+- el nombre es obligatorio y no puede repetirse a través de los formularios administrativos;
+- la ubicación y la descripción son opcionales;
+- el modelo actual no dispone de estado activo, por lo que VENUE-1 no incorpora activación ni desactivación;
+- una pista asociada a un partido o a una solicitud de reprogramación no puede eliminarse desde el panel, preservando el calendario y su trazabilidad;
+- una pista sin relaciones puede eliminarse;
+- `DefaultVenueSeeder` crea por nombre el conjunto mínimo `Pista 1` a `Pista 5` sin sobrescribir registros existentes.
+
+La selección automática del generador de liga todavía conserva referencias heredadas a IDs concretos. `SCHEDULE-1` sustituirá esa selección por una regla explícita basada en la configuración de pistas.
+
+---
+
+# 12. Contenidos públicos CMS
 
 El sistema incorpora una primera base técnica para páginas públicas gestionables mediante CMS.
 
@@ -224,7 +242,7 @@ El panel administrativo permite crear y editar páginas CMS con título, `slug`,
 
 ---
 
-# 12. Funcionalidades previstas
+# 13. Funcionalidades previstas
 
 Las siguientes capacidades forman parte del roadmap y no deben considerarse implementadas salvo que se indique expresamente:
 
