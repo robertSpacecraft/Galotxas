@@ -289,6 +289,33 @@ Consecuencias:
 
 ---
 
+# ADR-015 — Contrato seguro por contexto para el workflow de resultados
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-07
+
+Contexto:
+- El detalle público de partido ya utilizaba `PublicMatchResource` y ocultaba tanteos no validados y trazabilidad.
+- El endpoint autenticado de workflow reutilizaba `MatchResource`, que podía incluir reportes, comentarios, responsables y emails aunque el usuario no participara.
+- React ya distingue visualmente entre participante y usuario ajeno mediante `workflow.participates`.
+- El cliente frontend limpia la sesión ante respuestas `403`, por lo que devolver `403` a un usuario autenticado que solo consulta un detalle público produciría una consecuencia lateral no deseada.
+
+Decisión:
+- Mantener respuesta `200` limitada para usuarios autenticados sin perfil de jugador o no participantes.
+- Serializar su partido mediante `PublicMatchResource` y devolver todos los reportes del workflow a `null`.
+- Crear `ParticipantMatchResource` para el partido del participante y `ParticipantMatchResultReportResource` para cada reporte que necesita React.
+- Aplicar los Resources de participante también a las respuestas de `submit-result` y `confirm-result`.
+- Mantener `MatchResultReportResource` en el contexto administrativo, donde la trazabilidad sí está autorizada.
+
+Consecuencias:
+- Un usuario ajeno puede seguir viendo el detalle público sin recibir datos privados ni perder su sesión.
+- Los participantes conservan envío, confirmación, discrepancia y estados del workflow con el contrato mínimo necesario.
+- Los emails, objetos de usuario, IDs internos de reporte y timestamps no forman parte del contrato del participante.
+- La API aplica explícitamente el principio un contexto funcional ⇒ un Resource.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

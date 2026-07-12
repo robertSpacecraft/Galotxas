@@ -210,6 +210,12 @@ Pendientes prioritarios:
    - [x] conectar `/matches/{id}` con el workflow backend de resultados;
    - [x] consolidar envío, confirmación, conflicto y estados cerrados en una única experiencia visible;
    - [x] mantener reprogramación fuera del alcance de este bloque.
+5. **SEC-MATCH-1 — Aislar el workflow privado de resultados** (completado):
+   - [x] mantener el detalle público mediante `PublicMatchResource` para usuarios sin perfil o ajenos al partido;
+   - [x] crear contratos mínimos `ParticipantMatchResource` y `ParticipantMatchResultReportResource`;
+   - [x] eliminar emails, usuarios completos, reportes agregados y trazabilidad interna del workflow del participante;
+   - [x] sanear también las respuestas de envío y confirmación;
+   - [x] cubrir seguridad, autorización funcional y dobles con tests Feature.
 
 ---
 

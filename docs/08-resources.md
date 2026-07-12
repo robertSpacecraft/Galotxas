@@ -61,6 +61,28 @@ Mantiene la agrupación mediante `date` y delega la serialización de cada parti
 
 Recibe una estructura explícita preparada por `BuildMyRankingsService` y expone únicamente campeonato, categoría, tipo y nombre de inscripción, posición y estadísticas deportivas. No expone el modelo `CategoryEntry` utilizado internamente para localizar al jugador.
 
+## Resources del workflow de resultados
+
+`ParticipantMatchResource` serializa el partido devuelto a un participante desde:
+
+- `GET /api/v1/matches/{gameMatch}/workflow`;
+- `POST /api/v1/matches/{gameMatch}/submit-result`;
+- `POST /api/v1/matches/{gameMatch}/confirm-result`.
+
+Expone únicamente:
+
+- id, fecha y estado del partido;
+- tanteos y ganador oficiales cuando el partido está validado;
+- participantes visibles con nombres deportivos;
+- pista básica;
+- ronda, categoría, campeonato y temporada básicos.
+
+No expone reportes agregados, responsables internos, emails, claves foráneas de trazabilidad ni timestamps.
+
+`ParticipantMatchResultReportResource` serializa `my_report`, `same_side_report_by_teammate`, `opposite_report` y los reportes de las respuestas de escritura. Expone solo `side`, `home_score`, `away_score`, `status` y `comment`. No expone usuario, email, `user_id`, `player_id`, ids internos ni timestamps.
+
+Cuando el usuario autenticado no tiene perfil de jugador o no participa en el partido, el workflow utiliza `PublicMatchResource` y no entrega ningún reporte.
+
 ## Resources públicos CMS
 
 `PublicCmsPageSummaryResource` serializa cada elemento de `GET /api/v1/cms/pages`.
@@ -151,13 +173,14 @@ La estrategia oficial del proyecto es:
 
 No reutilizar un Resource únicamente porque comparte parte de los datos.
 
-Ejemplo implementado actualmente:
+Ejemplos implementados actualmente:
 
 - PublicMatchResource
-
-Ejemplos de Resources que podrán existir conforme evolucione el proyecto:
-
 - ParticipantMatchResource
+- ParticipantMatchResultReportResource
+
+Ejemplo de Resource que podrá existir conforme evolucione el proyecto:
+
 - AdminMatchResource
 
 Cada uno representa un contrato distinto.

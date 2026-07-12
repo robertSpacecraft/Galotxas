@@ -202,6 +202,16 @@ El backend dispone de cobertura automatizada Feature para componentes críticos 
 - regeneración de finales de copa sin duplicados;
 - cobertura de generación normal de semifinales de copa.
 
+## Workflow seguro de resultados
+- mantenimiento del contrato público anónimo sin trazabilidad interna;
+- respuesta limitada y sin datos privados para usuarios autenticados sin perfil de jugador;
+- respuesta limitada y sin reportes para jugadores ajenos al partido;
+- contrato específico de participante con reportes mínimos sin emails ni identificadores internos;
+- envío de resultado permitido únicamente a participantes;
+- confirmación de resultado permitida únicamente al participante rival;
+- respuestas seguras de `submit-result` y `confirm-result`;
+- comportamiento de dobles cuando la pareja ya ha enviado el reporte del lado.
+
 ## Área Privada "Mi Panel"
 - datos del usuario autenticado;
 - consulta, creación y actualización del perfil de jugador;

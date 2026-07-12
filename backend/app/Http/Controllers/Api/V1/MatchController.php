@@ -7,8 +7,9 @@ use App\Enums\MatchResultReportSide;
 use App\Http\Controllers\Concerns\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\MatchResource;
+use App\Http\Resources\ParticipantMatchResource;
+use App\Http\Resources\ParticipantMatchResultReportResource;
 use App\Http\Resources\PublicMatchResource;
-use App\Http\Resources\MatchResultReportResource;
 use App\Models\CategoryEntry;
 use App\Models\GameMatch;
 use App\Models\MatchResultReport;
@@ -186,10 +187,6 @@ class MatchController extends Controller
             'winnerEntry.team.players.user',
             'venue',
             'round.category.championship.season',
-            'resultReports.user',
-            'resultReports.player.user',
-            'submittedBy',
-            'validatedBy',
         ]);
 
         $user = $request->user();
@@ -210,6 +207,8 @@ class MatchController extends Controller
         $blockedReason = null;
 
         if ($participates && $userSide !== null) {
+            $gameMatch->load('resultReports');
+
             $myReport = $gameMatch->resultReports
                 ->first(fn ($report) =>
                     $report->side === $userSide
@@ -249,15 +248,21 @@ class MatchController extends Controller
         }
 
         return $this->successResponse([
-            'match' => new MatchResource($gameMatch),
+            'match' => $participates
+                ? new ParticipantMatchResource($gameMatch)
+                : new PublicMatchResource($gameMatch),
             'workflow' => [
                 'participates' => $participates,
                 'user_side' => $userSide?->value,
                 'can_report' => $canReport,
                 'blocked_reason' => $blockedReason,
-                'my_report' => $myReport ? new MatchResultReportResource($myReport) : null,
-                'same_side_report_by_teammate' => $sameSideReportByTeammate ? new MatchResultReportResource($sameSideReportByTeammate) : null,
-                'opposite_report' => $oppositeReport ? new MatchResultReportResource($oppositeReport) : null,
+                'my_report' => $myReport ? new ParticipantMatchResultReportResource($myReport) : null,
+                'same_side_report_by_teammate' => $sameSideReportByTeammate
+                    ? new ParticipantMatchResultReportResource($sameSideReportByTeammate)
+                    : null,
+                'opposite_report' => $oppositeReport
+                    ? new ParticipantMatchResultReportResource($oppositeReport)
+                    : null,
                 'match_status' => $gameMatch->status?->value,
             ],
         ]);
@@ -373,10 +378,7 @@ class MatchController extends Controller
             'winnerEntry.team.players.user',
             'venue',
             'round.category.championship.season',
-            'resultReports.user',
-            'resultReports.player.user',
-            'submittedBy',
-            'validatedBy',
+            'resultReports',
         ]);
 
         $oppositeSide = $report->side === MatchResultReportSide::HOME
@@ -388,9 +390,11 @@ class MatchController extends Controller
 
         return $this->successResponse(
             [
-                'match' => new MatchResource($gameMatch),
-                'report' => new MatchResultReportResource($report->fresh(['user', 'player.user'])),
-                'opposite_report' => $oppositeReport ? new MatchResultReportResource($oppositeReport) : null,
+                'match' => new ParticipantMatchResource($gameMatch),
+                'report' => new ParticipantMatchResultReportResource($report->fresh()),
+                'opposite_report' => $oppositeReport
+                    ? new ParticipantMatchResultReportResource($oppositeReport)
+                    : null,
             ],
             $this->resolveResponseMessage($gameMatch)
         );

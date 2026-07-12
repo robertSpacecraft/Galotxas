@@ -217,7 +217,17 @@ La gestión privada del resultado se realiza con endpoints autenticados bajo San
 - `POST /api/v1/matches/{gameMatch}/submit-result`;
 - `POST /api/v1/matches/{gameMatch}/confirm-result`.
 
-`GET /workflow` devuelve el partido mediante `MatchResource` y un bloque `workflow` con:
+`GET /workflow` mantiene respuesta `200` para usuarios autenticados con sesión válida, pero adapta el contrato al contexto:
+
+- si el usuario no tiene perfil de jugador o no participa en el partido, `match` se serializa mediante `PublicMatchResource` y el bloque `workflow` devuelve `participates: false`, `can_report: false` y todos los reportes a `null`;
+- si el jugador participa, `match` se serializa mediante `ParticipantMatchResource` y los reportes visibles se serializan mediante `ParticipantMatchResultReportResource`;
+- las respuestas de `submit-result` y `confirm-result` utilizan los mismos Resources seguros del participante.
+
+`ParticipantMatchResource` expone únicamente el partido, participantes visibles, fecha, estado, pista y jerarquía competitiva básica que necesita React. No incluye reportes, emails, responsables internos ni timestamps de trazabilidad. Los tanteos y ganador oficiales solo se incluyen cuando el partido está validado.
+
+`ParticipantMatchResultReportResource` expone solo lado, tanteos, estado y comentario. No incluye `user_id`, `player_id`, email ni objetos de usuario.
+
+El bloque `workflow` conserva:
 
 - `participates`;
 - `user_side`;
@@ -229,6 +239,8 @@ La gestión privada del resultado se realiza con endpoints autenticados bajo San
 - `match_status`.
 
 React consume este contrato desde la pantalla `/matches/{id}`. El frontend solo representa estados y acciones disponibles; la validación deportiva del tanteo, la confirmación automática y la detección de conflicto pertenecen al backend.
+
+La respuesta limitada para un usuario autenticado ajeno permite mantener el detalle público y mostrar el mensaje de que solo los participantes pueden gestionar el resultado, sin convertir una consulta pública válida en un cierre de sesión frontend.
 
 Cuando el primer participante envía un resultado, el partido queda normalmente en `submitted`. Si el rival confirma el mismo tanteo, el backend valida el partido. Si el rival reporta un tanteo distinto, el partido pasa a `under_review` para resolución administrativa.
 
