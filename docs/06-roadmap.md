@@ -44,6 +44,7 @@ No describe el funcionamiento del sistema; únicamente indica el estado del proy
 - Rankings y API privada ("Mi Panel").
 - Separación de Resources públicos.
 - VENUE-1: CRUD administrativo de pistas, borrado seguro y seeder explícito no destructivo.
+- SCHEDULE-1: generación de ligas con pistas dinámicas, deterministas y sin IDs mágicos.
 - CMS-1: base backend pública de páginas CMS y bloques controlados.
 - CMS-2: gestión admin básica de páginas CMS.
 - CMS-3: gestión admin básica de bloques CMS.
@@ -229,7 +230,14 @@ Pendientes prioritarios:
    - [x] bloqueo de borrado cuando existen partidos o solicitudes de reprogramación;
    - [x] `DefaultVenueSeeder` explícito, idempotente y basado en nombres estables;
    - [x] tests Feature de permisos, validación, CRUD, borrado y seeder;
-   - [ ] SCHEDULE-1: sustituir la selección heredada de IDs por configuración explícita de pistas aptas.
+   - [x] SCHEDULE-1: sustituir la selección heredada de IDs por todas las pistas existentes en orden estable.
+8. **SCHEDULE-1 — Generación reproducible sin IDs mágicos** (completado):
+   - [x] eliminar filtros por IDs y nombres concretos de pistas;
+   - [x] consultar una sola vez todas las pistas en orden por ID;
+   - [x] fallar con mensaje accionable cuando no existen pistas;
+   - [x] conservar siete huecos por pista y jornada sin colisiones;
+   - [x] revertir atómicamente la generación si la capacidad resulta insuficiente;
+   - [x] cubrir IDs arbitrarios, nombres personalizados, una y varias pistas, individuales, dobles y regeneración.
 
 ---
 
@@ -332,6 +340,7 @@ Esta fase incluirá:
 Durante la documentación se han identificado varias posibles evoluciones:
 
 - revisar periódicamente que la terminología del dominio permanezca alineada con las entidades reales (`User`, `Player`, `CategoryRegistration`, `CategoryEntry` y `Team`) conforme evolucione el proyecto.
+- coordinar la ocupación de pistas entre calendarios de categorías distintas y proteger generaciones concurrentes;
 - documentar la API mediante casos de uso completos;
 - ampliar el catálogo de ADR;
 - ampliar la documentación del contrato API con ejemplos reales;

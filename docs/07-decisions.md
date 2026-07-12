@@ -367,6 +367,34 @@ Consecuencias:
 
 ---
 
+# ADR-018 — Todas las pistas configuradas participan en la generación de liga
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-07
+
+Contexto:
+- La selección heredada reservaba nombres o IDs concretos para dobles de nivel 1 y usaba los IDs 2–5 para el resto.
+- El modelo `Venue` no contiene modalidad, nivel, elegibilidad ni estado activo que permita expresar esa diferenciación como configuración de dominio.
+- El calendario ya distribuye cruces en siete horarios distintos por pista y jornada.
+
+Decisión:
+- Consultar una sola vez todas las pistas existentes y ordenarlas por `id` para obtener un reparto estable.
+- No depender de nombres, IDs concretos, secuencias consecutivas ni de `DefaultVenueSeeder`.
+- Mantener los horarios y el orden de cruces existentes: por cada hora se recorren las pistas en el orden consultado.
+- Permitir reutilizar una pista en horas diferentes, pero nunca duplicar pista y fecha/hora dentro de una liga generada.
+- Fallar antes de crear datos si no existen pistas.
+- Si una jornada supera los siete huecos por pista, lanzar un error dentro de la transacción para revertir rondas y partidos parciales.
+
+Consecuencias:
+- Una instalación con cualquier conjunto de pistas puede generar ligas sin preparar IDs o nombres especiales.
+- Singles y dobles aplican la misma disponibilidad porque el esquema no expresa restricciones distintas.
+- Una única pista admite hasta siete cruces por jornada; capacidades superiores requieren más pistas.
+- La ausencia de colisiones queda garantizada dentro de la categoría generada; la coordinación entre categorías conserva la semántica heredada y queda como evolución futura.
+- La disponibilidad avanzada, reservas, restricciones por modalidad y calendarios por pista permanecen fuera de alcance.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

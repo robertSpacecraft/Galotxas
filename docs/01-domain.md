@@ -201,9 +201,16 @@ Reglas actuales:
 - el modelo actual no dispone de estado activo, por lo que VENUE-1 no incorpora activación ni desactivación;
 - una pista asociada a un partido o a una solicitud de reprogramación no puede eliminarse desde el panel, preservando el calendario y su trazabilidad;
 - una pista sin relaciones puede eliminarse;
-- `DefaultVenueSeeder` crea por nombre el conjunto mínimo `Pista 1` a `Pista 5` sin sobrescribir registros existentes.
+- `DefaultVenueSeeder` crea por nombre el conjunto mínimo `Pista 1` a `Pista 5` sin sobrescribir registros existentes, pero el generador no depende de ese seeder ni de esos nombres;
+- la generación de liga utiliza todas las pistas existentes, ordenadas de forma estable por ID;
+- si no existe ninguna pista, la generación se detiene antes de crear jornadas o partidos y solicita al administrador configurar al menos una;
+- cada pista conserva los siete huecos semanales existentes: viernes a las 17:00, 18:00, 19:00 y 20:00, y sábado a las 17:30, 18:00 y 19:00;
+- una pista puede reutilizarse dentro de la jornada únicamente en horas distintas;
+- si los cruces de una jornada superan los huecos disponibles, la generación falla sin dejar datos parciales.
 
-La selección automática del generador de liga todavía conserva referencias heredadas a IDs concretos. `SCHEDULE-1` sustituirá esa selección por una regla explícita basada en la configuración de pistas.
+La modalidad, el nivel o el nombre de una pista no restringen su uso automático mientras el esquema no disponga de una configuración explícita de elegibilidad.
+
+La garantía de no colisión se aplica a la categoría generada. La coordinación de ocupación entre calendarios de categorías distintas conserva el comportamiento heredado y requiere un bloque futuro de disponibilidad compartida.
 
 ---
 

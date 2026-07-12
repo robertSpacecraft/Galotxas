@@ -210,7 +210,11 @@ La lógica pertenece a Services, no a Blade.
 
 ## Configuración de pistas
 
-El administrador mantiene las pistas antes de generar o reprogramar partidos. VENUE-1 proporciona esa configuración sin cambiar las reglas deportivas del calendario. La eliminación de IDs concretos en la selección automática corresponde a `SCHEDULE-1`.
+El administrador debe crear al menos una pista antes de generar una liga. El generador utiliza todas las pistas existentes en orden estable y no depende de sus nombres ni de que se haya ejecutado el seeder.
+
+Si no existen pistas, el panel muestra: “No hay pistas configuradas. Crea al menos una pista desde el panel de administración antes de generar la liga.” No se crean jornadas ni partidos.
+
+Una pista puede reutilizarse en los distintos horarios de una jornada sin colisiones. Si el número de cruces supera los siete huecos disponibles por pista y jornada, el panel informa de que no hay suficientes pistas configuradas y la operación completa se revierte.
 
 ---
 

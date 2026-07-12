@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Enums\ChampionshipType;
 use App\Models\Category;
 use App\Models\CategoryEntry;
 use App\Models\GameMatch;
@@ -55,10 +54,10 @@ class GenerateLeagueScheduleService
             throw new RuntimeException('La categoría ya tiene partidos de liga generados.');
         }
 
-        $venueIds = $this->resolveAutomaticVenueIds($category);
+        $venueIds = $this->resolveVenueIds();
 
         if (empty($venueIds)) {
-            throw new RuntimeException('No hay pistas válidas disponibles para generar el calendario.');
+            throw new RuntimeException('No hay pistas configuradas. Crea al menos una pista desde el panel de administración antes de generar la liga.');
         }
 
         $pairingsByRound = $this->buildRoundRobinPairings($entries);
@@ -71,7 +70,7 @@ class GenerateLeagueScheduleService
 
                 $round = Round::create([
                     'category_id' => $category->id,
-                    'name' => 'Jornada ' . $roundNumber,
+                    'name' => 'Jornada '.$roundNumber,
                     'order' => $roundNumber,
                     'type' => 'league',
                 ]);
@@ -79,7 +78,7 @@ class GenerateLeagueScheduleService
                 $slots = $this->buildWeekendSlots($startDate->copy()->addWeeks($roundIndex), $venueIds);
 
                 if (count($roundPairings) > count($slots)) {
-                    throw new RuntimeException('No hay suficientes huecos automáticos para programar la jornada ' . $roundNumber . '.');
+                    throw new RuntimeException('No hay suficientes pistas configuradas para programar la jornada '.$roundNumber.' sin colisiones en los horarios disponibles.');
                 }
 
                 foreach ($roundPairings as $matchIndex => $pairing) {
@@ -99,32 +98,13 @@ class GenerateLeagueScheduleService
     }
 
     /**
-     * Devuelve IDs de Venue permitidos para la generación automática.
+     * Devuelve una sola vez los IDs de todas las pistas en orden estable.
      */
-    private function resolveAutomaticVenueIds(Category $category): array
+    private function resolveVenueIds(): array
     {
-        $category->loadMissing('championship');
-
-        $isTopDoublesCategory =
-            $category->championship->type === ChampionshipType::DOUBLES
-            && (int) $category->level === 1;
-
-        if ($isTopDoublesCategory) {
-            return Venue::query()
-                ->where('name', '1')
-                ->orWhere('name', 'Galotxa 1')
-                ->orWhere('name', 'Pista 1')
-                ->orWhere('id', 1)
-                ->pluck('id')
-                ->unique()
-                ->values()
-                ->all();
-        }
-
         return Venue::query()
-            ->whereIn('id', [2, 3, 4, 5])
+            ->orderBy('id')
             ->pluck('id')
-            ->values()
             ->all();
     }
 
@@ -163,7 +143,7 @@ class GenerateLeagueScheduleService
             foreach ($venueIds as $venueId) {
                 $slots[] = [
                     'venue_id' => $venueId,
-                    'scheduled_at' => Carbon::parse($fridayDate->format('Y-m-d') . ' ' . $hour . ':00'),
+                    'scheduled_at' => Carbon::parse($fridayDate->format('Y-m-d').' '.$hour.':00'),
                 ];
             }
         }
@@ -174,7 +154,7 @@ class GenerateLeagueScheduleService
             foreach ($venueIds as $venueId) {
                 $slots[] = [
                     'venue_id' => $venueId,
-                    'scheduled_at' => Carbon::parse($saturdayDate->format('Y-m-d') . ' ' . $hour . ':00'),
+                    'scheduled_at' => Carbon::parse($saturdayDate->format('Y-m-d').' '.$hour.':00'),
                 ];
             }
         }

@@ -299,6 +299,22 @@ VENUE-1 incorpora cobertura Feature para:
 
 El modelo no dispone de `active`, por lo que no existe un scope de activas que probar en este bloque. Las pruebas se ejecutan sobre el MariaDB aislado de Docker, igual que el resto de pruebas Feature.
 
+## Generación reproducible de liga
+
+SCHEDULE-1 incorpora cobertura Feature para:
+
+- fallo sin pistas, mensaje administrativo accionable y ausencia de jornadas o partidos parciales;
+- pistas con IDs no consecutivos y nombres personalizados;
+- selección de todas las pistas existentes en orden determinista por ID;
+- reutilización segura de una única pista solo en fechas u horas distintas;
+- fallo atómico cuando una jornada supera los siete huecos por pista;
+- mantenimiento del round-robin y los descansos en individuales impares;
+- mantenimiento del round-robin de dobles, incluido el nivel 1;
+- protección frente a regeneración duplicada;
+- regresión de copa y finales mediante la suite competitiva existente.
+
+La cobertura de SCHEDULE-1 valida colisiones dentro de cada categoría generada. La coordinación de horarios entre categorías diferentes queda fuera de este bloque.
+
 
 # 10. Evolución
 
