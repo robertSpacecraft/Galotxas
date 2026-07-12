@@ -6,6 +6,9 @@ use App\Enums\GameMatchStatus;
 use App\Enums\MatchResultReportSide;
 use App\Http\Controllers\Concerns\ApiResponse;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\ConfirmMatchResultRequest;
+use App\Http\Requests\Api\SubmitMatchResultRequest;
+use App\Http\Resources\MatchRescheduleRequestResource;
 use App\Http\Resources\MatchResource;
 use App\Http\Resources\ParticipantMatchResource;
 use App\Http\Resources\ParticipantMatchResultReportResource;
@@ -14,12 +17,11 @@ use App\Models\CategoryEntry;
 use App\Models\GameMatch;
 use App\Models\MatchResultReport;
 use App\Models\Player;
+use App\Services\MatchRescheduleRequestService;
 use App\Services\MatchResultReportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use InvalidArgumentException;
-use App\Http\Resources\MatchRescheduleRequestResource;
-use App\Services\MatchRescheduleRequestService;
 
 class MatchController extends Controller
 {
@@ -48,7 +50,7 @@ class MatchController extends Controller
         $user = $request->user();
         $player = $user?->player;
 
-        if (!$player) {
+        if (! $player) {
             return $this->errorResponse('El usuario autenticado no tiene un perfil de jugador asociado.');
         }
 
@@ -60,17 +62,17 @@ class MatchController extends Controller
 
         $query = $this->basePlayerMatchesQuery($player);
 
-        if (!empty($validated['status'])) {
+        if (! empty($validated['status'])) {
             $query->where('status', $validated['status']);
         }
 
-        if (!empty($validated['category_id'])) {
+        if (! empty($validated['category_id'])) {
             $query->whereHas('round', function ($roundQuery) use ($validated) {
                 $roundQuery->where('category_id', $validated['category_id']);
             });
         }
 
-        if (!empty($validated['championship_id'])) {
+        if (! empty($validated['championship_id'])) {
             $query->whereHas('round.category', function ($categoryQuery) use ($validated) {
                 $categoryQuery->where('championship_id', $validated['championship_id']);
             });
@@ -91,7 +93,7 @@ class MatchController extends Controller
         $user = $request->user();
         $player = $user?->player;
 
-        if (!$player) {
+        if (! $player) {
             return $this->errorResponse('El usuario autenticado no tiene un perfil de jugador asociado.');
         }
 
@@ -112,13 +114,11 @@ class MatchController extends Controller
                 continue;
             }
 
-            $myReport = $match->resultReports->first(fn ($report) =>
-                $report->side === $userSide
+            $myReport = $match->resultReports->first(fn ($report) => $report->side === $userSide
                 && (int) $report->player_id === (int) $player->id
             );
 
-            $sameSideReportByTeammate = $match->resultReports->first(fn ($report) =>
-                $report->side === $userSide
+            $sameSideReportByTeammate = $match->resultReports->first(fn ($report) => $report->side === $userSide
                 && (int) $report->player_id !== (int) $player->id
             );
 
@@ -126,8 +126,7 @@ class MatchController extends Controller
                 ? MatchResultReportSide::AWAY
                 : MatchResultReportSide::HOME;
 
-            $oppositeReport = $match->resultReports->first(fn ($report) =>
-                $report->side === $oppositeSide
+            $oppositeReport = $match->resultReports->first(fn ($report) => $report->side === $oppositeSide
             );
 
             if ($match->status === GameMatchStatus::UNDER_REVIEW) {
@@ -210,14 +209,12 @@ class MatchController extends Controller
             $gameMatch->load('resultReports');
 
             $myReport = $gameMatch->resultReports
-                ->first(fn ($report) =>
-                    $report->side === $userSide
+                ->first(fn ($report) => $report->side === $userSide
                     && (int) $report->player_id === (int) $player->id
                 );
 
             $sameSideReportByTeammate = $gameMatch->resultReports
-                ->first(fn ($report) =>
-                    $report->side === $userSide
+                ->first(fn ($report) => $report->side === $userSide
                     && (int) $report->player_id !== (int) $player->id
                 );
 
@@ -269,15 +266,11 @@ class MatchController extends Controller
     }
 
     public function submitResult(
-        Request $request,
+        SubmitMatchResultRequest $request,
         GameMatch $gameMatch,
         MatchResultReportService $matchResultReportService
     ): JsonResponse {
-        $validated = $request->validate([
-            'home_score' => ['required', 'integer', 'min:0'],
-            'away_score' => ['required', 'integer', 'min:0'],
-            'comment' => ['nullable', 'string', 'max:2000'],
-        ]);
+        $validated = $request->validated();
 
         try {
             $report = $matchResultReportService->submitReport(
@@ -295,10 +288,12 @@ class MatchController extends Controller
     }
 
     public function confirmResult(
-        Request $request,
+        ConfirmMatchResultRequest $request,
         GameMatch $gameMatch,
         MatchResultReportService $matchResultReportService
     ): JsonResponse {
+        $validated = $request->validated();
+
         $gameMatch->load([
             'homeEntry.player.user',
             'homeEntry.team.players.user',
@@ -311,7 +306,7 @@ class MatchController extends Controller
         $user = $request->user();
         $player = $user?->player;
 
-        if (!$player) {
+        if (! $player) {
             return $this->errorResponse('El usuario autenticado no tiene un perfil de jugador asociado.');
         }
 
@@ -322,8 +317,7 @@ class MatchController extends Controller
         }
 
         $myReport = $gameMatch->resultReports
-            ->first(fn ($report) =>
-                $report->side === $userSide
+            ->first(fn ($report) => $report->side === $userSide
                 && (int) $report->player_id === (int) $player->id
             );
 
@@ -332,8 +326,7 @@ class MatchController extends Controller
         }
 
         $sameSideReportByTeammate = $gameMatch->resultReports
-            ->first(fn ($report) =>
-                $report->side === $userSide
+            ->first(fn ($report) => $report->side === $userSide
                 && (int) $report->player_id !== (int) $player->id
             );
 
@@ -358,7 +351,7 @@ class MatchController extends Controller
                 $user,
                 (int) $oppositeReport->home_score,
                 (int) $oppositeReport->away_score,
-                $request->input('comment')
+                $validated['comment'] ?? null
             );
         } catch (InvalidArgumentException $exception) {
             return $this->errorResponse($exception->getMessage());
@@ -481,7 +474,7 @@ class MatchController extends Controller
 
     protected function entryContainsPlayer(?CategoryEntry $entry, Player $player): bool
     {
-        if (!$entry) {
+        if (! $entry) {
             return false;
         }
 
@@ -516,7 +509,7 @@ class MatchController extends Controller
         $user = $request->user();
         $player = $user?->player;
 
-        if (!$player) {
+        if (! $player) {
             return $this->errorResponse('El usuario autenticado no tiene un perfil de jugador asociado.');
         }
 
@@ -526,13 +519,11 @@ class MatchController extends Controller
             return $this->errorResponse('El jugador no participa en este partido.');
         }
 
-        $myRequest = $gameMatch->rescheduleRequests->first(fn ($item) =>
-            $item->side === $userSide
+        $myRequest = $gameMatch->rescheduleRequests->first(fn ($item) => $item->side === $userSide
             && (int) $item->player_id === (int) $player->id
         );
 
-        $sameSideRequestByTeammate = $gameMatch->rescheduleRequests->first(fn ($item) =>
-            $item->side === $userSide
+        $sameSideRequestByTeammate = $gameMatch->rescheduleRequests->first(fn ($item) => $item->side === $userSide
             && (int) $item->player_id !== (int) $player->id
         );
 
@@ -540,8 +531,7 @@ class MatchController extends Controller
             ? MatchResultReportSide::AWAY
             : MatchResultReportSide::HOME;
 
-        $oppositeRequest = $gameMatch->rescheduleRequests->first(fn ($item) =>
-            $item->side === $oppositeSide
+        $oppositeRequest = $gameMatch->rescheduleRequests->first(fn ($item) => $item->side === $oppositeSide
         );
 
         $canSubmit = false;

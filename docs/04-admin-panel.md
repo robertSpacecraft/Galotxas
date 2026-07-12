@@ -244,6 +244,10 @@ El panel permite:
 - validar resultados;
 - mantener trazabilidad.
 
+Cuando dos lados reportan tanteos diferentes, el partido queda `under_review` sin resultado oficial. Solo un administrador puede resolverlo indicando un tanteo deportivo válido. La resolución establece `home_score`, `away_score`, ganador, estado `validated` y administrador validador.
+
+Los dos reportes originales permanecen en estado `conflict`, con sus autores, comentarios y tanteos intactos. Esta trazabilidad permite auditar qué comunicó cada lado; la resolución no falsifica una confirmación que nunca ocurrió. Tras validarse el partido, el resultado pasa a rankings y demás cálculos oficiales.
+
 ---
 
 # 12. Rankings

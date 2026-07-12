@@ -247,6 +247,14 @@ Pendientes prioritarios:
    - [x] añadir identificadores estables como último desempate técnico;
    - [x] cubrir ciclo triple, igualdad total, cero partidos, dobles, agregados, histórico y Mi Panel;
    - [ ] FE-TEST-1: añadir infraestructura de tests frontend y cobertura automática del formateador.
+10. **MATCH-2 — Completar y endurecer el flujo de resultados** (completado):
+   - [x] cubrir primer reporte, confirmación coincidente, discrepancia y resolución administrativa;
+   - [x] impedir sobrescrituras y garantizar un único reporte inmutable por lado, también en dobles;
+   - [x] validar tanteos de individuales y dobles y limitar comentarios en ambos endpoints;
+   - [x] asegurar transacciones y bloqueo del partido durante el workflow;
+   - [x] conservar los reportes en conflicto como trazabilidad tras la resolución administrativa;
+   - [x] verificar estados cerrados, permisos, ganador, rankings y contrato seguro mediante tests Feature;
+   - [x] confirmar que React ya representa correctamente los estados y errores sin cambios de frontend.
 
 ---
 

@@ -113,6 +113,19 @@ Los resultados forman parte del dominio deportivo.
 
 Solo los resultados validados tienen efectos oficiales.
 
+El flujo oficial es el siguiente:
+
+1. Un participante de cualquiera de los dos lados envía el primer reporte de un partido `scheduled` y el partido pasa a `submitted`.
+2. El lado rival puede confirmar el mismo tanteo. Ambos reportes pasan a `validated`, el partido pasa a `validated` y se fijan el tanteo y el ganador oficiales.
+3. Si el lado rival comunica un tanteo diferente, ambos reportes pasan a `conflict` y el partido queda `under_review`, sin tanteo ni ganador oficiales.
+4. Un administrador resuelve el conflicto fijando el resultado oficial. Los reportes originales se conservan como trazabilidad del desacuerdo.
+
+Cada lado dispone de un único reporte inmutable por partido. En dobles, cualquiera de los miembros representa al lado: una vez que uno ha reportado, su compañero no puede sustituir el reporte ni confirmar el del rival. Tampoco el mismo jugador puede reenviar y sobrescribir su reporte.
+
+Los tanteos son enteros no negativos, no admiten empate y deben respetar el objetivo de la modalidad: 10 juegos en individuales y 12 en dobles. El comentario es opcional y tiene un máximo de 2.000 caracteres.
+
+Los estados `validated`, `cancelled`, `postponed` y `under_review` están cerrados al envío o confirmación de nuevos reportes. El proceso de envío, comparación y cambio de estado se ejecuta atómicamente para no dejar reportes o estados parciales ante un error.
+
 Entre otros procesos permiten:
 
 - determinar clasificaciones;

@@ -18,8 +18,7 @@ class MatchResultReportService
 {
     public function __construct(
         protected MatchResultService $matchResultService
-    ) {
-    }
+    ) {}
 
     public function submitReport(
         GameMatch $match,
@@ -30,7 +29,7 @@ class MatchResultReportService
     ): MatchResultReport {
         $player = $user->player;
 
-        if (!$player) {
+        if (! $player) {
             throw new InvalidArgumentException('El usuario autenticado no tiene un perfil de jugador asociado.');
         }
 
@@ -75,26 +74,26 @@ class MatchResultReportService
                 ->where('side', $oppositeSide->value)
                 ->first();
 
-            if ($sameSideReport && (int) $sameSideReport->player_id !== (int) $player->id) {
+            if ($sameSideReport) {
+                if ((int) $sameSideReport->player_id === (int) $player->id) {
+                    throw new InvalidArgumentException('Ya has enviado un reporte para este partido.');
+                }
+
                 throw new InvalidArgumentException('Tu lado ya ha enviado un reporte para este partido.');
             }
 
             try {
                 /** @var MatchResultReport $report */
-                $report = MatchResultReport::query()->updateOrCreate(
-                    [
-                        'game_match_id' => $lockedMatch->id,
-                        'side' => $side->value,
-                    ],
-                    [
-                        'user_id' => $user->id,
-                        'player_id' => $player->id,
-                        'home_score' => $homeScore,
-                        'away_score' => $awayScore,
-                        'status' => MatchResultReportStatus::SUBMITTED->value,
-                        'comment' => $comment,
-                    ]
-                );
+                $report = MatchResultReport::query()->create([
+                    'game_match_id' => $lockedMatch->id,
+                    'user_id' => $user->id,
+                    'player_id' => $player->id,
+                    'side' => $side->value,
+                    'home_score' => $homeScore,
+                    'away_score' => $awayScore,
+                    'status' => MatchResultReportStatus::SUBMITTED->value,
+                    'comment' => $comment,
+                ]);
             } catch (QueryException $exception) {
                 throw new InvalidArgumentException('Se ha producido un conflicto al guardar el reporte. Inténtalo de nuevo.');
             }
@@ -105,7 +104,7 @@ class MatchResultReportService
                 ->where('side', $oppositeSide->value)
                 ->first();
 
-            if (!$oppositeReport) {
+            if (! $oppositeReport) {
                 $lockedMatch->update([
                     'status' => GameMatchStatus::SUBMITTED->value,
                     'submitted_by' => $user->id,
@@ -191,7 +190,7 @@ class MatchResultReportService
 
     protected function entryContainsPlayer(?CategoryEntry $entry, Player $player): bool
     {
-        if (!$entry) {
+        if (! $entry) {
             return false;
         }
 

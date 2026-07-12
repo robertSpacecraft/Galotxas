@@ -236,6 +236,26 @@ La gestión privada del resultado se realiza con endpoints autenticados bajo San
 - `POST /api/v1/matches/{gameMatch}/submit-result`;
 - `POST /api/v1/matches/{gameMatch}/confirm-result`.
 
+`POST /submit-result` acepta:
+
+```json
+{
+    "home_score": 10,
+    "away_score": 7,
+    "comment": "Partido finalizado"
+}
+```
+
+`home_score` y `away_score` son enteros no negativos obligatorios. `comment` es opcional, puede ser `null` y admite hasta 2.000 caracteres. El backend rechaza empates y marcadores que no alcancen exactamente el objetivo de la modalidad: 10 en individuales y 12 en dobles.
+
+`POST /confirm-result` no permite cambiar el tanteo rival y acepta únicamente el comentario opcional con el mismo límite:
+
+```json
+{
+    "comment": "Confirmado"
+}
+```
+
 `GET /workflow` mantiene respuesta `200` para usuarios autenticados con sesión válida, pero adapta el contrato al contexto:
 
 - si el usuario no tiene perfil de jugador o no participa en el partido, `match` se serializa mediante `PublicMatchResource` y el bloque `workflow` devuelve `participates: false`, `can_report: false` y todos los reportes a `null`;
@@ -261,7 +281,16 @@ React consume este contrato desde la pantalla `/matches/{id}`. El frontend solo 
 
 La respuesta limitada para un usuario autenticado ajeno permite mantener el detalle público y mostrar el mensaje de que solo los participantes pueden gestionar el resultado, sin convertir una consulta pública válida en un cierre de sesión frontend.
 
-Cuando el primer participante envía un resultado, el partido queda normalmente en `submitted`. Si el rival confirma el mismo tanteo, el backend valida el partido. Si el rival reporta un tanteo distinto, el partido pasa a `under_review` para resolución administrativa.
+Cuando el primer participante envía un resultado, se crea un reporte `submitted`, el partido pasa a `submitted` y todavía no expone tanteo ni ganador oficiales. Cada lado solo puede crear un reporte y no puede sobrescribirlo; en dobles, el reporte de un miembro bloquea también a su compañero.
+
+El lado rival puede completar el flujo de dos formas:
+
+- `confirm-result` copia el tanteo del reporte contrario y, al coincidir, ambos reportes pasan a `validated`; el partido queda `validated` con tanteo y ganador oficiales;
+- `submit-result` permite declarar su propio tanteo; si difiere, ambos reportes pasan a `conflict`, el partido queda `under_review` y sus campos oficiales permanecen vacíos hasta la resolución administrativa.
+
+Solo puede actuar un participante del lado correspondiente. Un usuario sin perfil o ajeno no obtiene datos privados y no puede reportar; el mismo lado no puede confirmar su propio reporte. Los estados `validated`, `cancelled`, `postponed` y `under_review` no admiten nuevos envíos ni confirmaciones.
+
+Los errores de validación y de regla de dominio se devuelven con estado `422` y un mensaje apto para mostrar al usuario; los fallos de autenticación o autorización conservan los estados HTTP establecidos por el middleware. La creación del reporte y las transiciones asociadas son atómicas.
 
 La reprogramación dispone de endpoints backend independientes, pero su UI React no forma parte del bloque MATCH-1.
 

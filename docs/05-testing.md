@@ -239,6 +239,25 @@ El frontend no dispone todavía de tests unitarios. La función pura que formate
 - respuestas seguras de `submit-result` y `confirm-result`;
 - comportamiento de dobles cuando la pareja ya ha enviado el reporte del lado.
 
+## MATCH-2 — Flujo integral de resultados
+
+La cobertura Feature del workflow incluye:
+
+- primer envío desde cualquiera de los lados y transición `scheduled` → `submitted`;
+- validación de tipos, valores negativos, empates, objetivo de 10 en individuales y 12 en dobles, y límite del comentario;
+- rechazo de usuarios sin jugador, jugadores ajenos, mismo lado, compañero que ya reportó y reenvío del propio jugador;
+- inmutabilidad del primer reporte y ausencia de sobrescritura;
+- confirmación coincidente con validación de ambos reportes, tanteo oficial, ganador y responsables;
+- segundo reporte discrepante con ambos reportes `conflict`, partido `under_review` y ausencia de tanteo oficial;
+- bloqueo de nuevos reportes y confirmaciones en estados cerrados;
+- resolución administrativa del conflicto, conservación íntegra de la trazabilidad y efecto posterior en rankings;
+- protección de la resolución frente a usuarios no administradores;
+- flujo de dobles con cualquiera de los miembros, representación única del lado y ganador de equipo;
+- reversión transaccional del segundo reporte y de todos los cambios de estado si falla la resolución del resultado;
+- regresión de los Resources seguros para anónimos, usuarios ajenos y participantes.
+
+Las pruebas de integración se ejecutan exclusivamente sobre la instancia MariaDB aislada del perfil `test` de Docker.
+
 ## Área Privada "Mi Panel"
 - datos del usuario autenticado;
 - consulta, creación y actualización del perfil de jugador;

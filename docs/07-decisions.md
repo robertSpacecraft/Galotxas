@@ -422,6 +422,32 @@ Consecuencias:
 
 ---
 
+# ADR-020 — Reporte único e inmutable por lado y resolución atómica
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-07
+
+Contexto:
+- El workflow permitía localizar un reporte por partido y lado con `updateOrCreate`, de modo que el mismo jugador podía reenviarlo y sustituir su tanteo o comentario.
+- En dobles, dos jugadores distintos representan al mismo lado y deben compartir una única declaración.
+- La creación del segundo reporte, la comparación y el cambio del partido forman una sola decisión de dominio.
+
+Decisión:
+- Permitir un único reporte inmutable por partido y lado, respaldado por la restricción única de base de datos y por una comprobación explícita con mensaje de dominio.
+- Considerar que el reporte de cualquier miembro de una pareja representa al lado completo.
+- Bloquear la fila del partido y ejecutar dentro de una misma transacción la creación del reporte, la comparación y las transiciones de reportes y partido.
+- Ante coincidencia, validar ambos reportes y publicar el resultado oficial; ante discrepancia, marcar ambos como `conflict`, dejar vacíos los campos oficiales y pasar a `under_review`.
+- Conservar los reportes originales en conflicto cuando un administrador establece el resultado oficial.
+
+Consecuencias:
+- Un participante no puede corregir silenciosamente ni sobrescribir una declaración ya enviada; cualquier rectificación requiere intervención administrativa trazable.
+- Los compañeros de dobles no pueden producir versiones rivales desde el mismo lado.
+- Un fallo durante la comparación o resolución automática no deja un segundo reporte ni estados parciales persistidos.
+- Los Resources seguros existentes no cambian: esta decisión afecta al comportamiento de dominio, no amplía el contrato de datos.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.
