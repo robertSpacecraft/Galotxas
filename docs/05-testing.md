@@ -127,6 +127,20 @@ Comprobación de espacios y conflictos:
 
 `git diff --check`
 
+Auditoría frontend completa y de producción:
+
+`cd frontend && npm audit`
+
+`cd frontend && npm audit --omit=dev`
+
+Validación y auditoría backend dentro del contenedor oficial:
+
+`docker compose -f backend/docker/docker-compose.yml exec app composer validate --strict`
+
+`docker compose -f backend/docker/docker-compose.yml exec app composer audit`
+
+`docker compose -f backend/docker/docker-compose.yml exec app composer audit --no-dev`
+
 Suite frontend no interactiva:
 
 `cd frontend && npm run test:run`
@@ -172,6 +186,21 @@ El seeder aborta salvo que coincidan simultáneamente `APP_ENV=e2e` y `DB_DATABA
 La suite es serial de forma deliberada: representa un único smoke narrativo sobre dos partidos sembrados, primero valida un resultado coincidente, después provoca una discrepancia y finalmente la resuelve desde el panel Blade. El estado inicial siempre procede de una base temporal nueva y se destruye al finalizar; nunca depende de IDs manuales ni de datos de desarrollo.
 
 E2E-1 cubre navegación pública, CMS, login real, bloques y acciones de Mi Panel, confirmación coincidente, discrepancia no editable, acceso real del administrador al panel Blade, revisión y resolución del conflicto, resultado oficial actualizado y ranking histórico. Dobles queda fuera del smoke porque dispone de cobertura Feature específica.
+
+## DEPS-1 — Auditoría y actualización controlada
+
+La auditoría inicial de npm detectó 11 vulnerabilidades: 6 altas, 4 moderadas y 1 baja. Cinco pertenecían al árbol de producción —4 altas y 1 moderada— y afectaban a Axios, React Router y dependencias transitivas. Composer detectó 20 advisories en 11 paquetes: 17 correspondían al árbol de producción y los 3 restantes a `symfony/yaml` en desarrollo. Los paquetes afectados eran Laravel Framework, Guzzle, PSR-7, CommonMark y componentes HTTP, routing, mail, MIME, IDN y YAML de Symfony.
+
+Las actualizaciones directas compatibles fueron:
+
+- Axios `1.13.6` → `1.18.1`;
+- React Router DOM `7.13.1` → `7.18.1`;
+- Vite `8.0.1` → `8.1.4`;
+- Laravel Framework `12.54.1` → `12.63.0`.
+
+Los gestores actualizaron también las dependencias transitivas vulnerables dentro de sus rangos compatibles: Babel, `brace-expansion`, `follow-redirects`, `form-data`, `js-yaml`, Picomatch, PostCSS, Guzzle, PSR-7, CommonMark, componentes Symfony 7.4 y polyfills. No se incorporaron nuevas dependencias funcionales ni se cambiaron versiones principales de la plataforma.
+
+El resultado final es 0 vulnerabilidades tanto en `npm audit` como en `npm audit --omit=dev`, y 0 advisories en `composer audit`. La regresión posterior comprende ESLint, 35 tests Vitest, build Vite, 6 smokes Playwright y 167 tests Laravel con 1.082 aserciones sobre MariaDB aislada.
 
 ---
 

@@ -501,6 +501,31 @@ Consecuencias:
 
 ---
 
+# ADR-023 — Actualizaciones de dependencias dirigidas y auditables
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-07
+
+Contexto:
+- El MVP depende de ecosistemas npm y Composer con árboles de producción y desarrollo diferentes.
+- Una actualización global puede introducir cambios funcionales o saltos principales no relacionados con el advisory que se intenta resolver.
+- Los locks son la fuente reproducible de las versiones instaladas y deben mantenerse mediante sus gestores oficiales.
+
+Decisión:
+- Auditar por separado el árbol completo y el árbol de producción siempre que el gestor lo permita.
+- Priorizar vulnerabilidades de producción y aplicar actualizaciones nominales del paquete afectado dentro de las versiones principales aprobadas.
+- Permitir que npm o Composer actualicen las dependencias transitivas compatibles requeridas por ese paquete, sin editar manualmente los locks.
+- No usar correcciones forzadas, actualizaciones globales ni saltos principales sin un bloque de migración específico.
+- Ejecutar después la reauditoría y la regresión completa correspondiente, incluido E2E cuando cambien dependencias de runtime frontend o backend.
+
+Consecuencias:
+- Cada cambio de dependencias conserva un alcance identificable y una comparación antes/después.
+- Las vulnerabilidades que requieran una migración principal permanecen documentadas en lugar de ocultarse mediante una actualización indiscriminada.
+- `package-lock.json` y `composer.lock` solo cambian a través de npm y Composer.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

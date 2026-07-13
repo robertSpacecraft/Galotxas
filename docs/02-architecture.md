@@ -283,7 +283,17 @@ Vitest/RTL no sustituye las pruebas Feature de Laravel ni constituye E2E. La aut
 
 ---
 
-# 12. Principios arquitectónicos
+# 12. Gestión de dependencias
+
+Las dependencias se auditan distinguiendo el árbol de producción del tooling de desarrollo. `npm audit --omit=dev` delimita la exposición del bundle frontend, mientras que la auditoría completa cubre también Vite, ESLint, Vitest y Playwright. Composer se ejecuta siempre dentro del contenedor oficial y su resultado se clasifica igualmente según el paquete pertenezca a `require` o `require-dev`.
+
+Las correcciones se realizan mediante actualizaciones dirigidas de los paquetes afectados y sus dependencias compatibles. No se regeneran locks manualmente, no se aplican actualizaciones globales ni se fuerzan saltos de versión principal. Cada cambio debe conservar Node 22, React 19, Vite 8, PHP 8.2, Laravel 12 y la infraestructura Docker/MariaDB, salvo que un bloque futuro apruebe expresamente una migración principal.
+
+Después de modificar un lock son obligatorias una nueva auditoría, la validación del árbol instalado y la regresión completa de la capa afectada. Cuando cambian dependencias de producción de ambas aplicaciones, se ejecutan además la suite Laravel sobre MariaDB aislada y el smoke Playwright del sistema completo.
+
+---
+
+# 13. Principios arquitectónicos
 
 - Backend como fuente de verdad.
 - React sin lógica deportiva.

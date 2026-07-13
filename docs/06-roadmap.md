@@ -65,6 +65,7 @@ No describe el funcionamiento del sistema; únicamente indica el estado del proy
 - MariaDB como único motor soportado.
 - Entorno de pruebas aislado.
 - E2E-1: smoke reproducible Chromium con Playwright y stack MariaDB temporal independiente.
+- DEPS-1: auditoría npm/Composer y actualización compatible sin advisories pendientes.
 
 ---
 
@@ -279,6 +280,14 @@ Pendientes prioritarios:
    - [x] conservar íntegros los reportes originales como trazabilidad;
    - [x] integrar navegación y contador de conflictos en el dashboard;
    - [x] cubrir permisos, individuales, dobles, errores, concurrencia lógica, rankings y recorrido E2E real.
+14. **DEPS-1 — Auditoría y actualización controlada de dependencias** (completado):
+   - [x] separar inventario npm completo y de producción;
+   - [x] auditar Composer completo y distinguir dependencias de producción y desarrollo;
+   - [x] actualizar Axios, React Router, Vite y Laravel dentro de sus versiones principales actuales;
+   - [x] corregir las dependencias transitivas vulnerables mediante los gestores oficiales;
+   - [x] reducir npm de 11 vulnerabilidades totales y 5 de producción a cero;
+   - [x] reducir Composer de 20 advisories en 11 paquetes a cero;
+   - [x] validar lint, Vitest, build, Playwright y la suite Laravel completa.
 
 ---
 
