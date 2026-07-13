@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "test": "TMPDIR=/tmp TMP=/tmp TEMP=/tmp vitest",
     "test:run": "TMPDIR=/tmp TMP=/tmp TEMP=/tmp vitest run",
-    "test:watch": "TMPDIR=/tmp TMP=/tmp TEMP=/tmp vitest"
+    "test:watch": "TMPDIR=/tmp TMP=/tmp TEMP=/tmp vitest",
+    "e2e": "bash scripts/run-e2e.sh",
+    "e2e:install": "docker compose --file ../backend/docker/docker-compose.e2e.yml --profile runner pull runner"
   },
   "dependencies": {
     "axios": "^1.13.6",
@@ -20,6 +22,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@playwright/test": "1.61.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",

@@ -64,6 +64,7 @@ No describe el funcionamiento del sistema; únicamente indica el estado del proy
 - Docker.
 - MariaDB como único motor soportado.
 - Entorno de pruebas aislado.
+- E2E-1: smoke reproducible Chromium con Playwright y stack MariaDB temporal independiente.
 
 ---
 
@@ -269,7 +270,7 @@ Pendientes prioritarios:
    - [x] cubrir `PendingMatchActions`, `MatchWorkflow` y una página CMS representativa;
    - [x] mantener tests junto al código, sin snapshots masivos ni llamadas reales al backend;
    - [x] validar tests, lint, build y lockfile con Node 22;
-   - [ ] E2E-1: añadir por separado una prueba de humo en navegador real.
+   - [x] E2E-1: añadir una prueba de humo Chromium con frontend, API y MariaDB reales en un stack temporal aislado.
 
 ---
 

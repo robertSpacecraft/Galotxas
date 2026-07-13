@@ -47,6 +47,7 @@ Frontend:
 - `@testing-library/jest-dom`
 - `@testing-library/user-event`
 - jsdom
+- Playwright con Chromium para el smoke E2E
 
 ---
 
@@ -134,9 +135,43 @@ Modo watch frontend:
 
 `cd frontend && npm run test:watch`
 
+Smoke E2E completo:
+
+`cd frontend && npm run e2e`
+
+Descarga inicial del runtime oficial de Playwright con Chromium:
+
+`cd frontend && npm run e2e:install`
+
+Chromium se ejecuta dentro de la imagen oficial de Playwright fijada a la misma versión que `@playwright/test`. Así el host WSL no necesita una instalación global del navegador ni librerías Linux adicionales.
+
 La configuración de los scripts fija `/tmp` para Vitest porque WSL puede heredar `TMP` y `TEMP` de Windows; así los workers no dependen de directorios temporales externos al entorno Linux.
 
 Los tests unitarios y de componentes frontend se ejecutan en jsdom y verifican funciones, renderizado e interacción aislada. No arrancan un navegador real ni recorren conjuntamente frontend, API y MariaDB. Esos recorridos pertenecen a E2E-1.
+
+## Entorno Playwright E2E
+
+`npm run e2e` orquesta un entorno desechable e independiente:
+
+- usa el proyecto Compose `galotxas-e2e` y el archivo `backend/docker/docker-compose.e2e.yml`;
+- publica el backend en `127.0.0.1:8081` y levanta Vite dentro del runner en el puerto `5174` por defecto;
+- crea exclusivamente la base MariaDB `galotxas_e2e` sobre `tmpfs`;
+- ejecuta migraciones y el seeder explícito `E2ESmokeSeeder`;
+- lanza una suite serial Chromium desde el runner oficial de Playwright contra frontend, API y MariaDB reales;
+- desmonta contenedores, red y volúmenes al terminar, también cuando falla la suite.
+
+Los puertos pueden cambiarse con `E2E_BACKEND_PORT` y `E2E_FRONTEND_PORT`. Playwright también admite `E2E_BASE_URL`, `E2E_BACKEND_URL` y `E2E_SKIP_WEBSERVER` para ejecuciones controladas contra un stack E2E ya levantado. Ninguna de estas variables debe apuntar a la base o al backend habitual de desarrollo.
+
+El seeder aborta salvo que coincidan simultáneamente `APP_ENV=e2e` y `DB_DATABASE=galotxas_e2e`. No está registrado en `DatabaseSeeder`. Sus credenciales, válidas solo mientras vive el stack temporal, son:
+
+- `admin.e2e@example.test`;
+- `player1.e2e@example.test`;
+- `player2.e2e@example.test`;
+- contraseña común: `E2E-password-123!`.
+
+La suite es serial de forma deliberada: representa un único smoke narrativo sobre dos partidos sembrados, primero valida un resultado coincidente y después provoca una discrepancia. El estado inicial siempre procede de una base temporal nueva y se destruye al finalizar; nunca depende de IDs manuales ni de datos de desarrollo.
+
+E2E-1 cubre navegación pública, CMS, login real, bloques y acciones de Mi Panel, confirmación coincidente, discrepancia no editable y ranking histórico. La resolución administrativa no forma parte del smoke inicial porque el panel Blade todavía no ofrece una pantalla para ese conflicto; el endpoint administrativo y su efecto en rankings continúan cubiertos por `AdminMatchConflictResolutionTest`. Dobles queda fuera del smoke inicial porque ya dispone de cobertura Feature específica.
 
 ---
 
