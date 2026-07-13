@@ -214,6 +214,30 @@ Situación en la que existen discrepancias entre resultados enviados o se requie
 
 ---
 
+# Reporte de resultado (MatchResultReport)
+
+Declaración inmutable del tanteo realizada por uno de los dos lados de un partido.
+
+En dobles, el reporte de cualquiera de los integrantes representa a todo su lado. Puede estar `submitted`, `validated` o `conflict` y no equivale al resultado oficial mientras el partido no esté validado.
+
+---
+
+# Acción pendiente de partido
+
+Resumen calculado por el backend para indicar qué intervención corresponde al jugador en Mi Panel.
+
+Puede ser enviar resultado (`submit_result`), confirmar o revisar el reporte rival (`confirm_result`) o consultar una discrepancia no editable (`under_review`).
+
+---
+
+# Solicitud de reprogramación (MatchRescheduleRequest)
+
+Propuesta de un lado participante para cambiar la fecha, hora y pista de un partido.
+
+El cambio solo se aplica cuando el lado rival confirma la misma propuesta. El backend dispone de este flujo, aunque el frontend React del MVP todavía no ofrece su interfaz.
+
+---
+
 # Ranking de categoría
 
 Clasificación correspondiente únicamente a una categoría concreta.

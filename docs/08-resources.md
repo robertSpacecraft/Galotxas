@@ -4,7 +4,7 @@
 
 Este documento define la estrategia de serialización utilizada por la API de Galotxas.
 
-Los Resources constituyen la capa de traducción entre el dominio interno del backend y el contrato público de la API.
+Los Resources constituyen la capa de traducción entre el dominio interno del backend y los contratos de salida de la API.
 
 No describen cómo se almacenan los datos, sino cómo deben exponerse a cada consumidor.
 
@@ -12,7 +12,7 @@ No describen cómo se almacenan los datos, sino cómo deben exponerse a cada con
 
 # 1. Principios
 
-- Los Resources forman parte del contrato público de la API.
+- Los Resources forman parte del contrato de la API en su contexto público, privado o administrativo.
 - Un cambio en un Resource puede romper consumidores.
 - El dominio y la API pueden evolucionar de forma parcialmente independiente.
 - Los nuevos endpoints no deben devolver modelos Eloquent directamente.
@@ -162,6 +162,50 @@ El seeder `InstitutionalCmsPageSeeder` puede crear estas páginas y sus bloques 
 
 ---
 
+## Inventario de Resources implementados
+
+| Resource | Contexto y uso actual |
+|---|---|
+| `SeasonResource` | listado público de temporadas y campeonatos cargados |
+| `ChampionshipPublicResource` | listado/detalle público de campeonatos |
+| `CategoryPublicResource` | detalle público de categoría |
+| `CategoryScheduleRoundResource` | calendario público de una categoría |
+| `CategoryRankingResource` | ranking público de categoría |
+| `ChampionshipRankingResource` | rankings públicos de campeonato y temporada |
+| `AllTimeRankingResource` | ranking histórico público |
+| `PublicMatchResource` | detalle público y fallback seguro del workflow para no participantes |
+| `PublicCmsPageSummaryResource` | índice público CMS |
+| `PublicCmsPageResource` | detalle público CMS |
+| `PublicCmsBlockResource` | bloques estructurados de una página pública |
+| `UserResource` | cuenta del usuario autenticado dentro de `MeResource` |
+| `PlayerProfileResource` | perfil deportivo privado del propio usuario y respuestas de auth |
+| `MeResource` | composición privada de cuenta y perfil opcional |
+| `ChampionshipRegistrationRequestResource` | solicitudes del propio usuario y gestión administrativa |
+| `CalendarDayResource` | agrupación privada por día; delega cada partido en `MatchResource` |
+| `MyRankingResource` | posición privada del jugador en sus categorías |
+| `MatchResource` | contrato amplio heredado para “mis partidos”, calendario, reprogramación y API admin |
+| `MatchResultReportResource` | trazabilidad completa de reportes en API administrativa de conflictos |
+| `MatchRescheduleRequestResource` | workflow privado de reprogramación |
+| `ParticipantMatchResource` | workflow y respuestas de resultado del participante |
+| `ParticipantMatchResultReportResource` | reporte mínimo visible al participante |
+| `PendingMatchActionResource` | acción pendiente segura de Mi Panel |
+
+No existe un Resource específico de partido para administradores. La administración utiliza actualmente `MatchResource` y `MatchResultReportResource`; introducir otro contrato sería una decisión futura, no un hecho implementado.
+
+## Límites de seguridad por contexto
+
+- `PublicMatchResource` no incluye reportes, comentarios, responsables ni timestamps y solo publica tanteo/ganador cuando el partido está `validated`.
+- `ParticipantMatchResource` añade el contexto competitivo necesario, pero mantiene fuera reportes agregados, emails, responsables, claves foráneas de trazabilidad y timestamps.
+- `ParticipantMatchResultReportResource` limita cada reporte a lado, tanteo, estado y comentario.
+- `PendingMatchActionResource` solo añade el tipo de acción y el partido mínimo del participante.
+- los tres Resources públicos CMS omiten IDs internos, estado administrativo, claves foráneas y timestamps de edición.
+- `UserResource`, `PlayerProfileResource`, `ChampionshipRegistrationRequestResource` y `MatchRescheduleRequestResource` pueden contener datos personales o administrativos y no deben reutilizarse en endpoints de lectura anónima.
+- `MatchResource` y `MatchResultReportResource` contienen identificadores, responsables y trazabilidad. El primero sigue usándose en varios endpoints privados heredados; ambos están prohibidos para un detalle público nuevo.
+
+La normalización de `MatchResource` en “mis partidos”, calendario y reprogramación es deuda técnica conocida. DOC-1 documenta esa realidad sin cambiar el contrato consumido.
+
+---
+
 # 3. Responsabilidades
 
 Un Resource debe:
@@ -195,12 +239,10 @@ Ejemplos implementados actualmente:
 - PublicMatchResource
 - ParticipantMatchResource
 - ParticipantMatchResultReportResource
+- PendingMatchActionResource
+- MatchResource y MatchResultReportResource para el contexto amplio privado/administrativo heredado
 
-Ejemplo de Resource que podrá existir conforme evolucione el proyecto:
-
-- AdminMatchResource
-
-Cada uno representa un contrato distinto.
+Los cuatro primeros son contratos específicos por contexto. `MatchResource` y `MatchResultReportResource` forman el contrato amplio heredado que todavía comparte más de un contexto privado.
 
 ---
 

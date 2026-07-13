@@ -130,6 +130,20 @@ Los estados `validated`, `cancelled`, `postponed` y `under_review` están cerrad
 
 Mi Panel resume la intervención que corresponde al jugador en cada partido. Un partido programado sin reporte de su lado genera la acción de enviar resultado; si solo existe el reporte rival, genera la acción de confirmarlo o revisarlo desde el workflow. Cuando el partido está `under_review`, puede aparecer como aviso informativo, pero nunca como acción editable. Los estados `validated`, `cancelled` y `postponed` no generan acciones pendientes.
 
+## Reprogramación
+
+El backend dispone de un workflow independiente para proponer y confirmar reprogramaciones:
+
+1. un participante propone fecha, hora y pista;
+2. el lado rival confirma la propuesta existente en lugar de crear otra;
+3. al confirmar, ambas solicitudes quedan `validated` y se actualizan la fecha y la pista del partido;
+4. la operación usa transacción y bloqueo del partido;
+5. se rechazan colisiones exactas de pista y fecha/hora dentro del mismo campeonato.
+
+La restricción única es por partido y lado. La implementación actual permite que el mismo jugador actualice su propuesta mientras no exista una rival; su compañero de dobles no puede sustituirla. Los partidos `validated`, `cancelled`, `postponed` o `under_review` no admiten reprogramación.
+
+Este contrato existe en la API, pero no tiene interfaz React en el MVP. El endurecimiento adicional del workflow y su rate limiting quedan para una fase posterior.
+
 Entre otros procesos permiten:
 
 - determinar clasificaciones;
@@ -197,11 +211,13 @@ Entre otras tareas:
 El jugador puede:
 
 - gestionar su cuenta;
-- mantener su perfil deportivo;
+- crear su perfil deportivo y consultar sus datos;
 - solicitar inscripciones;
 - consultar calendarios;
 - consultar rankings;
 - consultar resultados.
+
+La API permite editar parcialmente apodo, mano dominante y notas. El frontend React del MVP no ofrece todavía una edición completa del perfil existente.
 
 No modifica directamente la estructura deportiva.
 

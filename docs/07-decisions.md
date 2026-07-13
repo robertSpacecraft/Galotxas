@@ -72,7 +72,8 @@ Ejemplos:
 
 - PublicMatchResource
 - ParticipantMatchResource
-- AdminMatchResource
+- ParticipantMatchResultReportResource
+- PendingMatchActionResource
 
 Se evita un único Resource con múltiples condicionales.
 
@@ -393,6 +394,8 @@ Consecuencias:
 - La ausencia de colisiones queda garantizada dentro de la categoría generada; la coordinación entre categorías conserva la semántica heredada y queda como evolución futura.
 - La disponibilidad avanzada, reservas, restricciones por modalidad y calendarios por pista permanecen fuera de alcance.
 
+Nota de trazabilidad: ADR-018 completa la evolución que ADR-017 dejó expresamente para SCHEDULE-1. ADR-017 se conserva porque explica la decisión anterior de no mezclar el CRUD de pistas con el generador.
+
 ---
 
 # ADR-019 — Desempates transitivos y deterministas en rankings
@@ -499,6 +502,8 @@ Consecuencias:
 - jsdom no valida integración real con Laravel, comportamiento específico de navegador ni apariencia visual.
 - Añadir cobertura debe responder a riesgo funcional, no a un porcentaje artificial.
 
+Nota de trazabilidad: E2E-1 se implementó posteriormente mediante la decisión registrada en ADR-024. ADR-022 continúa aceptada porque Vitest/RTL y Playwright cubren capas distintas.
+
 ---
 
 # ADR-023 — Actualizaciones de dependencias dirigidas y auditables
@@ -523,6 +528,32 @@ Consecuencias:
 - Cada cambio de dependencias conserva un alcance identificable y una comparación antes/después.
 - Las vulnerabilidades que requieran una migración principal permanecen documentadas en lugar de ocultarse mediante una actualización indiscriminada.
 - `package-lock.json` y `composer.lock` solo cambian a través de npm y Composer.
+
+---
+
+# ADR-024 — Playwright en un stack E2E aislado y desechable
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-07
+
+Contexto:
+- Vitest y los tests Feature validan sus capas de forma aislada, pero no recorren conjuntamente React, API, MariaDB y panel Blade en un navegador real.
+- El smoke no puede utilizar la base de desarrollo ni depender de IDs o datos manuales.
+- La versión de Chromium debe ser compatible con `@playwright/test` sin imponer una instalación global en WSL.
+
+Decisión:
+- Ejecutar Playwright con Chromium dentro de la imagen oficial fijada a la misma versión que `@playwright/test`.
+- Levantar mediante `backend/docker/docker-compose.e2e.yml` un proyecto Compose separado con Laravel/Nginx, MariaDB `galotxas_e2e` sobre `tmpfs` y runner Playwright.
+- Proteger `E2ESmokeSeeder` para que solo se ejecute con `APP_ENV=e2e` y `DB_DATABASE=galotxas_e2e`.
+- Mantener una suite serial que narra el flujo crítico desde contenido público y Mi Panel hasta conflicto, resolución Blade y ranking.
+- Desmontar contenedores, red y volúmenes al finalizar, también cuando la suite falla.
+
+Consecuencias:
+- `npm run e2e` prueba seis recorridos con frontend, backend y base reales sin tocar desarrollo.
+- La ejecución es reproducible y no necesita navegador ni librerías Playwright instaladas globalmente en el host.
+- Chromium es el único navegador cubierto en el MVP; una matriz adicional queda como evolución posterior.
+- El smoke no sustituye tests Feature, Vitest ni QA visual/manual.
 
 ---
 

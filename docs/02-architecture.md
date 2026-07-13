@@ -105,7 +105,7 @@ La primera base backend del CMS público sigue el mismo patrón general del proy
 - **React**: consumo de la API pública desde `/contenidos` y `/contenidos/:slug`, con renderizado de bloques estructurados, sin HTML libre.
 - **Navegación pública**: los enlaces institucionales del navbar apuntan a slugs CMS bajo `/contenidos/{slug}`.
 
-La subida de documentos o imágenes y los formularios públicos quedan fuera de esta base inicial y se abordarán en bloques posteriores.
+La subida de documentos o imágenes, las noticias como entidad propia y los formularios públicos quedan fuera de esta base inicial.
 
 ## Gestión de pistas y generación de calendarios
 
@@ -121,7 +121,7 @@ Cada pista aporta los siete huecos temporales heredados por jornada. Dentro de l
 
 Si no existe ninguna pista, el servicio falla antes de abrir la transacción y antes de crear datos. No se ha añadido un scope `active()` porque el modelo no soporta ese estado.
 
-La ocupación se calcula únicamente para la categoría que se está generando. Evitar solapamientos con calendarios ya generados de otras categorías exigiría coordinación de disponibilidad compartida y bloqueo concurrente; esa capacidad no se incorpora en SCHEDULE-1.
+La ocupación se calcula únicamente para la categoría que se está generando. Evitar solapamientos con calendarios ya generados de otras categorías exigiría coordinación de disponibilidad compartida y bloqueo concurrente; esa capacidad queda fuera de SCHEDULE-1.
 
 ---
 
@@ -235,6 +235,22 @@ La URL base se resuelve por entorno:
 
 Los servicios funcionales no deben duplicar esta resolución ni definir URLs base propias. Los despliegues con frontend y API en dominios distintos deben configurar `VITE_API_BASE_URL` durante el build.
 
+## Rutas React implementadas
+
+`frontend/src/App.jsx` registra actualmente:
+
+- `/`: inicio público;
+- `/nosotros`: página estática heredada;
+- `/torneos` y `/torneos/:championshipId`: listado y detalle de campeonatos;
+- `/categories/:categoryId`, `/categories/:categoryId/standings` y `/categories/:categoryId/schedule`: detalle, clasificación y calendario de categoría;
+- `/matches/:matchId`: detalle público o workflow de resultado según la sesión;
+- `/rankings`: rankings públicos;
+- `/contenidos` y `/contenidos/:slug`: índice y páginas CMS;
+- `/login`, `/register`, `/forgot-password` y `/reset-password`: autenticación;
+- `/player`: Mi Panel protegido por sesión React.
+
+No existe un panel administrativo React. Tampoco existen todavía rutas React para reprogramación ni edición completa del perfil. `App.jsx` conserva una declaración duplicada y no alcanzable de `/torneos` como placeholder; su retirada forma parte de la limpieza heredada post-MVP y no cambia la ruta efectiva actual.
+
 ---
 
 # 9. Contrato API
@@ -279,7 +295,11 @@ El frontend utiliza Vitest integrado en `vite.config.js`, React Testing Library 
 
 Las pruebas se mantienen junto al código cubierto. `renderWithProviders` aporta `MemoryRouter`, rutas parametrizadas y un `AuthContext` controlado cuando resulta necesario; los hooks y servicios remotos se simulan de forma localizada en cada suite. Esta capa valida utilidades, contratos de presentación e interacciones React sin iniciar Laravel ni realizar llamadas HTTP reales.
 
-Vitest/RTL no sustituye las pruebas Feature de Laravel ni constituye E2E. La automatización de recorridos completos en un navegador real queda reservada para E2E-1.
+Vitest/RTL no sustituye las pruebas Feature de Laravel ni constituye E2E.
+
+El smoke E2E implementado utiliza Playwright con Chromium y un stack Compose independiente. Levanta Laravel, Nginx y una MariaDB `galotxas_e2e` temporal, ejecuta `E2ESmokeSeeder`, inicia Vite desde el runner oficial y recorre frontend React y panel Blade con servicios reales. La suite es serial y el script elimina contenedores, red y volúmenes al finalizar.
+
+El E2E cubre el recorrido crítico del MVP; no constituye una matriz multibrowser ni sustituye QA visual/manual.
 
 ---
 

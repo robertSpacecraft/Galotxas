@@ -66,6 +66,28 @@ La ruta `/admin/venues` centraliza la configuración básica de pistas.
 - La navegación principal del panel incluye el acceso “Pistas”.
 - El conjunto mínimo de desarrollo se crea explícitamente con `php artisan db:seed --class=DefaultVenueSeeder`; repetir el comando no duplica ni sobrescribe pistas.
 
+### Inventario de pantallas implementadas
+
+El panel web actual dispone de estas áreas reales:
+
+| Área | Pantallas y acciones |
+|---|---|
+| Autenticación | login y logout de administrador |
+| Dashboard | contadores de solicitudes, asignaciones pendientes y conflictos; accesos rápidos |
+| Solicitudes | listado operativo, aprobación, rechazo y asignación rápida de categoría |
+| Temporadas | listado, alta, detalle, edición, borrado y campeonatos de la temporada |
+| Campeonatos | listado, alta dentro de temporada, detalle, edición, borrado, solicitudes y pago manual |
+| Categorías | listado, alta, detalle, edición, borrado, asignaciones, equipos, liga, copa y finales |
+| Partidos | edición dentro del detalle de categoría; no existe un índice Blade independiente de todos los partidos |
+| Conflictos | listado, detalle comparativo y resolución de partidos `under_review` |
+| Pistas | listado, alta, edición y borrado seguro |
+| Jugadores | listado, alta, detalle, edición y borrado |
+| Usuarios | listado, alta, detalle, edición y borrado |
+| Rankings | vista del ranking histórico; los demás rankings aparecen en los contextos de temporada, campeonato o categoría |
+| CMS | listado/alta/detalle/edición de páginas y alta/edición/borrado de bloques |
+
+No existen actualmente pantallas Blade específicas para una cola de solicitudes de reprogramación, métricas avanzadas, noticias, subida de archivos o formularios públicos. La fecha y pista de un partido pueden editarse desde la categoría y los conflictos de resultados tienen su flujo propio.
+
 ---
 
 # 1. Naturaleza del panel
@@ -105,7 +127,8 @@ El administrador puede gestionar:
 - partidos;
 - resultados;
 - rankings;
-- páginas públicas CMS.
+- páginas públicas CMS;
+- pistas.
 
 ---
 
@@ -308,6 +331,8 @@ La subida real de imágenes y documentos se incorporará en una fase posterior.
 - filtros avanzados;
 - auditoría ampliada;
 - panel de métricas avanzado;
+- cola administrativa específica de reprogramaciones;
+- coordinación de disponibilidad entre categorías;
 - administración avanzada de contenidos públicos (noticias);
 - gestión de documentos públicos (subida segura, visibilidad);
 - recepción y gestión de formularios públicos de interés.

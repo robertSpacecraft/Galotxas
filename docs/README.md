@@ -15,14 +15,17 @@ La documentación se organiza para separar claramente:
 
 ## Orden recomendado de lectura
 
-1. [Dominio](01-domain.md)
-2. [Arquitectura](02-architecture.md)
-3. [Contrato API actual y objetivo](03-api-contract.md)
-4. [Panel administrativo Blade](04-admin-panel.md)
-5. [Entorno y pruebas](05-testing.md)
-6. [Roadmap y deuda técnica](06-roadmap.md)
-7. [Decisiones arquitectónicas](07-decisions.md)
-8. [Resources y serialización](08-resources.md)
+1. [Glosario](00-glossary.md)
+2. [Dominio](01-domain.md)
+3. [Arquitectura](02-architecture.md)
+4. [Contrato API actual y objetivo](03-api-contract.md)
+5. [Panel administrativo Blade](04-admin-panel.md)
+6. [Entorno y pruebas](05-testing.md)
+7. [Roadmap y deuda técnica](06-roadmap.md)
+8. [Decisiones arquitectónicas](07-decisions.md)
+9. [Resources y serialización](08-resources.md)
+
+El conocimiento del deporte y los reglamentos elaborados por el usuario se mantienen por separado en [`Knowledge/`](../Knowledge/README.md). Los documentos técnicos describen el software; no sustituyen esa fuente de dominio.
 
 ## Relación con AGENTS.md
 

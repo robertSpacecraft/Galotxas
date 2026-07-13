@@ -117,7 +117,7 @@ Prioridad baja:
 
 Suite backend:
 
-`docker compose --profile test run --rm test`
+`docker compose -f backend/docker/docker-compose.yml --profile test run --rm test`
 
 Comprobación de sintaxis:
 
@@ -161,7 +161,7 @@ Chromium se ejecuta dentro de la imagen oficial de Playwright fijada a la misma 
 
 La configuración de los scripts fija `/tmp` para Vitest porque WSL puede heredar `TMP` y `TEMP` de Windows; así los workers no dependen de directorios temporales externos al entorno Linux.
 
-Los tests unitarios y de componentes frontend se ejecutan en jsdom y verifican funciones, renderizado e interacción aislada. No arrancan un navegador real ni recorren conjuntamente frontend, API y MariaDB. Esos recorridos pertenecen a E2E-1.
+Los tests unitarios y de componentes frontend se ejecutan en jsdom y verifican funciones, renderizado e interacción aislada. No arrancan un navegador real ni recorren conjuntamente frontend, API y MariaDB. Esos recorridos los cubre la suite separada E2E-1.
 
 ## Entorno Playwright E2E
 
@@ -201,6 +201,18 @@ Las actualizaciones directas compatibles fueron:
 Los gestores actualizaron también las dependencias transitivas vulnerables dentro de sus rangos compatibles: Babel, `brace-expansion`, `follow-redirects`, `form-data`, `js-yaml`, Picomatch, PostCSS, Guzzle, PSR-7, CommonMark, componentes Symfony 7.4 y polyfills. No se incorporaron nuevas dependencias funcionales ni se cambiaron versiones principales de la plataforma.
 
 El resultado final es 0 vulnerabilidades tanto en `npm audit` como en `npm audit --omit=dev`, y 0 advisories en `composer audit`. La regresión posterior comprende ESLint, 35 tests Vitest, build Vite, 6 smokes Playwright y 167 tests Laravel con 1.082 aserciones sobre MariaDB aislada.
+
+## Instantánea de validación del cierre documental
+
+Las cifras siguientes son una instantánea verificada el 13 de julio de 2026, no un número fijo que deban conservar futuras ampliaciones de la suite:
+
+- backend: 167 tests y 1.082 aserciones sobre MariaDB aislada;
+- frontend: 6 archivos y 35 tests Vitest;
+- E2E: 6 escenarios Playwright Chromium en `frontend/e2e/mvp-smoke.spec.js`;
+- calidad frontend: ESLint y build Vite correctos;
+- auditoría registrada tras DEPS-1: 0 vulnerabilidades npm completas y de producción, y 0 advisories Composer completos y de producción.
+
+DOC-1 volvió a ejecutar backend, Vitest, ESLint y build. La ejecución E2E completa y las auditorías pertenecen a la regresión inmediatamente anterior de DEPS-1; QA-MVP-1 repetirá la validación integral.
 
 ---
 
@@ -399,8 +411,27 @@ Limitaciones deliberadas:
 - no existe cobertura global ni se fija un porcentaje objetivo;
 - no se prueban estilos pixel a pixel;
 - no se inicia Laravel ni MariaDB desde Vitest;
-- no existe todavía un recorrido en navegador real;
-- E2E-1 abordará por separado una prueba de humo de los recorridos críticos.
+- Vitest no sustituye los tests Feature ni el smoke E2E;
+- el navegador real se cubre en una suite Playwright separada.
+
+## E2E-1 — Smoke del MVP
+
+La suite de seis escenarios cubre:
+
+- navegación pública e índice/detalle CMS;
+- login real y acciones pendientes de Mi Panel;
+- envío y confirmación coincidente de un resultado;
+- discrepancia visible y bloqueada para los jugadores;
+- resolución del conflicto desde el panel Blade;
+- resultado oficial y ranking histórico sin porcentaje incorrecto ni `NaN`.
+
+Limitaciones deliberadas del smoke:
+
+- solo Chromium de escritorio;
+- ejecución serial sobre un único relato y datos sembrados;
+- no cubre dobles, porque ese flujo permanece en tests Feature;
+- no valida apariencia pixel a pixel, accesibilidad completa ni todos los formularios administrativos;
+- no sustituye la QA funcional, visual y responsive de QA-MVP-1.
 
 ## Flujo de Inscripción y Administración (Fase 3 Core)
 - prevención de inscripciones si el campeonato está cerrado;
@@ -496,6 +527,8 @@ La evolución prevista incluye extender la cobertura funcional del módulo CMS c
 - gestión administrativa de contenidos;
 - validaciones de seguridad de archivos adjuntos;
 - prevención de spam en formularios públicos.
+
+También quedan como evolución posterior una métrica porcentual de cobertura frontend y una matriz E2E con navegadores adicionales. Ninguna de las dos bloquea el candidato MVP actual.
 
 ---
 

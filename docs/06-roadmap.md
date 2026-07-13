@@ -2,417 +2,158 @@
 
 ## Propósito
 
-Este documento representa el plan oficial de evolución del proyecto.
-
-A diferencia del resto de documentos de `/docs`, este archivo es dinámico y deberá actualizarse conforme avance el desarrollo.
-
-No describe el funcionamiento del sistema; únicamente indica el estado del proyecto, la deuda técnica conocida y el orden recomendado de implementación.
+Este documento representa el estado y el orden oficial de evolución del proyecto. Es dinámico: no sustituye la documentación funcional ni conserva el detalle de cada implementación ya cerrada.
 
 ---
 
-# Estado actual
+# Estado del MVP
 
-## Completado
+El núcleo funcional previsto para el MVP está implementado. El producto todavía no se considera publicado ni candidato formal: primero debe superar QA-MVP-1 y después prepararse en MVP-RC-1.
 
-### Documentación
-
-- Estructura documental reorganizada.
-- AGENTS global y específicos.
-- Guías de estilo para backend y frontend.
-- Glosario.
-- Dominio.
-- Arquitectura.
-- Contrato API.
-- Panel administrativo.
-- Estrategia de testing.
-- ADR.
-- Estrategia de Resources.
-
-### Backend
-
-- Autenticación.
-- Recuperación segura de contraseña.
-- Logout API.
-- Usuarios activos en API.
-- Usuarios activos en panel Blade.
-- Rate limiting.
-- Flujo completo de inscripción (solicitudes, aprobación, asignación).
-- Gestión administrativa de solicitudes (`/admin/registration-requests`).
-- Gestión de temporadas, campeonatos y categorías.
-- Equipos de dobles.
-- Generación de competición, partidos y resultados.
-- Rankings y API privada ("Mi Panel").
-- RANK-1: porcentaje histórico correcto y desempates deterministas de rankings.
-- Separación de Resources públicos.
-- VENUE-1: CRUD administrativo de pistas, borrado seguro y seeder explícito no destructivo.
-- SCHEDULE-1: generación de ligas con pistas dinámicas, deterministas y sin IDs mágicos.
-- CMS-1: base backend pública de páginas CMS y bloques controlados.
-- CMS-2: gestión admin básica de páginas CMS.
-- CMS-3: gestión admin básica de bloques CMS.
-- CMS-4: renderizado público de páginas CMS en React.
-- CMS-5: índice público de páginas CMS publicadas.
-- CMS-6: navegación pública institucional hacia páginas CMS.
-
-### Frontend
-
-- React básico.
-- Panel privado.
-- Detalle de partido React unificado para consulta pública y workflow autenticado de resultados.
-
-### Infraestructura
-
-- Docker.
-- MariaDB como único motor soportado.
-- Entorno de pruebas aislado.
-- E2E-1: smoke reproducible Chromium con Playwright y stack MariaDB temporal independiente.
-- DEPS-1: auditoría npm/Composer y actualización compatible sin advisories pendientes.
+La ausencia de una interfaz React de reprogramación no bloquea este cierre. El backend conserva ese workflow y su interfaz queda expresamente pospuesta.
 
 ---
 
-# Fase 0 — Validación funcional
+# Completado
 
-Objetivo:
+## Base de plataforma y seguridad
 
-Verificar manualmente todos los flujos principales desde la perspectiva del usuario y del administrador.
+- monorepo React + Laravel + panel Blade;
+- MariaDB como único motor soportado;
+- Docker para desarrollo, integración y E2E;
+- registro, login, logout y recuperación/restablecimiento de contraseña;
+- tokens Bearer Sanctum para React;
+- usuarios activos en API y panel administrativo;
+- rate limiting de autenticación y resultados;
+- creación de perfil deportivo y edición parcial por API;
+- administración de usuarios y jugadores.
 
-Estado:
+## Competición y administración
 
-Parcialmente completada.
+- temporadas, campeonatos y categorías;
+- solicitudes de inscripción, aprobación/rechazo, pago manual y asignación administrativa;
+- equipos y participantes competitivos de individuales y dobles;
+- generación de liga, copa, final y tercer puesto;
+- gestión Blade de pistas y seeder explícito no destructivo (VENUE-1);
+- generación reproducible con pistas configuradas, capacidad controlada y rollback atómico (SCHEDULE-1);
+- rankings de categoría, campeonato, temporada e histórico;
+- desempates deterministas y porcentaje histórico en escala `0–100` (RANK-1);
+- edición administrativa de partidos dentro de cada categoría;
+- workflow backend de reprogramación entre participantes.
 
-Pendientes:
+## Resultados y Mi Panel
 
-- continuar validando UX conforme evolucionen nuevas funcionalidades;
-- revisar consistencia del panel administrativo.
+- Mi Panel con perfil, inscripciones, partidos, calendario y rankings;
+- detalle React unificado de partido y resultados (MATCH-1);
+- contrato público/participante aislado mediante Resources mínimos (SEC-MATCH-1);
+- reporte único e inmutable por lado, confirmación, conflicto y transacciones (MATCH-2);
+- acciones pendientes `submit_result`, `confirm_result` y aviso `under_review` (PANEL-1);
+- listado, detalle y resolución Blade de conflictos con trazabilidad (ADMIN-CONFLICT-1).
 
----
+## CMS público
 
-# Fase 1 — Consolidación técnica
+- páginas y bloques estructurados sin HTML libre (CMS-1);
+- gestión Blade de páginas (CMS-2);
+- gestión Blade de bloques (CMS-3);
+- detalle público React (CMS-4);
+- índice de contenidos publicados (CMS-5);
+- navegación institucional y seeder no destructivo (CMS-6).
 
-Objetivo:
+## Frontend, despliegue y calidad
 
-Eliminar deuda técnica inmediata sin modificar el comportamiento funcional.
-
-Pendientes prioritarios:
-
-- homogeneidad de respuestas API;
-- normalización progresiva mediante Resources;
-- revisión de controladores con lógica excesiva;
-- limpieza de rutas duplicadas;
-- revisión de seguridad restante.
-
----
-
-# Fase 2 — Panel del participante
-
-Objetivo:
-
-Completar la experiencia privada del usuario.
-
-Incluye:
-
-- Mi Panel;
-- calendario;
-- partidos;
-- rankings;
-- estado de inscripciones;
-- validación UX.
-
----
-
-# Fase 3 — Panel administrativo
-
-Objetivo:
-
-Mejorar productividad del administrador.
-
-Estado:
-En progreso.
-
-Líneas previstas:
-
-- [x] Tareas pendientes en el dashboard (Bloque 1).
-- [x] Acciones rápidas (Bloque 2).
-- [x] Vista de huérfanos sin categoría (Bloque 3).
-- [x] Asignación rápida de categoría en la sección específica de solicitudes (Bloque 4).
-- [ ] Métricas y filtros avanzados (Bloque 5).
+- URL API por `VITE_API_BASE_URL`, fallback local de desarrollo y `/api/v1` en producción (DEPLOY-1);
+- Vitest, React Testing Library y 35 tests críticos (FE-TEST-1);
+- smoke Playwright de 6 escenarios con Chromium y stack temporal aislado (E2E-1);
+- auditoría y actualización compatible de npm/Composer sin vulnerabilidades conocidas pendientes en la instantánea de cierre (DEPS-1);
+- documentación técnica 00–08 reconciliada con el código (DOC-1).
 
 ---
 
-# Fase 4 — Contrato API
+# Cierre inmediato del MVP
 
-Objetivo:
+El orden bloqueante queda reducido a:
 
-Congelar el contrato público.
+1. **QA-MVP-1 — validación integral funcional, técnica y visual**
+   - repetir backend, frontend, E2E, auditorías, lint y build;
+   - recorrer manualmente los flujos públicos, del jugador y del administrador;
+   - comprobar responsive, accesibilidad básica, consola y coherencia visual;
+   - registrar defectos de release y resolver solo los bloqueantes.
+2. **MVP-RC-1 — preparación formal del candidato MVP**
+   - confirmar configuración y variables de despliegue;
+   - preparar notas del candidato y lista de limitaciones conocidas;
+   - fijar evidencia de validación y criterio de publicación;
+   - crear el candidato únicamente cuando QA-MVP-1 quede aceptado.
 
-Incluye:
-
-- normalización del envelope;
-- revisión de nombres;
-- serialización;
-- paginación;
-- errores homogéneos;
-- documentación OpenAPI futura.
-
----
-
-# Fase 5 — Cobertura de pruebas
-
-Objetivo:
-
-Endurecer la cobertura antes de considerar el proyecto funcionalmente estable.
-
-Incluye:
-
-- auditoría de cobertura;
-- Services;
-- Resources;
-- Middleware;
-- Policies;
-- flujos completos;
-- frontend cuando la interfaz se estabilice;
-- regresiones.
+No debe intercalarse una fase funcional nueva entre ambos bloques salvo que QA descubra un defecto bloqueante.
 
 ---
 
-# Fase 6 — Funcionalidades futuras (Competición)
+# Post-MVP funcional
 
-No prioritarias actualmente:
+Estas capacidades son válidas, pero no bloquean el candidato actual:
 
+- interfaz React para solicitar y confirmar reprogramaciones;
+- edición completa del perfil desde React;
 - pagos online;
-- pasarela de pago;
-- sugerencia automática de categoría;
-- asignación automática;
 - notificaciones;
-- mejoras avanzadas de rankings;
-- aplicación móvil;
-- API administrativa completa.
+- sugerencia o asignación automática de categoría;
+- noticias como entidad editorial propia;
+- subida segura y gestión de documentos e imágenes;
+- formularios públicos de federación/academy con antispam;
+- SEO y ordenación editorial avanzados del CMS;
+- métricas y filtros administrativos avanzados;
+- aplicación móvil y API administrativa consolidada.
 
 ---
 
-# Mini-fase de cierre competitivo
+# Deuda técnica conocida
 
-Objetivo:
+## API y seguridad
 
-Antes de implementar CMS/contenidos públicos, realizar una revisión técnica orientada al cierre competitivo de la primera fase.
+- estudiar la migración de Bearer en `localStorage` a cookies `HttpOnly`/`SameSite` con CSRF;
+- normalizar envelopes, errores, paginación y serialización heredada;
+- documentar el contrato mediante OpenAPI;
+- separar o reducir los usos amplios de `MatchResource` en “mis partidos”, calendario, reprogramación y administración;
+- endurecer reprogramaciones: Form Request dedicado, rate limiting y política explícita de rectificación;
+- definir una rectificación administrativa trazable de reportes de resultado del participante;
+- persistir un motivo administrativo de resolución de conflicto si el producto lo requiere.
 
-Pendientes prioritarios:
+## Competición y datos
 
-1. **Cerrar Mi Panel React** (completado):
-   - [x] adaptar calendario al contrato agrupado por días;
-   - [x] adaptar rankings privados a los objetos championship/category;
-   - [x] corregir estados de inscripción pending/approved/rejected;
-   - [x] corregir getRankings() para consumir el payload funcional;
-   - [x] reducir la duplicidad entre clientes Axios dejando `api.js` como alias compatible de `client.js`.
-2. **Finales de copa con status enum** (corregido):
-   - `GameMatch.status` está casteado a enum;
-   - GenerateCupService::generateFinals() compara contra GameMatchStatus::VALIDATED y queda cubierto por test de regresión.
-3. **Revisar/documentar estrategia de autenticación/token** (completado en C3):
-   - [x] mantener bearer token en `localStorage` como estrategia MVP actual;
-   - [x] logout con revocación backend y limpieza local garantizada;
-   - [x] limpieza de `token` y `user` ante `401`/`403`;
-   - [x] documentar como deuda futura una posible migración a cookie HttpOnly/SameSite/CSRF en bloque específico.
-4. **MATCH-1 — Unificar flujo React de resultados** (completado):
-   - [x] conectar `/matches/{id}` con el workflow backend de resultados;
-   - [x] consolidar envío, confirmación, conflicto y estados cerrados en una única experiencia visible;
-   - [x] mantener reprogramación fuera del alcance de este bloque.
-5. **SEC-MATCH-1 — Aislar el workflow privado de resultados** (completado):
-   - [x] mantener el detalle público mediante `PublicMatchResource` para usuarios sin perfil o ajenos al partido;
-   - [x] crear contratos mínimos `ParticipantMatchResource` y `ParticipantMatchResultReportResource`;
-   - [x] eliminar emails, usuarios completos, reportes agregados y trazabilidad interna del workflow del participante;
-   - [x] sanear también las respuestas de envío y confirmación;
-   - [x] cubrir seguridad, autorización funcional y dobles con tests Feature.
-6. **DEPLOY-1 — Configurar la URL API del frontend por entorno** (completado):
-   - [x] usar `VITE_API_BASE_URL` desde el cliente Axios central;
-   - [x] eliminar espacios exteriores del valor configurado;
-   - [x] mantener localhost únicamente como fallback de desarrollo;
-   - [x] usar `/api/v1` como fallback de producción para despliegues bajo el mismo dominio;
-   - [x] validar builds con y sin variable explícita.
-7. **VENUE-1 — Gestión básica y configuración reproducible de pistas** (completado):
-   - [x] CRUD Blade protegido para listar, crear, editar y eliminar pistas;
-   - [x] validación de nombre único y longitudes sobre los campos reales;
-   - [x] bloqueo de borrado cuando existen partidos o solicitudes de reprogramación;
-   - [x] `DefaultVenueSeeder` explícito, idempotente y basado en nombres estables;
-   - [x] tests Feature de permisos, validación, CRUD, borrado y seeder;
-   - [x] SCHEDULE-1: sustituir la selección heredada de IDs por todas las pistas existentes en orden estable.
-8. **SCHEDULE-1 — Generación reproducible sin IDs mágicos** (completado):
-   - [x] eliminar filtros por IDs y nombres concretos de pistas;
-   - [x] consultar una sola vez todas las pistas en orden por ID;
-   - [x] fallar con mensaje accionable cuando no existen pistas;
-   - [x] conservar siete huecos por pista y jornada sin colisiones;
-   - [x] revertir atómicamente la generación si la capacidad resulta insuficiente;
-   - [x] cubrir IDs arbitrarios, nombres personalizados, una y varias pistas, individuales, dobles y regeneración.
-9. **RANK-1 — Corrección y endurecimiento de rankings** (completado):
-   - [x] mostrar `win_rate` histórico sin multiplicarlo de nuevo por 100;
-   - [x] formatear números y strings numéricos sin producir `NaN`;
-   - [x] aplicar enfrentamiento directo solo a empates de exactamente dos entradas;
-   - [x] resolver empates múltiples mediante criterios globales transitivos;
-   - [x] añadir identificadores estables como último desempate técnico;
-   - [x] cubrir ciclo triple, igualdad total, cero partidos, dobles, agregados, histórico y Mi Panel;
-   - [x] FE-TEST-1: añadir infraestructura de tests frontend y cobertura automática del formateador.
-10. **MATCH-2 — Completar y endurecer el flujo de resultados** (completado):
-   - [x] cubrir primer reporte, confirmación coincidente, discrepancia y resolución administrativa;
-   - [x] impedir sobrescrituras y garantizar un único reporte inmutable por lado, también en dobles;
-   - [x] validar tanteos de individuales y dobles y limitar comentarios en ambos endpoints;
-   - [x] asegurar transacciones y bloqueo del partido durante el workflow;
-   - [x] conservar los reportes en conflicto como trazabilidad tras la resolución administrativa;
-   - [x] verificar estados cerrados, permisos, ganador, rankings y contrato seguro mediante tests Feature;
-   - [x] confirmar que React ya representa correctamente los estados y errores sin cambios de frontend.
-11. **PANEL-1 — Acciones pendientes de partidos en Mi Panel** (completado):
-   - [x] normalizar el endpoint como colección de `submit_result`, `confirm_result` y `under_review`;
-   - [x] usar un contrato específico y seguro sin reportes ni trazabilidad;
-   - [x] devolver colección vacía a usuarios autenticados sin perfil de jugador;
-   - [x] cubrir individuales, dobles, estados cerrados, revisión y aislamiento mediante tests Feature;
-   - [x] añadir una sección compacta con loading, error, vacío, contenido y acceso a `/matches/{id}`;
-   - [x] refrescar la lista al montar de nuevo Mi Panel sin polling ni WebSockets.
-12. **FE-TEST-1 — Base de tests frontend críticos** (completado):
-   - [x] integrar Vitest, React Testing Library, jest-dom, user-event y jsdom con Vite;
-   - [x] añadir setup central, limpieza automática y utilidad mínima de providers;
-   - [x] cubrir `formatPercentage`, sesión y resolución de baseURL;
-   - [x] cubrir `PendingMatchActions`, `MatchWorkflow` y una página CMS representativa;
-   - [x] mantener tests junto al código, sin snapshots masivos ni llamadas reales al backend;
-   - [x] validar tests, lint, build y lockfile con Node 22;
-   - [x] E2E-1: añadir una prueba de humo Chromium con frontend, API y MariaDB reales en un stack temporal aislado.
-13. **ADMIN-CONFLICT-1 — Resolución administrativa de conflictos** (completado):
-   - [x] añadir listado y detalle Blade exclusivos para partidos `under_review`;
-   - [x] comparar los dos reportes originales con contexto competitivo y sin datos privados;
-   - [x] resolver con el mismo servicio y las mismas reglas deportivas que el workflow backend;
-   - [x] ejecutar la validación con transacción y bloqueo, registrando al administrador;
-   - [x] conservar íntegros los reportes originales como trazabilidad;
-   - [x] integrar navegación y contador de conflictos en el dashboard;
-   - [x] cubrir permisos, individuales, dobles, errores, concurrencia lógica, rankings y recorrido E2E real.
-14. **DEPS-1 — Auditoría y actualización controlada de dependencias** (completado):
-   - [x] separar inventario npm completo y de producción;
-   - [x] auditar Composer completo y distinguir dependencias de producción y desarrollo;
-   - [x] actualizar Axios, React Router, Vite y Laravel dentro de sus versiones principales actuales;
-   - [x] corregir las dependencias transitivas vulnerables mediante los gestores oficiales;
-   - [x] reducir npm de 11 vulnerabilidades totales y 5 de producción a cero;
-   - [x] reducir Composer de 20 advisories en 11 paquetes a cero;
-   - [x] validar lint, Vitest, build, Playwright y la suite Laravel completa.
+- coordinar disponibilidad de pistas entre categorías distintas;
+- proteger generaciones concurrentes con una estrategia de bloqueo;
+- trasladar la unicidad del nombre de pista, hoy validada en formularios, a una restricción de base de datos;
+- modelar actividad/elegibilidad de pistas y restricciones por modalidad o nivel cuando exista ese requisito.
+
+## Mantenibilidad
+
+- dividir `frontend/src/pages/Dashboard.jsx` por responsabilidades;
+- reducir responsabilidades del `Api\V1\MatchController`;
+- limpiar rutas/componentes heredados y duplicados sin alterar el contrato;
+- retirar adaptadores de compatibilidad cuando sus consumidores hayan migrado;
+- mantener auditorías periódicas de npm y Composer.
+
+## Calidad
+
+- decidir si aporta valor una métrica porcentual de cobertura frontend;
+- ampliar E2E a navegadores adicionales cuando el riesgo de compatibilidad lo justifique;
+- extender el smoke más allá del relato crítico sin convertirlo en sustituto de Feature tests.
 
 ---
 
-# Fase CMS — Contenidos públicos
+# Fuera del alcance de este cierre
 
-Objetivo:
+DOC-1, QA-MVP-1 y MVP-RC-1 no autorizan por sí solos:
 
-Dotar al sistema de una parte pública administrable, independiente del sistema competitivo.
-
-Estado:
-
-En progreso.
-
-Esta fase incluirá:
-
-0. **Base backend pública de contenidos controlados (CMS-1)**:
-   - [x] modelo de página pública con `slug`, título, estado y SEO mínimo;
-   - [x] modelo de bloques controlados con orden y datos JSON;
-   - [x] endpoint público `GET /api/v1/cms/pages/{slug}`;
-   - [x] Resources públicos para página y bloques;
-   - [x] tests de publicación, borrador, fecha futura, inexistente, orden y ocultación de campos internos.
-1. **Gestión admin básica de páginas CMS (CMS-2)**:
-   - [x] listado de páginas CMS en Blade;
-   - [x] creación y edición de páginas CMS;
-   - [x] gestión de estado `draft`/`published` y `published_at`;
-   - [x] campos SEO mínimos;
-   - [x] enlace desde navegación admin;
-   - [x] tests de listado, creación, edición, slug único y acceso no admin.
-2. **Gestión admin básica de bloques CMS (CMS-3)**:
-   - [x] listado de bloques dentro del detalle de página CMS;
-   - [x] creación, edición y eliminación de bloques;
-   - [x] validación mínima de `data` por tipo de bloque;
-   - [x] orden manual mediante `sort_order`;
-   - [x] protección frente a bloques de otra página;
-   - [x] tests de CRUD, orden, validación, autorización y salida pública.
-3. **Renderizado público de páginas CMS en React (CMS-4)**:
-   - [x] servicio frontend para `GET /api/v1/cms/pages/{slug}`;
-   - [x] ruta pública `/contenidos/:slug`;
-   - [x] página React con estados de carga, error y no encontrado;
-   - [x] renderizadores controlados para bloques iniciales;
-   - [x] renderizado sin HTML libre ni `dangerouslySetInnerHTML`.
-4. **Índice público de páginas CMS (CMS-5)**:
-   - [x] endpoint público `GET /api/v1/cms/pages`;
-   - [x] Resource resumen sin bloques ni campos internos;
-   - [x] orden estable por `published_at` descendente e `id` descendente;
-   - [x] ruta React `/contenidos`;
-   - [x] página índice con estados de carga, error, vacío y contenido;
-   - [x] enlace público conservador desde la navegación principal.
-5. **Navegación pública y páginas institucionales CMS (CMS-6)**:
-   - [x] enlaces informativos del navbar hacia `/contenidos/{slug}`;
-   - [x] slugs institucionales fijados para el MVP;
-   - [x] seeder explícito y no destructivo para páginas institucionales base;
-   - [x] tests del seeder institucional.
-6. **Prensa y media / Noticias**:
-   - CRUD admin;
-   - contenido mediante bloques;
-   - imagen principal;
-   - estado borrador/publicado;
-   - API pública;
-   - listado y detalle en React.
-7. **Documentos públicos**:
-   - CRUD admin;
-   - subida segura de documentos;
-   - categorías;
-   - visibilidad;
-   - consulta/descarga desde React.
-8. **Federación / Federarse**:
-   - página informativa editable;
-   - explicación del papel del club en federaciones y seguros;
-   - enlaces oficiales;
-   - posible formulario de interés.
-9. **Academy / Escuela**:
-   - página promocional editable;
-   - información de escuela;
-   - aprendizaje/normas básicas;
-   - galería o bloques visuales;
-   - formulario de inscripción/interés.
-10. **Sistema de bloques de contenido**:
-   - se elige enfoque de bloques controlados, no HTML libre tipo editor Word;
-   - [x] bloques iniciales: encabezado, texto, lista, imagen, galería simple, enlace/botón, documento relacionado;
-   - [x] React renderiza los bloques con componentes controlados.
-11. **Formularios públicos de interés**:
-   - federarse;
-   - academy;
-   - rate limit;
-   - antispam/honeypot o captcha futuro;
-   - estados internos en admin.
-12. **Seguridad CMS**:
-   - validación MIME;
-   - límites de tamaño;
-   - almacenamiento seguro;
-   - sanitización o evitar HTML libre;
-   - separación borrador/publicado;
-   - permisos admin/editor si procede.
+- nuevas reglas deportivas;
+- cambios globales del contrato API;
+- migraciones de autenticación;
+- nuevas entidades CMS avanzadas;
+- refactors estructurales amplios;
+- publicación automática del producto.
 
 ---
 
-# Observaciones abiertas
+# Criterio de mantenimiento
 
-Durante la documentación se han identificado varias posibles evoluciones:
-
-- revisar periódicamente que la terminología del dominio permanezca alineada con las entidades reales (`User`, `Player`, `CategoryRegistration`, `CategoryEntry` y `Team`) conforme evolucione el proyecto.
-- coordinar la ocupación de pistas entre calendarios de categorías distintas y proteger generaciones concurrentes;
-- documentar la API mediante casos de uso completos;
-- ampliar el catálogo de ADR;
-- ampliar la documentación del contrato API con ejemplos reales;
-- mantener una estrategia estricta de Resources por contexto.
-
-Estas observaciones no constituyen tareas obligatorias, pero deberán revisarse cuando resulte oportuno.
-
----
-
-# Criterios para cerrar una fase
-
-Antes de considerar cerrada una fase deberían cumplirse:
-
-- funcionalidad implementada;
-- pruebas razonables;
-- validación manual;
-- documentación actualizada;
-- commit independiente;
-- merge realizado cuando corresponda.
-
----
-
-## Mantenimiento
-
-Este documento deberá revisarse al finalizar cada bloque importante de desarrollo para reflejar el estado real del proyecto.
+Una capacidad solo pasa a “Completado” cuando existen implementación, validación razonable y documentación coherente. Las cifras de tests se mantienen como instantáneas fechadas en `05-testing.md`, no como objetivos inmutables del roadmap.

@@ -58,6 +58,86 @@ La normalización completa del contrato constituye una fase específica del road
 
 ---
 
+## Inventario de rutas verificado
+
+El inventario siguiente corresponde a `backend/routes/api.php` y a la salida de `php artisan route:list` revisada en DOC-1. Todas las rutas se sirven bajo `/api/v1`.
+
+### Rutas públicas y autenticación
+
+| Método | Ruta | Salida principal |
+|---|---|---|
+| `POST` | `/auth/register` | payload controlado con token Bearer, usuario y perfil `null` |
+| `POST` | `/auth/login` | payload controlado con token Bearer, usuario y `PlayerProfileResource` opcional |
+| `POST` | `/auth/forgot-password` | mensaje genérico sin enumerar emails |
+| `POST` | `/auth/reset-password` | mensaje controlado o error `422` |
+| `GET` | `/seasons` | colección `SeasonResource` |
+| `GET` | `/championships` | colección `ChampionshipPublicResource` |
+| `GET` | `/championships/{championship}` | `ChampionshipPublicResource` |
+| `GET` | `/championships/{championship}/ranking` | colección `ChampionshipRankingResource` |
+| `GET` | `/categories/{category}` | `CategoryPublicResource` |
+| `GET` | `/categories/{category}/standings` | colección `CategoryRankingResource` |
+| `GET` | `/categories/{category}/schedule` | colección `CategoryScheduleRoundResource` |
+| `GET` | `/matches/{gameMatch}` | `PublicMatchResource` |
+| `GET` | `/cms/pages` | colección `PublicCmsPageSummaryResource` |
+| `GET` | `/cms/pages/{slug}` | `PublicCmsPageResource` o `404` |
+| `GET` | `/seasons/{season}/ranking` | colección `ChampionshipRankingResource` |
+| `GET` | `/rankings/all-time` | colección `AllTimeRankingResource` |
+
+Los cuatro endpoints de autenticación públicos están limitados a cinco intentos por minuto según email/IP o IP, conforme al limiter concreto. Las rutas públicas de lectura no usan ese limiter sensible.
+
+### Rutas autenticadas
+
+`POST /auth/logout` exige `auth:sanctum`, pero deliberadamente queda fuera de `EnsureUserIsActive` para que un usuario desactivado pueda revocar su token actual.
+
+Las rutas restantes de esta tabla exigen conjuntamente token Sanctum y usuario activo:
+
+| Método | Ruta | Salida principal |
+|---|---|---|
+| `GET` | `/me` | `MeResource` |
+| `GET` | `/me/player-profile` | `PlayerProfileResource` |
+| `POST` | `/me/player-profile` | `PlayerProfileResource` |
+| `PATCH` | `/me/player-profile` | `PlayerProfileResource`; solo apodo, mano dominante y notas |
+| `GET` | `/me/championship-registrations` | colección `ChampionshipRegistrationRequestResource` |
+| `GET` | `/me/matches` | colección del `MatchResource` privado heredado |
+| `GET` | `/me/matches/pending-actions` | colección `PendingMatchActionResource` |
+| `GET` | `/me/calendar` | colección `CalendarDayResource`, con partidos en `MatchResource` |
+| `GET` | `/me/rankings` | colección `MyRankingResource` |
+| `GET` | `/matches/{gameMatch}/workflow` | `PublicMatchResource` o Resources mínimos de participante según contexto |
+| `POST` | `/matches/{gameMatch}/submit-result` | `ParticipantMatchResource` y `ParticipantMatchResultReportResource` |
+| `POST` | `/matches/{gameMatch}/confirm-result` | `ParticipantMatchResource` y `ParticipantMatchResultReportResource` |
+| `GET` | `/matches/{gameMatch}/reschedule-workflow` | `MatchResource` y `MatchRescheduleRequestResource` |
+| `POST` | `/matches/{gameMatch}/request-reschedule` | `MatchRescheduleRequestResource` |
+| `POST` | `/matches/{gameMatch}/confirm-reschedule` | `MatchResource` y `MatchRescheduleRequestResource` |
+| `GET` | `/championships/{championship}/registration` | payload controlado y `ChampionshipRegistrationRequestResource` opcional |
+| `POST` | `/championships/{championship}/register` | `ChampionshipRegistrationRequestResource` |
+
+Los dos endpoints de escritura de resultados comparten un límite de diez intentos por minuto por usuario/IP. Las escrituras de reprogramación no tienen todavía un limiter específico.
+
+### API administrativa
+
+Todas las rutas `/api/v1/admin/*` exigen Sanctum, usuario activo y `IsAdmin`.
+
+| Métodos | Ruta | Estado del contrato |
+|---|---|---|
+| `GET`, `POST`, `PUT/PATCH`, `DELETE` | `/admin/seasons` y `/admin/seasons/{season}` | controladores heredados; modelos Eloquent directos y `204` al borrar |
+| `GET`, `POST`, `PUT/PATCH`, `DELETE` | `/admin/championships` y `/admin/championships/{championship}` | controladores heredados; modelos Eloquent directos y `204` al borrar |
+| `GET`, `POST`, `PUT/PATCH`, `DELETE` | `/admin/categories` y `/admin/categories/{category}` | controladores heredados; modelos Eloquent directos y `204` al borrar |
+| `POST` | `/admin/categories/{category}/entries` | `CategoryEntry` directo heredado |
+| `GET` | `/admin/matches/under-review` | colección `MatchResource` |
+| `GET` | `/admin/matches/{gameMatch}/conflict` | `MatchResource` y colección `MatchResultReportResource` |
+| `POST` | `/admin/matches/{gameMatch}/resolve-conflict` | `MatchResource` y colección `MatchResultReportResource` |
+| `POST` | `/admin/matches/{gameMatch}/validate-result` | `MatchResource` |
+| `GET` | `/admin/championships/{championship}/registration-requests` | colección `ChampionshipRegistrationRequestResource` |
+| `PATCH` | `/admin/championships/{championship}/registration-requests/{registrationRequest}/status` | `ChampionshipRegistrationRequestResource` |
+
+Los CRUD administrativos sin Resource y sus validaciones masivas con `$request->all()` son estado heredado real, no el patrón recomendado para endpoints nuevos. Su normalización requiere un bloque específico y no forma parte de DOC-1.
+
+### Separación respecto al panel Blade
+
+Las rutas `/admin/*` definidas en `routes/web.php` son páginas y formularios web con sesión, CSRF, middleware `auth` e `IsAdmin`. No pertenecen a la API REST, no usan el prefijo `/api/v1` y se documentan en `04-admin-panel.md`.
+
+---
+
 # 5. Resources
 
 Siempre que un endpoint exponga información estructurada deberá utilizar Resources cuando resulte razonable.
@@ -333,7 +413,19 @@ Solo puede actuar un participante del lado correspondiente. Un usuario sin perfi
 
 Los errores de validación y de regla de dominio se devuelven con estado `422` y un mensaje apto para mostrar al usuario; los fallos de autenticación o autorización conservan los estados HTTP establecidos por el middleware. La creación del reporte y las transiciones asociadas son atómicas.
 
-La reprogramación dispone de endpoints backend independientes, pero su UI React no forma parte del bloque MATCH-1.
+### Reprogramación de partidos
+
+El backend expone tres endpoints autenticados independientes:
+
+- `GET /api/v1/matches/{gameMatch}/reschedule-workflow`;
+- `POST /api/v1/matches/{gameMatch}/request-reschedule`;
+- `POST /api/v1/matches/{gameMatch}/confirm-reschedule`.
+
+La solicitud acepta `scheduled_date`, `scheduled_time`, `venue_id` y un comentario opcional de hasta 2.000 caracteres. Solo puede actuar un participante; en dobles, cualquiera de sus miembros representa al lado. El rival confirma la propuesta existente, tras lo cual se actualizan fecha y pista dentro de la misma transacción.
+
+El backend rechaza partidos cerrados y colisiones exactas de pista/fecha/hora dentro del mismo campeonato. El contrato actual usa el `MatchResource` amplio y `MatchRescheduleRequestResource`, que incluye trazabilidad autorizada para este flujo privado. El mismo lado puede actualizar su propuesta antes de que exista una propuesta rival y estos endpoints todavía no tienen rate limiting específico.
+
+La UI React de reprogramación no está implementada y queda fuera del cierre bloqueante del MVP.
 
 ---
 
