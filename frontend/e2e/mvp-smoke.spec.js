@@ -76,6 +76,85 @@ test.describe.serial('smoke narrativo del MVP', () => {
     assertNoConsoleErrors();
   });
 
+  test('el CTA principal abre el listado real de torneos', async ({ page }) => {
+    const assertNoConsoleErrors = watchCriticalConsoleErrors(page);
+
+    await page.goto('/');
+    await page.getByRole('link', { name: 'Ver Torneos' }).click();
+
+    await expect(page).toHaveURL(/\/torneos$/);
+    await expect(page.getByRole('heading', { name: 'Torneos' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Campeonato Individual E2E' })).toBeVisible();
+
+    assertNoConsoleErrors();
+  });
+
+  test('el calendario público muestra todas las jornadas y enlaza sus partidos', async ({ page }) => {
+    const assertNoConsoleErrors = watchCriticalConsoleErrors(page);
+
+    await page.goto('/torneos');
+    await page.getByRole('link', { name: 'Ver Torneo' }).click();
+    await expect(page.getByRole('heading', { name: 'Campeonato Individual E2E' })).toBeVisible();
+    await page.getByRole('link', { name: 'Ver categoría' }).click();
+    await expect(page.getByRole('heading', { name: 'Individual E2E', exact: true })).toBeVisible();
+
+    const categoryPath = new URL(page.url()).pathname;
+    await page.goto(`${categoryPath}/standings`);
+    await page.getByRole('link', { name: 'Calendario & Resultados' }).click();
+
+    await expect(page).toHaveURL(/\/categories\/\d+\/schedule$/);
+    await expect(page.getByRole('heading', { name: 'Individual E2E', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Jornada E2E Confirmación' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Jornada E2E Discrepancia' })).toBeVisible();
+    await expect(page.getByText('Pilotari E2E 1')).toHaveCount(2);
+    await expect(page.getByText('Pilotari E2E 2')).toHaveCount(2);
+    await expect(page.getByText('Pista: Pista E2E')).toHaveCount(2);
+    await expect(page.getByText('No hay jornadas configuradas todavía.')).toHaveCount(0);
+
+    await page.getByRole('link', { name: 'Ver partido: Pilotari E2E 1 contra Pilotari E2E 2' }).first().click();
+    await expect(page).toHaveURL(/\/matches\/\d+$/);
+    await expect(page.getByRole('heading', { name: 'Detalles de la partida' })).toBeVisible();
+    await expect(page.getByLabel('Pilotari E2E 1 contra Pilotari E2E 2')).toBeVisible();
+
+    assertNoConsoleErrors();
+  });
+
+  test('la navegación móvil permite recorrer enlaces públicos sin desbordamiento', async ({ page }) => {
+    const assertNoConsoleErrors = watchCriticalConsoleErrors(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    await page.goto('/');
+    const openMenu = page.getByRole('button', { name: 'Abrir menú de navegación' });
+    await expect(openMenu).toBeVisible();
+    await expect(openMenu).toHaveAttribute('aria-expanded', 'false');
+
+    await openMenu.click();
+    const closeMenu = page.getByRole('button', { name: 'Cerrar menú de navegación' });
+    await expect(closeMenu).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByRole('link', { name: 'Inicio', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Torneos', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Rankings', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Contenidos', exact: true })).toBeVisible();
+
+    await page.getByRole('link', { name: 'Rankings', exact: true }).click();
+    await expect(page).toHaveURL(/\/rankings$/);
+    await expect(page.getByRole('button', { name: 'Abrir menú de navegación' }))
+      .toHaveAttribute('aria-expanded', 'false');
+
+    await page.getByRole('button', { name: 'Abrir menú de navegación' }).click();
+    await page.getByRole('link', { name: 'Contenidos', exact: true }).click();
+    await expect(page).toHaveURL(/\/contenidos$/);
+    await expect(page.getByRole('button', { name: 'Abrir menú de navegación' }))
+      .toHaveAttribute('aria-expanded', 'false');
+
+    const hasNoHorizontalOverflow = await page.evaluate(
+      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+    );
+    expect(hasNoHorizontalOverflow).toBe(true);
+
+    assertNoConsoleErrors();
+  });
+
   test('login real, Mi Panel y acceso a una acción pendiente', async ({ page }) => {
     const assertNoConsoleErrors = watchCriticalConsoleErrors(page);
 

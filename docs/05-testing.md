@@ -185,7 +185,7 @@ El seeder aborta salvo que coincidan simultáneamente `APP_ENV=e2e` y `DB_DATABA
 
 La suite es serial de forma deliberada: representa un único smoke narrativo sobre dos partidos sembrados, primero valida un resultado coincidente, después provoca una discrepancia y finalmente la resuelve desde el panel Blade. El estado inicial siempre procede de una base temporal nueva y se destruye al finalizar; nunca depende de IDs manuales ni de datos de desarrollo.
 
-E2E-1 cubre navegación pública, CMS, login real, bloques y acciones de Mi Panel, confirmación coincidente, discrepancia no editable, acceso real del administrador al panel Blade, revisión y resolución del conflicto, resultado oficial actualizado y ranking histórico. Dobles queda fuera del smoke porque dispone de cobertura Feature específica.
+E2E-1 cubre navegación pública y móvil, CTA principal, calendario público con jornadas y partidos, CMS, login real, bloques y acciones de Mi Panel, confirmación coincidente, discrepancia no editable, acceso real del administrador al panel Blade, revisión y resolución del conflicto, resultado oficial actualizado y ranking histórico. Dobles queda fuera del smoke porque dispone de cobertura Feature específica.
 
 ## DEPS-1 — Auditoría y actualización controlada
 
@@ -202,17 +202,17 @@ Los gestores actualizaron también las dependencias transitivas vulnerables dent
 
 El resultado final es 0 vulnerabilidades tanto en `npm audit` como en `npm audit --omit=dev`, y 0 advisories en `composer audit`. La regresión posterior comprende ESLint, 35 tests Vitest, build Vite, 6 smokes Playwright y 167 tests Laravel con 1.082 aserciones sobre MariaDB aislada.
 
-## Instantánea de validación del cierre documental
+## Instantánea de validación tras QA-FIX-1
 
 Las cifras siguientes son una instantánea verificada el 13 de julio de 2026, no un número fijo que deban conservar futuras ampliaciones de la suite:
 
 - backend: 167 tests y 1.082 aserciones sobre MariaDB aislada;
-- frontend: 6 archivos y 35 tests Vitest;
-- E2E: 6 escenarios Playwright Chromium en `frontend/e2e/mvp-smoke.spec.js`;
+- frontend: 9 archivos y 45 tests Vitest;
+- E2E: 9 escenarios Playwright Chromium en `frontend/e2e/mvp-smoke.spec.js`;
 - calidad frontend: ESLint y build Vite correctos;
-- auditoría registrada tras DEPS-1: 0 vulnerabilidades npm completas y de producción, y 0 advisories Composer completos y de producción.
+- auditorías: 0 vulnerabilidades npm completas y de producción, y 0 advisories Composer.
 
-DOC-1 volvió a ejecutar backend, Vitest, ESLint y build. La ejecución E2E completa y las auditorías pertenecen a la regresión inmediatamente anterior de DEPS-1; QA-MVP-1 repetirá la validación integral.
+QA-FIX-1 añadió 10 regresiones Vitest/RTL: cinco para carga, error, vacío, colección real y fallbacks del calendario; cuatro para semántica, apertura/cierre y sesión del navbar; y una para el enlace interactivo del Hero. El smoke existente creció con tres escenarios para CTA, calendario real y navegación móvil a 390 × 844. La revalidación dirigida y la regresión completa repitieron frontend, E2E, backend y auditorías antes de habilitar el paso a MVP-RC-1.
 
 ---
 
@@ -401,6 +401,9 @@ FE-TEST-1 incorpora seis suites colocadas junto al código cubierto:
 - `PendingMatchActions`: estados remotos, contador, participantes, fecha, enlaces y aviso no editable `under_review`;
 - `MatchWorkflow`: carga, error, permisos, estados cerrados, envío numérico, validación local, confirmación y comentario opcional;
 - `CmsPage`: carga, error, 404, contenido válido y omisión de bloques desconocidos;
+- `Schedule`: carga, error, vacío, colección de jornadas, partidos, enlaces y fallbacks;
+- `Navbar`: enlaces públicos, estado accesible del menú, cierre y variantes de sesión;
+- `Hero`: destino e interacción del CTA de torneos;
 - `authSession`: lectura y limpieza de almacenamiento y evento de sesión invalidada;
 - `resolveApiBaseUrl`: URL configurada y fallbacks de desarrollo y producción.
 
@@ -416,9 +419,12 @@ Limitaciones deliberadas:
 
 ## E2E-1 — Smoke del MVP
 
-La suite de seis escenarios cubre:
+La suite de nueve escenarios cubre:
 
 - navegación pública e índice/detalle CMS;
+- CTA del Hero hacia el listado real de torneos;
+- calendario de categoría con dos jornadas, partidos y navegación al detalle;
+- menú público a 390 × 844, cierre al navegar a Rankings y Contenidos, y ausencia de overflow horizontal;
 - login real y acciones pendientes de Mi Panel;
 - envío y confirmación coincidente de un resultado;
 - discrepancia visible y bloqueada para los jugadores;
@@ -427,7 +433,7 @@ La suite de seis escenarios cubre:
 
 Limitaciones deliberadas del smoke:
 
-- solo Chromium de escritorio;
+- solo Chromium, con viewport de escritorio y un escenario móvil dirigido;
 - ejecución serial sobre un único relato y datos sembrados;
 - no cubre dobles, porque ese flujo permanece en tests Feature;
 - no valida apariencia pixel a pixel, accesibilidad completa ni todos los formularios administrativos;

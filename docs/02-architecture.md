@@ -251,6 +251,10 @@ Los servicios funcionales no deben duplicar esta resolución ni definir URLs bas
 
 No existe un panel administrativo React. Tampoco existen todavía rutas React para reprogramación ni edición completa del perfil. `App.jsx` conserva una declaración duplicada y no alcanzable de `/torneos` como placeholder; su retirada forma parte de la limpieza heredada post-MVP y no cambia la ruta efectiva actual.
 
+El calendario independiente de categoría obtiene su contexto mediante `GET /categories/{id}` y, en paralelo, consume `GET /categories/{id}/schedule` como la colección de jornadas definida por el contrato. Ambas llamadas pasan por `championshipsService`: React no reconstruye un objeto contenedor inexistente ni calcula reglas deportivas. Un fallo del contexto conserva las jornadas disponibles con fallbacks explícitos; un fallo de la colección produce un estado de error controlado.
+
+La navegación pública conserva todos sus enlaces en escritorio. En móvil y tablet, el mismo árbol de enlaces se expone mediante estado React y un botón con `aria-expanded` y `aria-controls`; el menú se cierra al seleccionar una ruta, al cambiar la ubicación, mediante el propio botón o con Escape. El acceso anónimo al área de jugadores y el acceso autenticado a Mi Panel permanecen independientes del estado del menú.
+
 ---
 
 # 9. Contrato API

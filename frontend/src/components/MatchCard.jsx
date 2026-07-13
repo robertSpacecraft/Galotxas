@@ -1,7 +1,14 @@
 import { Link } from 'react-router-dom';
 import styles from './MatchCard.module.css';
 
-export default function MatchCard({ match, entryNames = {}, translateStatus }) {
+export default function MatchCard({
+    match,
+    entryNames = {},
+    translateStatus,
+    officialScoresOnly = false,
+    showDetailLabel = false,
+    showVenue = false,
+}) {
     const getEntryName = (entry, directName, entryId) => {
         // Prioridad 1: Mapa de nombres enriquecido desde Standings
         if (entryId && entryNames[entryId]) return entryNames[entryId];
@@ -40,31 +47,64 @@ export default function MatchCard({ match, entryNames = {}, translateStatus }) {
     const awayName = getEntryName(awayEntry, match.away_team_name, match.away_entry_id || match.awayEntryId);
 
     const isValidated = match.status === 'validated';
+    const canShowScore = !officialScoresOnly || isValidated;
+    const statusLabel = translateStatus
+        ? translateStatus(match.status)
+        : match.status || 'Estado por determinar';
+    const scheduledDate = (() => {
+        if (!match.scheduled_date) return 'Fecha por determinar';
 
-    return (
-        <Link to={`/matches/${match.id}`} className={styles.link}>
-            <div className={styles.card}>
-                <div className={styles.header}>
-                    <span>{match.scheduled_date ? new Date(match.scheduled_date).toLocaleString() : 'Fecha por determinar'}</span>
-                    <span className={`${styles.statusBadge} ${isValidated ? styles.statusValidated : styles.statusPending}`}>
-                        {translateStatus ? translateStatus(match.status) : match.status}
-                    </span>
-                </div>
-                
-                <div className={styles.participantRow}>
-                    <div className={styles.participantName}>{homeName}</div>
-                    <div className={`${styles.participantScore} ${isValidated ? styles.scoreValidated : styles.scorePending}`}>
-                        {match.home_score !== null ? match.home_score : '-'}
-                    </div>
-                </div>
-                
-                <div className={styles.participantRow}>
-                    <div className={styles.participantName}>{awayName}</div>
-                    <div className={`${styles.participantScore} ${isValidated ? styles.scoreValidated : styles.scorePending}`}>
-                        {match.away_score !== null ? match.away_score : '-'}
-                    </div>
+        const date = new Date(match.scheduled_date);
+        return Number.isNaN(date.getTime()) ? 'Fecha por determinar' : date.toLocaleString();
+    })();
+    const score = (value) => canShowScore && value !== null && value !== undefined ? value : '-';
+
+    const card = (
+        <div className={styles.card}>
+            <div className={styles.header}>
+                <span>{scheduledDate}</span>
+                <span className={`${styles.statusBadge} ${isValidated ? styles.statusValidated : styles.statusPending}`}>
+                    {statusLabel}
+                </span>
+            </div>
+
+            <div className={styles.participantRow}>
+                <div className={styles.participantName}>{homeName}</div>
+                <div className={`${styles.participantScore} ${isValidated ? styles.scoreValidated : styles.scorePending}`}>
+                    {score(match.home_score)}
                 </div>
             </div>
+
+            <div className={styles.participantRow}>
+                <div className={styles.participantName}>{awayName}</div>
+                <div className={`${styles.participantScore} ${isValidated ? styles.scoreValidated : styles.scorePending}`}>
+                    {score(match.away_score)}
+                </div>
+            </div>
+
+            {showVenue && (
+                <div className={styles.venue}>Pista: {match.venue?.name || 'Por determinar'}</div>
+            )}
+
+            {showDetailLabel && (
+                <span className={styles.detailLabel}>
+                    {match.id ? 'Ver partido' : 'Detalle no disponible'}
+                </span>
+            )}
+        </div>
+    );
+
+    if (!match.id) {
+        return <div className={styles.link}>{card}</div>;
+    }
+
+    return (
+        <Link
+            to={`/matches/${match.id}`}
+            className={styles.link}
+            aria-label={`Ver partido: ${homeName} contra ${awayName}`}
+        >
+            {card}
         </Link>
     );
 }

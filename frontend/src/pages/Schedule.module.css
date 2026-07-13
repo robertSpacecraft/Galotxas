@@ -51,6 +51,18 @@
     box-shadow: var(--shadow-sm);
 }
 
+.contextWarning {
+    margin: -0.5rem 0 2rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--surface-border);
+    border-radius: 8px;
+    color: var(--text-secondary);
+}
+
+.emptySchedule {
+    color: var(--text-secondary);
+}
+
 .roundSection {
     margin-bottom: 3rem;
 }
@@ -70,4 +82,19 @@
 
 .emptyMessage {
     color: var(--text-secondary);
+}
+
+@media (max-width: 480px) {
+    .nav,
+    .navLink {
+        width: 100%;
+    }
+
+    .nav {
+        flex-direction: column;
+    }
+
+    .matchesGrid {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }

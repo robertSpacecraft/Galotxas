@@ -73,3 +73,16 @@
 .scorePending {
     color: #999;
 }
+
+.venue {
+    padding-top: 0.75rem;
+    border-top: 1px solid #e0e0e0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.detailLabel {
+    color: var(--brand-primary, #27ae60);
+    font-weight: 700;
+    text-align: right;
+}

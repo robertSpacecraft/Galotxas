@@ -8,7 +8,7 @@ Este documento representa el estado y el orden oficial de evolución del proyect
 
 # Estado del MVP
 
-El núcleo funcional previsto para el MVP está implementado. El producto todavía no se considera publicado ni candidato formal: primero debe superar QA-MVP-1 y después prepararse en MVP-RC-1.
+El núcleo funcional previsto para el MVP está implementado. QA-MVP-1 detectó dos defectos bloqueantes de presentación pública; QA-FIX-1 los corrigió y superó la revalidación dirigida y la regresión integral. El producto todavía no se considera publicado ni candidato formal hasta completar MVP-RC-1.
 
 La ausencia de una interfaz React de reprogramación no bloquea este cierre. El backend conserva ese workflow y su interfaz queda expresamente pospuesta.
 
@@ -62,27 +62,23 @@ La ausencia de una interfaz React de reprogramación no bloquea este cierre. El 
 ## Frontend, despliegue y calidad
 
 - URL API por `VITE_API_BASE_URL`, fallback local de desarrollo y `/api/v1` en producción (DEPLOY-1);
-- Vitest, React Testing Library y 35 tests críticos (FE-TEST-1);
-- smoke Playwright de 6 escenarios con Chromium y stack temporal aislado (E2E-1);
+- Vitest, React Testing Library y 45 tests críticos, incluidos calendario, navbar responsive y CTA (FE-TEST-1 y QA-FIX-1);
+- smoke Playwright de 9 escenarios con Chromium y stack temporal aislado, incluidos CTA, calendario y navegación móvil (E2E-1 y QA-FIX-1);
 - auditoría y actualización compatible de npm/Composer sin vulnerabilidades conocidas pendientes en la instantánea de cierre (DEPS-1);
 - documentación técnica 00–08 reconciliada con el código (DOC-1).
+- corrección de los bloqueantes QA del calendario público y de la navegación responsive, con revalidación dirigida en 1440 × 900, 1280 × 720 y 390 × 844 (QA-FIX-1).
 
 ---
 
 # Cierre inmediato del MVP
 
-El orden bloqueante queda reducido a:
+QA-MVP-1 y su revalidación dirigida QA-FIX-1 están cerrados. El siguiente bloque es:
 
-1. **QA-MVP-1 — validación integral funcional, técnica y visual**
-   - repetir backend, frontend, E2E, auditorías, lint y build;
-   - recorrer manualmente los flujos públicos, del jugador y del administrador;
-   - comprobar responsive, accesibilidad básica, consola y coherencia visual;
-   - registrar defectos de release y resolver solo los bloqueantes.
-2. **MVP-RC-1 — preparación formal del candidato MVP**
+1. **MVP-RC-1 — preparación formal del candidato MVP**
    - confirmar configuración y variables de despliegue;
    - preparar notas del candidato y lista de limitaciones conocidas;
    - fijar evidencia de validación y criterio de publicación;
-   - crear el candidato únicamente cuando QA-MVP-1 quede aceptado.
+   - crear el candidato utilizando la evidencia aceptada de QA-MVP-1 y QA-FIX-1.
 
 No debe intercalarse una fase funcional nueva entre ambos bloques salvo que QA descubra un defecto bloqueante.
 

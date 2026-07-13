@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import galotxasHero from '../../assets/galotxas_hero.png';
 import styles from './Hero.module.css';
 
@@ -13,7 +14,7 @@ export const Hero = () => {
       <div className={styles.heroContent}>
         <h1 className={styles.title}>La emoción de las Galotxas</h1>
         <p className={styles.subtitle}>Sigue los torneos oficiales y descubre la pasión de la Pilota Valenciana.</p>
-        <button className={styles.ctaButton}>Ver Torneos</button>
+        <Link to="/torneos" className={styles.ctaButton}>Ver Torneos</Link>
       </div>
     </section>
   );
