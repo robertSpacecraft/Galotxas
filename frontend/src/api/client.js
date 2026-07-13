@@ -1,13 +1,12 @@
 import axios from 'axios';
 import { clearAuthSession, getStoredAuthToken } from './authSession';
-
-const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
-const defaultApiBaseUrl = import.meta.env.DEV
-    ? 'http://localhost:8080/api/v1'
-    : '/api/v1';
+import { resolveApiBaseUrl } from './apiBaseUrl';
 
 const api = axios.create({
-    baseURL: configuredApiBaseUrl || defaultApiBaseUrl,
+    baseURL: resolveApiBaseUrl({
+        configuredUrl: import.meta.env.VITE_API_BASE_URL,
+        isDevelopment: import.meta.env.DEV,
+    }),
     headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'

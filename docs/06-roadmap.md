@@ -246,7 +246,7 @@ Pendientes prioritarios:
    - [x] resolver empates múltiples mediante criterios globales transitivos;
    - [x] añadir identificadores estables como último desempate técnico;
    - [x] cubrir ciclo triple, igualdad total, cero partidos, dobles, agregados, histórico y Mi Panel;
-   - [ ] FE-TEST-1: añadir infraestructura de tests frontend y cobertura automática del formateador.
+   - [x] FE-TEST-1: añadir infraestructura de tests frontend y cobertura automática del formateador.
 10. **MATCH-2 — Completar y endurecer el flujo de resultados** (completado):
    - [x] cubrir primer reporte, confirmación coincidente, discrepancia y resolución administrativa;
    - [x] impedir sobrescrituras y garantizar un único reporte inmutable por lado, también en dobles;
@@ -262,6 +262,14 @@ Pendientes prioritarios:
    - [x] cubrir individuales, dobles, estados cerrados, revisión y aislamiento mediante tests Feature;
    - [x] añadir una sección compacta con loading, error, vacío, contenido y acceso a `/matches/{id}`;
    - [x] refrescar la lista al montar de nuevo Mi Panel sin polling ni WebSockets.
+12. **FE-TEST-1 — Base de tests frontend críticos** (completado):
+   - [x] integrar Vitest, React Testing Library, jest-dom, user-event y jsdom con Vite;
+   - [x] añadir setup central, limpieza automática y utilidad mínima de providers;
+   - [x] cubrir `formatPercentage`, sesión y resolución de baseURL;
+   - [x] cubrir `PendingMatchActions`, `MatchWorkflow` y una página CMS representativa;
+   - [x] mantener tests junto al código, sin snapshots masivos ni llamadas reales al backend;
+   - [x] validar tests, lint, build y lockfile con Node 22;
+   - [ ] E2E-1: añadir por separado una prueba de humo en navegador real.
 
 ---
 

@@ -273,6 +273,12 @@ Las pruebas nunca deben ejecutarse sobre la base de desarrollo.
 
 La ejecución oficial utiliza Docker y una instancia MariaDB temporal.
 
+El frontend utiliza Vitest integrado en `vite.config.js`, React Testing Library y `@testing-library/user-event`. Los tests de componentes se ejecutan en `jsdom`, cargan los matchers de `jest-dom` desde un setup central y limpian el árbol React después de cada caso.
+
+Las pruebas se mantienen junto al código cubierto. `renderWithProviders` aporta `MemoryRouter`, rutas parametrizadas y un `AuthContext` controlado cuando resulta necesario; los hooks y servicios remotos se simulan de forma localizada en cada suite. Esta capa valida utilidades, contratos de presentación e interacciones React sin iniciar Laravel ni realizar llamadas HTTP reales.
+
+Vitest/RTL no sustituye las pruebas Feature de Laravel ni constituye E2E. La automatización de recorridos completos en un navegador real queda reservada para E2E-1.
+
 ---
 
 # 12. Principios arquitectónicos

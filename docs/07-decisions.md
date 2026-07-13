@@ -474,6 +474,33 @@ Consecuencias:
 
 ---
 
+# ADR-022 — Vitest y React Testing Library para la base de pruebas frontend
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-07
+
+Contexto:
+- El frontend React no disponía de ejecución automatizada y solo se validaba mediante ESLint, build y comprobaciones manuales.
+- Los flujos críticos necesitan proteger funciones puras, estados remotos e interacciones sin introducir todavía una infraestructura E2E completa.
+- El proyecto utiliza React 19, Vite 8 y Node 22.
+
+Decisión:
+- Adoptar Vitest integrado en la configuración Vite como runner frontend.
+- Usar React Testing Library, `jest-dom` y `user-event` para probar comportamiento accesible desde la perspectiva del usuario.
+- Ejecutar componentes en jsdom con setup y limpieza centralizados.
+- Mantener las suites junto al código cubierto y reutilizar una utilidad mínima con `MemoryRouter` y `AuthContext` opcional.
+- Simular hooks y servicios de forma localizada, sin llamadas reales al backend, cobertura porcentual obligatoria ni snapshots masivos.
+- Mantener E2E-1 como bloque independiente para navegador y sistema completos.
+
+Consecuencias:
+- `npm run test:run` se convierte en validación obligatoria de cambios frontend junto con lint y build.
+- Los contratos críticos pueden evolucionar con regresiones rápidas y deterministas.
+- jsdom no valida integración real con Laravel, comportamiento específico de navegador ni apariencia visual.
+- Añadir cobertura debe responder a riesgo funcional, no a un porcentaje artificial.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

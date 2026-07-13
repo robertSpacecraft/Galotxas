@@ -42,7 +42,11 @@ Backend:
 - Docker
 
 Frontend:
-- La estrategia de pruebas del frontend se documentará conforme aumente la cobertura.
+- Vitest
+- React Testing Library
+- `@testing-library/jest-dom`
+- `@testing-library/user-event`
+- jsdom
 
 ---
 
@@ -121,6 +125,18 @@ Comprobación de sintaxis:
 Comprobación de espacios y conflictos:
 
 `git diff --check`
+
+Suite frontend no interactiva:
+
+`cd frontend && npm run test:run`
+
+Modo watch frontend:
+
+`cd frontend && npm run test:watch`
+
+La configuración de los scripts fija `/tmp` para Vitest porque WSL puede heredar `TMP` y `TEMP` de Windows; así los workers no dependen de directorios temporales externos al entorno Linux.
+
+Los tests unitarios y de componentes frontend se ejecutan en jsdom y verifican funciones, renderizado e interacción aislada. No arrancan un navegador real ni recorren conjuntamente frontend, API y MariaDB. Esos recorridos pertenecen a E2E-1.
 
 ---
 
@@ -227,7 +243,7 @@ RANK-1 incorpora cobertura Feature para:
 - coherencia entre categoría, campeonato y temporada;
 - conservación del contrato privado de Mi Panel.
 
-El frontend no dispone todavía de tests unitarios. La función pura que formatea porcentajes se valida mediante lint y build; FE-TEST-1 deberá incorporar cobertura automatizada de números, strings numéricos y valores inválidos.
+`formatPercentage` dispone de cobertura unitaria para números, strings numéricos, límites `0–100` y valores ausentes, infinitos o fuera de rango.
 
 ## Workflow seguro de resultados
 - mantenimiento del contrato público anónimo sin trazabilidad interna;
@@ -283,7 +299,28 @@ La cobertura Feature verifica:
 - aislamiento frente a terceros ajenos al partido;
 - ausencia de emails, reportes, comentarios, responsables e identificadores de trazabilidad en el contrato.
 
-En frontend, PANEL-1 se valida mediante ESLint y build de producción. La futura fase FE-TEST-1 añadirá pruebas automatizadas de los estados loading, error, empty y content del componente.
+En frontend, `PendingMatchActions` dispone de pruebas de loading, error, empty y content, incluidos los tres tipos de acción y sus enlaces al workflow.
+
+## FE-TEST-1 — Base de pruebas frontend
+
+FE-TEST-1 incorpora seis suites colocadas junto al código cubierto:
+
+- `formatPercentage`: contrato de formato y rechazo de valores inválidos;
+- `PendingMatchActions`: estados remotos, contador, participantes, fecha, enlaces y aviso no editable `under_review`;
+- `MatchWorkflow`: carga, error, permisos, estados cerrados, envío numérico, validación local, confirmación y comentario opcional;
+- `CmsPage`: carga, error, 404, contenido válido y omisión de bloques desconocidos;
+- `authSession`: lectura y limpieza de almacenamiento y evento de sesión invalidada;
+- `resolveApiBaseUrl`: URL configurada y fallbacks de desarrollo y producción.
+
+La utilidad `renderWithProviders` ofrece únicamente `MemoryRouter`, rutas de prueba y `AuthContext` opcional. Los tests no dependen de nombres de clases CSS, no usan snapshots masivos y no hacen peticiones reales.
+
+Limitaciones deliberadas:
+
+- no existe cobertura global ni se fija un porcentaje objetivo;
+- no se prueban estilos pixel a pixel;
+- no se inicia Laravel ni MariaDB desde Vitest;
+- no existe todavía un recorrido en navegador real;
+- E2E-1 abordará por separado una prueba de humo de los recorridos críticos.
 
 ## Flujo de Inscripción y Administración (Fase 3 Core)
 - prevención de inscripciones si el campeonato está cerrado;
