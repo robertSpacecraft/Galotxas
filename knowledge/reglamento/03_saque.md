@@ -71,7 +71,7 @@ Se considerará saque no válido cuando ocurra cualquiera de las siguientes situ
 
 Cuando el saque no sea válido, el jugador o equipo que lo ejecuta perderá directamente el quince.
 
-La obtención del quince se desarrolla en **REG-005 – Obtención del quince**.
+Las situaciones que determinan la pérdida del quince se desarrollan en **REG-005 – Pérdida del quince**.
 
 ---
 

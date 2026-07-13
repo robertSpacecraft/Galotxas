@@ -14,7 +14,7 @@ El presente documento establece las reglas generales que regulan el desarrollo d
 
 Las Galotxas son un deporte de red en el que dos jugadores o dos equipos se enfrentan tratando de ganar sucesivamente las jugadas que componen cada juego hasta alcanzar el número de juegos necesario para obtener la victoria.
 
-Las definiciones de los elementos físicos de la cancha se desarrollan en el documento **Modelo de la cancha**.
+Las definiciones de los elementos físicos de la cancha se desarrollan en **REG-001 – Modelo de la cancha**.
 
 ---
 
@@ -54,7 +54,7 @@ Cada equipo estará compuesto por:
 
 Ambos jugadores colaboran para devolver la pilota al campo contrario.
 
-Las reglas específicas de esta modalidad se desarrollan en apartados posteriores del reglamento.
+Las reglas específicas de esta modalidad se desarrollan en **REG-007 – Modalidad por parejas**.
 
 ---
 
@@ -92,7 +92,7 @@ La jugada continúa mientras ninguno de los participantes cometa una acción que
 
 Una jugada finaliza cuando uno de los jugadores o equipos incurre en alguna de las situaciones previstas por el reglamento que implican la pérdida del quince.
 
-Las causas concretas que determinan la finalización de una jugada se desarrollan en capítulos posteriores.
+Las causas concretas que determinan la finalización de una jugada se desarrollan en **REG-005 – Pérdida del quince**.
 
 ---
 
@@ -102,7 +102,7 @@ Cada jugada otorga un único quince.
 
 El quince será adjudicado al jugador o equipo cuyo adversario incurra en una situación de pérdida de la jugada conforme a lo establecido en el reglamento.
 
-La forma de contabilizar los quinces se desarrolla en el capítulo dedicado al sistema de puntuación.
+La forma de contabilizar los quinces se desarrolla en **REG-006 – Sistema de puntuación**.
 
 ---
 
@@ -112,7 +112,7 @@ Los quinces obtenidos permiten ganar juegos.
 
 Cada juego constituye una unidad independiente dentro de la partida.
 
-El sistema de puntuación utilizado para determinar el vencedor de un juego se desarrolla en el capítulo correspondiente.
+El sistema de puntuación utilizado para determinar el vencedor de un juego se desarrolla en **REG-006 – Sistema de puntuación**.
 
 ---
 

@@ -20,46 +20,16 @@ Los objetivos principales de esta documentación son:
 
 ---
 
-# Organización
-
-La documentación se divide en dos grandes bloques.
-
-## canonical
-
-Contiene la documentación consolidada y considerada oficial dentro del proyecto.
-
-Toda la información utilizada como referencia por el software deberá encontrarse en este bloque.
-
-## working
-
-Contiene notas, investigaciones, entrevistas, borradores y cualquier otro material de trabajo que todavía no forme parte de la documentación consolidada.
-
----
-
 # Estructura
 
 ```text
 knowledge/
-
 ├── README.md
-
-├── canonical/
-│
-│   ├── 00_metodologia.md
-│
-│   ├── reglamento/
-│   │
-│   ├── glosario/
-│   │
-│   ├── historia/
-│   │
-│   └── multimedia/
-│
-└── working/
-    ├── borradores/
-    ├── entrevistas/
-    ├── notas/
-    └── referencias/
+├── reglamento/
+├── glosario/
+├── historia/
+├── multimedia/
+└── referencias/
 ```
 
 ---

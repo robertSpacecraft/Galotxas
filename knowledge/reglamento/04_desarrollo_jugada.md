@@ -48,8 +48,9 @@ No será válido golpear la pilota con:
 - La muñeca.
 - El antebrazo.
 - Cualquier otra parte del cuerpo.
+- La vestimenta del jugador.
 
-La pérdida del quince derivada de un golpeo no válido se desarrolla en **REG-005 – Obtención del quince**.
+Las situaciones que determinan la pérdida del quince por un golpeo no válido se desarrollan en **REG-005 – Pérdida del quince**.
 
 ---
 
@@ -98,6 +99,6 @@ Las situaciones especiales que interrumpen temporalmente la jugada se desarrolla
 
 # 9. Finalización de la jugada
 
-La jugada finalizará cuando se produzca cualquiera de las situaciones previstas en **REG-005 – Obtención del quince**.
+La jugada finalizará cuando se produzca cualquiera de las situaciones previstas en **REG-005 – Pérdida del quince**.
 
 El jugador o equipo contrario obtendrá automáticamente el quince correspondiente.

@@ -8,7 +8,7 @@ Plataforma web para la gestión y visualización de competiciones de Galotxas.
 - `frontend/`: React, Vite y zona pública/privada del jugador.
 - `backend/docker/`: PHP-FPM, Nginx y MariaDB 11.4.
 - `docs/`: documentación técnica y funcional.
-- `Knowledge/`: fuente documental del deporte y su reglamento.
+- `knowledge/`: fuente documental del deporte y su reglamento.
 
 MariaDB es el único motor de base de datos soportado. Laravel utiliza la conexión mariadb y PHP accede al servidor mediante la extensión pdo_mysql.
 
@@ -66,5 +66,5 @@ El stack E2E es desechable y no utiliza la base de desarrollo.
 ## Documentación
 
 - [Índice técnico y funcional](docs/README.md)
-- [Reglas de dominio deportivo](Knowledge/README.md)
+- [Reglas de dominio deportivo](knowledge/README.md)
 - [Roadmap y estado del MVP](docs/06-roadmap.md)
