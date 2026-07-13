@@ -75,6 +75,9 @@
                     <a class="nav-link" href="{{ route('admin.venues.index') }}">Pistas</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="{{ route('admin.match-conflicts.index') }}">Conflictos</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.players.index') }}">Jugadores</a>
                 </li>
                 <li class="nav-item">

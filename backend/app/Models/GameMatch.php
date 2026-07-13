@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class GameMatch extends Model
 {
@@ -71,6 +72,18 @@ class GameMatch extends Model
     public function resultReports(): HasMany
     {
         return $this->hasMany(MatchResultReport::class);
+    }
+
+    public function homeResultReport(): HasOne
+    {
+        return $this->hasOne(MatchResultReport::class)
+            ->where('side', 'home');
+    }
+
+    public function awayResultReport(): HasOne
+    {
+        return $this->hasOne(MatchResultReport::class)
+            ->where('side', 'away');
     }
 
     public function rescheduleRequests(): HasMany

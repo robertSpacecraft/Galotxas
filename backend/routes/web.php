@@ -1,20 +1,24 @@
 <?php
 
+use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\CategoryRegistrationController;
+use App\Http\Controllers\Admin\CategoryTeamController;
+use App\Http\Controllers\Admin\ChampionshipController as AdminChampionshipController;
+use App\Http\Controllers\Admin\ChampionshipRegistrationController as AdminChampionshipRegistrationController;
 use App\Http\Controllers\Admin\CmsBlockController;
 use App\Http\Controllers\Admin\CmsPageController;
-use App\Http\Controllers\Admin\PlayerController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\VenueController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\GameMatchController;
+use App\Http\Controllers\Admin\MatchConflictController;
+use App\Http\Controllers\Admin\PlayerController;
+use App\Http\Controllers\Admin\RankingController as AdminRankingController;
 use App\Http\Controllers\Admin\RegistrationRequestController;
 use App\Http\Controllers\Admin\SeasonController as AdminSeasonController;
-use App\Http\Controllers\Admin\ChampionshipController as AdminChampionshipController;
-use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
-use App\Http\Controllers\Admin\RankingController as AdminRankingController;
-use App\Http\Controllers\Admin\ChampionshipRegistrationController as AdminChampionshipRegistrationController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\VenueController;
+use App\Http\Middleware\IsAdmin;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
@@ -26,13 +30,21 @@ Route::prefix('admin')->group(function () {
         Route::post('/login', [AuthController::class, 'login'])->name('admin.login.submit');
     });
 
-    Route::middleware(['auth', \App\Http\Middleware\IsAdmin::class])->group(function () {
+    Route::middleware(['auth', IsAdmin::class])->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
         Route::get('/registration-requests', [RegistrationRequestController::class, 'index'])
             ->name('admin.registration-requests.index');
         Route::post('/logout', [AuthController::class, 'logout'])->name('admin.logout');
 
-        //CMS
+        // Conflictos de resultados
+        Route::get('/match-conflicts', [MatchConflictController::class, 'index'])
+            ->name('admin.match-conflicts.index');
+        Route::get('/match-conflicts/{gameMatch}', [MatchConflictController::class, 'show'])
+            ->name('admin.match-conflicts.show');
+        Route::post('/match-conflicts/{gameMatch}/resolve', [MatchConflictController::class, 'resolve'])
+            ->name('admin.match-conflicts.resolve');
+
+        // CMS
         Route::get('/cms/pages', [CmsPageController::class, 'index'])->name('admin.cms-pages.index');
         Route::get('/cms/pages/create', [CmsPageController::class, 'create'])->name('admin.cms-pages.create');
         Route::post('/cms/pages', [CmsPageController::class, 'store'])->name('admin.cms-pages.store');
@@ -58,7 +70,7 @@ Route::prefix('admin')->group(function () {
         Route::put('/venues/{venue}', [VenueController::class, 'update'])->name('admin.venues.update');
         Route::delete('/venues/{venue}', [VenueController::class, 'destroy'])->name('admin.venues.destroy');
 
-        //Temporadas
+        // Temporadas
         Route::get('/seasons', [AdminSeasonController::class, 'index'])->name('admin.seasons.index');
         Route::get('/seasons/create', [AdminSeasonController::class, 'create'])->name('admin.seasons.create');
         Route::post('/seasons', [AdminSeasonController::class, 'store'])->name('admin.seasons.store');
@@ -75,7 +87,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/seasons/{season}', [AdminSeasonController::class, 'show'])
             ->name('admin.seasons.show');
 
-        //Campeonatos
+        // Campeonatos
         Route::get('/championships', [AdminChampionshipController::class, 'index'])->name('admin.championships.index');
         Route::get('/championships/{championship}', [AdminChampionshipController::class, 'show'])
             ->name('admin.championships.show');
@@ -83,7 +95,7 @@ Route::prefix('admin')->group(function () {
         Route::put('/championships/{championship}', [AdminChampionshipController::class, 'update'])->name('admin.championships.update');
         Route::delete('/championships/{championship}', [AdminChampionshipController::class, 'destroy'])->name('admin.championships.destroy');
 
-        //Campeonatos (aprobación)
+        // Campeonatos (aprobación)
         Route::post(
             '/championships/{championship}/registration-requests/approve-all',
             [AdminChampionshipRegistrationController::class, 'approveAllPending']
@@ -109,16 +121,13 @@ Route::prefix('admin')->group(function () {
             [AdminChampionshipRegistrationController::class, 'updatePaymentStatus']
         )->name('admin.championships.registration-requests.update-payment-status');
 
-        //Categorías
+        // Categorías
         Route::get('/championships/{championship}/categories', [AdminCategoryController::class, 'index'])
             ->name('admin.championships.categories');
         Route::get('/championships/{championship}/categories/create', [AdminCategoryController::class, 'create'])
             ->name('admin.categories.create');
         Route::post('/championships/{championship}/categories', [AdminCategoryController::class, 'store'])
             ->name('admin.categories.store');
-
-
-
 
         Route::get('/categories/{category}', [AdminCategoryController::class, 'show'])
             ->name('admin.categories.show');
@@ -134,15 +143,15 @@ Route::prefix('admin')->group(function () {
         Route::delete('categories/{category}/registrations/{registration}', [CategoryRegistrationController::class, 'destroy'])
             ->name('admin.categories.registrations.destroy');
 
-        Route::post('/categories/{category}/teams', [\App\Http\Controllers\Admin\CategoryTeamController::class, 'store'])
+        Route::post('/categories/{category}/teams', [CategoryTeamController::class, 'store'])
             ->name('admin.categories.teams.store');
-        Route::delete('/categories/{category}/teams/{team}', [\App\Http\Controllers\Admin\CategoryTeamController::class, 'destroy'])
+        Route::delete('/categories/{category}/teams/{team}', [CategoryTeamController::class, 'destroy'])
             ->name('admin.categories.teams.destroy');
 
         Route::post('/categories/{category}/generate-league', [AdminCategoryController::class, 'generateLeague'])
             ->name('admin.categories.generate-league');
 
-        Route::patch('/categories/{category}/matches/{match}', [\App\Http\Controllers\Admin\GameMatchController::class, 'update'])
+        Route::patch('/categories/{category}/matches/{match}', [GameMatchController::class, 'update'])
             ->name('admin.categories.matches.update');
 
         Route::post('/categories/{category}/generate-cup', [AdminCategoryController::class, 'generateCup'])
@@ -153,11 +162,11 @@ Route::prefix('admin')->group(function () {
         Route::post('/categories/{category}/generate-finals', [AdminCategoryController::class, 'generateFinals'])
             ->name('admin.categories.generate-finals');
 
-        //Ranking
+        // Ranking
         Route::get('/rankings/history', [AdminRankingController::class, 'historical'])
             ->name('admin.rankings.history');
 
-        //Jugadores
+        // Jugadores
         Route::get('/players', [PlayerController::class, 'index'])
             ->name('admin.players.index');
         Route::get('/players/create', [PlayerController::class, 'create'])
@@ -173,7 +182,7 @@ Route::prefix('admin')->group(function () {
         Route::delete('/players/{player}', [PlayerController::class, 'destroy'])
             ->name('admin.players.destroy');
 
-        //Usuarios
+        // Usuarios
         Route::get('/users', [UserController::class, 'index'])
             ->name('admin.users.index');
         Route::get('/users/create', [UserController::class, 'create'])

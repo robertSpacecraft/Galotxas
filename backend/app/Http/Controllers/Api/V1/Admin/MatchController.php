@@ -78,29 +78,17 @@ class MatchController extends Controller
         ]);
 
         try {
-            $matchResultService->validateScores(
+            $gameMatch = $matchResultService->resolveConflict(
                 $gameMatch,
                 $validated['home_score'],
                 $validated['away_score'],
-                GameMatchStatus::VALIDATED->value
+                $request->user()
             );
         } catch (InvalidArgumentException $exception) {
             return $this->errorResponse($exception->getMessage());
         }
 
-        $gameMatch->update([
-            'home_score' => $validated['home_score'],
-            'away_score' => $validated['away_score'],
-            'winner_entry_id' => $matchResultService->resolveWinnerEntryId(
-                $gameMatch,
-                $validated['home_score'],
-                $validated['away_score']
-            ),
-            'status' => GameMatchStatus::VALIDATED->value,
-            'validated_by' => $request->user()->id,
-        ]);
-
-        $gameMatch->refresh()->load([
+        $gameMatch->load([
             'homeEntry.player',
             'homeEntry.team.players',
             'awayEntry.player',

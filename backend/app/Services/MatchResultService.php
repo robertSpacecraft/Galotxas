@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Enums\ChampionshipType;
 use App\Enums\GameMatchStatus;
 use App\Models\GameMatch;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 class MatchResultService
@@ -30,7 +32,7 @@ class MatchResultService
             return;
         }
 
-        if (!in_array($status, $statusesWithScores, true)) {
+        if (! in_array($status, $statusesWithScores, true)) {
             throw new InvalidArgumentException('El estado del partido no es válido.');
         }
 
@@ -62,5 +64,47 @@ class MatchResultService
         return $homeScore > $awayScore
             ? $match->home_entry_id
             : $match->away_entry_id;
+    }
+
+    public function resolveConflict(
+        GameMatch $match,
+        int $homeScore,
+        int $awayScore,
+        User $admin
+    ): GameMatch {
+        return DB::transaction(function () use ($match, $homeScore, $awayScore, $admin): GameMatch {
+            /** @var GameMatch $lockedMatch */
+            $lockedMatch = GameMatch::query()
+                ->whereKey($match->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedMatch->status !== GameMatchStatus::UNDER_REVIEW) {
+                throw new InvalidArgumentException(
+                    'Solo se pueden resolver partidos que estén en revisión.'
+                );
+            }
+
+            $this->validateScores(
+                $lockedMatch,
+                $homeScore,
+                $awayScore,
+                GameMatchStatus::VALIDATED->value
+            );
+
+            $lockedMatch->update([
+                'home_score' => $homeScore,
+                'away_score' => $awayScore,
+                'winner_entry_id' => $this->resolveWinnerEntryId(
+                    $lockedMatch,
+                    $homeScore,
+                    $awayScore
+                ),
+                'status' => GameMatchStatus::VALIDATED->value,
+                'validated_by' => $admin->id,
+            ]);
+
+            return $lockedMatch->refresh();
+        });
     }
 }

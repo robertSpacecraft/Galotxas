@@ -198,7 +198,9 @@ Los rankings de campeonato, temporada e histórico mantienen sus criterios agreg
 
 El envío se ejecuta dentro de una transacción MariaDB y bloquea la fila del partido con `lockForUpdate`. La restricción única por partido y lado, junto con la comprobación de dominio, impide que un mismo jugador o su compañero sobrescriban el reporte existente. Crear el segundo reporte, comparar ambos y validar el partido o marcar el conflicto constituye una única operación atómica.
 
-Una coincidencia valida ambos reportes y publica el resultado oficial. Una discrepancia conserva ambos como `conflict`, limpia cualquier tanteo oficial y mueve el partido a `under_review`. La resolución administrativa fija el resultado oficial sin reescribir los reportes originales, que permanecen como trazabilidad.
+Una coincidencia valida ambos reportes y publica el resultado oficial. Una discrepancia conserva ambos como `conflict`, limpia cualquier tanteo oficial y mueve el partido a `under_review`.
+
+La interfaz Blade de conflictos entra por `Admin\MatchConflictController`: lista y carga exclusivamente partidos `under_review`, mientras `ResolveMatchConflictRequest` autoriza al administrador activo y valida la forma básica del tanteo. Tanto este controlador como el endpoint administrativo existente delegan la resolución en `MatchResultService`. El servicio abre una transacción, bloquea la fila del partido, vuelve a comprobar el estado y las reglas deportivas, fija tanteo, ganador y `validated_by`, y finalmente cambia el estado a `validated`. Los `MatchResultReport` se consultan para la revisión, pero nunca se reescriben durante la resolución.
 
 Los Resources específicos por contexto siguen delimitando la salida: los participantes reciben el contrato privado mínimo y los usuarios ajenos conservan únicamente el detalle público.
 

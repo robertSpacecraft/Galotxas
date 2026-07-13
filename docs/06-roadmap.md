@@ -271,6 +271,14 @@ Pendientes prioritarios:
    - [x] mantener tests junto al código, sin snapshots masivos ni llamadas reales al backend;
    - [x] validar tests, lint, build y lockfile con Node 22;
    - [x] E2E-1: añadir una prueba de humo Chromium con frontend, API y MariaDB reales en un stack temporal aislado.
+13. **ADMIN-CONFLICT-1 — Resolución administrativa de conflictos** (completado):
+   - [x] añadir listado y detalle Blade exclusivos para partidos `under_review`;
+   - [x] comparar los dos reportes originales con contexto competitivo y sin datos privados;
+   - [x] resolver con el mismo servicio y las mismas reglas deportivas que el workflow backend;
+   - [x] ejecutar la validación con transacción y bloqueo, registrando al administrador;
+   - [x] conservar íntegros los reportes originales como trazabilidad;
+   - [x] integrar navegación y contador de conflictos en el dashboard;
+   - [x] cubrir permisos, individuales, dobles, errores, concurrencia lógica, rankings y recorrido E2E real.
 
 ---
 

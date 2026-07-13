@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\CategoryRegistration;
 use App\Models\Championship;
 use App\Models\ChampionshipRegistrationRequest;
+use App\Models\GameMatch;
 use App\Models\Player;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -53,6 +54,9 @@ class AdminDashboardTest extends TestCase
             'status' => 'approved',
         ]);
 
+        GameMatch::factory()->count(2)->create(['status' => 'under_review']);
+        GameMatch::factory()->create(['status' => 'scheduled']);
+
         $response = $this->actingAs($admin)->get(route('admin.dashboard'));
 
         $response->assertOk();
@@ -63,6 +67,10 @@ class AdminDashboardTest extends TestCase
         $response->assertSee('id="approved-unassigned-requests-count"', false);
         $response->assertSee('data-count="1"', false);
         $response->assertSee(route('admin.registration-requests.index'));
+        $response->assertSee('Conflictos de resultados');
+        $response->assertSee('id="pending-match-conflicts-count"', false);
+        $response->assertSee('data-count="2"', false);
+        $response->assertSee(route('admin.match-conflicts.index'));
     }
 
     public function test_dashboard_does_not_render_operational_request_forms(): void

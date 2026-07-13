@@ -248,6 +248,16 @@ Cuando dos lados reportan tanteos diferentes, el partido queda `under_review` si
 
 Los dos reportes originales permanecen en estado `conflict`, con sus autores, comentarios y tanteos intactos. Esta trazabilidad permite auditar qué comunicó cada lado; la resolución no falsifica una confirmación que nunca ocurrió. Tras validarse el partido, el resultado pasa a rankings y demás cálculos oficiales.
 
+La sección **Conflictos** de la navegación administra este flujo mediante:
+
+- `GET /admin/match-conflicts`: listado exclusivo de partidos `under_review`, con competición, categoría, jornada, participantes, fecha, pista y los dos reportes;
+- `GET /admin/match-conflicts/{gameMatch}`: detalle de contexto y comparación de tanteos, autores y comentarios originales;
+- `POST /admin/match-conflicts/{gameMatch}/resolve`: resolución mediante tanteo oficial local y visitante.
+
+El formulario muestra el objetivo deportivo calculado por el backend —10 en individuales y 12 en dobles— y exige confirmación antes del envío. Los valores negativos, empates, tanteos que incumplen el objetivo y partidos que ya no estén `under_review` se rechazan sin producir cambios parciales. La resolución se ejecuta con transacción y bloqueo de fila para impedir dobles validaciones concurrentes.
+
+El dashboard muestra el número de conflictos pendientes y enlaza al listado. Las vistas no exponen correos electrónicos ni identificadores internos. El modelo actual no dispone de un campo de motivo administrativo, por lo que la trazabilidad se compone del administrador guardado en `validated_by` y de los dos reportes originales inmutables.
+
 ---
 
 # 12. Rankings

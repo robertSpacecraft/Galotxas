@@ -118,7 +118,9 @@ El flujo oficial es el siguiente:
 1. Un participante de cualquiera de los dos lados envía el primer reporte de un partido `scheduled` y el partido pasa a `submitted`.
 2. El lado rival puede confirmar el mismo tanteo. Ambos reportes pasan a `validated`, el partido pasa a `validated` y se fijan el tanteo y el ganador oficiales.
 3. Si el lado rival comunica un tanteo diferente, ambos reportes pasan a `conflict` y el partido queda `under_review`, sin tanteo ni ganador oficiales.
-4. Un administrador resuelve el conflicto fijando el resultado oficial. Los reportes originales se conservan como trazabilidad del desacuerdo.
+4. Un administrador resuelve el conflicto fijando el resultado oficial. Esta operación solo es válida mientras el partido está `under_review`, vuelve a validar las reglas deportivas del tanteo y registra al administrador en `validated_by`.
+
+La resolución administrativa es atómica: bloquea el partido, fija tanteo y ganador, y lo mueve a `validated`. Los dos reportes originales permanecen inmutables en estado `conflict`, incluidos sus autores, comentarios y tanteos, como trazabilidad del desacuerdo. El modelo actual no dispone de un campo adicional para un motivo administrativo.
 
 Cada lado dispone de un único reporte inmutable por partido. En dobles, cualquiera de los miembros representa al lado: una vez que uno ha reportado, su compañero no puede sustituir el reporte ni confirmar el del rival. Tampoco el mismo jugador puede reenviar y sobrescribir su reporte.
 

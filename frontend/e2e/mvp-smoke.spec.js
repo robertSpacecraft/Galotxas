@@ -1,6 +1,12 @@
 import { expect, test } from '@playwright/test';
 
+const adminBaseURL = process.env.E2E_BACKEND_URL || 'http://127.0.0.1:8081';
+
 const credentials = {
+  admin: {
+    email: 'admin.e2e@example.test',
+    password: 'E2E-password-123!',
+  },
   player1: {
     email: 'player1.e2e@example.test',
     password: 'E2E-password-123!',
@@ -45,6 +51,7 @@ const fillScore = async (page, homeScore, awayScore) => {
 
 test.describe.serial('smoke narrativo del MVP', () => {
   let confirmationMatchPath;
+  let reviewMatchPath;
 
   test('navegación pública y página CMS publicada', async ({ page }) => {
     const assertNoConsoleErrors = watchCriticalConsoleErrors(page);
@@ -127,6 +134,7 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await logout(page);
     await login(page, credentials.player2);
     await page.getByRole('link', { name: 'Confirmar resultado' }).click();
+    reviewMatchPath = new URL(page.url()).pathname;
     await expect(page.getByRole('heading', { name: 'Reportar una discrepancia' })).toBeVisible();
     await fillScore(page, 7, 10);
     await page.getByRole('button', { name: 'Enviar discrepancia' }).click();
@@ -143,6 +151,41 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await expect(page.getByRole('button', { name: /Enviar resultado|Enviar discrepancia|Confirmar este resultado/ })).toHaveCount(0);
 
     assertNoConsoleErrors();
+  });
+
+  test('el administrador resuelve la discrepancia desde el panel Blade', async ({ page }) => {
+    await page.goto(`${adminBaseURL}/admin/login`);
+    await page.getByLabel('Email').fill(credentials.admin.email);
+    await page.getByLabel('Contraseña').fill(credentials.admin.password);
+    await page.getByRole('button', { name: 'Entrar' }).click();
+
+    await expect(page).toHaveURL(/\/admin$/);
+    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+    await page.getByRole('link', { name: 'Conflictos', exact: true }).click();
+
+    await expect(page.getByRole('heading', { name: 'Conflictos de resultados' })).toBeVisible();
+    await expect(page.getByRole('cell', { name: '10 - 6' })).toBeVisible();
+    await expect(page.getByRole('cell', { name: '7 - 10' })).toBeVisible();
+    await page.getByRole('link', { name: 'Revisar y resolver' }).click();
+
+    await expect(page.getByRole('heading', { name: 'Resolver conflicto de resultado' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Reporte local' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Reporte visitante' })).toBeVisible();
+    await page.getByLabel('Tanteo oficial local').fill('10');
+    await page.getByLabel('Tanteo oficial visitante').fill('8');
+
+    page.once('dialog', (dialog) => dialog.accept());
+    await page.getByRole('button', { name: 'Confirmar resolución' }).click();
+
+    await expect(page).toHaveURL(/\/admin\/match-conflicts$/);
+    await expect(page.getByRole('alert')).toContainText('Conflicto resuelto y resultado validado correctamente.');
+    await expect(page.getByText('No hay conflictos de resultados pendientes de resolución.')).toBeVisible();
+
+    await page.goto(reviewMatchPath);
+    await expect(page.getByText('Finalizado', { exact: true })).toBeVisible();
+    const officialScore = page.getByLabel('Pilotari E2E 1 contra Pilotari E2E 2');
+    await expect(officialScore).toContainText('10');
+    await expect(officialScore).toContainText('8');
   });
 
   test('el ranking refleja el resultado validado sin escala incorrecta ni NaN', async ({ page }) => {

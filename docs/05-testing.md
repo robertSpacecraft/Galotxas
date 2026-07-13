@@ -169,9 +169,9 @@ El seeder aborta salvo que coincidan simultáneamente `APP_ENV=e2e` y `DB_DATABA
 - `player2.e2e@example.test`;
 - contraseña común: `E2E-password-123!`.
 
-La suite es serial de forma deliberada: representa un único smoke narrativo sobre dos partidos sembrados, primero valida un resultado coincidente y después provoca una discrepancia. El estado inicial siempre procede de una base temporal nueva y se destruye al finalizar; nunca depende de IDs manuales ni de datos de desarrollo.
+La suite es serial de forma deliberada: representa un único smoke narrativo sobre dos partidos sembrados, primero valida un resultado coincidente, después provoca una discrepancia y finalmente la resuelve desde el panel Blade. El estado inicial siempre procede de una base temporal nueva y se destruye al finalizar; nunca depende de IDs manuales ni de datos de desarrollo.
 
-E2E-1 cubre navegación pública, CMS, login real, bloques y acciones de Mi Panel, confirmación coincidente, discrepancia no editable y ranking histórico. La resolución administrativa no forma parte del smoke inicial porque el panel Blade todavía no ofrece una pantalla para ese conflicto; el endpoint administrativo y su efecto en rankings continúan cubiertos por `AdminMatchConflictResolutionTest`. Dobles queda fuera del smoke inicial porque ya dispone de cobertura Feature específica.
+E2E-1 cubre navegación pública, CMS, login real, bloques y acciones de Mi Panel, confirmación coincidente, discrepancia no editable, acceso real del administrador al panel Blade, revisión y resolución del conflicto, resultado oficial actualizado y ranking histórico. Dobles queda fuera del smoke porque dispone de cobertura Feature específica.
 
 ---
 
@@ -308,6 +308,22 @@ La cobertura Feature del workflow incluye:
 - regresión de los Resources seguros para anónimos, usuarios ajenos y participantes.
 
 Las pruebas de integración se ejecutan exclusivamente sobre la instancia MariaDB aislada del perfil `test` de Docker.
+
+## ADMIN-CONFLICT-1 — Resolución Blade de conflictos
+
+`AdminMatchConflictResolutionTest` cubre además:
+
+- listado vacío y listado limitado a partidos `under_review`;
+- contexto competitivo, participantes, fecha, pista y ambos reportes en listado y detalle;
+- ausencia de correos electrónicos en las vistas;
+- autorización de administrador activo y rechazo de usuarios normales o administradores inactivos;
+- resolución válida de individuales y dobles reutilizando las reglas deportivas del backend;
+- conservación exacta de tanteos, comentarios, autores y estado `conflict` de los reportes;
+- registro de `validated_by`, cálculo de ganador y efecto posterior en rankings;
+- rechazo sin cambios de negativos, empates, objetivos inválidos, estados no revisables y segundos intentos;
+- rollback completo ante un fallo de persistencia provocado después de actualizar el partido dentro de la transacción.
+
+`AdminDashboardTest` verifica el contador y el acceso a la sección desde el dashboard. El smoke Playwright valida el recorrido real desde la discrepancia comunicada por los jugadores hasta su resolución administrativa y la publicación del resultado oficial.
 
 ## Área Privada "Mi Panel"
 - datos del usuario autenticado;

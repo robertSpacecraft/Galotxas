@@ -23,7 +23,7 @@
     </div>
 
     <div class="row g-4 mb-4">
-        <div class="col-md-6">
+        <div class="col-lg-4">
             <div class="card page-card h-100 border-warning">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start gap-3">
@@ -39,7 +39,7 @@
             </div>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-lg-4">
             <div class="card page-card h-100 border-info">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start gap-3">
@@ -55,10 +55,31 @@
             </div>
         </div>
 
+        <div class="col-lg-4">
+            <div class="card page-card h-100 border-danger">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                            <h2 class="h5 mb-2">Conflictos de resultados</h2>
+                            <p class="text-secondary mb-0">Partidos en revisión que requieren resolución administrativa.</p>
+                        </div>
+                        <span id="pending-match-conflicts-count" data-count="{{ $pendingMatchConflictsCount }}" class="badge text-bg-danger fs-6">
+                            {{ $pendingMatchConflictsCount }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="col-12">
-            <a href="{{ route('admin.registration-requests.index') }}" class="btn btn-primary">
-                Gestionar solicitudes e inscripciones
-            </a>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ route('admin.registration-requests.index') }}" class="btn btn-primary">
+                    Gestionar solicitudes e inscripciones
+                </a>
+                <a href="{{ route('admin.match-conflicts.index') }}" class="btn btn-outline-danger">
+                    Revisar conflictos de resultados
+                </a>
+            </div>
         </div>
     </div>
     <div class="row g-4">
