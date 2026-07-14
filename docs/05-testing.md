@@ -214,6 +214,18 @@ Las cifras siguientes son una instantánea verificada el 13 de julio de 2026, no
 
 QA-FIX-1 añadió 10 regresiones Vitest/RTL: cinco para carga, error, vacío, colección real y fallbacks del calendario; cuatro para semántica, apertura/cierre y sesión del navbar; y una para el enlace interactivo del Hero. El smoke existente creció con tres escenarios para CTA, calendario real y navegación móvil a 390 × 844. La revalidación dirigida y la regresión completa repitieron frontend, E2E, backend y auditorías antes de habilitar el paso a MVP-RC-1.
 
+## Instantánea de validación tras RC-HARDEN-1
+
+La instantánea verificada el 14 de julio de 2026 amplía la anterior sin modificar los contratos de API ni las reglas deportivas:
+
+- backend: 168 tests y 1.088 aserciones sobre MariaDB aislada;
+- frontend: 18 archivos y 65 tests Vitest;
+- E2E: los mismos 9 escenarios Playwright Chromium, ampliados con comprobaciones de formularios accesibles, ruta real de torneos y navegación Blade móvil;
+- calidad frontend: ESLint y build Vite correctos;
+- artefactos E2E: una ejecución correcta elimina `test-results`, `playwright-report` y `blob-report`; una ejecución fallida o interrumpida los conserva para diagnóstico.
+
+RC-HARDEN-1 añade regresiones para el formateo seguro de fechas ausentes o inválidas, asociaciones de etiquetas y control de teclado en registro y recuperación, jerarquía de encabezados, invalidación de sesión sin ruido duplicado, ruta única de torneos y control móvil accesible del panel. También impide volver a versionar metadatos `Zone.Identifier` sin eliminar el SVG real.
+
 ---
 
 # 8. Pruebas manuales
@@ -407,6 +419,8 @@ FE-TEST-1 incorpora seis suites colocadas junto al código cubierto:
 - `authSession`: lectura y limpieza de almacenamiento y evento de sesión invalidada;
 - `resolveApiBaseUrl`: URL configurada y fallbacks de desarrollo y producción.
 
+RC-HARDEN-1 amplía esta base con pruebas de `formatDate`, detalle de torneo sin fechas válidas, formularios de registro y recuperación, encabezados únicos en autenticación y partido, coordinación de `AuthContext` ante respuestas 401/500 y resolución de la ruta pública `/torneos`. El test Feature del dashboard verifica además el contrato accesible del control móvil de Blade.
+
 La utilidad `renderWithProviders` ofrece únicamente `MemoryRouter`, rutas de prueba y `AuthContext` opcional. Los tests no dependen de nombres de clases CSS, no usan snapshots masivos y no hacen peticiones reales.
 
 Limitaciones deliberadas:
@@ -430,6 +444,8 @@ La suite de nueve escenarios cubre:
 - discrepancia visible y bloqueada para los jugadores;
 - resolución del conflicto desde el panel Blade;
 - resultado oficial y ranking histórico sin porcentaje incorrecto ni `NaN`.
+
+Las comprobaciones incorporadas por RC-HARDEN-1 reutilizan esta suite y verifican también la expansión del perfil de jugador, las etiquetas del formulario de recuperación, el listado real de `/torneos` y el estado accesible del control móvil del panel. El script de ejecución conserva los artefactos de Playwright cuando el resultado no es correcto y los limpia tras un cierre satisfactorio.
 
 Limitaciones deliberadas del smoke:
 

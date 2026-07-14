@@ -123,17 +123,19 @@ export default function Register() {
 
     return (
         <div className={`page-container ${styles.registerContainer}`}>
-            <h2 className={styles.title}>Registro de Usuario</h2>
+            <h1 className={styles.title}>Registro de Usuario</h1>
             
             {error && <div className={styles.errorMsg}>{error}</div>}
 
             <form onSubmit={handleSubmit} className={styles.form}>
                 <div className={styles.row}>
                     <div className={styles.fieldGroup}>
-                        <label>Nombre *</label>
+                        <label htmlFor="register-name">Nombre *</label>
                         <input
+                            id="register-name"
                             type="text"
                             name="name"
+                            autoComplete="given-name"
                             value={formData.name}
                             onChange={handleChange}
                             required
@@ -142,10 +144,12 @@ export default function Register() {
                         />
                     </div>
                     <div className={styles.fieldGroup}>
-                        <label>Apellidos *</label>
+                        <label htmlFor="register-lastname">Apellidos *</label>
                         <input
+                            id="register-lastname"
                             type="text"
                             name="lastname"
+                            autoComplete="family-name"
                             value={formData.lastname}
                             onChange={handleChange}
                             required
@@ -157,10 +161,12 @@ export default function Register() {
 
                 <div className={styles.row}>
                     <div className={styles.fieldGroup}>
-                        <label>Correo Electrónico *</label>
+                        <label htmlFor="register-email">Correo Electrónico *</label>
                         <input
+                            id="register-email"
                             type="email"
                             name="email"
+                            autoComplete="email"
                             value={formData.email}
                             onChange={handleChange}
                             required
@@ -169,11 +175,13 @@ export default function Register() {
                         />
                     </div>
                     <div className={styles.fieldGroup}>
-                        <label>Confirmar Correo *</label>
+                        <label htmlFor="register-email-confirmation">Confirmar Correo *</label>
                         <div className={styles.inputWrapper}>
                             <input
+                                id="register-email-confirmation"
                                 type="email"
                                 name="email_confirmation"
+                                autoComplete="email"
                                 value={formData.email_confirmation}
                                 onChange={handleChange}
                                 required
@@ -191,10 +199,12 @@ export default function Register() {
 
                 <div className={styles.row}>
                     <div className={styles.fieldGroup}>
-                        <label>Contraseña * (min. 8 caracteres)</label>
+                        <label htmlFor="register-password">Contraseña * (min. 8 caracteres)</label>
                         <input
+                            id="register-password"
                             type="password"
                             name="password"
+                            autoComplete="new-password"
                             value={formData.password}
                             onChange={handleChange}
                             required
@@ -203,11 +213,13 @@ export default function Register() {
                         />
                     </div>
                     <div className={styles.fieldGroup}>
-                        <label>Confirmar Contraseña *</label>
+                        <label htmlFor="register-password-confirmation">Confirmar Contraseña *</label>
                         <div className={styles.inputWrapper}>
                             <input
+                                id="register-password-confirmation"
                                 type="password"
                                 name="password_confirmation"
+                                autoComplete="new-password"
                                 value={formData.password_confirmation}
                                 onChange={handleChange}
                                 required
@@ -223,12 +235,19 @@ export default function Register() {
                     </div>
                 </div>
 
-                <div className={styles.checkboxGroup} onClick={() => setIsPlayer(!isPlayer)}>
-                    <div className={`${styles.checkbox} ${isPlayer ? styles.checked : ''}`}>
+                <label className={styles.checkboxGroup} htmlFor="register-is-player">
+                    <input
+                        id="register-is-player"
+                        type="checkbox"
+                        checked={isPlayer}
+                        onChange={(event) => setIsPlayer(event.target.checked)}
+                        className={styles.checkboxInput}
+                    />
+                    <span className={`${styles.checkbox} ${isPlayer ? styles.checked : ''}`} aria-hidden="true">
                         {isPlayer && <CheckIcon />}
-                    </div>
+                    </span>
                     <span>Soy jugador</span>
-                </div>
+                </label>
 
                 {isPlayer && (
                     <div className={styles.playerSection}>
@@ -236,8 +255,9 @@ export default function Register() {
                         
                         <div className={styles.row}>
                             <div className={styles.fieldGroup}>
-                                <label>Apodo (Nickname)</label>
+                                <label htmlFor="player-nickname">Apodo (Nickname)</label>
                                 <input
+                                    id="player-nickname"
                                     type="text"
                                     name="nickname"
                                     value={playerData.nickname}
@@ -247,8 +267,9 @@ export default function Register() {
                                 />
                             </div>
                             <div className={styles.fieldGroup}>
-                                <label>DNI / NIE {playerData.birth_date && (new Date().getFullYear() - new Date(playerData.birth_date).getFullYear() >= 18) && '*'}</label>
+                                <label htmlFor="player-dni">DNI / NIE {playerData.birth_date && (new Date().getFullYear() - new Date(playerData.birth_date).getFullYear() >= 18) && '*'}</label>
                                 <input
+                                    id="player-dni"
                                     type="text"
                                     name="dni"
                                     value={playerData.dni}
@@ -261,19 +282,23 @@ export default function Register() {
 
                         <div className={styles.row}>
                             <div className={styles.fieldGroup}>
-                                <label>Fecha de Nacimiento</label>
+                                <label htmlFor="player-birth-date">Fecha de Nacimiento</label>
                                 <input
+                                    id="player-birth-date"
                                     type="date"
                                     name="birth_date"
+                                    autoComplete="bday"
                                     value={playerData.birth_date}
                                     onChange={handlePlayerChange}
                                     className={styles.input}
                                 />
                             </div>
                             <div className={styles.fieldGroup}>
-                                <label>Género</label>
+                                <label htmlFor="player-gender">Género</label>
                                 <select 
+                                    id="player-gender"
                                     name="gender" 
+                                    autoComplete="sex"
                                     value={playerData.gender} 
                                     onChange={handlePlayerChange}
                                     className={styles.select}
@@ -288,8 +313,9 @@ export default function Register() {
 
                         <div className={styles.row}>
                             <div className={styles.fieldGroup}>
-                                <label>Nivel de juego (1-10) *</label>
+                                <label htmlFor="player-level">Nivel de juego (1-10) *</label>
                                 <input
+                                    id="player-level"
                                     type="number"
                                     name="level"
                                     min="1"
@@ -302,8 +328,9 @@ export default function Register() {
                                 />
                             </div>
                             <div className={styles.fieldGroup}>
-                                <label>Nº Licencia</label>
+                                <label htmlFor="player-license-number">Nº Licencia</label>
                                 <input
+                                    id="player-license-number"
                                     type="text"
                                     name="license_number"
                                     value={playerData.license_number}
@@ -316,8 +343,9 @@ export default function Register() {
 
                         <div className={styles.row}>
                             <div className={styles.fieldGroup}>
-                                <label>Mano Dominante</label>
+                                <label htmlFor="player-dominant-hand">Mano Dominante</label>
                                 <select 
+                                    id="player-dominant-hand"
                                     name="dominant_hand" 
                                     value={playerData.dominant_hand} 
                                     onChange={handlePlayerChange}
@@ -332,8 +360,9 @@ export default function Register() {
                         </div>
 
                         <div className={styles.fieldGroup}>
-                            <label>Notas / Observaciones</label>
+                            <label htmlFor="player-notes">Notas / Observaciones</label>
                             <textarea
+                                id="player-notes"
                                 name="notes"
                                 value={playerData.notes}
                                 onChange={handlePlayerChange}

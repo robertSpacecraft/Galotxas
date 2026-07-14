@@ -33,7 +33,7 @@ export default function Login() {
 
     return (
         <div className={`page-container ${styles.loginContainer}`}>
-            <h2 className={styles.title}>Acceso Jugadores</h2>
+            <h1 className={styles.title}>Acceso Jugadores</h1>
 
             {error && <div className={styles.error}>{error}</div>}
 
@@ -43,6 +43,7 @@ export default function Login() {
                     <input
                         id="login-email"
                         type="email"
+                        autoComplete="email"
                         value={email} onChange={e => setEmail(e.target.value)}
                         required
                         className={styles.input}
@@ -54,6 +55,7 @@ export default function Login() {
                     <input
                         id="login-password"
                         type="password"
+                        autoComplete="current-password"
                         value={password} onChange={e => setPassword(e.target.value)}
                         required
                         className={styles.input}

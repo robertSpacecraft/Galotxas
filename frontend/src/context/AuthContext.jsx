@@ -1,6 +1,11 @@
 import { useCallback, useState, useEffect } from 'react';
 import api from '../api/client';
-import { AUTH_SESSION_CLEARED_EVENT, clearStoredAuth, getStoredAuthToken } from '../api/authSession';
+import {
+    AUTH_SESSION_CLEARED_EVENT,
+    clearAuthSession,
+    clearStoredAuth,
+    getStoredAuthToken,
+} from '../api/authSession';
 import { AuthContext } from './authContext';
 
 export const AuthProvider = ({ children }) => {
@@ -95,7 +100,10 @@ export const AuthProvider = ({ children }) => {
                 await api.post('/auth/logout');
             }
         } catch (error) {
-            console.error("Error revoking current access token:", error);
+            const status = error.response?.status;
+            if (status !== 401 && status !== 403) {
+                console.error("Error revoking current access token:", error);
+            }
         } finally {
             clearStoredAuth();
             setToken(null);
@@ -117,13 +125,19 @@ export const AuthProvider = ({ children }) => {
             setUser(userData);
             return userData;
         } catch (error) {
-            console.error("Error refreshing user data:", error);
-            if (error.response?.status === 401 || error.response?.status === 403) {
-                logout();
+            const status = error.response?.status;
+
+            if (status === 401 || status === 403) {
+                if (getStoredAuthToken()) {
+                    clearAuthSession(`refresh-http-${status}`);
+                }
+            } else {
+                console.error("Error refreshing user data:", error);
             }
+
             throw error;
         }
-    }, [logout]);
+    }, []);
 
     const forgotPassword = async (email) => {
         const response = await api.post('/auth/forgot-password', { email });

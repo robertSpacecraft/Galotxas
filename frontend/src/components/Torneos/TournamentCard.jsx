@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { formatDateRange } from '../../utils/formatDate';
 import styles from './TournamentCard.module.css';
 
 export const TournamentCard = ({ tournament }) => {
@@ -45,9 +46,7 @@ export const TournamentCard = ({ tournament }) => {
           </div>
           <div className={styles.detailItem}>
             <span className={styles.label}>Fechas:</span>
-            <span className={styles.value}>
-              {new Date(start_date).toLocaleDateString()} - {new Date(end_date).toLocaleDateString()}
-            </span>
+            <span className={styles.value}>{formatDateRange(start_date, end_date)}</span>
           </div>
         </div>
       </div>

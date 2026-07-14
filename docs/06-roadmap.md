@@ -8,7 +8,7 @@ Este documento representa el estado y el orden oficial de evolución del proyect
 
 # Estado del MVP
 
-El núcleo funcional previsto para el MVP está implementado. QA-MVP-1 detectó dos defectos bloqueantes de presentación pública; QA-FIX-1 los corrigió y superó la revalidación dirigida y la regresión integral. El producto todavía no se considera publicado ni candidato formal hasta completar MVP-RC-1.
+El núcleo funcional previsto para el MVP está implementado. QA-MVP-1 detectó dos defectos bloqueantes de presentación pública; QA-FIX-1 los corrigió y superó la revalidación dirigida y la regresión integral. RC-HARDEN-1 cerró después el endurecimiento menor de fechas, formularios accesibles, jerarquía de encabezados, sesión inválida, navegación y limpieza E2E. El producto todavía no se considera publicado ni candidato formal hasta completar MVP-RC-1.
 
 La ausencia de una interfaz React de reprogramación no bloquea este cierre. El backend conserva ese workflow y su interfaz queda expresamente pospuesta.
 
@@ -62,23 +62,24 @@ La ausencia de una interfaz React de reprogramación no bloquea este cierre. El 
 ## Frontend, despliegue y calidad
 
 - URL API por `VITE_API_BASE_URL`, fallback local de desarrollo y `/api/v1` en producción (DEPLOY-1);
-- Vitest, React Testing Library y 45 tests críticos, incluidos calendario, navbar responsive y CTA (FE-TEST-1 y QA-FIX-1);
-- smoke Playwright de 9 escenarios con Chromium y stack temporal aislado, incluidos CTA, calendario y navegación móvil (E2E-1 y QA-FIX-1);
+- Vitest, React Testing Library y 65 tests críticos en 18 archivos, incluidos fechas incompletas, formularios accesibles, sesión inválida, calendario, navbar responsive y CTA (FE-TEST-1, QA-FIX-1 y RC-HARDEN-1);
+- smoke Playwright de 9 escenarios con Chromium y stack temporal aislado, incluidos CTA, calendario, formularios, ruta real de torneos y navegación móvil pública y administrativa (E2E-1, QA-FIX-1 y RC-HARDEN-1);
 - auditoría y actualización compatible de npm/Composer sin vulnerabilidades conocidas pendientes en la instantánea de cierre (DEPS-1);
-- documentación técnica 00–08 reconciliada con el código (DOC-1).
+- documentación técnica 00–08 reconciliada con el código (DOC-1);
 - corrección de los bloqueantes QA del calendario público y de la navegación responsive, con revalidación dirigida en 1440 × 900, 1280 × 720 y 390 × 844 (QA-FIX-1).
+- endurecimiento menor previo al candidato con 168 tests Laravel, 1.088 aserciones y validaciones frontend/E2E ampliadas (RC-HARDEN-1).
 
 ---
 
 # Cierre inmediato del MVP
 
-QA-MVP-1 y su revalidación dirigida QA-FIX-1 están cerrados. El siguiente bloque es:
+QA-MVP-1, su revalidación dirigida QA-FIX-1 y RC-HARDEN-1 están cerrados. El siguiente bloque es:
 
 1. **MVP-RC-1 — preparación formal del candidato MVP**
    - confirmar configuración y variables de despliegue;
    - preparar notas del candidato y lista de limitaciones conocidas;
    - fijar evidencia de validación y criterio de publicación;
-   - crear el candidato utilizando la evidencia aceptada de QA-MVP-1 y QA-FIX-1.
+   - crear el candidato utilizando la evidencia aceptada de QA-MVP-1, QA-FIX-1 y RC-HARDEN-1.
 
 No debe intercalarse una fase funcional nueva entre ambos bloques salvo que QA descubra un defecto bloqueante.
 

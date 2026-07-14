@@ -51,8 +51,6 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              {/* Optional: Add placeholder routes for new sections if needed */}
-              <Route path="/torneos" element={<h2 style={{padding: '5rem', textAlign: 'center'}}>Sección Torneos (En construcción)</h2>} />
               <Route path="/rankings" element={<Rankings />} />
             </Routes>
           </main>

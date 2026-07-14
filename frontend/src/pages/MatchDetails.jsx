@@ -115,6 +115,8 @@ export default function MatchDetails() {
 
     return (
         <div className={styles.container}>
+            <h1 className={styles.visuallyHidden}>Partido: {homeName} contra {awayName}</h1>
+
             <div className={styles.spacingBottom}>
                 <Link to={backTarget} className={styles.backLink}>
                     Volver al calendario

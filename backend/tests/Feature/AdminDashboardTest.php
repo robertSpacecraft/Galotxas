@@ -97,6 +97,20 @@ class AdminDashboardTest extends TestCase
         $response->assertDontSee('name="player_id"', false);
     }
 
+    public function test_admin_layout_exposes_an_accessible_mobile_navigation_toggle(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($admin)->get(route('admin.dashboard'));
+
+        $response->assertOk();
+        $response->assertSee('type="button"', false);
+        $response->assertSee('aria-label="Abrir menú de administración"', false);
+        $response->assertSee('aria-controls="adminNavbar"', false);
+        $response->assertSee('aria-expanded="false"', false);
+        $response->assertSee('id="adminNavbar"', false);
+    }
+
     public function test_non_admin_user_cannot_access_dashboard(): void
     {
         $user = User::factory()->create(['role' => 'user']);

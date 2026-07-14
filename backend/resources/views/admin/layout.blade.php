@@ -56,7 +56,15 @@
     <div class="container-fluid">
         <a class="navbar-brand fw-bold" href="/admin">Galotxas Admin</a>
 
-        <button class="navbar-toggler bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#adminNavbar">
+        <button
+            class="navbar-toggler bg-light"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#adminNavbar"
+            aria-controls="adminNavbar"
+            aria-expanded="false"
+            aria-label="Abrir menú de administración"
+        >
             <span class="navbar-toggler-icon"></span>
         </button>
 

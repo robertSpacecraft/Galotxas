@@ -122,7 +122,7 @@ export default function Dashboard() {
     const isPlayer = !!user?.player;
 
     useEffect(() => {
-        refreshUser().catch(err => console.error("Initial refresh failed", err));
+        refreshUser().catch(() => {});
     }, [refreshUser]);
 
     useEffect(() => {

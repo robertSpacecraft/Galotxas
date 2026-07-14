@@ -59,6 +59,20 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'La emoción de las Galotxas' })).toBeVisible();
 
+    await page.goto('/register');
+    const playerToggle = page.getByRole('checkbox', { name: 'Soy jugador' });
+    await expect(playerToggle).not.toBeChecked();
+    await playerToggle.check();
+    await expect(page.getByLabel('Apodo (Nickname)')).toBeVisible();
+    await expect(page.getByLabel('Nivel de juego (1-10) *')).toBeVisible();
+
+    await page.goto('/forgot-password');
+    await expect(page.getByLabel('Correo Electrónico')).toBeVisible();
+
+    await page.goto('/torneos');
+    await expect(page.getByRole('heading', { name: 'Torneos', level: 1 })).toBeVisible();
+    await expect(page.getByText(/En construcción/)).toHaveCount(0);
+
     await page.getByRole('link', { name: 'Contenidos', exact: true }).click();
     await expect(page).toHaveURL(/\/contenidos$/);
     await expect(page.getByRole('heading', { name: 'Contenidos' })).toBeVisible();
@@ -240,6 +254,11 @@ test.describe.serial('smoke narrativo del MVP', () => {
 
     await expect(page).toHaveURL(/\/admin$/);
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+    await page.setViewportSize({ width: 390, height: 844 });
+    const adminMenuToggle = page.getByRole('button', { name: 'Abrir menú de administración' });
+    await expect(adminMenuToggle).toHaveAttribute('aria-expanded', 'false');
+    await adminMenuToggle.click();
+    await expect(adminMenuToggle).toHaveAttribute('aria-expanded', 'true');
     await page.getByRole('link', { name: 'Conflictos', exact: true }).click();
 
     await expect(page.getByRole('heading', { name: 'Conflictos de resultados' })).toBeVisible();

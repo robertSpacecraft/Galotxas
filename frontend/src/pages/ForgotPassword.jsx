@@ -36,7 +36,7 @@ export default function ForgotPassword() {
     if (message) {
         return (
             <div className={`page-container ${styles.container}`}>
-                <h2 className={styles.title}>Revisa tu correo</h2>
+                <h1 className={styles.title}>Revisa tu correo</h1>
                 <div className={styles.successMsg}>{message}</div>
                 <div className={styles.backLink}>
                     <Link to="/login" className={styles.link}>Volver al inicio de sesión</Link>
@@ -47,7 +47,7 @@ export default function ForgotPassword() {
 
     return (
         <div className={`page-container ${styles.container}`}>
-            <h2 className={styles.title}>Recuperar Contraseña</h2>
+            <h1 className={styles.title}>Recuperar Contraseña</h1>
             <p className={styles.description}>
                 Introduce tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
             </p>
@@ -56,9 +56,11 @@ export default function ForgotPassword() {
 
             <form onSubmit={handleSubmit} className={styles.form}>
                 <div className={styles.fieldGroup}>
-                    <label>Correo Electrónico</label>
+                    <label htmlFor="forgot-password-email">Correo Electrónico</label>
                     <input
+                        id="forgot-password-email"
                         type="email"
+                        autoComplete="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required

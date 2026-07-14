@@ -96,6 +96,8 @@ El panel administrativo es una interfaz web Blade independiente del frontend Rea
 
 Forma parte oficial de la arquitectura del proyecto y permite gestionar el dominio de competición sin depender de la API pública.
 
+En pantallas estrechas, la barra superior se contrae detrás de un botón con nombre accesible «Abrir menú de administración». El control identifica la navegación mediante `aria-controls` y expone su estado abierto o cerrado con `aria-expanded`, actualizado por el componente Collapse de Bootstrap.
+
 ---
 
 # 2. Acceso y seguridad

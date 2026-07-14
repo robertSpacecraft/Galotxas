@@ -90,12 +90,29 @@
 }
 
 .checkboxGroup {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 0.8rem;
     margin: 1rem 0;
     cursor: pointer;
     user-select: none;
+}
+
+.checkboxInput {
+    position: absolute;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.checkboxInput:focus-visible + .checkbox {
+    outline: 3px solid var(--brand-primary);
+    outline-offset: 3px;
 }
 
 .checkbox {
@@ -107,6 +124,7 @@
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
+    pointer-events: none;
 }
 
 .checkbox.checked {

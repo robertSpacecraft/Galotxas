@@ -7,6 +7,11 @@ PROJECT_ROOT="$(cd -- "${SCRIPT_DIR}/../.." && pwd)"
 COMPOSE_FILE="${PROJECT_ROOT}/backend/docker/docker-compose.e2e.yml"
 COMPOSE_PROJECT_NAME="${E2E_COMPOSE_PROJECT_NAME:-galotxas-e2e}"
 COMPOSE=(docker compose --project-name "${COMPOSE_PROJECT_NAME}" --file "${COMPOSE_FILE}")
+ARTIFACT_DIRS=(
+  "${PROJECT_ROOT}/frontend/test-results"
+  "${PROJECT_ROOT}/frontend/playwright-report"
+  "${PROJECT_ROOT}/frontend/blob-report"
+)
 
 cleanup() {
   local status=$?
@@ -17,6 +22,10 @@ cleanup() {
     if [[ ${status} -eq 0 ]]; then
       status=1
     fi
+  fi
+
+  if [[ ${status} -eq 0 ]]; then
+    rm -rf -- "${ARTIFACT_DIRS[@]}"
   fi
 
   exit "${status}"

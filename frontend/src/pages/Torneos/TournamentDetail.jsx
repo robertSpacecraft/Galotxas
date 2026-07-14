@@ -3,6 +3,7 @@ import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { championshipsService } from '../../api/championships';
 import { TournamentRanking } from '../../components/Torneos/TournamentRanking';
 import { useAuth } from '../../hooks/useAuth';
+import { formatDate, formatDateRange } from '../../utils/formatDate';
 import styles from './Torneos.module.css';
 
 export const TournamentDetail = () => {
@@ -121,7 +122,7 @@ export const TournamentDetail = () => {
             <span className={styles.metaItem}><strong>Tipo:</strong> {type}</span>
             <span className={styles.metaItem}><strong>Estado:</strong> {status}</span>
             <span className={styles.metaItem}>
-              <strong>Fechas:</strong> {new Date(start_date).toLocaleDateString()} - {new Date(end_date).toLocaleDateString()}
+              <strong>Fechas:</strong> {formatDateRange(start_date, end_date)}
             </span>
           </div>
         </div>
@@ -161,8 +162,8 @@ export const TournamentDetail = () => {
               </span>
             </div>
             <div className={styles.regDates}>
-              <p>Abierta desde: {new Date(registration_starts_at).toLocaleDateString()}</p>
-              <p>Hasta: {new Date(registration_ends_at).toLocaleDateString()}</p>
+              <p>Abierta desde: {formatDate(registration_starts_at)}</p>
+              <p>Hasta: {formatDate(registration_ends_at)}</p>
             </div>
             
             <div className={styles.registrationActionArea} style={{ marginTop: '1.5rem' }}>
