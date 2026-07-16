@@ -2,6 +2,12 @@
 
 Plataforma web para la gestión y visualización de competiciones de Galotxas.
 
+## Estado del candidato
+
+El MVP funcional está preparado como candidato propuesto `v0.1.0-rc.1`, todavía sin tag ni publicación. La evidencia, alcance, limitaciones y checklist se encuentran en [docs/09-release-candidate.md](docs/09-release-candidate.md).
+
+El candidato no equivale a un despliegue de producción. HTTPS, proxy inverso, backups, monitorización, correo real y configuración operativa siguen pendientes.
+
 ## Arquitectura
 
 - `backend/`: Laravel, API REST, dominio y panel administrativo Blade.
@@ -14,24 +20,55 @@ MariaDB es el único motor de base de datos soportado. Laravel utiliza la conexi
 
 ## Entorno de desarrollo
 
-1. Copiar backend/.env.example a backend/.env si el archivo local no existe.
-2. Levantar los servicios desde backend/docker:
+Requisitos: Docker con Compose y Node.js 22.
+
+1. Preparar Laravel e instalar Composer desde el contenedor oficial del proyecto:
 
 ~~~bash
-docker compose up -d --build
+cp backend/.env.example backend/.env
+docker compose -f backend/docker/docker-compose.yml run --rm --no-deps --user "$(id -u):$(id -g)" app composer install --no-interaction --prefer-dist
+~~~
+
+2. Levantar los servicios, generar la clave de una instalación nueva y ejecutar las migraciones:
+
+~~~bash
+docker compose -f backend/docker/docker-compose.yml up -d --build
+docker compose -f backend/docker/docker-compose.yml exec app php artisan key:generate --force
+docker compose -f backend/docker/docker-compose.yml exec app php artisan migrate --force
 ~~~
 
 La aplicación queda disponible en http://localhost:8080 y MariaDB expone el puerto local 3307 para herramientas de administración.
+
+No volver a ejecutar `key:generate --force` sobre un entorno existente. `backend/storage` y `backend/bootstrap/cache` deben ser escribibles por el proceso PHP.
+
+Los datos base opcionales y no destructivos de desarrollo se crean de forma explícita:
+
+~~~bash
+docker compose -f backend/docker/docker-compose.yml exec app php artisan db:seed --class=DefaultVenueSeeder
+docker compose -f backend/docker/docker-compose.yml exec app php artisan db:seed --class=InstitutionalCmsPageSeeder
+~~~
+
+`DatabaseSeeder` contiene datos y credenciales de demostración y no debe ejecutarse en producción.
 
 El frontend se ejecuta por separado:
 
 ~~~bash
 cd frontend
+cp .env.example .env
 npm ci
 npm run dev
 ~~~
 
 Por defecto Vite queda disponible en http://localhost:5173 y consume `http://localhost:8080/api/v1`. En otros entornos, `VITE_API_BASE_URL` permite configurar la URL de la API durante el build; sin variable, producción utiliza `/api/v1`.
+
+Para generar el artefacto productivo bajo el mismo dominio:
+
+~~~bash
+cd frontend
+VITE_API_BASE_URL=/api/v1 npm run build
+~~~
+
+El servidor de producción deberá servir `frontend/dist` con fallback SPA a `index.html` y enrutar `/api/v1` y `/admin` hacia Laravel.
 
 ## Pruebas
 
@@ -68,3 +105,5 @@ El stack E2E es desechable y no utiliza la base de desarrollo.
 - [Índice técnico y funcional](docs/README.md)
 - [Reglas de dominio deportivo](knowledge/README.md)
 - [Roadmap y estado del MVP](docs/06-roadmap.md)
+- [Candidato MVP y publicación](docs/09-release-candidate.md)
+- [Historial de cambios](CHANGELOG.md)

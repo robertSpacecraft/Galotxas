@@ -24,6 +24,7 @@ La documentación se organiza para separar claramente:
 7. [Roadmap y deuda técnica](06-roadmap.md)
 8. [Decisiones arquitectónicas](07-decisions.md)
 9. [Resources y serialización](08-resources.md)
+10. [Candidato MVP y proceso de publicación](09-release-candidate.md)
 
 El conocimiento del deporte y los reglamentos elaborados por el usuario se mantienen por separado en [`knowledge/`](../knowledge/README.md). Los documentos técnicos describen el software; no sustituyen esa fuente de dominio.
 

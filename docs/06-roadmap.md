@@ -8,7 +8,9 @@ Este documento representa el estado y el orden oficial de evolución del proyect
 
 # Estado del MVP
 
-El núcleo funcional previsto para el MVP está implementado. QA-MVP-1 detectó dos defectos bloqueantes de presentación pública; QA-FIX-1 los corrigió y superó la revalidación dirigida y la regresión integral. RC-HARDEN-1 cerró después el endurecimiento menor de fechas, formularios accesibles, jerarquía de encabezados, sesión inválida, navegación y limpieza E2E. El producto todavía no se considera publicado ni candidato formal hasta completar MVP-RC-1.
+El núcleo funcional previsto para el MVP está implementado. QA-MVP-1, QA-FIX-1 y RC-HARDEN-1 están completados. MVP-RC-1 ha preparado y validado la documentación del primer candidato como `v0.1.0-rc.1`, pero todavía no se ha creado el commit definitivo, el tag ni la GitHub Release.
+
+La clasificación actual es **RC preparado con limitaciones**: no se han detectado P0/P1 y la regresión está verde, pero el candidato requiere revisión humana y no equivale a un despliegue de producción. Las limitaciones aceptadas y los requisitos pendientes se detallan en `09-release-candidate.md`.
 
 La ausencia de una interfaz React de reprogramación no bloquea este cierre. El backend conserva ese workflow y su interfaz queda expresamente pospuesta.
 
@@ -68,20 +70,22 @@ La ausencia de una interfaz React de reprogramación no bloquea este cierre. El 
 - documentación técnica 00–08 reconciliada con el código (DOC-1);
 - corrección de los bloqueantes QA del calendario público y de la navegación responsive, con revalidación dirigida en 1440 × 900, 1280 × 720 y 390 × 844 (QA-FIX-1).
 - endurecimiento menor previo al candidato con 168 tests Laravel, 1.088 aserciones y validaciones frontend/E2E ampliadas (RC-HARDEN-1).
+- inventario, instalación limpia, regresión, auditoría, notas de versión y runbook del candidato preparados sin publicar ni etiquetar (MVP-RC-1).
 
 ---
 
-# Cierre inmediato del MVP
+# Siguiente paso del candidato
 
-QA-MVP-1, su revalidación dirigida QA-FIX-1 y RC-HARDEN-1 están cerrados. El siguiente bloque es:
+MVP-RC-1 está preparado, pero no publicado. El orden siguiente es:
 
-1. **MVP-RC-1 — preparación formal del candidato MVP**
-   - confirmar configuración y variables de despliegue;
-   - preparar notas del candidato y lista de limitaciones conocidas;
-   - fijar evidencia de validación y criterio de publicación;
-   - crear el candidato utilizando la evidencia aceptada de QA-MVP-1, QA-FIX-1 y RC-HARDEN-1.
+1. revisión humana del alcance, `CHANGELOG.md`, limitaciones y runbook;
+2. commit único del bloque en `develop` y push;
+3. fast-forward de `main` y push;
+4. creación del tag anotado `v0.1.0-rc.1` desde el commit aprobado;
+5. publicación de GitHub Release como prerelease;
+6. validación del tag en un segundo entorno y apertura del periodo de prueba definido por el usuario.
 
-No debe intercalarse una fase funcional nueva entre ambos bloques salvo que QA descubra un defecto bloqueante.
+No debe intercalarse una fase funcional nueva antes de etiquetar salvo que aparezca un defecto P0/P1 o un impedimento de reproducibilidad.
 
 ---
 
