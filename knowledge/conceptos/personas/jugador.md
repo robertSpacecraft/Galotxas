@@ -76,3 +76,11 @@ El reglamento no establece diferencias normativas entre los jugadores más allá
 - Trasero.
 - Equipo.
 - Partida.
+
+---
+
+# Notas
+
+Este apartado recoge información que ayuda a comprender el concepto, pero que no forma parte de la definición ni del reglamento.
+
+Puede incluir observaciones prácticas, contexto histórico, variantes locales o información útil para interpretar correctamente el resto de la documentación.
