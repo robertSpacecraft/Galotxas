@@ -12,6 +12,7 @@ La documentación se organiza para separar claramente:
 - roadmap;
 - decisiones arquitectónicas;
 - criterios de uso de Resources.
+- gobernanza de contenidos y arquitectura pública.
 
 ## Orden recomendado de lectura
 
@@ -25,8 +26,9 @@ La documentación se organiza para separar claramente:
 8. [Decisiones arquitectónicas](07-decisions.md)
 9. [Resources y serialización](08-resources.md)
 10. [Candidato MVP y proceso de publicación](09-release-candidate.md)
+11. [Gobernanza de contenidos y arquitectura pública](10-content-governance.md)
 
-El conocimiento del deporte y los reglamentos elaborados por el usuario se mantienen por separado en [`knowledge/`](../knowledge/README.md). Los documentos técnicos describen el software; no sustituyen esa fuente de dominio.
+El documento de gobernanza define qué información pertenece al dominio Laravel, al CMS administrable o al conocimiento canónico, además de la arquitectura pública aprobada para futuras fases. El conocimiento estable del deporte se mantiene por separado en [`knowledge/`](../knowledge/README.md); los documentos técnicos describen el software y no sustituyen esa fuente editorial.
 
 ## Relación con AGENTS.md
 
@@ -37,6 +39,7 @@ Su función es dar instrucciones estables a agentes y desarrolladores:
 - `/AGENTS.md`: reglas globales del monorepo.
 - `/backend/AGENTS.md`: reglas específicas de Laravel, API, Blade y dominio backend.
 - `/frontend/AGENTS.md`: reglas específicas de React, Vite, consumo API y componentes.
+- `/knowledge/AGENTS.md`: reglas editoriales específicas del conocimiento canónico.
 
 La documentación de este directorio contiene el detalle funcional y técnico que puede evolucionar con el proyecto.
 
@@ -55,6 +58,7 @@ Cambios habituales que deben reflejarse aquí:
 - cambios en el entorno Docker o testing;
 - decisiones arquitectónicas nuevas;
 - deuda técnica aceptada explícitamente.
+- cambios en fuentes de contenido, publicación o arquitectura pública.
 
 ## Estado de la documentación
 

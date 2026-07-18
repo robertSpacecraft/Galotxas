@@ -10,6 +10,7 @@ Las reglas específicas de cada capa se encuentran en:
 
 - `/backend/AGENTS.md`
 - `/frontend/AGENTS.md`
+- `/knowledge/AGENTS.md`
 
 La documentación funcional y técnica se encuentra en `/docs`.
 
@@ -61,6 +62,18 @@ Ambas comparten el mismo dominio de negocio.
 
 ---
 
+## Gobernanza de contenido
+
+- Antes de crear o ampliar una sección pública, definir su finalidad, audiencia, fuente de verdad, responsables de edición, persistencia, administración, API, publicación, permisos, multimedia, URLs y pruebas.
+- Distinguir el dominio funcional, el contenido administrable y el conocimiento canónico. La fuente concreta de cada área se documenta en `/docs/10-content-governance.md`.
+- No mantener una misma fuente editorial editable a la vez en `knowledge/`, base de datos, componentes React, seeders u otras copias manuales.
+- React no es una fuente editorial para contenido que deba modificar un administrador.
+- Todo cambio debe revisar el impacto coordinado entre `backend/`, `frontend/` y `knowledge/`, aunque finalmente solo afecte a una de estas zonas.
+- Una sección administrable se trata como un bloque vertical: dominio o CMS, administración Blade, autorización, persistencia, API, frontend, pruebas y documentación según corresponda.
+- La documentación afectada se actualiza dentro del mismo bloque que cambia el comportamiento.
+
+---
+
 ## Precedencia documental
 
 Las instrucciones se aplican de forma jerárquica.
@@ -77,7 +90,10 @@ Por tanto:
 
 - El `AGENTS.md` de la raíz define las reglas generales del proyecto.
 - Los `AGENTS.md` de `backend` y `frontend` complementan esas reglas dentro de su ámbito.
+- El `AGENTS.md` de `knowledge` complementa estas reglas para el conocimiento canónico y editorial.
 - Las guías de estilo concretan convenciones de implementación, pero no sustituyen las reglas definidas por los `AGENTS.md`.
+
+Antes de modificar un archivo se deben consultar todos los `AGENTS.md` aplicables a su ubicación y las referencias técnicas que estos indiquen.
 
 ---
 
@@ -87,5 +103,7 @@ Por tanto:
 - Validar antes de continuar.
 - Mantener commits con un único objetivo.
 - Actualizar la documentación cuando cambie el comportamiento del sistema.
+- Trabajar desde WSL Ubuntu con Bash y herramientas Linux para modificar el repositorio.
+- Mantener los archivos de texto en UTF-8, con finales de línea LF y sin espacios finales.
 
 No introducir cambios amplios en varias capas simultáneamente sin una justificación clara.

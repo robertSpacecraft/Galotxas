@@ -539,7 +539,42 @@ SCHEDULE-1 incorpora cobertura Feature para:
 La cobertura de SCHEDULE-1 valida colisiones dentro de cada categoría generada. La coordinación de horarios entre categorías diferentes queda fuera de este bloque.
 
 
-# 10. Evolución
+# 10. Pruebas de gobernanza y publicación
+
+## Cobertura actual
+
+La base CMS existente dispone de pruebas Feature para administración de páginas y bloques, autorización administrativa básica, unicidad de `slug`, publicación, exclusión de borradores y fechas futuras, acceso público por slug y Resources. React dispone de pruebas para los estados y el renderizado controlado de páginas CMS, y el smoke E2E recorre el índice y el detalle bajo `/contenidos`.
+
+Esta cobertura confirma el módulo básico actual. No demuestra todavía que las futuras áreas de Club, Escuela, noticias, archivos o formularios estén implementadas ni que sus requisitos específicos estén resueltos.
+
+## Requisitos para futuras secciones administrables
+
+Cada ampliación debe seleccionar pruebas proporcionales a su riesgo e incluir, cuando corresponda:
+
+- autorización de lectura y escritura administrativa;
+- validación mediante Form Requests;
+- unicidad y estabilidad de slugs;
+- transiciones de borrador, publicación, despublicación y programación;
+- exclusión de borradores y publicaciones futuras en listados públicos;
+- respuesta segura ante acceso directo a contenido inexistente o no publicable;
+- contrato de Resources y ausencia de campos administrativos;
+- renderizado frontend en estados `loading`, `error`, `empty` y `content`;
+- tipos de bloque o contenido desconocidos sin ejecución de HTML arbitrario;
+- integración de rutas y servicios;
+- E2E del recorrido administrativo y público cuando sea crítico;
+- accesibilidad, navegación por teclado y responsive.
+
+El backend debe probar el filtro de publicación. Una prueba que solo comprueba que React oculta un borrador no satisface la seguridad editorial.
+
+## Validación futura de `knowledge/`
+
+Cuando se defina el contrato editorial y el compilador build-time, su validación deberá cubrir estructura, campos obligatorios, IDs y slugs únicos y estables, relaciones por ID, rutas internas, codificación, rechazo de MDX o HTML ejecutable y generación determinista de artefactos.
+
+También se deben probar los consumidores React del Manual con datos generados válidos, ausentes e inválidos. Estas pruebas y el compilador son requisitos futuros; no existen en la Fase 0.
+
+---
+
+# 11. Evolución
 
 La cobertura de pruebas debe crecer junto con el proyecto.
 

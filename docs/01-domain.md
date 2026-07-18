@@ -12,9 +12,9 @@ Las entidades se definen en `00-glossary.md`. Este documento se centra en los pr
 
 # 1. Principios del dominio
 
-El dominio deportivo de Galotxas se basa en los siguientes principios:
+El dominio deportivo ejecutable de Galotxas se basa en los siguientes principios:
 
-- El backend constituye la fuente de verdad del sistema.
+- El backend constituye la fuente de verdad de las reglas ejecutables y los datos funcionales del sistema.
 - Las reglas deportivas nunca se implementan en el frontend.
 - La organización de las competiciones corresponde al administrador.
 - La participación de un jugador siempre está supervisada mediante un flujo administrativo.
@@ -302,7 +302,41 @@ El panel administrativo permite crear y editar páginas CMS con título, `slug`,
 
 ---
 
-# 13. Funcionalidades previstas
+# 13. Ámbitos de contenido y responsabilidades públicas
+
+La arquitectura pública aprobada distingue ámbitos que se relacionan con el dominio, pero no comparten necesariamente su persistencia ni sus responsables de edición.
+
+## Dominio competitivo
+
+Incluye temporadas, campeonatos, categorías, participantes, inscripciones, partidos, calendarios, resultados y rankings. Laravel decide sus reglas y React consume sus contratos API. Esta es la responsabilidad funcional principal descrita en las secciones anteriores.
+
+## Conocimiento normativo
+
+El Reglamento es la formulación editorial canónica de las reglas y reside en `knowledge/reglamento/`. Sirve de referencia al dominio ejecutable, pero un cambio editorial con impacto funcional exige revisar el backend y sus pruebas; el frontend nunca interpreta por sí mismo una regla para convertirla en comportamiento.
+
+## Contenido conceptual
+
+Los Conceptos reúnen vocabulario y definiciones canónicas en `knowledge/conceptos/`. No son registros CMS ni reglas deportivas calculadas por React.
+
+## Contenido pedagógico
+
+El Manual será un consumidor público del conocimiento estable de `knowledge/`. Su función será organizar y explicar Reglamento y Conceptos, no duplicarlos. La landing Aprende a jugar será una puerta de entrada divulgativa y no debe confundirse con el Manual.
+
+La Escuela de Galotxas es una sección distinta del Manual. Su metodología, ejercicios y recursos docentes estables podrán proceder de una futura colección de `knowledge/`; sus actividades, fechas, convocatorias y demás información operativa pertenecerán al backend CMS. Esa colección y esos flujos todavía no están implementados.
+
+## Contenido institucional
+
+El área Club agrupará Nosotros, Federarse, Federaciones, Prensa y medios y Contacto. El contenido que deba modificar un administrador tendrá como fuente el backend CMS. Debe resolverse previamente la duplicidad actual entre la página estática de Nosotros y su posible versión CMS.
+
+## Contenido editorial temporal
+
+Noticias, actividades, talleres, jornadas, convocatorias, galerías y documentos administrables requieren persistencia, permisos y publicación segura. No deben hardcodearse en React ni mantenerse como copia paralela en `knowledge/`.
+
+Estas responsabilidades están aprobadas como arquitectura objetivo. Las áreas públicas y rutas futuras no se consideran implementadas por su aparición en este documento. La matriz de fuentes, el flujo editorial y la migración de `/contenidos` se detallan en `10-content-governance.md`.
+
+---
+
+# 14. Funcionalidades previstas
 
 Las siguientes capacidades forman parte del roadmap y no deben considerarse implementadas salvo que se indique expresamente:
 

@@ -4,9 +4,32 @@
 
 Este documento describe el funcionamiento del panel administrativo Blade de Galotxas.
 
-El panel administrativo es la herramienta principal para gestionar la competición desde el backend Laravel.
+El panel administrativo es la herramienta oficial para gestionar la competición y el contenido administrable desde el backend Laravel.
 
 Describe procesos funcionales, no detalles visuales. Las reglas de estilo se encuentran en `backend/BACKEND_STYLE.md`.
+
+## Tipos de administración
+
+El panel distingue dos responsabilidades:
+
+- **Administración deportiva:** mantiene usuarios, jugadores y datos o procesos del dominio competitivo. Las reglas reutilizables pertenecen a Services y no a las vistas.
+- **Administración editorial:** mantiene contenido que debe cambiar sin editar código ni desplegar React. El backend controla permisos, estados, slugs, persistencia y visibilidad pública.
+
+Blade es la interfaz administrativa oficial para ambas responsabilidades. No se prevé un panel administrativo React paralelo.
+
+## Criterio para incorporar una sección
+
+Una sección necesita gestión Blade cuando una persona administradora deba editarla con frecuencia, gestionar borradores o publicación, cargar recursos, mantener información temporal o actualizarla sin Git ni despliegue.
+
+La incorporación futura debe cubrir de forma coordinada Form Requests, autorización, estados de publicación, slugs, persistencia, Resources, filtro público, API, React, tests y documentación según corresponda. El flujo vertical completo se define en `10-content-governance.md`.
+
+No todo contenido público pertenece al panel: Reglamento, Conceptos, Manual y contenido pedagógico estable tienen su fuente editorial en `knowledge/`. Tampoco se debe crear un endpoint solo para suplir una mala separación de responsabilidades en React.
+
+## Estado y auditoría
+
+Las pantallas descritas a continuación son capacidades actuales documentadas. El CMS existente de páginas y bloques es una base real, pero la Fase 1 debe auditar sus rutas, permisos, estados, API, contenido, pruebas y adecuación a las nuevas áreas antes de ampliarlo.
+
+Noticias, actividades de la Escuela, carga persistente de archivos, formularios públicos y nuevas pantallas editoriales son capacidades futuras; no se consideran implementadas.
 
 ## Vistas Principales
 
@@ -41,6 +64,8 @@ La ruta `/admin/cms/pages` centraliza la gestión básica de páginas públicas 
 - Desde el detalle de una página permite gestionar sus bloques CMS.
 - Las páginas institucionales recomendadas para el MVP usan los slugs `prensa-media`, `nosotros`, `federaciones`, `academy`, `documentos` y `federarse`.
 - En entornos de desarrollo puede crearse una base mínima no destructiva con `php artisan db:seed --class=InstitutionalCmsPageSeeder`.
+
+Estos slugs y sus enlaces pertenecen a la estructura pública legada. En particular, `academy` no define el nombre público futuro de Escuela de Galotxas. La auditoría decidirá el destino de cada página sin borrar o migrar contenido en esta fase.
 
 ### Bloques CMS
 
@@ -321,6 +346,8 @@ Responsabilidades actuales:
 - mantener los slugs institucionales enlazados desde la navegación pública cuando se quiera editar su contenido.
 
 La subida real de imágenes y documentos se incorporará en una fase posterior.
+
+La gestión actual debe auditarse antes de asignarle nuevas áreas públicas. La existencia de un CRUD genérico no confirma por sí sola que Prensa y medios, Club o la actividad de la Escuela dispongan ya de los campos, permisos, flujos y contratos que necesitan.
 
 ---
 

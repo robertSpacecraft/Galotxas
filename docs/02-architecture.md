@@ -19,7 +19,7 @@ Componentes principales:
 - MariaDB.
 - Docker como entorno de desarrollo y pruebas.
 
-El backend constituye la fuente de verdad del sistema.
+El backend constituye la fuente de verdad del dominio ejecutable y de la publicación de contenido administrable. `knowledge/` es la fuente editorial del conocimiento canónico y estable.
 
 ---
 
@@ -94,6 +94,18 @@ No existe compatibilidad con SQLite.
 
 Las pruebas utilizan una instancia MariaDB completamente aislada.
 
+## Arquitectura híbrida de contenidos
+
+La arquitectura pública aprobada conecta tres canales diferentes:
+
+1. **Dominio funcional:** `Laravel → API → React` para competición, inscripciones, calendarios, resultados y rankings.
+2. **Contenido administrable:** `Panel Blade → base de datos → API pública → React` para contenido institucional, noticias, actividades, convocatorias y demás información editable sin despliegue.
+3. **Conocimiento canónico:** `knowledge/ → compilador validado → datos generados → React` para Manual, Reglamento, Conceptos y contenido pedagógico estable.
+
+Los dos primeros canales disponen actualmente de infraestructura en distintas áreas del proyecto. El tercero es arquitectura objetivo: el compilador, el contrato editorial normalizado y los artefactos generados todavía no están implementados. La primera versión del Manual no utilizará MDX, HTML ejecutable, base de datos, API Laravel ni CRUD Blade.
+
+Una misma pieza no debe mantenerse de forma editable en más de un canal. Los criterios de elección y la matriz de fuentes se definen en `10-content-governance.md`.
+
 ## Arquitectura CMS pública
 
 La primera base backend del CMS público sigue el mismo patrón general del proyecto:
@@ -106,6 +118,8 @@ La primera base backend del CMS público sigue el mismo patrón general del proy
 - **Navegación pública**: los enlaces institucionales del navbar apuntan a slugs CMS bajo `/contenidos/{slug}`.
 
 La subida de documentos o imágenes, las noticias como entidad propia y los formularios públicos quedan fuera de esta base inicial.
+
+`/contenidos` representa la estructura pública actual del CMS, pero se considera legada respecto a la arquitectura de información aprobada. Su implementación, API y contenido permanecen sin cambios hasta que se complete el inventario y la migración por áreas.
 
 ## Gestión de pistas y generación de calendarios
 
@@ -249,11 +263,23 @@ Los servicios funcionales no deben duplicar esta resolución ni definir URLs bas
 - `/login`, `/register`, `/forgot-password` y `/reset-password`: autenticación;
 - `/player`: Mi Panel protegido por sesión React.
 
-No existe un panel administrativo React. Tampoco existen todavía rutas React para reprogramación ni edición completa del perfil. `App.jsx` conserva una declaración duplicada y no alcanzable de `/torneos` como placeholder; su retirada forma parte de la limpieza heredada post-MVP y no cambia la ruta efectiva actual.
+No existe un panel administrativo React. Tampoco existen todavía rutas React para reprogramación ni edición completa del perfil.
 
 El calendario independiente de categoría obtiene su contexto mediante `GET /categories/{id}` y, en paralelo, consume `GET /categories/{id}/schedule` como la colección de jornadas definida por el contrato. Ambas llamadas pasan por `championshipsService`: React no reconstruye un objeto contenedor inexistente ni calcula reglas deportivas. Un fallo del contexto conserva las jornadas disponibles con fallbacks explícitos; un fallo de la colección produce un estado de error controlado.
 
 La navegación pública conserva todos sus enlaces en escritorio. En móvil y tablet, el mismo árbol de enlaces se expone mediante estado React y un botón con `aria-expanded` y `aria-controls`; el menú se cierra al seleccionar una ruta, al cambiar la ubicación, mediante el propio botón o con Escape. El acceso anónimo al área de jugadores y el acceso autenticado a Mi Panel permanecen independientes del estado del menú.
+
+## Arquitectura pública objetivo
+
+La navegación pública futura se organizará conceptualmente en Inicio, Competición, Aprende a jugar, Escuela de Galotxas y Club. La zona autenticada conservará identidad, Mi Panel y cierre de sesión como bloque separado.
+
+- **Inicio** será una landing híbrida.
+- **Competición** agrupará Torneos, Rankings, Calendarios, Clasificaciones y Resultados sobre el dominio Laravel.
+- **Aprende a jugar** será la entrada al contenido divulgativo, Manual, Reglamento y Conceptos.
+- **Escuela de Galotxas** combinará conocimiento pedagógico estable con actividad operativa administrable; no será una subsección del Manual.
+- **Club** agrupará contenido institucional administrable.
+
+Las rutas conceptuales `/aprende`, `/manual` y sus subrutas, y `/escuela` son futuras. No están registradas actualmente y esta decisión no autoriza asumir endpoints, componentes o datos que todavía no existan. Las rutas actuales de Torneos, Rankings y Contenidos podrán mantenerse durante una migración incremental.
 
 ---
 

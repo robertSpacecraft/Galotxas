@@ -6,6 +6,34 @@ Este documento representa el estado y el orden oficial de evolución del proyect
 
 ---
 
+# Programa de arquitectura pública y contenidos
+
+La arquitectura híbrida y la nueva organización pública se desarrollarán mediante bloques separados. Una decisión documental no pasa a “Completado” hasta que su implementación y validación existan.
+
+## Fase 0 — Gobernanza documental actual
+
+El bloque actual formaliza fuentes de verdad, responsabilidades editoriales, arquitectura pública objetivo, reglas para agentes y criterios de seguridad, multimedia y testing. No crea rutas, componentes, endpoints, modelos, migraciones, pantallas Blade, compiladores ni nuevas colecciones en `knowledge/`.
+
+## Siguientes bloques aprobados
+
+1. **Auditoría del CMS, panel Blade, rutas y API:** inventariar capacidades, permisos, contenido, duplicados, consumidores y cobertura reales.
+2. **Seguridad editorial:** cerrar filtros públicos, acceso directo, estados, publicación programada, permisos y trazabilidad requeridos.
+3. **Reestructuración de navegación:** implantar Inicio, Competición, Aprende a jugar, Escuela de Galotxas y Club, conservando una migración compatible.
+4. **Landing Competición:** agrupar Torneos, Rankings, Calendarios, Clasificaciones, Resultados y accesos de jugadores sobre contratos verificados.
+5. **Landing Aprende a jugar:** crear la entrada divulgativa diferenciada del Manual.
+6. **Contrato editorial de `knowledge/`:** normalizar metadatos, IDs, slugs, relaciones y validaciones de las colecciones aprobadas.
+7. **Compilador build-time:** validar `knowledge/` y generar artefactos seguros y deterministas para React, sin MDX ni HTML ejecutable.
+8. **Manual MVP:** construir la experiencia pública desde los artefactos generados, sin base de datos, API Laravel o CRUD Blade.
+9. **Escuela de Galotxas:** combinar contenido pedagógico estable con actividad operativa administrable y protección específica de menores.
+10. **Club y migración de Contenidos:** asignar una fuente canónica a cada página institucional y retirar gradualmente la arquitectura legada.
+11. **QA, accesibilidad y despliegue:** validar contratos, recorridos, responsive, teclado, multimedia, persistencia y operación.
+
+Todos estos bloques salvo la Fase 0 permanecen pendientes. Las rutas conceptuales y capacidades descritas no están implementadas por aparecer en el roadmap.
+
+Este programa no altera por sí solo el proceso operativo de revisión y publicación del candidato descrito más abajo. Antes de iniciar un bloque funcional debe reconciliarse su calendario con el candidato y con cualquier corrección P0/P1.
+
+---
+
 # Estado del MVP
 
 El núcleo funcional previsto para el MVP está implementado. QA-MVP-1, QA-FIX-1 y RC-HARDEN-1 están completados. MVP-RC-1 ha preparado y validado la documentación del primer candidato como `v0.1.0-rc.1`, pero todavía no se ha creado el commit definitivo, el tag ni la GitHub Release.
@@ -100,7 +128,7 @@ Estas capacidades son válidas, pero no bloquean el candidato actual:
 - sugerencia o asignación automática de categoría;
 - noticias como entidad editorial propia;
 - subida segura y gestión de documentos e imágenes;
-- formularios públicos de federación/academy con antispam;
+- formularios públicos de federación o Escuela de Galotxas con antispam;
 - SEO y ordenación editorial avanzados del CMS;
 - métricas y filtros administrativos avanzados;
 - aplicación móvil y API administrativa consolidada.

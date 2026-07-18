@@ -14,7 +14,7 @@ El candidato no equivale a un despliegue de producción. HTTPS, proxy inverso, b
 - `frontend/`: React, Vite y zona pública/privada del jugador.
 - `backend/docker/`: PHP-FPM, Nginx y MariaDB 11.4.
 - `docs/`: documentación técnica y funcional.
-- `knowledge/`: fuente documental del deporte y su reglamento.
+- `knowledge/`: fuente canónica del reglamento, los conceptos y el conocimiento estable del deporte.
 
 MariaDB es el único motor de base de datos soportado. Laravel utiliza la conexión mariadb y PHP accede al servidor mediante la extensión pdo_mysql.
 
@@ -103,7 +103,8 @@ El stack E2E es desechable y no utiliza la base de desarrollo.
 ## Documentación
 
 - [Índice técnico y funcional](docs/README.md)
-- [Reglas de dominio deportivo](knowledge/README.md)
+- [Gobernanza de contenidos y arquitectura pública](docs/10-content-governance.md)
+- [Conocimiento canónico del deporte](knowledge/README.md)
 - [Roadmap y estado del MVP](docs/06-roadmap.md)
 - [Candidato MVP y publicación](docs/09-release-candidate.md)
 - [Historial de cambios](CHANGELOG.md)

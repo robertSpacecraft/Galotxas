@@ -557,6 +557,44 @@ Consecuencias:
 
 ---
 
+# ADR-025 — Gobernanza híbrida de contenido y arquitectura pública
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-07
+
+Contexto:
+- El proyecto combina dominio competitivo, un CMS básico de páginas y bloques, páginas React estáticas y conocimiento estable en `knowledge/`.
+- La navegación pública actual expone Torneos, Rankings, páginas institucionales y `/contenidos` sin una autoridad editorial única para todas las áreas.
+- El Manual necesita contenido canónico versionado; las noticias, actividades e información institucional temporal deben poder actualizarse sin Git ni despliegue.
+- La Escuela de Galotxas combina pedagogía estable con actividad operativa y no encaja por completo en una sola fuente.
+
+Decisión:
+- Adoptar tres canales: dominio Laravel mediante API, contenido administrable mediante CMS Laravel/Blade y conocimiento canónico mediante `knowledge/` y un futuro compilador build-time.
+- Mantener el Manual estático desde `knowledge/` en su primera versión, sin base de datos, API Laravel, CRUD Blade, MDX o HTML ejecutable.
+- Usar el CMS Laravel para el contenido que requiera edición administrativa, borradores, programación, archivos o actualización frecuente.
+- Tratar la Escuela de Galotxas como sección pública híbrida e independiente del Manual: conocimiento pedagógico estable y actividad operativa administrable.
+- Establecer React como capa de experiencia y presentación, nunca como fuente editorial.
+- Mantener Blade como interfaz administrativa oficial; no crear un panel editorial React paralelo.
+- Considerar `/contenidos` y sus páginas una estructura legada pendiente de inventario y migración, sin eliminarla ni cambiarla en la Fase 0.
+- Organizar la arquitectura pública objetivo en Inicio, Competición, Aprende a jugar, Escuela de Galotxas y Club, con la zona autenticada separada.
+
+Alternativas descartadas:
+- Almacenar todo el contenido en el CMS: perdería la autoridad versionada y revisable del reglamento y los conceptos.
+- Mantener todo el contenido en Markdown: impediría la edición operativa por administradores y la publicación temporal sin despliegue.
+- Escribir contenido institucional o pedagógico directamente en JSX: convertiría React en fuente editorial y crearía duplicados difíciles de gobernar.
+- Servir el Manual mediante una API Laravel o MDX en v1: añadiría persistencia o ejecución innecesarias antes de disponer de un contrato editorial validado.
+- Situar la Escuela bajo `/manual/academy`: confundiría una sección educativa y operativa propia con el Manual, además de conservar una denominación pública legada.
+
+Consecuencias:
+- Cada nueva sección debe definir previamente fuente de verdad, responsables, publicación, URLs, multimedia, permisos, tests y documentación.
+- Una misma pieza no puede mantenerse como copia editable en `knowledge/`, base de datos, React o seeders.
+- El compilador, el contrato editorial, las nuevas rutas y las ampliaciones CMS requieren bloques posteriores; esta decisión no los implementa.
+- El backend debe excluir contenido no publicable antes de responder y los Resources deben delimitar el contrato público.
+- La migración de `/contenidos`, la duplicidad de Nosotros, el slug legado `academy`, el almacenamiento persistente y la protección de menores requieren auditoría y trabajo posterior.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

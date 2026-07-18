@@ -1,93 +1,66 @@
 # Knowledge
 
-La carpeta `knowledge` contiene toda la documentación relacionada con el dominio funcional del proyecto Galotxas.
+La carpeta `knowledge/` contiene el conocimiento canónico y estable sobre las Galotxas. A diferencia de `docs/`, que documenta el producto y su arquitectura técnica, esta carpeta preserva las reglas editoriales del deporte y su vocabulario propio.
 
-A diferencia de la carpeta `docs`, que documenta la arquitectura y el desarrollo del software, `knowledge` recopila el conocimiento sobre el propio deporte: sus reglas, terminología, historia, variantes y cualquier otra información necesaria para comprenderlo, preservarlo y trasladarlo correctamente a la aplicación.
+`knowledge/` no es un CMS. Las noticias, convocatorias, actividades y demás contenido operativo que deba editar un administrador pertenecen al backend CMS conforme a [`docs/10-content-governance.md`](../docs/10-content-governance.md).
 
-Esta documentación constituye la fuente de referencia del proyecto para todas aquellas funcionalidades relacionadas con las Galotxas.
-
----
-
-# Objetivos
-
-Los objetivos principales de esta documentación son:
+## Objetivos
 
 - Preservar el conocimiento tradicional de las Galotxas.
-- Documentar el deporte de forma rigurosa y estructurada.
-- Servir de base para el desarrollo del software.
-- Facilitar la generación de reglamentos, manuales y contenido divulgativo.
-- Mantener una única fuente de verdad para todos los conceptos relacionados con el deporte.
+- Documentar el reglamento y la terminología de forma rigurosa y estructurada.
+- Mantener una única fuente editorial para cada regla o concepto.
+- Servir de referencia al software cuando representa elementos o reglas del deporte.
+- Permitir en el futuro la generación validada del Manual y de contenido divulgativo estable.
 
----
-
-# Estructura
+## Estructura actual
 
 ```text
 knowledge/
+├── AGENTS.md
 ├── README.md
-├── reglamento/
-├── glosario/
-├── historia/
-├── multimedia/
-└── referencias/
+├── conceptos/
+│   ├── README.md
+│   ├── elementos/
+│   ├── juego/
+│   └── personas/
+└── reglamento/
 ```
 
----
+- `reglamento/` contiene la formulación normativa editorial.
+- `conceptos/` contiene vocabulario y definiciones, agrupados actualmente en elementos, juego y personas.
 
-# Principios
+No existen todavía colecciones de Historia, Escuela, multimedia o referencias. Se crearán únicamente cuando exista contenido real y se haya aprobado su contrato editorial.
 
-Toda la documentación almacenada en `knowledge` deberá cumplir los siguientes principios.
+## Principios
 
-## Fuente única
+### Fuente única
 
-Cada concepto deberá definirse una única vez.
+Cada regla o concepto debe definirse en una sola fuente canónica. Los demás documentos y consumidores deben relacionarse con ella, no mantener copias editables.
 
-Los demás documentos harán referencia a dicha definición.
+### Coherencia y rigor
 
----
+La terminología debe ser consistente con el reglamento y los conceptos existentes. Las incertidumbres se hacen explícitas; no se inventan reglas ni se importan por analogía desde otros deportes.
 
-## Coherencia
+### Trazabilidad
 
-Toda la terminología utilizada deberá mantenerse consistente en todos los documentos y en el software.
+Una modificación relevante debe revisarse para determinar si afecta al dominio ejecutable del backend, a los artefactos consumidos por React o a la documentación técnica.
 
----
+### Evolución controlada
 
-## Trazabilidad
+El conocimiento puede ampliarse, corregirse y reorganizarse, pero los IDs, slugs y relaciones que se definan deben permanecer estables o disponer de una migración documentada.
 
-Toda modificación relevante deberá reflejarse tanto en la documentación como en las funcionalidades afectadas del proyecto.
+### Respeto por la tradición
 
----
+Cuando existan varias denominaciones tradicionales, podrán conservarse como variantes o sinónimos. El proyecto puede adoptar una denominación principal para mantener consistencia sin borrar esa riqueza cultural.
 
-## Evolución
+## Relación futura con el Manual
 
-La documentación constituye un documento vivo.
+El Manual será un consumidor y una organización pública de este conocimiento, no una segunda fuente editorial. En su primera versión se generará en build desde `knowledge/` mediante un compilador validado todavía no implementado. No utilizará MDX, HTML ejecutable, base de datos, API Laravel ni CRUD Blade.
 
-Podrá ampliarse, corregirse y reorganizarse conforme evolucione el conocimiento del deporte.
+## Relación futura con la Escuela de Galotxas
 
----
+La Escuela es una sección pública independiente del Manual. Su contenido pedagógico estable podrá proceder de una futura colección de `knowledge/`; sus actividades, fechas, noticias, galerías o inscripciones pertenecerán al backend CMS. Esta fase no crea nuevas carpetas para la Escuela.
 
-## Respeto por la tradición
+## Reglas aplicables
 
-El proyecto pretende preservar la riqueza terminológica y cultural de las Galotxas.
-
-Cuando existan varias denominaciones tradicionales para un mismo elemento, todas ellas podrán documentarse.
-
-No obstante, con el objetivo de mantener una documentación consistente, el proyecto podrá adoptar una denominación principal, conservando las restantes como sinónimos o variantes.
-
----
-
-# Relación con el software
-
-El contenido de `knowledge` forma parte del dominio funcional del proyecto.
-
-Toda funcionalidad desarrollada en el backend o frontend que represente reglas, conceptos o elementos propios de las Galotxas deberá tomar como referencia esta documentación.
-
-Del mismo modo, cualquier modificación relevante de esta documentación deberá revisarse para determinar si afecta al software existente.
-
----
-
-# Estado
-
-La documentación almacenada en `knowledge` se encuentra en desarrollo continuo.
-
-Todos los documentos deberán indicar su versión, estado y fecha de revisión.
+Las instrucciones editoriales para modificar esta carpeta se encuentran en [`AGENTS.md`](AGENTS.md). La matriz de fuentes y los criterios para elegir entre conocimiento canónico y CMS se mantienen en [`docs/10-content-governance.md`](../docs/10-content-governance.md).

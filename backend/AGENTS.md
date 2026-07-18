@@ -61,6 +61,13 @@ La existencia del panel Blade forma parte de la arquitectura oficial.
 
 No convertir funcionalidades Blade en React salvo decisión explícita.
 
+El backend debe distinguir explícitamente entre:
+
+- datos y reglas del dominio deportivo;
+- contenido editorial administrable mediante CMS.
+
+No crear endpoints para compensar una separación incorrecta de responsabilidades o lógica que pertenezca a la estructura de presentación del frontend.
+
 ---
 
 # Dominio
@@ -133,6 +140,38 @@ No modificar estructuras consumidas por React sin revisar previamente los consum
 
 No introducir cambios globales del contrato API durante implementaciones funcionales pequeñas.
 
+Los endpoints públicos de contenido deben filtrar en backend cualquier borrador, publicación futura o registro no visible. El frontend no es una barrera de seguridad editorial.
+
+El acceso directo por `slug` a contenido no publicado debe quedar protegido igual que los listados públicos.
+
+---
+
+# Contenido administrable
+
+Blade es la interfaz administrativa oficial para contenidos editables por administradores.
+
+Una nueva sección administrable debe resolverse como un flujo vertical completo cuando cada pieza sea aplicable:
+
+1. modelo y migración;
+2. Form Requests;
+3. Actions o Services conforme a la arquitectura existente;
+4. CRUD Blade siguiendo `backend/BACKEND_STYLE.md`;
+5. autorización administrativa;
+6. estados de publicación y visibilidad;
+7. slugs estables y únicos;
+8. API Resource específico;
+9. endpoint o controlador público;
+10. exclusión de borradores y contenido no publicable en backend;
+11. integración React;
+12. tests Feature y pruebas de las capas consumidoras;
+13. documentación.
+
+No declarar modelos, endpoints, pantallas o capacidades como existentes sin verificarlos. La gobernanza y la matriz de fuentes se documentan en `/docs/10-content-governance.md`.
+
+Los Form Requests deben validar las entradas y la autorización debe comprobarse en servidor. Los Resources delimitan el contrato público y no deben exponer estado editorial o trazabilidad administrativa salvo que el contexto lo requiera.
+
+Las cargas administrativas de producción necesitan almacenamiento persistente y desacoplado del filesystem efímero del despliegue. Antes de habilitarlas se deben definir permisos, propiedad, procedencia, texto alternativo, reemplazo, borrado y limpieza de huérfanos. Las imágenes de menores requieren controles específicos de autorización, privacidad y uso.
+
 ---
 
 # Base de datos
@@ -156,6 +195,15 @@ docker compose --profile test run --rm test
 Nunca ejecutar RefreshDatabase sobre la base de desarrollo.
 
 Todo cambio relevante debe acompañarse de tests cuando sea razonable.
+
+Los flujos de contenido administrable deben cubrir con tests Feature, según corresponda:
+
+- autorización administrativa;
+- validación y unicidad de slugs;
+- estados y fechas de publicación;
+- exclusión de borradores y publicaciones futuras;
+- acceso directo a contenido no publicable;
+- contrato de los Resources públicos.
 
 ---
 
@@ -204,3 +252,5 @@ Indicar siempre:
 - archivos modificados;
 - decisiones tomadas;
 - limitaciones detectadas.
+
+Cuando cambien un contrato público, un flujo editorial o una regla con consumidores, coordinar la revisión de `frontend/`, `/docs` y, si existe conocimiento canónico implicado, `knowledge/`.
