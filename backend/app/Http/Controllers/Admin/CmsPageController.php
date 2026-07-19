@@ -25,14 +25,14 @@ class CmsPageController extends Controller
     public function create()
     {
         return view('admin.cms-pages.create', [
-            'page' => new CmsPage(),
-            'statusOptions' => $this->statusOptions(),
+            'page' => new CmsPage,
+            'hasPublishableContent' => false,
         ]);
     }
 
     public function store(StoreCmsPageRequest $request)
     {
-        CmsPage::query()->create($this->normalizePageData($request->validated()));
+        CmsPage::query()->create($request->validated());
 
         return redirect()
             ->route('admin.cms-pages.index')
@@ -46,6 +46,7 @@ class CmsPageController extends Controller
 
         return view('admin.cms-pages.show', [
             'page' => $cmsPage,
+            'appTimezone' => config('app.timezone'),
         ]);
     }
 
@@ -54,29 +55,18 @@ class CmsPageController extends Controller
         return view('admin.cms-pages.edit', [
             'page' => $cmsPage,
             'statusOptions' => $this->statusOptions(),
+            'appTimezone' => config('app.timezone'),
+            'hasPublishableContent' => $cmsPage->hasPublishableContent(),
         ]);
     }
 
     public function update(UpdateCmsPageRequest $request, CmsPage $cmsPage)
     {
-        $cmsPage->update($this->normalizePageData($request->validated()));
+        $cmsPage->update($request->validated());
 
         return redirect()
             ->route('admin.cms-pages.index')
             ->with('success', 'Página CMS actualizada correctamente.');
-    }
-
-    /**
-     * @param array<string, mixed> $data
-     * @return array<string, mixed>
-     */
-    private function normalizePageData(array $data): array
-    {
-        if ($data['status'] === CmsPageStatus::PUBLISHED->value && empty($data['published_at'])) {
-            $data['published_at'] = now();
-        }
-
-        return $data;
     }
 
     /**

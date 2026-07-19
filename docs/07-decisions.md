@@ -170,7 +170,7 @@ Consecuencias:
 
 # ADR-010 — Autocompletar `published_at` al publicar páginas CMS
 
-Estado: Aceptada
+Estado: Sustituida por ADR-026
 
 Fecha aproximada: 2026-06
 
@@ -188,6 +188,8 @@ Consecuencias:
 - Publicar desde el panel tiene efecto inmediato aunque el campo de fecha quede vacío.
 - Sigue siendo posible programar publicación introduciendo una fecha futura.
 - La regla queda centralizada en el controlador admin de páginas CMS y cubierta por tests de creación.
+
+Esta decisión se conserva como trazabilidad histórica. ADR-026 mantiene la publicación inmediata, pero formaliza `null` como valor significativo y deja de sustituirlo por `now()`.
 
 ---
 
@@ -592,6 +594,42 @@ Consecuencias:
 - El compilador, el contrato editorial, las nuevas rutas y las ampliaciones CMS requieren bloques posteriores; esta decisión no los implementa.
 - El backend debe excluir contenido no publicable antes de responder y los Resources deben delimitar el contrato público.
 - La migración de `/contenidos`, la duplicidad de Nosotros, el slug legado `academy`, el almacenamiento persistente y la protección de menores requieren auditoría y trabajo posterior.
+
+---
+
+# ADR-026 — Invariantes editoriales y estado derivado del CMS
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-07
+
+Contexto:
+- El CMS admitía páginas nuevas publicadas antes de poder añadir bloques y permitía eliminar el último bloque de una página `published`.
+- El filtro público ya interpretaba `published_at = null` como visible, mientras el controlador administrativo reemplazaba ese valor por `now()`.
+- Una fecha futura se ocultaba correctamente en la API, pero Blade la presentaba como «Publicada».
+- El formulario `datetime-local` no comunicaba la zona horaria utilizada.
+
+Decisión:
+- Crear siempre las páginas como `draft`; una petición manipulada que solicite `published` durante el alta falla de forma explícita.
+- Permitir borradores vacíos, pero exigir al menos un bloque validado para pasar una página a `published`.
+- Definir `status = published` y `published_at = null` como publicación inmediata, conservando el valor nulo.
+- Derivar «Programada» cuando el estado persistido es `published` y la fecha es futura; no añadir un valor `scheduled` al enum ni al esquema.
+- Considerar publicada una página `published` con fecha nula, pasada o igual al momento actual.
+- Impedir eliminar el último bloque de una página con estado `published` hasta que un administrador la pase expresamente a borrador.
+- Interpretar y mostrar el campo de fecha con la zona `config('app.timezone')`.
+
+Alternativas descartadas:
+- Mantener el autocompletado con `now()`: ocultaría la semántica explícita de publicación inmediata y divergiría del filtro público.
+- Persistir un tercer estado `scheduled`: duplicaría información ya derivable de estado y fecha y exigiría migración sin aportar una transición distinta.
+- Cambiar automáticamente la página a borrador al borrar su último bloque: introduciría una decisión editorial implícita e inesperada.
+- Permitir páginas publicadas vacías y ocultarlas solo en React: rompería la invariancia del backend y convertiría al cliente en barrera editorial.
+
+Consecuencias:
+- El flujo administrativo es crear borrador, añadir bloques y publicar.
+- Listado y detalle Blade distinguen Borrador, Programada y Publicada mediante un estado de presentación no persistido.
+- Listado y detalle API conservan URLs, envelope y Resources y comparten la misma regla temporal.
+- Las páginas ya publicadas conservan al menos un bloque a través de los flujos administrativos.
+- Roles editoriales, trazabilidad, preview, revisiones, redirects, uploads y entidades específicas permanecen fuera de esta decisión.
 
 ---
 

@@ -10,25 +10,29 @@ Este documento representa el estado y el orden oficial de evolución del proyect
 
 La arquitectura híbrida y la nueva organización pública se desarrollarán mediante bloques separados. Una decisión documental no pasa a “Completado” hasta que su implementación y validación existan.
 
-## Fase 0 — Gobernanza documental actual
+## Fase 0 — Gobernanza documental completada
 
-El bloque actual formaliza fuentes de verdad, responsabilidades editoriales, arquitectura pública objetivo, reglas para agentes y criterios de seguridad, multimedia y testing. No crea rutas, componentes, endpoints, modelos, migraciones, pantallas Blade, compiladores ni nuevas colecciones en `knowledge/`.
+Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquitectura pública objetivo, reglas para agentes y criterios de seguridad, multimedia y testing. No creó rutas, componentes, endpoints, modelos, migraciones, pantallas Blade, compiladores ni nuevas colecciones en `knowledge/`.
+
+## Bloques completados del programa
+
+1. **Fase 1 — Auditoría del CMS, panel Blade, rutas y API:** capacidades, permisos, contenido, duplicados, consumidores y cobertura reales inventariados.
+2. **Fase 2A — Endurecimiento editorial del CMS:** creación obligatoria en borrador, contenido mínimo publicable, publicación inmediata o programada, estado derivado, protección del último bloque, feedback y cobertura dirigidos.
 
 ## Siguientes bloques aprobados
 
-1. **Auditoría del CMS, panel Blade, rutas y API:** inventariar capacidades, permisos, contenido, duplicados, consumidores y cobertura reales.
-2. **Seguridad editorial:** cerrar filtros públicos, acceso directo, estados, publicación programada, permisos y trazabilidad requeridos.
-3. **Reestructuración de navegación:** implantar Inicio, Competición, Aprende a jugar, Escuela de Galotxas y Club, conservando una migración compatible.
-4. **Landing Competición:** agrupar Torneos, Rankings, Calendarios, Clasificaciones, Resultados y accesos de jugadores sobre contratos verificados.
-5. **Landing Aprende a jugar:** crear la entrada divulgativa diferenciada del Manual.
-6. **Contrato editorial de `knowledge/`:** normalizar metadatos, IDs, slugs, relaciones y validaciones de las colecciones aprobadas.
-7. **Compilador build-time:** validar `knowledge/` y generar artefactos seguros y deterministas para React, sin MDX ni HTML ejecutable.
-8. **Manual MVP:** construir la experiencia pública desde los artefactos generados, sin base de datos, API Laravel o CRUD Blade.
-9. **Escuela de Galotxas:** combinar contenido pedagógico estable con actividad operativa administrable y protección específica de menores.
-10. **Club y migración de Contenidos:** asignar una fuente canónica a cada página institucional y retirar gradualmente la arquitectura legada.
-11. **QA, accesibilidad y despliegue:** validar contratos, recorridos, responsive, teclado, multimedia, persistencia y operación.
+1. **Integridad de Competición:** corregir de forma aislada los contratos administrativos y criterios públicos verificados por la auditoría antes de construir nuevas landings.
+2. **Reestructuración de navegación:** implantar Inicio, Competición, Aprende a jugar, Escuela de Galotxas y Club, conservando una migración compatible.
+3. **Landing Competición:** agrupar Torneos, Rankings, Calendarios, Clasificaciones, Resultados y accesos de jugadores sobre contratos verificados.
+4. **Landing Aprende a jugar:** crear la entrada divulgativa diferenciada del Manual.
+5. **Contrato editorial de `knowledge/`:** normalizar metadatos, IDs, slugs, relaciones y validaciones de las colecciones aprobadas.
+6. **Compilador build-time:** validar `knowledge/` y generar artefactos seguros y deterministas para React, sin MDX ni HTML ejecutable.
+7. **Manual MVP:** construir la experiencia pública desde los artefactos generados, sin base de datos, API Laravel o CRUD Blade.
+8. **Escuela de Galotxas:** combinar contenido pedagógico estable con actividad operativa administrable y protección específica de menores.
+9. **Club y migración de Contenidos:** asignar una fuente canónica a cada página institucional y retirar gradualmente la arquitectura legada.
+10. **QA, accesibilidad y despliegue:** validar contratos, recorridos, responsive, teclado, multimedia, persistencia y operación.
 
-Todos estos bloques salvo la Fase 0 permanecen pendientes. Las rutas conceptuales y capacidades descritas no están implementadas por aparecer en el roadmap.
+Estos bloques permanecen pendientes. Las rutas conceptuales y capacidades descritas no están implementadas por aparecer en el roadmap. Los permisos editoriales granulares, trazabilidad, preview, revisiones, redirects, noticias, actividades y uploads tampoco forman parte de la Fase 2A y requerirán decisiones posteriores dentro de sus verticales correspondientes.
 
 Este programa no altera por sí solo el proceso operativo de revisión y publicación del candidato descrito más abajo. Antes de iniciar un bloque funcional debe reconciliarse su calendario con el candidato y con cualquier corrección P0/P1.
 
@@ -88,6 +92,7 @@ La ausencia de una interfaz React de reprogramación no bloquea este cierre. El 
 - detalle público React (CMS-4);
 - índice de contenidos publicados (CMS-5);
 - navegación institucional y seeder no destructivo (CMS-6).
+- flujo editorial endurecido con creación en borrador, contenido mínimo, programación derivada, protección del último bloque y feedback administrativo (CMS-EDITORIAL-1 / Fase 2A).
 
 ## Frontend, despliegue y calidad
 

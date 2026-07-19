@@ -4,7 +4,18 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ## Unreleased
 
-- Pendiente de revisión humana, commit de preparación, etiquetado y publicación del primer candidato MVP.
+### Changed
+
+- El CMS crea las páginas como borrador y exige contenido validado antes de publicarlas.
+- `published_at = null` representa publicación inmediata; las fechas futuras se presentan como Programada según la zona horaria configurada por Laravel.
+- El panel distingue Borrador, Programada y Publicada y muestra el feedback de las operaciones de bloques.
+
+### Fixed
+
+- Se impide eliminar el último bloque de una página `published` sin despublicarla primero.
+- Se amplía la cobertura Feature del flujo editorial, el criterio público compartido y las sesiones administrativas activas.
+
+El primer candidato MVP continúa pendiente de revisión humana, commit de preparación, etiquetado y publicación.
 
 ## 0.1.0-rc.1 — pendiente de publicación
 

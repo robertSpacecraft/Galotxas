@@ -6,7 +6,7 @@
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
             <div>
                 <h1 class="mb-2">Crear página CMS</h1>
-                <p class="text-secondary mb-0">Alta de una página pública sin gestión de bloques</p>
+                <p class="text-secondary mb-0">Crea el borrador y añade contenido antes de publicarlo</p>
             </div>
 
             <a href="{{ route('admin.cms-pages.index') }}" class="btn btn-outline-secondary">

@@ -22,10 +22,31 @@
             </div>
         </div>
 
+        @if (session('success'))
+            <div class="alert alert-success" role="status">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="alert alert-danger" role="alert">
+                {{ session('error') }}
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div class="alert alert-danger" role="alert">
+                <strong>Se han encontrado errores:</strong>
+                <ul class="mb-0 mt-2">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         @php
-            $status = $page->status?->value ?? $page->status;
-            $statusClass = $status === 'published' ? 'text-bg-success' : 'text-bg-secondary';
-            $statusLabel = $status === 'published' ? 'Publicada' : 'Borrador';
+            $publicationState = $page->publicationState();
         @endphp
 
         <div class="card page-card mb-4">
@@ -39,11 +60,21 @@
 
                     <dt class="col-sm-3">Estado</dt>
                     <dd class="col-sm-9">
-                        <span class="badge {{ $statusClass }}">{{ $statusLabel }}</span>
+                        <span class="badge {{ $publicationState->badgeClass() }}">
+                            {{ $publicationState->label() }}
+                        </span>
                     </dd>
 
                     <dt class="col-sm-3">Fecha de publicación</dt>
-                    <dd class="col-sm-9">{{ $page->published_at?->format('d/m/Y H:i') ?? '-' }}</dd>
+                    <dd class="col-sm-9">
+                        @if ($page->hasPublishedStatus() && $page->published_at === null)
+                            Inmediata (sin fecha programada)
+                        @elseif ($page->published_at !== null)
+                            {{ $page->published_at->format('d/m/Y H:i') }} ({{ $appTimezone }})
+                        @else
+                            -
+                        @endif
+                    </dd>
 
                     <dt class="col-sm-3">Bloques</dt>
                     <dd class="col-sm-9">{{ $page->blocks_count }}</dd>

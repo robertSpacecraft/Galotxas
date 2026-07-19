@@ -28,10 +28,24 @@ class StoreCmsPageRequest extends FormRequest
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
                 Rule::unique('cms_pages', 'slug'),
             ],
-            'status' => ['required', new Enum(CmsPageStatus::class)],
+            'status' => [
+                'required',
+                new Enum(CmsPageStatus::class),
+                Rule::in([CmsPageStatus::DRAFT->value]),
+            ],
             'published_at' => ['nullable', 'date'],
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string', 'max:500'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'status.in' => 'Las páginas nuevas deben crearse como borrador. Añade al menos un bloque antes de publicarlas.',
         ];
     }
 }

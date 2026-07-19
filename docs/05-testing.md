@@ -467,7 +467,10 @@ Limitaciones deliberadas del smoke:
 
 ## CMS público
 - listado público de páginas publicadas en `GET /api/v1/cms/pages`;
+- publicación inmediata de páginas `published` con `published_at = null`;
+- publicación de páginas con fecha pasada o igual al momento actual;
 - exclusión de borradores y páginas futuras del listado público;
+- aplicación del mismo criterio de fecha y estado al listado y al detalle por `slug`;
 - ausencia de bloques y campos internos en el listado público;
 - orden estable del listado por `published_at` descendente e `id` descendente;
 - lectura pública de una página publicada por `slug`;
@@ -479,18 +482,44 @@ Limitaciones deliberadas del smoke:
 
 ## CMS administrativo
 - acceso del administrador al listado de páginas CMS;
-- creación de página CMS desde panel admin;
+- creación de página CMS siempre como borrador y orientación del flujo desde el formulario;
+- rechazo de peticiones manipuladas que intenten crear directamente una página publicada;
 - edición de página CMS desde panel admin;
+- rechazo de publicación de una página sin bloques y publicación válida cuando existe contenido;
+- conservación de `published_at = null` como publicación inmediata;
+- presentación diferenciada de Borrador, Programada y Publicada;
+- explicación de `config('app.timezone')` en el formulario de edición;
 - validación de unicidad de `slug`;
 - conservación del propio `slug` durante edición;
 - protección de acceso frente a usuarios no administradores.
 - visualización de bloques CMS de una página;
-- creación, edición y eliminación de bloques CMS;
+- creación, edición y eliminación de bloques CMS con feedback visible o flash comprobado;
+- eliminación normal del último bloque en borradores y de un bloque publicado cuando permanece otro;
+- rechazo y conservación del último bloque de una página `published`;
 - ordenación de bloques por `sort_order`;
 - validación de tipo de bloque;
 - validación de datos mínimos según tipo de bloque;
 - protección frente a edición de bloques desde una página ajena;
 - comprobación de que los bloques creados desde admin salen por el endpoint público.
+
+## CMS-EDITORIAL-1 — Endurecimiento editorial
+
+La Fase 2A añade regresiones dirigidas para:
+
+- el flujo crear borrador → añadir bloques → publicar;
+- la defensa backend frente a altas publicadas manipuladas;
+- la invariancia que impide publicar páginas vacías;
+- publicación inmediata con fecha nula y programación con fecha futura;
+- estado derivado correcto en el índice y detalle Blade;
+- zona horaria configurada comunicada en el formulario;
+- protección del último bloque de páginas `published`, incluida la conservación de sus datos;
+- feedback de creación, actualización, borrado y rechazo de bloques;
+- pertenencia del bloque a la página también durante el borrado;
+- igualdad de criterio entre listado y detalle públicos para borrador, fecha nula, pasada y futura;
+- orden de bloques de una página pública válida;
+- continuidad de las pruebas de sesión para administradores activos e inactivos.
+
+Las fechas sensibles se fijan con Carbon y se restablecen en cada prueba. Toda la cobertura Feature usa factories y el MariaDB aislado del perfil Docker `test`; no depende de datos locales.
 
 ## CMS público React
 - consumo del endpoint `GET /api/v1/cms/pages` desde el cliente API existente;
@@ -543,7 +572,7 @@ La cobertura de SCHEDULE-1 valida colisiones dentro de cada categoría generada.
 
 ## Cobertura actual
 
-La base CMS existente dispone de pruebas Feature para administración de páginas y bloques, autorización administrativa básica, unicidad de `slug`, publicación, exclusión de borradores y fechas futuras, acceso público por slug y Resources. React dispone de pruebas para los estados y el renderizado controlado de páginas CMS, y el smoke E2E recorre el índice y el detalle bajo `/contenidos`.
+La base CMS dispone de pruebas Feature para administración de páginas y bloques, autorización administrativa, unicidad de `slug`, creación obligatoria en borrador, contenido mínimo publicable, publicación inmediata, programación, protección del último bloque, feedback, exclusión de borradores y fechas futuras, acceso público por `slug` y Resources. React dispone de pruebas para los estados y el renderizado controlado de páginas CMS, y el smoke E2E recorre el índice y el detalle bajo `/contenidos`.
 
 Esta cobertura confirma el módulo básico actual. No demuestra todavía que las futuras áreas de Club, Escuela, noticias, archivos o formularios estén implementadas ni que sus requisitos específicos estén resueltos.
 

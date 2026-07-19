@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\CmsBlockType;
+use App\Enums\CmsPageStatus;
 use App\Models\CmsBlock;
 use App\Models\CmsPage;
 use App\Models\User;
@@ -95,7 +96,7 @@ class AdminCmsBlockTest extends TestCase
         ], $block->data);
     }
 
-    public function test_admin_can_delete_cms_block(): void
+    public function test_admin_can_delete_last_cms_block_from_draft_page(): void
     {
         $admin = User::factory()->admin()->create();
         $page = CmsPage::factory()->create();
@@ -113,6 +114,61 @@ class AdminCmsBlockTest extends TestCase
         $this->assertDatabaseHas('cms_pages', [
             'id' => $page->id,
         ]);
+    }
+
+    public function test_admin_can_delete_block_from_published_page_when_another_block_remains(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $page = CmsPage::factory()->published()->create();
+        $block = CmsBlock::factory()->for($page, 'page')->create();
+        $remainingBlock = CmsBlock::factory()->for($page, 'page')->create();
+
+        $response = $this->actingAs($admin)
+            ->delete(route('admin.cms-pages.blocks.destroy', [$page, $block]));
+
+        $response->assertRedirect(route('admin.cms-pages.show', $page));
+        $response->assertSessionHas('success', 'Bloque CMS eliminado correctamente.');
+        $this->assertDatabaseMissing('cms_blocks', ['id' => $block->id]);
+        $this->assertDatabaseHas('cms_blocks', ['id' => $remainingBlock->id]);
+    }
+
+    public function test_admin_cannot_delete_last_block_from_published_page(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $page = CmsPage::factory()->published()->create();
+        $block = CmsBlock::factory()->for($page, 'page')->create([
+            'data' => ['text' => 'Contenido que debe conservarse'],
+        ]);
+        $message = 'No se puede eliminar el último bloque de una página publicada. Pasa primero la página a borrador.';
+
+        $response = $this->actingAs($admin)
+            ->delete(route('admin.cms-pages.blocks.destroy', [$page, $block]));
+
+        $response->assertRedirect(route('admin.cms-pages.show', $page));
+        $response->assertSessionHas('error', $message);
+        $this->assertDatabaseHas('cms_blocks', [
+            'id' => $block->id,
+            'cms_page_id' => $page->id,
+        ]);
+        $this->assertSame(CmsPageStatus::PUBLISHED, $page->fresh()->status);
+
+        $this->actingAs($admin)
+            ->get(route('admin.cms-pages.show', $page))
+            ->assertOk()
+            ->assertSee($message)
+            ->assertSee('Contenido que debe conservarse');
+    }
+
+    public function test_cms_page_show_displays_block_success_feedback(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $page = CmsPage::factory()->draft()->create();
+
+        $this->actingAs($admin)
+            ->withSession(['success' => 'Bloque CMS creado correctamente.'])
+            ->get(route('admin.cms-pages.show', $page))
+            ->assertOk()
+            ->assertSee('Bloque CMS creado correctamente.');
     }
 
     public function test_cannot_create_block_with_invalid_type(): void
@@ -215,6 +271,23 @@ class AdminCmsBlockTest extends TestCase
             ->get(route('admin.cms-pages.blocks.edit', [$page, $block]));
 
         $response->assertNotFound();
+    }
+
+    public function test_cannot_delete_block_through_another_page_route(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $page = CmsPage::factory()->draft()->create();
+        $otherPage = CmsPage::factory()->draft()->create();
+        $block = CmsBlock::factory()->for($otherPage, 'page')->create();
+
+        $response = $this->actingAs($admin)
+            ->delete(route('admin.cms-pages.blocks.destroy', [$page, $block]));
+
+        $response->assertNotFound();
+        $this->assertDatabaseHas('cms_blocks', [
+            'id' => $block->id,
+            'cms_page_id' => $otherPage->id,
+        ]);
     }
 
     public function test_admin_created_block_is_returned_by_public_endpoint(): void

@@ -3,9 +3,11 @@
 namespace Tests\Feature\Api\V1;
 
 use App\Enums\CmsBlockType;
+use App\Enums\CmsPageStatus;
 use App\Models\CmsBlock;
 use App\Models\CmsPage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class PublicCmsPageTest extends TestCase
@@ -73,6 +75,53 @@ class PublicCmsPageTest extends TestCase
             ->assertJsonPath('data.0.slug', $sameDateSecondPage->slug)
             ->assertJsonPath('data.1.slug', $sameDateFirstPage->slug)
             ->assertJsonPath('data.2.slug', $olderPage->slug);
+    }
+
+    public function test_public_list_and_detail_share_immediate_past_future_and_draft_criteria(): void
+    {
+        $now = Carbon::parse('2026-08-01 12:00:00', config('app.timezone'));
+        Carbon::setTestNow($now);
+
+        try {
+            $immediatePage = CmsPage::factory()->create([
+                'slug' => 'publicacion-inmediata',
+                'status' => CmsPageStatus::PUBLISHED->value,
+                'published_at' => null,
+            ]);
+            CmsBlock::factory()->for($immediatePage, 'page')->create();
+
+            $pastPage = CmsPage::factory()->published()->create([
+                'slug' => 'publicacion-pasada',
+                'published_at' => $now->copy()->subMinute(),
+            ]);
+            CmsBlock::factory()->for($pastPage, 'page')->create();
+
+            $futurePage = CmsPage::factory()->published()->create([
+                'slug' => 'publicacion-futura',
+                'published_at' => $now->copy()->addMinute(),
+            ]);
+            CmsBlock::factory()->for($futurePage, 'page')->create();
+
+            $draftPage = CmsPage::factory()->draft()->create([
+                'slug' => 'borrador-no-publico',
+            ]);
+            CmsBlock::factory()->for($draftPage, 'page')->create();
+
+            $this->getJson('/api/v1/cms/pages')
+                ->assertOk()
+                ->assertJsonCount(2, 'data')
+                ->assertJsonFragment(['slug' => 'publicacion-inmediata'])
+                ->assertJsonFragment(['slug' => 'publicacion-pasada'])
+                ->assertJsonMissing(['slug' => 'publicacion-futura'])
+                ->assertJsonMissing(['slug' => 'borrador-no-publico']);
+
+            $this->getJson('/api/v1/cms/pages/publicacion-inmediata')->assertOk();
+            $this->getJson('/api/v1/cms/pages/publicacion-pasada')->assertOk();
+            $this->getJson('/api/v1/cms/pages/publicacion-futura')->assertNotFound();
+            $this->getJson('/api/v1/cms/pages/borrador-no-publico')->assertNotFound();
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     public function test_public_endpoint_returns_a_published_page_by_slug(): void

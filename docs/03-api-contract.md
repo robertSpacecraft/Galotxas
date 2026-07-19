@@ -467,7 +467,10 @@ Reglas:
 
 - es público y no requiere autenticación;
 - devuelve únicamente páginas con estado `published`;
-- excluye páginas con `published_at` futuro;
+- `published_at = null` significa publicación inmediata y la página es visible;
+- una fecha pasada o igual al momento actual es visible;
+- una fecha futura significa publicación programada y la página no es visible hasta alcanzarla;
+- las páginas `draft` nunca son visibles;
 - no devuelve bloques;
 - no expone identificadores internos, estado, timestamps ni campos administrativos;
 - el orden es `published_at` descendente y, en caso de empate, `id` descendente.
@@ -497,8 +500,9 @@ Reglas:
 
 - es público y no requiere autenticación;
 - devuelve únicamente páginas con estado `published`;
+- `published_at = null` publica la página inmediatamente;
 - si `published_at` tiene una fecha futura, la página todavía no se considera visible;
-- las páginas inexistentes o en borrador devuelven `404`;
+- las páginas inexistentes, en borrador o programadas para el futuro devuelven `404`;
 - los bloques se devuelven ordenados por `order`;
 - no expone identificadores internos, estado, timestamps ni claves foráneas del CMS.
 
@@ -537,6 +541,8 @@ Tipos iniciales de bloque:
 - `document_link`: `{ "label": "...", "url": "..." }`.
 
 El campo `data` es JSON estructurado y su forma depende del tipo de bloque. Esta base no incorpora todavía endpoints de noticias, formularios públicos ni subida de documentos o imágenes.
+
+El listado y el detalle reutilizan el mismo criterio backend de publicación: estado `published` y fecha nula o no futura. La presentación administrativa «Programada» es derivada; no se expone un estado adicional ni cambia el envelope público.
 
 ## Consumo desde React
 

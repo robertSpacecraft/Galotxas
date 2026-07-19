@@ -70,6 +70,12 @@ class CmsBlockController extends Controller
     {
         $this->ensureBlockBelongsToPage($cmsPage, $cmsBlock);
 
+        if ($cmsPage->hasPublishedStatus() && ! $cmsPage->hasPublishableContent($cmsBlock)) {
+            return redirect()
+                ->route('admin.cms-pages.show', $cmsPage)
+                ->with('error', 'No se puede eliminar el último bloque de una página publicada. Pasa primero la página a borrador.');
+        }
+
         $cmsBlock->delete();
 
         return redirect()

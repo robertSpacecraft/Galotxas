@@ -281,8 +281,10 @@ Reglas:
 
 - Solo las páginas publicadas pueden leerse desde la API pública.
 - Las páginas en borrador no son visibles públicamente.
-- Una página con fecha de publicación futura todavía no es visible públicamente.
-- Si un administrador marca una página como publicada sin indicar `published_at`, el backend completa la fecha con el momento actual.
+- Una página `published` sin `published_at` se publica inmediatamente y conserva la fecha nula.
+- Una página `published` con fecha futura queda programada y todavía no es visible públicamente.
+- Los borradores pueden estar vacíos, pero una página necesita al menos un bloque válido para pasar a `published`.
+- El último bloque de una página con estado `published` no puede eliminarse hasta que la página vuelva a borrador.
 - Los bloques se devuelven ordenados por el backend.
 - El contenido de los bloques se almacena como datos estructurados, no como HTML libre.
 - Los bloques pertenecen siempre a una única página CMS.
@@ -298,7 +300,7 @@ Tipos iniciales de bloque:
 - `button`: `label` y `url` obligatorios;
 - `document_link`: `label` y `url` obligatorios.
 
-El panel administrativo permite crear y editar páginas CMS con título, `slug`, estado, `published_at` y metadatos SEO mínimos. También permite gestionar sus bloques estructurados. La subida de documentos o imágenes todavía no forma parte de esta base técnica; los bloques de imagen, galería y documento trabajan con URLs o rutas ya existentes.
+El panel administrativo crea cada página CMS como borrador con título, `slug` y metadatos SEO mínimos. Tras añadir contenido, la edición permite elegir el estado y `published_at`: una fecha vacía publica inmediatamente y una futura programa la publicación según `config('app.timezone')`. También permite gestionar sus bloques estructurados. La subida de documentos o imágenes todavía no forma parte de esta base técnica; los bloques de imagen, galería y documento trabajan con URLs o rutas ya existentes.
 
 ---
 

@@ -42,17 +42,23 @@
                             <tbody>
                             @foreach ($pages as $page)
                                 @php
-                                    $status = $page->status?->value ?? $page->status;
-                                    $statusClass = $status === 'published' ? 'text-bg-success' : 'text-bg-secondary';
-                                    $statusLabel = $status === 'published' ? 'Publicada' : 'Borrador';
+                                    $publicationState = $page->publicationState();
                                 @endphp
                                 <tr>
                                     <td>{{ $page->title }}</td>
                                     <td><code>{{ $page->slug }}</code></td>
                                     <td>
-                                        <span class="badge {{ $statusClass }}">{{ $statusLabel }}</span>
+                                        <span class="badge {{ $publicationState->badgeClass() }}">
+                                            {{ $publicationState->label() }}
+                                        </span>
                                     </td>
-                                    <td>{{ $page->published_at?->format('d/m/Y H:i') ?? '-' }}</td>
+                                    <td>
+                                        @if ($page->hasPublishedStatus() && $page->published_at === null)
+                                            Inmediata
+                                        @else
+                                            {{ $page->published_at?->format('d/m/Y H:i') ?? '-' }}
+                                        @endif
+                                    </td>
                                     <td class="text-end">{{ $page->blocks_count }}</td>
                                     <td class="text-center">
                                         <div class="d-flex flex-wrap justify-content-center gap-2">

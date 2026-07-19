@@ -27,7 +27,7 @@ No todo contenido público pertenece al panel: Reglamento, Conceptos, Manual y c
 
 ## Estado y auditoría
 
-Las pantallas descritas a continuación son capacidades actuales documentadas. El CMS existente de páginas y bloques es una base real, pero la Fase 1 debe auditar sus rutas, permisos, estados, API, contenido, pruebas y adecuación a las nuevas áreas antes de ampliarlo.
+Las pantallas descritas a continuación son capacidades actuales documentadas. La Fase 1 verificó las rutas, permisos, estados, API, contenido y pruebas del CMS genérico; la Fase 2A ha endurecido su invariancia editorial. La adecuación de ese CMS a cada futura área específica sigue necesitando un bloque propio antes de ampliarlo.
 
 Noticias, actividades de la Escuela, carga persistente de archivos, formularios públicos y nuevas pantallas editoriales son capacidades futuras; no se consideran implementadas.
 
@@ -57,10 +57,14 @@ La ruta `/admin/registration-requests` centraliza la gestión operativa del fluj
 La ruta `/admin/cms/pages` centraliza la gestión básica de páginas públicas CMS.
 
 - Muestra el listado de páginas con título, `slug`, estado, fecha de publicación y número de bloques.
-- Permite crear páginas con título, `slug`, estado, `published_at` y metadatos SEO mínimos.
-- Permite editar esos mismos campos.
-- La publicación y despublicación se realiza modificando el campo de estado.
-- Si una página se marca como publicada sin `published_at`, el backend completa la fecha con el momento actual.
+- Crea cada página como borrador con título, `slug` y metadatos SEO mínimos.
+- El flujo editorial es: crear el borrador, añadir al menos un bloque válido y editar la página para publicarla.
+- La edición permite modificar título, `slug`, estado, `published_at` y metadatos SEO.
+- Una página vacía puede permanecer en borrador, pero no puede pasar a `published`.
+- `published` con `published_at = null` significa publicación inmediata y conserva el valor nulo.
+- `published` con una fecha futura significa publicación programada y no es todavía visible por API.
+- El panel presenta los estados derivados Borrador, Programada y Publicada sin añadir un tercer estado a la base de datos.
+- El campo `datetime-local` se interpreta según `config('app.timezone')`, que se muestra en el formulario; no usa una zona horaria hardcodeada.
 - Desde el detalle de una página permite gestionar sus bloques CMS.
 - Las páginas institucionales recomendadas para el MVP usan los slugs `prensa-media`, `nosotros`, `federaciones`, `academy`, `documentos` y `federarse`.
 - En entornos de desarrollo puede crearse una base mínima no destructiva con `php artisan db:seed --class=InstitutionalCmsPageSeeder`.
@@ -76,6 +80,8 @@ Las rutas `/admin/cms/pages/{cmsPage}/blocks/*` centralizan la gestión básica 
 - El orden se edita manualmente mediante `sort_order`.
 - El formulario valida el tipo de bloque y los campos mínimos de `data` según el tipo seleccionado.
 - La eliminación de un bloque usa confirmación simple y no elimina la página.
+- El último bloque de una página con estado `published` no puede eliminarse; antes debe pasarse expresamente la página a borrador.
+- El detalle de página muestra el feedback de creación, actualización, eliminación y rechazo de bloques.
 - La subida real de imágenes o documentos no forma parte de esta pantalla; los bloques usan URLs o rutas ya existentes.
 
 ### Pistas
@@ -338,16 +344,19 @@ El panel administrativo incluye gestión básica de páginas y bloques CMS.
 Responsabilidades actuales:
 
 - listar páginas CMS;
-- crear páginas;
-- editar título, `slug`, estado, fecha de publicación y campos SEO;
+- crear páginas siempre como borrador;
+- editar título, `slug`, estado, fecha de publicación y campos SEO después del alta;
 - cambiar entre borrador y publicada mediante el formulario de edición;
+- presentar como Programada una página `published` cuya fecha sea futura;
+- impedir la publicación de páginas sin bloques y proteger el último bloque de las páginas `published`;
+- interpretar las fechas de edición en la zona configurada por Laravel;
 - mantener visible el número de bloques asociados;
 - crear, editar, ordenar manualmente y eliminar bloques estructurados.
 - mantener los slugs institucionales enlazados desde la navegación pública cuando se quiera editar su contenido.
 
 La subida real de imágenes y documentos se incorporará en una fase posterior.
 
-La gestión actual debe auditarse antes de asignarle nuevas áreas públicas. La existencia de un CRUD genérico no confirma por sí sola que Prensa y medios, Club o la actividad de la Escuela dispongan ya de los campos, permisos, flujos y contratos que necesitan.
+La gestión genérica ya ha sido auditada y endurecida, pero debe diseñarse el contrato específico antes de asignarle nuevas áreas públicas. La existencia del CRUD no confirma por sí sola que Prensa y medios, Club o la actividad de la Escuela dispongan de los campos, permisos, flujos y contratos que necesitan.
 
 ---
 

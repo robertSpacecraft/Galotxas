@@ -59,7 +59,7 @@ Laravel decide las reglas y consulta la persistencia de competición. La API exp
 
 Se utiliza cuando un administrador debe editar contenido, cuando existen borradores o publicación programada, cuando cambia con frecuencia o cuando incluye archivos operativos. El backend filtra el contenido no publicable antes de responder.
 
-**Estado actual verificado:** existen páginas y bloques CMS estructurados, administración Blade básica, estados `draft` y `published`, fecha de publicación, Resources públicos, endpoints de lectura y las rutas React legadas `/contenidos` y `/contenidos/:slug`. No existe todavía subida administrada de archivos ni se considera auditada la adecuación del CMS a todas las nuevas áreas.
+**Estado actual verificado:** existen páginas y bloques CMS estructurados, administración Blade, estados persistidos `draft` y `published`, fecha de publicación, Resources públicos, endpoints de lectura y las rutas React legadas `/contenidos` y `/contenidos/:slug`. La creación es siempre en borrador; publicar exige al menos un bloque válido; `published_at = null` significa publicación inmediata y una fecha futura se presenta como Programada sin añadir un estado persistido. El último bloque de una página `published` queda protegido. No existe todavía subida administrada de archivos ni se considera resuelta la adecuación del CMS genérico a todas las nuevas áreas.
 
 ### 4.3. Conocimiento canónico y estable
 
@@ -142,10 +142,10 @@ La tabla diferencia la fuente aprobada de las capacidades actuales que todavía 
 | Escuela: contenido estable | `knowledge/` futuro | Git y revisión | No inicialmente | No | Pedagógica |
 | Escuela: actividad | Backend CMS | Administrador | Sí | Sí | Operativa |
 | Club | Backend CMS | Administrador | Sí | Sí | Institucional |
-| Prensa y medios | Backend CMS existente por auditar | Administrador | Por confirmar | Por confirmar | Editorial |
-| Contenidos legado | Backend CMS | Administrador | Existente por auditar | Existente por auditar | Legada |
+| Prensa y medios | Backend CMS genérico auditado; contrato específico pendiente | Administrador | Genérico actual | Genérica actual | Editorial |
+| Contenidos legado | Backend CMS | Administrador | Existente y auditado | Existente y auditado | Legada |
 
-“Sí” expresa el flujo aprobado o el módulo deportivo actual según la fila; no garantiza que una sección editorial concreta ya esté implementada. Las capacidades CMS existentes y sus límites se verificarán en la auditoría de la Fase 1.
+“Sí” expresa el flujo aprobado o el módulo deportivo actual según la fila; no garantiza que una sección editorial concreta ya esté implementada. La Fase 1 verificó las capacidades y límites del CMS genérico; cada vertical futura todavía debe definir y probar su contrato específico.
 
 ## 7. Responsables de edición
 
@@ -210,13 +210,21 @@ Blade es la interfaz administrativa oficial. No se creará un segundo panel admi
 
 Todo contenido editorial administrable debe definir de forma explícita sus estados y transiciones. Como mínimo se debe decidir si necesita borrador, publicación, despublicación, programación, archivo y vista previa.
 
-El CMS actual dispone de `draft`, `published` y `published_at`; su comportamiento detallado y suficiencia para las nuevas áreas se auditarán antes de ampliarlo. Una fecha futura no debe producir visibilidad pública y el acceso directo por slug debe aplicar el mismo filtro que los listados.
+El CMS actual persiste `draft`, `published` y `published_at` con esta semántica:
+
+- `draft`: puede estar vacío y nunca es visible públicamente;
+- `published` con `published_at = null`: publicación inmediata;
+- `published` con fecha pasada o igual al momento actual: publicada;
+- `published` con fecha futura: Programada, como estado de presentación derivado y no persistido.
+
+Una página necesita al menos un bloque válido para pasar a `published`. El último bloque de una página con ese estado no puede eliminarse hasta que vuelva expresamente a borrador. El listado y el acceso directo por `slug` aplican el mismo filtro temporal en backend. El formulario interpreta `published_at` según `config('app.timezone')` y comunica esa zona al administrador.
 
 ## 12. Seguridad editorial
 
 - La autorización se aplica en backend tanto a pantallas como a acciones.
 - Los datos públicos se seleccionan mediante Resources específicos.
 - El endpoint público excluye borradores, publicaciones futuras y contenido no visible.
+- Los flujos administrativos impiden publicar páginas vacías y conservar una página `published` sin bloques.
 - React no recibe contenido prohibido para ocultarlo después.
 - El acceso directo a una URL no elude el estado de publicación.
 - Los bloques estructurados no admiten HTML ejecutable o arbitrario.
@@ -285,7 +293,6 @@ Esta Fase 0 no elimina `/contenidos`, no crea redirects, no cambia su API y no b
 
 - Inventario real de páginas y bloques CMS, incluidos borradores, pruebas y contenido futuro.
 - Permisos efectivos y protección de todas las acciones del panel editorial.
-- Cobertura del filtrado público, acceso directo y publicación programada.
 - Duplicidad de Nosotros entre página estática y CMS.
 - Uso y destino de los slugs legados, incluido `academy`.
 - Capacidad real de Prensa y medios, Federarse, Federaciones y Contacto.
