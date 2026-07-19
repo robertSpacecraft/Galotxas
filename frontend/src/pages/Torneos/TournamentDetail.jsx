@@ -3,6 +3,11 @@ import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { championshipsService } from '../../api/championships';
 import { TournamentRanking } from '../../components/Torneos/TournamentRanking';
 import { useAuth } from '../../hooks/useAuth';
+import {
+  getCategoryDetailPath,
+  getCategorySchedulePath,
+  getCategoryStandingsPath,
+} from '../../navigation/competitionRoutes';
 import { formatDate, formatDateRange } from '../../utils/formatDate';
 import styles from './Torneos.module.css';
 
@@ -139,12 +144,37 @@ export const TournamentDetail = () => {
             <h2 className={styles.subTitle}>Categorías</h2>
             {categories && categories.length > 0 ? (
               <div className={styles.categoriesGrid}>
-                {categories.map(cat => (
-                  <div key={cat.id} className={styles.categoryCard}>
-                    <h3>{cat.name}</h3>
-                    <Link to={`/categories/${cat.id}`} className={styles.catLink}>Ver categoría</Link>
-                  </div>
-                ))}
+                {categories.map((cat) => {
+                  const detailPath = getCategoryDetailPath(cat.id);
+                  const standingsPath = getCategoryStandingsPath(cat.id);
+                  const schedulePath = getCategorySchedulePath(cat.id);
+
+                  return (
+                    <article key={cat.id} className={styles.categoryCard}>
+                      <h3>{cat.name}</h3>
+                      <nav
+                        className={styles.categoryActions}
+                        aria-label={`Opciones de ${cat.name}`}
+                      >
+                        {detailPath ? (
+                          <Link to={detailPath} className={styles.categoryAction}>
+                            Ver categoría
+                          </Link>
+                        ) : null}
+                        {standingsPath ? (
+                          <Link to={standingsPath} className={styles.categoryAction}>
+                            Clasificación
+                          </Link>
+                        ) : null}
+                        {schedulePath ? (
+                          <Link to={schedulePath} className={styles.categoryAction}>
+                            Calendario y resultados
+                          </Link>
+                        ) : null}
+                      </nav>
+                    </article>
+                  );
+                })}
               </div>
             ) : (
               <p>No hay categorías registradas en este torneo aún.</p>

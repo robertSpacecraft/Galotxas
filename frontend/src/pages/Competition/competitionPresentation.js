@@ -31,10 +31,6 @@ export const getChampionshipStatusLabel = (status) => (
 
 export const getChampionshipTypeLabel = (type) => getKnownLabel(championshipTypeLabels, type);
 
-export const getChampionshipDetailPath = (championshipId) => (
-  `/torneos/${encodeURIComponent(championshipId)}`
-);
-
 export const getCompetitionDateLabel = (value) => {
   if (!value) {
     return null;

@@ -54,4 +54,38 @@ describe('TournamentDetail', () => {
     expect(screen.getByText('Hasta: Sin fecha definida')).toBeInTheDocument();
     expect(screen.queryByText(/1970/)).not.toBeInTheDocument();
   });
+
+  it('offers the existing detail, standings and schedule routes for each category', async () => {
+    championshipsService.getChampionship.mockResolvedValue({
+      id: 9,
+      name: 'Torneo RC',
+      description: 'Torneo de endurecimiento.',
+      type: 'singles',
+      status: 'active',
+      start_date: '2026-07-14',
+      end_date: '2026-07-20',
+      registration_status: 'closed',
+      registration_starts_at: null,
+      registration_ends_at: null,
+      registration_is_open: false,
+      season: { name: 'Temporada 2026' },
+      categories: [{ id: 12, name: 'Individual absoluta' }],
+    });
+    championshipsService.getChampionshipRanking.mockResolvedValue([]);
+
+    renderWithProviders(<TournamentDetail />, {
+      route: '/torneos/9',
+      routePath: '/torneos/:championshipId',
+      authValue: anonymousAuth,
+    });
+
+    const actions = await screen.findByRole('navigation', { name: 'Opciones de Individual absoluta' });
+    expect(actions).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Ver categoría' }))
+      .toHaveAttribute('href', '/categories/12');
+    expect(screen.getByRole('link', { name: 'Clasificación' }))
+      .toHaveAttribute('href', '/categories/12/standings');
+    expect(screen.getByRole('link', { name: 'Calendario y resultados' }))
+      .toHaveAttribute('href', '/categories/12/schedule');
+  });
 });

@@ -3,6 +3,11 @@ import { useParams, Link } from 'react-router-dom';
 import { championshipsService } from '../../api/championships';
 import { StandingsTable } from '../../components/Torneos/StandingsTable';
 import MatchCard from '../../components/MatchCard';
+import {
+    getCategorySchedulePath,
+    getCategoryStandingsPath,
+    getChampionshipDetailPath,
+} from '../../navigation/competitionRoutes';
 import styles from './Torneos.module.css';
 
 export const CategoryDetail = () => {
@@ -67,11 +72,17 @@ export const CategoryDetail = () => {
         if (s.entry_id) entryNames[s.entry_id] = s.name;
     });
 
+    const championshipPath = getChampionshipDetailPath(category.championship_id);
+    const standingsPath = getCategoryStandingsPath(categoryId);
+    const schedulePath = getCategorySchedulePath(categoryId);
+
     return (
         <div className={styles.container}>
-            <Link to={`/torneos/${category.championship_id}`} className={styles.backLink}>
-                ← Volver al torneo
-            </Link>
+            {championshipPath ? (
+                <Link to={championshipPath} className={styles.backLink}>
+                    ← Volver al torneo
+                </Link>
+            ) : null}
 
             <header className={styles.detailHeader}>
                 <div className={styles.headerInfo}>
@@ -79,6 +90,19 @@ export const CategoryDetail = () => {
                     <h1 className={styles.detailTitle}>{category.name}</h1>
                 </div>
             </header>
+
+            <nav className={styles.categoryPageActions} aria-label="Opciones de la categoría">
+                {standingsPath ? (
+                    <Link to={standingsPath} className={styles.categoryAction}>
+                        Ver clasificación completa
+                    </Link>
+                ) : null}
+                {schedulePath ? (
+                    <Link to={schedulePath} className={styles.categoryAction}>
+                        Ver calendario y resultados
+                    </Link>
+                ) : null}
+            </nav>
 
             <div className={styles.tabsContainer}>
                 <button 

@@ -1,11 +1,14 @@
+import { Link } from 'react-router-dom';
 import { LandingHeader } from '../../components/PublicLanding/LandingHeader';
 import { LandingLinkCard } from '../../components/PublicLanding/LandingLinkCard';
 import { LandingLinkGrid } from '../../components/PublicLanding/LandingLinkGrid';
 import { LandingSection } from '../../components/PublicLanding/LandingSection';
 import { PageMetadata } from '../../components/PublicLanding/PageMetadata';
 import { PublicLanding } from '../../components/PublicLanding/PublicLanding';
+import { useAllTimeRanking } from '../../hooks/useAllTimeRanking';
 import { useCompetitionOverview } from '../../hooks/useCompetitionOverview';
 import { CompetitionOverview } from './CompetitionOverview';
+import { CompetitionRankingPreview } from './CompetitionRankingPreview';
 import styles from './CompetitionPage.module.css';
 
 export const CompetitionPage = () => {
@@ -15,6 +18,12 @@ export const CompetitionPage = () => {
     error,
     reload,
   } = useCompetitionOverview();
+  const {
+    data: allTimeRanking,
+    status: rankingStatus,
+    error: rankingError,
+    reload: reloadRanking,
+  } = useAllTimeRanking();
 
   return (
     <PublicLanding>
@@ -52,6 +61,36 @@ export const CompetitionPage = () => {
             </p>
           ) : null}
           {status === 'content' ? <CompetitionOverview seasons={seasons} /> : null}
+        </LandingSection>
+        <LandingSection
+          id="competition-ranking-preview"
+          title="Ranking histórico"
+          introduction="Consulta las primeras posiciones del ranking histórico global devuelto por Galotxas."
+        >
+          {rankingStatus === 'loading' ? (
+            <p className={styles.remoteState} role="status" aria-live="polite">
+              Cargando ranking histórico…
+            </p>
+          ) : null}
+          {rankingStatus === 'error' ? (
+            <div className={styles.errorState} role="alert">
+              <p>{rankingError}</p>
+              <button type="button" className={styles.retryButton} onClick={reloadRanking}>
+                Reintentar ranking
+              </button>
+            </div>
+          ) : null}
+          {rankingStatus === 'empty' ? (
+            <p className={styles.remoteState}>
+              Todavía no hay datos disponibles en el ranking histórico.
+            </p>
+          ) : null}
+          {rankingStatus === 'content' ? (
+            <CompetitionRankingPreview ranking={allTimeRanking} />
+          ) : null}
+          <Link to="/rankings" className={styles.rankingFullLink}>
+            Ver ranking completo
+          </Link>
         </LandingSection>
         <LandingSection id="competition-destinations" title="Torneos y rankings">
           <LandingLinkGrid label="Opciones de competición">

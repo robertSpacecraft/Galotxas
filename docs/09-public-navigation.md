@@ -2,9 +2,9 @@
 
 ## 1. Objetivo
 
-Este documento fija el contrato de arquitectura de información pública y registra su aplicación funcional. Parte de la auditoría de Fase 3A y refleja la navegación de Fase 3B, el sistema común de landings de Fase 3C y la landing dinámica de Competición de Fase 4A implementados y validados sobre `develop`.
+Este documento fija el contrato de arquitectura de información pública y registra su aplicación funcional. Parte de la auditoría de Fase 3A y refleja la navegación de Fase 3B, el sistema común de landings de Fase 3C y los bloques dinámicos de Competición 4A y 4B implementados y validados sobre `develop`.
 
-Las fases 3B, 3C y 4A modifican únicamente React, sus pruebas y la documentación: no cambian backend, CMS, `knowledge/`, despliegue ni redirects. Las rutas objetivo pendientes no se consideran implementadas hasta que existan con contenido real, fuente verificable y pruebas.
+Las fases 3B, 3C, 4A y 4B modifican únicamente React, sus pruebas y la documentación: no cambian backend, CMS, `knowledge/`, despliegue ni redirects. Las rutas objetivo pendientes no se consideran implementadas hasta que existan con contenido real, fuente verificable y pruebas.
 
 ## 2. Principios de navegación
 
@@ -396,6 +396,10 @@ COMPETITION-LANDING-DATA-1 añade en 4A pruebas de servicio, hook y página para
 
 Validación de Fase 4A, 2026-07-19: `npm run test:run` completó 134 tests en 28 archivos; lint y build finalizaron sin errores; `npm run e2e` completó 14 escenarios Chromium sobre MariaDB temporal. Backend no se modificó ni se ejecutó su suite completa.
 
+COMPETITION-RANKING-NAVIGATION-1 añade en 4B pruebas del servicio y hook históricos, respuesta tardía frente a retry, límite visual y orden backend, independencia de estados, rutas contextuales y regresión de la tabla completa. Playwright valida el vacío inicial real, las filas posteriores a resultados validados, el enlace completo y el recorrido categoría → standings → schedule.
+
+Validación de Fase 4B, 2026-07-19: `npm run test:run` completó 151 tests en 33 archivos; lint y build finalizaron sin errores; `npm run e2e` completó 14 escenarios Chromium sobre MariaDB temporal. Backend no se modificó ni se ejecutó su suite completa.
+
 ## 21. Estado de implementación de Fase 3
 
 ### Fase 3B — estructura navegable
@@ -450,7 +454,19 @@ Fase 4A está completada con:
 6. nullables seguros, headings `h1`–`h4`, IDs estables, foco visible, teclado y responsive 320–1440 px;
 7. 134 tests Vitest, lint, build y 14 E2E correctos sin modificar backend, seeders ni rutas.
 
-Fase 4 continúa abierta. La integración de Rankings corresponde a 4B; 4C conserva el resto del cierre de la experiencia deportiva pública. Ninguno de ambos subbloques se inició en 4A.
+### Fase 4B — ranking histórico y rutas contextuales
+
+Fase 4B está completada con:
+
+1. una petición independiente a `GET /api/v1/rankings/all-time`, reutilizando el servicio y el contrato previos;
+2. preview de hasta cinco filas en el orden exacto del backend, con nombre, posición cuando existe, puntos ponderados y categorías disponibles, sin mostrar IDs ni recalcular el ranking;
+3. loading, error, retry, vacío y contenido propios, sin bloquear los estados de temporadas y campeonatos;
+4. enlace `Ver ranking completo` disponible en todos los estados y `/rankings` preservado como experiencia sin el límite de cinco;
+5. generadores defensivos para las rutas existentes de campeonato, detalle de categoría, standings y schedule;
+6. accesos explícitos desde campeonato y categoría a detalle, clasificación y calendario, sin añadir rutas, aliases o redirects;
+7. tests Vitest, lint, build y E2E sobre datos reales del stack temporal, sin modificar backend, API, seeders, Home, Navbar o metadatos.
+
+Fase 4 continúa abierta. 4C conserva el resto del cierre de la experiencia deportiva pública: no se han integrado calendarios, clasificaciones, resultados, próximos partidos o actividad reciente dentro de la landing.
 
 ## 23. Deuda aplazada
 
@@ -512,7 +528,19 @@ Fase 4 continúa abierta. La integración de Rankings corresponde a 4B; 4C conse
 - enlaces de detalle, Torneos y Rankings continúan siendo funcionales y accesibles;
 - backend, seeders, Home, Navbar, rutas y contratos API no cambian;
 - 134 tests Vitest, lint, build y 14 escenarios E2E completan correctamente;
-- 4B y 4C continúan pendientes y Fase 4 no se marca completa.
+- el alcance de 4A no adelantó rankings ni el cierre deportivo; su continuación se registra separadamente en 4B y 4C.
+
+### Fase 4B
+
+- el ranking histórico se solicita mediante el servicio existente y en paralelo lógico a la carga de temporadas;
+- el preview conserva el orden del backend y limita únicamente la presentación a cinco filas;
+- oficiales y provisionales no se reinterpretan, y una `position` nula no se convierte en una posición visual inventada;
+- loading, error, retry, vacío y contenido del ranking no bloquean el resumen de temporadas, ni a la inversa;
+- `Ver ranking completo` lleva a `/rankings`, cuya tabla conserva más de cinco resultados;
+- el detalle de campeonato y el de categoría ofrecen enlaces accesibles a las rutas reales de categoría, standings y schedule;
+- backend, API, Resources, seeders, rutas, Home, Navbar, metadatos y `knowledge/` no cambian;
+- 151 tests Vitest, lint, build y 14 escenarios E2E completan correctamente;
+- 4C continúa pendiente y Fase 4 no se marca completa.
 
 ### Implementación posterior
 

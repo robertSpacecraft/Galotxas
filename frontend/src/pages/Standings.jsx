@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/client';
+import {
+    getCategorySchedulePath,
+    getCategoryStandingsPath,
+} from '../navigation/competitionRoutes';
 import styles from './Standings.module.css';
 
 export default function Standings() {
@@ -26,6 +30,9 @@ export default function Standings() {
     if (loading) return <div className="page-container"><p>Cargando clasificación...</p></div>;
     if (!category) return <div className="page-container"><p>Categoría no encontrada.</p></div>;
 
+    const standingsPath = getCategoryStandingsPath(categoryId);
+    const schedulePath = getCategorySchedulePath(categoryId);
+
     return (
         <div className="page-container">
             <div className={styles.header}>
@@ -38,8 +45,8 @@ export default function Standings() {
                     </div>
                 </div>
                 <div className={styles.nav}>
-                    <Link to={`/categories/${categoryId}/standings`} className={`${styles.navLink} ${styles.navLinkActive}`}>Clasificación</Link>
-                    <Link to={`/categories/${categoryId}/schedule`} className={styles.navLink}>Calendario & Resultados</Link>
+                    <Link to={standingsPath} className={`${styles.navLink} ${styles.navLinkActive}`}>Clasificación</Link>
+                    <Link to={schedulePath} className={styles.navLink}>Calendario & Resultados</Link>
                 </div>
             </div>
 

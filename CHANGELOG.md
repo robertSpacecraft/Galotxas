@@ -13,6 +13,7 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - Se incorpora el sistema común de landings públicas de Fase 3C con contenedor, cabecera, acciones, secciones, rejilla y tarjetas-enlace desacoplados de las fuentes de contenido.
 - Se añaden metadatos básicos reversibles por ruta para Competición y 404, semántica y teclado cubiertos y una matriz responsive de 320 a 1440 px, cerrando técnicamente la Fase 3 sin publicar nuevas áreas.
 - Se incorpora la landing dinámica de Competición de Fase 4A con temporadas y campeonatos públicos obtenidos en una única carga, estados loading/error/retry/vacío y enlaces contextuales al detalle.
+- Se integra en `/competicion` el preview histórico de Fase 4B mediante una carga independiente, limitado visualmente a cinco filas en el orden del backend y enlazado a la experiencia completa `/rankings`.
 
 ### Changed
 
@@ -27,6 +28,7 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - Torneos, Rankings y las rutas deportivas, CMS e institucionales existentes se conservan, aunque dejan de ocupar el primer nivel público.
 - En Fase 3C, la landing mínima `/competicion` reutiliza la estructura común y mantiene su copy y destinos reales sin API ni datos simulados; la 404 conserva identidad propia y reutiliza sólo acciones y metadatos.
 - `/competicion` presenta desde 4A la jerarquía pública real de temporadas y campeonatos, conserva Torneos y Rankings en todos los estados y añade semántica, teclado y responsive 320–1440 px sin volver a filtrar la visibilidad decidida por backend.
+- Los detalles de campeonato y categoría exponen accesos claros a detalle, clasificación y calendario mediante las rutas deportivas existentes y generadores de URL compartidos, sin rutas nuevas ni cambios de API.
 
 ### Fixed
 

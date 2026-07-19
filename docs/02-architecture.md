@@ -279,7 +279,7 @@ Los servicios funcionales no deben duplicar esta resolución ni definir URLs bas
 `frontend/src/App.jsx` registra actualmente:
 
 - `/`: inicio público;
-- `/competicion`: landing dinámica de temporadas y campeonatos públicos, con acceso a sus detalles, Torneos y Rankings, sobre el sistema común de landings públicas;
+- `/competicion`: landing dinámica de temporadas y campeonatos públicos, preview del ranking histórico global y acceso a los destinos deportivos, sobre el sistema común de landings públicas;
 - `/nosotros`: página estática heredada;
 - `/torneos` y `/torneos/:championshipId`: listado y detalle de campeonatos;
 - `/categories/:categoryId`, `/categories/:categoryId/standings` y `/categories/:categoryId/schedule`: detalle, clasificación y calendario de categoría;
@@ -293,6 +293,8 @@ Los servicios funcionales no deben duplicar esta resolución ni definir URLs bas
 No existe un panel administrativo React. Tampoco existen todavía rutas React para reprogramación ni edición completa del perfil.
 
 El calendario independiente de categoría obtiene su contexto mediante `GET /categories/{id}` y, en paralelo, consume `GET /categories/{id}/schedule` como la colección de jornadas definida por el contrato. Ambas llamadas pasan por `championshipsService`: React no reconstruye un objeto contenedor inexistente ni calcula reglas deportivas. Un fallo del contexto conserva las jornadas disponibles con fallbacks explícitos; un fallo de la colección produce un estado de error controlado.
+
+`frontend/src/navigation/competitionRoutes.js` centraliza la construcción defensiva de las URLs deportivas reutilizadas en la landing, el detalle de campeonato, el detalle de categoría, standings y schedule. No registra rutas ni aliases: refleja exclusivamente `/torneos/{id}`, `/categories/{id}`, `/categories/{id}/standings` y `/categories/{id}/schedule`, ya declaradas en `App.jsx`. Los detalles de campeonato y categoría ofrecen accesos contextuales a esas páginas sin duplicar clasificaciones o calendarios en la landing.
 
 `frontend/src/navigation/publicNavigation.js` es la fuente única del menú editorial. En 3B contiene exclusivamente Inicio y Competición; Torneos y Rankings siguen disponibles como destinos secundarios y las rutas CMS e institucionales conservan acceso directo sin ocupar el primer nivel. El matcher compartido activa Inicio sólo en `/` y Competición en su landing, campeonatos, categorías, standings, schedule, partidos y rankings. La ruta exacta utiliza `aria-current="page"` y las ubicaciones secundarias `aria-current="location"`.
 
@@ -312,11 +314,13 @@ El router no define nesting, loaders ni acciones, pero sí una ruta wildcard fin
 
 El módulo CSS común usa grids fluidos, corte a una columna cuando no hay espacio y texto no truncado, sin alturas rígidas ni estilos globales nuevos. La matriz Playwright valida 320, 375, 768, 1024, 1280 y 1440 px, además del acceso por Tab y activación con Enter.
 
-La adopción inicial se limita a `/competicion`. Desde Fase 4A, la página conserva el propósito, la estructura común y los enlaces a `/torneos` y `/rankings`, y añade la jerarquía real de temporadas y campeonatos obtenida mediante una única petición pública a `GET /api/v1/seasons`. La 404 conserva su presentación propia y sólo reutiliza acciones y metadatos. Home no se ha refactorizado.
+La adopción inicial se limita a `/competicion`. Desde Fase 4A, la página conserva el propósito, la estructura común y los enlaces a `/torneos` y `/rankings`, y añade la jerarquía real de temporadas y campeonatos obtenida mediante una única petición pública a `GET /api/v1/seasons`. Fase 4B añade una carga independiente de `GET /api/v1/rankings/all-time` y presenta como máximo las primeras cinco filas del orden canónico recibido. La 404 conserva su presentación propia y sólo reutiliza acciones y metadatos. Home no se ha refactorizado.
 
 `championshipsService.getSeasons` mantiene la comunicación HTTP y extrae `data` del envelope; `useCompetitionOverview` coordina carga, éxito, error, vacío, reintento y descarte de respuestas posteriores al desmontaje; los componentes específicos `CompetitionOverview`, `CompetitionSeason` y `CompetitionChampionshipCard` se limitan a presentar el contrato deportivo, y `CompetitionPage` compone esos estados dentro de `PublicLanding`. No se consulta `/championships` ni detalles para construir el resumen, porque `/seasons` ya entrega los campeonatos públicos y su recuento de categorías en una sola respuesta.
 
-Los estados remotos de Fase 4A son locales a Competición: no se crea una abstracción global sin una segunda adopción compatible. React conserva el orden de la API y no interpreta ni vuelve a filtrar `is_public`; Laravel continúa siendo la fuente de verdad y el único responsable de la visibilidad efectiva. Los datos nulos se omiten cuando no aportan información y los accesos generales siguen disponibles durante loading, error o vacío.
+`championshipsService.getAllTimeRanking` sigue siendo el único consumidor HTTP del ranking histórico tanto para `/rankings` como para la landing. `useAllTimeRanking` aporta a 4B un ciclo remoto propio con reintento y descarte de respuestas obsoletas, mientras `CompetitionRankingPreview` limita visualmente la colección con `slice(0, 5)`. No ordena, puntúa, posiciona ni completa filas: muestra el nombre público, `position` sólo cuando existe, `weighted_points` sólo cuando es numérico y `categories_played_list` sólo cuando contiene contexto real; `player_id` se usa únicamente como clave técnica. `/rankings` conserva su tabla completa y su paginación visual previa.
+
+Las cargas de temporadas y ranking son independientes: el error, retry, loading o vacío de una no bloquea ni borra la otra. Sus estados permanecen específicos de Competición; compartir una página no acredita todavía una abstracción remota global. React conserva en ambas colecciones el orden de la API y no interpreta ni vuelve a filtrar `is_public`; Laravel continúa siendo la fuente de verdad y el único responsable de la visibilidad efectiva y del ranking. Los datos nulos se omiten cuando no aportan información y el enlace `Ver ranking completo` permanece disponible durante todos los estados.
 
 ## Arquitectura pública objetivo
 
@@ -330,9 +334,9 @@ El contrato de primer nivel fija estas cinco rutas canónicas:
 
 La zona de autenticación conservará identidad, acceso, Mi Panel y cierre de sesión como bloque separado del menú editorial. Las rutas actuales de Torneos, Rankings y detalles deportivos permanecen como destinos funcionales secundarios; no se trasladarán bajo `/competicion` sin una necesidad demostrable. `/contenidos` y `/contenidos/:slug` permanecen como compatibilidad técnica durante una migración incremental, pero no formarán parte del primer nivel final.
 
-En el estado actual están registradas `/` y `/competicion`. La segunda aplica la estructura común de Fase 3C, presenta datos deportivos públicos de `GET /api/v1/seasons` sin entidades simuladas y mantiene los destinos funcionales `/torneos` y `/rankings`. Aprende a jugar, Escuela y Club conservan dependencias editoriales explícitas, no aparecen como enlaces deshabilitados y no tienen rutas placeholder. El contrato detallado, los mínimos de contenido, la compatibilidad y los gates se definen en `09-public-navigation.md`.
+En el estado actual están registradas `/` y `/competicion`. La segunda aplica la estructura común de Fase 3C, presenta datos deportivos públicos de `GET /api/v1/seasons` y `GET /api/v1/rankings/all-time` sin entidades simuladas y mantiene los destinos funcionales `/torneos` y `/rankings`. Aprende a jugar, Escuela y Club conservan dependencias editoriales explícitas, no aparecen como enlaces deshabilitados y no tienen rutas placeholder. El contrato detallado, los mínimos de contenido, la compatibilidad y los gates se definen en `09-public-navigation.md`.
 
-La secuencia aprobada separa responsabilidades: 3B implementó la navegación progresiva, el fallback 404 React y la landing mínima de `/competicion`; 3C aportó su estructura visual y técnica reutilizable, headings y metadatos básicos; 4A conecta esa base con temporadas y campeonatos reales y estados remotos locales. La Fase 4 continúa abierta: la integración de rankings corresponde a 4B y el resto del desarrollo se mantiene para 4C. Consolidación institucional, migraciones, aliases, redirects, canonical, indexación de `/contenidos` y SEO completo quedan en bloques independientes posteriores.
+La secuencia aprobada separa responsabilidades: 3B implementó la navegación progresiva, el fallback 404 React y la landing mínima de `/competicion`; 3C aportó su estructura visual y técnica reutilizable, headings y metadatos básicos; 4A conecta esa base con temporadas y campeonatos reales; 4B integra el preview histórico y mejora los accesos contextuales de categoría sin tocar backend. La Fase 4 continúa abierta: calendarios, clasificaciones, resultados y accesos de jugadores adicionales se mantienen para 4C. Consolidación institucional, migraciones, aliases, redirects, canonical, indexación de `/contenidos` y SEO completo quedan en bloques independientes posteriores.
 
 ---
 

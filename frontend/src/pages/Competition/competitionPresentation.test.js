@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  getChampionshipDetailPath,
   getChampionshipStatusLabel,
   getChampionshipTypeLabel,
   getCompetitionDateLabel,
@@ -36,7 +35,4 @@ describe('competitionPresentation', () => {
     expect(getCompetitionDateLabel('2026-07-19')).toBe('19/7/2026');
   });
 
-  it('builds the existing championship detail route from its real identifier', () => {
-    expect(getChampionshipDetailPath(22)).toBe('/torneos/22');
-  });
 });

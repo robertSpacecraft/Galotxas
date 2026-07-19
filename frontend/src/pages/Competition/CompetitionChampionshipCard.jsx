@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
+import { getChampionshipDetailPath } from '../../navigation/competitionRoutes';
 import {
-  getChampionshipDetailPath,
   getChampionshipStatusLabel,
   getChampionshipTypeLabel,
 } from './competitionPresentation';
@@ -18,6 +18,7 @@ export const CompetitionChampionshipCard = ({ championship }) => {
   const titleId = `competition-championship-${championship.id}-title`;
   const typeLabel = getChampionshipTypeLabel(championship.type);
   const categoriesLabel = getCategoriesLabel(championship.categories_count);
+  const detailPath = getChampionshipDetailPath(championship.id);
 
   return (
     <article className={styles.championshipCard} aria-labelledby={titleId}>
@@ -35,12 +36,11 @@ export const CompetitionChampionshipCard = ({ championship }) => {
           </div>
         ) : null}
       </dl>
-      <Link
-        to={getChampionshipDetailPath(championship.id)}
-        className={styles.championshipLink}
-      >
-        Ver detalle de {championship.name}
-      </Link>
+      {detailPath ? (
+        <Link to={detailPath} className={styles.championshipLink}>
+          Ver detalle de {championship.name}
+        </Link>
+      ) : null}
     </article>
   );
 };

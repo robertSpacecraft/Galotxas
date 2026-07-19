@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { championshipsService } from '../api/championships';
 import MatchCard from '../components/MatchCard';
+import {
+    getCategorySchedulePath,
+    getCategoryStandingsPath,
+} from '../navigation/competitionRoutes';
 import styles from './Schedule.module.css';
 
 export default function Schedule() {
@@ -75,6 +79,8 @@ export default function Schedule() {
 
     const categoryName = category?.name || 'Calendario de la categoría';
     const championshipName = category?.championship?.name || 'Campeonato por determinar';
+    const standingsPath = getCategoryStandingsPath(categoryId);
+    const schedulePath = getCategorySchedulePath(categoryId);
 
     return (
         <div className="page-container">
@@ -87,8 +93,8 @@ export default function Schedule() {
                     </div>
                 </div>
                 <div className={styles.nav}>
-                    <Link to={`/categories/${categoryId}/standings`} className={styles.navLink}>Clasificación</Link>
-                    <Link to={`/categories/${categoryId}/schedule`} className={`${styles.navLink} ${styles.navLinkActive}`}>Calendario & Resultados</Link>
+                    <Link to={standingsPath} className={styles.navLink}>Clasificación</Link>
+                    <Link to={schedulePath} className={`${styles.navLink} ${styles.navLinkActive}`}>Calendario & Resultados</Link>
                 </div>
             </div>
 

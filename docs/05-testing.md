@@ -531,6 +531,27 @@ Instantánea verificada de COMPETITION-LANDING-DATA-1, 2026-07-19:
 - teclado: el enlace contextual de campeonato recibe foco visible mediante Tab y navega al detalle con Enter;
 - artefactos: el cierre correcto desmonta el stack, la red y los volúmenes temporales y elimina los informes Playwright.
 
+## COMPETITION-RANKING-NAVIGATION-1 — Ranking y rutas contextuales
+
+La cobertura de Fase 4B valida:
+
+- servicio: una única llamada a `GET /rankings/all-time`, extracción del envelope `{ message, data }`, propagación del error y ausencia de fallbacks;
+- hook: loading inicial, contenido, vacío, error seguro, retry específico, ausencia de duplicados al rerenderizar, descarte tras desmontaje y protección frente a una respuesta anterior que resuelva después del retry;
+- preview: orden exacto de la respuesta, máximo de cinco filas, posición nula sin numeración inventada, puntos y categorías opcionales y ausencia de `player_id` en la interfaz;
+- independencia: fallo del resumen de temporadas con ranking utilizable y fallo del ranking con temporadas utilizables; cada retry conserva una única petición al recurso correspondiente;
+- navegación: enlace permanente a `/rankings`, detalle de campeonato y categoría con destinos reales de detalle, standings y schedule, y helpers defensivos ante identificadores ausentes;
+- regresión: la tabla histórica completa presenta más de cinco filas y conserva su servicio; `App.jsx`, rutas, Navbar, Home, metadatos y contratos API permanecen intactos;
+- E2E real: vacío histórico inicial del seeder sin resultados validados, preview real tras los workflows de validación, navegación al ranking completo y recorrido contextual de categoría hasta standings y schedule;
+- responsive y accesibilidad: lista semántica, regiones y navegación etiquetadas, targets de al menos 44 px, foco visible y ausencia de overflow en la matriz 320–1440 px.
+
+Instantánea verificada de COMPETITION-RANKING-NAVIGATION-1, 2026-07-19:
+
+- frontend: 33 archivos y 151 tests Vitest;
+- calidad: ESLint y build Vite correctos;
+- E2E: 14 escenarios Playwright Chromium sobre el stack MariaDB temporal;
+- backend: no modificado y sin suite backend necesaria para este bloque frontend;
+- artefactos: el cierre correcto desmonta el stack, la red y los volúmenes temporales y elimina los informes Playwright.
+
 ## Flujo de Inscripción y Administración (Fase 3 Core)
 - prevención de inscripciones si el campeonato está cerrado;
 - prevención de inscripciones duplicadas;

@@ -743,8 +743,46 @@ Consecuencias:
 - Fase 4A utiliza esa base para presentar temporadas y campeonatos públicos con enlaces por ID, estados remotos y datos nullable seguros; los componentes comunes continúan sin conocer el contrato deportivo.
 - La base común puede presentar datos del dominio, artefactos de `knowledge/` o contenido CMS sin conocer ni sustituir esas fuentes de verdad.
 - La 404 deja de heredar el título de la ruta anterior y restaura su `noindex` al navegar; la cobertura de metadatos del resto de rutas continúa incompleta.
-- Aprende a jugar, Escuela y Club siguen sin rutas ni placeholders; 4A está completada, pero 4B y 4C continúan pendientes y la Fase 4 permanece abierta.
+- Aprende a jugar, Escuela y Club siguen sin rutas ni placeholders; al cierre de 4A, 4B y 4C continuaban pendientes. ADR-029 registra la implementación posterior de 4B y mantiene abierta la Fase 4.
 - Consolidación institucional, migraciones, aliases, redirects, canonical, indexación de `/contenidos` y SEO completo quedan para bloques posteriores.
+
+---
+
+# ADR-029 — Preview histórico independiente y rutas deportivas contextuales
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-07
+
+Contexto:
+- Fase 4A ya cargaba temporadas y campeonatos públicos en `/competicion`, mientras `/rankings` consumía el ranking histórico completo mediante `GET /api/v1/rankings/all-time`.
+- El backend entrega el ranking en orden canónico, con participantes oficiales primero, provisionales después y `position = null` cuando todavía no existe puesto oficial.
+- El detalle de campeonato enlazaba al detalle de categoría, pero no hacía visibles sus rutas existentes de clasificación y calendario; esas URLs se construían además en varios consumidores.
+- La carga de temporadas y la de ranking tienen disponibilidad y fallos independientes.
+
+Decisión:
+- Reutilizar `championshipsService.getAllTimeRanking` y el endpoint existente; no añadir ni modificar API, Resources, seeders o reglas de visibilidad.
+- Mantener dos recursos remotos independientes en `/competicion`: `useCompetitionOverview` para temporadas y `useAllTimeRanking` para el ranking. Cada uno conserva loading, error, retry, vacío, protección frente a respuestas obsoletas y contenido propios.
+- Presentar exclusivamente las primeras cinco filas recibidas mediante un corte visual, sin ordenar, recalcular posiciones, ponderar puntos ni interpretar las reglas deportivas en React.
+- Mostrar sólo nombre público, posición cuando existe, señal comprensible para la fila sin posición oficial, puntos ponderados cuando el contrato entrega un número y la lista de categorías cuando aporta contexto real. No presentar `player_id` ni otros campos técnicos.
+- Mantener `Ver ranking completo` disponible en todos los estados y conservar `/rankings` como experiencia completa, sin aplicarle el límite del preview.
+- Centralizar únicamente los generadores de las rutas deportivas existentes y usarlos para ofrecer desde campeonato y categoría accesos explícitos al detalle, standings y schedule.
+- Mantener el preview separado de calendarios, partidos recientes, resultados y clasificaciones, que continúan fuera del alcance de 4B.
+
+Alternativas descartadas:
+- Ordenar o volver a numerar las filas en React: duplicaría reglas cuya fuente de verdad es Laravel y alteraría la distinción oficial/provisional.
+- Acoplar temporadas y ranking en un único `Promise.all`: un fallo parcial ocultaría contenido válido y mezclaría reintentos independientes.
+- Reutilizar directamente la tabla completa de `/rankings` dentro de la landing: introduciría densidad, paginación visual y responsabilidades impropias de un preview.
+- Crear un endpoint agregado específico para la landing: ampliaría innecesariamente el contrato API cuando los dos endpoints públicos existentes ya cubren los datos.
+- Incluir calendarios, standings o resultados en `/competicion`: adelantaría Fase 4C.
+- Duplicar strings de rutas en cada tarjeta: mantendría divergencias evitables sin aportar flexibilidad.
+
+Consecuencias:
+- `/competicion` sigue siendo útil si sólo una de las dos cargas remotas responde correctamente y ofrece reintento específico para la que falla.
+- El máximo de cinco es una decisión de presentación local, no un cambio de contrato ni de ranking; `/rankings` continúa mostrando su colección completa.
+- En el estado inicial del seeder E2E no existen partidos validados y el preview presenta su vacío real. Tras validar resultados, refleja las filas reales del backend sin fixtures frontend.
+- Las rutas de campeonato y categoría se conservan exactamente; no hay aliases, redirects ni rutas nuevas.
+- Fase 4B queda completada, Fase 4C y la Fase 4 global permanecen abiertas.
 
 ---
 

@@ -84,6 +84,11 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await expect(page.getByText('1/1/2026', { exact: true })).toBeVisible();
     await expect(page.getByText('31/12/2026', { exact: true })).toBeVisible();
     await expect(page.getByText('is_public', { exact: true })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Ranking histórico', level: 2 })).toBeVisible();
+    await expect(page.getByText('Todavía no hay datos disponibles en el ranking histórico.'))
+      .toBeVisible();
+    await expect(page.getByRole('link', { name: 'Ver ranking completo' }))
+      .toHaveAttribute('href', '/rankings');
     await expect(page.getByRole('heading', { name: 'Torneos y rankings', level: 2 })).toBeVisible();
     await expect(page).toHaveTitle('Competición | Galotxas');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
@@ -102,7 +107,7 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await expect(page.getByRole('heading', { name: 'Torneos', level: 1 })).toBeVisible();
 
     await editorialNavigation.getByRole('link', { name: 'Competición' }).click();
-    await page.getByRole('link', { name: /Rankings/ }).click();
+    await page.getByRole('link', { name: 'Ver ranking completo' }).click();
     await expect(page).toHaveURL(/\/rankings$/);
     await expect(page.getByRole('heading', { name: 'Rankings Galotxas', level: 1 })).toBeVisible();
 
@@ -259,11 +264,15 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await page.goto('/torneos');
     await page.getByRole('link', { name: 'Ver Torneo' }).click();
     await expect(page.getByRole('heading', { name: 'Campeonato Individual E2E' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Clasificación' }))
+      .toHaveAttribute('href', /\/categories\/\d+\/standings$/);
+    await expect(page.getByRole('link', { name: 'Calendario y resultados' }))
+      .toHaveAttribute('href', /\/categories\/\d+\/schedule$/);
     await page.getByRole('link', { name: 'Ver categoría' }).click();
     await expect(page.getByRole('heading', { name: 'Individual E2E', exact: true })).toBeVisible();
 
-    const categoryPath = new URL(page.url()).pathname;
-    await page.goto(`${categoryPath}/standings`);
+    await page.getByRole('link', { name: 'Ver clasificación completa' }).click();
+    await expect(page).toHaveURL(/\/categories\/\d+\/standings$/);
     await page.getByRole('link', { name: 'Calendario & Resultados' }).click();
 
     await expect(page).toHaveURL(/\/categories\/\d+\/schedule$/);
@@ -506,7 +515,42 @@ test.describe.serial('smoke narrativo del MVP', () => {
   test('el ranking refleja el resultado validado sin escala incorrecta ni NaN', async ({ page }) => {
     const assertNoConsoleErrors = watchCriticalConsoleErrors(page);
 
-    await page.goto('/rankings');
+    await page.goto('/competicion');
+    await expect(page.getByRole('heading', { name: 'Ranking histórico', level: 2 })).toBeVisible();
+    const preview = page.getByRole('list', { name: 'Primeras posiciones del ranking histórico' });
+    await expect(preview.getByText('Pilotari E2E 1')).toBeVisible();
+    await expect(preview.getByRole('listitem')).toHaveCount(2);
+    const fullRankingLink = page.getByRole('link', { name: 'Ver ranking completo' });
+
+    for (const width of [320, 375, 768, 1024, 1280, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+
+      const layoutState = await preview.evaluate((list) => ({
+        entriesAreLegible: Array.from(list.children).every((entry) => {
+          const rect = entry.getBoundingClientRect();
+
+          return rect.width > 0
+            && rect.left >= 0
+            && rect.right <= document.documentElement.clientWidth + 0.5
+            && entry.scrollWidth <= entry.clientWidth;
+        }),
+        hasHorizontalOverflow:
+          document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      }));
+
+      expect(layoutState, `Preview histórico a ${width}px`).toEqual({
+        entriesAreLegible: true,
+        hasHorizontalOverflow: false,
+      });
+      await expect(fullRankingLink).toBeVisible();
+    }
+
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await fullRankingLink.focus();
+    await expect(fullRankingLink).toBeFocused();
+    await fullRankingLink.click();
+
+    await expect(page).toHaveURL(/\/rankings$/);
     await expect(page.getByRole('heading', { name: 'Rankings Galotxas' })).toBeVisible();
 
     const winnerRow = page.getByRole('row').filter({ hasText: 'Pilotari E2E 1' });

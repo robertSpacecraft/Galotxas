@@ -9,6 +9,7 @@ vi.mock('../../api/championships', () => ({
   championshipsService: {
     getSeasons: vi.fn(),
     getChampionships: vi.fn(),
+    getAllTimeRanking: vi.fn(),
   },
 }));
 
@@ -42,12 +43,16 @@ const renderPage = () => renderWithProviders(<CompetitionPage />, { route: '/com
 const expectGlobalDestinations = () => {
   expect(screen.getByRole('link', { name: /Torneos/ })).toHaveAttribute('href', '/torneos');
   expect(screen.getByRole('link', { name: /Rankings/ })).toHaveAttribute('href', '/rankings');
+  expect(screen.getByRole('link', { name: 'Ver ranking completo' }))
+    .toHaveAttribute('href', '/rankings');
 };
 
 describe('CompetitionPage', () => {
   beforeEach(() => {
     championshipsService.getSeasons.mockReset();
     championshipsService.getChampionships.mockReset();
+    championshipsService.getAllTimeRanking.mockReset();
+    championshipsService.getAllTimeRanking.mockResolvedValue([]);
   });
 
   it('shows the public season hierarchy and keeps the common landing contract', async () => {
@@ -89,7 +94,7 @@ describe('CompetitionPage', () => {
 
     const { container } = renderPage();
 
-    expect(screen.getByRole('status')).toHaveTextContent('Cargando temporadas y campeonatos');
+    expect(screen.getByText(/Cargando temporadas y campeonatos/)).toHaveAttribute('role', 'status');
     expect(screen.queryByRole('heading', { level: 3 })).not.toBeInTheDocument();
     expect(container.querySelectorAll('h1')).toHaveLength(1);
     expectGlobalDestinations();
@@ -174,5 +179,85 @@ describe('CompetitionPage', () => {
       .toBeInTheDocument();
     await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
     expect(championshipsService.getSeasons).toHaveBeenCalledTimes(2);
+  });
+
+  it('shows the historical preview in backend order without exposing more than five rows', async () => {
+    championshipsService.getSeasons.mockResolvedValue(publicSeasons);
+    championshipsService.getAllTimeRanking.mockResolvedValue([
+      { position: 2, player_id: 2, name: 'Segunda en respuesta', weighted_points: 20 },
+      { position: 1, player_id: 1, name: 'Primera en respuesta', weighted_points: 30 },
+      { position: null, player_id: 7, name: 'Provisional', weighted_points: 5 },
+      { position: 4, player_id: 4, name: 'Cuarta', weighted_points: 15 },
+      { position: 5, player_id: 5, name: 'Quinta', weighted_points: 10 },
+      { position: 6, player_id: 6, name: 'Sexta', weighted_points: 8 },
+    ]);
+
+    renderPage();
+
+    const list = await screen.findByRole('list', {
+      name: 'Primeras posiciones del ranking histórico',
+    });
+    expect(list.querySelectorAll('li')).toHaveLength(5);
+    expect([...list.querySelectorAll('h3')].map((heading) => heading.textContent)).toEqual([
+      'Segunda en respuesta',
+      'Primera en respuesta',
+      'Provisional',
+      'Cuarta',
+      'Quinta',
+    ]);
+    expect(screen.queryByText('Sexta')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Ver ranking completo' }))
+      .toHaveAttribute('href', '/rankings');
+  });
+
+  it('keeps the ranking content usable when the season overview fails', async () => {
+    championshipsService.getSeasons.mockRejectedValue(new Error('Seasons unavailable'));
+    championshipsService.getAllTimeRanking.mockResolvedValue([
+      { position: 1, player_id: 1, name: 'Ranking disponible', weighted_points: 25 },
+    ]);
+
+    renderPage();
+
+    expect(await screen.findByText('Ranking disponible')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'No se han podido cargar las temporadas y campeonatos.',
+    );
+    expect(screen.getByRole('link', { name: 'Ver ranking completo' })).toBeInTheDocument();
+  });
+
+  it('keeps the loaded season overview visible while the independent ranking is loading', async () => {
+    championshipsService.getSeasons.mockResolvedValue(publicSeasons);
+    championshipsService.getAllTimeRanking.mockReturnValue(new Promise(() => {}));
+
+    renderPage();
+
+    expect(await screen.findByRole('heading', { name: 'Temporada 2026', level: 3 }))
+      .toBeInTheDocument();
+    expect(screen.getByText(/Cargando ranking histórico/)).toHaveAttribute('role', 'status');
+    expect(screen.getByRole('link', { name: 'Ver ranking completo' })).toBeInTheDocument();
+  });
+
+  it('keeps the season overview usable when the ranking fails and retries only the ranking', async () => {
+    const user = userEvent.setup();
+    championshipsService.getSeasons.mockResolvedValue(publicSeasons);
+    championshipsService.getAllTimeRanking
+      .mockRejectedValueOnce(new Error('Ranking unavailable'))
+      .mockResolvedValueOnce([
+        { position: 1, player_id: 1, name: 'Ranking recuperado', weighted_points: 25 },
+      ]);
+
+    renderPage();
+
+    expect(await screen.findByRole('heading', { name: 'Temporada 2026', level: 3 }))
+      .toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'No se ha podido cargar el ranking histórico.',
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Reintentar ranking' }));
+
+    expect(await screen.findByText('Ranking recuperado')).toBeInTheDocument();
+    expect(championshipsService.getAllTimeRanking).toHaveBeenCalledTimes(2);
+    expect(championshipsService.getSeasons).toHaveBeenCalledTimes(1);
   });
 });
