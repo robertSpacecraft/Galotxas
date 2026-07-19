@@ -26,7 +26,7 @@
                     <tr>
                         <td>{{ $championship->id }}</td>
                         <td>{{ $championship->name }}</td>
-                        <td>{{ $championship->type }}</td>
+                        <td>{{ $championship->type?->value ?? $championship->type }}</td>
                         <td>{{ $championship->season?->name }}</td>
                         <td>
                             <a href="{{ route('admin.championships.show', $championship) }}"

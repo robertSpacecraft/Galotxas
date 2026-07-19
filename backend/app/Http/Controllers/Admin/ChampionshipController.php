@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\ChampionshipRegistrationStatus;
+use App\Enums\ChampionshipStatus;
+use App\Enums\ChampionshipType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreChampionshipRequest;
 use App\Http\Requests\Admin\UpdateChampionshipRequest;
 use App\Models\Championship;
+use App\Models\ChampionshipRegistrationRequest;
 use App\Models\Season;
 use App\Services\Ranking\BuildChampionshipRankingService;
 use Illuminate\Support\Str;
-use App\Models\ChampionshipRegistrationRequest;
 
 class ChampionshipController extends Controller
 {
@@ -24,7 +27,16 @@ class ChampionshipController extends Controller
 
     public function create(Season $season)
     {
-        return view('admin.championships.create', compact('season'));
+        return view('admin.championships.create', [
+            'season' => $season,
+            'championship' => new Championship(['season_id' => $season->id]),
+            'seasons' => Season::orderByDesc('id')->get(),
+            'typeOptions' => ChampionshipType::cases(),
+            'statusOptions' => ChampionshipStatus::cases(),
+            'registrationStatusOptions' => ChampionshipRegistrationStatus::cases(),
+            'defaultStatus' => ChampionshipStatus::PENDING->value,
+            'defaultRegistrationStatus' => ChampionshipRegistrationStatus::CLOSED->value,
+        ]);
     }
 
     public function store(StoreChampionshipRequest $request, Season $season)
@@ -32,22 +44,21 @@ class ChampionshipController extends Controller
         $validated = $request->validated();
 
         Championship::create([
-            'season_id' => $season->id,
+            'season_id' => $validated['season_id'],
             'name' => $validated['name'],
             'slug' => Str::slug($validated['name']),
             'description' => $validated['description'] ?? null,
             'type' => $validated['type'],
             'start_date' => $validated['start_date'] ?? null,
             'end_date' => $validated['end_date'] ?? null,
-            'image_path' => $validated['image_path'] ?? null,
-            'status' => $validated['status'] ?? 'pending',
+            'status' => $validated['status'],
             'registration_status' => $validated['registration_status'],
             'registration_starts_at' => $validated['registration_starts_at'] ?? null,
             'registration_ends_at' => $validated['registration_ends_at'] ?? null,
         ]);
 
         return redirect()
-            ->route('admin.seasons.championships', $season)
+            ->route('admin.seasons.championships', $validated['season_id'])
             ->with('success', 'Campeonato creado correctamente.');
     }
 
@@ -81,7 +92,15 @@ class ChampionshipController extends Controller
     {
         $championship->load('season');
 
-        return view('admin.championships.edit', compact('championship'));
+        return view('admin.championships.edit', [
+            'championship' => $championship,
+            'seasons' => Season::orderByDesc('id')->get(),
+            'typeOptions' => ChampionshipType::cases(),
+            'statusOptions' => ChampionshipStatus::cases(),
+            'registrationStatusOptions' => ChampionshipRegistrationStatus::cases(),
+            'defaultStatus' => ChampionshipStatus::PENDING->value,
+            'defaultRegistrationStatus' => ChampionshipRegistrationStatus::CLOSED->value,
+        ]);
     }
 
     public function update(UpdateChampionshipRequest $request, Championship $championship)
@@ -89,21 +108,21 @@ class ChampionshipController extends Controller
         $validated = $request->validated();
 
         $championship->update([
+            'season_id' => $validated['season_id'],
             'name' => $validated['name'],
             'slug' => Str::slug($validated['name']),
             'description' => $validated['description'] ?? null,
             'type' => $validated['type'],
             'start_date' => $validated['start_date'] ?? null,
             'end_date' => $validated['end_date'] ?? null,
-            'image_path' => $validated['image_path'] ?? null,
-            'status' => $validated['status'] ?? $championship->status,
+            'status' => $validated['status'],
             'registration_status' => $validated['registration_status'],
             'registration_starts_at' => $validated['registration_starts_at'] ?? null,
             'registration_ends_at' => $validated['registration_ends_at'] ?? null,
         ]);
 
         return redirect()
-            ->route('admin.seasons.championships', $championship->season)
+            ->route('admin.seasons.championships', $validated['season_id'])
             ->with('success', 'Campeonato actualizado correctamente.');
     }
 

@@ -109,6 +109,20 @@ La ruta `/admin/seasons` centraliza el CRUD Blade de temporadas.
 - La edición presenta el estado casteado correcto y da prioridad a `old()` después de un error de validación.
 - El listado conserva la presentación de estado y fechas, y el acceso requiere una sesión de administrador activo.
 
+### Campeonatos
+
+Las rutas `/admin/championships` y `/admin/seasons/{season}/championships/create` centralizan el CRUD Blade de campeonatos.
+
+- El formulario gestiona los campos reales `season_id`, `name`, `description`, `type`, `status`, `start_date`, `end_date`, `registration_status`, `registration_starts_at` y `registration_ends_at`.
+- La temporada se elige entre registros existentes. Nombre, tipo, estado del campeonato y estado de inscripciones son obligatorios; los valores se validan contra los casos admitidos por el dominio actual.
+- Descripción, fechas del campeonato y fechas de inscripción son opcionales. Cada fecha final debe ser igual o posterior a la fecha inicial de su mismo intervalo cuando ambas se informan.
+- La creación y actualización reciben exclusivamente datos validados y persisten de forma explícita todos los campos administrables, incluidos los valores nulos al limpiar campos opcionales.
+- La edición recupera todos los valores persistidos y da prioridad a `old()` después de un error de validación.
+- El `slug` continúa derivándose del nombre. Los identificadores y timestamps permanecen gestionados por Laravel.
+- `image_path` existe en persistencia, pero la gestión multimedia no forma parte de este formulario: no se ofrece entrada ni subida y una actualización conserva el valor previo.
+- No existe un booleano de apertura en la tabla. `registration_is_open` continúa calculándose a partir del estado y las fechas de inscripción y no es un campo editable.
+- Este bloque no cambia rutas, filtros de visibilidad, controladores, Resources ni contratos de la API pública o administrativa.
+
 ### Inventario de pantallas implementadas
 
 El panel web actual dispone de estas áreas reales:

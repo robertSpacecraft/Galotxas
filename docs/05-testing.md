@@ -537,6 +537,23 @@ Las fechas sensibles se fijan con Carbon y se restablecen en cada prueba. Toda l
 
 La suite dirigida se ejecuta junto con `AdminActiveSessionTest` sobre el MariaDB aislado del perfil Docker `test`. Este bloque no modifica rutas, controladores o Resources de la API ni añade cobertura frontend o E2E.
 
+## CHAMPIONSHIP-ADMIN-1 — Integridad administrativa de campeonatos
+
+`AdminChampionshipTest` cubre el contrato Blade de Campeonatos:
+
+- acceso de administradores activos y rechazo de usuarios normales, administradores inactivos y sesiones anónimas;
+- opciones reales y recuperación de valores en alta y edición para temporada, tipo, estado del campeonato y estado de inscripciones;
+- creación y actualización explícitas de todos los campos no multimedia, incluido el cambio a una temporada existente;
+- nulabilidad y limpieza de descripción, fechas del campeonato y fechas de inscripción;
+- obligatoriedad, longitudes, existencia de temporada, enums, formato de fechas y cronología independiente de cada intervalo;
+- prioridad de `old()` sobre los valores persistidos tras un error de validación;
+- inmutabilidad ante actualizaciones inválidas y regresión específica contra pérdidas silenciosas de datos;
+- ausencia de entrada `image_path`, rechazo de datos manipulados en el alta y conservación del valor persistido en la edición;
+- continuidad de listado, detalle, categorías, solicitudes de inscripción, relaciones y borrado existente;
+- invariancia de campos, envelope y visibilidad por estado de los endpoints públicos actuales.
+
+La suite dirigida se ejecuta sobre el MariaDB aislado del perfil Docker `test` junto con `AdminActiveSessionTest`, las pruebas administrativas de solicitudes y categorías y `ChampionshipRegistrationTest`. No se añade cobertura frontend o E2E porque este bloque no modifica React ni la API pública.
+
 ## CMS público React
 - consumo del endpoint `GET /api/v1/cms/pages` desde el cliente API existente;
 - ruta pública `/contenidos`;
