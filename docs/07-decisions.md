@@ -685,6 +685,53 @@ Consecuencias:
 
 ---
 
+# ADR-028 — Cinco áreas canónicas y compatibilidad de la navegación pública
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-07
+
+Contexto:
+- Navbar expone actualmente ocho enlaces públicos planos: Inicio, Torneos, Rankings, cuatro destinos CMS concretos y el índice técnico Contenidos.
+- El router conserva rutas funcionales de competición, una página React estática de Nosotros, rutas CMS bajo `/contenidos` y una zona de cuenta, pero no dispone de landings para organizar estos destinos.
+- Nosotros está duplicado entre React y CMS; `academy` existe como slug legado, pero no acredita la futura arquitectura híbrida de Escuela.
+- `knowledge/` contiene Reglamento y Conceptos, pero todavía no tiene contrato normalizado, compilador, artefactos React ni colecciones de Historia o Escuela.
+- Retirar o redirigir rutas antes de disponer de contenido equivalente pondría en riesgo consumidores internos, marcadores, SEO y workflows funcionales.
+
+Decisión:
+- Fijar exactamente cinco áreas públicas de primer nivel: Inicio (`/`), Competición (`/competicion`), Aprende a jugar (`/aprende-a-jugar`), Escuela de Galotxas (`/escuela`) y Club (`/club`).
+- Mantener identidad, acceso, registro, Mi Panel y cierre de sesión en una zona de cuenta separada del menú editorial.
+- Conservar `/torneos`, `/rankings`, detalles de campeonato y categoría, standings, schedule y partidos como rutas funcionales secundarias de Competición, sin exigir que cambien de namespace.
+- Mantener temporalmente `/contenidos` y `/contenidos/:slug` como infraestructura pública heredada del CMS, pero retirarlas del primer nivel final.
+- Mantener `/nosotros` y `/contenidos/nosotros` hasta que el CMS tenga paridad canónica, se migren enlaces y se apruebe la compatibilidad.
+- No equiparar ni redirigir automáticamente `academy` a Escuela de Galotxas o Aprende a jugar.
+- Asignar fuentes diferenciadas: dominio Laravel para Competición; artefactos compilados desde `knowledge/` para Aprende a jugar; `knowledge/` futuro más CMS/backend para Escuela; CMS para Club; composición híbrida para Inicio.
+- No registrar ni enlazar una landing sin propósito, fuente, contenido inicial mínimo, destinos, SEO, responsive y pruebas definidos.
+- Aplazar aliases y redirects hasta que exista equivalencia. Los cambios con valor SEO deberán coordinar React Router con respuestas de servidor/CDN y canonical.
+- Utilizar `09-public-navigation.md` como contrato operativo de rutas, clasificación, compatibilidad y gates 3B/3C.
+
+Alternativas descartadas:
+- Conservar los ocho enlaces planos: mezcla áreas, funciones deportivas, páginas institucionales y una ruta técnica sin jerarquía estable.
+- Usar Torneos, Rankings y Competición simultáneamente como áreas de primer nivel: fragmentaría un mismo dominio funcional.
+- Convertir `academy` en Escuela sólo por su nombre: atribuiría a una página genérica un alcance híbrido, operativo y de privacidad que no existe.
+- Hardcodear contenido institucional o formativo en React para completar las landings: crearía fuentes editoriales duplicadas.
+- Crear páginas “próximamente”: produciría rutas sin valor, metadatos débiles y falsos criterios de completitud.
+- Mover todas las rutas deportivas bajo `/competicion`: rompería URLs funcionales sin aportar una necesidad demostrada.
+- Aplicar redirects permanentes desde el primer cambio de Navbar: impediría una migración observable y reversible antes de validar paridad.
+- Integrar Mi Panel como sexta área pública: mezclaría navegación editorial con permisos y estado de sesión.
+
+Consecuencias:
+- En 3A no cambia ninguna ruta ni elemento visible; las cuatro landings nuevas siguen sin implementar.
+- Inicio y una landing mínima de Competición tienen base funcional; Aprende a jugar, Escuela y Club conservan gates editoriales explícitos.
+- La retirada de un enlace del Navbar, la conservación de una URL y un redirect son decisiones independientes.
+- Las rutas legadas pueden coexistir durante la migración sin convertirse en fuente canónica futura.
+- Desktop y móvil deberán compartir nombres, orden, estado activo y permisos; la cuenta seguirá siendo un grupo separado.
+- Fase 3B deberá implementar la navegación accesible y responsive, el fallback 404 y la landing mínima funcional de Competición sin placeholders.
+- Fase 3C deberá aportar la estructura visual y técnica común, headings y metadatos básicos para futuras landings, sin desarrollar su contenido en profundidad.
+- Consolidación institucional, migraciones, aliases, redirects, canonical, indexación de `/contenidos` y SEO completo quedan para bloques posteriores.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

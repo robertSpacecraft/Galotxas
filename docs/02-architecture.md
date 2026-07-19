@@ -294,17 +294,23 @@ El calendario independiente de categoría obtiene su contexto mediante `GET /cat
 
 La navegación pública conserva todos sus enlaces en escritorio. En móvil y tablet, el mismo árbol de enlaces se expone mediante estado React y un botón con `aria-expanded` y `aria-controls`; el menú se cierra al seleccionar una ruta, al cambiar la ubicación, mediante el propio botón o con Escape. El acceso anónimo al área de jugadores y el acceso autenticado a Mi Panel permanecen independientes del estado del menú.
 
+El router actual no define nesting, loaders ni una ruta wildcard. Una URL React desconocida conserva Navbar y deja vacío el área principal, por lo que la 404 y su coordinación con el fallback de hosting siguen pendientes. El footer sólo forma parte de la Home y no contiene enlaces de navegación. El inventario completo de rutas, enlaces y consumidores se mantiene en `09-public-navigation.md`.
+
 ## Arquitectura pública objetivo
 
-La navegación pública futura se organizará conceptualmente en Inicio, Competición, Aprende a jugar, Escuela de Galotxas y Club. La zona autenticada conservará identidad, Mi Panel y cierre de sesión como bloque separado.
+El contrato de primer nivel fija estas cinco rutas canónicas futuras:
 
-- **Inicio** será una landing híbrida.
-- **Competición** agrupará Torneos, Rankings, Calendarios, Clasificaciones y Resultados sobre el dominio Laravel.
-- **Aprende a jugar** será la entrada al contenido divulgativo, Manual, Reglamento y Conceptos.
-- **Escuela de Galotxas** combinará conocimiento pedagógico estable con actividad operativa administrable; no será una subsección del Manual.
-- **Club** agrupará contenido institucional administrable.
+- **Inicio** (`/`) será una landing híbrida y conserva su función actual.
+- **Competición** (`/competicion`) agrupará Torneos, Rankings, Calendarios, Clasificaciones y Resultados sobre el dominio Laravel.
+- **Aprende a jugar** (`/aprende-a-jugar`) será la entrada al contenido divulgativo, Manual, Reglamento, Conceptos e Historia cuando exista.
+- **Escuela de Galotxas** (`/escuela`) combinará conocimiento pedagógico estable con actividad operativa administrable; no será una subsección del Manual.
+- **Club** (`/club`) agrupará contenido institucional administrable.
 
-Las rutas conceptuales `/aprende`, `/manual` y sus subrutas, y `/escuela` son futuras. No están registradas actualmente y esta decisión no autoriza asumir endpoints, componentes o datos que todavía no existan. Las rutas actuales de Torneos, Rankings y Contenidos podrán mantenerse durante una migración incremental.
+La zona de autenticación conservará identidad, acceso, Mi Panel y cierre de sesión como bloque separado del menú editorial. Las rutas actuales de Torneos, Rankings y detalles deportivos permanecen como destinos funcionales secundarios; no se trasladarán bajo `/competicion` sin una necesidad demostrable. `/contenidos` y `/contenidos/:slug` permanecen como compatibilidad técnica durante una migración incremental, pero no formarán parte del primer nivel final.
+
+En el estado actual sólo `/` está registrada. Las otras cuatro rutas no se consideran implementadas por figurar aquí: `/competicion` dispone de contratos suficientes para una landing funcional mínima, mientras que Aprende a jugar, Escuela y Club conservan dependencias editoriales explícitas. No se crearán placeholders para completar el menú. El contrato detallado, los mínimos de contenido, la compatibilidad y los gates 3B/3C se definen en `09-public-navigation.md`.
+
+La secuencia aprobada separa responsabilidades: 3B implementará la navegación, el fallback 404 y la landing mínima funcional de `/competicion`; 3C establecerá la estructura visual y técnica reutilizable de las futuras landings, con headings y metadatos básicos pero sin contenido editorial hardcodeado ni desarrollo profundo. Consolidación institucional, migraciones, aliases, redirects, canonical, indexación de `/contenidos` y SEO completo quedan para bloques posteriores. La Fase 4 desarrollará completamente `/competicion`.
 
 ---
 
@@ -387,6 +393,8 @@ Después de modificar un lock son obligatorias una nueva auditoría, la validaci
 - `03-api-contract.md`
 - `04-admin-panel.md`
 - `08-resources.md`
+- `09-public-navigation.md`
+- `10-content-governance.md`
 
 ## Mantenimiento
 

@@ -11,7 +11,8 @@ La documentación se organiza para separar claramente:
 - entorno de desarrollo y pruebas;
 - roadmap;
 - decisiones arquitectónicas;
-- criterios de uso de Resources.
+- criterios de uso de Resources;
+- contrato de navegación y rutas públicas;
 - gobernanza de contenidos y arquitectura pública.
 
 ## Orden recomendado de lectura
@@ -25,10 +26,13 @@ La documentación se organiza para separar claramente:
 7. [Roadmap y deuda técnica](06-roadmap.md)
 8. [Decisiones arquitectónicas](07-decisions.md)
 9. [Resources y serialización](08-resources.md)
-10. [Candidato MVP y proceso de publicación](09-release-candidate.md)
-11. [Gobernanza de contenidos y arquitectura pública](10-content-governance.md)
+10. [Contrato de navegación y rutas públicas](09-public-navigation.md)
+11. [Candidato MVP y proceso de publicación](09-release-candidate.md)
+12. [Gobernanza de contenidos y arquitectura pública](10-content-governance.md)
 
-El documento de gobernanza define qué información pertenece al dominio Laravel, al CMS administrable o al conocimiento canónico, además de la arquitectura pública aprobada para futuras fases. El conocimiento estable del deporte se mantiene por separado en [`knowledge/`](../knowledge/README.md); los documentos técnicos describen el software y no sustituyen esa fuente editorial.
+El contrato de navegación inventaría el router y los enlaces actuales, fija las cinco áreas canónicas y define compatibilidad, accesibilidad, SEO y gates de implementación sin presentar las rutas futuras como existentes. El documento de gobernanza define qué información pertenece al dominio Laravel, al CMS administrable o al conocimiento canónico. El conocimiento estable del deporte se mantiene por separado en [`knowledge/`](../knowledge/README.md); los documentos técnicos describen el software y no sustituyen esa fuente editorial.
+
+Los dos documentos con prefijo `09-` conservan nombres históricos distintos: uno pertenece al contrato público de la Fase 3A y el otro al proceso del candidato MVP. No son versiones alternativas del mismo documento.
 
 ## Relación con AGENTS.md
 
@@ -57,8 +61,9 @@ Cambios habituales que deben reflejarse aquí:
 - cambios en el flujo de inscripción;
 - cambios en el entorno Docker o testing;
 - decisiones arquitectónicas nuevas;
-- deuda técnica aceptada explícitamente.
-- cambios en fuentes de contenido, publicación o arquitectura pública.
+- deuda técnica aceptada explícitamente;
+- cambios en fuentes de contenido, publicación o arquitectura pública;
+- cambios en navegación, rutas canónicas, aliases o redirects públicos.
 
 ## Estado de la documentación
 

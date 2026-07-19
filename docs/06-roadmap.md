@@ -24,22 +24,26 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 6. **Fase 2B.4A — Visibilidad explícita de la competición:** `is_public` administrable en temporadas, campeonatos y categorías, backfill compatible, jerarquía sin cascada y contrato público temporalmente inalterado.
 7. **Fase 2B.4B — Aplicación pública de visibilidad:** scopes locales y filtro jerárquico en listados, detalles, relaciones, partidos, rankings, standings, schedules e inicio de inscripciones, preservando administración y Mi Panel.
 8. **Fase 2B.5 — Endurecimiento de la API administrativa:** CRUD de temporadas, campeonatos y categorías protegido por administrador activo, Form Requests, persistencia explícita, Resources propios, `is_public` jerárquico y campos no administrables aislados.
+9. **Fase 3A — Contrato de navegación y rutas públicas:** router, enlaces, CMS, API, `knowledge/`, compatibilidad, accesibilidad, responsive y SEO auditados; cinco rutas canónicas y sus gates documentados sin cambiar React.
 
-La Fase 2B queda completa con los subbloques 2B.1–2B.5. Este cierre no inicia la Fase 3 ni modifica la navegación pública.
+La Fase 2B queda completa con los subbloques 2B.1–2B.5. La Fase 3A completa únicamente el contrato documental: no implementa landings, Navbar, redirects ni cambios visibles.
 
 ## Siguientes bloques aprobados
 
-1. **Reestructuración de navegación:** implantar Inicio, Competición, Aprende a jugar, Escuela de Galotxas y Club, conservando una migración compatible.
-2. **Landing Competición:** agrupar Torneos, Rankings, Calendarios, Clasificaciones, Resultados y accesos de jugadores sobre contratos verificados.
-3. **Landing Aprende a jugar:** crear la entrada divulgativa diferenciada del Manual.
-4. **Contrato editorial de `knowledge/`:** normalizar metadatos, IDs, slugs, relaciones y validaciones de las colecciones aprobadas.
-5. **Compilador build-time:** validar `knowledge/` y generar artefactos seguros y deterministas para React, sin MDX ni HTML ejecutable.
-6. **Manual MVP:** construir la experiencia pública desde los artefactos generados, sin base de datos, API Laravel o CRUD Blade.
-7. **Escuela de Galotxas:** combinar contenido pedagógico estable con actividad operativa administrable y protección específica de menores.
-8. **Club y migración de Contenidos:** asignar una fuente canónica a cada página institucional y retirar gradualmente la arquitectura legada.
-9. **QA, accesibilidad y despliegue:** validar contratos, recorridos, responsive, teclado, multimedia, persistencia y operación.
+1. **Fase 3B — Estructura navegable:** crear una configuración única para Navbar desktop y móvil, mantener separadas navegación editorial y cuenta, implementar estado activo y `aria-current`, accesibilidad, responsive, cierre al navegar o con Escape y fallback 404 de React Router. Sólo se registrarán rutas con contenido funcional; `/competicion` tendrá una landing mínima basada en datos y destinos reales, las rutas deportivas actuales se conservarán y no habrá placeholders para Aprende a jugar, Escuela o Club.
+2. **Fase 3C — Estructura común de landings:** crear componentes reutilizables de cabecera, introducción, navegación secundaria, secciones, estados de carga/error y CTAs; fijar títulos, headings, metadatos básicos y comportamiento responsive/accesible comunes. Preparará Competición, Aprende a jugar, Escuela y Club sin hardcodear contenido editorial ni desarrollar todavía esas áreas en profundidad.
+3. **Fase 4 — Competición pública completa:** desarrollar `/competicion` más allá de la landing mínima, agrupando Torneos, Rankings, Calendarios, Clasificaciones, Resultados y accesos de jugadores sin alterar las reglas backend.
+4. **Landing Aprende a jugar:** crear la entrada divulgativa diferenciada del Manual cuando exista un artefacto real que consumir.
+5. **Contrato editorial de `knowledge/`:** normalizar metadatos, IDs, slugs, relaciones y validaciones de las colecciones aprobadas.
+6. **Compilador build-time:** validar `knowledge/` y generar artefactos seguros y deterministas para React, sin MDX ni HTML ejecutable.
+7. **Manual MVP:** construir la experiencia pública desde los artefactos generados, sin base de datos, API Laravel o CRUD Blade.
+8. **Escuela de Galotxas:** combinar contenido pedagógico estable con actividad operativa administrable y protección específica de menores.
+9. **Club y migración de Contenidos:** asignar una fuente canónica a cada página institucional y retirar gradualmente la arquitectura legada.
+10. **QA, accesibilidad y despliegue:** validar contratos, recorridos, responsive, teclado, multimedia, persistencia y operación.
 
-Estos bloques permanecen pendientes. El primero corresponde a la evolución posterior a la Fase 2B; las rutas conceptuales y demás capacidades descritas no están implementadas por aparecer en el roadmap.
+Fases 3B, 3C y 4 permanecen pendientes. Las rutas `/competicion`, `/aprende-a-jugar`, `/escuela` y `/club` y las demás capacidades descritas no están implementadas por aparecer en el roadmap. Ningún bloque puede publicar enlaces vacíos para aparentar que la arquitectura final está completa.
+
+Después de 3C permanecen en bloques posteriores la consolidación institucional, la migración de Nosotros, aliases, redirects, canonical, indexación de `/contenidos`, SEO completo, sitemap y robots, limpieza de código huérfano y migración de `academy` y `documentos`. No forman parte de 3C. La Fase 4 conserva como objetivo el desarrollo completo de `/competicion`.
 
 Este programa no altera por sí solo el proceso operativo de revisión y publicación del candidato descrito más abajo. Antes de iniciar un bloque funcional debe reconciliarse su calendario con el candidato y con cualquier corrección P0/P1.
 
