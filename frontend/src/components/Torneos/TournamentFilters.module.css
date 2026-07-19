@@ -35,8 +35,11 @@
   transition: border-color 0.2s;
 }
 
-.filterGroup select:focus {
+.filterGroup select:focus-visible,
+.filterCheck input:focus-visible {
   border-color: #27ae60;
+  outline: 3px solid #1f6fa8;
+  outline-offset: 2px;
 }
 
 .filterCheck {

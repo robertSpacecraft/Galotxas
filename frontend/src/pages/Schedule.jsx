@@ -1,136 +1,125 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { championshipsService } from '../api/championships';
+import { CategoryNavigation } from '../components/Competition/CategoryNavigation';
 import MatchCard from '../components/MatchCard';
+import { PageMetadata } from '../components/PublicLanding/PageMetadata';
 import {
-    getCategorySchedulePath,
-    getCategoryStandingsPath,
+  getCategoryDetailPath,
+  TOURNAMENTS_PATH,
 } from '../navigation/competitionRoutes';
+import { getMatchStatusLabel } from './Competition/competitionPresentation';
 import styles from './Schedule.module.css';
 
 export default function Schedule() {
-    const { categoryId } = useParams();
-    const [category, setCategory] = useState(null);
-    const [schedule, setSchedule] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [contextError, setContextError] = useState(false);
+  const { categoryId } = useParams();
+  const request = useRef(0);
+  const [category, setCategory] = useState(null);
+  const [schedule, setSchedule] = useState([]);
+  const [status, setStatus] = useState('loading');
+  const [contextError, setContextError] = useState(false);
 
-    useEffect(() => {
-        let active = true;
+  const loadSchedule = useCallback(async () => {
+    const requestId = request.current + 1;
+    request.current = requestId;
+    setStatus('loading');
+    setContextError(false);
 
-        const loadSchedule = async () => {
-            setLoading(true);
-            setError(null);
-            setContextError(false);
+    const [categoryResult, scheduleResult] = await Promise.allSettled([
+      championshipsService.getCategory(categoryId),
+      championshipsService.getCategorySchedule(categoryId),
+    ]);
 
-            const [categoryResult, scheduleResult] = await Promise.allSettled([
-                championshipsService.getCategory(categoryId),
-                championshipsService.getCategorySchedule(categoryId),
-            ]);
-
-            if (!active) return;
-
-            if (categoryResult.status === 'fulfilled' && categoryResult.value) {
-                setCategory(categoryResult.value);
-            } else {
-                setCategory(null);
-                setContextError(true);
-            }
-
-            if (scheduleResult.status === 'fulfilled' && Array.isArray(scheduleResult.value)) {
-                setSchedule(scheduleResult.value);
-            } else {
-                setSchedule([]);
-                setError('No se ha podido cargar el calendario. Inténtalo de nuevo más tarde.');
-            }
-
-            setLoading(false);
-        };
-
-        loadSchedule();
-
-        return () => {
-            active = false;
-        };
-    }, [categoryId]);
-
-    if (loading) return <div className="page-container"><p role="status">Cargando calendario...</p></div>;
-
-    if (error) {
-        return (
-            <div className="page-container" role="alert">
-                <h1>No se ha podido cargar el calendario</h1>
-                <p>{error}</p>
-            </div>
-        );
+    if (request.current !== requestId) {
+      return;
     }
 
-    const translateStatus = (status) => {
-        const statuses = {
-             'scheduled': 'Programado',
-             'submitted': 'Pendiente de Validar',
-             'validated': 'Finalizado',
-             'postponed': 'Aplazado',
-             'cancelled': 'Cancelado'
-        };
-        return statuses[status] || status || 'Estado por determinar';
+    if (categoryResult.status === 'fulfilled' && categoryResult.value) {
+      setCategory(categoryResult.value);
+    } else {
+      setCategory(null);
+      setContextError(true);
+    }
+
+    if (scheduleResult.status === 'fulfilled' && Array.isArray(scheduleResult.value)) {
+      setSchedule(scheduleResult.value);
+      setStatus(scheduleResult.value.length > 0 ? 'content' : 'empty');
+    } else {
+      setSchedule([]);
+      setStatus('error');
+    }
+  }, [categoryId]);
+
+  useEffect(() => {
+    void Promise.resolve().then(loadSchedule);
+
+    return () => {
+      request.current += 1;
     };
+  }, [loadSchedule]);
 
-    const categoryName = category?.name || 'Calendario de la categoría';
-    const championshipName = category?.championship?.name || 'Campeonato por determinar';
-    const standingsPath = getCategoryStandingsPath(categoryId);
-    const schedulePath = getCategorySchedulePath(categoryId);
+  const categoryName = category?.name || 'Categoría no disponible';
+  const championshipName = category?.championship?.name;
+  const seasonName = category?.championship?.season?.name;
+  const backPath = category ? getCategoryDetailPath(categoryId) : TOURNAMENTS_PATH;
+  const backLabel = category ? 'Volver a la categoría' : 'Volver a Torneos';
 
-    return (
-        <div className="page-container">
-            <div className={styles.header}>
-                <div>
-                    <h1 className={styles.title}>{categoryName}</h1>
-                    <div className={styles.meta}>
-                        <span className={styles.badge}>{championshipName}</span>
-                        <span className={styles.metaText}>Calendario de partidos</span>
-                    </div>
-                </div>
-                <div className={styles.nav}>
-                    <Link to={standingsPath} className={styles.navLink}>Clasificación</Link>
-                    <Link to={schedulePath} className={`${styles.navLink} ${styles.navLinkActive}`}>Calendario & Resultados</Link>
-                </div>
-            </div>
+  return (
+    <div className="page-container">
+      <PageMetadata
+        title={`Calendario de ${categoryName} | Galotxas`}
+        description={`Consulta el calendario y los resultados públicos de ${categoryName}.`}
+      />
+      <Link to={backPath} className={styles.backLink}>← {backLabel}</Link>
+      <header className={styles.header}>
+        <p className={styles.context}>
+          {[seasonName, championshipName].filter(Boolean).join(' · ') || 'Contexto deportivo no disponible'}
+        </p>
+        <h1 className={styles.title}>Calendario y resultados de {categoryName}</h1>
+      </header>
 
-            {contextError && (
-                <p className={styles.contextWarning} role="status">
-                    El calendario está disponible, pero no se ha podido cargar la información de la categoría.
-                </p>
-            )}
+      <CategoryNavigation categoryId={categoryId} currentView="schedule" />
 
-            {schedule.length === 0 ? (
-                <p className={styles.emptySchedule}>No hay jornadas configuradas todavía.</p>
-            ) : (
-                schedule.map((round, roundIndex) => (
-                    <section key={round.id || `${categoryId}-${roundIndex}`} className={styles.roundSection}>
-                        <h2 className={styles.roundTitle}>
-                            {round.name || `Jornada ${roundIndex + 1}`}
-                        </h2>
-                        
-                        <div className={styles.matchesGrid}>
-                            {Array.isArray(round.matches) && round.matches.map((match, matchIndex) => (
-                                <MatchCard
-                                    key={match.id || `${round.id || roundIndex}-${matchIndex}`}
-                                    match={match}
-                                    translateStatus={translateStatus}
-                                    officialScoresOnly
-                                    showDetailLabel
-                                    showVenue
-                                />
-                            ))}
-                            {(!Array.isArray(round.matches) || round.matches.length === 0) && (
-                                <p className={styles.emptyMessage}>No hay partidos programados en esta jornada.</p>
-                            )}
-                        </div>
-                    </section>
-                ))
-            )}
+      {status === 'loading' ? (
+        <p className={styles.stateMessage} role="status">Cargando calendario…</p>
+      ) : null}
+      {contextError && status !== 'loading' ? (
+        <p className={styles.contextWarning} role="status">
+          El calendario está disponible, pero no se ha podido cargar el contexto de la categoría.
+        </p>
+      ) : null}
+      {status === 'error' ? (
+        <div className={styles.errorState} role="alert">
+          <p>No se ha podido cargar el calendario.</p>
+          <button type="button" className={styles.retryButton} onClick={loadSchedule}>
+            Reintentar
+          </button>
         </div>
-    );
+      ) : null}
+      {status === 'empty' ? (
+        <p className={styles.emptySchedule}>Todavía no hay jornadas configuradas para esta categoría.</p>
+      ) : null}
+      {status === 'content' ? schedule.map((round, roundIndex) => (
+        <section key={round.id || `${categoryId}-${roundIndex}`} className={styles.roundSection}>
+          <h2 className={styles.roundTitle}>{round.name || `Jornada ${roundIndex + 1}`}</h2>
+          {Array.isArray(round.matches) && round.matches.length > 0 ? (
+            <div className={styles.matchesGrid}>
+              {round.matches.map((match, matchIndex) => (
+                <MatchCard
+                  key={match.id || `${round.id || roundIndex}-${matchIndex}`}
+                  match={match}
+                  translateStatus={getMatchStatusLabel}
+                  officialScoresOnly
+                  showDetailLabel
+                  showVenue
+                />
+              ))}
+            </div>
+          ) : (
+            <p className={styles.emptyMessage}>No hay partidos programados en esta jornada.</p>
+          )}
+        </section>
+      )) : null}
+    </div>
+  );
 }

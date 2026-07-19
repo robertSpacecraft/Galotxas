@@ -3,6 +3,12 @@
     display: block;
 }
 
+.link:focus-visible {
+    outline: 3px solid var(--brand-primary, #1f6fa8);
+    outline-offset: 3px;
+    border-radius: 12px;
+}
+
 .card {
     background: #ffffff;
     border: 1px solid #e0e0e0;
@@ -25,6 +31,7 @@
 .header {
     display: flex;
     justify-content: space-between;
+    gap: 0.75rem;
     font-size: 0.85rem;
     color: #666;
 }
@@ -85,4 +92,17 @@
     color: var(--brand-primary, #27ae60);
     font-weight: 700;
     text-align: right;
+}
+
+@media (max-width: 480px) {
+    .header,
+    .participantRow {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .participantScore {
+        width: auto;
+        text-align: left;
+    }
 }

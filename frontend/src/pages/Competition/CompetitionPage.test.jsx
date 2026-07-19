@@ -42,9 +42,10 @@ const renderPage = () => renderWithProviders(<CompetitionPage />, { route: '/com
 
 const expectGlobalDestinations = () => {
   expect(screen.getByRole('link', { name: /Torneos/ })).toHaveAttribute('href', '/torneos');
-  expect(screen.getByRole('link', { name: /Rankings/ })).toHaveAttribute('href', '/rankings');
   expect(screen.getByRole('link', { name: 'Ver ranking completo' }))
     .toHaveAttribute('href', '/rankings');
+  expect(screen.getAllByRole('link').filter((link) => link.getAttribute('href') === '/rankings'))
+    .toHaveLength(1);
 };
 
 describe('CompetitionPage', () => {
@@ -87,6 +88,12 @@ describe('CompetitionPage', () => {
       'content',
       'Consulta temporadas y campeonatos públicos, calendarios, resultados y clasificaciones de Galotxas.',
     );
+    const sectionHeadings = screen.getAllByRole('heading', { level: 2 });
+    expect(sectionHeadings.map((heading) => heading.textContent)).toEqual([
+      'Explora los campeonatos',
+      'Temporadas y campeonatos',
+      'Ranking histórico',
+    ]);
   });
 
   it('announces loading without showing loaded season content', () => {

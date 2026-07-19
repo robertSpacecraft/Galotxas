@@ -2,9 +2,9 @@
 
 ## 1. Objetivo
 
-Este documento fija el contrato de arquitectura de información pública y registra su aplicación funcional. Parte de la auditoría de Fase 3A y refleja la navegación de Fase 3B, el sistema común de landings de Fase 3C y los bloques dinámicos de Competición 4A y 4B implementados y validados sobre `develop`.
+Este documento fija el contrato de arquitectura de información pública y registra su aplicación funcional. Parte de la auditoría de Fase 3A y refleja la navegación de Fase 3B, el sistema común de landings de Fase 3C y la Fase 4 de Competición, completada con 4A, 4B y 4C sobre `develop`.
 
-Las fases 3B, 3C, 4A y 4B modifican únicamente React, sus pruebas y la documentación: no cambian backend, CMS, `knowledge/`, despliegue ni redirects. Las rutas objetivo pendientes no se consideran implementadas hasta que existan con contenido real, fuente verificable y pruebas.
+Las fases 3B, 3C y 4A–4C modifican únicamente React, sus pruebas y la documentación: no cambian backend, CMS, `knowledge/`, despliegue ni redirects. Las rutas objetivo pendientes no se consideran implementadas hasta que existan con contenido real, fuente verificable y pruebas.
 
 ## 2. Principios de navegación
 
@@ -42,15 +42,15 @@ Las cinco rutas son canónicas como contrato. En 3B están registradas `/` y `/c
 | Ruta | Componente | Acceso | Fuente de datos | Enlaces entrantes verificados | Estado y comportamiento sin datos |
 |---|---|---|---|---|---|
 | `/` | `pages/Home/Home.jsx` | Público | Estructura y copy estáticos en React | Logo, Navbar | Canónica actual. `Hero` aporta el `h1`; sus tarjetas no son enlaces. |
-| `/competicion` | `pages/Competition/CompetitionPage.jsx` | Público | `GET /seasons` mediante servicio y hook, más estructura React | Navbar | Canónica desde 3B, adaptada al sistema común en 3C y dinámica desde 4A. Presenta temporadas y campeonatos públicos, estados remotos, detalles contextuales y accesos a Torneos y Rankings. |
+| `/competicion` | `pages/Competition/CompetitionPage.jsx` | Público | `GET /seasons` y `GET /rankings/all-time` mediante servicios y hooks | Navbar | Canónica y cerrada en 4C. Prioriza propósito, Torneos, temporadas/campeonatos y ranking histórico, sin duplicar el acceso a Rankings. |
 | `/nosotros` | `pages/Nosotros/Nosotros.jsx` | Público | Contenido estático en React | Ningún enlace interno actual localizado | Duplicada y heredada; conserva contenido único como material de migración. |
-| `/torneos` | `pages/Torneos/TournamentList.jsx` | Público | `GET /championships` y `GET /seasons` | Landing de Competición, CTA de Home, Mi Panel, detalles | Funcional secundaria. Tiene carga y vacío; un error de red termina presentándose como colección vacía. |
-| `/torneos/:championshipId` | `pages/Torneos/TournamentDetail.jsx` | Público; acciones de inscripción autenticadas | Campeonato, ranking e inscripción desde API | Tarjetas de torneo, Mi Panel, regreso desde categoría | Funcional secundaria. Un fallo del detalle presenta “Torneo no encontrado”, sin 404 de documento. |
-| `/categories/:categoryId` | `pages/Torneos/CategoryDetail.jsx` | Público | Categoría, standings y schedule | Detalle de torneo; regreso desde partido | Funcional secundaria. Solapa clasificación y calendario con dos rutas dedicadas. |
+| `/torneos` | `pages/Torneos/TournamentList.jsx` | Público | `GET /championships` y `GET /seasons` | Landing de Competición, CTA de Home, Mi Panel, detalles | Funcional secundaria. Distingue carga, error con retry y vacío filtrado; cada tarjeta tiene una única acción al detalle. |
+| `/torneos/:championshipId` | `pages/Torneos/TournamentDetail.jsx` | Público; acciones de inscripción autenticadas | Campeonato, ranking e inscripción desde API | Tarjetas de torneo, Mi Panel, regreso desde categoría | Funcional secundaria. Campeonato y ranking tienen disponibilidad independiente; las categorías enlazan sus tres vistas reales. |
+| `/categories/:categoryId` | `pages/Torneos/CategoryDetail.jsx` | Público | Detalle de categoría | Detalle de torneo y navegación contextual | Resumen de entidad y padres. No descarga ni duplica standings o schedule. |
 | `/categories/:categoryId/standings` | `pages/Standings.jsx` | Público | Categoría y clasificación | Navegación cruzada desde schedule; `CategoryCard` no montada | Funcional secundaria. Tiene navegación local, pero su otro consumidor localizado pertenece a una Home huérfana. |
 | `/categories/:categoryId/schedule` | `pages/Schedule.jsx` | Público | Categoría y jornadas/calendario | Navegación cruzada desde standings; smoke E2E | Funcional secundaria. Distingue carga, error, vacío y contenido. |
 | `/matches/:matchId` | `pages/MatchDetails.jsx` | Público; workflow ampliado para participante autenticado | Partido público y, con sesión, workflow de resultado | Tarjetas de partido y acciones pendientes | Funcional secundaria. Regresa a categoría si existe contexto o a `/torneos`; el backend responde 404 si la rama no es pública para un visitante. |
-| `/rankings` | `pages/Rankings/Rankings.jsx` | Público | Temporadas, ranking histórico y por temporada | Landing de Competición | Funcional secundaria de Competición. |
+| `/rankings` | `pages/Rankings/Rankings.jsx` | Público | Temporadas, ranking histórico y por temporada | Bloque histórico de Competición | Funcional secundaria con pestañas accesibles, orden de temporadas recibido y estados recuperables. |
 | `/contenidos` | `pages/CmsPageIndex/CmsPageIndex.jsx` | Público | `GET /cms/pages` | Acceso directo y enlaces heredados externos | Técnica y heredada. Lista toda página publicable, sin agrupación por área pública. |
 | `/contenidos/:slug` | `pages/CmsPage/CmsPage.jsx` | Público | `GET /cms/pages/{slug}` | Índice CMS, URLs de Resource y accesos directos | Técnica y heredada. Muestra carga, 404 de vista, error y bloques, pero la SPA sigue entregando el documento base. |
 | `/login` | `pages/Login.jsx` | Público/anónimo | Auth API y estado de retorno | Zona de cuenta, páginas de auth, partido | Ruta de cuenta. Un usuario ya autenticado se redirige a `/player`. |
@@ -75,8 +75,8 @@ Existe una ruta wildcard React final. Una URL no reconocida conserva Navbar y mu
 | Navbar, cuenta autenticada | Mi Panel | `/player` | Sí | Sí | Acompañado de saludo y botón Salir. |
 | Navbar, cuenta autenticada | Salir | Acción `logout` | Sí | Sí | Botón, no enlace. |
 | Menú móvil | Menú | Abre/cierra `public-navigation` | No | Sí, hasta 1024 px | Declara `aria-expanded` y `aria-controls`; cierra al navegar y con Escape, que restaura el foco. |
-| Landing Competición | Torneos | `/torneos` | Sí | Sí | Destino secundario con descripción funcional. |
-| Landing Competición | Rankings | `/rankings` | Sí | Sí | Destino secundario con descripción funcional. |
+| Landing Competición | Torneos | `/torneos` | Sí | Sí | Único acceso principal, situado antes de temporadas y campeonatos. |
+| Landing Competición | Ver ranking completo | `/rankings` | Sí | Sí | Acción propia del bloque histórico y único enlace de la landing a Rankings. |
 | Hero de Home | Ver Torneos | `/torneos` | Sí | Sí | CTA funcional cubierto por test y E2E. |
 | Tarjetas de Home | Prensa & Media, Federaciones, Academy | Sin destino | Sí | Sí | Son bloques informativos, no enlaces. |
 | Footer de Home | GALOTXAS y textos legales | Sin destino | Sí | Sí | No hay navegación de footer; el footer sólo se monta en Home. |
@@ -107,15 +107,15 @@ No hay desplegables editoriales, breadcrumbs ni enlaces de footer. Desktop y mó
 
 ## 5. Clasificación de rutas
 
-| Clasificación | Rutas | Estado tras Fase 3C |
+| Clasificación | Rutas | Estado tras Fase 4C |
 |---|---|---|
-| Canónicas implementadas | `/`, `/competicion` | Inicio se conserva; Competición aporta una landing dinámica de temporadas y campeonatos sobre el sistema común. |
+| Canónicas implementadas | `/`, `/competicion` | Inicio se conserva; Competición aporta su landing dinámica cerrada y enlaza la rama deportiva funcional. |
 | Canónicas futuras | `/aprende-a-jugar`, `/escuela`, `/club` | Reservadas como contrato; no se registran ni enlazan sin contenido mínimo. |
 | Funcionales secundarias | `/torneos`, `/torneos/:championshipId`, `/categories/:categoryId`, sus rutas de standings/schedule, `/matches/:matchId`, `/rankings` | Conservar rutas y contratos. Relacionarlas semánticamente con Competición. |
 | Cuenta | `/login`, `/register`, `/forgot-password`, `/reset-password`, `/player` | Conservar separadas del menú editorial. |
 | Técnica heredada | `/contenidos`, `/contenidos/:slug` | Retirar del primer nivel cuando existan destinos canónicos, pero mantener acceso y CMS hasta completar la migración. |
 | Duplicada | `/nosotros` y `/contenidos/nosotros` | Elegir CMS como fuente futura; conservar ambas hasta migración y paridad verificadas. |
-| Solapamiento funcional | `/categories/:id` frente a `/categories/:id/standings` y `/schedule` | No consolidar ni redirigir sin revisar usos, navegación y E2E. |
+| Vistas complementarias | `/categories/:id` frente a `/categories/:id/standings` y `/schedule` | Resumen de entidad y colecciones completas quedan separados y conectados sin redirects. |
 | Sin consumidor interno | `/nosotros` | Mantener por contenido, posibles marcadores y migración; medir antes de retirar. |
 | Rota latente | `/dashboard` como destino de una rama no usada de `ProtectedRoute` | Corregir o eliminar sólo en una fase de código; no afecta al contrato público activo. |
 | Fallback/error React | `*` | Implementado como vista accesible; la respuesta HTTP 404 del hosting sigue pendiente. |
@@ -127,7 +127,7 @@ También existen módulos React no montados: `pages/Home.jsx` y `CategoryCard`, 
 | Ruta | Responsabilidad | Fuente de verdad | Contenido inicial mínimo | Subrutas o destinos | Estado actual |
 |---|---|---|---|---|---|
 | `/` | Home pública y puerta de entrada actual | Estructura React más fuentes conectadas según cada bloque | `h1`, propuesta de valor y CTA deportivo existente | Navbar y `/torneos` | Implementada y sin rediseño; el Navbar aporta el acceso a Competición. |
-| `/competicion` | Landing funcional de actividad deportiva pública | API pública del dominio Laravel | `h1`, introducción, temporadas y campeonatos públicos, estados remotos y enlaces reales; sin recalcular reglas | `/torneos`, detalles, categorías, standings, schedule, partidos y `/rankings` | Fase 4A implementada. Rankings integrados y cierre funcional quedan pendientes en 4B y 4C. |
+| `/competicion` | Landing funcional de actividad deportiva pública | API pública del dominio Laravel | `h1`, acceso principal, temporadas/campeonatos y preview histórico con estados independientes; sin recalcular reglas | Rama deportiva completa y `/rankings` | Fase 4 completada con 4A–4C. |
 | `/aprende-a-jugar` | Entrada divulgativa a introducción, cómo se juega, Manual, Reglamento, Conceptos e Historia | Artefactos compilados desde `knowledge/` | `h1`, introducción validada y al menos un recorrido real generado; no copy editorial duplicado en JSX | Namespace formativo por definir con el contrato de Knowledge; no se ratifican todavía slugs de detalle | No. Depende de normalizar metadatos, implementar compilador y disponer de contenido para las colecciones anunciadas. |
 | `/escuela` | Identidad, públicos y actividad real de la Escuela | Híbrida: `knowledge/` futuro para pedagogía estable y CMS/backend para actividad temporal | `h1`, contenido pedagógico aprobado y/o actividad publicable real con responsabilidades diferenciadas | Se definirán al existir vertical editorial, privacidad y contenido real | No. No existe colección de Escuela ni contrato CMS específico; `academy` no satisface el requisito. |
 | `/club` | Landing institucional que agrupa páginas editables | CMS administrado en Blade y API pública | `h1` y enlaces a un conjunto publicado y clasificado de páginas institucionales; estado vacío controlado | Futuras páginas de Nosotros, Federarse, Federaciones, Prensa y medios, Contacto y, si se aprueba, Documentos | Parcial. El CMS y cuatro piezas existen, pero faltan el mapeo canónico, Contacto y resolver la duplicidad de Nosotros. |
@@ -140,8 +140,8 @@ Los namespaces internos de Aprende a jugar, Escuela y Club sólo se cerrarán cu
 |---|---|---|
 | `/torneos` | Competición | Mantener como listado funcional y destino de `/competicion`. No renombrar por coherencia visual. |
 | `/torneos/:championshipId` | Competición | Mantener; conserva inscripciones, ranking y categorías. |
-| `/categories/:categoryId` | Competición | Mantener como detalle agregado mientras tenga consumidores. |
-| `/categories/:categoryId/standings` | Competición | Mantener como URL compartible de clasificación. Revisar el solapamiento, no redirigir todavía. |
+| `/categories/:categoryId` | Competición | Mantener como resumen de la entidad y acceso a vistas dedicadas. |
+| `/categories/:categoryId/standings` | Competición | Mantener como URL compartible y única representación completa de clasificación. |
 | `/categories/:categoryId/schedule` | Competición | Mantener como URL compartible de calendario y resultados. |
 | `/matches/:matchId` | Competición | Mantener; combina consulta pública y workflow autorizado sin exponer datos privados a visitantes. |
 | `/rankings` | Competición | Mantener y enlazar desde la landing. “Rankings” deja de ser nombre de primer nivel, no deja de ser funcionalidad. |
@@ -165,7 +165,7 @@ La ruta estática `/nosotros` es heredada y duplicada, pero no está vacía. Su 
 | Ruta actual | Rol futuro | Menú de primer nivel | Compatibilidad | Condición para retirar o cambiar |
 |---|---|---|---|---|
 | `/` | Inicio | Sí | Canónica | No aplica. |
-| `/competicion` | Competición | Sí | Canónica dinámica desde 4A | Completar 4B y 4C sin cambiar sus destinos actuales. |
+| `/competicion` | Competición | Sí | Canónica dinámica, Fase 4 completada | Evolucionar sólo mediante un nuevo bloque aprobado y datos funcionales reales. |
 | `/torneos` | Secundaria de Competición | No | Se conserva | Nueva necesidad funcional demostrada y plan de enlaces. |
 | `/rankings` | Secundaria de Competición | No | Se conserva | Nueva necesidad funcional demostrada y plan de enlaces. |
 | Detalles de torneo, categoría y partido | Secundarias de Competición | No | Se conservan | Consumidores migrados y equivalencia completa. |
@@ -279,17 +279,19 @@ La landing `/competicion` dispone de dependencias funcionales suficientes y la A
 | Listado de campeonatos | `GET /api/v1/championships` | `/torneos` |
 | Detalle de campeonato | `GET /api/v1/championships/{id}` | `/torneos/:championshipId` |
 | Ranking de campeonato | `GET /api/v1/championships/{id}/ranking` | Detalle de torneo |
-| Detalle de categoría | `GET /api/v1/categories/{id}` | Detalle, standings y schedule |
-| Clasificación | `GET /api/v1/categories/{id}/standings` | Detalle y ruta dedicada |
-| Calendario y resultados | `GET /api/v1/categories/{id}/schedule` | Detalle y ruta dedicada |
+| Detalle de categoría | `GET /api/v1/categories/{id}` | Resumen, standings y schedule como contexto |
+| Clasificación | `GET /api/v1/categories/{id}/standings` | Ruta dedicada de standings |
+| Calendario y resultados | `GET /api/v1/categories/{id}/schedule` | Ruta dedicada de schedule |
 | Partido | `GET /api/v1/matches/{id}` | Detalle de partido |
 | Ranking de temporada | `GET /api/v1/seasons/{id}/ranking` | `/rankings` |
-| Ranking histórico | `GET /api/v1/rankings/all-time` | `/rankings` |
+| Ranking histórico | `GET /api/v1/rankings/all-time` | Landing y `/rankings` |
 | Inscripción | `GET .../registration` y `POST .../register` | Detalle de torneo autenticado |
 
 Los listados, detalles, relaciones y datos derivados aplican visibilidad efectiva en backend. Fase 4A elige `GET /api/v1/seasons` como única fuente del resumen porque su envelope ya incluye temporadas ordenadas por fecha de inicio descendente, campeonatos públicos asociados y `categories_count`. No se solicita `/championships`, no se llama a detalles y no existe N+1 en React.
 
-`championshipsService` interpreta el envelope, `useCompetitionOverview` gestiona loading, error, retry, vacío y desmontaje, y los componentes específicos presentan temporada, estado, fechas disponibles, campeonatos y enlaces `/torneos/{id}`. React conserva el orden recibido, no usa el `slug` nullable de Season, no muestra ni vuelve a filtrar `is_public` y no infiere estados a partir de fechas. Torneos y Rankings siguen visibles en todos los estados. La integración de Rankings queda en 4B y el resto del cierre funcional en 4C.
+`championshipsService` interpreta el envelope, `useCompetitionOverview` gestiona loading, error, retry, vacío y desmontaje, y los componentes específicos presentan temporada, estado, fechas disponibles, campeonatos y enlaces `/torneos/{id}`. React conserva el orden recibido, no usa el `slug` nullable de Season, no muestra ni vuelve a filtrar `is_public` y no infiere estados a partir de fechas. El acceso a Torneos y el enlace completo de Rankings siguen disponibles aunque fallen sus bloques remotos.
+
+Fase 4C centraliza las raíces y generadores reutilizados en `competitionRoutes`, añade `CategoryNavigation` a resumen, standings y schedule y fija retornos deterministas: Torneos ← Campeonato ← Categoría ← Clasificación/Calendario ← Partido. El detalle de categoría consume sólo su entidad; standings y schedule cargan en paralelo su contexto y colección, mantienen datos parciales válidos y ofrecen retry. Ninguna vista renumera posiciones o recalcula valores deportivos.
 
 ## 17. Requisitos de accesibilidad
 
@@ -305,6 +307,8 @@ Los listados, detalles, relaciones y datos derivados aplican visibilidad efectiv
 - No existen breadcrumbs.
 - Home y el índice CMS reutilizan el único `<main>` global de `App`.
 - La landing de Competición y la 404 aportan un único `h1`.
+- Cada vista deportiva aporta un `h1` descriptivo; la navegación de categoría identifica la vista actual con `aria-current="page"` y los retornos no dependen de `navigate(-1)`.
+- Las tablas de clasificación y rankings usan caption, headers con scope y una región enfocable para su scroll horizontal; las pestañas de Rankings exponen `tablist`, `tab`, `tabpanel` y `aria-selected`.
 - Reset Password usa `h2` como encabezado principal.
 - No se ha ejecutado una auditoría automática de contraste; los colores deben validarse, no darse por conformes sólo por inspección.
 
@@ -325,6 +329,8 @@ Los listados, detalles, relaciones y datos derivados aplican visibilidad efectiv
 Navbar muestra sus dos enlaces en una sola fila por encima de 1024 px y activa el menú colapsable a 1024 px. A 640 px oculta visualmente la palabra “Menú”, conservando el nombre accesible. La cuenta queda fuera de la lista colapsable. El logo mide 140 px en escritorio, 100 px en tablet y 80 px en móvil.
 
 Playwright cubre 320, 375, 768, 1024, 1280 y 1440 px con una identidad deliberadamente larga. No detecta desbordamiento horizontal ni solapamiento entre los grupos visibles del Navbar. La futura ampliación a cinco áreas deberá repetir esta matriz.
+
+Fase 4C repite esa matriz en landing, listado de Torneos, campeonato, categoría, standings, schedule, partido y Rankings. Las tablas conservan su overflow dentro del contenedor sin provocar overflow documental; tarjetas, acciones y textos largos se adaptan hasta 320 px. El E2E comprueba además foco visible y una ampliación visual del 200 % en la navegación de categoría.
 
 ### Resultado de los criterios 3B
 
@@ -400,6 +406,10 @@ COMPETITION-RANKING-NAVIGATION-1 añade en 4B pruebas del servicio y hook histó
 
 Validación de Fase 4B, 2026-07-19: `npm run test:run` completó 151 tests en 33 archivos; lint y build finalizaron sin errores; `npm run e2e` completó 14 escenarios Chromium sobre MariaDB temporal. Backend no se modificó ni se ejecutó su suite completa.
 
+COMPETITION-UX-CLOSURE-1 añade en 4C pruebas de prioridad visual, acciones únicas, labels y fallbacks, fechas parciales, rutas y retornos deterministas, estados remotos con retry, independencia de detalle y ranking, ausencia de cargas derivadas en el resumen de categoría, posiciones backend y semántica de tablas y pestañas. Playwright recorre Inicio → Competición → Campeonato → Categoría → Clasificación → Calendario → Partido, valida Rankings, vacío filtrado, foco, zoom y la matriz 320–1440 px en toda la rama.
+
+Validación de Fase 4C, 2026-07-19: `npm run test:run` completó 166 tests en 36 archivos; lint y build finalizaron sin errores; `npm run e2e` completó 15 escenarios Chromium sobre MariaDB temporal. Backend, API, Resources, rutas, seeders, Home, Navbar y `knowledge/` no se modificaron; no se ejecutó la suite backend completa.
+
 ## 21. Estado de implementación de Fase 3
 
 ### Fase 3B — estructura navegable
@@ -466,7 +476,19 @@ Fase 4B está completada con:
 6. accesos explícitos desde campeonato y categoría a detalle, clasificación y calendario, sin añadir rutas, aliases o redirects;
 7. tests Vitest, lint, build y E2E sobre datos reales del stack temporal, sin modificar backend, API, seeders, Home, Navbar o metadatos.
 
-Fase 4 continúa abierta. 4C conserva el resto del cierre de la experiencia deportiva pública: no se han integrado calendarios, clasificaciones, resultados, próximos partidos o actividad reciente dentro de la landing.
+### Fase 4C — cierre de la experiencia pública
+
+Fase 4C está completada con:
+
+1. orden final de `/competicion`: acceso principal a Torneos, temporadas/campeonatos y ranking histórico, con un solo enlace a Rankings;
+2. Torneos con error recuperable separado del vacío y una única acción por tarjeta;
+3. detalles de campeonato y categoría con jerarquía, enums y fechas legibles, y sin duplicar standings o schedule;
+4. navegación común de categoría, `aria-current` y retornos deterministas hasta partido;
+5. clasificación, calendario y rankings con estados remotos, retry, tablas semánticas, posiciones backend y fallbacks seguros;
+6. metadatos básicos en las vistas deportivas y responsive validado a 320–1440 px, foco visible y zoom;
+7. 166 tests Vitest, lint, build y 15 E2E correctos sin modificar backend, API, rutas, seeders, Home, Navbar o `knowledge/`.
+
+Con 4A, 4B y 4C completadas, la Fase 4 queda cerrada. No se incorporan en la landing standings, resultados, próximos partidos, actividad reciente, filtros ni nuevas rutas: el cierre se apoya en las vistas funcionales existentes.
 
 ## 23. Deuda aplazada
 
@@ -540,7 +562,18 @@ Fase 4 continúa abierta. 4C conserva el resto del cierre de la experiencia depo
 - el detalle de campeonato y el de categoría ofrecen enlaces accesibles a las rutas reales de categoría, standings y schedule;
 - backend, API, Resources, seeders, rutas, Home, Navbar, metadatos y `knowledge/` no cambian;
 - 151 tests Vitest, lint, build y 14 escenarios E2E completan correctamente;
-- 4C continúa pendiente y Fase 4 no se marca completa.
+- el bloque conserva su alcance histórico; su continuación se completa en 4C.
+
+### Fase 4C
+
+- la prioridad visual de la landing y los labels de acciones no duplican destinos;
+- el usuario puede identificar Temporada, Campeonato, Categoría y vista actual, y regresar por una ruta determinista;
+- loading, error, retry, vacío y contenido son distinguibles por recurso sin ocultar bloques independientes;
+- las posiciones y valores deportivos proceden del backend y los desconocidos se presentan con fallback neutral;
+- el detalle de categoría no solicita ni representa las colecciones completas de standings y schedule;
+- tablas, tarjetas, foco, teclado, zoom y responsive 320–1440 px se validan en unitarios y E2E;
+- backend, API, Resources, rutas, seeders, Home, Navbar, `knowledge/` y dependencias no cambian;
+- 166 tests Vitest, lint, build y 15 escenarios E2E completan correctamente y cierran Fase 4.
 
 ### Implementación posterior
 

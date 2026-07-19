@@ -433,15 +433,15 @@ Limitaciones deliberadas:
 
 ## E2E-1 — Smoke del MVP
 
-La suite ampliada a 14 escenarios cubre:
+La suite ampliada a 15 escenarios cubre:
 
 - navegación pública progresiva en escritorio, landing dinámica de Competición e índice/detalle CMS;
 - CTA del Hero hacia el listado real de torneos;
-- calendario de categoría con dos jornadas, partidos y navegación al detalle;
+- recorrido Inicio → Competición → Campeonato → Categoría → Clasificación → Calendario → Partido, con dos jornadas y retorno contextual;
 - menú público móvil, cierre al navegar y con Escape, foco recuperado y enlaces cerrados no visibles;
 - estado activo de Competición en `/competicion`, `/torneos` y `/rankings`;
 - sistema común de `/competicion` con jerarquía pública real de temporada y campeonato, headings `h1`–`h4`, enlace al detalle, título y descripción por ruta, tarjetas legibles, foco visible, Tab y Enter;
-- matriz responsive a 320, 375, 768, 1024, 1280 y 1440 px con identidad larga, sin overflow ni solapamientos;
+- matriz responsive a 320, 375, 768, 1024, 1280 y 1440 px sobre Navbar y toda la rama deportiva, más foco y zoom, sin overflow documental ni solapamientos;
 - fallback 404 React y recuperación hacia Inicio;
 - login real y acciones pendientes de Mi Panel;
 - envío y confirmación coincidente de un resultado;
@@ -551,6 +551,26 @@ Instantánea verificada de COMPETITION-RANKING-NAVIGATION-1, 2026-07-19:
 - E2E: 14 escenarios Playwright Chromium sobre el stack MariaDB temporal;
 - backend: no modificado y sin suite backend necesaria para este bloque frontend;
 - artefactos: el cierre correcto desmonta el stack, la red y los volúmenes temporales y elimina los informes Playwright.
+
+## COMPETITION-UX-CLOSURE-1 — Cierre de la experiencia pública de Competición
+
+La cobertura de Fase 4C valida:
+
+- composición: acceso principal a Torneos antes de la jerarquía, ranking histórico como único enlace de la landing a `/rankings` y ausencia de acciones duplicadas en las tarjetas de campeonato;
+- estados remotos: loading anunciado, error diferenciado del vacío y reintento acotado en Torneos, campeonato, categoría, clasificación, calendario y rankings; el fallo del ranking no oculta el campeonato y el fallo del contexto no borra una colección disponible;
+- jerarquía: Temporada → Campeonato → Categoría visible, retornos deterministas y navegación común de resumen, clasificación y calendario con `aria-current`;
+- dominio: enums traducidos con fallback neutral, fechas parciales sin separadores vacíos, valores ausentes seguros y posiciones de standings y rankings tomadas del backend sin renumeración React;
+- estructura: el detalle de categoría ya no solicita ni duplica standings o schedule; las tablas conservan semántica y scroll horizontal acotado; el partido vuelve al calendario real;
+- regresión: rutas, Navbar, Home, 404, CMS, cuenta, inscripciones, workflow de resultados y contratos API permanecen funcionales;
+- E2E real: Inicio → Competición → Campeonato → Categoría → Clasificación → Calendario → Partido, ranking completo, vacío filtrado, foco visible, zoom y matriz 320–1440 px en toda la rama deportiva.
+
+Instantánea verificada de COMPETITION-UX-CLOSURE-1, 2026-07-19:
+
+- frontend: 36 archivos de test y 166 tests Vitest;
+- calidad: ESLint y build Vite correctos;
+- E2E: 15 escenarios Playwright Chromium sobre MariaDB temporal, todos correctos;
+- backend: inspeccionado como fuente de contrato, no modificado y sin suite backend necesaria para este bloque frontend;
+- artefactos: el cierre correcto desmontó contenedores y red temporal; `dist` e informes generados se eliminan antes de la entrega.
 
 ## Flujo de Inscripción y Administración (Fase 3 Core)
 - prevención de inscripciones si el campeonato está cerrado;

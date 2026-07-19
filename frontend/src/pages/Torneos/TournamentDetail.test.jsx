@@ -49,9 +49,9 @@ describe('TournamentDetail', () => {
     });
 
     expect(await screen.findByRole('heading', { name: 'Torneo RC', level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('14/7/2026 - Sin fecha definida')).toBeInTheDocument();
-    expect(screen.getByText('Abierta desde: Sin fecha definida')).toBeInTheDocument();
-    expect(screen.getByText('Hasta: Sin fecha definida')).toBeInTheDocument();
+    expect(screen.getByText('Desde 14/7/2026')).toBeInTheDocument();
+    expect(screen.getByText('Sin fechas definidas')).toBeInTheDocument();
+    expect(screen.getAllByText(/Sin fecha/)).toHaveLength(1);
     expect(screen.queryByText(/1970/)).not.toBeInTheDocument();
   });
 
@@ -69,7 +69,13 @@ describe('TournamentDetail', () => {
       registration_ends_at: null,
       registration_is_open: false,
       season: { name: 'Temporada 2026' },
-      categories: [{ id: 12, name: 'Individual absoluta' }],
+      categories: [{
+        id: 12,
+        name: 'Individual absoluta',
+        status: 'active',
+        gender: 'mixed',
+        level: 5,
+      }],
     });
     championshipsService.getChampionshipRanking.mockResolvedValue([]);
 
@@ -87,5 +93,35 @@ describe('TournamentDetail', () => {
       .toHaveAttribute('href', '/categories/12/standings');
     expect(screen.getByRole('link', { name: 'Calendario y resultados' }))
       .toHaveAttribute('href', '/categories/12/schedule');
+    expect(screen.getByText('Activa')).toBeInTheDocument();
+    expect(screen.getByText('Mixta')).toBeInTheDocument();
+    expect(screen.getByText('Nivel 5')).toBeInTheDocument();
+  });
+
+  it('keeps the championship usable when its independent ranking fails', async () => {
+    championshipsService.getChampionship.mockResolvedValue({
+      id: 9,
+      name: 'Torneo RC',
+      description: null,
+      type: 'singles',
+      status: 'active',
+      registration_status: 'closed',
+      registration_is_open: false,
+      season: { name: 'Temporada 2026' },
+      categories: [],
+    });
+    championshipsService.getChampionshipRanking.mockRejectedValue(new Error('Unavailable'));
+
+    renderWithProviders(<TournamentDetail />, {
+      route: '/torneos/9',
+      routePath: '/torneos/:championshipId',
+      authValue: anonymousAuth,
+    });
+
+    expect(await screen.findByRole('heading', { name: 'Torneo RC', level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'No se ha podido cargar el ranking del campeonato.',
+    );
+    expect(screen.getByRole('heading', { name: 'Categorías' })).toBeInTheDocument();
   });
 });

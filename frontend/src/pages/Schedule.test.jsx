@@ -1,4 +1,5 @@
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { championshipsService } from '../api/championships';
 import { renderWithProviders } from '../test/renderWithProviders';
@@ -14,7 +15,7 @@ vi.mock('../api/championships', () => ({
 const category = {
   id: 12,
   name: 'Primera E2E',
-  championship: { name: 'Trofeo E2E' },
+  championship: { name: 'Trofeo E2E', season: { name: 'Temporada E2E' } },
 };
 
 const schedule = [
@@ -69,7 +70,7 @@ describe('Schedule', () => {
 
     renderSchedule();
 
-    expect(screen.getByRole('status')).toHaveTextContent('Cargando calendario...');
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando calendario…');
   });
 
   it('shows a controlled error when the schedule collection cannot be loaded', async () => {
@@ -78,9 +79,9 @@ describe('Schedule', () => {
 
     renderSchedule();
 
-    expect(await screen.findByRole('heading', { name: 'No se ha podido cargar el calendario' })).toBeInTheDocument();
-    expect(screen.getByRole('alert')).toHaveTextContent('Inténtalo de nuevo más tarde');
-    expect(screen.queryByText('No hay jornadas configuradas todavía.')).not.toBeInTheDocument();
+    expect(await screen.findByRole('alert')).toHaveTextContent('No se ha podido cargar el calendario.');
+    expect(screen.getByRole('button', { name: 'Reintentar' })).toBeInTheDocument();
+    expect(screen.queryByText(/Todavía no hay jornadas/)).not.toBeInTheDocument();
   });
 
   it('shows the empty state for an empty schedule collection', async () => {
@@ -89,9 +90,11 @@ describe('Schedule', () => {
 
     renderSchedule();
 
-    expect(await screen.findByRole('heading', { name: 'Primera E2E' })).toBeInTheDocument();
-    expect(screen.getByText('Trofeo E2E')).toBeInTheDocument();
-    expect(screen.getByText('No hay jornadas configuradas todavía.')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Calendario y resultados de Primera E2E' })).toBeInTheDocument();
+    expect(screen.getByText('Temporada E2E · Trofeo E2E')).toBeInTheDocument();
+    expect(screen.getByText('Todavía no hay jornadas configuradas para esta categoría.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Calendario y resultados' }))
+      .toHaveAttribute('aria-current', 'page');
   });
 
   it('renders the real collection contract with rounds, matches and detail links', async () => {
@@ -100,7 +103,7 @@ describe('Schedule', () => {
 
     renderSchedule();
 
-    expect(await screen.findByRole('heading', { name: 'Primera E2E' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Calendario y resultados de Primera E2E' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Jornada 1' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Jornada 2' })).toBeInTheDocument();
     expect(screen.getByText('Pilotari Local')).toBeInTheDocument();
@@ -111,7 +114,7 @@ describe('Schedule', () => {
     expect(screen.getByText('Finalizado')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Ver partido: Pilotari Local contra Pilotari Visitante' }))
       .toHaveAttribute('href', '/matches/101');
-    expect(screen.queryByText('No hay jornadas configuradas todavía.')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Todavía no hay jornadas/)).not.toBeInTheDocument();
     expect(screen.queryByText('99')).not.toBeInTheDocument();
     expect(screen.queryByText('98')).not.toBeInTheDocument();
   });
@@ -128,14 +131,30 @@ describe('Schedule', () => {
 
     renderSchedule();
 
-    expect(await screen.findByRole('heading', { name: 'Calendario de la categoría' })).toBeInTheDocument();
-    expect(screen.getByText('Campeonato por determinar')).toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveTextContent('no se ha podido cargar la información de la categoría');
+    expect(await screen.findByRole('heading', { name: 'Calendario y resultados de Categoría no disponible' })).toBeInTheDocument();
+    expect(screen.getByText('Contexto deportivo no disponible')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('no se ha podido cargar el contexto de la categoría');
     expect(screen.getByRole('heading', { name: 'Jornada 1' })).toBeInTheDocument();
     expect(screen.getByText('Fecha por determinar')).toBeInTheDocument();
-    expect(screen.getByText('Estado por determinar')).toBeInTheDocument();
+    expect(screen.getByText('Estado no disponible')).toBeInTheDocument();
     expect(screen.getByText('Pista: Por determinar')).toBeInTheDocument();
     expect(screen.getByText('Detalle no disponible')).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /Ver partido/ })).not.toBeInTheDocument();
+  });
+
+  it('retries the schedule without losing the loaded category context', async () => {
+    const user = userEvent.setup();
+    championshipsService.getCategory.mockResolvedValue(category);
+    championshipsService.getCategorySchedule
+      .mockRejectedValueOnce(new Error('Network error'))
+      .mockResolvedValueOnce([]);
+
+    renderSchedule();
+
+    await user.click(await screen.findByRole('button', { name: 'Reintentar' }));
+
+    expect(await screen.findByText('Todavía no hay jornadas configuradas para esta categoría.'))
+      .toBeInTheDocument();
+    expect(championshipsService.getCategorySchedule).toHaveBeenCalledTimes(2);
   });
 });

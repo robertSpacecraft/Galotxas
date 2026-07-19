@@ -1,20 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { MatchWorkflow } from '../components/MatchWorkflow/MatchWorkflow';
+import { PageMetadata } from '../components/PublicLanding/PageMetadata';
 import { matchesService } from '../api/matches';
 import { useAuth } from '../hooks/useAuth';
+import {
+    getCategorySchedulePath,
+    TOURNAMENTS_PATH,
+} from '../navigation/competitionRoutes';
+import { getMatchStatusLabel } from './Competition/competitionPresentation';
 import styles from './MatchDetails.module.css';
-
-const statusLabels = {
-    scheduled: 'Programado',
-    submitted: 'Pendiente de confirmación',
-    validated: 'Finalizado',
-    under_review: 'En revisión',
-    postponed: 'Aplazado',
-    cancelled: 'Cancelado',
-};
-
-const getStatusLabel = (status) => statusLabels[status] || status || 'Desconocido';
 
 const getEntryName = (entry) => {
     if (!entry) {
@@ -86,7 +81,11 @@ export default function MatchDetails() {
     if (loading) {
         return (
             <div className={styles.container}>
-                <p className={styles.stateMessage}>Cargando detalles...</p>
+                <PageMetadata
+                    title="Partido | Competición | Galotxas"
+                    description="Consulta el detalle de un partido público de Galotxas."
+                />
+                <p className={styles.stateMessage} role="status">Cargando partido…</p>
             </div>
         );
     }
@@ -94,7 +93,17 @@ export default function MatchDetails() {
     if (error) {
         return (
             <div className={styles.container}>
-                <p className={styles.error}>{error}</p>
+                <PageMetadata
+                    title="Partido | Competición | Galotxas"
+                    description="Consulta el detalle de un partido público de Galotxas."
+                />
+                <Link to={TOURNAMENTS_PATH} className={styles.backLink}>← Volver a Torneos</Link>
+                <div className={styles.error} role="alert">
+                    <p>{error}</p>
+                    <button type="button" className={styles.retryButton} onClick={fetchMatch}>
+                        Reintentar
+                    </button>
+                </div>
             </div>
         );
     }
@@ -109,17 +118,22 @@ export default function MatchDetails() {
 
     const category = match.round?.category;
     const championship = category?.championship;
-    const backTarget = category?.id ? `/categories/${category.id}` : '/torneos';
+    const backTarget = getCategorySchedulePath(category?.id) || TOURNAMENTS_PATH;
+    const backLabel = category?.id ? 'Volver al calendario de la categoría' : 'Volver a Torneos';
     const homeName = getEntryName(match.home_entry);
     const awayName = getEntryName(match.away_entry);
 
     return (
         <div className={styles.container}>
+            <PageMetadata
+                title={`${homeName} contra ${awayName} | Galotxas`}
+                description={`Consulta el partido entre ${homeName} y ${awayName}.`}
+            />
             <h1 className={styles.visuallyHidden}>Partido: {homeName} contra {awayName}</h1>
 
             <div className={styles.spacingBottom}>
                 <Link to={backTarget} className={styles.backLink}>
-                    Volver al calendario
+                    ← {backLabel}
                 </Link>
             </div>
 
@@ -150,7 +164,7 @@ export default function MatchDetails() {
 
                 <div className={styles.statusContainer}>
                     <span className={`${styles.statusBadge} ${styles[`status_${match.status}`] || styles.statusDefault}`}>
-                        {getStatusLabel(match.status)}
+                        {getMatchStatusLabel(match.status)}
                     </span>
                 </div>
             </header>

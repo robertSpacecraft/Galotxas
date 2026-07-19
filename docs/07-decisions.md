@@ -743,7 +743,7 @@ Consecuencias:
 - Fase 4A utiliza esa base para presentar temporadas y campeonatos públicos con enlaces por ID, estados remotos y datos nullable seguros; los componentes comunes continúan sin conocer el contrato deportivo.
 - La base común puede presentar datos del dominio, artefactos de `knowledge/` o contenido CMS sin conocer ni sustituir esas fuentes de verdad.
 - La 404 deja de heredar el título de la ruta anterior y restaura su `noindex` al navegar; la cobertura de metadatos del resto de rutas continúa incompleta.
-- Aprende a jugar, Escuela y Club siguen sin rutas ni placeholders; al cierre de 4A, 4B y 4C continuaban pendientes. ADR-029 registra la implementación posterior de 4B y mantiene abierta la Fase 4.
+- Aprende a jugar, Escuela y Club siguen sin rutas ni placeholders; al cierre de 4A, los bloques 4B y 4C estaban pendientes. ADR-029 registra la implementación posterior de 4B y su seguimiento documenta el cierre de 4C.
 - Consolidación institucional, migraciones, aliases, redirects, canonical, indexación de `/contenidos` y SEO completo quedan para bloques posteriores.
 
 ---
@@ -782,7 +782,14 @@ Consecuencias:
 - El máximo de cinco es una decisión de presentación local, no un cambio de contrato ni de ranking; `/rankings` continúa mostrando su colección completa.
 - En el estado inicial del seeder E2E no existen partidos validados y el preview presenta su vacío real. Tras validar resultados, refleja las filas reales del backend sin fixtures frontend.
 - Las rutas de campeonato y categoría se conservan exactamente; no hay aliases, redirects ni rutas nuevas.
-- Fase 4B queda completada, Fase 4C y la Fase 4 global permanecen abiertas.
+- Fase 4B queda completada y deja el cierre compositivo y de recorrido para Fase 4C.
+
+Seguimiento de Fase 4C, 2026-07-19:
+- Se mantiene la decisión de no reordenar ni recalcular datos deportivos: standings, rankings de campeonato, temporada e histórico muestran la `position` entregada por backend o un fallback neutral.
+- Las raíces y generadores de detalle de la rama deportiva se concentran en el mismo contrato de rutas; los retornos son deterministas y no usan historial implícito.
+- El detalle de categoría se limita a su entidad y contexto, mientras clasificación y calendario permanecen en sus URLs dedicadas mediante una navegación común con `aria-current`.
+- La landing prioriza un único acceso a Torneos y conserva el enlace a Rankings dentro de su bloque histórico, sin duplicar acciones ni incorporar tablas, partidos o resultados.
+- Fase 4C y la Fase 4 global quedan completadas sin cambiar backend, API, Resources, rutas, seeders, Home, Navbar o `knowledge/`.
 
 ---
 

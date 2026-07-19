@@ -1,4 +1,5 @@
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { championshipsService } from '../../api/championships';
 import { renderWithProviders } from '../../test/renderWithProviders';
@@ -43,5 +44,19 @@ describe('AllTimeRanking', () => {
     expect(screen.getByText('Pilotari 6')).toBeInTheDocument();
     expect(screen.getAllByRole('row')).toHaveLength(7);
     expect(championshipsService.getAllTimeRanking).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a controlled error and retries the same source', async () => {
+    const user = userEvent.setup();
+    championshipsService.getAllTimeRanking
+      .mockRejectedValueOnce(new Error('Unavailable'))
+      .mockResolvedValueOnce([buildRow(4)]);
+
+    renderWithProviders(<AllTimeRanking />);
+
+    await user.click(await screen.findByRole('button', { name: 'Reintentar' }));
+
+    expect(await screen.findByText('Pilotari 4')).toBeInTheDocument();
+    expect(championshipsService.getAllTimeRanking).toHaveBeenCalledTimes(2);
   });
 });

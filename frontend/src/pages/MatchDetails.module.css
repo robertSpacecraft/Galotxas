@@ -28,6 +28,12 @@
     text-decoration: underline;
 }
 
+.backLink:focus-visible,
+.retryButton:focus-visible {
+    outline: 3px solid var(--brand-primary);
+    outline-offset: 3px;
+}
+
 .header {
     text-align: center;
     margin-bottom: 3rem;
@@ -172,6 +178,23 @@
     border: 1px solid var(--surface-border);
     background: rgba(255, 255, 255, 0.04);
     color: var(--text-secondary);
+}
+
+.error p {
+    margin: 0;
+    color: inherit;
+}
+
+.retryButton {
+    min-height: 44px;
+    margin-top: 1rem;
+    padding: 0.65rem 1rem;
+    border: 2px solid var(--brand-primary);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-weight: 800;
 }
 
 .error {

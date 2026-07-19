@@ -22,7 +22,7 @@ export const CompetitionChampionshipCard = ({ championship }) => {
 
   return (
     <article className={styles.championshipCard} aria-labelledby={titleId}>
-      {typeLabel ? <p className={styles.championshipType}>{typeLabel}</p> : null}
+      <p className={styles.championshipType}>{typeLabel}</p>
       <h4 id={titleId} className={styles.championshipTitle}>{championship.name}</h4>
       <dl className={styles.details}>
         <div className={styles.detail}>
