@@ -123,6 +123,21 @@ Las rutas `/admin/championships` y `/admin/seasons/{season}/championships/create
 - No existe un booleano de apertura en la tabla. `registration_is_open` continúa calculándose a partir del estado y las fechas de inscripción y no es un campo editable.
 - Este bloque no cambia rutas, filtros de visibilidad, controladores, Resources ni contratos de la API pública o administrativa.
 
+### Categorías
+
+Las rutas `/admin/championships/{championship}/categories/*` y `/admin/categories/{category}/*` centralizan el CRUD Blade de categorías.
+
+- La creación permanece anidada bajo un campeonato existente y toma `championship_id` exclusivamente del modelo resuelto por la ruta. La edición no permite mover una categoría a otro campeonato.
+- El formulario gestiona los campos reales `name`, `description`, `level`, `gender` y `status`.
+- Nombre, género y estado son obligatorios. El género se valida contra `CategoryGender` y el estado contra los valores administrativos reales `pending` y `active`.
+- Descripción y nivel son opcionales conforme al esquema. La descripción admite hasta 5.000 caracteres y el nivel, cuando se informa, debe estar entre 1 y 10.
+- La creación y actualización reciben exclusivamente datos validados y persisten de forma explícita todos los campos administrables, incluidos los valores nulos al limpiar descripción o nivel.
+- La edición recupera todos los valores persistidos y da prioridad a `old()` después de un error de validación.
+- El `slug` continúa derivándose del nombre y conserva la unicidad por campeonato existente en base de datos.
+- `image_path` existe en persistencia, pero la gestión multimedia no forma parte de este formulario: no se ofrece entrada ni subida y una actualización conserva el valor previo.
+- Las relaciones con inscripciones, participantes, equipos, rondas y partidos no forman parte del formulario y permanecen intactas durante una actualización ordinaria.
+- Este bloque no cambia rutas, filtros de visibilidad, controladores, Resources ni contratos de la API pública o administrativa.
+
 ### Inventario de pantallas implementadas
 
 El panel web actual dispone de estas áreas reales:

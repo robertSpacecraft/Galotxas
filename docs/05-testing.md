@@ -554,6 +554,26 @@ La suite dirigida se ejecuta junto con `AdminActiveSessionTest` sobre el MariaDB
 
 La suite dirigida se ejecuta sobre el MariaDB aislado del perfil Docker `test` junto con `AdminActiveSessionTest`, las pruebas administrativas de solicitudes y categorías y `ChampionshipRegistrationTest`. No se añade cobertura frontend o E2E porque este bloque no modifica React ni la API pública.
 
+## CATEGORY-ADMIN-1 — Integridad administrativa de categorías
+
+`AdminCategoryTest` cubre el contrato Blade de Categorías:
+
+- acceso de administradores activos y rechazo de usuarios normales, administradores inactivos y sesiones anónimas;
+- creación anidada bajo un campeonato existente y rechazo por route model binding de campeonatos inexistentes;
+- ausencia de selector o payload administrable para mover una categoría a otro campeonato;
+- creación y actualización explícitas de nombre, descripción, nivel, género y estado;
+- nulabilidad y limpieza de descripción y nivel;
+- obligatoriedad y límites del nombre, límite de descripción, rango de nivel y pertenencia de género y estado a sus valores reales;
+- recuperación correcta de valores y prioridad de `old()` tras un error de validación;
+- inmutabilidad ante actualizaciones inválidas y regresión específica contra pérdidas silenciosas de descripción y estado;
+- ausencia de entrada `image_path`, rechazo de datos manipulados en el alta y conservación del valor persistido en la edición;
+- conservación de campeonato, inscripciones, participantes competitivos y rondas durante la actualización;
+- continuidad de listado, detalle y borrado existentes;
+- invariancia del contrato y la visibilidad pública actual de categorías, incluida la ausencia de descripción e imagen en `CategoryPublicResource`;
+- continuidad de standings, schedule, partidos, inscripciones, generación de liga y copa y rankings relacionados.
+
+La suite dirigida se ejecuta sobre el MariaDB aislado del perfil Docker `test` junto con las pruebas de sesión administrativa, inscripciones, rankings, calendario, copa y contrato público de partidos. No se añade cobertura frontend o E2E porque este bloque no modifica React ni la API pública.
+
 ## CMS público React
 - consumo del endpoint `GET /api/v1/cms/pages` desde el cliente API existente;
 - ruta pública `/contenidos`;

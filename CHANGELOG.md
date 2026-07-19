@@ -16,6 +16,7 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - Se amplía la cobertura Feature del flujo editorial, el criterio público compartido y las sesiones administrativas activas.
 - El CRUD Blade de Temporadas valida y persiste nombre, estado y fechas nullable, respeta la cronología y selecciona correctamente el enum casteado al editar.
 - El CRUD Blade de Campeonatos valida y persiste explícitamente todos los campos no multimedia, recupera correctamente valores y errores, y conserva `image_path` durante la edición.
+- El CRUD Blade de Categorías valida y persiste sus campos no multimedia, respeta la relación con Campeonato y los valores nullable, y conserva `image_path` durante la edición.
 
 El primer candidato MVP continúa pendiente de revisión humana, commit de preparación, etiquetado y publicación.
 

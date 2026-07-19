@@ -78,6 +78,20 @@
 
                         <div class="col-md-3">
                             <div class="border rounded p-3 bg-light">
+                                <div class="small text-secondary">Estado</div>
+                                <div class="fw-semibold">{{ $category->status }}</div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-9">
+                            <div class="border rounded p-3 bg-light h-100">
+                                <div class="small text-secondary">Descripción</div>
+                                <div class="fw-semibold">{{ $category->description ?: 'Sin descripción' }}</div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="border rounded p-3 bg-light">
                                 <div class="small text-secondary">Campeonato</div>
                                 <div class="fw-semibold">{{ $category->championship->name }}</div>
                             </div>

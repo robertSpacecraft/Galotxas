@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\CategoryGender;
+use App\Enums\CategoryStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCategoryRequest;
 use App\Http\Requests\Admin\UpdateCategoryRequest;
 use App\Models\Category;
+use App\Models\CategoryRegistration;
 use App\Models\Championship;
-use App\Models\Player;
+use App\Models\ChampionshipRegistrationRequest;
+use App\Models\Venue;
 use App\Services\GenerateCupService;
 use App\Services\GenerateLeagueScheduleService;
 use App\Services\Ranking\BuildCategoryRankingService;
@@ -26,10 +29,17 @@ class CategoryController extends Controller
 
     public function create(Championship $championship)
     {
-        $genderOptions = CategoryGender::options();
-        $levelOptions = range(1, 10);
-
-        return view('admin.categories.create', compact('championship', 'genderOptions', 'levelOptions'));
+        return view('admin.categories.create', [
+            'championship' => $championship,
+            'category' => new Category([
+                'championship_id' => $championship->id,
+                'status' => CategoryStatus::PENDING->value,
+            ]),
+            'genderOptions' => CategoryGender::cases(),
+            'levelOptions' => range(1, 10),
+            'statusOptions' => CategoryStatus::cases(),
+            'defaultStatus' => CategoryStatus::PENDING->value,
+        ]);
     }
 
     public function store(StoreCategoryRequest $request, Championship $championship)
@@ -40,8 +50,10 @@ class CategoryController extends Controller
             'championship_id' => $championship->id,
             'name' => $validated['name'],
             'slug' => Str::slug($validated['name']),
-            'level' => $validated['level'],
+            'description' => $validated['description'] ?? null,
+            'level' => $validated['level'] ?? null,
             'gender' => $validated['gender'],
+            'status' => $validated['status'],
         ]);
 
         return redirect()
@@ -70,13 +82,13 @@ class CategoryController extends Controller
 
         $championshipId = $category->championship_id;
 
-        $assignedInChampionshipIds = \App\Models\CategoryRegistration::query()
+        $assignedInChampionshipIds = CategoryRegistration::query()
             ->whereHas('category', function ($query) use ($championshipId) {
                 $query->where('championship_id', $championshipId);
             })
             ->pluck('player_id');
 
-        $availablePlayers = \App\Models\ChampionshipRegistrationRequest::query()
+        $availablePlayers = ChampionshipRegistrationRequest::query()
             ->with(['player.user'])
             ->where('championship_id', $championshipId)
             ->where('status', 'approved')
@@ -87,7 +99,7 @@ class CategoryController extends Controller
             ->filter()
             ->unique('id')
             ->sortBy(function ($player) {
-                return $player->nickname ?: trim(($player->user->name ?? '') . ' ' . ($player->user->lastname ?? ''));
+                return $player->nickname ?: trim(($player->user->name ?? '').' '.($player->user->lastname ?? ''));
             })
             ->values();
 
@@ -103,7 +115,7 @@ class CategoryController extends Controller
         $teamSelectablePlayers = $registrations
             ->filter(fn ($registration) => $registration->status === 'approved')
             ->map(fn ($registration) => $registration->player)
-            ->filter(fn ($player) => !$assignedPlayerIds->contains($player->id))
+            ->filter(fn ($player) => ! $assignedPlayerIds->contains($player->id))
             ->values();
 
         $leagueRounds = $category->rounds
@@ -116,7 +128,7 @@ class CategoryController extends Controller
             ->sortBy('order')
             ->values();
 
-        $venues = \App\Models\Venue::orderBy('id')->get();
+        $venues = Venue::orderBy('id')->get();
 
         $categoryRanking = $rankingService->build($category);
 
@@ -146,10 +158,16 @@ class CategoryController extends Controller
 
     public function edit(Category $category)
     {
-        $genderOptions = CategoryGender::options();
-        $levelOptions = range(1, 10);
+        $category->loadMissing('championship');
 
-        return view('admin.categories.edit', compact('category', 'genderOptions', 'levelOptions'));
+        return view('admin.categories.edit', [
+            'championship' => $category->championship,
+            'category' => $category,
+            'genderOptions' => CategoryGender::cases(),
+            'levelOptions' => range(1, 10),
+            'statusOptions' => CategoryStatus::cases(),
+            'defaultStatus' => CategoryStatus::PENDING->value,
+        ]);
     }
 
     public function update(UpdateCategoryRequest $request, Category $category)
@@ -159,8 +177,10 @@ class CategoryController extends Controller
         $category->update([
             'name' => $validated['name'],
             'slug' => Str::slug($validated['name']),
-            'level' => $validated['level'],
+            'description' => $validated['description'] ?? null,
+            'level' => $validated['level'] ?? null,
             'gender' => $validated['gender'],
+            'status' => $validated['status'],
         ]);
 
         return redirect()
@@ -179,7 +199,7 @@ class CategoryController extends Controller
             ->with('success', 'Categoría eliminada');
     }
 
-    //Para generar la copa:
+    // Para generar la copa:
     public function generateCup(Category $category, GenerateCupService $cupService)
     {
         try {
