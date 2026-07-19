@@ -663,6 +663,8 @@ Decisión:
 - Excluir de rankings y otros agregados públicos los partidos de ramas privadas mediante una opción explícita en los Services compartidos, manteniendo su comportamiento interno sin filtro.
 - Mantener sin filtro público la administración, generación, datos personales y workflows de participantes.
 - Sembrar explícitamente como pública sólo la jerarquía destinada a desarrollo público y E2E; conservar privadas las factories por defecto.
+- En 2B.5, permitir que la API administrativa gestione `is_public` mediante los mismos Form Requests y reglas jerárquicas que Blade, con persistencia explícita y sin scopes públicos.
+- Serializar esos CRUD mediante Resources administrativos dedicados; mantener `is_public` fuera de todos los Resources públicos.
 
 Alternativas descartadas:
 - Filtrar sólo por estado operativo: impediría combinaciones válidas como `pending + público`, `active + privado` o `cancelled + público`.
@@ -679,7 +681,7 @@ Consecuencias:
 - Los agregados públicos no revelan indirectamente resultados de una rama privada.
 - Ocultar un padre retira efectivamente la rama; restaurarlo recupera sólo los descendientes cuyo flag se conservó activo.
 - No se añade un índice simple sobre `is_public`, de baja cardinalidad; la optimización queda supeditada a medir las consultas jerárquicas reales.
-- Los endpoints administrativos API heredados no incorporan el nuevo campo en este bloque y permanecen como deuda de 2B.5.
+- Desde 2B.5, los CRUD API administrativos pueden consultar y modificar `is_public` con la misma jerarquía que Blade, sin alterar la visibilidad pública efectiva ni los contratos visitantes.
 
 ---
 

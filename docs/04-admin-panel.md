@@ -154,6 +154,12 @@ Las rutas `/admin/championships/{championship}/categories/*` y `/admin/categorie
 - La API pública aplica la conjunción de la rama: ocultar un padre oculta efectivamente sus descendientes sin alterar sus flags. Al restaurarlo reaparecen los descendientes que continúan declarados públicos.
 - Administración, generación y áreas personales no quedan limitadas por esta política pública.
 
+### Correspondencia con la API administrativa
+
+Los formularios Blade no han cambiado en la Fase 2B.5. La API administrativa de temporadas, campeonatos y categorías reutiliza sus mismas reglas de campos, enums, fechas y jerarquía de visibilidad mediante Form Requests. Ambos canales persisten únicamente atributos validados y asignan `is_public` de forma explícita.
+
+La API mantiene acceso a registros privados y no aplica scopes públicos. `image_path` continúa fuera de los formularios y del payload API, se conserva al editar y requiere un bloque multimedia futuro para administrarse. La creación API plana de una categoría exige el campeonato existente; las actualizaciones, igual que Blade, no permiten cambiar esa relación.
+
 ### Inventario de pantallas implementadas
 
 El panel web actual dispone de estas áreas reales:

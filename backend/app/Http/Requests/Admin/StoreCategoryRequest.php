@@ -61,6 +61,12 @@ class StoreCategoryRequest extends FormRequest
             return $category->loadMissing('championship.season')->championship;
         }
 
+        if ($this->filled('championship_id')) {
+            return Championship::query()
+                ->with('season')
+                ->find($this->input('championship_id'));
+        }
+
         return null;
     }
 }

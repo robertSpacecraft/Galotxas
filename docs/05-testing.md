@@ -590,7 +590,7 @@ La Fase 2B.4A incorpora cobertura Feature para:
 - conservación de todos los campos completados en 2B.1, 2B.2 y 2B.3, incluidas relaciones e imágenes no administrables;
 - continuidad de permisos para administrador activo, inactivo, usuario normal y anónimo;
 - regresión pública temporal: las consultas aún entregan registros privados, los Resources no incluyen `is_public` y permanecen intactos rutas, campos y envelopes.
-- aislamiento del CRUD API administrativo heredado: sus respuestas no serializan `is_public` y sus escrituras masivas no pueden modificarlo hasta la revisión de 2B.5.
+- aislamiento histórico del CRUD API administrativo durante 2B.4A: sus respuestas no serializaban `is_public` y sus escrituras masivas no podían modificarlo antes de 2B.5.
 
 La migración se valida mediante `migrate:fresh` sobre el MariaDB aislado. Su backfill se revisa explícitamente: primero crea las columnas con default `false`, después marca como públicos todos los registros preexistentes y conserva `false` como default para altas futuras. No se ejecuta contra desarrollo.
 
@@ -604,11 +604,27 @@ La Fase 2B.4B incorpora cobertura Feature para:
 - exclusión de resultados privados en rankings públicos de campeonato, temporada e histórico, conservando los cálculos internos completos;
 - inicio de inscripciones únicamente en campeonatos públicos y conservación de solicitudes propias existentes;
 - continuidad de partidos, calendario y rankings privados relacionados en Mi Panel, así como workflows de participantes;
-- acceso administrativo a entidades privadas y aislamiento del CRUD API heredado;
+- acceso administrativo a entidades privadas y aislamiento respecto a los scopes públicos;
 - ocultación y restauración de padres sin modificar flags descendientes;
 - factories privadas por defecto y seeders de desarrollo y E2E con jerarquías públicas explícitas.
 
 La regresión incluye tests administrativos y públicos dirigidos, suite backend completa en MariaDB, tests unitarios de React, lint, build y batería E2E completa. Las pruebas frontend verifican el mismo contrato: el filtrado es responsabilidad del backend y no se reproduce en React.
+
+## COMPETITION-ADMIN-API-1 — Endurecimiento de la API administrativa
+
+La Fase 2B.5 incorpora cobertura Feature para los 15 endpoints CRUD de temporadas, campeonatos y categorías:
+
+- rechazo de anónimos, usuarios normales y administradores inactivos, y acceso completo del administrador activo;
+- Form Requests compartidos con Blade cuando las reglas coinciden y Request API específico para el padre requerido al crear una categoría por la ruta plana;
+- whitelists y persistencia explícitas, sin `$request->all()`, con enums, booleanos, fechas nullable y cronología validados;
+- altas y actualizaciones completas, limpieza de campos nullable y ausencia de mutación tras una petición inválida;
+- gestión de `is_public` con jerarquía idéntica a Blade, sin scopes públicos ni cascada sobre flags descendientes;
+- conservación de `image_path`, derivación de slugs e inmunidad frente a `id`, timestamps, campos desconocidos y relaciones manipuladas;
+- asociación de categoría en creación e imposibilidad de trasladarla mediante el payload de actualización;
+- contratos exactos de `AdminSeasonResource`, `AdminChampionshipResource` y `AdminCategoryResource`, envelopes y códigos HTTP;
+- consulta administrativa de entidades privadas y regresión de filtros, `404`, campos y envelopes de la API pública.
+
+Las rutas CRUD son planas, por lo que no existen desajustes de route model binding anidado que probar. La regresión se ejecuta sobre MariaDB aislado e incluye además los tests Blade de las fases 2B.1–2B.4, sesiones administrativas activas y contratos públicos relacionados.
 
 ## CMS público React
 - consumo del endpoint `GET /api/v1/cms/pages` desde el cliente API existente;

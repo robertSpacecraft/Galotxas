@@ -10,6 +10,8 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Changed
 
+- La API administrativa de temporadas, campeonatos y categorías utiliza Form Requests, persistencia explícita y Resources dedicados, con contratos y permisos de administrador activo verificados.
+- Se elimina la asignación no validada de esos CRUD; `is_public` respeta la jerarquía de Blade y los campos protegidos, incluidas imágenes y relaciones, no pueden manipularse mediante payload.
 - La API pública de competición excluye las ramas privadas en listados, detalles, relaciones, partidos, rankings, standings, schedules e inicio de inscripciones, manteniendo los contratos serializados.
 - La visibilidad efectiva se aplica con scopes locales sin limitar la administración, los servicios internos ni los datos relacionados de Mi Panel.
 - El CMS crea las páginas como borrador y exige contenido validado antes de publicarlas.

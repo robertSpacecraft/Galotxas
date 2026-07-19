@@ -497,16 +497,16 @@ class CompetitionPublicVisibilityTest extends TestCase
 
         $this->getJson('/api/v1/admin/seasons/'.$season->id)
             ->assertOk()
-            ->assertJsonPath('id', $season->id)
-            ->assertJsonMissingPath('is_public');
+            ->assertJsonPath('data.id', $season->id)
+            ->assertJsonPath('data.is_public', false);
         $this->getJson('/api/v1/admin/championships/'.$championship->id)
             ->assertOk()
-            ->assertJsonPath('id', $championship->id)
-            ->assertJsonMissingPath('is_public');
+            ->assertJsonPath('data.id', $championship->id)
+            ->assertJsonPath('data.is_public', false);
         $this->getJson('/api/v1/admin/categories/'.$category->id)
             ->assertOk()
-            ->assertJsonPath('id', $category->id)
-            ->assertJsonMissingPath('is_public');
+            ->assertJsonPath('data.id', $category->id)
+            ->assertJsonPath('data.is_public', false);
     }
 
     public function test_hiding_and_restoring_parents_changes_effective_visibility_without_cascading_flags(): void

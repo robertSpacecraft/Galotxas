@@ -61,60 +61,82 @@ class CompetitionVisibilityFoundationTest extends TestCase
         $this->assertFalse(Category::factory()->publiclyVisible()->privatelyVisible()->create()->is_public);
     }
 
-    public function test_legacy_admin_api_cannot_read_or_write_visibility_flags(): void
+    public function test_admin_api_manages_visibility_flags_through_its_controlled_contract(): void
     {
         Sanctum::actingAs(User::factory()->admin()->create());
 
         $seasonResponse = $this->postJson('/api/v1/admin/seasons', [
-            'name' => 'Temporada desde API heredada',
+            'name' => 'Temporada desde API administrativa',
             'status' => SeasonStatus::ACTIVE->value,
             'is_public' => true,
-        ])->assertCreated()->assertJsonMissingPath('is_public');
-        $season = Season::query()->findOrFail($seasonResponse->json('id'));
+            'start_date' => null,
+            'end_date' => null,
+        ])->assertCreated()->assertJsonPath('data.is_public', true);
+        $season = Season::query()->findOrFail($seasonResponse->json('data.id'));
 
         $championshipResponse = $this->postJson('/api/v1/admin/championships', [
             'season_id' => $season->id,
-            'name' => 'Campeonato desde API heredada',
-            'slug' => 'campeonato-desde-api-heredada',
+            'name' => 'Campeonato desde API administrativa',
+            'description' => null,
             'type' => ChampionshipType::SINGLES->value,
             'status' => 'pending',
             'is_public' => true,
-        ])->assertCreated()->assertJsonMissingPath('is_public');
-        $championship = Championship::query()->findOrFail($championshipResponse->json('id'));
+            'start_date' => null,
+            'end_date' => null,
+            'registration_status' => 'closed',
+            'registration_starts_at' => null,
+            'registration_ends_at' => null,
+        ])->assertCreated()->assertJsonPath('data.is_public', true);
+        $championship = Championship::query()->findOrFail($championshipResponse->json('data.id'));
 
         $categoryResponse = $this->postJson('/api/v1/admin/categories', [
             'championship_id' => $championship->id,
-            'name' => 'Categoría desde API heredada',
-            'slug' => 'categoria-desde-api-heredada',
+            'name' => 'Categoría desde API administrativa',
+            'description' => null,
+            'level' => null,
             'gender' => CategoryGender::MIXED->value,
             'status' => 'pending',
             'is_public' => true,
-        ])->assertCreated()->assertJsonMissingPath('is_public');
-        $category = Category::query()->findOrFail($categoryResponse->json('id'));
+        ])->assertCreated()->assertJsonPath('data.is_public', true);
+        $category = Category::query()->findOrFail($categoryResponse->json('data.id'));
 
-        $this->assertFalse($season->is_public);
-        $this->assertFalse($championship->is_public);
-        $this->assertFalse($category->is_public);
-
-        $season->is_public = true;
-        $season->save();
-        $championship->is_public = true;
-        $championship->save();
-        $category->is_public = true;
-        $category->save();
-
-        $this->putJson('/api/v1/admin/seasons/'.$season->id, ['is_public' => false])
+        $this->putJson('/api/v1/admin/seasons/'.$season->id, [
+            'name' => $season->name,
+            'status' => SeasonStatus::ACTIVE->value,
+            'is_public' => false,
+            'start_date' => null,
+            'end_date' => null,
+        ])
             ->assertOk()
-            ->assertJsonMissingPath('is_public');
-        $this->putJson('/api/v1/admin/championships/'.$championship->id, ['is_public' => false])
+            ->assertJsonPath('data.is_public', false);
+        $this->putJson('/api/v1/admin/championships/'.$championship->id, [
+            'season_id' => $season->id,
+            'name' => $championship->name,
+            'description' => null,
+            'type' => ChampionshipType::SINGLES->value,
+            'status' => 'pending',
+            'is_public' => false,
+            'start_date' => null,
+            'end_date' => null,
+            'registration_status' => 'closed',
+            'registration_starts_at' => null,
+            'registration_ends_at' => null,
+        ])
             ->assertOk()
-            ->assertJsonMissingPath('is_public');
-        $this->putJson('/api/v1/admin/categories/'.$category->id, ['is_public' => false])
+            ->assertJsonPath('data.is_public', false);
+        $this->putJson('/api/v1/admin/categories/'.$category->id, [
+            'name' => $category->name,
+            'description' => null,
+            'level' => null,
+            'gender' => CategoryGender::MIXED->value,
+            'status' => 'pending',
+            'is_public' => false,
+        ])
             ->assertOk()
-            ->assertJsonMissingPath('is_public');
+            ->assertJsonPath('data.is_public', false);
 
-        $this->assertTrue($season->fresh()->is_public);
-        $this->assertTrue($championship->fresh()->is_public);
-        $this->assertTrue($category->fresh()->is_public);
+        $this->assertFalse($season->fresh()->is_public);
+        $this->assertFalse($championship->fresh()->is_public);
+        $this->assertFalse($category->fresh()->is_public);
     }
 }

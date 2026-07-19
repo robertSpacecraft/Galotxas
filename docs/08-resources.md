@@ -171,6 +171,9 @@ Los Resources públicos de competición mantienen su forma, nombres, tipos y env
 | `SeasonResource` | listado público de temporadas y campeonatos cargados |
 | `ChampionshipPublicResource` | listado/detalle público de campeonatos |
 | `CategoryPublicResource` | detalle público de categoría |
+| `AdminSeasonResource` | CRUD API administrativo de temporadas; incluye estado, fechas e `is_public` |
+| `AdminChampionshipResource` | CRUD API administrativo de campeonatos; incluye campos administrables y temporada mínima |
+| `AdminCategoryResource` | CRUD API administrativo de categorías; incluye campos administrables y jerarquía mínima |
 | `CategoryScheduleRoundResource` | calendario público de una categoría |
 | `CategoryRankingResource` | ranking público de categoría |
 | `ChampionshipRankingResource` | rankings públicos de campeonato y temporada |
@@ -193,6 +196,10 @@ Los Resources públicos de competición mantienen su forma, nombres, tipos y env
 | `PendingMatchActionResource` | acción pendiente segura de Mi Panel |
 
 No existe un Resource específico de partido para administradores. La administración utiliza actualmente `MatchResource` y `MatchResultReportResource`; introducir otro contrato sería una decisión futura, no un hecho implementado.
+
+Los tres Resources administrativos de competición evitan serializar modelos Eloquent completos. `AdminSeasonResource` expone `id`, nombre, estado, `is_public`, fechas y timestamps. `AdminChampionshipResource` añade identificador de temporada, slug, descripción, tipo, estado de inscripción, sus intervalos y una temporada mínima. `AdminCategoryResource` incluye identificador de campeonato, slug, descripción, nivel, género, estado y una jerarquía mínima campeonato-temporada. Los dos últimos también incluyen `is_public` propio y de los padres necesarios para el contexto administrativo.
+
+`image_path` no forma parte de estos contratos porque no es administrable en este bloque. `is_public` aparece únicamente en los Resources de administración; permanece ausente de `SeasonResource`, `ChampionshipPublicResource`, `CategoryPublicResource` y de todos los Resources públicos derivados.
 
 ## Límites de seguridad por contexto
 
