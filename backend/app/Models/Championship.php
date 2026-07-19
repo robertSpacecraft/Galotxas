@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
-use App\Enums\ChampionshipType;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Enums\ChampionshipRegistrationStatus;
+use App\Enums\ChampionshipType;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Championship extends Model
 {
@@ -26,14 +27,32 @@ class Championship extends Model
         'registration_ends_at',
     ];
 
+    protected $hidden = [
+        'is_public',
+    ];
+
     protected $casts = [
         'type' => ChampionshipType::class,
+        'is_public' => 'boolean',
         'start_date' => 'date',
         'end_date' => 'date',
         'registration_status' => ChampionshipRegistrationStatus::class,
         'registration_starts_at' => 'datetime',
         'registration_ends_at' => 'datetime',
     ];
+
+    public function scopeEffectivelyPublic(Builder $query): Builder
+    {
+        return $query
+            ->where($query->qualifyColumn('is_public'), true)
+            ->whereHas('season', fn (Builder $seasonQuery) => $seasonQuery->effectivelyPublic());
+    }
+
+    public function isEffectivelyPublic(): bool
+    {
+        return $this->exists
+            && self::query()->whereKey($this->getKey())->effectivelyPublic()->exists();
+    }
 
     public function season()
     {
@@ -66,7 +85,7 @@ class Championship extends Model
 
     public function registrationWindowLabel(): string
     {
-        if (!$this->registration_starts_at && !$this->registration_ends_at) {
+        if (! $this->registration_starts_at && ! $this->registration_ends_at) {
             return 'Sin fechas definidas';
         }
 

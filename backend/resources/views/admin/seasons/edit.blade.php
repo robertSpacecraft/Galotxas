@@ -1,47 +1,23 @@
 @extends('admin.layout')
 
 @section('content')
+    <div class="container mt-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+            <div>
+                <h1 class="mb-2">Editar temporada</h1>
+                <p class="text-secondary mb-0">{{ $season->name }}</p>
+            </div>
 
-    <h1>Editar temporada</h1>
-
-    @if ($errors->any())
-        @foreach ($errors->all() as $error)
-            <p>{{ $error }}</p>
-        @endforeach
-    @endif
-
-    <form method="POST" action="{{ route('admin.seasons.update', $season) }}">
-        @csrf
-        @method('PUT')
-
-        <div>
-            <label>Nombre</label><br>
-            <input
-                type="text"
-                name="name"
-                value="{{ old('name', $season->name) }}"
-                required
-            >
+            <a href="{{ route('admin.seasons.index') }}" class="btn btn-outline-secondary">Volver</a>
         </div>
 
-        <div style="margin-top:1rem;">
-            <label>Estado</label><br>
-            <select name="status" required>
-                <option value="planned" {{ $season->status === 'planned' ? 'selected' : '' }}>Planned</option>
-                <option value="active" {{ $season->status === 'active' ? 'selected' : '' }}>Active</option>
-                <option value="finished" {{ $season->status === 'finished' ? 'selected' : '' }}>Finished</option>
-                <option value="cancelled" {{ $season->status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-            </select>
+        <div class="card page-card">
+            <div class="card-body">
+                <form method="POST" action="{{ route('admin.seasons.update', $season) }}">
+                    @method('PUT')
+                    @include('admin.seasons._form')
+                </form>
+            </div>
         </div>
-
-        <div style="margin-top:1rem;">
-            <button type="submit">Guardar cambios</button>
-        </div>
-
-    </form>
-
-    <p style="margin-top:1rem;">
-        <a href="{{ route('admin.seasons.index') }}">Volver</a>
-    </p>
-
+    </div>
 @endsection

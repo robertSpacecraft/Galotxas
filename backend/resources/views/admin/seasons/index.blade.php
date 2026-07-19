@@ -43,6 +43,7 @@
                                 <th>Inicio</th>
                                 <th>Fin</th>
                                 <th>Estado</th>
+                                <th>Visibilidad</th>
                                 <th class="text-center" style="width: 360px;">Acciones</th>
                             </tr>
                             </thead>
@@ -54,6 +55,11 @@
                                     <td>{{ $season->start_date?->format('d/m/Y') ?? '-' }}</td>
                                     <td>{{ $season->end_date?->format('d/m/Y') ?? '-' }}</td>
                                     <td>{{ $season->status?->value ?? $season->status }}</td>
+                                    <td>
+                                        <span class="badge {{ $season->is_public ? 'text-bg-success' : 'text-bg-secondary' }}">
+                                            {{ $season->is_public ? 'Pública' : 'Privada' }}
+                                        </span>
+                                    </td>
                                     <td class="text-center">
                                         <div class="d-flex flex-wrap justify-content-center gap-2">
                                             <a href="{{ route('admin.seasons.show', $season) }}"

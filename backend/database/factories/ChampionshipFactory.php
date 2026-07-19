@@ -2,12 +2,13 @@
 
 namespace Database\Factories;
 
+use App\Models\Championship;
 use App\Models\Season;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Championship>
+ * @extends Factory<Championship>
  */
 class ChampionshipFactory extends Factory
 {
@@ -25,13 +26,28 @@ class ChampionshipFactory extends Factory
         return [
             'season_id' => Season::factory(),
             'name' => $name,
-            'slug' => Str::slug($name . '-' . Str::random(5)),
+            'slug' => Str::slug($name.'-'.Str::random(5)),
             'description' => $this->faker->sentence(),
             'type' => $this->faker->randomElement(['singles', 'doubles']),
             'start_date' => $startDate->format('Y-m-d'),
             'end_date' => $endDate->format('Y-m-d'),
             'image_path' => null,
             'status' => 'active',
+            'is_public' => false,
         ];
+    }
+
+    public function publiclyVisible(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_public' => true,
+        ]);
+    }
+
+    public function privatelyVisible(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_public' => false,
+        ]);
     }
 }

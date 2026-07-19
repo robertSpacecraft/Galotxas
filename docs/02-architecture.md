@@ -106,6 +106,31 @@ Los dos primeros canales disponen actualmente de infraestructura en distintas á
 
 Una misma pieza no debe mantenerse de forma editable en más de un canal. Los criterios de elección y la matriz de fuentes se definen en `10-content-governance.md`.
 
+## Base de visibilidad de la competición
+
+La competición funcional separa dos dimensiones persistidas:
+
+- **estado operativo**, expresado por los estados propios de temporada, campeonato o categoría;
+- **visibilidad declarada**, expresada por el booleano `is_public` y gestionada desde Blade.
+
+`is_public` no se deriva de estados, fechas, inscripciones, calendarios o resultados. Los modelos `Season`, `Championship` y `Category` lo castean a booleano y los nuevos registros son privados por defecto. La migración de incorporación marca como públicos los registros preexistentes para preservar su accesibilidad anterior.
+
+La administración valida la jerarquía Temporada → Campeonato → Categoría al activar la visibilidad. Desactivar un padre no propaga escrituras a sus hijos: la visibilidad declarada de cada descendiente se conserva. La visibilidad efectiva es la conjunción de los flags de la rama completa.
+
+`Season`, `Championship`, `Category` y `GameMatch` ofrecen scopes locales `effectivelyPublic()` y métodos de instancia basados en la misma consulta. No existen global scopes: cada controlador público opta expresamente por el filtro, mientras administración, generación, servicios internos y endpoints personales mantienen acceso a las entidades relacionadas con el usuario.
+
+Los listados filtran primero la entidad raíz y restringen el eager loading de campeonatos y categorías, por lo que un Resource no puede serializar descendientes privados ni provocar lazy loading sin filtrar. Los detalles públicos verifican la misma regla y responden `404` cuando la rama es privada. Los rankings públicos activan explícitamente el filtro de partidos, sin cambiar el conjunto utilizado por los mismos Services en ámbitos internos.
+
+`is_public` no forma parte de ningún contrato público. Los modelos ocultan el flag de su serialización Eloquent y no lo admiten mediante asignación masiva. Tanto Blade como la API administrativa lo asignan de forma explícita después de validar la misma jerarquía. No se añade un índice simple sobre el booleano, de baja cardinalidad: cualquier optimización de las consultas jerárquicas queda condicionada a medición real.
+
+## API administrativa de competición
+
+Los CRUD API de temporadas, campeonatos y categorías se mantienen separados de las consultas públicas aunque compartan modelos y reglas de integridad. Sus rutas planas bajo `/api/v1/admin` requieren Sanctum, usuario activo y rol administrador; no aplican `effectivelyPublic()`, por lo que permiten gestionar registros privados.
+
+Las escrituras reutilizan los Form Requests de Blade cuando el contrato coincide. La creación plana de categorías amplía esas reglas mediante un Request API específico que exige un `championship_id` existente; la actualización no admite ese campo y conserva la relación. Los métodos de escritura de estos tres CRUD trabajan exclusivamente con `validated()`, construyen los atributos permitidos de forma explícita, derivan los slugs existentes del nombre y asignan `is_public` fuera de la asignación masiva. `image_path`, identificadores, timestamps y relaciones deportivas quedan fuera de la whitelist.
+
+`AdminSeasonResource`, `AdminChampionshipResource` y `AdminCategoryResource` delimitan las respuestas de este contexto y exponen `is_public` junto con los datos administrativos necesarios. Los Resources públicos permanecen independientes, no incluyen ese flag y reciben exclusivamente consultas ya filtradas. Esta separación evita que la capacidad administrativa de consultar entidades privadas debilite la visibilidad efectiva pública.
+
 ## Arquitectura CMS pública
 
 La primera base backend del CMS público sigue el mismo patrón general del proyecto:

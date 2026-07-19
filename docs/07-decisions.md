@@ -633,6 +633,58 @@ Consecuencias:
 
 ---
 
+# ADR-027 — Visibilidad explícita y jerárquica de la competición
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-07
+
+Contexto:
+- Temporadas, campeonatos y categorías disponen de estados operativos, pero esos estados describen el ciclo deportivo y no una intención de publicación.
+- Los endpoints públicos actuales aceptan campeonatos `pending` o `cancelled` y categorías `pending`; derivar su publicación del estado cambiaría comportamientos válidos y mezclaría responsabilidades.
+- Fechas, apertura de inscripciones, calendarios y resultados tampoco expresan de forma estable si la administración desea mostrar una entidad.
+- La incorporación del criterio no debe ocultar de forma repentina los registros existentes ni aplicar parcialmente filtros a unos endpoints y no a otros.
+
+Decisión:
+- Añadir el booleano no nullable `is_public` a temporadas, campeonatos y categorías.
+- Mantener estado operativo y visibilidad pública como dimensiones independientes.
+- Crear los registros futuros con `is_public = false` por defecto.
+- Marcar con `is_public = true` los registros existentes durante la migración para preservar su accesibilidad anterior.
+- Exigir una temporada pública para marcar público un campeonato, y campeonato y temporada públicos para marcar pública una categoría.
+- Permitir ocultar una temporada o campeonato aunque existan descendientes con su flag activo.
+- No propagar automáticamente el cambio del padre: cada descendiente conserva su visibilidad declarada para poder restaurar la rama.
+- Gestionar y validar los flags desde el panel Blade mediante Form Requests y persistencia explícita.
+- Excluir `is_public` de la asignación masiva y de la serialización Eloquent heredada para impedir que el CRUD API administrativo lo incorpore accidentalmente antes de 2B.5.
+- Aplazar a 2B.4B la visibilidad efectiva y la aplicación conjunta de la jerarquía en todos los endpoints públicos.
+- Mantener durante 2B.4A los controladores, Resources, rutas, envelopes y campos públicos anteriores; `is_public` no se serializa.
+- Al implementar 2B.4B, mantener intactos rutas, envelopes y campos públicos; `is_public` continúa sin serializarse.
+- Aplicar la visibilidad efectiva mediante scopes locales explícitos, sin global scopes, y reutilizar exactamente esas consultas en los métodos de instancia.
+- Filtrar entidad raíz y relaciones anidadas antes de serializar; responder `404` en accesos públicos directos a una rama privada.
+- Excluir de rankings y otros agregados públicos los partidos de ramas privadas mediante una opción explícita en los Services compartidos, manteniendo su comportamiento interno sin filtro.
+- Mantener sin filtro público la administración, generación, datos personales y workflows de participantes.
+- Sembrar explícitamente como pública sólo la jerarquía destinada a desarrollo público y E2E; conservar privadas las factories por defecto.
+- En 2B.5, permitir que la API administrativa gestione `is_public` mediante los mismos Form Requests y reglas jerárquicas que Blade, con persistencia explícita y sin scopes públicos.
+- Serializar esos CRUD mediante Resources administrativos dedicados; mantener `is_public` fuera de todos los Resources públicos.
+
+Alternativas descartadas:
+- Filtrar sólo por estado operativo: impediría combinaciones válidas como `pending + público`, `active + privado` o `cancelled + público`.
+- Reutilizar fechas o ventanas de inscripción: expresan planificación deportiva, no intención de visibilidad.
+- Mantener visibilidad implícita según calendario, resultados o relaciones: sería difícil de administrar, probar y explicar.
+- Compartir un enum editorial con el CMS: confundiría entidades funcionales con páginas y bloques sujetos a borrador, programación y publicación editorial.
+- Ocultar automáticamente todos los hijos al ocultar un padre: perdería la configuración declarada y obligaría a reconstruirla al restaurar la rama.
+
+Consecuencias:
+- El administrador puede configurar explícitamente la visibilidad sin alterar estados deportivos.
+- Una rama puede conservar hijos declarados públicos mientras un padre la mantiene efectivamente oculta.
+- Durante 2B.4A, persistencia, formularios y validación jerárquica quedaron preparados antes de modificar el contrato de lectura, y un registro privado siguió accesible temporalmente por la API pública.
+- Los listados y relaciones públicas excluyen ramas privadas, y el conocimiento de un identificador no permite consultar directamente la entidad.
+- Los agregados públicos no revelan indirectamente resultados de una rama privada.
+- Ocultar un padre retira efectivamente la rama; restaurarlo recupera sólo los descendientes cuyo flag se conservó activo.
+- No se añade un índice simple sobre `is_public`, de baja cardinalidad; la optimización queda supeditada a medir las consultas jerárquicas reales.
+- Desde 2B.5, los CRUD API administrativos pueden consultar y modificar `is_public` con la misma jerarquía que Blade, sin alterar la visibilidad pública efectiva ni los contratos visitantes.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\GameMatchStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -33,6 +34,20 @@ class GameMatch extends Model
         'home_score' => 'integer',
         'away_score' => 'integer',
     ];
+
+    public function scopeEffectivelyPublic(Builder $query): Builder
+    {
+        return $query->whereHas(
+            'round.category',
+            fn (Builder $categoryQuery) => $categoryQuery->effectivelyPublic()
+        );
+    }
+
+    public function isEffectivelyPublic(): bool
+    {
+        return $this->exists
+            && self::query()->whereKey($this->getKey())->effectivelyPublic()->exists();
+    }
 
     public function round(): BelongsTo
     {

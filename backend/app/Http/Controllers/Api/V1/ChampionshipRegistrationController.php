@@ -19,10 +19,12 @@ class ChampionshipRegistrationController extends Controller
 
     public function show(Request $request, Championship $championship): JsonResponse
     {
+        abort_unless($championship->isEffectivelyPublic(), 404);
+
         $user = $request->user();
         $player = $user?->player;
 
-        if (!$player) {
+        if (! $player) {
             return $this->errorResponse('El usuario autenticado no tiene un perfil de jugador asociado.');
         }
 
@@ -55,7 +57,19 @@ class ChampionshipRegistrationController extends Controller
         Championship $championship,
         ChampionshipRegistrationRequestService $service
     ): JsonResponse {
+        abort_unless($championship->isEffectivelyPublic(), 404);
+
         $validated = $request->validated();
+
+        if (isset($validated['suggested_category_id'])) {
+            abort_unless(
+                $championship->categories()
+                    ->effectivelyPublic()
+                    ->whereKey($validated['suggested_category_id'])
+                    ->exists(),
+                404
+            );
+        }
 
         try {
             $registrationRequest = $service->submit(

@@ -17,6 +17,8 @@ class CategoryController extends Controller
 
     public function show(Category $category): JsonResponse
     {
+        abort_unless($category->isEffectivelyPublic(), 404);
+
         $category->load(['championship.season']);
 
         return $this->successResponse(
@@ -26,6 +28,8 @@ class CategoryController extends Controller
 
     public function schedule(Category $category): JsonResponse
     {
+        abort_unless($category->isEffectivelyPublic(), 404);
+
         $rounds = $category->rounds()->with([
             'matches.homeEntry.player',
             'matches.homeEntry.team',
@@ -43,6 +47,8 @@ class CategoryController extends Controller
         Category $category,
         BuildCategoryRankingService $rankingService
     ): JsonResponse {
+        abort_unless($category->isEffectivelyPublic(), 404);
+
         $ranking = $rankingService->build($category);
 
         return $this->successResponse(

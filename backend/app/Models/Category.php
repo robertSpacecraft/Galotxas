@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CategoryGender;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,9 +24,30 @@ class Category extends Model
         'status',
     ];
 
+    protected $hidden = [
+        'is_public',
+    ];
+
     protected $casts = [
         'gender' => CategoryGender::class,
+        'is_public' => 'boolean',
     ];
+
+    public function scopeEffectivelyPublic(Builder $query): Builder
+    {
+        return $query
+            ->where($query->qualifyColumn('is_public'), true)
+            ->whereHas(
+                'championship',
+                fn (Builder $championshipQuery) => $championshipQuery->effectivelyPublic()
+            );
+    }
+
+    public function isEffectivelyPublic(): bool
+    {
+        return $this->exists
+            && self::query()->whereKey($this->getKey())->effectivelyPublic()->exists();
+    }
 
     public function championship(): BelongsTo
     {

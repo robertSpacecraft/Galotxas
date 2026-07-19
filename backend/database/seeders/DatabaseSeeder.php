@@ -39,29 +39,29 @@ class DatabaseSeeder extends Seeder
         });
 
         // Temporada
-        $season = Season::factory()->create();
+        $season = Season::factory()->publiclyVisible()->create();
 
         // Campeonato individual
-        $singlesChampionship = Championship::factory()->create([
+        $singlesChampionship = Championship::factory()->publiclyVisible()->create([
             'season_id' => $season->id,
             'type' => 'singles',
             'name' => 'Campionat Individual',
         ]);
 
         // Campeonato dobles
-        $doublesChampionship = Championship::factory()->create([
+        $doublesChampionship = Championship::factory()->publiclyVisible()->create([
             'season_id' => $season->id,
             'type' => 'doubles',
             'name' => 'Campionat Dobles',
         ]);
 
         // Categorías singles
-        $singlesCategories = Category::factory(2)->create([
+        $singlesCategories = Category::factory(2)->publiclyVisible()->create([
             'championship_id' => $singlesChampionship->id,
         ]);
 
         // Categorías doubles
-        $doublesCategories = Category::factory(2)->create([
+        $doublesCategories = Category::factory(2)->publiclyVisible()->create([
             'championship_id' => $doublesChampionship->id,
         ]);
 
@@ -146,7 +146,7 @@ class DatabaseSeeder extends Seeder
 
             $teamA = Team::factory()->create([
                 'category_id' => $category->id,
-                'name' => 'Equipo A ' . $category->id,
+                'name' => 'Equipo A '.$category->id,
             ]);
 
             $teamA->players()->attach($categoryPlayers[0]->id, ['role_in_team' => 'front']);
@@ -154,7 +154,7 @@ class DatabaseSeeder extends Seeder
 
             $teamB = Team::factory()->create([
                 'category_id' => $category->id,
-                'name' => 'Equipo B ' . $category->id,
+                'name' => 'Equipo B '.$category->id,
             ]);
 
             $teamB->players()->attach($categoryPlayers[2]->id, ['role_in_team' => 'front']);

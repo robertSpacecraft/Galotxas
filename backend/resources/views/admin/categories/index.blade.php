@@ -7,7 +7,9 @@
         <div>
             <h1 class="h3 mb-1">Categorías - {{ $championship->name }}</h1>
             <p class="text-secondary mb-0">
-                Gestión de categorías del campeonato
+                Gestión de categorías del campeonato.
+                Campeonato {{ $championship->is_public ? 'público' : 'privado' }};
+                temporada {{ $championship->season?->is_public ? 'pública' : 'privada' }}.
             </p>
         </div>
 
@@ -44,6 +46,8 @@
                         <th>Nombre</th>
                         <th>Nivel</th>
                         <th>Género</th>
+                        <th>Estado</th>
+                        <th>Visibilidad</th>
                         <th class="text-end">Acciones</th>
                     </tr>
                     </thead>
@@ -55,6 +59,12 @@
                             <td class="fw-semibold">{{ $category->name }}</td>
                             <td>{{ $category->level }}</td>
                             <td>{{ $category->gender?->label() }}</td>
+                            <td><span class="badge text-bg-secondary">{{ $category->status }}</span></td>
+                            <td>
+                                <span class="badge {{ $category->is_public ? 'text-bg-success' : 'text-bg-secondary' }}">
+                                    {{ $category->is_public ? 'Pública' : 'Privada' }}
+                                </span>
+                            </td>
                             <td>
                                 <div class="d-flex justify-content-end gap-2 flex-wrap">
                                     <a href="{{ route('admin.categories.show', $category) }}"
@@ -84,7 +94,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-secondary py-4">
+                            <td colspan="7" class="text-center text-secondary py-4">
                                 No hay categorías registradas en este campeonato.
                             </td>
                         </tr>

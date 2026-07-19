@@ -18,21 +18,28 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 
 1. **Fase 1 — Auditoría del CMS, panel Blade, rutas y API:** capacidades, permisos, contenido, duplicados, consumidores y cobertura reales inventariados.
 2. **Fase 2A — Endurecimiento editorial del CMS:** creación obligatoria en borrador, contenido mínimo publicable, publicación inmediata o programada, estado derivado, protección del último bloque, feedback y cobertura dirigidos.
+3. **Fase 2B.1 — Integridad administrativa de Temporadas:** formularios Blade, enum casteado, fechas nullable, validación cronológica, persistencia explícita, permisos y regresión pública verificados.
+4. **Fase 2B.2 — Integridad administrativa de Campeonatos:** contrato Blade completo para campos no multimedia, validación, persistencia explícita, conservación de `image_path`, permisos y regresión pública verificados.
+5. **Fase 2B.3 — Integridad administrativa de Categorías:** contrato Blade completo para campos no multimedia, relación inmutable con campeonato, valores nullable y controlados, conservación de `image_path` y regresiones deportivas y públicas verificados.
+6. **Fase 2B.4A — Visibilidad explícita de la competición:** `is_public` administrable en temporadas, campeonatos y categorías, backfill compatible, jerarquía sin cascada y contrato público temporalmente inalterado.
+7. **Fase 2B.4B — Aplicación pública de visibilidad:** scopes locales y filtro jerárquico en listados, detalles, relaciones, partidos, rankings, standings, schedules e inicio de inscripciones, preservando administración y Mi Panel.
+8. **Fase 2B.5 — Endurecimiento de la API administrativa:** CRUD de temporadas, campeonatos y categorías protegido por administrador activo, Form Requests, persistencia explícita, Resources propios, `is_public` jerárquico y campos no administrables aislados.
+
+La Fase 2B queda completa con los subbloques 2B.1–2B.5. Este cierre no inicia la Fase 3 ni modifica la navegación pública.
 
 ## Siguientes bloques aprobados
 
-1. **Integridad de Competición:** corregir de forma aislada los contratos administrativos y criterios públicos verificados por la auditoría antes de construir nuevas landings.
-2. **Reestructuración de navegación:** implantar Inicio, Competición, Aprende a jugar, Escuela de Galotxas y Club, conservando una migración compatible.
-3. **Landing Competición:** agrupar Torneos, Rankings, Calendarios, Clasificaciones, Resultados y accesos de jugadores sobre contratos verificados.
-4. **Landing Aprende a jugar:** crear la entrada divulgativa diferenciada del Manual.
-5. **Contrato editorial de `knowledge/`:** normalizar metadatos, IDs, slugs, relaciones y validaciones de las colecciones aprobadas.
-6. **Compilador build-time:** validar `knowledge/` y generar artefactos seguros y deterministas para React, sin MDX ni HTML ejecutable.
-7. **Manual MVP:** construir la experiencia pública desde los artefactos generados, sin base de datos, API Laravel o CRUD Blade.
-8. **Escuela de Galotxas:** combinar contenido pedagógico estable con actividad operativa administrable y protección específica de menores.
-9. **Club y migración de Contenidos:** asignar una fuente canónica a cada página institucional y retirar gradualmente la arquitectura legada.
-10. **QA, accesibilidad y despliegue:** validar contratos, recorridos, responsive, teclado, multimedia, persistencia y operación.
+1. **Reestructuración de navegación:** implantar Inicio, Competición, Aprende a jugar, Escuela de Galotxas y Club, conservando una migración compatible.
+2. **Landing Competición:** agrupar Torneos, Rankings, Calendarios, Clasificaciones, Resultados y accesos de jugadores sobre contratos verificados.
+3. **Landing Aprende a jugar:** crear la entrada divulgativa diferenciada del Manual.
+4. **Contrato editorial de `knowledge/`:** normalizar metadatos, IDs, slugs, relaciones y validaciones de las colecciones aprobadas.
+5. **Compilador build-time:** validar `knowledge/` y generar artefactos seguros y deterministas para React, sin MDX ni HTML ejecutable.
+6. **Manual MVP:** construir la experiencia pública desde los artefactos generados, sin base de datos, API Laravel o CRUD Blade.
+7. **Escuela de Galotxas:** combinar contenido pedagógico estable con actividad operativa administrable y protección específica de menores.
+8. **Club y migración de Contenidos:** asignar una fuente canónica a cada página institucional y retirar gradualmente la arquitectura legada.
+9. **QA, accesibilidad y despliegue:** validar contratos, recorridos, responsive, teclado, multimedia, persistencia y operación.
 
-Estos bloques permanecen pendientes. Las rutas conceptuales y capacidades descritas no están implementadas por aparecer en el roadmap. Los permisos editoriales granulares, trazabilidad, preview, revisiones, redirects, noticias, actividades y uploads tampoco forman parte de la Fase 2A y requerirán decisiones posteriores dentro de sus verticales correspondientes.
+Estos bloques permanecen pendientes. El primero corresponde a la evolución posterior a la Fase 2B; las rutas conceptuales y demás capacidades descritas no están implementadas por aparecer en el roadmap.
 
 Este programa no altera por sí solo el proceso operativo de revisión y publicación del candidato descrito más abajo. Antes de iniciar un bloque funcional debe reconciliarse su calendario con el candidato y con cualquier corrección P0/P1.
 
@@ -65,6 +72,12 @@ La ausencia de una interfaz React de reprogramación no bloquea este cierre. El 
 ## Competición y administración
 
 - temporadas, campeonatos y categorías;
+- integridad del CRUD Blade de temporadas para nombre, estado y fechas nullable, con validación cronológica y selección correcta del enum (Fase 2B.1);
+- integridad del CRUD Blade de campeonatos para todos los campos no multimedia, con validación de enums e intervalos, persistencia explícita y conservación de `image_path` (Fase 2B.2);
+- integridad del CRUD Blade de categorías para nombre, descripción, nivel nullable, género y estado, con relación inmutable al campeonato y conservación de `image_path` (Fase 2B.3);
+- base administrativa de `is_public` para temporadas, campeonatos y categorías, con jerarquía explícita, nuevos registros privados y backfill de registros existentes (Fase 2B.4A);
+- aplicación jerárquica de la visibilidad efectiva en toda la superficie pública de competición, con scopes locales, `404` seguro, agregados filtrados y preservación de Mi Panel y administración (Fase 2B.4B);
+- API administrativa de temporadas, campeonatos y categorías endurecida con Form Requests, Resources administrativos, persistencia explícita, permisos de administrador activo y gestión jerárquica de `is_public` (Fase 2B.5);
 - solicitudes de inscripción, aprobación/rechazo, pago manual y asignación administrativa;
 - equipos y participantes competitivos de individuales y dobles;
 - generación de liga, copa, final y tercer puesto;
@@ -146,6 +159,7 @@ Estas capacidades son válidas, pero no bloquean el candidato actual:
 
 - estudiar la migración de Bearer en `localStorage` a cookies `HttpOnly`/`SameSite` con CSRF;
 - normalizar envelopes, errores, paginación y serialización heredada;
+- resolver mediante una decisión versionada el `slug` nulo que `SeasonResource` conserva aunque `Season` no disponga de ese atributo;
 - documentar el contrato mediante OpenAPI;
 - separar o reducir los usos amplios de `MatchResource` en “mis partidos”, calendario, reprogramación y administración;
 - endurecer reprogramaciones: Form Request dedicado, rate limiting y política explícita de rectificación;

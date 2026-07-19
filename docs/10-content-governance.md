@@ -53,6 +53,10 @@ La arquitectura aprobada dispone de tres canales principales.
 
 Laravel decide las reglas y consulta la persistencia de competición. La API expone un contrato por contexto y React presenta los datos sin recalcular resultados, rankings, elegibilidad o estados deportivos.
 
+Temporadas, campeonatos y categorías incorporan una visibilidad declarada explícita mediante `is_public`, administrada desde Blade y separada de sus estados operativos. Los registros nuevos son privados por defecto y los existentes se preservan como públicos durante la migración. La declaración respeta la jerarquía Temporada → Campeonato → Categoría al activar flags, pero ocultar un padre no reescribe los de sus hijos.
+
+Esta visibilidad pertenece al contenido funcional de competición y no reutiliza los estados editoriales `draft`/`published` del CMS. Laravel aplica la conjunción de la rama en listados, detalles, relaciones y datos derivados antes de serializar; `is_public` no forma parte de los Resources públicos. React consume ese resultado y no replica ni compensa la política de ocultación. Administración y datos personales relacionados conservan su contexto interno.
+
 ### 4.2. Contenido administrable
 
 `Panel Blade → base de datos → API pública → React`

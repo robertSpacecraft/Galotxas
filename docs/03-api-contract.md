@@ -85,6 +85,17 @@ El inventario siguiente corresponde a `backend/routes/api.php` y a la salida de 
 
 Los cuatro endpoints de autenticación públicos están limitados a cinco intentos por minuto según email/IP o IP, conforme al limiter concreto. Las rutas públicas de lectura no usan ese limiter sensible.
 
+Las lecturas deportivas públicas aplican visibilidad efectiva antes de filtros y serialización:
+
+- `/seasons` exige `season.is_public` y filtra campeonatos y categorías anidados por toda su jerarquía;
+- los listados, detalle y ranking de campeonato exigen campeonato y temporada públicos;
+- el ranking de temporada exige temporada pública y omite partidos de campeonatos o categorías privados;
+- detalle, standings y schedule de categoría exigen categoría, campeonato y temporada públicos;
+- el detalle de partido exige una categoría y toda su rama pública;
+- el ranking histórico sólo agrega partidos de ramas efectivamente públicas.
+
+Los listados conservan orden, filtros, campos y envelopes. Un acceso directo que no cumpla la jerarquía responde `404`; `is_public` no se serializa en ningún Resource público. El estado operativo no participa en esta decisión, por lo que los estados públicos admitidos anteriormente continúan admitidos.
+
 ### Rutas autenticadas
 
 `POST /auth/logout` exige `auth:sanctum`, pero deliberadamente queda fuera de `EnsureUserIsActive` para que un usuario desactivado pueda revocar su token actual.
@@ -113,15 +124,22 @@ Las rutas restantes de esta tabla exigen conjuntamente token Sanctum y usuario a
 
 Los dos endpoints de escritura de resultados comparten un límite de diez intentos por minuto por usuario/IP. Las escrituras de reprogramación no tienen todavía un limiter específico.
 
+Los endpoints de registro en campeonato forman parte del inicio de una operación desde la experiencia pública aunque exijan autenticación: sólo admiten campeonatos efectivamente públicos y responden `404` para una rama privada. La categoría sugerida también debe pertenecer al campeonato y ser efectivamente pública. En cambio, `/me/championship-registrations` conserva las solicitudes propias ya existentes aunque después se oculte la competición.
+
+Las rutas `/me/*` y los workflows en los que el usuario participa son contextos personales: no aplican el scope público a sus partidos, calendario, rankings o solicitudes. El fallback de lectura de `/matches/{gameMatch}/workflow` para un usuario no participante sí exige que el partido sea público. Las rutas administrativas mantienen acceso a entidades privadas y gestionan `is_public` sin aplicar scopes públicos.
+
 ### API administrativa
 
 Todas las rutas `/api/v1/admin/*` exigen Sanctum, usuario activo y `IsAdmin`.
 
-| Métodos | Ruta | Estado del contrato |
-|---|---|---|
-| `GET`, `POST`, `PUT/PATCH`, `DELETE` | `/admin/seasons` y `/admin/seasons/{season}` | controladores heredados; modelos Eloquent directos y `204` al borrar |
-| `GET`, `POST`, `PUT/PATCH`, `DELETE` | `/admin/championships` y `/admin/championships/{championship}` | controladores heredados; modelos Eloquent directos y `204` al borrar |
-| `GET`, `POST`, `PUT/PATCH`, `DELETE` | `/admin/categories` y `/admin/categories/{category}` | controladores heredados; modelos Eloquent directos y `204` al borrar |
+| Métodos | Ruta | Request de escritura | Salida y código |
+|---|---|---|---|
+| `GET`, `POST` | `/admin/seasons` | `StoreSeasonRequest` en `POST` | `AdminSeasonResource`; `200` al listar y `201` al crear |
+| `GET`, `PUT/PATCH`, `DELETE` | `/admin/seasons/{season}` | `UpdateSeasonRequest` en `PUT/PATCH` | `AdminSeasonResource` con `200`; borrado `204` |
+| `GET`, `POST` | `/admin/championships` | `StoreChampionshipRequest` en `POST` | `AdminChampionshipResource`; `200` al listar y `201` al crear |
+| `GET`, `PUT/PATCH`, `DELETE` | `/admin/championships/{championship}` | `UpdateChampionshipRequest` en `PUT/PATCH` | `AdminChampionshipResource` con `200`; borrado `204` |
+| `GET`, `POST` | `/admin/categories` | `Api\Admin\StoreCategoryRequest` en `POST` | `AdminCategoryResource`; `200` al listar y `201` al crear |
+| `GET`, `PUT/PATCH`, `DELETE` | `/admin/categories/{category}` | `UpdateCategoryRequest` en `PUT/PATCH` | `AdminCategoryResource` con `200`; borrado `204` |
 | `POST` | `/admin/categories/{category}/entries` | `CategoryEntry` directo heredado |
 | `GET` | `/admin/matches/under-review` | colección `MatchResource` |
 | `GET` | `/admin/matches/{gameMatch}/conflict` | `MatchResource` y colección `MatchResultReportResource` |
@@ -130,7 +148,23 @@ Todas las rutas `/api/v1/admin/*` exigen Sanctum, usuario activo y `IsAdmin`.
 | `GET` | `/admin/championships/{championship}/registration-requests` | colección `ChampionshipRegistrationRequestResource` |
 | `PATCH` | `/admin/championships/{championship}/registration-requests/{registrationRequest}/status` | `ChampionshipRegistrationRequestResource` |
 
-Los CRUD administrativos sin Resource y sus validaciones masivas con `$request->all()` son estado heredado real, no el patrón recomendado para endpoints nuevos. Su normalización requiere un bloque específico y no forma parte de DOC-1.
+Los seis endpoints de colección y los nueve de recurso de estos tres CRUD son rutas planas con route model binding por identificador; no existen variantes anidadas Season → Championship o Championship → Category. Las relaciones mínimas incluidas en los Resources son informativas y no cambian esa resolución. Un modelo inexistente responde `404`; una validación fallida responde `422` con el formato de errores de Laravel.
+
+Las respuestas correctas de listado, detalle, creación y actualización usan el envelope `{ "message": ..., "data": ... }`. El borrado conserva el contrato vacío `204`. Los listados se ordenan por identificador y no aplican `effectivelyPublic()`: un administrador activo puede consultar y editar entidades privadas.
+
+Payloads permitidos:
+
+- temporada: `name`, `status`, `start_date`, `end_date`, `is_public`;
+- campeonato: `season_id`, `name`, `description`, `type`, `status`, `start_date`, `end_date`, `registration_status`, `registration_starts_at`, `registration_ends_at`, `is_public`;
+- categoría: `name`, `description`, `level`, `gender`, `status`, `is_public`; la creación plana exige además `championship_id` para establecer el padre existente.
+
+Las fechas, descripción y nivel indicados por sus Form Requests son nullable. Los estados, tipo, registro y género se validan contra sus enums reales; los intervalos finales no pueden preceder a sus inicios. `is_public` es booleano: un campeonato público exige temporada pública y una categoría pública exige campeonato y temporada públicos. Ocultar un padre no modifica flags descendientes.
+
+En actualización, `championship_id` no forma parte del contrato de categoría y no puede trasladarla. `id`, timestamps, `image_path`, campos calculados, relaciones deportivas y claves desconocidas no se persisten. Los slugs de campeonato y categoría se derivan del nombre; temporada no dispone de slug. La API conserva cualquier `image_path` existente y nunca lo serializa en estos Resources administrativos porque multimedia permanece fuera del contrato.
+
+El `SeasonResource` público heredado conserva una clave `slug`, cuyo valor real es `null` porque `Season` y su tabla no tienen ese atributo. Se mantiene para no introducir una ruptura de contrato sin versionado; añadir, calcular o retirar ese campo es deuda contractual independiente de este endurecimiento administrativo.
+
+El endpoint independiente `POST /admin/categories/{category}/entries` administra participantes de categoría y conserva su contrato heredado; no forma parte del CRUD de entidades endurecido en COMPETITION-ADMIN-API-1. Los endpoints operativos de partidos e inscripciones conservan asimismo sus contratos anteriores.
 
 ### Separación respecto al panel Blade
 
