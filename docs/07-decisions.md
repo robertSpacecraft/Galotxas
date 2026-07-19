@@ -656,7 +656,13 @@ Decisión:
 - Gestionar y validar los flags desde el panel Blade mediante Form Requests y persistencia explícita.
 - Excluir `is_public` de la asignación masiva y de la serialización Eloquent heredada para impedir que el CRUD API administrativo lo incorpore accidentalmente antes de 2B.5.
 - Aplazar a 2B.4B la visibilidad efectiva y la aplicación conjunta de la jerarquía en todos los endpoints públicos.
-- Mantener durante 2B.4A los controladores, Resources, rutas, envelopes y campos públicos actuales; `is_public` no se serializa todavía.
+- Mantener durante 2B.4A los controladores, Resources, rutas, envelopes y campos públicos anteriores; `is_public` no se serializa.
+- Al implementar 2B.4B, mantener intactos rutas, envelopes y campos públicos; `is_public` continúa sin serializarse.
+- Aplicar la visibilidad efectiva mediante scopes locales explícitos, sin global scopes, y reutilizar exactamente esas consultas en los métodos de instancia.
+- Filtrar entidad raíz y relaciones anidadas antes de serializar; responder `404` en accesos públicos directos a una rama privada.
+- Excluir de rankings y otros agregados públicos los partidos de ramas privadas mediante una opción explícita en los Services compartidos, manteniendo su comportamiento interno sin filtro.
+- Mantener sin filtro público la administración, generación, datos personales y workflows de participantes.
+- Sembrar explícitamente como pública sólo la jerarquía destinada a desarrollo público y E2E; conservar privadas las factories por defecto.
 
 Alternativas descartadas:
 - Filtrar sólo por estado operativo: impediría combinaciones válidas como `pending + público`, `active + privado` o `cancelled + público`.
@@ -668,8 +674,11 @@ Alternativas descartadas:
 Consecuencias:
 - El administrador puede configurar explícitamente la visibilidad sin alterar estados deportivos.
 - Una rama puede conservar hijos declarados públicos mientras un padre la mantiene efectivamente oculta.
-- Persistencia, formularios y validación jerárquica quedan listos antes de modificar el contrato de lectura.
-- Hasta 2B.4B, un registro privado continúa siendo accesible por la API pública de forma temporal e intencionada.
+- Durante 2B.4A, persistencia, formularios y validación jerárquica quedaron preparados antes de modificar el contrato de lectura, y un registro privado siguió accesible temporalmente por la API pública.
+- Los listados y relaciones públicas excluyen ramas privadas, y el conocimiento de un identificador no permite consultar directamente la entidad.
+- Los agregados públicos no revelan indirectamente resultados de una rama privada.
+- Ocultar un padre retira efectivamente la rama; restaurarlo recupera sólo los descendientes cuyo flag se conservó activo.
+- No se añade un índice simple sobre `is_public`, de baja cardinalidad; la optimización queda supeditada a medir las consultas jerárquicas reales.
 - Los endpoints administrativos API heredados no incorporan el nuevo campo en este bloque y permanecen como deuda de 2B.5.
 
 ---

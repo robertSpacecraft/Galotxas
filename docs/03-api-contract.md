@@ -85,6 +85,17 @@ El inventario siguiente corresponde a `backend/routes/api.php` y a la salida de 
 
 Los cuatro endpoints de autenticación públicos están limitados a cinco intentos por minuto según email/IP o IP, conforme al limiter concreto. Las rutas públicas de lectura no usan ese limiter sensible.
 
+Las lecturas deportivas públicas aplican visibilidad efectiva antes de filtros y serialización:
+
+- `/seasons` exige `season.is_public` y filtra campeonatos y categorías anidados por toda su jerarquía;
+- los listados, detalle y ranking de campeonato exigen campeonato y temporada públicos;
+- el ranking de temporada exige temporada pública y omite partidos de campeonatos o categorías privados;
+- detalle, standings y schedule de categoría exigen categoría, campeonato y temporada públicos;
+- el detalle de partido exige una categoría y toda su rama pública;
+- el ranking histórico sólo agrega partidos de ramas efectivamente públicas.
+
+Los listados conservan orden, filtros, campos y envelopes. Un acceso directo que no cumpla la jerarquía responde `404`; `is_public` no se serializa en ningún Resource público. El estado operativo no participa en esta decisión, por lo que los estados públicos admitidos anteriormente continúan admitidos.
+
 ### Rutas autenticadas
 
 `POST /auth/logout` exige `auth:sanctum`, pero deliberadamente queda fuera de `EnsureUserIsActive` para que un usuario desactivado pueda revocar su token actual.
@@ -112,6 +123,10 @@ Las rutas restantes de esta tabla exigen conjuntamente token Sanctum y usuario a
 | `POST` | `/championships/{championship}/register` | `ChampionshipRegistrationRequestResource` |
 
 Los dos endpoints de escritura de resultados comparten un límite de diez intentos por minuto por usuario/IP. Las escrituras de reprogramación no tienen todavía un limiter específico.
+
+Los endpoints de registro en campeonato forman parte del inicio de una operación desde la experiencia pública aunque exijan autenticación: sólo admiten campeonatos efectivamente públicos y responden `404` para una rama privada. La categoría sugerida también debe pertenecer al campeonato y ser efectivamente pública. En cambio, `/me/championship-registrations` conserva las solicitudes propias ya existentes aunque después se oculte la competición.
+
+Las rutas `/me/*` y los workflows en los que el usuario participa son contextos personales: no aplican el scope público a sus partidos, calendario, rankings o solicitudes. El fallback de lectura de `/matches/{gameMatch}/workflow` para un usuario no participante sí exige que el partido sea público. Las rutas administrativas mantienen acceso a entidades privadas y no incorporan `is_public` al CRUD heredado.
 
 ### API administrativa
 

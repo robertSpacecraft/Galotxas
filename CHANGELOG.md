@@ -10,6 +10,8 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Changed
 
+- La API pública de competición excluye las ramas privadas en listados, detalles, relaciones, partidos, rankings, standings, schedules e inicio de inscripciones, manteniendo los contratos serializados.
+- La visibilidad efectiva se aplica con scopes locales sin limitar la administración, los servicios internos ni los datos relacionados de Mi Panel.
 - El CMS crea las páginas como borrador y exige contenido validado antes de publicarlas.
 - `published_at = null` representa publicación inmediata; las fechas futuras se presentan como Programada según la zona horaria configurada por Laravel.
 - El panel distingue Borrador, Programada y Publicada y muestra el feedback de las operaciones de bloques.

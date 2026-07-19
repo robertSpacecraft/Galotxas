@@ -443,13 +443,17 @@ class AdminCategoryTest extends TestCase
             ->assertSee('JugadorVinculat');
     }
 
-    public function test_public_category_contract_and_current_visibility_remain_unchanged(): void
+    public function test_public_category_contract_remains_unchanged(): void
     {
-        $category = Category::factory()->create([
+        $season = Season::factory()->publiclyVisible()->create();
+        $championship = Championship::factory()->publiclyVisible()->create([
+            'season_id' => $season->id,
+        ]);
+        $category = Category::factory()->publiclyVisible()->create([
+            'championship_id' => $championship->id,
             'description' => 'No forma parte del contrato público',
             'image_path' => 'categories/no-publica.jpg',
             'status' => CategoryStatus::PENDING->value,
-            'is_public' => false,
         ]);
 
         $response = $this->getJson('/api/v1/categories/'.$category->id);
@@ -486,7 +490,13 @@ class AdminCategoryTest extends TestCase
 
     public function test_standings_and_schedule_keep_responding_with_related_matches(): void
     {
-        $category = Category::factory()->create();
+        $season = Season::factory()->publiclyVisible()->create();
+        $championship = Championship::factory()->publiclyVisible()->create([
+            'season_id' => $season->id,
+        ]);
+        $category = Category::factory()->publiclyVisible()->create([
+            'championship_id' => $championship->id,
+        ]);
         $homeEntry = CategoryEntry::factory()->playerEntry()->create([
             'category_id' => $category->id,
             'status' => 'approved',

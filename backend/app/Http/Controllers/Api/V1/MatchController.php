@@ -30,6 +30,8 @@ class MatchController extends Controller
 
     public function show(GameMatch $gameMatch): JsonResponse
     {
+        abort_unless($gameMatch->isEffectivelyPublic(), 404);
+
         $gameMatch->load([
             'homeEntry.player.user',
             'homeEntry.team.players.user',
@@ -180,6 +182,10 @@ class MatchController extends Controller
         if ($player) {
             $userSide = $this->resolvePlayerSide($gameMatch, $player);
             $participates = $userSide !== null;
+        }
+
+        if (! $participates) {
+            abort_unless($gameMatch->isEffectivelyPublic(), 404);
         }
 
         $myReport = null;

@@ -23,18 +23,22 @@ class ChampionshipController extends Controller
         ]);
 
         $query = Championship::query()
-            ->with('season')
+            ->effectivelyPublic()
+            ->with([
+                'season',
+                'categories' => fn ($categoryQuery) => $categoryQuery->effectivelyPublic(),
+            ])
             ->orderByDesc('id');
 
-        if (!empty($validated['season_id'])) {
+        if (! empty($validated['season_id'])) {
             $query->where('season_id', $validated['season_id']);
         }
 
-        if (!empty($validated['type'])) {
+        if (! empty($validated['type'])) {
             $query->where('type', $validated['type']);
         }
 
-        if (!empty($validated['status'])) {
+        if (! empty($validated['status'])) {
             $query->where('status', $validated['status']);
         }
 
@@ -55,9 +59,11 @@ class ChampionshipController extends Controller
 
     public function show(Championship $championship): JsonResponse
     {
+        abort_unless($championship->isEffectivelyPublic(), 404);
+
         $championship->load([
             'season',
-            'categories',
+            'categories' => fn ($categoryQuery) => $categoryQuery->effectivelyPublic(),
         ]);
 
         return $this->successResponse(

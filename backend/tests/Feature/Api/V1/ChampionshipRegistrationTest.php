@@ -8,6 +8,7 @@ use App\Enums\ChampionshipRegistrationStatus;
 use App\Models\Championship;
 use App\Models\ChampionshipRegistrationRequest;
 use App\Models\Player;
+use App\Models\Season;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -18,7 +19,7 @@ class ChampionshipRegistrationTest extends TestCase
 
     public function test_unauthenticated_user_cannot_register(): void
     {
-        $championship = Championship::factory()->create();
+        $championship = $this->createPublicChampionship();
 
         $response = $this->postJson("/api/v1/championships/{$championship->id}/register", []);
 
@@ -28,7 +29,7 @@ class ChampionshipRegistrationTest extends TestCase
     public function test_authenticated_user_without_player_cannot_register(): void
     {
         $user = User::factory()->create();
-        $championship = Championship::factory()->create([
+        $championship = $this->createPublicChampionship([
             'registration_status' => ChampionshipRegistrationStatus::OPEN->value,
             'registration_starts_at' => now()->subDay(),
             'registration_ends_at' => now()->addDay(),
@@ -43,7 +44,7 @@ class ChampionshipRegistrationTest extends TestCase
     public function test_authenticated_user_with_player_can_register_to_open_championship(): void
     {
         $player = Player::factory()->create();
-        $championship = Championship::factory()->create([
+        $championship = $this->createPublicChampionship([
             'registration_status' => ChampionshipRegistrationStatus::OPEN->value,
             'registration_starts_at' => now()->subDay(),
             'registration_ends_at' => now()->addDay(),
@@ -66,7 +67,7 @@ class ChampionshipRegistrationTest extends TestCase
     public function test_cannot_register_if_championship_is_closed(): void
     {
         $player = Player::factory()->create();
-        $championship = Championship::factory()->create([
+        $championship = $this->createPublicChampionship([
             'registration_status' => ChampionshipRegistrationStatus::CLOSED->value,
             'registration_starts_at' => now()->subDays(10),
             'registration_ends_at' => now()->subDays(5),
@@ -81,7 +82,7 @@ class ChampionshipRegistrationTest extends TestCase
     public function test_cannot_duplicate_registration_to_same_championship(): void
     {
         $player = Player::factory()->create();
-        $championship = Championship::factory()->create([
+        $championship = $this->createPublicChampionship([
             'registration_status' => ChampionshipRegistrationStatus::OPEN->value,
             'registration_starts_at' => now()->subDay(),
             'registration_ends_at' => now()->addDay(),
@@ -104,7 +105,7 @@ class ChampionshipRegistrationTest extends TestCase
     public function test_get_registration_status_returns_correct_state_for_authenticated_player(): void
     {
         $player = Player::factory()->create();
-        $championship = Championship::factory()->create([
+        $championship = $this->createPublicChampionship([
             'registration_status' => ChampionshipRegistrationStatus::OPEN->value,
             'registration_starts_at' => now()->subDay(),
             'registration_ends_at' => now()->addDay(),
@@ -124,5 +125,17 @@ class ChampionshipRegistrationTest extends TestCase
         $response->assertJsonPath('data.registration_is_open', true);
         $response->assertJsonPath('data.request.status', 'approved');
         $response->assertJsonPath('data.request.player.id', $player->id);
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    private function createPublicChampionship(array $attributes = []): Championship
+    {
+        $season = Season::factory()->publiclyVisible()->create();
+
+        return Championship::factory()->publiclyVisible()->create(array_merge([
+            'season_id' => $season->id,
+        ], $attributes));
     }
 }

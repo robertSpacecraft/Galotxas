@@ -4,10 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\Category;
 use App\Models\CategoryEntry;
+use App\Models\Championship;
 use App\Models\GameMatch;
 use App\Models\MatchResultReport;
 use App\Models\Player;
 use App\Models\Round;
+use App\Models\Season;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -73,7 +75,13 @@ class PublicMatchResourceTest extends TestCase
 
     private function createMatchWithInternalTrace(string $status): GameMatch
     {
-        $category = Category::factory()->create();
+        $season = Season::factory()->publiclyVisible()->create();
+        $championship = Championship::factory()->publiclyVisible()->create([
+            'season_id' => $season->id,
+        ]);
+        $category = Category::factory()->publiclyVisible()->create([
+            'championship_id' => $championship->id,
+        ]);
         $round = Round::factory()->for($category)->create();
         $homePlayer = Player::factory()->create();
         $awayPlayer = Player::factory()->create();

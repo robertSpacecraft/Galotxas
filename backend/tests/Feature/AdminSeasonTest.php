@@ -409,10 +409,9 @@ class AdminSeasonTest extends TestCase
 
     public function test_public_season_contract_remains_unchanged(): void
     {
-        $season = Season::factory()->create([
+        $season = Season::factory()->publiclyVisible()->create([
             'name' => 'Temporada pública',
             'status' => SeasonStatus::ACTIVE->value,
-            'is_public' => false,
             'start_date' => '2027-01-02',
             'end_date' => '2027-12-30',
         ]);

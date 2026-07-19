@@ -594,6 +594,22 @@ La Fase 2B.4A incorpora cobertura Feature para:
 
 La migración se valida mediante `migrate:fresh` sobre el MariaDB aislado. Su backfill se revisa explícitamente: primero crea las columnas con default `false`, después marca como públicos todos los registros preexistentes y conserva `false` como default para altas futuras. No se ejecuta contra desarrollo.
 
+## COMPETITION-VISIBILITY-PUBLIC-1 — Aplicación pública de visibilidad
+
+La Fase 2B.4B incorpora cobertura Feature para:
+
+- scopes locales y métodos de instancia coincidentes para temporada, campeonato, categoría y partido, sin global scopes ni dependencia de estados operativos;
+- filtrado de listados, detalles y relaciones anidadas, preservando campos, envelopes y ausencia de `is_public` en Resources;
+- respuesta `404` en accesos directos a campeonatos, categorías, standings, schedules, rankings y partidos de ramas privadas;
+- exclusión de resultados privados en rankings públicos de campeonato, temporada e histórico, conservando los cálculos internos completos;
+- inicio de inscripciones únicamente en campeonatos públicos y conservación de solicitudes propias existentes;
+- continuidad de partidos, calendario y rankings privados relacionados en Mi Panel, así como workflows de participantes;
+- acceso administrativo a entidades privadas y aislamiento del CRUD API heredado;
+- ocultación y restauración de padres sin modificar flags descendientes;
+- factories privadas por defecto y seeders de desarrollo y E2E con jerarquías públicas explícitas.
+
+La regresión incluye tests administrativos y públicos dirigidos, suite backend completa en MariaDB, tests unitarios de React, lint, build y batería E2E completa. Las pruebas frontend verifican el mismo contrato: el filtrado es responsabilidad del backend y no se reproduce en React.
+
 ## CMS público React
 - consumo del endpoint `GET /api/v1/cms/pages` desde el cliente API existente;
 - ruta pública `/contenidos`;

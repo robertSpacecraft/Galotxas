@@ -123,7 +123,7 @@ Las rutas `/admin/championships` y `/admin/seasons/{season}/championships/create
 - El `slug` continúa derivándose del nombre. Los identificadores y timestamps permanecen gestionados por Laravel.
 - `image_path` existe en persistencia, pero la gestión multimedia no forma parte de este formulario: no se ofrece entrada ni subida y una actualización conserva el valor previo.
 - No existe un booleano de apertura en la tabla. `registration_is_open` continúa calculándose a partir del estado y las fechas de inscripción y no es un campo editable.
-- Este bloque no cambia rutas, filtros de visibilidad, controladores, Resources ni contratos de la API pública o administrativa.
+- El control modifica la visibilidad declarada; la API pública exige además que la temporada asociada sea pública y filtra las categorías privadas.
 - Las opciones de temporada indican si son públicas o privadas. Un campeonato sólo puede marcarse público bajo una temporada pública; mantenerlo privado es válido bajo cualquier temporada.
 - Ocultar un campeonato no cambia automáticamente `is_public` en sus categorías.
 
@@ -140,7 +140,7 @@ Las rutas `/admin/championships/{championship}/categories/*` y `/admin/categorie
 - El `slug` continúa derivándose del nombre y conserva la unicidad por campeonato existente en base de datos.
 - `image_path` existe en persistencia, pero la gestión multimedia no forma parte de este formulario: no se ofrece entrada ni subida y una actualización conserva el valor previo.
 - Las relaciones con inscripciones, participantes, equipos, rondas y partidos no forman parte del formulario y permanecen intactas durante una actualización ordinaria.
-- Este bloque no cambia rutas, filtros de visibilidad, controladores, Resources ni contratos de la API pública o administrativa.
+- El control modifica la visibilidad declarada; la API pública exige además que campeonato y temporada sean públicos.
 - El formulario muestra la visibilidad del campeonato y de su temporada. Una categoría sólo puede marcarse pública cuando ambos padres son públicos; puede mantenerse privada bajo cualquier combinación.
 
 ### Semántica común de visibilidad competitiva
@@ -151,7 +151,8 @@ Las rutas `/admin/championships/{championship}/categories/*` y `/admin/categorie
 - Activar un campeonato exige una temporada pública. Activar una categoría exige campeonato y temporada públicos.
 - Ocultar una temporada o un campeonato siempre está permitido y no propaga cambios a los flags de sus descendientes.
 - Los listados y detalles muestran conjuntamente estado operativo y visibilidad declarada para evitar que el administrador los confunda.
-- La API pública todavía no aplica estos flags. El cálculo y filtro de visibilidad efectiva corresponden a 2B.4B.
+- La API pública aplica la conjunción de la rama: ocultar un padre oculta efectivamente sus descendientes sin alterar sus flags. Al restaurarlo reaparecen los descendientes que continúan declarados públicos.
+- Administración, generación y áreas personales no quedan limitadas por esta política pública.
 
 ### Inventario de pantallas implementadas
 

@@ -164,6 +164,8 @@ El seeder `InstitutionalCmsPageSeeder` puede crear estas páginas y sus bloques 
 
 ## Inventario de Resources implementados
 
+Los Resources públicos de competición mantienen su forma, nombres, tipos y envelopes. Reciben las entidades y relaciones ya restringidas por las consultas de sus controladores: el Resource serializa, pero no decide por sí mismo si una entidad es pública. Las relaciones anidadas de temporadas y campeonatos llegan filtradas para impedir lazy loading de descendientes privados. `is_public` permanece como detalle interno y no se expone en ninguno de estos Resources ni en los de partidos o rankings.
+
 | Resource | Contexto y uso actual |
 |---|---|
 | `SeasonResource` | listado público de temporadas y campeonatos cargados |

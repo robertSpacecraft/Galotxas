@@ -17,7 +17,9 @@ class ChampionshipRankingController extends Controller
         Championship $championship,
         BuildChampionshipRankingService $rankingService
     ): JsonResponse {
-        $ranking = $rankingService->build($championship);
+        abort_unless($championship->isEffectivelyPublic(), 404);
+
+        $ranking = $rankingService->build($championship, publicOnly: true);
 
         return $this->successResponse(
             ChampionshipRankingResource::collection($ranking)

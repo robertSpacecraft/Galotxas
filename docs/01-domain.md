@@ -117,7 +117,9 @@ La declaración respeta la jerarquía Temporada → Campeonato → Categoría:
 - un campeonato sólo puede marcarse público si su temporada es pública;
 - una categoría sólo puede marcarse pública si su campeonato y la temporada del campeonato son públicos.
 
-Ocultar una temporada o un campeonato no modifica automáticamente los flags de sus descendientes. La rama queda preparada para considerarse efectivamente privada por su padre, pero los valores propios se conservan para poder restaurar la visibilidad del padre sin reconfigurar todos los hijos. La aplicación efectiva de esta jerarquía en cada lectura pública se incorpora en la Fase 2B.4B; este bloque no redefine todavía qué endpoints filtran cada entidad.
+La visibilidad efectiva es la conjunción de la rama completa: una temporada exige su propio flag; un campeonato, su flag y el de su temporada; una categoría, su flag y los de campeonato y temporada. Partidos, calendarios, clasificaciones, rankings e inicio de inscripciones públicas heredan el requisito de la entidad de la que dependen. Las consultas públicas aplican esta regla sin inferirla del estado operativo.
+
+Ocultar una temporada o un campeonato no modifica automáticamente los flags de sus descendientes. La rama queda efectivamente privada por su padre, pero los valores propios se conservan. Al restaurar el padre reaparecen únicamente los descendientes que continúan declarados públicos.
 
 ---
 

@@ -9,6 +9,7 @@ use App\Models\GameMatch;
 use App\Models\MatchResultReport;
 use App\Models\Player;
 use App\Models\Round;
+use App\Models\Season;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -284,8 +285,14 @@ class MatchWorkflowSecurityTest extends TestCase
      */
     private function createSinglesMatch(): array
     {
-        $championship = Championship::factory()->create(['type' => 'singles']);
-        $category = Category::factory()->create(['championship_id' => $championship->id]);
+        $season = Season::factory()->publiclyVisible()->create();
+        $championship = Championship::factory()->publiclyVisible()->create([
+            'season_id' => $season->id,
+            'type' => 'singles',
+        ]);
+        $category = Category::factory()->publiclyVisible()->create([
+            'championship_id' => $championship->id,
+        ]);
         $round = Round::factory()->create([
             'category_id' => $category->id,
             'type' => 'league',

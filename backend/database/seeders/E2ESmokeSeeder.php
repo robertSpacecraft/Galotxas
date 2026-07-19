@@ -82,6 +82,8 @@ class E2ESmokeSeeder extends Seeder
                     'status' => SeasonStatus::ACTIVE->value,
                 ]
             );
+            $season->is_public = true;
+            $season->save();
 
             $championship = Championship::query()->updateOrCreate(
                 ['slug' => 'campeonato-individual-e2e'],
@@ -98,6 +100,8 @@ class E2ESmokeSeeder extends Seeder
                     'registration_ends_at' => null,
                 ]
             );
+            $championship->is_public = true;
+            $championship->save();
 
             $category = Category::query()->updateOrCreate(
                 ['slug' => 'individual-e2e'],
@@ -110,6 +114,8 @@ class E2ESmokeSeeder extends Seeder
                     'status' => 'active',
                 ]
             );
+            $category->is_public = true;
+            $category->save();
 
             $homePlayer = $homeUser->player;
             $awayPlayer = $awayUser->player;

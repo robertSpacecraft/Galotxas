@@ -15,7 +15,7 @@ class AllTimeRankingController extends Controller
     public function __invoke(
         BuildAllTimeRankingService $rankingService
     ): JsonResponse {
-        $ranking = $rankingService->build();
+        $ranking = $rankingService->build(publicOnly: true);
 
         return $this->successResponse(
             AllTimeRankingResource::collection($ranking)

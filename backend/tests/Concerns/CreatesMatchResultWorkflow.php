@@ -9,6 +9,7 @@ use App\Models\GameMatch;
 use App\Models\MatchResultReport;
 use App\Models\Player;
 use App\Models\Round;
+use App\Models\Season;
 use App\Models\Team;
 use App\Models\User;
 
@@ -19,8 +20,14 @@ trait CreatesMatchResultWorkflow
      */
     protected function createSinglesResultMatch(array $matchOverrides = []): array
     {
-        $championship = Championship::factory()->create(['type' => 'singles']);
-        $category = Category::factory()->create(['championship_id' => $championship->id]);
+        $season = Season::factory()->publiclyVisible()->create();
+        $championship = Championship::factory()->publiclyVisible()->create([
+            'season_id' => $season->id,
+            'type' => 'singles',
+        ]);
+        $category = Category::factory()->publiclyVisible()->create([
+            'championship_id' => $championship->id,
+        ]);
         $round = $this->createResultRound($category);
         $homePlayer = $this->createResultPlayer();
         $awayPlayer = $this->createResultPlayer();
@@ -54,8 +61,14 @@ trait CreatesMatchResultWorkflow
      */
     protected function createDoublesResultMatch(array $matchOverrides = []): array
     {
-        $championship = Championship::factory()->create(['type' => 'doubles']);
-        $category = Category::factory()->create(['championship_id' => $championship->id]);
+        $season = Season::factory()->publiclyVisible()->create();
+        $championship = Championship::factory()->publiclyVisible()->create([
+            'season_id' => $season->id,
+            'type' => 'doubles',
+        ]);
+        $category = Category::factory()->publiclyVisible()->create([
+            'championship_id' => $championship->id,
+        ]);
         $round = $this->createResultRound($category);
         $homeTeam = Team::factory()->create(['category_id' => $category->id]);
         $awayTeam = Team::factory()->create(['category_id' => $category->id]);

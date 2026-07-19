@@ -538,17 +538,18 @@ class AdminChampionshipTest extends TestCase
             ->assertSee($category->name);
     }
 
-    public function test_public_contract_and_current_visibility_by_status_remain_unchanged(): void
+    public function test_public_contract_and_operational_status_visibility_remain_unchanged(): void
     {
-        $active = Championship::factory()->create([
+        $season = Season::factory()->publiclyVisible()->create();
+        $active = Championship::factory()->publiclyVisible()->create([
+            'season_id' => $season->id,
             'name' => 'Campionat públic actiu',
             'status' => ChampionshipStatus::ACTIVE->value,
-            'is_public' => false,
         ]);
-        $cancelled = Championship::factory()->create([
+        $cancelled = Championship::factory()->publiclyVisible()->create([
+            'season_id' => $season->id,
             'name' => 'Campionat públic cancel·lat',
             'status' => ChampionshipStatus::CANCELLED->value,
-            'is_public' => false,
         ]);
 
         $this->getJson('/api/v1/championships')

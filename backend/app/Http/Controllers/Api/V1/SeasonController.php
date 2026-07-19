@@ -14,7 +14,15 @@ class SeasonController extends Controller
 
     public function index(): JsonResponse
     {
-        $seasons = Season::with(['championships.categories'])
+        $seasons = Season::query()
+            ->effectivelyPublic()
+            ->with([
+                'championships' => fn ($query) => $query
+                    ->effectivelyPublic()
+                    ->with([
+                        'categories' => fn ($categoryQuery) => $categoryQuery->effectivelyPublic(),
+                    ]),
+            ])
             ->orderBy('start_date', 'desc')
             ->get();
 

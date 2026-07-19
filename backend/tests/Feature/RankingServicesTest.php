@@ -8,6 +8,7 @@ use App\Models\Championship;
 use App\Models\GameMatch;
 use App\Models\Player;
 use App\Models\Round;
+use App\Models\Season;
 use App\Models\Team;
 use App\Services\Ranking\BuildAllTimeRankingService;
 use App\Services\Ranking\BuildCategoryRankingService;
@@ -127,7 +128,10 @@ class RankingServicesTest extends TestCase
 
     public function test_all_time_win_rate_is_returned_on_zero_to_one_hundred_scale(): void
     {
-        [$category, $round, $entries, $players] = $this->createSinglesCategory(['Principal', 'Rival 1', 'Rival 2']);
+        [$category, $round, $entries, $players] = $this->createSinglesCategory(
+            ['Principal', 'Rival 1', 'Rival 2'],
+            public: true
+        );
 
         $this->createValidatedMatch($round, $entries[0], $entries[1], 10, 4);
         $this->createValidatedMatch($round, $entries[2], $entries[0], 10, 4);
@@ -192,10 +196,23 @@ class RankingServicesTest extends TestCase
     /**
      * @return array{Category, Round, array<int, CategoryEntry>, array<int, Player>}
      */
-    private function createSinglesCategory(array $nicknames): array
+    private function createSinglesCategory(array $nicknames, bool $public = false): array
     {
-        $championship = Championship::factory()->create(['type' => 'singles']);
-        $category = Category::factory()->create([
+        $seasonFactory = $public
+            ? Season::factory()->publiclyVisible()
+            : Season::factory()->privatelyVisible();
+        $season = $seasonFactory->create();
+        $championshipFactory = $public
+            ? Championship::factory()->publiclyVisible()
+            : Championship::factory()->privatelyVisible();
+        $championship = $championshipFactory->create([
+            'season_id' => $season->id,
+            'type' => 'singles',
+        ]);
+        $categoryFactory = $public
+            ? Category::factory()->publiclyVisible()
+            : Category::factory()->privatelyVisible();
+        $category = $categoryFactory->create([
             'championship_id' => $championship->id,
             'level' => 2,
         ]);

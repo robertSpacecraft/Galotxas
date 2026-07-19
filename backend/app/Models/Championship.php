@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ChampionshipRegistrationStatus;
 use App\Enums\ChampionshipType;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -39,6 +40,19 @@ class Championship extends Model
         'registration_starts_at' => 'datetime',
         'registration_ends_at' => 'datetime',
     ];
+
+    public function scopeEffectivelyPublic(Builder $query): Builder
+    {
+        return $query
+            ->where($query->qualifyColumn('is_public'), true)
+            ->whereHas('season', fn (Builder $seasonQuery) => $seasonQuery->effectivelyPublic());
+    }
+
+    public function isEffectivelyPublic(): bool
+    {
+        return $this->exists
+            && self::query()->whereKey($this->getKey())->effectivelyPublic()->exists();
+    }
 
     public function season()
     {

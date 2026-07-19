@@ -115,9 +115,13 @@ La competición funcional separa dos dimensiones persistidas:
 
 `is_public` no se deriva de estados, fechas, inscripciones, calendarios o resultados. Los modelos `Season`, `Championship` y `Category` lo castean a booleano y los nuevos registros son privados por defecto. La migración de incorporación marca como públicos los registros preexistentes para preservar su accesibilidad anterior.
 
-La administración valida la jerarquía Temporada → Campeonato → Categoría al activar la visibilidad. Desactivar un padre no propaga escrituras a sus hijos: la visibilidad declarada de cada descendiente se conserva. La visibilidad efectiva será la conjunción de los flags de la rama cuando 2B.4B la aplique en las consultas públicas.
+La administración valida la jerarquía Temporada → Campeonato → Categoría al activar la visibilidad. Desactivar un padre no propaga escrituras a sus hijos: la visibilidad declarada de cada descendiente se conserva. La visibilidad efectiva es la conjunción de los flags de la rama completa.
 
-Durante 2B.4A los controladores, rutas y Resources públicos permanecen intactos, `is_public` no forma parte del contrato serializado y las consultas aún no filtran registros privados. Los modelos ocultan además el flag de su serialización Eloquent y no lo admiten mediante asignación masiva, de modo que el CRUD API administrativo heredado no lo lee ni lo modifica accidentalmente; Blade lo asigna de forma explícita. Esta separación deliberada permite validar primero persistencia y administración antes de cambiar el comportamiento de lectura.
+`Season`, `Championship`, `Category` y `GameMatch` ofrecen scopes locales `effectivelyPublic()` y métodos de instancia basados en la misma consulta. No existen global scopes: cada controlador público opta expresamente por el filtro, mientras administración, generación, servicios internos y endpoints personales mantienen acceso a las entidades relacionadas con el usuario.
+
+Los listados filtran primero la entidad raíz y restringen el eager loading de campeonatos y categorías, por lo que un Resource no puede serializar descendientes privados ni provocar lazy loading sin filtrar. Los detalles públicos verifican la misma regla y responden `404` cuando la rama es privada. Los rankings públicos activan explícitamente el filtro de partidos, sin cambiar el conjunto utilizado por los mismos Services en ámbitos internos.
+
+`is_public` no forma parte del contrato serializado. Los modelos ocultan el flag de su serialización Eloquent y no lo admiten mediante asignación masiva, de modo que el CRUD API administrativo heredado no lo lee ni lo modifica accidentalmente antes de 2B.5; Blade lo asigna de forma explícita. No se añade un índice simple sobre el booleano, de baja cardinalidad: cualquier optimización de las consultas jerárquicas queda condicionada a medición real.
 
 ## Arquitectura CMS pública
 

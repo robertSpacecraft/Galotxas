@@ -15,13 +15,19 @@ class BuildAllTimeRankingService
         private readonly ResolveEntryPlayerContributionsService $contributionsService
     ) {}
 
-    public function build(): Collection
+    public function build(bool $publicOnly = false): Collection
     {
-        $matches = GameMatch::query()
+        $matchesQuery = GameMatch::query()
             ->where('status', 'validated')
             ->whereNotNull('home_score')
             ->whereNotNull('away_score')
-            ->whereHas('round.category.championship')
+            ->whereHas('round.category.championship');
+
+        if ($publicOnly) {
+            $matchesQuery->effectivelyPublic();
+        }
+
+        $matches = $matchesQuery
             ->with([
                 'round.category.championship',
                 'homeEntry.player.user',
