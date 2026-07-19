@@ -61,37 +61,37 @@ export const CmsPageIndex = () => {
 
   if (status === 'loading') {
     return (
-      <main className={styles.container}>
+      <div className={styles.container}>
         <div className={styles.stateMessage}>Cargando contenidos...</div>
-      </main>
+      </div>
     );
   }
 
   if (status === 'error') {
     return (
-      <main className={styles.container}>
+      <div className={styles.container}>
         <div className={styles.stateMessage}>
           <h1>Error de carga</h1>
           <p>{errorMessage}</p>
         </div>
-      </main>
+      </div>
     );
   }
 
   if (status === 'empty') {
     return (
-      <main className={styles.container}>
+      <div className={styles.container}>
         <header className={styles.header}>
           <h1 className={styles.title}>Contenidos</h1>
           <p className={styles.subtitle}>Información pública de Galotxas.</p>
         </header>
         <div className={styles.stateMessage}>No hay contenidos publicados todavía.</div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className={styles.container}>
+    <div className={styles.container}>
       <header className={styles.header}>
         <h1 className={styles.title}>Contenidos</h1>
         <p className={styles.subtitle}>Información pública de Galotxas.</p>
@@ -121,6 +121,6 @@ export const CmsPageIndex = () => {
           );
         })}
       </div>
-    </main>
+    </div>
   );
 };

@@ -4,9 +4,9 @@ import styles from './Layout.module.css';
 export const Layout = ({ children }) => {
   return (
     <div className={styles.layoutWrapper}>
-      <main className={styles.main}>
+      <div className={styles.main}>
         {children}
-      </main>
+      </div>
       <footer className={styles.footer}>
         <div className={styles.footerBrand}>
           <h3 className={styles.footerTitle}>GALOTXAS</h3>

@@ -41,7 +41,9 @@ const login = async (page, user) => {
 
 const logout = async (page) => {
   await page.getByRole('button', { name: 'Salir' }).click();
-  await expect(page.getByRole('link', { name: 'Área de jugadores' })).toBeVisible();
+  await expect(
+    page.getByRole('group', { name: 'Cuenta' }).getByRole('link', { name: 'Iniciar sesión' }),
+  ).toBeVisible();
 };
 
 const fillScore = async (page, homeScore, awayScore) => {
@@ -53,11 +55,45 @@ test.describe.serial('smoke narrativo del MVP', () => {
   let confirmationMatchPath;
   let reviewMatchPath;
 
-  test('navegación pública y página CMS publicada', async ({ page }) => {
+  test('la navegación pública de escritorio conecta Inicio, Competición y sus destinos', async ({ page }) => {
     const assertNoConsoleErrors = watchCriticalConsoleErrors(page);
 
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'La emoción de las Galotxas' })).toBeVisible();
+    const editorialNavigation = page.getByRole('list', { name: 'Navegación editorial' });
+    const accountArea = page.getByRole('group', { name: 'Cuenta' });
+
+    await expect(editorialNavigation.getByRole('link')).toHaveCount(2);
+    await expect(editorialNavigation.getByRole('link', { name: 'Inicio' })).toBeVisible();
+    await expect(editorialNavigation.getByRole('link', { name: 'Competición' })).toBeVisible();
+    await expect(editorialNavigation.getByRole('link', { name: 'Torneos' })).toHaveCount(0);
+    await expect(editorialNavigation.getByRole('link', { name: 'Rankings' })).toHaveCount(0);
+    await expect(accountArea.getByRole('link', { name: 'Iniciar sesión' })).toBeVisible();
+
+    await editorialNavigation.getByRole('link', { name: 'Competición' }).click();
+    await expect(page).toHaveURL(/\/competicion$/);
+    await expect(page.getByRole('heading', { name: 'Competición', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Torneos y rankings', level: 2 })).toBeVisible();
+    await expect(page).toHaveTitle('Competición | Galotxas');
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+      'content',
+      'Consulta campeonatos, categorías, calendarios, resultados y clasificaciones de Galotxas.',
+    );
+
+    await page.getByRole('link', { name: /Torneos/ }).click();
+    await expect(page).toHaveURL(/\/torneos$/);
+    await expect(page.getByRole('heading', { name: 'Torneos', level: 1 })).toBeVisible();
+
+    await editorialNavigation.getByRole('link', { name: 'Competición' }).click();
+    await page.getByRole('link', { name: /Rankings/ }).click();
+    await expect(page).toHaveURL(/\/rankings$/);
+    await expect(page.getByRole('heading', { name: 'Rankings Galotxas', level: 1 })).toBeVisible();
+
+    assertNoConsoleErrors();
+  });
+
+  test('las rutas de cuenta y la página CMS publicada siguen accesibles', async ({ page }) => {
+    const assertNoConsoleErrors = watchCriticalConsoleErrors(page);
 
     await page.goto('/register');
     const playerToggle = page.getByRole('checkbox', { name: 'Soy jugador' });
@@ -73,7 +109,7 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await expect(page.getByRole('heading', { name: 'Torneos', level: 1 })).toBeVisible();
     await expect(page.getByText(/En construcción/)).toHaveCount(0);
 
-    await page.getByRole('link', { name: 'Contenidos', exact: true }).click();
+    await page.goto('/contenidos');
     await expect(page).toHaveURL(/\/contenidos$/);
     await expect(page.getByRole('heading', { name: 'Contenidos' })).toBeVisible();
 
@@ -86,6 +122,86 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await expect(page.getByRole('heading', { name: 'Escenario público E2E' })).toBeVisible();
     await expect(page.getByText('Este contenido procede exclusivamente de la base temporal E2E.')).toBeVisible();
     await expect(page.getByRole('alert')).toHaveCount(0);
+
+    assertNoConsoleErrors();
+  });
+
+  test('Competición permanece activa en la landing y sus destinos secundarios', async ({ page }) => {
+    const assertNoConsoleErrors = watchCriticalConsoleErrors(page);
+
+    for (const [pathname, currentValue] of [
+      ['/competicion', 'page'],
+      ['/torneos', 'location'],
+      ['/rankings', 'location'],
+    ]) {
+      await page.goto(pathname);
+      const editorialNavigation = page.getByRole('list', { name: 'Navegación editorial' });
+      const competitionLink = editorialNavigation.getByRole('link', { name: 'Competición' });
+
+      await expect(competitionLink).toHaveAttribute('aria-current', currentValue);
+      await expect(editorialNavigation.locator('[aria-current]')).toHaveCount(1);
+    }
+
+    assertNoConsoleErrors();
+  });
+
+  test('la landing común de Competición es responsive y navegable por teclado', async ({ page }) => {
+    const assertNoConsoleErrors = watchCriticalConsoleErrors(page);
+
+    await page.goto('/competicion');
+
+    for (const width of [320, 375, 768, 1024, 1280, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+
+      const destinations = page.getByRole('navigation', { name: 'Opciones de competición' });
+      const destinationLinks = destinations.getByRole('link');
+
+      await expect(destinationLinks).toHaveCount(2);
+      await expect(destinations.getByRole('link', { name: /Torneos/ })).toBeVisible();
+      await expect(destinations.getByRole('link', { name: /Rankings/ })).toBeVisible();
+
+      const layoutState = await destinationLinks.evaluateAll((links) => ({
+        cardsAreLegible: links.every((link) => {
+          const rect = link.getBoundingClientRect();
+
+          return rect.width > 0
+            && rect.height >= 44
+            && rect.left >= 0
+            && rect.right <= document.documentElement.clientWidth + 0.5
+            && link.scrollWidth <= link.clientWidth;
+        }),
+        hasHorizontalOverflow:
+          document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      }));
+
+      expect(layoutState, `Landing de Competición a ${width}px`).toEqual({
+        cardsAreLegible: true,
+        hasHorizontalOverflow: false,
+      });
+    }
+
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const accountLink = page
+      .getByRole('group', { name: 'Cuenta' })
+      .getByRole('link', { name: 'Iniciar sesión' });
+    const tournamentsLink = page
+      .getByRole('navigation', { name: 'Opciones de competición' })
+      .getByRole('link', { name: /Torneos/ });
+
+    await accountLink.focus();
+    await page.keyboard.press('Tab');
+    await expect(tournamentsLink).toBeFocused();
+    await expect(tournamentsLink.locator('a, button, input, select, textarea')).toHaveCount(0);
+
+    const focusStyle = await tournamentsLink.evaluate((link) => {
+      const style = getComputedStyle(link);
+
+      return { outlineStyle: style.outlineStyle, outlineWidth: style.outlineWidth };
+    });
+
+    expect(focusStyle).toEqual({ outlineStyle: 'solid', outlineWidth: '3px' });
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(/\/torneos$/);
 
     assertNoConsoleErrors();
   });
@@ -141,30 +257,97 @@ test.describe.serial('smoke narrativo del MVP', () => {
     const openMenu = page.getByRole('button', { name: 'Abrir menú de navegación' });
     await expect(openMenu).toBeVisible();
     await expect(openMenu).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.getByRole('link', { name: 'Competición', exact: true })).toBeHidden();
 
     await openMenu.click();
     const closeMenu = page.getByRole('button', { name: 'Cerrar menú de navegación' });
     await expect(closeMenu).toHaveAttribute('aria-expanded', 'true');
     await expect(page.getByRole('link', { name: 'Inicio', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Torneos', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Rankings', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Contenidos', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Competición', exact: true })).toBeVisible();
 
-    await page.getByRole('link', { name: 'Rankings', exact: true }).click();
-    await expect(page).toHaveURL(/\/rankings$/);
+    await page.getByRole('link', { name: 'Competición', exact: true }).click();
+    await expect(page).toHaveURL(/\/competicion$/);
     await expect(page.getByRole('button', { name: 'Abrir menú de navegación' }))
       .toHaveAttribute('aria-expanded', 'false');
+    await expect(page.getByRole('link', { name: 'Competición', exact: true })).toBeHidden();
 
     await page.getByRole('button', { name: 'Abrir menú de navegación' }).click();
-    await page.getByRole('link', { name: 'Contenidos', exact: true }).click();
-    await expect(page).toHaveURL(/\/contenidos$/);
-    await expect(page.getByRole('button', { name: 'Abrir menú de navegación' }))
-      .toHaveAttribute('aria-expanded', 'false');
+    await page.getByRole('link', { name: 'Competición', exact: true }).focus();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('button', { name: 'Abrir menú de navegación' })).toBeFocused();
+    await expect(page.getByRole('link', { name: 'Competición', exact: true })).toBeHidden();
+    await page.keyboard.press('Tab');
+    await expect(
+      page.getByRole('group', { name: 'Cuenta' }).getByRole('link', { name: 'Iniciar sesión' }),
+    ).toBeFocused();
 
     const hasNoHorizontalOverflow = await page.evaluate(
       () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
     );
     expect(hasNoHorizontalOverflow).toBe(true);
+
+    assertNoConsoleErrors();
+  });
+
+  test('el Navbar evita overflow y solapamientos en la matriz responsive', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => {
+      localStorage.setItem('token', 'e2e-responsive-token');
+      localStorage.setItem('user', JSON.stringify({
+        name: 'Nombre de participante deliberadamente muy largo para responsive',
+      }));
+    });
+    await page.reload();
+
+    for (const width of [320, 375, 768, 1024, 1280, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      await expect(page.getByRole('navigation', { name: 'Navegación principal' })).toBeVisible();
+
+      const layoutState = await page.evaluate(() => {
+        const navbar = document.querySelector('nav[aria-label="Navegación principal"]');
+        const visibleChildren = Array.from(navbar.children)
+          .map((element) => ({
+            display: getComputedStyle(element).display,
+            rect: element.getBoundingClientRect(),
+          }))
+          .filter(({ display, rect }) => display !== 'none' && rect.width > 0 && rect.height > 0);
+
+        const childrenOverlap = visibleChildren.some((child, index) => (
+          visibleChildren.slice(index + 1).some((otherChild) => (
+            child.rect.left < otherChild.rect.right
+            && child.rect.right > otherChild.rect.left
+            && child.rect.top < otherChild.rect.bottom
+            && child.rect.bottom > otherChild.rect.top
+          ))
+        ));
+
+        return {
+          hasHorizontalOverflow:
+            document.documentElement.scrollWidth > document.documentElement.clientWidth,
+          childrenOverlap,
+        };
+      });
+
+      expect(layoutState, `Estado responsive a ${width}px`).toEqual({
+        hasHorizontalOverflow: false,
+        childrenOverlap: false,
+      });
+    }
+  });
+
+  test('una URL desconocida muestra la 404 y permite volver a Inicio', async ({ page }) => {
+    const assertNoConsoleErrors = watchCriticalConsoleErrors(page);
+
+    await page.goto('/cuenta/ruta-inexistente');
+    await expect(page).toHaveURL(/\/cuenta\/ruta-inexistente$/);
+    await expect(page.getByRole('heading', { name: 'Página no encontrada', level: 1 })).toBeVisible();
+    await expect(page).toHaveTitle('Página no encontrada | Galotxas');
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
+
+    await page.getByRole('link', { name: 'Volver a Inicio' }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByRole('heading', { name: 'La emoción de las Galotxas' })).toBeVisible();
+    await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
 
     assertNoConsoleErrors();
   });

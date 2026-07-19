@@ -24,22 +24,26 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 6. **Fase 2B.4A — Visibilidad explícita de la competición:** `is_public` administrable en temporadas, campeonatos y categorías, backfill compatible, jerarquía sin cascada y contrato público temporalmente inalterado.
 7. **Fase 2B.4B — Aplicación pública de visibilidad:** scopes locales y filtro jerárquico en listados, detalles, relaciones, partidos, rankings, standings, schedules e inicio de inscripciones, preservando administración y Mi Panel.
 8. **Fase 2B.5 — Endurecimiento de la API administrativa:** CRUD de temporadas, campeonatos y categorías protegido por administrador activo, Form Requests, persistencia explícita, Resources propios, `is_public` jerárquico y campos no administrables aislados.
+9. **Fase 3A — Contrato de navegación y rutas públicas:** router, enlaces, CMS, API, `knowledge/`, compatibilidad, accesibilidad, responsive y SEO auditados; cinco rutas canónicas y sus gates documentados sin cambiar React.
+10. **Fase 3B — Navegación pública funcional:** configuración editorial única con Inicio y Competición, cuenta separada, estado activo de toda la rama deportiva, menú accesible y responsive, landing mínima `/competicion`, fallback 404 React y rutas existentes preservadas.
+11. **Fase 3C — Sistema común de landings públicas:** contenedor, cabecera, acciones, secciones, destinos y metadatos básicos reutilizables, aplicados a `/competicion` y de forma acotada a 404 con semántica, teclado y responsive validados.
 
-La Fase 2B queda completa con los subbloques 2B.1–2B.5. Este cierre no inicia la Fase 3 ni modifica la navegación pública.
+La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A, 3B y 3C completan la Fase 3: contrato, navegación funcional y sistema común de landings están implementados y validados. No se han iniciado Fase 4, redirects ni migraciones editoriales.
 
 ## Siguientes bloques aprobados
 
-1. **Reestructuración de navegación:** implantar Inicio, Competición, Aprende a jugar, Escuela de Galotxas y Club, conservando una migración compatible.
-2. **Landing Competición:** agrupar Torneos, Rankings, Calendarios, Clasificaciones, Resultados y accesos de jugadores sobre contratos verificados.
-3. **Landing Aprende a jugar:** crear la entrada divulgativa diferenciada del Manual.
-4. **Contrato editorial de `knowledge/`:** normalizar metadatos, IDs, slugs, relaciones y validaciones de las colecciones aprobadas.
-5. **Compilador build-time:** validar `knowledge/` y generar artefactos seguros y deterministas para React, sin MDX ni HTML ejecutable.
-6. **Manual MVP:** construir la experiencia pública desde los artefactos generados, sin base de datos, API Laravel o CRUD Blade.
-7. **Escuela de Galotxas:** combinar contenido pedagógico estable con actividad operativa administrable y protección específica de menores.
-8. **Club y migración de Contenidos:** asignar una fuente canónica a cada página institucional y retirar gradualmente la arquitectura legada.
-9. **QA, accesibilidad y despliegue:** validar contratos, recorridos, responsive, teclado, multimedia, persistencia y operación.
+1. **Fase 4 — Competición pública completa:** desarrollar `/competicion` más allá de la landing mínima, agrupando Torneos, Rankings, Calendarios, Clasificaciones, Resultados y accesos de jugadores sin alterar las reglas backend.
+2. **Landing Aprende a jugar:** crear la entrada divulgativa diferenciada del Manual cuando exista un artefacto real que consumir.
+3. **Contrato editorial de `knowledge/`:** normalizar metadatos, IDs, slugs, relaciones y validaciones de las colecciones aprobadas.
+4. **Compilador build-time:** validar `knowledge/` y generar artefactos seguros y deterministas para React, sin MDX ni HTML ejecutable.
+5. **Manual MVP:** construir la experiencia pública desde los artefactos generados, sin base de datos, API Laravel o CRUD Blade.
+6. **Escuela de Galotxas:** combinar contenido pedagógico estable con actividad operativa administrable y protección específica de menores.
+7. **Club y migración de Contenidos:** asignar una fuente canónica a cada página institucional y retirar gradualmente la arquitectura legada.
+8. **QA, accesibilidad y despliegue:** validar contratos, recorridos, responsive, teclado, multimedia, persistencia y operación.
 
-Estos bloques permanecen pendientes. El primero corresponde a la evolución posterior a la Fase 2B; las rutas conceptuales y demás capacidades descritas no están implementadas por aparecer en el roadmap.
+La Fase 3C está completada y la Fase 4 permanece pendiente. `/competicion` continúa como centro mínimo de acceso a funcionalidad actual, ahora sobre la estructura común; `/aprende-a-jugar`, `/escuela` y `/club` no están implementadas por aparecer en el roadmap. Ningún bloque puede publicar enlaces vacíos para aparentar que la arquitectura final está completa.
+
+Después de 3C permanecen en bloques posteriores la consolidación institucional, la migración de Nosotros, aliases, redirects, canonical, indexación de `/contenidos`, SEO completo, sitemap y robots, limpieza de código huérfano y migración de `academy` y `documentos`. No forman parte de 3C. La Fase 4 conserva como objetivo el desarrollo completo de `/competicion`.
 
 Este programa no altera por sí solo el proceso operativo de revisión y publicación del candidato descrito más abajo. Antes de iniciar un bloque funcional debe reconciliarse su calendario con el candidato y con cualquier corrección P0/P1.
 
@@ -110,12 +114,14 @@ La ausencia de una interfaz React de reprogramación no bloquea este cierre. El 
 ## Frontend, despliegue y calidad
 
 - URL API por `VITE_API_BASE_URL`, fallback local de desarrollo y `/api/v1` en producción (DEPLOY-1);
-- Vitest, React Testing Library y 65 tests críticos en 18 archivos, incluidos fechas incompletas, formularios accesibles, sesión inválida, calendario, navbar responsive y CTA (FE-TEST-1, QA-FIX-1 y RC-HARDEN-1);
-- smoke Playwright de 9 escenarios con Chromium y stack temporal aislado, incluidos CTA, calendario, formularios, ruta real de torneos y navegación móvil pública y administrativa (E2E-1, QA-FIX-1 y RC-HARDEN-1);
+- Vitest, React Testing Library y 118 tests en 25 archivos, incluidos configuración y estado activo de navegación, sistema común de landings, metadatos, cuenta, foco, landmarks, `/competicion`, 404 y regresiones previas (FE-TEST-1, QA-FIX-1, RC-HARDEN-1, PUBLIC-NAVIGATION-1 y PUBLIC-LANDING-SYSTEM-1);
+- smoke Playwright de 14 escenarios con Chromium y stack temporal aislado, incluida la navegación 3B desktop/móvil, landing común de Competición, teclado, la matriz responsive 320–1440 px, estado activo y 404 además de los workflows anteriores (E2E-1, PUBLIC-NAVIGATION-1 y PUBLIC-LANDING-SYSTEM-1);
 - auditoría y actualización compatible de npm/Composer sin vulnerabilidades conocidas pendientes en la instantánea de cierre (DEPS-1);
 - documentación técnica 00–08 reconciliada con el código (DOC-1);
 - corrección de los bloqueantes QA del calendario público y de la navegación responsive, con revalidación dirigida en 1440 × 900, 1280 × 720 y 390 × 844 (QA-FIX-1).
 - endurecimiento menor previo al candidato con 168 tests Laravel, 1.088 aserciones y validaciones frontend/E2E ampliadas (RC-HARDEN-1).
+- navegación pública progresiva con configuración única, cuenta separada, landing mínima de Competición, fallback 404 y rutas heredadas conservadas (PUBLIC-NAVIGATION-1 / Fase 3B).
+- sistema común de landings desacoplado de fuentes de contenido, con semántica, metadatos básicos, enlaces accesibles y responsive aplicado a Competición sin abrir nuevas rutas (PUBLIC-LANDING-SYSTEM-1 / Fase 3C).
 - inventario, instalación limpia, regresión, auditoría, notas de versión y runbook del candidato preparados sin publicar ni etiquetar (MVP-RC-1).
 
 ---

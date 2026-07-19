@@ -2,9 +2,9 @@
 
 ## 1. Propósito
 
-Este documento define cómo se decide, edita, publica y consume el contenido público de Galotxas. Es la referencia central para evitar fuentes duplicadas, contenido administrable incrustado en código y diferencias entre la navegación, el panel Blade, la API, React y `knowledge/`.
+Este documento define cómo se decide, edita, publica y consume el contenido público de Galotxas. Es la referencia central para evitar fuentes duplicadas, contenido administrable incrustado en código y diferencias entre la navegación, el panel Blade, la API, React y `knowledge/`. El inventario y contrato concreto de URLs, enlaces y compatibilidad se mantiene en `09-public-navigation.md`.
 
-La decisión descrita aquí está aprobada como arquitectura objetivo. Esta Fase 0 es exclusivamente documental: no crea rutas, componentes, endpoints, modelos, migraciones, pantallas Blade, compiladores ni carpetas de conocimiento.
+La decisión original descrita aquí se aprobó como arquitectura objetivo en la Fase 0, que fue exclusivamente documental y no creó rutas, componentes, endpoints, modelos, migraciones, pantallas Blade, compiladores ni carpetas de conocimiento.
 
 ## 2. Lectura del estado
 
@@ -77,17 +77,19 @@ Se utilizará para el Manual, Reglamento, Conceptos, terminología y otros conte
 
 ## 5. Arquitectura pública aprobada
 
-La navegación pública de primer nivel se organizará conceptualmente en:
+La navegación pública de primer nivel queda contratada en cinco rutas:
 
-- Inicio;
-- Competición;
-- Aprende a jugar;
-- Escuela de Galotxas;
-- Club.
+- Inicio (`/`);
+- Competición (`/competicion`);
+- Aprende a jugar (`/aprende-a-jugar`);
+- Escuela de Galotxas (`/escuela`);
+- Club (`/club`).
 
 La identidad del usuario, Mi Panel y el cierre de sesión permanecerán en una zona autenticada separada.
 
-Estas áreas son arquitectura objetivo, no rutas implementadas por esta fase.
+Estas áreas son la arquitectura objetivo. Tras 3C están registradas `/` y la landing mínima `/competicion`, y ambas son los únicos elementos editoriales del Navbar. Competición utiliza ya una estructura común de presentación; las otras tres rutas no se consideran implementadas por aparecer en documentación ni se muestran como enlaces deshabilitados.
+
+Los componentes de `frontend/src/components/PublicLanding/` son infraestructura de presentación, no una cuarta fuente de contenido. Pueden recibir datos ya autorizados del dominio Laravel, artefactos compilados desde `knowledge/` o contenido público del CMS, pero no conocen esas fuentes ni deciden visibilidad, publicación o reglas. Sus props admiten estructura, copy breve de interfaz y contenido procedente de la fuente canónica; no deben usarse para hardcodear contenido administrable como sustituto temporal del CMS o de `knowledge/`.
 
 ### Inicio
 
@@ -101,14 +103,7 @@ Agrupa Torneos, Rankings, Calendarios, Clasificaciones, Resultados e informació
 
 Puerta de entrada divulgativa a qué son las Galotxas, cómo se juega, modalidades, Manual, Reglamento, Conceptos e Historia cuando exista. Su landing y el Manual cumplen funciones distintas.
 
-Rutas conceptuales futuras, todavía no implementadas:
-
-- `/aprende`;
-- `/manual`;
-- `/manual/reglamento` y `/manual/reglamento/:slug`;
-- `/manual/conceptos`;
-- `/manual/conceptos/categoria/:categoria`;
-- `/manual/conceptos/:slug`.
+La landing canónica futura es `/aprende-a-jugar`. Los namespaces de Manual, Reglamento, Conceptos e Historia se cerrarán con el contrato editorial de `knowledge/`: los ejemplos anteriores `/aprende` y `/manual` nunca se implementaron y no se mantienen como contrato paralelo. No se crearán enlaces de Historia mientras no exista esa colección.
 
 ### Escuela de Galotxas
 
@@ -119,15 +114,15 @@ Su arquitectura será híbrida:
 - presentación, metodología, ejercicios y recursos pedagógicos estables desde una futura colección de `knowledge/`;
 - actividades, convocatorias, noticias, fechas, centros, galerías, documentos e inscripciones desde el backend CMS.
 
-La ruta conceptual futura es `/escuela`. No se aprueba `/manual/academy`. Las posibles subáreas se definirán cuando exista alcance funcional y contenido real.
+La ruta canónica futura es `/escuela`. No se aprueba `/manual/academy`. Las posibles subáreas se definirán cuando exista alcance funcional y contenido real.
 
 ### Club
 
-Agrupa Nosotros, Federarse, Federaciones, Prensa y medios y Contacto. Su contenido administrable tendrá como fuente el backend CMS. La duplicidad actual entre `/nosotros` estático y contenido CMS debe auditarse antes de migrar.
+Agrupa Nosotros, Federarse, Federaciones, Prensa y medios y Contacto. Su contenido administrable tendrá como fuente el backend CMS. El código garantiza actualmente los slugs sembrados `nosotros`, `federarse`, `federaciones` y `prensa-media`; no existe un slug sembrado `contacto`. También existe `documentos`, cuya asignación definitiva requiere clasificación. La duplicidad entre `/nosotros` estático y `/contenidos/nosotros` se resolverá a favor del CMS sólo después de migrar el contenido y aprobar compatibilidad.
 
 ### Contenidos legado
 
-`/contenidos` y sus páginas constituyen una estructura actual y legada, no el destino final de la arquitectura de información. Permanecen sin cambios durante esta fase. Las páginas de prueba y los borradores no deben incorporarse a la navegación pública; la seguridad real de publicación y el inventario editorial se auditarán en fases posteriores.
+`/contenidos` y sus páginas constituyen una estructura actual y legada, no el destino final de la arquitectura de información. Permanecen accesibles tras retirarse del primer nivel en 3B; no se han eliminado, migrado ni redirigido. El backend excluye borradores y fechas futuras tanto del índice como del acceso por slug. El seeder institucional garantiza seis slugs sin sobrescribir páginas existentes: `prensa-media`, `nosotros`, `federaciones`, `academy`, `documentos` y `federarse`. Esta infraestructura verificada no convierte el índice técnico ni `academy` en áreas canónicas.
 
 ## 6. Matriz de gobernanza
 
@@ -260,8 +255,12 @@ Las vistas públicas, metadatos, galerías y documentos deben minimizar datos pe
 - Los endpoints se verifican antes de crear consumidores.
 - Los Resources constituyen el contrato de salida y entregan solo información publicable.
 - Las vistas remotas contemplan `loading`, `error`, `empty` y `content`.
+- Las futuras landings reutilizan contenedor, cabecera, acciones, secciones y destinos de `PublicLanding` sin convertir esos componentes en fuente editorial o adaptador de datos.
+- Los estados remotos comunes sólo se abstraen cuando al menos dos consumidores compartan semántica y comportamiento; Fase 3C los aplaza para evitar código muerto y Fase 4 deberá resolverlos al incorporar datos reales a Competición.
 - Los artefactos de `knowledge/` se generan y validan en build cuando exista el compilador; no se copian manualmente a JSX.
 - Las rutas públicas mantienen estabilidad, accesibilidad, navegación por teclado y comportamiento responsive.
+- Las cinco áreas, sus rutas y familias activas respetan `09-public-navigation.md`; la cuenta permanece fuera del árbol editorial.
+- Eliminar un enlace del primer nivel no elimina su URL. Aliases, canonical y redirects se aplican sólo tras paridad y pruebas.
 - Las features pesadas valoran lazy loading para proteger el bundle inicial.
 
 ## 17. Requisitos de testing
@@ -291,20 +290,19 @@ La migración se realizará de forma incremental y sin borrar contenido antes de
 6. migrar por secciones con pruebas;
 7. retirar navegación y rutas legadas solo cuando no tengan consumidores ni contenido pendiente.
 
-Esta Fase 0 no elimina `/contenidos`, no crea redirects, no cambia su API y no borra páginas.
+La Fase 3A no elimina `/contenidos`, no crea redirects, no cambia su API ni borra páginas. Sólo fija el contrato que deberá guiar esa migración.
 
-## 19. Cuestiones pendientes de auditoría
+## 19. Cuestiones pendientes de implementación o decisión
 
-- Inventario real de páginas y bloques CMS, incluidos borradores, pruebas y contenido futuro.
-- Permisos efectivos y protección de todas las acciones del panel editorial.
-- Duplicidad de Nosotros entre página estática y CMS.
-- Uso y destino de los slugs legados, incluido `academy`.
-- Capacidad real de Prensa y medios, Federarse, Federaciones y Contacto.
+- Inventario editorial de los datos reales de cada entorno antes de migrarlos; el catálogo del seeder no sustituye ese inventario.
+- Resolución y compatibilidad de Nosotros entre página estática y CMS.
+- Uso y destino editorial de `academy` y clasificación de `documentos`.
+- Creación de Contacto: no existe slug sembrado ni contenido verificable actual.
 - Necesidades editoriales de noticias, actividades, galerías, documentos y formularios.
 - Estrategia de almacenamiento persistente y ciclo de vida de archivos.
 - Modelo de consentimiento y privacidad para contenido de menores.
 - Contrato editorial de `knowledge/` y validaciones del compilador.
-- URLs finales, redirects y SEO de la migración pública.
+- URLs de detalle, aliases, redirects, canonical, sitemap, 404 y SEO de la migración pública.
 - Roles, permisos, trazabilidad y vista previa requeridos por los editores.
 
 ## Mantenimiento
