@@ -93,7 +93,7 @@ describe('App public routes', () => {
     ['/login', 'Acceso Jugadores'],
     ['/register', 'Registro de Usuario'],
     ['/forgot-password', 'Recuperar Contraseña'],
-    ['/rankings', 'Rankings Galotxas'],
+    ['/rankings', 'Rankings de Galotxas'],
     ['/contenidos', 'Contenidos'],
     ['/nosotros', 'Mucho más que un juego: la tradición viva de Monóvar.'],
   ])('preserves the representative route %s', async (pathname, heading) => {

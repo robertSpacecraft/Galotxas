@@ -87,7 +87,7 @@ La navegación pública de primer nivel queda contratada en cinco rutas:
 
 La identidad del usuario, Mi Panel y el cierre de sesión permanecerán en una zona autenticada separada.
 
-Estas áreas son la arquitectura objetivo. Tras 3C están registradas `/` y la landing mínima `/competicion`, y ambas son los únicos elementos editoriales del Navbar. Competición utiliza ya una estructura común de presentación; las otras tres rutas no se consideran implementadas por aparecer en documentación ni se muestran como enlaces deshabilitados.
+Estas áreas son la arquitectura objetivo. Tras 4C están registradas `/` y la landing dinámica `/competicion`, y ambas son los únicos elementos editoriales del Navbar. Competición utiliza la estructura común de presentación con datos públicos reales; las otras tres rutas no se consideran implementadas por aparecer en documentación ni se muestran como enlaces deshabilitados.
 
 Los componentes de `frontend/src/components/PublicLanding/` son infraestructura de presentación, no una cuarta fuente de contenido. Pueden recibir datos ya autorizados del dominio Laravel, artefactos compilados desde `knowledge/` o contenido público del CMS, pero no conocen esas fuentes ni deciden visibilidad, publicación o reglas. Sus props admiten estructura, copy breve de interfaz y contenido procedente de la fuente canónica; no deben usarse para hardcodear contenido administrable como sustituto temporal del CMS o de `knowledge/`.
 
@@ -98,6 +98,12 @@ Landing híbrida: estructura React, conocimiento estable cuando corresponda y el
 ### Competición
 
 Agrupa Torneos, Rankings, Calendarios, Clasificaciones, Resultados e información útil para jugadores. Depende principalmente del dominio Laravel y de su API. Las rutas actuales de Torneos y Rankings pueden mantenerse durante la migración, aunque dejen de ser áreas independientes de primer nivel.
+
+Desde 4A, las temporadas y campeonatos de la landing proceden exclusivamente de `GET /api/v1/seasons`. Laravel aplica la visibilidad efectiva y serializa la jerarquía pública; React conserva el orden, presenta estados, fechas disponibles, recuentos y enlaces, pero no consulta ni filtra `is_public`. No existen temporadas o campeonatos hardcodeados en JSX, seeders frontend ni componentes comunes.
+
+Desde 4B, el preview histórico procede de `GET /api/v1/rankings/all-time` mediante el mismo servicio de `/rankings`, pero con carga y estados independientes respecto a temporadas. React conserva el orden deportivo recibido, corta visualmente tras cinco filas y no calcula puntos, posición u oficialidad; el enlace a la vista completa permanece disponible.
+
+Fase 4C cierra el recorrido público sin cambiar fuentes: la landing prioriza Torneos, temporadas y ranking sin accesos duplicados; campeonato, categoría, clasificación, calendario, partido y rankings conservan URLs y contratos. La navegación contextual no convierte datos funcionales en contenido editorial. React presenta etiquetas, fechas y estados remotos, pero Laravel sigue decidiendo posiciones, resultados, visibilidad y reglas. El detalle de categoría no duplica las colecciones de standings o schedule de sus vistas dedicadas.
 
 ### Aprende a jugar
 
@@ -256,7 +262,7 @@ Las vistas públicas, metadatos, galerías y documentos deben minimizar datos pe
 - Los Resources constituyen el contrato de salida y entregan solo información publicable.
 - Las vistas remotas contemplan `loading`, `error`, `empty` y `content`.
 - Las futuras landings reutilizan contenedor, cabecera, acciones, secciones y destinos de `PublicLanding` sin convertir esos componentes en fuente editorial o adaptador de datos.
-- Los estados remotos comunes sólo se abstraen cuando al menos dos consumidores compartan semántica y comportamiento; Fase 3C los aplaza para evitar código muerto y Fase 4 deberá resolverlos al incorporar datos reales a Competición.
+- Los estados remotos comunes sólo se abstraen cuando al menos dos consumidores compartan semántica y comportamiento. Fases 4A–4C mantienen ciclos específicos por recurso; compartir composición o navegación contextual no los convierte en una abstracción remota global.
 - Los artefactos de `knowledge/` se generan y validan en build cuando exista el compilador; no se copian manualmente a JSX.
 - Las rutas públicas mantienen estabilidad, accesibilidad, navegación por teclado y comportamiento responsive.
 - Las cinco áreas, sus rutas y familias activas respetan `09-public-navigation.md`; la cuenta permanece fuera del árbol editorial.

@@ -1,9 +1,25 @@
-import React, { useCallback, useState, useEffect } from 'react';
-import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { championshipsService } from '../../api/championships';
+import { PageMetadata } from '../../components/PublicLanding/PageMetadata';
 import { TournamentRanking } from '../../components/Torneos/TournamentRanking';
 import { useAuth } from '../../hooks/useAuth';
-import { formatDate, formatDateRange } from '../../utils/formatDate';
+import {
+  getCategoryDetailPath,
+  getCategorySchedulePath,
+  getCategoryStandingsPath,
+  TOURNAMENTS_PATH,
+} from '../../navigation/competitionRoutes';
+import {
+  getCategoryGenderLabel,
+  getCategoryLevelLabel,
+  getCategoryStatusLabel,
+  getChampionshipStatusLabel,
+  getChampionshipTypeLabel,
+  getCompetitionDateRangeLabel,
+  getRegistrationRequestStatusLabel,
+  getRegistrationStatusLabel,
+} from '../Competition/competitionPresentation';
 import styles from './Torneos.module.css';
 
 export const TournamentDetail = () => {
@@ -11,56 +27,86 @@ export const TournamentDetail = () => {
   const { user, isAuthenticated } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const tournamentRequest = useRef(0);
+  const rankingRequest = useRef(0);
 
   const [tournament, setTournament] = useState(null);
+  const [tournamentStatus, setTournamentStatus] = useState('loading');
   const [ranking, setRanking] = useState([]);
-  const [loading, setLoading] = useState(true);
-  
+  const [rankingStatus, setRankingStatus] = useState('loading');
   const [regStatus, setRegStatus] = useState(null);
   const [regLoading, setRegLoading] = useState(false);
   const [regError, setRegError] = useState(null);
   const [regSuccess, setRegSuccess] = useState(false);
 
+  const loadTournament = useCallback(async () => {
+    const requestId = tournamentRequest.current + 1;
+    tournamentRequest.current = requestId;
+    setTournamentStatus('loading');
+
+    try {
+      const data = await championshipsService.getChampionship(championshipId);
+
+      if (tournamentRequest.current === requestId) {
+        setTournament(data || null);
+        setTournamentStatus(data ? 'content' : 'error');
+      }
+    } catch {
+      if (tournamentRequest.current === requestId) {
+        setTournament(null);
+        setTournamentStatus('error');
+      }
+    }
+  }, [championshipId]);
+
+  const loadRanking = useCallback(async () => {
+    const requestId = rankingRequest.current + 1;
+    rankingRequest.current = requestId;
+    setRankingStatus('loading');
+
+    try {
+      const data = await championshipsService.getChampionshipRanking(championshipId);
+
+      if (rankingRequest.current === requestId) {
+        const rows = Array.isArray(data) ? data : [];
+        setRanking(rows);
+        setRankingStatus(rows.length > 0 ? 'content' : 'empty');
+      }
+    } catch {
+      if (rankingRequest.current === requestId) {
+        setRanking([]);
+        setRankingStatus('error');
+      }
+    }
+  }, [championshipId]);
+
   const checkRegistrationStatus = useCallback(async () => {
     try {
       const statusData = await championshipsService.getRegistrationStatus(championshipId);
-      // The backend returns an object with a 'request' key. If it's null, we are not registered.
-      if (statusData && statusData.request) {
-        setRegStatus(statusData.request);
-      } else {
-        setRegStatus(null);
-      }
-    } catch (err) {
-      if (err.response && err.response.status !== 404) {
-        console.error("Error checking registration status:", err);
+      setRegStatus(statusData?.request || null);
+    } catch (error) {
+      if (error.response?.status !== 404) {
+        console.error('Error checking registration status:', error);
       }
       setRegStatus(null);
     }
   }, [championshipId]);
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [championshipRes, rankingRes] = await Promise.all([
-          championshipsService.getChampionship(championshipId),
-          championshipsService.getChampionshipRanking(championshipId)
-        ]);
-        setTournament(championshipRes);
-        setRanking(rankingRes || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+    loadTournament();
+    loadRanking();
+
+    return () => {
+      tournamentRequest.current += 1;
+      rankingRequest.current += 1;
     };
-    loadData();
-  }, [championshipId]);
+  }, [loadRanking, loadTournament]);
 
   useEffect(() => {
     if (isAuthenticated && user?.player && tournament) {
       checkRegistrationStatus();
     }
-  }, [isAuthenticated, user?.player, tournament, checkRegistrationStatus]);
+  }, [checkRegistrationStatus, isAuthenticated, tournament, user?.player]);
 
   const handleRegisterClick = async () => {
     if (!isAuthenticated) {
@@ -73,8 +119,8 @@ export const TournamentDetail = () => {
       return;
     }
 
-    if (!window.confirm(`¿Estás seguro de que deseas enviar la solicitud de inscripción al campeonato "${tournament.name}"?`)) {
-        return;
+    if (!window.confirm(`¿Quieres enviar la solicitud de inscripción al campeonato "${tournament.name}"?`)) {
+      return;
     }
 
     setRegLoading(true);
@@ -85,117 +131,195 @@ export const TournamentDetail = () => {
       await championshipsService.registerChampionship(championshipId);
       setRegSuccess(true);
       await checkRegistrationStatus();
-    } catch (err) {
-      setRegError(err.response?.data?.message || 'Hubo un error al procesar tu inscripción.');
+    } catch (error) {
+      setRegError(error.response?.data?.message || 'No se ha podido procesar tu inscripción.');
     } finally {
       setRegLoading(false);
     }
   };
 
-  if (loading) return <div className={styles.loading}>Cargando detalle del torneo...</div>;
-  if (!tournament) return <div className={styles.noResults}>Torneo no encontrado.</div>;
+  if (tournamentStatus !== 'content') {
+    return (
+      <div className={styles.container}>
+        <PageMetadata
+          title="Campeonato | Competición | Galotxas"
+          description="Consulta el detalle de un campeonato público de Galotxas."
+        />
+        <Link to={TOURNAMENTS_PATH} className={styles.backLink}>← Volver a Torneos</Link>
+        <h1 className={styles.title}>Detalle del campeonato</h1>
+        {tournamentStatus === 'loading' ? (
+          <p className={styles.loading} role="status">Cargando campeonato…</p>
+        ) : (
+          <div className={styles.errorState} role="alert">
+            <p>No se ha podido cargar el campeonato.</p>
+            <button type="button" className={styles.retryButton} onClick={loadTournament}>
+              Reintentar
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   const {
     name,
     description,
     type,
     status,
-    start_date,
-    end_date,
-    registration_status,
-    registration_starts_at,
-    registration_ends_at,
-    registration_is_open,
+    start_date: startDate,
+    end_date: endDate,
+    registration_status: registrationStatus,
+    registration_starts_at: registrationStartsAt,
+    registration_ends_at: registrationEndsAt,
+    registration_is_open: registrationIsOpen,
     season,
-    categories
+    categories,
   } = tournament;
+  const championshipDates = getCompetitionDateRangeLabel(startDate, endDate);
+  const registrationDates = getCompetitionDateRangeLabel(
+    registrationStartsAt,
+    registrationEndsAt,
+  );
+  const categoryRows = Array.isArray(categories) ? categories : [];
 
   return (
     <div className={styles.container}>
-      <Link to="/torneos" className={styles.backLink}>← Volver al listado</Link>
-      
+      <PageMetadata
+        title={`${name} | Competición | Galotxas`}
+        description={`Consulta categorías, clasificación y datos del campeonato ${name}.`}
+      />
+      <Link to={TOURNAMENTS_PATH} className={styles.backLink}>← Volver a Torneos</Link>
+
       <header className={styles.detailHeader}>
         <div className={styles.headerInfo}>
-          <span className={styles.seasonBadge}>{season?.name}</span>
+          <p className={styles.seasonBadge}>{season?.name || 'Temporada no disponible'}</p>
           <h1 className={styles.detailTitle}>{name}</h1>
-          <div className={styles.meta}>
-            <span className={styles.metaItem}><strong>Tipo:</strong> {type}</span>
-            <span className={styles.metaItem}><strong>Estado:</strong> {status}</span>
-            <span className={styles.metaItem}>
-              <strong>Fechas:</strong> {formatDateRange(start_date, end_date)}
-            </span>
-          </div>
+          <dl className={styles.meta}>
+            <div className={styles.metaItem}>
+              <dt>Modalidad</dt>
+              <dd>{getChampionshipTypeLabel(type)}</dd>
+            </div>
+            <div className={styles.metaItem}>
+              <dt>Estado</dt>
+              <dd>{getChampionshipStatusLabel(status)}</dd>
+            </div>
+            {championshipDates ? (
+              <div className={styles.metaItem}>
+                <dt>Fechas</dt>
+                <dd>{championshipDates}</dd>
+              </div>
+            ) : null}
+          </dl>
         </div>
       </header>
 
       <div className={styles.detailBody}>
         <div className={styles.mainInfo}>
-          <section className={styles.descriptionSection}>
-            <h2 className={styles.subTitle}>Descripción</h2>
-            <div className={styles.descriptionText}>{description}</div>
-          </section>
+          {description ? (
+            <section className={styles.descriptionSection}>
+              <h2 className={styles.subTitle}>Descripción</h2>
+              <p className={styles.descriptionText}>{description}</p>
+            </section>
+          ) : null}
 
           <section className={styles.categoriesSection}>
             <h2 className={styles.subTitle}>Categorías</h2>
-            {categories && categories.length > 0 ? (
+            {categoryRows.length > 0 ? (
               <div className={styles.categoriesGrid}>
-                {categories.map(cat => (
-                  <div key={cat.id} className={styles.categoryCard}>
-                    <h3>{cat.name}</h3>
-                    <Link to={`/categories/${cat.id}`} className={styles.catLink}>Ver categoría</Link>
-                  </div>
-                ))}
+                {categoryRows.map((category) => {
+                  const detailPath = getCategoryDetailPath(category.id);
+                  const standingsPath = getCategoryStandingsPath(category.id);
+                  const schedulePath = getCategorySchedulePath(category.id);
+
+                  return (
+                    <article key={category.id} className={styles.categoryCard}>
+                      <h3>{category.name}</h3>
+                      <dl className={styles.categoryMeta}>
+                        <div>
+                          <dt>Estado</dt>
+                          <dd>{getCategoryStatusLabel(category.status)}</dd>
+                        </div>
+                        <div>
+                          <dt>Categoría</dt>
+                          <dd>{getCategoryGenderLabel(category.gender)}</dd>
+                        </div>
+                        <div>
+                          <dt>Nivel</dt>
+                          <dd>{getCategoryLevelLabel(category.level)}</dd>
+                        </div>
+                      </dl>
+                      <nav className={styles.categoryActions} aria-label={`Opciones de ${category.name}`}>
+                        {detailPath ? <Link to={detailPath} className={styles.categoryAction}>Ver categoría</Link> : null}
+                        {standingsPath ? <Link to={standingsPath} className={styles.categoryAction}>Clasificación</Link> : null}
+                        {schedulePath ? <Link to={schedulePath} className={styles.categoryAction}>Calendario y resultados</Link> : null}
+                      </nav>
+                    </article>
+                  );
+                })}
               </div>
             ) : (
-              <p>No hay categorías registradas en este torneo aún.</p>
+              <p>No hay categorías disponibles en este campeonato.</p>
             )}
           </section>
         </div>
 
-        <aside className={styles.sidebar}>
+        <aside className={styles.sidebar} aria-label="Inscripción al campeonato">
           <div className={styles.registrationBox}>
-            <h3 className={styles.boxTitle}>Inscripción</h3>
-            <div className={styles.regStatus}>
-              <strong>Estado:</strong> 
-              <span className={registration_is_open ? styles.open : styles.closed}>
-                {registration_status === 'open' ? 'Abierta' : 'Cerrada'}
-              </span>
-            </div>
-            <div className={styles.regDates}>
-              <p>Abierta desde: {formatDate(registration_starts_at)}</p>
-              <p>Hasta: {formatDate(registration_ends_at)}</p>
-            </div>
-            
-            <div className={styles.registrationActionArea} style={{ marginTop: '1.5rem' }}>
+            <h2 className={styles.boxTitle}>Inscripción</h2>
+            <dl className={styles.registrationDetails}>
+              <div className={styles.regStatus}>
+                <dt>Estado</dt>
+                <dd className={registrationIsOpen ? styles.open : styles.closed}>
+                  {getRegistrationStatusLabel(registrationStatus)}
+                </dd>
+              </div>
+              <div>
+                <dt>Periodo</dt>
+                <dd>{registrationDates || 'Sin fechas definidas'}</dd>
+              </div>
+            </dl>
+
+            <div className={styles.registrationActionArea}>
               {regStatus ? (
-                <div className={styles.statusBox} style={{ padding: '1rem', backgroundColor: '#2a2f3a', borderRadius: '8px', border: '1px solid #4ade80' }}>
-                  <h4 style={{ margin: '0 0 0.5rem 0', color: '#4ade80' }}>Estado de tu inscripción</h4>
-                  <p style={{ margin: 0 }}>
-                    Tu solicitud está: <strong style={{ textTransform: 'capitalize' }}>{regStatus.status || 'Registrada'}</strong>
-                  </p>
+                <div className={styles.statusBox} role="status">
+                  <h3>Tu inscripción</h3>
+                  <p>{getRegistrationRequestStatusLabel(regStatus.status)}</p>
                 </div>
-              ) : registration_is_open ? (
-                <>
-                  <button 
-                    className={styles.mainRegisterBtn} 
-                    onClick={handleRegisterClick}
-                    disabled={regLoading}
-                    style={{ width: '100%', cursor: regLoading ? 'not-allowed' : 'pointer' }}
-                  >
-                    {regLoading ? 'Procesando...' : 'Inscribirme'}
-                  </button>
-                  {regError && <div style={{ color: '#ef4444', marginTop: '0.5rem', fontSize: '0.9rem' }}>{regError}</div>}
-                  {regSuccess && <div style={{ color: '#4ade80', marginTop: '0.5rem', fontSize: '0.9rem' }}>¡Solicitud enviada correctamente!</div>}
-                </>
+              ) : registrationIsOpen ? (
+                <button
+                  type="button"
+                  className={styles.mainRegisterBtn}
+                  onClick={handleRegisterClick}
+                  disabled={regLoading}
+                >
+                  {regLoading ? 'Procesando…' : 'Inscribirme'}
+                </button>
               ) : (
-                <p style={{ fontSize: '0.9rem', color: '#aaa', textAlign: 'center' }}>Las inscripciones no están disponibles en este momento.</p>
+                <p className={styles.registrationUnavailable}>
+                  Las inscripciones no están disponibles en este momento.
+                </p>
               )}
+              {regError ? <p className={styles.registrationError} role="alert">{regError}</p> : null}
+              {regSuccess ? <p className={styles.registrationSuccess} role="status">Solicitud enviada correctamente.</p> : null}
             </div>
           </div>
         </aside>
       </div>
 
-      <TournamentRanking ranking={ranking} />
+      {rankingStatus === 'loading' ? (
+        <p className={styles.rankingState} role="status">Cargando ranking del campeonato…</p>
+      ) : null}
+      {rankingStatus === 'error' ? (
+        <div className={styles.rankingState} role="alert">
+          <p>No se ha podido cargar el ranking del campeonato.</p>
+          <button type="button" className={styles.retryButton} onClick={loadRanking}>
+            Reintentar ranking
+          </button>
+        </div>
+      ) : null}
+      {rankingStatus === 'empty' || rankingStatus === 'content' ? (
+        <TournamentRanking ranking={ranking} />
+      ) : null}
     </div>
   );
 };

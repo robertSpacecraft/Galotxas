@@ -54,6 +54,11 @@ const fillScore = async (page, homeScore, awayScore) => {
 test.describe.serial('smoke narrativo del MVP', () => {
   let confirmationMatchPath;
   let reviewMatchPath;
+  let publicChampionshipPath;
+  let publicCategoryPath;
+  let publicStandingsPath;
+  let publicSchedulePath;
+  let publicMatchPath;
 
   test('la navegación pública de escritorio conecta Inicio, Competición y sus destinos', async ({ page }) => {
     const assertNoConsoleErrors = watchCriticalConsoleErrors(page);
@@ -73,21 +78,45 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await editorialNavigation.getByRole('link', { name: 'Competición' }).click();
     await expect(page).toHaveURL(/\/competicion$/);
     await expect(page.getByRole('heading', { name: 'Competición', level: 1 })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Torneos y rankings', level: 2 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Temporadas y campeonatos', level: 2 }))
+      .toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Temporada E2E 2026', level: 3 }))
+      .toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Campeonato Individual E2E', level: 4 }))
+      .toBeVisible();
+    await expect(page.getByText('Activa', { exact: true })).toBeVisible();
+    await expect(page.getByText('Activo', { exact: true })).toBeVisible();
+    await expect(page.getByText('1/1/2026', { exact: true })).toBeVisible();
+    await expect(page.getByText('31/12/2026', { exact: true })).toBeVisible();
+    await expect(page.getByText('is_public', { exact: true })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Ranking histórico', level: 2 })).toBeVisible();
+    await expect(page.getByText('Todavía no hay datos disponibles en el ranking histórico.'))
+      .toBeVisible();
+    await expect(page.getByRole('link', { name: 'Ver ranking completo' }))
+      .toHaveAttribute('href', '/rankings');
+    await expect(page.getByRole('heading', { name: 'Explora los campeonatos', level: 2 })).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Acceso principal de Competición' }).getByRole('link'))
+      .toHaveCount(1);
     await expect(page).toHaveTitle('Competición | Galotxas');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       'content',
-      'Consulta campeonatos, categorías, calendarios, resultados y clasificaciones de Galotxas.',
+      'Consulta temporadas y campeonatos públicos, calendarios, resultados y clasificaciones de Galotxas.',
     );
 
+    await page.getByRole('link', { name: 'Ver detalle de Campeonato Individual E2E' }).click();
+    await expect(page).toHaveURL(/\/torneos\/\d+$/);
+    await expect(page.getByRole('heading', { name: 'Campeonato Individual E2E', level: 1 }))
+      .toBeVisible();
+
+    await editorialNavigation.getByRole('link', { name: 'Competición' }).click();
     await page.getByRole('link', { name: /Torneos/ }).click();
     await expect(page).toHaveURL(/\/torneos$/);
     await expect(page.getByRole('heading', { name: 'Torneos', level: 1 })).toBeVisible();
 
     await editorialNavigation.getByRole('link', { name: 'Competición' }).click();
-    await page.getByRole('link', { name: /Rankings/ }).click();
+    await page.getByRole('link', { name: 'Ver ranking completo' }).click();
     await expect(page).toHaveURL(/\/rankings$/);
-    await expect(page.getByRole('heading', { name: 'Rankings Galotxas', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Rankings de Galotxas', level: 1 })).toBeVisible();
 
     assertNoConsoleErrors();
   });
@@ -149,16 +178,20 @@ test.describe.serial('smoke narrativo del MVP', () => {
     const assertNoConsoleErrors = watchCriticalConsoleErrors(page);
 
     await page.goto('/competicion');
+    const season = page.getByRole('region', { name: 'Temporada E2E 2026' });
+    const championship = page.getByRole('article', { name: 'Campeonato Individual E2E' });
+
+    await expect(season).toBeVisible();
+    await expect(championship).toBeVisible();
 
     for (const width of [320, 375, 768, 1024, 1280, 1440]) {
       await page.setViewportSize({ width, height: 900 });
 
-      const destinations = page.getByRole('navigation', { name: 'Opciones de competición' });
+      const destinations = page.getByRole('navigation', { name: 'Acceso principal de Competición' });
       const destinationLinks = destinations.getByRole('link');
 
-      await expect(destinationLinks).toHaveCount(2);
+      await expect(destinationLinks).toHaveCount(1);
       await expect(destinations.getByRole('link', { name: /Torneos/ })).toBeVisible();
-      await expect(destinations.getByRole('link', { name: /Rankings/ })).toBeVisible();
 
       const layoutState = await destinationLinks.evaluateAll((links) => ({
         cardsAreLegible: links.every((link) => {
@@ -178,22 +211,39 @@ test.describe.serial('smoke narrativo del MVP', () => {
         cardsAreLegible: true,
         hasHorizontalOverflow: false,
       });
+
+      const dynamicBlocksAreLegible = await Promise.all(
+        [season, championship].map((block) => block.evaluate((element) => {
+          const rect = element.getBoundingClientRect();
+
+          return rect.width > 0
+            && rect.left >= 0
+            && rect.right <= document.documentElement.clientWidth + 0.5
+            && element.scrollWidth <= element.clientWidth;
+        })),
+      );
+
+      expect(dynamicBlocksAreLegible, `Jerarquía dinámica a ${width}px`).toEqual([true, true]);
     }
 
     await page.setViewportSize({ width: 1280, height: 900 });
     const accountLink = page
       .getByRole('group', { name: 'Cuenta' })
       .getByRole('link', { name: 'Iniciar sesión' });
-    const tournamentsLink = page
-      .getByRole('navigation', { name: 'Opciones de competición' })
+    const primaryTournamentLink = page
+      .getByRole('navigation', { name: 'Acceso principal de Competición' })
       .getByRole('link', { name: /Torneos/ });
+    const championshipLink = page
+      .getByRole('link', { name: 'Ver detalle de Campeonato Individual E2E' });
 
     await accountLink.focus();
     await page.keyboard.press('Tab');
-    await expect(tournamentsLink).toBeFocused();
-    await expect(tournamentsLink.locator('a, button, input, select, textarea')).toHaveCount(0);
+    await expect(primaryTournamentLink).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(championshipLink).toBeFocused();
+    await expect(championshipLink.locator('a, button, input, select, textarea')).toHaveCount(0);
 
-    const focusStyle = await tournamentsLink.evaluate((link) => {
+    const focusStyle = await championshipLink.evaluate((link) => {
       const style = getComputedStyle(link);
 
       return { outlineStyle: style.outlineStyle, outlineWidth: style.outlineWidth };
@@ -201,7 +251,7 @@ test.describe.serial('smoke narrativo del MVP', () => {
 
     expect(focusStyle).toEqual({ outlineStyle: 'solid', outlineWidth: '3px' });
     await page.keyboard.press('Enter');
-    await expect(page).toHaveURL(/\/torneos$/);
+    await expect(page).toHaveURL(/\/torneos\/\d+$/);
 
     assertNoConsoleErrors();
   });
@@ -216,24 +266,42 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await expect(page.getByRole('heading', { name: 'Torneos' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Campeonato Individual E2E' })).toBeVisible();
 
+    await page.getByLabel('Estado').selectOption('finished');
+    await expect(page.getByText('No hay campeonatos para los filtros seleccionados.')).toBeVisible();
+    await expect(page.getByRole('alert')).toHaveCount(0);
+
     assertNoConsoleErrors();
   });
 
-  test('el calendario público muestra todas las jornadas y enlaza sus partidos', async ({ page }) => {
+  test('el recorrido público conecta Inicio, campeonato, categoría, clasificación, calendario y partido', async ({ page }) => {
     const assertNoConsoleErrors = watchCriticalConsoleErrors(page);
 
-    await page.goto('/torneos');
-    await page.getByRole('link', { name: 'Ver Torneo' }).click();
+    await page.goto('/');
+    await page.getByRole('list', { name: 'Navegación editorial' })
+      .getByRole('link', { name: 'Competición' }).click();
+    await page.getByRole('link', { name: 'Ver detalle de Campeonato Individual E2E' }).click();
     await expect(page.getByRole('heading', { name: 'Campeonato Individual E2E' })).toBeVisible();
+    publicChampionshipPath = new URL(page.url()).pathname;
+    await expect(page.getByRole('link', { name: 'Clasificación' }))
+      .toHaveAttribute('href', /\/categories\/\d+\/standings$/);
+    await expect(page.getByRole('link', { name: 'Calendario y resultados' }))
+      .toHaveAttribute('href', /\/categories\/\d+\/schedule$/);
     await page.getByRole('link', { name: 'Ver categoría' }).click();
     await expect(page.getByRole('heading', { name: 'Individual E2E', exact: true })).toBeVisible();
+    publicCategoryPath = new URL(page.url()).pathname;
+    await expect(page.getByRole('link', { name: 'Resumen' })).toHaveAttribute('aria-current', 'page');
 
-    const categoryPath = new URL(page.url()).pathname;
-    await page.goto(`${categoryPath}/standings`);
-    await page.getByRole('link', { name: 'Calendario & Resultados' }).click();
+    await page.getByRole('link', { name: 'Clasificación' }).click();
+    await expect(page).toHaveURL(/\/categories\/\d+\/standings$/);
+    publicStandingsPath = new URL(page.url()).pathname;
+    await expect(page.getByRole('heading', { name: 'Clasificación de Individual E2E' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Clasificación' })).toHaveAttribute('aria-current', 'page');
+    await page.getByRole('link', { name: 'Calendario y resultados' }).click();
 
     await expect(page).toHaveURL(/\/categories\/\d+\/schedule$/);
-    await expect(page.getByRole('heading', { name: 'Individual E2E', exact: true })).toBeVisible();
+    publicSchedulePath = new URL(page.url()).pathname;
+    await expect(page.getByRole('heading', { name: 'Calendario y resultados de Individual E2E' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Calendario y resultados' })).toHaveAttribute('aria-current', 'page');
     await expect(page.getByRole('heading', { name: 'Jornada E2E Confirmación' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Jornada E2E Discrepancia' })).toBeVisible();
     await expect(page.getByText('Pilotari E2E 1')).toHaveCount(2);
@@ -243,10 +311,52 @@ test.describe.serial('smoke narrativo del MVP', () => {
 
     await page.getByRole('link', { name: 'Ver partido: Pilotari E2E 1 contra Pilotari E2E 2' }).first().click();
     await expect(page).toHaveURL(/\/matches\/\d+$/);
+    publicMatchPath = new URL(page.url()).pathname;
     await expect(page.getByRole('heading', { name: 'Detalles de la partida' })).toBeVisible();
     await expect(page.getByLabel('Pilotari E2E 1 contra Pilotari E2E 2')).toBeVisible();
+    await expect(page.getByRole('link', { name: '← Volver al calendario de la categoría' }))
+      .toHaveAttribute('href', publicSchedulePath);
 
     assertNoConsoleErrors();
+  });
+
+  test('la rama deportiva completa evita overflow documental y conserva foco visible', async ({ page }) => {
+    const paths = [
+      '/competicion',
+      '/torneos',
+      publicChampionshipPath,
+      publicCategoryPath,
+      publicStandingsPath,
+      publicSchedulePath,
+      publicMatchPath,
+      '/rankings',
+    ];
+
+    for (const pathname of paths) {
+      for (const width of [320, 375, 768, 1024, 1280, 1440]) {
+        await page.setViewportSize({ width, height: 900 });
+        await page.goto(pathname);
+        await expect(page.locator('h1')).toHaveCount(1);
+        await expect.poll(() => page.evaluate(
+          () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+        )).toBe(true);
+      }
+    }
+
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto(publicCategoryPath);
+    const standingsLink = page.getByRole('link', { name: 'Clasificación' });
+    await standingsLink.focus();
+    await expect(standingsLink).toBeFocused();
+    const focusStyle = await standingsLink.evaluate((link) => getComputedStyle(link).outlineStyle);
+    expect(focusStyle).toBe('solid');
+
+    await page.evaluate(() => {
+      document.body.style.zoom = '200%';
+    });
+    await expect.poll(() => page.evaluate(
+      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+    )).toBe(true);
   });
 
   test('la navegación móvil permite recorrer enlaces públicos sin desbordamiento', async ({ page }) => {
@@ -472,8 +582,43 @@ test.describe.serial('smoke narrativo del MVP', () => {
   test('el ranking refleja el resultado validado sin escala incorrecta ni NaN', async ({ page }) => {
     const assertNoConsoleErrors = watchCriticalConsoleErrors(page);
 
-    await page.goto('/rankings');
-    await expect(page.getByRole('heading', { name: 'Rankings Galotxas' })).toBeVisible();
+    await page.goto('/competicion');
+    await expect(page.getByRole('heading', { name: 'Ranking histórico', level: 2 })).toBeVisible();
+    const preview = page.getByRole('list', { name: 'Primeras posiciones del ranking histórico' });
+    await expect(preview.getByText('Pilotari E2E 1')).toBeVisible();
+    await expect(preview.getByRole('listitem')).toHaveCount(2);
+    const fullRankingLink = page.getByRole('link', { name: 'Ver ranking completo' });
+
+    for (const width of [320, 375, 768, 1024, 1280, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+
+      const layoutState = await preview.evaluate((list) => ({
+        entriesAreLegible: Array.from(list.children).every((entry) => {
+          const rect = entry.getBoundingClientRect();
+
+          return rect.width > 0
+            && rect.left >= 0
+            && rect.right <= document.documentElement.clientWidth + 0.5
+            && entry.scrollWidth <= entry.clientWidth;
+        }),
+        hasHorizontalOverflow:
+          document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      }));
+
+      expect(layoutState, `Preview histórico a ${width}px`).toEqual({
+        entriesAreLegible: true,
+        hasHorizontalOverflow: false,
+      });
+      await expect(fullRankingLink).toBeVisible();
+    }
+
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await fullRankingLink.focus();
+    await expect(fullRankingLink).toBeFocused();
+    await fullRankingLink.click();
+
+    await expect(page).toHaveURL(/\/rankings$/);
+    await expect(page.getByRole('heading', { name: 'Rankings de Galotxas' })).toBeVisible();
 
     const winnerRow = page.getByRole('row').filter({ hasText: 'Pilotari E2E 1' });
     await expect(winnerRow).toBeVisible();

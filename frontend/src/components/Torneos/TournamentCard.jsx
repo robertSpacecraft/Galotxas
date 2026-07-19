@@ -1,6 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { formatDateRange } from '../../utils/formatDate';
+import { getChampionshipDetailPath } from '../../navigation/competitionRoutes';
+import {
+  getChampionshipStatusLabel,
+  getChampionshipTypeLabel,
+  getCompetitionDateRangeLabel,
+} from '../../pages/Competition/competitionPresentation';
 import styles from './TournamentCard.module.css';
 
 export const TournamentCard = ({ tournament }) => {
@@ -15,48 +20,41 @@ export const TournamentCard = ({ tournament }) => {
     season
   } = tournament;
 
-  const getStatusLabel = (status) => {
-    const statuses = {
-      draft: 'Borrador',
-      published: 'Próximamente',
-      ongoing: 'En curso',
-      active: 'En curso',
-      finished: 'Finalizado'
-    };
-    return statuses[status] || status;
-  };
+  const detailPath = getChampionshipDetailPath(id);
+  const datesLabel = getCompetitionDateRangeLabel(start_date, end_date);
 
   return (
-    <div className={styles.card}>
+    <article className={styles.card}>
       <div className={styles.cardHeader}>
-        <span className={`${styles.badge} ${styles[type]}`}>{type}</span>
+        <span className={styles.badge}>{getChampionshipTypeLabel(type)}</span>
         {registration_is_open && (
-          <span className={styles.registrationBadge}>Inscripción Abierta</span>
+          <span className={styles.registrationBadge}>Inscripción abierta</span>
         )}
       </div>
       
       <div className={styles.cardContent}>
-        <h3 className={styles.title}>{name}</h3>
-        <p className={styles.seasonName}>{season?.name}</p>
+        <h2 className={styles.title}>{name}</h2>
+        <p className={styles.seasonName}>{season?.name || 'Temporada no disponible'}</p>
         
-        <div className={styles.details}>
+        <dl className={styles.details}>
           <div className={styles.detailItem}>
-            <span className={styles.label}>Estado:</span>
-            <span className={styles.value}>{getStatusLabel(status)}</span>
+            <dt className={styles.label}>Estado</dt>
+            <dd className={styles.value}>{getChampionshipStatusLabel(status)}</dd>
           </div>
-          <div className={styles.detailItem}>
-            <span className={styles.label}>Fechas:</span>
-            <span className={styles.value}>{formatDateRange(start_date, end_date)}</span>
-          </div>
-        </div>
+          {datesLabel ? (
+            <div className={styles.detailItem}>
+              <dt className={styles.label}>Fechas</dt>
+              <dd className={styles.value}>{datesLabel}</dd>
+            </div>
+          ) : null}
+        </dl>
       </div>
 
       <div className={styles.cardFooter}>
-        <Link to={`/torneos/${id}`} className={styles.viewBtn}>Ver Torneo</Link>
-        {registration_is_open && (
-           <Link to={`/torneos/${id}`} className={styles.registerBtn}>Inscribirme</Link>
-        )}
+        {detailPath ? (
+          <Link to={detailPath} className={styles.viewBtn}>Ver campeonato</Link>
+        ) : null}
       </div>
-    </div>
+    </article>
   );
 };

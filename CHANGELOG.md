@@ -12,6 +12,9 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - Se añade una experiencia 404 de React Router con enlaces de recuperación, sin redirects ni cambios de hosting.
 - Se incorpora el sistema común de landings públicas de Fase 3C con contenedor, cabecera, acciones, secciones, rejilla y tarjetas-enlace desacoplados de las fuentes de contenido.
 - Se añaden metadatos básicos reversibles por ruta para Competición y 404, semántica y teclado cubiertos y una matriz responsive de 320 a 1440 px, cerrando técnicamente la Fase 3 sin publicar nuevas áreas.
+- Se incorpora la landing dinámica de Competición de Fase 4A con temporadas y campeonatos públicos obtenidos en una única carga, estados loading/error/retry/vacío y enlaces contextuales al detalle.
+- Se integra en `/competicion` el preview histórico de Fase 4B mediante una carga independiente, limitado visualmente a cinco filas en el orden del backend y enlazado a la experiencia completa `/rankings`.
+- Se completa la Fase 4 con el recorrido público de Competición desde la landing hasta campeonato, categoría, clasificación, calendario y partido, con retornos deterministas, metadatos básicos y navegación contextual accesible.
 
 ### Changed
 
@@ -24,7 +27,11 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - El panel distingue Borrador, Programada y Publicada y muestra el feedback de las operaciones de bloques.
 - El Navbar comparte estructura entre desktop y móvil, representa el área activa en toda la rama deportiva, devuelve el foco al cerrar con Escape y evita la cabecera intermedia en dos filas.
 - Torneos, Rankings y las rutas deportivas, CMS e institucionales existentes se conservan, aunque dejan de ocupar el primer nivel público.
-- La landing mínima `/competicion` reutiliza la estructura común y mantiene su copy y destinos reales sin API, datos simulados ni funcionalidades de Fase 4; la 404 conserva identidad propia y reutiliza sólo acciones y metadatos.
+- En Fase 3C, la landing mínima `/competicion` reutiliza la estructura común y mantiene su copy y destinos reales sin API ni datos simulados; la 404 conserva identidad propia y reutiliza sólo acciones y metadatos.
+- `/competicion` presenta desde 4A la jerarquía pública real de temporadas y campeonatos, conserva Torneos y Rankings en todos los estados y añade semántica, teclado y responsive 320–1440 px sin volver a filtrar la visibilidad decidida por backend.
+- Los detalles de campeonato y categoría exponen accesos claros a detalle, clasificación y calendario mediante las rutas deportivas existentes y generadores de URL compartidos, sin rutas nuevas ni cambios de API.
+- Torneos, detalles deportivos y Rankings distinguen loading, error recuperable, vacío y contenido; el fallo de un ranking o del contexto no oculta datos independientes ya disponibles.
+- El detalle de categoría queda como resumen de la entidad y delega clasificación y calendario en sus vistas dedicadas, eliminando su doble representación.
 
 ### Fixed
 
@@ -34,6 +41,8 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - El CRUD Blade de Campeonatos valida y persiste explícitamente todos los campos no multimedia, recupera correctamente valores y errores, y conserva `image_path` durante la edición.
 - El CRUD Blade de Categorías valida y persiste sus campos no multimedia, respeta la relación con Campeonato y los valores nullable, y conserva `image_path` durante la edición.
 - Home y el índice CMS evitan landmarks `<main>` duplicados dentro del layout global.
+- Las vistas públicas usan etiquetas deportivas coherentes, fechas parciales sin separadores vacíos y posiciones suministradas por backend; las tablas quedan contenidas y navegables en la matriz responsive 320–1440 px.
+- Las tarjetas de torneo eliminan el doble CTA al mismo detalle y los partidos regresan al calendario real de su categoría.
 
 El primer candidato MVP continúa pendiente de revisión humana, commit de preparación, etiquetado y publicación.
 

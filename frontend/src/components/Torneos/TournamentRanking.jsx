@@ -1,53 +1,65 @@
 import React from 'react';
+import { formatCompetitionNumber } from '../../pages/Competition/competitionPresentation';
 import styles from './TournamentRanking.module.css';
 
 export const TournamentRanking = ({ ranking }) => {
   if (!ranking || ranking.length === 0) {
-    return <p className={styles.noData}>Aún no hay datos de ranking para este campeonato.</p>;
+    return (
+      <section className={styles.rankingContainer}>
+        <h2 className={styles.title}>Ranking del campeonato</h2>
+        <p className={styles.noData}>Todavía no hay datos de ranking para este campeonato.</p>
+      </section>
+    );
   }
 
   return (
-    <div className={styles.rankingContainer}>
-      <h2 className={styles.title}>Clasificación General del Campeonato</h2>
-      <div className={styles.tableWrapper}>
+    <section className={styles.rankingContainer}>
+      <h2 className={styles.title}>Ranking del campeonato</h2>
+      <div
+        className={styles.tableWrapper}
+        role="region"
+        aria-label="Tabla del ranking del campeonato"
+        tabIndex="0"
+      >
         <table className={styles.rankingTable}>
+          <caption className={styles.visuallyHidden}>Ranking del campeonato</caption>
           <thead>
             <tr>
-              <th>Puesto</th>
-              <th>Jugador</th>
-              <th className={styles.center}>PJ</th>
-              <th className={styles.center}>PG</th>
-              <th className={styles.center}>PP</th>
-              <th className={styles.center}>Puntos</th>
-              <th className={styles.center}>Puntos ponderados</th>
-              <th className={styles.center}>JF</th>
-              <th className={styles.center}>JC</th>
-              <th className={styles.center}>Dif.</th>
-              <th className={styles.hideMobile}>Categorías</th>
+              <th scope="col">Pos.</th>
+              <th scope="col">Jugador</th>
+              <th scope="col" className={styles.center}>PJ</th>
+              <th scope="col" className={styles.center}>PG</th>
+              <th scope="col" className={styles.center}>PP</th>
+              <th scope="col" className={styles.center}>Puntos</th>
+              <th scope="col" className={styles.center}>Puntos ponderados</th>
+              <th scope="col" className={styles.center}>JF</th>
+              <th scope="col" className={styles.center}>JC</th>
+              <th scope="col" className={styles.center}>Dif.</th>
+              <th scope="col" className={styles.hideMobile}>Categorías</th>
             </tr>
           </thead>
           <tbody>
-            {ranking.map((item, index) => (
-              <tr key={item.player_id || index} className={index < 3 ? styles.topThree : ''}>
-                <td className={styles.position}>{index + 1}</td>
-                <td className={styles.name}>{item.name || item.player?.name}</td>
-                <td className={styles.center}>{item.played}</td>
-                <td className={styles.center}>{item.wins}</td>
-                <td className={styles.center}>{item.losses}</td>
+            {ranking.map((item) => (
+              <tr key={item.player_id || `${item.position}-${item.name}`}>
+                <td className={styles.position}>{item.position ?? '—'}</td>
+                <th scope="row" className={styles.name}>{item.name || 'Jugador no disponible'}</th>
+                <td className={styles.center}>{item.played ?? '—'}</td>
+                <td className={styles.center}>{item.wins ?? '—'}</td>
+                <td className={styles.center}>{item.losses ?? '—'}</td>
                 <td className={`${styles.center} ${styles.points}`}>
-                  {parseFloat(item.raw_points).toFixed(2).replace('.', ',')}
+                  {formatCompetitionNumber(item.raw_points)}
                 </td>
                 <td className={`${styles.center} ${styles.weightedPoints}`}>
-                  {parseFloat(item.weighted_points).toFixed(2).replace('.', ',')}
+                  {formatCompetitionNumber(item.weighted_points)}
                 </td>
-                <td className={styles.center}>{parseFloat(item.games_for).toFixed(2).replace('.', ',')}</td>
-                <td className={styles.center}>{parseFloat(item.games_against).toFixed(2).replace('.', ',')}</td>
+                <td className={styles.center}>{formatCompetitionNumber(item.games_for)}</td>
+                <td className={styles.center}>{formatCompetitionNumber(item.games_against)}</td>
                 <td className={`${styles.center} ${styles.diff}`}>
-                  {parseFloat(item.games_diff).toFixed(2).replace('.', ',')}
+                  {formatCompetitionNumber(item.games_diff)}
                 </td>
                 <td className={styles.hideMobile}>
                   <div className={styles.categoriesList}>
-                    {item.categories_played_list?.join(', ') || 'N/A'}
+                    {item.categories_played_list?.join(', ') || 'Sin categorías registradas'}
                   </div>
                 </td>
               </tr>
@@ -55,6 +67,6 @@ export const TournamentRanking = ({ ranking }) => {
           </tbody>
         </table>
       </div>
-    </div>
+    </section>
   );
 };

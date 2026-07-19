@@ -23,15 +23,62 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
   gap: 2rem;
 }
 
-.loading, .noResults {
+.loading, .noResults, .errorState {
   text-align: center;
-  padding: 4rem;
+  padding: clamp(1.5rem, 5vw, 4rem);
   font-size: 1.2rem;
   color: #888;
+}
+
+.errorState,
+.contextMessage {
+  margin-bottom: 1rem;
+  border: 1px solid #d7dee8;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.errorState {
+  border-color: #a53b3b;
+}
+
+.errorState p,
+.contextMessage p {
+  margin: 0;
+  color: #354254;
+}
+
+.contextMessage {
+  padding: 0.85rem 1rem;
+  color: #526173;
+}
+
+.retryButton,
+.secondaryRetry {
+  min-height: 44px;
+  margin-top: 1rem;
+  padding: 0.65rem 1rem;
+  border: 2px solid #1f6fa8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f6fa8;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.secondaryRetry {
+  margin-top: 0.65rem;
+}
+
+.retryButton:focus-visible,
+.secondaryRetry:focus-visible,
+.backLink:focus-visible {
+  outline: 3px solid #1f6fa8;
+  outline-offset: 3px;
 }
 
 /* Detail Styles */
@@ -62,6 +109,13 @@
   display: inline-block;
 }
 
+.contextPath {
+  margin: 0 0 0.75rem;
+  color: #526173;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
 .detailTitle {
   font-size: 2.5rem;
   margin-bottom: 1rem;
@@ -73,10 +127,24 @@
   flex-wrap: wrap;
   gap: 2rem;
   color: #666;
+  margin: 0;
 }
 
-.metaItem strong {
+.metaItem {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.metaItem dt {
+  color: #526173;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.metaItem dd {
+  margin: 0;
   color: #333;
+  font-weight: 700;
 }
 
 .detailBody {
@@ -131,7 +199,7 @@
   align-items: center;
   background: #ffffff;
   transition: all 0.3s ease;
-  min-height: 160px;
+  min-height: 220px;
 }
 
 .categoryCard:hover {
@@ -147,11 +215,60 @@
   line-height: 1.4;
 }
 
-.catLink {
-  color: #3498db;
+.categoryMeta {
+  display: grid;
+  width: 100%;
+  gap: 0.35rem;
+  margin: 0 0 1rem;
+  color: #526173;
+  text-align: left;
+}
+
+.categoryMeta div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.categoryMeta dt {
+  font-weight: 700;
+}
+
+.categoryMeta dd {
+  margin: 0;
+  color: #354254;
+  text-align: right;
+}
+
+.categoryActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  width: 100%;
+  flex-direction: column;
+}
+
+.categoryAction {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid #1f6fa8;
+  border-radius: 6px;
+  color: #1f6fa8;
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 600;
+}
+
+.categoryAction:hover {
+  background: #edf6fc;
+}
+
+.categoryAction:focus-visible {
+  outline: 3px solid #1f6fa8;
+  outline-offset: 3px;
 }
 
 .sidebar {
@@ -173,20 +290,34 @@
   color: #2c3e50;
 }
 
+.registrationDetails {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0;
+  color: #526173;
+}
+
+.registrationDetails > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.registrationDetails dt {
+  font-weight: 700;
+}
+
+.registrationDetails dd {
+  margin: 0;
+  color: #354254;
+}
+
 .regStatus {
-  margin-bottom: 1rem;
-  display: flex;
-  gap: 0.5rem;
+  display: grid;
+  gap: 0.2rem;
 }
 
 .open { color: #27ae60; font-weight: 700; }
 .closed { color: #e74c3c; font-weight: 700; }
-
-.regDates {
-  font-size: 0.9rem;
-  color: #666;
-  margin-bottom: 2rem;
-}
 
 .mainRegisterBtn {
   background-color: #27ae60;
@@ -201,6 +332,98 @@
   width: 100%;
 }
 
+.registrationActionArea {
+  margin-top: 1.5rem;
+}
+
+.statusBox {
+  padding: 1rem;
+  border: 1px solid #2e7d32;
+  border-radius: 8px;
+  background: #edf7ee;
+}
+
+.statusBox h3,
+.statusBox p {
+  margin: 0;
+  color: #216426;
+}
+
+.statusBox h3 {
+  margin-bottom: 0.35rem;
+  font-size: 1rem;
+}
+
+.registrationUnavailable,
+.registrationError,
+.registrationSuccess {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.registrationUnavailable {
+  color: #526173;
+}
+
+.registrationError {
+  color: #a32929;
+}
+
+.registrationSuccess {
+  color: #216426;
+}
+
+.rankingState {
+  margin-top: 2rem;
+  padding: 1.25rem;
+  border: 1px solid #d7dee8;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #354254;
+}
+
+.rankingState p {
+  margin: 0;
+  color: #354254;
+}
+
+.categorySummary {
+  margin-top: 2rem;
+  padding: 2rem;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.summaryDetails {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 1rem;
+  margin: 0;
+}
+
+.summaryDetails div {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid #d7dee8;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.summaryDetails dt {
+  color: #526173;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.summaryDetails dd {
+  margin: 0.25rem 0 0;
+  color: #2c3e50;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
 .mainRegisterBtn:hover:not(:disabled) {
   background-color: #219150;
   box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
@@ -212,63 +435,34 @@
   opacity: 0.8;
 }
 
-/* Tabs */
-.tabsContainer {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 0.1rem;
-}
-
-.tabLink {
-  padding: 1rem 2rem;
-  background: transparent;
-  border: none;
-  border-bottom: 3px solid transparent;
-  font-weight: 700;
-  color: #666;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 1rem;
-}
-
-.tabLink:hover {
-  color: #27ae60;
-}
-
-.activeTab {
-  color: #27ae60;
-  border-bottom-color: #27ae60;
-}
-
-/* Schedule */
-.roundSection {
-  margin-bottom: 4rem;
-}
-
-.roundTitle {
-  font-size: 1.5rem;
-  color: #27ae60;
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #eee;
-}
-
-.matchesGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
-}
-
 @media (max-width: 900px) {
   .detailBody {
     grid-template-columns: 1fr;
   }
-  
-  .tabLink {
+}
+
+@media (max-width: 480px) {
+  .container {
     padding: 1rem;
-    flex: 1;
-    font-size: 0.9rem;
+  }
+
+  .meta {
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .categoryMeta div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .categoryMeta dd {
+    text-align: left;
+  }
+
+  .retryButton,
+  .secondaryRetry {
+    width: 100%;
   }
 }

@@ -22,7 +22,7 @@ export const TournamentFilters = ({ seasons, currentFilters, onFilterChange }) =
   };
 
   return (
-    <div className={styles.filtersContainer}>
+    <div className={styles.filtersContainer} role="group" aria-label="Filtros de campeonatos">
       <div className={styles.filterGroup}>
         <label htmlFor="season_id">Temporada</label>
         <select 
@@ -39,7 +39,7 @@ export const TournamentFilters = ({ seasons, currentFilters, onFilterChange }) =
       </div>
 
       <div className={styles.filterGroup}>
-        <label htmlFor="type">Tipo</label>
+        <label htmlFor="type">Modalidad</label>
         <select 
           id="type" 
           name="type" 
@@ -48,7 +48,7 @@ export const TournamentFilters = ({ seasons, currentFilters, onFilterChange }) =
         >
           <option value="">Todos</option>
           <option value="singles">Individual</option>
-          <option value="doubles">Parejas</option>
+          <option value="doubles">Dobles</option>
         </select>
       </div>
 
@@ -61,7 +61,7 @@ export const TournamentFilters = ({ seasons, currentFilters, onFilterChange }) =
           onChange={handleChange}
         >
           <option value="">Cualquiera</option>
-          <option value="active">En curso</option>
+          <option value="active">Activo</option>
           <option value="finished">Finalizado</option>
         </select>
       </div>

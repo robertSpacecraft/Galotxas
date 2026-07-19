@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { getMatchDetailPath } from '../navigation/competitionRoutes';
 import styles from './MatchCard.module.css';
 
 export default function MatchCard({
@@ -55,9 +56,15 @@ export default function MatchCard({
         if (!match.scheduled_date) return 'Fecha por determinar';
 
         const date = new Date(match.scheduled_date);
-        return Number.isNaN(date.getTime()) ? 'Fecha por determinar' : date.toLocaleString();
+        return Number.isNaN(date.getTime())
+            ? 'Fecha por determinar'
+            : new Intl.DateTimeFormat('es-ES', {
+                dateStyle: 'medium',
+                timeStyle: 'short',
+            }).format(date);
     })();
     const score = (value) => canShowScore && value !== null && value !== undefined ? value : '-';
+    const detailPath = getMatchDetailPath(match.id);
 
     const card = (
         <div className={styles.card}>
@@ -94,13 +101,13 @@ export default function MatchCard({
         </div>
     );
 
-    if (!match.id) {
+    if (!detailPath) {
         return <div className={styles.link}>{card}</div>;
     }
 
     return (
         <Link
-            to={`/matches/${match.id}`}
+            to={detailPath}
             className={styles.link}
             aria-label={`Ver partido: ${homeName} contra ${awayName}`}
         >

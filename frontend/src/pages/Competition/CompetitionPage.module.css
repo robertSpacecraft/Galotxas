@@ -1,0 +1,266 @@
+.sections,
+.seasonList {
+  display: grid;
+  gap: clamp(2.5rem, 6vw, 4rem);
+}
+
+.season {
+  min-width: 0;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border: 1px solid #d7dee8;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 6px 20px rgba(0, 31, 63, 0.08);
+}
+
+.seasonHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.seasonEyebrow,
+.championshipType {
+  margin: 0 0 0.4rem;
+  color: #526173;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.seasonTitle,
+.championshipTitle {
+  margin: 0;
+  color: #003366;
+  overflow-wrap: anywhere;
+}
+
+.seasonTitle {
+  font-size: clamp(1.4rem, 4vw, 1.8rem);
+  line-height: 1.25;
+}
+
+.seasonCount {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: #eaf1f8;
+  color: #003366;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.seasonDetails,
+.details {
+  margin: 0;
+}
+
+.seasonDetails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  margin-top: 1rem;
+}
+
+.detail {
+  display: flex;
+  min-width: 0;
+  gap: 0.4rem;
+  color: #354254;
+  line-height: 1.5;
+}
+
+.detail dt {
+  font-weight: 800;
+}
+
+.detail dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.championshipGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.championshipCard {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 1.25rem;
+  border: 1px solid #d7dee8;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.championshipTitle {
+  font-size: 1.25rem;
+  line-height: 1.35;
+}
+
+.details {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 1rem;
+}
+
+.championshipLink,
+.retryButton {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #003366;
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.championshipLink {
+  margin-top: auto;
+  padding: 0.7rem 1rem;
+  background: #003366;
+  color: #ffffff;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+.championshipLink:focus-visible,
+.rankingFullLink:focus-visible,
+.retryButton:focus-visible {
+  outline: 3px solid #003366;
+  outline-offset: 4px;
+}
+
+.localEmpty,
+.remoteState,
+.errorState {
+  margin: 0;
+  padding: 1.25rem;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #354254;
+  line-height: 1.6;
+}
+
+.localEmpty {
+  margin-top: 1.5rem;
+  background: #f8fafc;
+}
+
+.errorState {
+  border: 1px solid #a53b3b;
+}
+
+.errorState p {
+  margin: 0;
+}
+
+.retryButton {
+  margin-top: 1rem;
+  padding: 0.65rem 1rem;
+  background: #ffffff;
+  color: #003366;
+  cursor: pointer;
+}
+
+.rankingList {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rankingEntry {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid #d7dee8;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.rankingIdentity {
+  min-width: 0;
+}
+
+.rankingPosition {
+  color: #526173;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rankingName {
+  margin: 0.25rem 0 0;
+  color: #003366;
+  font-size: 1.1rem;
+  overflow-wrap: anywhere;
+}
+
+.rankingContext {
+  margin: 0.35rem 0 0;
+  color: #526173;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.rankingPoints {
+  flex: 0 0 auto;
+  margin: 0;
+  color: #354254;
+  text-align: right;
+}
+
+.rankingFullLink {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1.25rem;
+  padding: 0.7rem 1rem;
+  border: 2px solid #003366;
+  border-radius: 8px;
+  background: #003366;
+  color: #ffffff;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+@media (max-width: 480px) {
+  .seasonHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .seasonCount {
+    flex: none;
+  }
+
+  .championshipLink,
+  .rankingFullLink,
+  .retryButton {
+    width: 100%;
+  }
+
+  .rankingEntry {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .rankingPoints {
+    text-align: left;
+  }
+}
