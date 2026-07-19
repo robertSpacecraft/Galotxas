@@ -19,6 +19,7 @@ class StoreSeasonRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'status' => ['required', new Enum(SeasonStatus::class)],
+            'is_public' => ['required', 'boolean'],
             'start_date' => ['nullable', 'date'],
             'end_date' => [
                 'nullable',

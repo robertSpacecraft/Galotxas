@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\Season;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Season>
+ * @extends Factory<Season>
  */
 class SeasonFactory extends Factory
 {
@@ -17,10 +18,25 @@ class SeasonFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => 'Temporada ' . $this->faker->year(),
+            'name' => 'Temporada '.$this->faker->year(),
             'start_date' => now()->startOfYear()->format('Y-m-d'),
             'end_date' => now()->endOfYear()->format('Y-m-d'),
             'status' => 'active',
+            'is_public' => false,
         ];
+    }
+
+    public function publiclyVisible(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_public' => true,
+        ]);
+    }
+
+    public function privatelyVisible(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_public' => false,
+        ]);
     }
 }

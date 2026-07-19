@@ -23,8 +23,13 @@ class Category extends Model
         'status',
     ];
 
+    protected $hidden = [
+        'is_public',
+    ];
+
     protected $casts = [
         'gender' => CategoryGender::class,
+        'is_public' => 'boolean',
     ];
 
     public function championship(): BelongsTo

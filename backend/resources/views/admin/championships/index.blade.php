@@ -17,7 +17,10 @@
                     <th>ID</th>
                     <th>Nombre</th>
                     <th>Tipo</th>
+                    <th>Estado</th>
+                    <th>Visibilidad</th>
                     <th>Temporada</th>
+                    <th>Visibilidad temporada</th>
                     <th>Acciones</th>
                 </tr>
                 </thead>
@@ -27,7 +30,18 @@
                         <td>{{ $championship->id }}</td>
                         <td>{{ $championship->name }}</td>
                         <td>{{ $championship->type?->value ?? $championship->type }}</td>
+                        <td>{{ $championship->status }}</td>
+                        <td>
+                            <span class="badge {{ $championship->is_public ? 'text-bg-success' : 'text-bg-secondary' }}">
+                                {{ $championship->is_public ? 'Pública' : 'Privada' }}
+                            </span>
+                        </td>
                         <td>{{ $championship->season?->name }}</td>
+                        <td>
+                            <span class="badge {{ $championship->season?->is_public ? 'text-bg-success' : 'text-bg-secondary' }}">
+                                {{ $championship->season?->is_public ? 'Pública' : 'Privada' }}
+                            </span>
+                        </td>
                         <td>
                             <a href="{{ route('admin.championships.show', $championship) }}"
                                class="btn btn-sm btn-primary">

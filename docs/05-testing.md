@@ -574,6 +574,26 @@ La suite dirigida se ejecuta sobre el MariaDB aislado del perfil Docker `test` j
 
 La suite dirigida se ejecuta sobre el MariaDB aislado del perfil Docker `test` junto con las pruebas de sesión administrativa, inscripciones, rankings, calendario, copa y contrato público de partidos. No se añade cobertura frontend o E2E porque este bloque no modifica React ni la API pública.
 
+## COMPETITION-VISIBILITY-FOUNDATION-1 — Base administrativa de visibilidad
+
+La Fase 2B.4A incorpora cobertura Feature para:
+
+- columnas booleanas, default privado y casts de `is_public` en `Season`, `Championship` y `Category`;
+- factories privadas por defecto y estados expresivos `publiclyVisible()` y `privatelyVisible()`;
+- checkbox accesible, valor oculto, recuperación del valor persistido y prioridad de `old()` en los tres formularios;
+- creación y actualización públicas o privadas de temporadas sin alterar su estado operativo;
+- creación y actualización de campeonatos públicos únicamente bajo temporadas públicas;
+- creación y actualización de categorías públicas únicamente bajo campeonatos y temporadas públicos;
+- aceptación normal de registros privados bajo cualquier combinación de padres;
+- rechazo de booleanos manipulados y mensajes comprensibles para las violaciones jerárquicas;
+- ocultación de temporadas o campeonatos sin cascada sobre los flags de sus descendientes;
+- conservación de todos los campos completados en 2B.1, 2B.2 y 2B.3, incluidas relaciones e imágenes no administrables;
+- continuidad de permisos para administrador activo, inactivo, usuario normal y anónimo;
+- regresión pública temporal: las consultas aún entregan registros privados, los Resources no incluyen `is_public` y permanecen intactos rutas, campos y envelopes.
+- aislamiento del CRUD API administrativo heredado: sus respuestas no serializan `is_public` y sus escrituras masivas no pueden modificarlo hasta la revisión de 2B.5.
+
+La migración se valida mediante `migrate:fresh` sobre el MariaDB aislado. Su backfill se revisa explícitamente: primero crea las columnas con default `false`, después marca como públicos todos los registros preexistentes y conserva `false` como default para altas futuras. No se ejecuta contra desarrollo.
+
 ## CMS público React
 - consumo del endpoint `GET /api/v1/cms/pages` desde el cliente API existente;
 - ruta pública `/contenidos`;

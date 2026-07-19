@@ -64,6 +64,31 @@
                 </div>
             </div>
 
+            <div class="col-md-3">
+                <div class="border rounded p-3 bg-light">
+                    <div class="small text-secondary">Estado operativo</div>
+                    <div class="fw-semibold">{{ $championship->status }}</div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="border rounded p-3 bg-light">
+                    <div class="small text-secondary">Visibilidad</div>
+                    <span class="badge {{ $championship->is_public ? 'text-bg-success' : 'text-bg-secondary' }}">
+                        {{ $championship->is_public ? 'Pública' : 'Privada' }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="border rounded p-3 bg-light">
+                    <div class="small text-secondary">Visibilidad de temporada</div>
+                    <span class="badge {{ $championship->season?->is_public ? 'text-bg-success' : 'text-bg-secondary' }}">
+                        {{ $championship->season?->is_public ? 'Pública' : 'Privada' }}
+                    </span>
+                </div>
+            </div>
+
             <div class="col-12">
                 <div class="border rounded p-3 bg-light">
                     <div class="small text-secondary">Categorías del campeonato</div>

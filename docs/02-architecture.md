@@ -106,6 +106,19 @@ Los dos primeros canales disponen actualmente de infraestructura en distintas á
 
 Una misma pieza no debe mantenerse de forma editable en más de un canal. Los criterios de elección y la matriz de fuentes se definen en `10-content-governance.md`.
 
+## Base de visibilidad de la competición
+
+La competición funcional separa dos dimensiones persistidas:
+
+- **estado operativo**, expresado por los estados propios de temporada, campeonato o categoría;
+- **visibilidad declarada**, expresada por el booleano `is_public` y gestionada desde Blade.
+
+`is_public` no se deriva de estados, fechas, inscripciones, calendarios o resultados. Los modelos `Season`, `Championship` y `Category` lo castean a booleano y los nuevos registros son privados por defecto. La migración de incorporación marca como públicos los registros preexistentes para preservar su accesibilidad anterior.
+
+La administración valida la jerarquía Temporada → Campeonato → Categoría al activar la visibilidad. Desactivar un padre no propaga escrituras a sus hijos: la visibilidad declarada de cada descendiente se conserva. La visibilidad efectiva será la conjunción de los flags de la rama cuando 2B.4B la aplique en las consultas públicas.
+
+Durante 2B.4A los controladores, rutas y Resources públicos permanecen intactos, `is_public` no forma parte del contrato serializado y las consultas aún no filtran registros privados. Los modelos ocultan además el flag de su serialización Eloquent y no lo admiten mediante asignación masiva, de modo que el CRUD API administrativo heredado no lo lee ni lo modifica accidentalmente; Blade lo asigna de forma explícita. Esta separación deliberada permite validar primero persistencia y administración antes de cambiar el comportamiento de lectura.
+
 ## Arquitectura CMS pública
 
 La primera base backend del CMS público sigue el mismo patrón general del proyecto:

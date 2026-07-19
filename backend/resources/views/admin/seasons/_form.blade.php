@@ -48,6 +48,28 @@
         @enderror
     </div>
 
+    <div class="col-12">
+        <input type="hidden" name="is_public" value="0">
+        <div class="form-check">
+            <input
+                id="is_public"
+                type="checkbox"
+                name="is_public"
+                value="1"
+                class="form-check-input @error('is_public') is-invalid @enderror"
+                aria-describedby="is_public_help"
+                @checked((bool) old('is_public', $season->is_public ?? false))
+            >
+            <label for="is_public" class="form-check-label">Visible públicamente</label>
+            @error('is_public')
+            <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+        <div id="is_public_help" class="form-text">
+            La visibilidad pública es independiente del estado operativo de la temporada.
+        </div>
+    </div>
+
     <div class="col-md-6">
         <label for="start_date" class="form-label">Fecha de inicio</label>
         <input

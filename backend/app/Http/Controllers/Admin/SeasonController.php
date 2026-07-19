@@ -31,12 +31,14 @@ class SeasonController extends Controller
     {
         $validated = $request->validated();
 
-        Season::create([
+        $season = new Season([
             'name' => $validated['name'],
             'status' => $validated['status'],
             'start_date' => $validated['start_date'] ?? null,
             'end_date' => $validated['end_date'] ?? null,
         ]);
+        $season->is_public = (bool) $validated['is_public'];
+        $season->save();
 
         return redirect()
             ->route('admin.seasons.index')
@@ -68,12 +70,14 @@ class SeasonController extends Controller
     {
         $validated = $request->validated();
 
-        $season->update([
+        $season->fill([
             'name' => $validated['name'],
             'status' => $validated['status'],
             'start_date' => $validated['start_date'] ?? null,
             'end_date' => $validated['end_date'] ?? null,
         ]);
+        $season->is_public = (bool) $validated['is_public'];
+        $season->save();
 
         return redirect()
             ->route('admin.seasons.index')

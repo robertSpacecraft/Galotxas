@@ -105,6 +105,20 @@ Temporada
 
 Esta estructura constituye la organización oficial del dominio.
 
+## Visibilidad pública de la competición
+
+Temporadas, campeonatos y categorías disponen de una visibilidad pública declarada mediante `is_public`. Esta propiedad representa la intención administrativa de que la entidad pueda formar parte de la experiencia pública y es independiente de su estado operativo, sus fechas, la apertura de inscripciones, el calendario o los resultados.
+
+Los nuevos registros son privados por defecto. La incorporación inicial del campo conserva como públicos los registros que ya existían para no alterar su accesibilidad previa.
+
+La declaración respeta la jerarquía Temporada → Campeonato → Categoría:
+
+- una temporada puede marcarse pública o privada libremente;
+- un campeonato sólo puede marcarse público si su temporada es pública;
+- una categoría sólo puede marcarse pública si su campeonato y la temporada del campeonato son públicos.
+
+Ocultar una temporada o un campeonato no modifica automáticamente los flags de sus descendientes. La rama queda preparada para considerarse efectivamente privada por su padre, pero los valores propios se conservan para poder restaurar la visibilidad del padre sin reconfigurar todos los hijos. La aplicación efectiva de esta jerarquía en cada lectura pública se incorpora en la Fase 2B.4B; este bloque no redefine todavía qué endpoints filtran cada entidad.
+
 ---
 
 # 6. Gestión de resultados

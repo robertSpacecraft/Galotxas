@@ -7,7 +7,12 @@
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
             <div>
                 <h1 class="mb-2">Campeonatos de la temporada: {{ $season->name }}</h1>
-                <p class="text-secondary mb-0">Listado de campeonatos asociados a esta temporada</p>
+                <p class="text-secondary mb-0">
+                    Listado de campeonatos asociados a esta temporada
+                    <span class="badge {{ $season->is_public ? 'text-bg-success' : 'text-bg-secondary' }} ms-1">
+                        Temporada {{ $season->is_public ? 'pública' : 'privada' }}
+                    </span>
+                </p>
             </div>
 
             <a href="{{ route('admin.championships.create', $season) }}" class="btn btn-primary">
@@ -41,6 +46,8 @@
                                 <th>ID</th>
                                 <th>Nombre</th>
                                 <th>Tipo</th>
+                                <th>Estado</th>
+                                <th>Visibilidad</th>
                                 <th class="text-center" style="width: 340px;">Acciones</th>
                             </tr>
                             </thead>
@@ -50,6 +57,12 @@
                                     <td>{{ $championship->id }}</td>
                                     <td>{{ $championship->name }}</td>
                                     <td>{{ $championship->type?->value ?? $championship->type }}</td>
+                                    <td>{{ $championship->status }}</td>
+                                    <td>
+                                        <span class="badge {{ $championship->is_public ? 'text-bg-success' : 'text-bg-secondary' }}">
+                                            {{ $championship->is_public ? 'Pública' : 'Privada' }}
+                                        </span>
+                                    </td>
                                     <td class="text-center">
                                         <div class="d-flex flex-wrap justify-content-center gap-2">
                                             <a href="{{ route('admin.championships.show', $championship) }}"

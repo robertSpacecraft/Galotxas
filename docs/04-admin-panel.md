@@ -101,19 +101,21 @@ La ruta `/admin/venues` centraliza la configuración básica de pistas.
 
 La ruta `/admin/seasons` centraliza el CRUD Blade de temporadas.
 
-- El formulario gestiona los campos reales `name`, `status`, `start_date` y `end_date`.
+- El formulario gestiona los campos reales `name`, `status`, `is_public`, `start_date` y `end_date`.
 - El nombre y el estado son obligatorios; el estado se valida contra los casos reales de `SeasonStatus`.
 - Las fechas de inicio y fin son opcionales y se editan mediante controles HTML `date`.
 - Cuando se informan ambas fechas, la fecha de fin debe ser igual o posterior a la fecha de inicio.
 - La creación y actualización reciben exclusivamente datos validados y persisten explícitamente los cuatro campos, incluidos los valores nulos al limpiar las fechas.
 - La edición presenta el estado casteado correcto y da prioridad a `old()` después de un error de validación.
 - El listado conserva la presentación de estado y fechas, y el acceso requiere una sesión de administrador activo.
+- El checkbox «Visible públicamente» se envía siempre como booleano, crea temporadas privadas por defecto y se presenta por separado del estado como Pública o Privada.
+- Ocultar una temporada está permitido aunque tenga campeonatos declarados públicos; sus flags no se modifican automáticamente.
 
 ### Campeonatos
 
 Las rutas `/admin/championships` y `/admin/seasons/{season}/championships/create` centralizan el CRUD Blade de campeonatos.
 
-- El formulario gestiona los campos reales `season_id`, `name`, `description`, `type`, `status`, `start_date`, `end_date`, `registration_status`, `registration_starts_at` y `registration_ends_at`.
+- El formulario gestiona los campos reales `season_id`, `name`, `description`, `type`, `status`, `is_public`, `start_date`, `end_date`, `registration_status`, `registration_starts_at` y `registration_ends_at`.
 - La temporada se elige entre registros existentes. Nombre, tipo, estado del campeonato y estado de inscripciones son obligatorios; los valores se validan contra los casos admitidos por el dominio actual.
 - Descripción, fechas del campeonato y fechas de inscripción son opcionales. Cada fecha final debe ser igual o posterior a la fecha inicial de su mismo intervalo cuando ambas se informan.
 - La creación y actualización reciben exclusivamente datos validados y persisten de forma explícita todos los campos administrables, incluidos los valores nulos al limpiar campos opcionales.
@@ -122,13 +124,15 @@ Las rutas `/admin/championships` y `/admin/seasons/{season}/championships/create
 - `image_path` existe en persistencia, pero la gestión multimedia no forma parte de este formulario: no se ofrece entrada ni subida y una actualización conserva el valor previo.
 - No existe un booleano de apertura en la tabla. `registration_is_open` continúa calculándose a partir del estado y las fechas de inscripción y no es un campo editable.
 - Este bloque no cambia rutas, filtros de visibilidad, controladores, Resources ni contratos de la API pública o administrativa.
+- Las opciones de temporada indican si son públicas o privadas. Un campeonato sólo puede marcarse público bajo una temporada pública; mantenerlo privado es válido bajo cualquier temporada.
+- Ocultar un campeonato no cambia automáticamente `is_public` en sus categorías.
 
 ### Categorías
 
 Las rutas `/admin/championships/{championship}/categories/*` y `/admin/categories/{category}/*` centralizan el CRUD Blade de categorías.
 
 - La creación permanece anidada bajo un campeonato existente y toma `championship_id` exclusivamente del modelo resuelto por la ruta. La edición no permite mover una categoría a otro campeonato.
-- El formulario gestiona los campos reales `name`, `description`, `level`, `gender` y `status`.
+- El formulario gestiona los campos reales `name`, `description`, `level`, `gender`, `status` e `is_public`.
 - Nombre, género y estado son obligatorios. El género se valida contra `CategoryGender` y el estado contra los valores administrativos reales `pending` y `active`.
 - Descripción y nivel son opcionales conforme al esquema. La descripción admite hasta 5.000 caracteres y el nivel, cuando se informa, debe estar entre 1 y 10.
 - La creación y actualización reciben exclusivamente datos validados y persisten de forma explícita todos los campos administrables, incluidos los valores nulos al limpiar descripción o nivel.
@@ -137,6 +141,17 @@ Las rutas `/admin/championships/{championship}/categories/*` y `/admin/categorie
 - `image_path` existe en persistencia, pero la gestión multimedia no forma parte de este formulario: no se ofrece entrada ni subida y una actualización conserva el valor previo.
 - Las relaciones con inscripciones, participantes, equipos, rondas y partidos no forman parte del formulario y permanecen intactas durante una actualización ordinaria.
 - Este bloque no cambia rutas, filtros de visibilidad, controladores, Resources ni contratos de la API pública o administrativa.
+- El formulario muestra la visibilidad del campeonato y de su temporada. Una categoría sólo puede marcarse pública cuando ambos padres son públicos; puede mantenerse privada bajo cualquier combinación.
+
+### Semántica común de visibilidad competitiva
+
+- Estado operativo y visibilidad son dimensiones independientes. El panel usa Pública o Privada, no Publicada.
+- Los tres formularios incluyen un checkbox accesible y un valor oculto para persistir `false` cuando queda desmarcado; `old()` prevalece tras un error.
+- Los nuevos registros son privados por defecto.
+- Activar un campeonato exige una temporada pública. Activar una categoría exige campeonato y temporada públicos.
+- Ocultar una temporada o un campeonato siempre está permitido y no propaga cambios a los flags de sus descendientes.
+- Los listados y detalles muestran conjuntamente estado operativo y visibilidad declarada para evitar que el administrador los confunda.
+- La API pública todavía no aplica estos flags. El cálculo y filtro de visibilidad efectiva corresponden a 2B.4B.
 
 ### Inventario de pantallas implementadas
 

@@ -23,13 +23,14 @@ class AdminChampionshipTest extends TestCase
     public function test_active_admin_can_open_create_and_edit_forms_with_real_options(): void
     {
         $admin = User::factory()->admin()->create();
-        $season = Season::factory()->create(['name' => 'Temporada principal']);
+        $season = Season::factory()->publiclyVisible()->create(['name' => 'Temporada principal']);
         $otherSeason = Season::factory()->create(['name' => 'Temporada alternativa']);
         $championship = Championship::factory()->create([
             'season_id' => $otherSeason->id,
             'type' => ChampionshipType::DOUBLES->value,
             'status' => ChampionshipStatus::ACTIVE->value,
             'registration_status' => ChampionshipRegistrationStatus::OPEN->value,
+            'is_public' => false,
         ]);
 
         $createResponse = $this->actingAs($admin)->get(route('admin.championships.create', $season));
@@ -43,6 +44,9 @@ class AdminChampionshipTest extends TestCase
             ->assertSee('id="description"', false)
             ->assertSee('id="start_date"', false)
             ->assertSee('id="registration_ends_at"', false)
+            ->assertSee('id="is_public"', false)
+            ->assertSee('Temporada principal — Pública')
+            ->assertSee('Temporada alternativa — Privada')
             ->assertDontSee('name="image_path"', false);
 
         foreach (ChampionshipType::cases() as $type) {
@@ -68,6 +72,7 @@ class AdminChampionshipTest extends TestCase
         $this->assertOptionSelected($editResponse, ChampionshipType::DOUBLES->value);
         $this->assertOptionSelected($editResponse, ChampionshipStatus::ACTIVE->value);
         $this->assertOptionSelected($editResponse, ChampionshipRegistrationStatus::OPEN->value);
+        $this->assertVisibilityNotChecked($editResponse);
     }
 
     public function test_non_admin_cannot_create_or_edit_championships(): void
@@ -166,6 +171,7 @@ class AdminChampionshipTest extends TestCase
             'registration_starts_at' => '2029-01-02 09:30:00',
             'registration_ends_at' => '2029-01-25 20:00:00',
             'image_path' => null,
+            'is_public' => 0,
         ]);
     }
 
@@ -269,7 +275,7 @@ class AdminChampionshipTest extends TestCase
     public function test_edit_form_recovers_every_managed_value_and_omits_image_path(): void
     {
         $admin = User::factory()->admin()->create();
-        $season = Season::factory()->create();
+        $season = Season::factory()->publiclyVisible()->create();
         $championship = Championship::factory()->create([
             'season_id' => $season->id,
             'name' => 'Campionat existent',
@@ -282,6 +288,7 @@ class AdminChampionshipTest extends TestCase
             'registration_starts_at' => '2029-02-01 08:15:00',
             'registration_ends_at' => '2029-02-28 21:45:00',
             'image_path' => 'championships/existent.jpg',
+            'is_public' => true,
         ]);
 
         $response = $this->actingAs($admin)->get(route('admin.championships.edit', $championship));
@@ -300,13 +307,14 @@ class AdminChampionshipTest extends TestCase
         $this->assertOptionSelected($response, ChampionshipType::DOUBLES->value);
         $this->assertOptionSelected($response, ChampionshipStatus::FINISHED->value);
         $this->assertOptionSelected($response, ChampionshipRegistrationStatus::OPEN->value);
+        $this->assertVisibilityChecked($response);
     }
 
     public function test_old_input_precedes_stored_values_after_update_validation_error(): void
     {
         $admin = User::factory()->admin()->create();
         $season = Season::factory()->create();
-        $oldSeason = Season::factory()->create();
+        $oldSeason = Season::factory()->publiclyVisible()->create();
         $championship = Championship::factory()->create([
             'season_id' => $season->id,
             'type' => ChampionshipType::SINGLES->value,
@@ -323,6 +331,7 @@ class AdminChampionshipTest extends TestCase
             'registration_status' => ChampionshipRegistrationStatus::OPEN->value,
             'registration_starts_at' => '2030-09-20T09:00',
             'registration_ends_at' => '2030-09-20T08:00',
+            'is_public' => 1,
         ]);
 
         $this->actingAs($admin)
@@ -347,6 +356,7 @@ class AdminChampionshipTest extends TestCase
         $this->assertOptionSelected($response, ChampionshipType::DOUBLES->value);
         $this->assertOptionSelected($response, ChampionshipStatus::CANCELLED->value);
         $this->assertOptionSelected($response, ChampionshipRegistrationStatus::OPEN->value);
+        $this->assertVisibilityChecked($response);
     }
 
     public function test_valid_update_persists_every_field_and_preserves_image_and_relations(): void
@@ -358,6 +368,7 @@ class AdminChampionshipTest extends TestCase
             'season_id' => $season->id,
             'name' => 'Nom anterior',
             'image_path' => 'championships/conservar.jpg',
+            'is_public' => false,
         ]);
         $category = Category::factory()->create(['championship_id' => $championship->id]);
         $player = Player::factory()->create();
@@ -381,6 +392,7 @@ class AdminChampionshipTest extends TestCase
                 'registration_starts_at' => '2030-01-15T10:00',
                 'registration_ends_at' => '2030-02-15T20:30',
                 'image_path' => 'championships/no-sustituir.jpg',
+                'is_public' => 0,
             ])
         );
 
@@ -402,6 +414,7 @@ class AdminChampionshipTest extends TestCase
             'registration_starts_at' => '2030-01-15 10:00:00',
             'registration_ends_at' => '2030-02-15 20:30:00',
             'image_path' => 'championships/conservar.jpg',
+            'is_public' => 0,
         ]);
         $this->assertDatabaseHas('categories', [
             'id' => $category->id,
@@ -530,10 +543,12 @@ class AdminChampionshipTest extends TestCase
         $active = Championship::factory()->create([
             'name' => 'Campionat públic actiu',
             'status' => ChampionshipStatus::ACTIVE->value,
+            'is_public' => false,
         ]);
         $cancelled = Championship::factory()->create([
             'name' => 'Campionat públic cancel·lat',
             'status' => ChampionshipStatus::CANCELLED->value,
+            'is_public' => false,
         ]);
 
         $this->getJson('/api/v1/championships')
@@ -574,6 +589,144 @@ class AdminChampionshipTest extends TestCase
             'created_at',
             'updated_at',
         ], array_keys($response->json('data')));
+        $response->assertJsonMissingPath('data.is_public');
+    }
+
+    public function test_championship_creation_enforces_public_parent_hierarchy(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $privateSeason = Season::factory()->privatelyVisible()->create();
+        $publicSeason = Season::factory()->publiclyVisible()->create();
+
+        $this->actingAs($admin)
+            ->post(
+                route('admin.championships.store', $privateSeason),
+                $this->validPayload($privateSeason, [
+                    'name' => 'Privado bajo temporada privada',
+                    'is_public' => 0,
+                ])
+            )
+            ->assertRedirect(route('admin.seasons.championships', $privateSeason));
+
+        $this->actingAs($admin)
+            ->post(
+                route('admin.championships.store', $publicSeason),
+                $this->validPayload($publicSeason, [
+                    'name' => 'Privado bajo temporada pública',
+                    'is_public' => false,
+                ])
+            )
+            ->assertRedirect(route('admin.seasons.championships', $publicSeason));
+
+        $this->actingAs($admin)
+            ->post(
+                route('admin.championships.store', $publicSeason),
+                $this->validPayload($publicSeason, [
+                    'name' => 'Público bajo temporada pública',
+                    'is_public' => true,
+                ])
+            )
+            ->assertRedirect(route('admin.seasons.championships', $publicSeason));
+
+        $this->actingAs($admin)
+            ->post(
+                route('admin.championships.store', $privateSeason),
+                $this->validPayload($privateSeason, [
+                    'name' => 'Público imposible',
+                    'is_public' => 1,
+                ])
+            )
+            ->assertSessionHasErrors([
+                'is_public' => 'No puedes hacer público el campeonato mientras su temporada sea privada.',
+            ]);
+
+        $this->assertDatabaseHas('championships', [
+            'name' => 'Privado bajo temporada privada',
+            'is_public' => 0,
+        ]);
+        $this->assertDatabaseHas('championships', [
+            'name' => 'Privado bajo temporada pública',
+            'is_public' => 0,
+        ]);
+        $this->assertDatabaseHas('championships', [
+            'name' => 'Público bajo temporada pública',
+            'is_public' => 1,
+        ]);
+        $this->assertDatabaseMissing('championships', ['name' => 'Público imposible']);
+    }
+
+    public function test_championship_visibility_updates_respect_hierarchy_and_do_not_cascade(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $season = Season::factory()->publiclyVisible()->create();
+        $championship = Championship::factory()->privatelyVisible()->create([
+            'season_id' => $season->id,
+            'status' => ChampionshipStatus::ACTIVE->value,
+            'image_path' => 'championships/preservar.jpg',
+        ]);
+        $category = Category::factory()->publiclyVisible()->create([
+            'championship_id' => $championship->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->put(
+                route('admin.championships.update', $championship),
+                $this->validPayload($season, [
+                    'name' => $championship->name,
+                    'status' => ChampionshipStatus::ACTIVE->value,
+                    'is_public' => 1,
+                ])
+            )
+            ->assertRedirect(route('admin.seasons.championships', $season));
+
+        $this->assertTrue($championship->fresh()->is_public);
+        $this->assertSame(ChampionshipStatus::ACTIVE->value, $championship->fresh()->status);
+        $this->assertSame('championships/preservar.jpg', $championship->fresh()->image_path);
+
+        $season->is_public = false;
+        $season->save();
+
+        $this->actingAs($admin)
+            ->put(
+                route('admin.championships.update', $championship),
+                $this->validPayload($season, [
+                    'name' => 'No debe hacerse público',
+                    'is_public' => true,
+                ])
+            )
+            ->assertSessionHasErrors('is_public');
+
+        $this->actingAs($admin)
+            ->put(
+                route('admin.championships.update', $championship),
+                $this->validPayload($season, [
+                    'name' => $championship->name,
+                    'status' => ChampionshipStatus::ACTIVE->value,
+                    'is_public' => 0,
+                ])
+            )
+            ->assertRedirect(route('admin.seasons.championships', $season));
+
+        $this->assertFalse($championship->fresh()->is_public);
+        $this->assertTrue($category->fresh()->is_public);
+    }
+
+    public function test_championship_visibility_must_be_a_boolean(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $season = Season::factory()->publiclyVisible()->create();
+
+        $this->actingAs($admin)
+            ->post(
+                route('admin.championships.store', $season),
+                $this->validPayload($season, [
+                    'name' => 'Visibilidad manipulada',
+                    'is_public' => 'publicada',
+                ])
+            )
+            ->assertSessionHasErrors('is_public');
+
+        $this->assertDatabaseMissing('championships', ['name' => 'Visibilidad manipulada']);
     }
 
     public function test_admin_can_delete_an_empty_championship(): void
@@ -601,6 +754,7 @@ class AdminChampionshipTest extends TestCase
             'description' => 'Descripció vàlida.',
             'type' => ChampionshipType::SINGLES->value,
             'status' => ChampionshipStatus::PENDING->value,
+            'is_public' => 0,
             'start_date' => '2029-03-01',
             'end_date' => '2029-11-30',
             'registration_status' => ChampionshipRegistrationStatus::CLOSED->value,
@@ -613,6 +767,22 @@ class AdminChampionshipTest extends TestCase
     {
         $this->assertMatchesRegularExpression(
             '/<option\s+value="'.preg_quote($value, '/').'"[^>]*\bselected\b[^>]*>/',
+            $response->getContent()
+        );
+    }
+
+    private function assertVisibilityChecked(TestResponse $response): void
+    {
+        $this->assertMatchesRegularExpression(
+            '/<input\s+[^>]*id="is_public"[^>]*\bchecked\b[^>]*>/',
+            $response->getContent()
+        );
+    }
+
+    private function assertVisibilityNotChecked(TestResponse $response): void
+    {
+        $this->assertDoesNotMatchRegularExpression(
+            '/<input\s+[^>]*id="is_public"[^>]*\bchecked\b[^>]*>/',
             $response->getContent()
         );
     }

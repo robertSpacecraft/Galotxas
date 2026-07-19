@@ -4,6 +4,10 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ## Unreleased
 
+### Added
+
+- Se incorpora la base administrativa `is_public` para temporadas, campeonatos y categorías, con nuevos registros privados, backfill compatible y validación jerárquica sin cascadas; la API pública todavía no filtra por este campo.
+
 ### Changed
 
 - El CMS crea las páginas como borrador y exige contenido validado antes de publicarlas.

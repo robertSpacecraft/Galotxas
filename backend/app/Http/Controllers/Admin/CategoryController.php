@@ -22,6 +22,7 @@ class CategoryController extends Controller
 {
     public function index(Championship $championship)
     {
+        $championship->loadMissing('season');
         $categories = $championship->categories()->orderBy('level')->get();
 
         return view('admin.categories.index', compact('championship', 'categories'));
@@ -29,6 +30,8 @@ class CategoryController extends Controller
 
     public function create(Championship $championship)
     {
+        $championship->loadMissing('season');
+
         return view('admin.categories.create', [
             'championship' => $championship,
             'category' => new Category([
@@ -46,7 +49,7 @@ class CategoryController extends Controller
     {
         $validated = $request->validated();
 
-        Category::create([
+        $category = new Category([
             'championship_id' => $championship->id,
             'name' => $validated['name'],
             'slug' => Str::slug($validated['name']),
@@ -55,6 +58,8 @@ class CategoryController extends Controller
             'gender' => $validated['gender'],
             'status' => $validated['status'],
         ]);
+        $category->is_public = (bool) $validated['is_public'];
+        $category->save();
 
         return redirect()
             ->route('admin.championships.categories', $championship)
@@ -158,7 +163,7 @@ class CategoryController extends Controller
 
     public function edit(Category $category)
     {
-        $category->loadMissing('championship');
+        $category->loadMissing('championship.season');
 
         return view('admin.categories.edit', [
             'championship' => $category->championship,
@@ -174,7 +179,7 @@ class CategoryController extends Controller
     {
         $validated = $request->validated();
 
-        $category->update([
+        $category->fill([
             'name' => $validated['name'],
             'slug' => Str::slug($validated['name']),
             'description' => $validated['description'] ?? null,
@@ -182,6 +187,8 @@ class CategoryController extends Controller
             'gender' => $validated['gender'],
             'status' => $validated['status'],
         ]);
+        $category->is_public = (bool) $validated['is_public'];
+        $category->save();
 
         return redirect()
             ->route('admin.championships.categories', $category->championship)

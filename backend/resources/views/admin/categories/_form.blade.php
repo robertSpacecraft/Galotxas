@@ -21,7 +21,11 @@
             value="{{ $championship->name }}"
             disabled
         >
-        <div class="form-text">La categoría permanece asociada a este campeonato.</div>
+        <div class="form-text">
+            La categoría permanece asociada a este campeonato.
+            Campeonato: {{ $championship->is_public ? 'Público' : 'Privado' }}.
+            Temporada: {{ $championship->season?->is_public ? 'Pública' : 'Privada' }}.
+        </div>
     </div>
 
     <div class="col-md-6">
@@ -113,6 +117,28 @@
         @error('description')
         <div class="invalid-feedback">{{ $message }}</div>
         @enderror
+    </div>
+
+    <div class="col-12">
+        <input type="hidden" name="is_public" value="0">
+        <div class="form-check">
+            <input
+                id="is_public"
+                type="checkbox"
+                name="is_public"
+                value="1"
+                class="form-check-input @error('is_public') is-invalid @enderror"
+                aria-describedby="is_public_help"
+                @checked((bool) old('is_public', $category->is_public ?? false))
+            >
+            <label for="is_public" class="form-check-label">Visible públicamente</label>
+            @error('is_public')
+            <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+        <div id="is_public_help" class="form-text">
+            Requiere que tanto el campeonato como su temporada sean públicos. El estado operativo es independiente.
+        </div>
     </div>
 
     <div class="col-12 d-flex gap-2 pt-2">

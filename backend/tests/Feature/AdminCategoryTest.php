@@ -11,6 +11,7 @@ use App\Models\Championship;
 use App\Models\GameMatch;
 use App\Models\Player;
 use App\Models\Round;
+use App\Models\Season;
 use App\Models\User;
 use App\Models\Venue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,7 +25,11 @@ class AdminCategoryTest extends TestCase
     public function test_active_admin_can_open_create_and_edit_forms_with_real_options(): void
     {
         $admin = User::factory()->admin()->create();
-        $championship = Championship::factory()->create(['name' => 'Campionat principal']);
+        $season = Season::factory()->publiclyVisible()->create();
+        $championship = Championship::factory()->publiclyVisible()->create([
+            'season_id' => $season->id,
+            'name' => 'Campionat principal',
+        ]);
         $category = Category::factory()->create([
             'championship_id' => $championship->id,
             'name' => 'Categoria existent',
@@ -32,6 +37,7 @@ class AdminCategoryTest extends TestCase
             'level' => 7,
             'gender' => CategoryGender::MIXED->value,
             'status' => CategoryStatus::ACTIVE->value,
+            'is_public' => true,
         ]);
 
         $createResponse = $this->actingAs($admin)->get(route('admin.categories.create', $championship));
@@ -42,6 +48,9 @@ class AdminCategoryTest extends TestCase
             ->assertSee('Campionat principal')
             ->assertSee('id="description"', false)
             ->assertSee('id="status"', false)
+            ->assertSee('id="is_public"', false)
+            ->assertSee('Campeonato: Público')
+            ->assertSee('Temporada: Pública')
             ->assertDontSee('name="championship_id"', false)
             ->assertDontSee('name="image_path"', false);
 
@@ -67,6 +76,7 @@ class AdminCategoryTest extends TestCase
         $this->assertOptionSelected($editResponse, '7');
         $this->assertOptionSelected($editResponse, CategoryGender::MIXED->value);
         $this->assertOptionSelected($editResponse, CategoryStatus::ACTIVE->value);
+        $this->assertVisibilityChecked($editResponse);
     }
 
     public function test_non_admin_cannot_create_or_edit_categories(): void
@@ -159,6 +169,7 @@ class AdminCategoryTest extends TestCase
             'gender' => CategoryGender::FEMALE->value,
             'status' => CategoryStatus::ACTIVE->value,
             'image_path' => null,
+            'is_public' => 0,
         ]);
     }
 
@@ -222,13 +233,17 @@ class AdminCategoryTest extends TestCase
     public function test_edit_form_recovers_every_managed_value_and_omits_image_path(): void
     {
         $admin = User::factory()->admin()->create();
+        $season = Season::factory()->publiclyVisible()->create();
+        $championship = Championship::factory()->publiclyVisible()->create(['season_id' => $season->id]);
         $category = Category::factory()->create([
+            'championship_id' => $championship->id,
             'name' => 'Categoria editable',
             'description' => 'Text editable',
             'level' => 4,
             'gender' => CategoryGender::MALE->value,
             'status' => CategoryStatus::ACTIVE->value,
             'image_path' => 'categories/existent.jpg',
+            'is_public' => true,
         ]);
 
         $response = $this->actingAs($admin)->get(route('admin.categories.edit', $category));
@@ -243,17 +258,22 @@ class AdminCategoryTest extends TestCase
         $this->assertOptionSelected($response, '4');
         $this->assertOptionSelected($response, CategoryGender::MALE->value);
         $this->assertOptionSelected($response, CategoryStatus::ACTIVE->value);
+        $this->assertVisibilityChecked($response);
     }
 
     public function test_old_input_precedes_stored_values_after_update_validation_error(): void
     {
         $admin = User::factory()->admin()->create();
+        $season = Season::factory()->publiclyVisible()->create();
+        $championship = Championship::factory()->publiclyVisible()->create(['season_id' => $season->id]);
         $category = Category::factory()->create([
+            'championship_id' => $championship->id,
             'name' => 'Valor persistit',
             'description' => 'Descripció persistida',
             'level' => 2,
             'gender' => CategoryGender::MALE->value,
             'status' => CategoryStatus::PENDING->value,
+            'is_public' => true,
         ]);
         $payload = $this->validPayload([
             'name' => 'Valor recuperat',
@@ -261,6 +281,7 @@ class AdminCategoryTest extends TestCase
             'level' => 9,
             'gender' => CategoryGender::FEMALE->value,
             'status' => CategoryStatus::ACTIVE->value,
+            'is_public' => 0,
         ]);
 
         $this->actingAs($admin)
@@ -280,6 +301,7 @@ class AdminCategoryTest extends TestCase
         $this->assertOptionSelected($response, '9');
         $this->assertOptionSelected($response, CategoryGender::FEMALE->value);
         $this->assertOptionSelected($response, CategoryStatus::ACTIVE->value);
+        $this->assertVisibilityNotChecked($response);
     }
 
     public function test_valid_update_persists_every_field_and_preserves_image_championship_and_relations(): void
@@ -290,6 +312,7 @@ class AdminCategoryTest extends TestCase
         $category = Category::factory()->create([
             'championship_id' => $championship->id,
             'image_path' => 'categories/conservar.jpg',
+            'is_public' => false,
         ]);
         $player = Player::factory()->create();
         $registration = CategoryRegistration::factory()->create([
@@ -312,6 +335,7 @@ class AdminCategoryTest extends TestCase
                 'gender' => CategoryGender::MIXED->value,
                 'status' => CategoryStatus::ACTIVE->value,
                 'image_path' => 'categories/no-sustituir.jpg',
+                'is_public' => 0,
             ])
         );
 
@@ -329,6 +353,7 @@ class AdminCategoryTest extends TestCase
             'gender' => CategoryGender::MIXED->value,
             'status' => CategoryStatus::ACTIVE->value,
             'image_path' => 'categories/conservar.jpg',
+            'is_public' => 0,
         ]);
         $this->assertDatabaseHas('category_registrations', ['id' => $registration->id]);
         $this->assertDatabaseHas('category_entries', ['id' => $entry->id]);
@@ -424,6 +449,7 @@ class AdminCategoryTest extends TestCase
             'description' => 'No forma parte del contrato público',
             'image_path' => 'categories/no-publica.jpg',
             'status' => CategoryStatus::PENDING->value,
+            'is_public' => false,
         ]);
 
         $response = $this->getJson('/api/v1/categories/'.$category->id);
@@ -448,6 +474,7 @@ class AdminCategoryTest extends TestCase
             'created_at',
             'updated_at',
         ], array_keys($response->json('data')));
+        $response->assertJsonMissingPath('data.is_public');
 
         $this->getJson('/api/v1/championships/'.$category->championship_id)
             ->assertOk()
@@ -509,6 +536,152 @@ class AdminCategoryTest extends TestCase
         $this->assertDatabaseMissing('categories', ['id' => $category->id]);
     }
 
+    public function test_category_creation_enforces_both_public_parents(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $publicSeason = Season::factory()->publiclyVisible()->create();
+        $privateSeason = Season::factory()->privatelyVisible()->create();
+        $publicChampionship = Championship::factory()->publiclyVisible()->create([
+            'season_id' => $publicSeason->id,
+        ]);
+        $privateChampionship = Championship::factory()->privatelyVisible()->create([
+            'season_id' => $publicSeason->id,
+        ]);
+        $publicChampionshipWithPrivateSeason = Championship::factory()->publiclyVisible()->create([
+            'season_id' => $privateSeason->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->post(
+                route('admin.categories.store', $privateChampionship),
+                $this->validPayload([
+                    'name' => 'Privada bajo padres válidos',
+                    'is_public' => false,
+                ])
+            )
+            ->assertRedirect(route('admin.championships.categories', $privateChampionship));
+
+        $this->actingAs($admin)
+            ->post(
+                route('admin.categories.store', $publicChampionship),
+                $this->validPayload([
+                    'name' => 'Pública bajo padres públicos',
+                    'is_public' => true,
+                ])
+            )
+            ->assertRedirect(route('admin.championships.categories', $publicChampionship));
+
+        $this->actingAs($admin)
+            ->post(
+                route('admin.categories.store', $privateChampionship),
+                $this->validPayload([
+                    'name' => 'Pública con campeonato privado',
+                    'is_public' => 1,
+                ])
+            )
+            ->assertSessionHasErrors('is_public');
+
+        $this->actingAs($admin)
+            ->post(
+                route('admin.categories.store', $publicChampionshipWithPrivateSeason),
+                $this->validPayload([
+                    'name' => 'Pública con temporada privada',
+                    'is_public' => 1,
+                ])
+            )
+            ->assertSessionHasErrors([
+                'is_public' => 'No puedes hacer pública la categoría mientras su campeonato o temporada sean privados.',
+            ]);
+
+        $this->assertDatabaseHas('categories', [
+            'name' => 'Privada bajo padres válidos',
+            'is_public' => 0,
+        ]);
+        $this->assertDatabaseHas('categories', [
+            'name' => 'Pública bajo padres públicos',
+            'is_public' => 1,
+        ]);
+        $this->assertDatabaseMissing('categories', ['name' => 'Pública con campeonato privado']);
+        $this->assertDatabaseMissing('categories', ['name' => 'Pública con temporada privada']);
+    }
+
+    public function test_category_visibility_updates_respect_hierarchy_and_preserve_other_data(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $season = Season::factory()->publiclyVisible()->create();
+        $championship = Championship::factory()->publiclyVisible()->create([
+            'season_id' => $season->id,
+        ]);
+        $category = Category::factory()->privatelyVisible()->create([
+            'championship_id' => $championship->id,
+            'status' => CategoryStatus::ACTIVE->value,
+            'image_path' => 'categories/preservar.jpg',
+        ]);
+
+        $this->actingAs($admin)
+            ->put(
+                route('admin.categories.update', $category),
+                $this->validPayload([
+                    'championship_id' => Championship::factory()->create()->id,
+                    'name' => $category->name,
+                    'status' => CategoryStatus::ACTIVE->value,
+                    'is_public' => 1,
+                    'image_path' => 'categories/no-sustituir.jpg',
+                ])
+            )
+            ->assertRedirect(route('admin.championships.categories', $championship));
+
+        $category->refresh();
+        $this->assertTrue($category->is_public);
+        $this->assertSame($championship->id, $category->championship_id);
+        $this->assertSame(CategoryStatus::ACTIVE->value, $category->status);
+        $this->assertSame('categories/preservar.jpg', $category->image_path);
+
+        $championship->is_public = false;
+        $championship->save();
+
+        $this->actingAs($admin)
+            ->put(
+                route('admin.categories.update', $category),
+                $this->validPayload([
+                    'name' => 'No debe persistirse',
+                    'is_public' => true,
+                ])
+            )
+            ->assertSessionHasErrors('is_public');
+
+        $this->actingAs($admin)
+            ->put(
+                route('admin.categories.update', $category),
+                $this->validPayload([
+                    'name' => $category->name,
+                    'status' => CategoryStatus::ACTIVE->value,
+                    'is_public' => 0,
+                ])
+            )
+            ->assertRedirect(route('admin.championships.categories', $championship));
+
+        $this->assertFalse($category->fresh()->is_public);
+    }
+
+    public function test_category_visibility_must_be_a_boolean(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $championship = Championship::factory()->create();
+
+        $this->actingAs($admin)
+            ->post(
+                route('admin.categories.store', $championship),
+                $this->validPayload([
+                    'name' => 'Visibilidad manipulada',
+                    'is_public' => 'publicada',
+                ])
+            )
+            ->assertSessionHasErrors('is_public');
+
+        $this->assertDatabaseMissing('categories', ['name' => 'Visibilidad manipulada']);
+    }
+
     /**
      * @param  array<string, mixed>  $overrides
      * @return array<string, mixed>
@@ -521,6 +694,7 @@ class AdminCategoryTest extends TestCase
             'level' => 5,
             'gender' => CategoryGender::MALE->value,
             'status' => CategoryStatus::PENDING->value,
+            'is_public' => 0,
         ], $overrides);
     }
 
@@ -528,6 +702,22 @@ class AdminCategoryTest extends TestCase
     {
         $this->assertMatchesRegularExpression(
             '/<option\s+value="'.preg_quote($value, '/').'"[^>]*\bselected\b[^>]*>/',
+            $response->getContent()
+        );
+    }
+
+    private function assertVisibilityChecked(TestResponse $response): void
+    {
+        $this->assertMatchesRegularExpression(
+            '/<input\s+[^>]*id="is_public"[^>]*\bchecked\b[^>]*>/',
+            $response->getContent()
+        );
+    }
+
+    private function assertVisibilityNotChecked(TestResponse $response): void
+    {
+        $this->assertDoesNotMatchRegularExpression(
+            '/<input\s+[^>]*id="is_public"[^>]*\bchecked\b[^>]*>/',
             $response->getContent()
         );
     }

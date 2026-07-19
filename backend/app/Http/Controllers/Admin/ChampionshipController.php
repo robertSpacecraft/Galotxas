@@ -43,7 +43,7 @@ class ChampionshipController extends Controller
     {
         $validated = $request->validated();
 
-        Championship::create([
+        $championship = new Championship([
             'season_id' => $validated['season_id'],
             'name' => $validated['name'],
             'slug' => Str::slug($validated['name']),
@@ -56,6 +56,8 @@ class ChampionshipController extends Controller
             'registration_starts_at' => $validated['registration_starts_at'] ?? null,
             'registration_ends_at' => $validated['registration_ends_at'] ?? null,
         ]);
+        $championship->is_public = (bool) $validated['is_public'];
+        $championship->save();
 
         return redirect()
             ->route('admin.seasons.championships', $validated['season_id'])
@@ -107,7 +109,7 @@ class ChampionshipController extends Controller
     {
         $validated = $request->validated();
 
-        $championship->update([
+        $championship->fill([
             'season_id' => $validated['season_id'],
             'name' => $validated['name'],
             'slug' => Str::slug($validated['name']),
@@ -120,6 +122,8 @@ class ChampionshipController extends Controller
             'registration_starts_at' => $validated['registration_starts_at'] ?? null,
             'registration_ends_at' => $validated['registration_ends_at'] ?? null,
         ]);
+        $championship->is_public = (bool) $validated['is_public'];
+        $championship->save();
 
         return redirect()
             ->route('admin.seasons.championships', $validated['season_id'])
