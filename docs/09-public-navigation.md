@@ -2,9 +2,9 @@
 
 ## 1. Objetivo
 
-Este documento fija el contrato de arquitectura de información pública que debe guiar las siguientes fases del frontend. Parte de una auditoría del router React, sus enlaces, la API pública, el CMS, el panel Blade, los seeders, las pruebas y `knowledge/` realizada sobre `develop` en la Fase 3A.
+Este documento fija el contrato de arquitectura de información pública y registra su primera aplicación funcional. Parte de la auditoría de Fase 3A y refleja la navegación implementada y validada en Fase 3B sobre `develop`.
 
-La Fase 3A es exclusivamente documental. Las rutas objetivo que este documento define no se consideran implementadas hasta que existan en React con contenido real, fuente verificable y pruebas. Esta fase no cambia `App.jsx`, Navbar, backend, CMS, `knowledge/`, despliegue ni redirects.
+La Fase 3B modifica únicamente React, sus pruebas y la documentación: no cambia backend, CMS, `knowledge/`, despliegue ni redirects. Las rutas objetivo pendientes no se consideran implementadas hasta que existan con contenido real, fuente verificable y pruebas.
 
 ## 2. Principios de navegación
 
@@ -31,54 +31,52 @@ El contrato definitivo del primer nivel es el siguiente. La abreviatura móvil c
 | 4 | Escuela de Galotxas | Escuela de Galotxas | Escuela de Galotxas | Escuela de Galotxas \| Galotxas | `/escuela` | En la landing y en sus futuras rutas pedagógicas u operativas |
 | 5 | Club | Club | Club | Club \| Galotxas | `/club` | En la landing y, durante la migración, en las páginas institucionales asociadas |
 
-El estado activo visual debe acompañarse de `aria-current="page"` cuando el enlace representa la URL actual. Cuando una ruta secundaria active semánticamente su área, la interfaz puede marcar el área como seleccionada, pero no debe afirmar `aria-current="page"` sobre un enlace cuyo destino no sea la página actual.
+El estado activo visual se acompaña de `aria-current="page"` cuando el enlace representa la URL exacta y de `aria-current="location"` cuando una ruta secundaria activa semánticamente su área. Sólo puede existir un elemento editorial activo.
 
-Las cinco rutas son canónicas como contrato. En el código auditado sólo `/` está registrada; las otras cuatro no existen todavía.
+Las cinco rutas son canónicas como contrato. En 3B están registradas `/` y `/competicion`; Aprende a jugar, Escuela y Club no existen todavía ni aparecen como enlaces deshabilitados.
 
 ## 4. Inventario de rutas actuales
 
-`frontend/src/App.jsx` utiliza `BrowserRouter`, `Routes` y `Route`. Registra 16 rutas planas, sin nesting, loaders, acciones de router ni lazy loading. Navbar se renderiza fuera de `Routes` y, por tanto, aparece también ante una URL desconocida.
+`frontend/src/App.jsx` utiliza `BrowserRouter`, `Routes` y `Route`. Registra 17 rutas explícitas planas y un wildcard final, sin nesting, loaders, acciones de router ni lazy loading. Navbar se renderiza fuera de `Routes` y aparece también ante una URL desconocida.
 
 | Ruta | Componente | Acceso | Fuente de datos | Enlaces entrantes verificados | Estado y comportamiento sin datos |
 |---|---|---|---|---|---|
 | `/` | `pages/Home/Home.jsx` | Público | Estructura y copy estáticos en React | Logo, Navbar | Canónica actual. `Hero` aporta el `h1`; sus tarjetas no son enlaces. |
+| `/competicion` | `pages/Competition/CompetitionPage.jsx` | Público | Estructura funcional mínima en React | Navbar | Canónica implementada en 3B. Enlaza Torneos y Rankings sin API, datos simulados ni contenido editorial largo. |
 | `/nosotros` | `pages/Nosotros/Nosotros.jsx` | Público | Contenido estático en React | Ningún enlace interno actual localizado | Duplicada y heredada; conserva contenido único como material de migración. |
-| `/torneos` | `pages/Torneos/TournamentList.jsx` | Público | `GET /championships` y `GET /seasons` | Navbar, CTA de Home, Mi Panel, detalles | Funcional secundaria. Tiene carga y vacío; un error de red termina presentándose como colección vacía. |
+| `/torneos` | `pages/Torneos/TournamentList.jsx` | Público | `GET /championships` y `GET /seasons` | Landing de Competición, CTA de Home, Mi Panel, detalles | Funcional secundaria. Tiene carga y vacío; un error de red termina presentándose como colección vacía. |
 | `/torneos/:championshipId` | `pages/Torneos/TournamentDetail.jsx` | Público; acciones de inscripción autenticadas | Campeonato, ranking e inscripción desde API | Tarjetas de torneo, Mi Panel, regreso desde categoría | Funcional secundaria. Un fallo del detalle presenta “Torneo no encontrado”, sin 404 de documento. |
 | `/categories/:categoryId` | `pages/Torneos/CategoryDetail.jsx` | Público | Categoría, standings y schedule | Detalle de torneo; regreso desde partido | Funcional secundaria. Solapa clasificación y calendario con dos rutas dedicadas. |
 | `/categories/:categoryId/standings` | `pages/Standings.jsx` | Público | Categoría y clasificación | Navegación cruzada desde schedule; `CategoryCard` no montada | Funcional secundaria. Tiene navegación local, pero su otro consumidor localizado pertenece a una Home huérfana. |
 | `/categories/:categoryId/schedule` | `pages/Schedule.jsx` | Público | Categoría y jornadas/calendario | Navegación cruzada desde standings; smoke E2E | Funcional secundaria. Distingue carga, error, vacío y contenido. |
 | `/matches/:matchId` | `pages/MatchDetails.jsx` | Público; workflow ampliado para participante autenticado | Partido público y, con sesión, workflow de resultado | Tarjetas de partido y acciones pendientes | Funcional secundaria. Regresa a categoría si existe contexto o a `/torneos`; el backend responde 404 si la rama no es pública para un visitante. |
-| `/rankings` | `pages/Rankings/Rankings.jsx` | Público | Temporadas, ranking histórico y por temporada | Navbar | Funcional secundaria de Competición. |
-| `/contenidos` | `pages/CmsPageIndex/CmsPageIndex.jsx` | Público | `GET /cms/pages` | Navbar | Técnica y heredada. Lista toda página publicable, sin agrupación por área pública. |
-| `/contenidos/:slug` | `pages/CmsPage/CmsPage.jsx` | Público | `GET /cms/pages/{slug}` | Navbar para slugs fijos, índice CMS y URLs de Resource | Técnica y heredada. Muestra carga, 404 de vista, error y bloques, pero la SPA sigue entregando el documento base. |
+| `/rankings` | `pages/Rankings/Rankings.jsx` | Público | Temporadas, ranking histórico y por temporada | Landing de Competición | Funcional secundaria de Competición. |
+| `/contenidos` | `pages/CmsPageIndex/CmsPageIndex.jsx` | Público | `GET /cms/pages` | Acceso directo y enlaces heredados externos | Técnica y heredada. Lista toda página publicable, sin agrupación por área pública. |
+| `/contenidos/:slug` | `pages/CmsPage/CmsPage.jsx` | Público | `GET /cms/pages/{slug}` | Índice CMS, URLs de Resource y accesos directos | Técnica y heredada. Muestra carga, 404 de vista, error y bloques, pero la SPA sigue entregando el documento base. |
 | `/login` | `pages/Login.jsx` | Público/anónimo | Auth API y estado de retorno | Zona de cuenta, páginas de auth, partido | Ruta de cuenta. Un usuario ya autenticado se redirige a `/player`. |
 | `/register` | `pages/Register.jsx` | Público/anónimo | Auth y perfil API | Login | Ruta de cuenta. Tras éxito fuerza navegación a `/player`. |
 | `/forgot-password` | `pages/ForgotPassword.jsx` | Público/anónimo | Auth API | Login y reset inválido | Ruta de cuenta. |
 | `/reset-password` | `pages/ResetPassword.jsx` | Público/anónimo | Query `email` y `token`; Auth API | Enlace enviado por correo | Ruta de cuenta con entrada externa prevista. Usa `h2`, no `h1`, y redirige a login tras éxito. |
 | `/player` | `pages/Dashboard.jsx` dentro de `ProtectedRoute` | Autenticado | Endpoints `/me`, perfil, inscripciones, partidos, calendario, rankings y acciones | Zona de cuenta, login, registro e inscripción | Mi Panel. El visitante se redirige a `/login`; no pertenece al menú editorial. |
+| `*` | `pages/NotFound/NotFoundPage.jsx` | Público | Estructura local | Cualquier URL React no reconocida | Fallback accesible con `h1` y enlaces de recuperación; no redirige ni cambia el estado HTTP inicial del documento SPA. |
 
 No existe ruta React administrativa. El panel administrador es Blade bajo `/admin`.
 
-No existe una ruta wildcard o página global de error. Una URL React no reconocida conserva Navbar y deja vacío el `<main>`. `ProtectedRoute` contiene además una rama `requireAdmin` no utilizada que enviaría a `/dashboard`; esa ruta no está registrada. Es una deuda latente, no un enlace público activo.
+Existe una ruta wildcard React final. Una URL no reconocida conserva Navbar y muestra una 404 dentro del único `<main>` global, sin interceptar rutas dinámicas válidas. El hosting puede continuar devolviendo `index.html` con HTTP 200: la respuesta HTTP real queda pendiente. `ProtectedRoute` conserva una rama `requireAdmin` sin consumidores que enviaría a `/dashboard`; no se ha creado esa ruta y la rama continúa como deuda latente.
 
 ### Inventario de navegación actual
 
 | Ubicación | Texto visible | Destino | Desktop | Móvil | Observación |
 |---|---|---|---|---|---|
-| Navbar, logo | Imagen “Galotxas Logo” | `/` | Sí | Sí | Cierra el menú. El texto alternativo mezcla español e inglés. |
-| Navbar público | Inicio | `/` | Sí | Sí | `Link` sin estado activo. |
-| Navbar público | Torneos | `/torneos` | Sí | Sí | Funcional; futuro subdestino de Competición. |
-| Navbar público | Rankings | `/rankings` | Sí | Sí | Funcional; futuro subdestino de Competición. |
-| Navbar público | Prensa & Media | `/contenidos/prensa-media` | Sí | Sí | Depende directamente de una ruta técnica CMS. |
-| Navbar público | Nosotros | `/contenidos/nosotros` | Sí | Sí | Apunta al CMS, no a la ruta React estática homónima. |
-| Navbar público | Federaciones | `/contenidos/federaciones` | Sí | Sí | Depende directamente de una ruta técnica CMS. |
-| Navbar público | Contenidos | `/contenidos` | Sí | Sí | Expone como primer nivel el índice técnico legado. |
-| Navbar público | Academy | `/contenidos/academy` | Sí | Sí | No equivale a Escuela de Galotxas. |
-| Navbar, cuenta anónima | Área de jugadores | `/login` | Sí | Sí | Está fuera del `<ul>` público y no se colapsa con él. |
+| Navbar, logo | Imagen “Galotxas” | `/` | Sí | Sí | Cierra el menú y conserva la marca como acceso a Inicio. |
+| Navbar editorial | Inicio | `/` | Sí | Sí | Activo sólo en `/`, con `aria-current="page"`. |
+| Navbar editorial | Competición | `/competicion` | Sí | Sí | Activo en la landing con `page` y en toda la rama deportiva con `location`. |
+| Navbar, cuenta anónima | Iniciar sesión | `/login` | Sí | Sí | Pertenece al grupo accesible Cuenta, fuera de la lista editorial. |
 | Navbar, cuenta autenticada | Mi Panel | `/player` | Sí | Sí | Acompañado de saludo y botón Salir. |
 | Navbar, cuenta autenticada | Salir | Acción `logout` | Sí | Sí | Botón, no enlace. |
-| Menú móvil | Menú | Abre/cierra `public-navigation` | No | Sí, hasta 1024 px | La palabra se oculta visualmente a 640 px; conserva `aria-label`. |
+| Menú móvil | Menú | Abre/cierra `public-navigation` | No | Sí, hasta 1024 px | Declara `aria-expanded` y `aria-controls`; cierra al navegar y con Escape, que restaura el foco. |
+| Landing Competición | Torneos | `/torneos` | Sí | Sí | Destino secundario con descripción funcional. |
+| Landing Competición | Rankings | `/rankings` | Sí | Sí | Destino secundario con descripción funcional. |
 | Hero de Home | Ver Torneos | `/torneos` | Sí | Sí | CTA funcional cubierto por test y E2E. |
 | Tarjetas de Home | Prensa & Media, Federaciones, Academy | Sin destino | Sí | Sí | Son bloques informativos, no enlaces. |
 | Footer de Home | GALOTXAS y textos legales | Sin destino | Sí | Sí | No hay navegación de footer; el footer sólo se monta en Home. |
@@ -105,14 +103,14 @@ No existe una ruta wildcard o página global de error. Una URL React no reconoci
 | Mi Panel | Ver torneo | `/torneos/{championship_id}` | Autenticado | Autenticado | Desde inscripciones propias. |
 | Mi Panel | Ver Torneos Disponibles | `/torneos` | Autenticado | Autenticado | Estado vacío de inscripciones. |
 
-No hay desplegables editoriales, breadcrumbs ni enlaces de footer. Desktop y móvil comparten exactamente los ocho destinos públicos actuales; la diferencia es sólo la presentación CSS y el control de apertura. A anchos entre 1025 y 1500 px la lista pasa a una segunda fila sin convertirse todavía en menú colapsable.
+No hay desplegables editoriales, breadcrumbs ni enlaces de footer. Desktop y móvil consumen exactamente la misma configuración de dos destinos editoriales. Las rutas retiradas del Navbar siguen accesibles. La cabecera permanece en una fila entre 1025 y 1500 px y se convierte en menú colapsable a 1024 px; la matriz automatizada no detecta overflow ni solapamientos entre 320 y 1440 px.
 
 ## 5. Clasificación de rutas
 
-| Clasificación | Rutas | Decisión de Fase 3A |
+| Clasificación | Rutas | Estado tras Fase 3B |
 |---|---|---|
-| Canónica implementada | `/` | Conservar su función; no rediseñar en 3A. |
-| Canónicas futuras | `/competicion`, `/aprende-a-jugar`, `/escuela`, `/club` | Reservar como contrato; no registrarlas sin contenido mínimo. |
+| Canónicas implementadas | `/`, `/competicion` | Inicio se conserva; Competición aporta una landing mínima funcional. |
+| Canónicas futuras | `/aprende-a-jugar`, `/escuela`, `/club` | Reservadas como contrato; no se registran ni enlazan sin contenido mínimo. |
 | Funcionales secundarias | `/torneos`, `/torneos/:championshipId`, `/categories/:categoryId`, sus rutas de standings/schedule, `/matches/:matchId`, `/rankings` | Conservar rutas y contratos. Relacionarlas semánticamente con Competición. |
 | Cuenta | `/login`, `/register`, `/forgot-password`, `/reset-password`, `/player` | Conservar separadas del menú editorial. |
 | Técnica heredada | `/contenidos`, `/contenidos/:slug` | Retirar del primer nivel cuando existan destinos canónicos, pero mantener acceso y CMS hasta completar la migración. |
@@ -120,16 +118,16 @@ No hay desplegables editoriales, breadcrumbs ni enlaces de footer. Desktop y mó
 | Solapamiento funcional | `/categories/:id` frente a `/categories/:id/standings` y `/schedule` | No consolidar ni redirigir sin revisar usos, navegación y E2E. |
 | Sin consumidor interno | `/nosotros` | Mantener por contenido, posibles marcadores y migración; medir antes de retirar. |
 | Rota latente | `/dashboard` como destino de una rama no usada de `ProtectedRoute` | Corregir o eliminar sólo en una fase de código; no afecta al contrato público activo. |
-| Fallback/error ausente | `*` | Definir una 404 real coordinada con hosting antes de indexación pública. |
+| Fallback/error React | `*` | Implementado como vista accesible; la respuesta HTTP 404 del hosting sigue pendiente. |
 
 También existen módulos React no montados: `pages/Home.jsx` y `CategoryCard`, pares `Schedule`/`useSchedule`, `Standings`/`useStandings`, `ConflictDashboard`/`useConflicts` y `MyMatches`/`useMyMatches`. No son rutas. Deben revisarse como código huérfano antes de reutilizarlos o eliminarlos; `pages/Home.jsx` no es la Home que importa `App.jsx`.
 
 ## 6. Contrato de rutas canónicas
 
-| Ruta | Responsabilidad | Fuente de verdad | Contenido inicial mínimo | Subrutas o destinos | Preparación para 3B |
+| Ruta | Responsabilidad | Fuente de verdad | Contenido inicial mínimo | Subrutas o destinos | Estado tras 3B |
 |---|---|---|---|---|---|
-| `/` | Home pública y puerta a las otras cuatro áreas | Estructura React más fuentes conectadas según cada bloque | `h1`, propuesta de valor, accesos reales a áreas disponibles y estados remotos si los hubiera | Las cuatro áreas de primer nivel | Ya existe. Mantener función; cualquier rediseño queda fuera de 3A. |
-| `/competicion` | Landing funcional de actividad deportiva pública | Dominio Laravel y API pública | `h1`, estado útil de competición y enlaces a torneos y rankings existentes; sin recalcular reglas | `/torneos`, detalles, categorías, standings, schedule, partidos y `/rankings` | Sí para una landing mínima: contratos y destinos existen. El desarrollo completo queda en Fase 4. |
+| `/` | Home pública y puerta de entrada actual | Estructura React más fuentes conectadas según cada bloque | `h1`, propuesta de valor y CTA deportivo existente | Navbar y `/torneos` | Implementada y sin rediseño; el Navbar aporta el acceso a Competición. |
+| `/competicion` | Landing funcional de actividad deportiva pública | Destinos del dominio Laravel ya expuestos en React | `h1`, introducción estructural y enlaces descritos a torneos y rankings; sin recalcular reglas | `/torneos`, detalles, categorías, standings, schedule, partidos y `/rankings` | Landing mínima implementada. El desarrollo completo queda en Fase 4. |
 | `/aprende-a-jugar` | Entrada divulgativa a introducción, cómo se juega, Manual, Reglamento, Conceptos e Historia | Artefactos compilados desde `knowledge/` | `h1`, introducción validada y al menos un recorrido real generado; no copy editorial duplicado en JSX | Namespace formativo por definir con el contrato de Knowledge; no se ratifican todavía slugs de detalle | No. Depende de normalizar metadatos, implementar compilador y disponer de contenido para las colecciones anunciadas. |
 | `/escuela` | Identidad, públicos y actividad real de la Escuela | Híbrida: `knowledge/` futuro para pedagogía estable y CMS/backend para actividad temporal | `h1`, contenido pedagógico aprobado y/o actividad publicable real con responsabilidades diferenciadas | Se definirán al existir vertical editorial, privacidad y contenido real | No. No existe colección de Escuela ni contrato CMS específico; `academy` no satisface el requisito. |
 | `/club` | Landing institucional que agrupa páginas editables | CMS administrado en Blade y API pública | `h1` y enlaces a un conjunto publicado y clasificado de páginas institucionales; estado vacío controlado | Futuras páginas de Nosotros, Federarse, Federaciones, Prensa y medios, Contacto y, si se aprueba, Documentos | Parcial. El CMS y cuatro piezas existen, pero faltan el mapeo canónico, Contacto y resolver la duplicidad de Nosotros. |
@@ -160,13 +158,14 @@ El contrato API refuerza hoy esa URL: `PublicCmsPageSummaryResource` genera `url
 
 La ruta estática `/nosotros` es heredada y duplicada, pero no está vacía. Su ausencia de enlaces internos no demuestra ausencia de tráfico externo ni autoriza su borrado.
 
-`academy` es un slug CMS sembrado y un nombre presente en Navbar y Home. No es sinónimo contractual de Escuela de Galotxas ni de Aprende a jugar. Se conservará sin reinterpretación automática hasta inventariar y migrar su contenido real.
+`academy` es un slug CMS sembrado y un nombre todavía presente en Home, además de haber formado parte del Navbar anterior a 3B. No es sinónimo contractual de Escuela de Galotxas ni de Aprende a jugar. Se conservará sin reinterpretación automática hasta inventariar y migrar su contenido real.
 
 ## 9. Matriz de compatibilidad
 
 | Ruta actual | Rol futuro | Menú de primer nivel | Compatibilidad | Condición para retirar o cambiar |
 |---|---|---|---|---|
 | `/` | Inicio | Sí | Canónica | No aplica. |
+| `/competicion` | Competición | Sí | Canónica mínima desde 3B | Ampliar en Fase 4 sin cambiar sus destinos actuales. |
 | `/torneos` | Secundaria de Competición | No | Se conserva | Nueva necesidad funcional demostrada y plan de enlaces. |
 | `/rankings` | Secundaria de Competición | No | Se conserva | Nueva necesidad funcional demostrada y plan de enlaces. |
 | Detalles de torneo, categoría y partido | Secundarias de Competición | No | Se conservan | Consumidores migrados y equivalencia completa. |
@@ -176,11 +175,11 @@ La ruta estática `/nosotros` es heredada y duplicada, pero no está vacía. Su 
 | Rutas de auth | Zona de cuenta | Separadas | Se conservan | Sólo cambios propios del flujo de cuenta. |
 | `/player` | Mi Panel | Separada | Se conserva | No se migra al árbol editorial. |
 
-No se ha localizado un enlace público activo cuyo destino carezca hoy de `Route`. La excepción es la rama inactiva hacia `/dashboard` ya descrita. Sí faltan enlaces entrantes para `/nosotros` y faltan rutas para las cuatro landings futuras, que todavía no deben enlazarse.
+No se ha localizado un enlace público activo cuyo destino carezca hoy de `Route`. La excepción es la rama inactiva hacia `/dashboard` ya descrita. Sí faltan enlaces entrantes para `/nosotros` y rutas para las tres landings futuras, que todavía no deben enlazarse.
 
 ## 10. Propuesta de redirects futuros
 
-No se implementa ningún redirect en 3A.
+No se implementa ningún redirect en 3B.
 
 | Origen | Destino propuesto | Tipo por ahora | Momento | Motivo y condición |
 |---|---|---|---|---|
@@ -228,12 +227,12 @@ El inventario se basa en código, seeders y tests, sin consultar la base de desa
 
 | Contenido | Ruta actual verificable | Fuente | Duplicado | Ruta futura propuesta |
 |---|---|---|---|---|
-| Prensa y medios | `/contenidos/prensa-media` | CMS; seeder y Navbar | No localizado | `/club/prensa-media` después de migración |
+| Prensa y medios | `/contenidos/prensa-media` | CMS; seeder y Navbar anterior a 3B | No localizado | `/club/prensa-media` después de migración |
 | Nosotros | `/nosotros` y `/contenidos/nosotros` | React estático + CMS | Sí | `/club/nosotros`, con CMS como fuente canónica |
-| Federaciones | `/contenidos/federaciones` | CMS; seeder y Navbar | No localizado | `/club/federaciones` |
+| Federaciones | `/contenidos/federaciones` | CMS; seeder y Navbar anterior a 3B | No localizado | `/club/federaciones` |
 | Federarse | `/contenidos/federarse` | CMS; seeder, sin enlace actual de Navbar | No localizado | `/club/federarse` |
 | Documentos | `/contenidos/documentos` | CMS; seeder, sin enlace actual de Navbar | No localizado | `/club/documentos` sólo si la clasificación editorial lo confirma |
-| Academy | `/contenidos/academy` | CMS; seeder, Navbar y copy estático de Home | Hay representación duplicada en la interfaz, no una segunda página completa | Decisión aplazada; no equivale a `/escuela` |
+| Academy | `/contenidos/academy` | CMS; seeder, Navbar anterior a 3B y copy estático de Home | Hay representación duplicada en la interfaz, no una segunda página completa | Decisión aplazada; no equivale a `/escuela` |
 | Contacto | No existe slug sembrado, enlace ni ruta específica | Sin fuente actual verificada | No | `/club/contacto` cuando exista contenido y flujo real |
 | Índice CMS | `/contenidos` | API de páginas publicables | No aplica | No será área de primer nivel; destino final por decidir |
 | Página E2E | `/contenidos/e2e-publicada` sólo en E2E | Seeder temporal | No aplica | Nunca forma parte del catálogo de producción |
@@ -288,51 +287,53 @@ La landing `/competicion` es la única nueva área con dependencias funcionales 
 | Ranking histórico | `GET /api/v1/rankings/all-time` | `/rankings` |
 | Inscripción | `GET .../registration` y `POST .../register` | Detalle de torneo autenticado |
 
-Los listados, detalles, relaciones y datos derivados ya aplican visibilidad efectiva en backend. `/competicion` no debe duplicar peticiones Axios dispersas, reglas ni rankings; debe reutilizar los servicios de API, exponer estados `loading/error/empty/content` y enlazar las rutas funcionales estables. Fase 4 desarrollará la experiencia completa.
+Los listados, detalles, relaciones y datos derivados ya aplican visibilidad efectiva en backend. La landing mínima de 3B no necesita una petición remota: enlaza las rutas funcionales estables sin duplicar reglas, rankings ni datos. Fase 4 deberá reutilizar los servicios existentes y aportar los estados remotos necesarios al desarrollar la experiencia completa.
 
 ## 17. Requisitos de accesibilidad
 
-### Estado auditado
+### Estado tras 3B
 
 - Navbar usa `<nav aria-label="Navegación principal">`.
 - El botón móvil declara tipo, nombre dinámico, `aria-expanded` y `aria-controls`.
 - El menú se cierra por botón, Escape, selección de enlace y cambio de pathname.
 - Desktop y móvil usan el mismo árbol DOM; no hay dos listas divergentes.
-- Los enlaces son `Link`, no `NavLink`; no existe estado activo ni `aria-current`.
-- Al cerrar con Escape no se devuelve explícitamente el foco al botón.
+- Un matcher centralizado aplica una clase activa y `aria-current="page"` o `location` sin permitir dos elementos activos.
+- Escape cierra el menú y devuelve explícitamente el foco al botón.
+- El listado editorial y el grupo Cuenta tienen nombres accesibles y son hermanos semánticos.
 - No existen breadcrumbs.
-- Home y los estados del índice CMS anidan sus propios `<main>` dentro del `<main>` global de `App`, creando landmarks principales duplicados.
+- Home y el índice CMS reutilizan el único `<main>` global de `App`.
+- La landing de Competición y la 404 aportan un único `h1`.
 - Reset Password usa `h2` como encabezado principal.
 - No se ha ejecutado una auditoría automática de contraste; los colores deben validarse, no darse por conformes sólo por inspección.
 
-### Criterios para 3B
+### Resultado de los criterios 3B
 
 1. Nombre y estado activo perceptibles sin depender sólo del color.
 2. `aria-current` correcto, foco visible y retorno de foco al cerrar el menú con teclado.
 3. Orden de tabulación lógico y activación con teclado de todos los destinos.
 4. Un solo landmark `<main>` y un `h1` único y descriptivo por landing y estado de error principal.
 5. Autenticación agrupada y nombrada sin mezclarse con el listado editorial.
-6. No ocultar enlaces autorizados sólo mediante CSS ni duplicar árboles distintos para móvil.
-7. Contraste y tamaño de objetivos verificados en estados normal, hover, focus, activo y disabled.
+6. El menú cerrado usa `display: none` en el breakpoint móvil y Playwright confirma que sus enlaces no permanecen visibles o enfocables; no existe un segundo árbol.
+7. Los destinos incorporan foco visible y los controles móviles un tamaño mínimo de 44 px; una auditoría completa de contraste sigue pendiente.
 
 ## 18. Requisitos responsive
 
-### Estado auditado
+### Estado tras 3B
 
-Navbar muestra los enlaces en fila, pasa la lista completa a una segunda línea por debajo de 1500 px y activa el menú colapsable a 1024 px. A 640 px oculta visualmente la palabra “Menú”, conservando el nombre accesible. La cuenta queda fuera de la lista colapsable. El logo mide 140 px en escritorio, 100 px en tablet y 80 px en móvil.
+Navbar muestra sus dos enlaces en una sola fila por encima de 1024 px y activa el menú colapsable a 1024 px. A 640 px oculta visualmente la palabra “Menú”, conservando el nombre accesible. La cuenta queda fuera de la lista colapsable. El logo mide 140 px en escritorio, 100 px en tablet y 80 px en móvil.
 
-El smoke E2E cubre navegación móvil y ausencia de desbordamiento horizontal a 390 × 844. La documentación QA también registra recorridos anteriores a 1280 × 720 y 1440 × 900, pero no existe una matriz automatizada completa para el futuro menú de cinco áreas.
+Playwright cubre 320, 375, 768, 1024, 1280 y 1440 px con una identidad deliberadamente larga. No detecta desbordamiento horizontal ni solapamiento entre los grupos visibles del Navbar. La futura ampliación a cinco áreas deberá repetir esta matriz.
 
-### Criterios para 3B
+### Resultado de los criterios 3B
 
 - misma jerarquía, labels y permisos en todos los tamaños;
-- sin scroll horizontal a 320, 390, 768, 1024, 1280 y 1440 px;
+- sin scroll horizontal a 320, 375, 768, 1024, 1280 y 1440 px;
 - comportamiento comprobado con identidad de usuario larga;
 - targets táctiles suficientes y menú que no queda detrás del contenido;
 - cierre tras navegación, Escape y cambio de ruta sin perder contexto;
 - foco visible y sin quedar en contenido oculto;
-- nombre completo “Escuela de Galotxas”, salvo evidencia de que una abreviatura accesible sea imprescindible;
-- validación específica de la franja intermedia donde hoy la cabecera se divide en dos filas.
+- las áreas todavía no implementadas no consumen espacio ni requieren abreviaturas o controles deshabilitados;
+- validación específica de la franja intermedia, que ya no divide accidentalmente la cabecera en dos filas.
 
 ## 19. Requisitos SEO
 
@@ -342,7 +343,7 @@ El smoke E2E cubre navegación móvil y ausencia de desbordamiento horizontal a 
 - Sólo el índice y detalle CMS actualizan `document.title`; el resto hereda el valor anterior, incluso después de navegar desde CMS.
 - No hay meta description por ruta, Open Graph, Twitter Cards, canonical, sitemap ni React Helmet o equivalente.
 - No existe `robots.txt` en el frontend. `backend/public/robots.txt` permite todo, pero sólo gobierna el host que lo sirve.
-- No existe 404 global React ni respuesta HTTP 404 coordinada para rutas públicas desconocidas.
+- Existe una 404 global React; la respuesta HTTP 404 coordinada para rutas desconocidas sigue pendiente de hosting.
 
 ### Contrato mínimo
 
@@ -354,19 +355,19 @@ El smoke E2E cubre navegación móvil y ausencia de desbordamiento horizontal a 
 6. Las URLs heredadas conservarán canonical propio hasta que exista equivalencia; después, canonical y redirect deben apuntar al mismo destino.
 7. Un sitemap futuro incluirá sólo rutas canónicas y detalles públicos descubribles, nunca borradores, páginas futuras ni rutas de cuenta.
 
-No se instala una dependencia SEO en 3A. La elección entre una solución propia, librería o prerender/SSR pertenece al diseño de implementación y despliegue.
+No se instala una dependencia SEO en 3B. La elección entre una solución propia, librería o prerender/SSR pertenece al diseño de implementación y despliegue.
 
 ## 20. Estrategia de testing
 
 La línea base existente combina Vitest/React Testing Library y un smoke Playwright con stack temporal React–Laravel–MariaDB–Blade.
 
-Para 3B y 3C se requiere:
+PUBLIC-NAVIGATION-1 cubre en 3B:
 
 - test unitario de la lista exacta, orden, labels y destinos de primer nivel;
 - tests de estado activo para la ruta exacta y las familias secundarias;
 - tests anónimo/autenticado que demuestren separación de cuenta;
 - teclado, Escape, retorno de foco, cierre al navegar y atributos ARIA;
-- tests de `/competicion` y de los componentes comunes para `loading/error/empty/content`, `h1` y metadatos básicos;
+- tests de `/competicion`, su `h1` único y sus destinos funcionales;
 - test wildcard 404 y enlaces de recuperación;
 - E2E desktop y móvil de los destinos disponibles, rutas secundarias y retorno desde autenticación.
 
@@ -377,24 +378,28 @@ Para los bloques posteriores de contenido y compatibilidad se requerirán:
 - comprobación de URLs directas sobre el hosting con fallback y respuestas/redirects HTTP esperados;
 - validación de artefactos de `knowledge/` antes de probar sus rutas.
 
-Los tests actuales de Navbar cubren sus ocho links, cuenta anónima/autenticada, botón, ARIA, Escape y cierre al seleccionar. El E2E cubre Inicio, Torneos, Rankings, Contenidos, CMS, CTA, calendario, partidos, Mi Panel, resultados y un recorrido móvil. No cubre las cuatro rutas futuras, estado activo, 404, canonical ni la migración institucional.
+Los tests actuales de Navbar cubren la lista exacta de dos enlaces, cuenta anónima/autenticada, matcher de toda la rama deportiva, estado visual, ARIA, Escape, foco y cierres. Las pruebas de App y páginas cubren `/competicion`, wildcard, rutas dinámicas, regresiones y landmarks. El E2E cubre navegación desktop/móvil, separación de cuenta, estado activo, 404, matriz responsive, CMS, CTA, calendario, partidos, Mi Panel y resultados. Canonical, migración institucional, multibrowser y las tres landings futuras siguen pendientes.
 
 Línea base de Fase 3A, 2026-07-19: `npm run test:run` completó 65 tests en 18 archivos; `npm run lint` y `npm run build` finalizaron sin errores; `npm run e2e` completó sus nueve escenarios Chromium sobre el stack Docker temporal. No se ejecutó la suite backend completa porque no se modificó backend.
 
-## 21. Plan de implementación 3B y 3C
+Validación de Fase 3B, 2026-07-19: `npm run test:run` completó 105 tests en 23 archivos; lint y build finalizaron sin errores; `npm run e2e` completó 13 escenarios Chromium y la matriz 320–1440 px sobre el stack temporal. Backend no se modificó ni se ejecutó su suite completa.
+
+## 21. Estado de implementación 3B y plan 3C
 
 ### Fase 3B — estructura navegable
 
-1. Convertir el contrato en una configuración única consumida por Navbar desktop y móvil, incluidas las familias activas.
-2. Mantener el bloque de cuenta separado del menú editorial e implementar estado activo, `aria-current`, teclado, foco y comportamiento responsive.
-3. Mantener el cierre del menú al navegar y mediante Escape.
-4. Añadir un fallback 404 accesible en React Router.
-5. Registrar `/competicion` como landing mínima y funcional, alimentada por destinos y datos reales mediante los servicios existentes.
-6. Conservar `/torneos`, `/rankings` y las rutas actuales de campeonatos, categorías, calendarios y partidos.
-7. Registrar nuevas rutas sólo cuando superen el gate de contenido de la sección 6; no crear placeholders para Aprende a jugar, Escuela o Club.
-8. Validar Vitest, lint, build, Playwright y QA responsive/teclado.
+Fase 3B está completada con:
 
-Con el estado auditado, Inicio y una landing mínima de Competición están preparados. Aprende a jugar, Escuela y Club conservan dependencias explícitas y no deben incorporarse como rutas públicas vacías en 3B.
+1. configuración única consumida por el único árbol desktop/móvil;
+2. Inicio y Competición como únicos elementos editoriales, con cuenta separada;
+3. matcher activo exacto, ARIA, teclado, foco y cierre móvil;
+4. fallback 404 accesible sin redirect automático;
+5. `/competicion` como landing mínima basada en `/torneos` y `/rankings` reales;
+6. rutas deportivas, CMS, institucionales y de cuenta conservadas;
+7. ausencia de placeholders para Aprende a jugar, Escuela y Club;
+8. Vitest, lint, build, Playwright y matriz responsive validados.
+
+Home no se rediseña: conserva su CTA directo a Torneos y usa Navbar como entrada a Competición. El footer continúa exclusivo de Home. La rama `/dashboard` no consumida, Reset Password y estas diferencias de estructura permanecen como deuda explícita.
 
 ### Fase 3C — estructura común de landings
 
@@ -442,6 +447,17 @@ La Fase 4 desarrollará por completo `/competicion` a partir de la landing míni
 - riesgos actuales de accesibilidad, responsive y SEO registrados;
 - plan 3B/3C alineado con los gates de contenido y con la estructura común de landings;
 - sólo documentación y `CHANGELOG.md` modificados.
+
+### Fase 3B
+
+- una única configuración produce los dos destinos editoriales funcionales;
+- desktop y móvil comparten árbol, estado activo y separación de cuenta;
+- la rama deportiva conserva URLs y activa Competición de forma inequívoca;
+- `/competicion` aporta un `h1` y acceso real a Torneos y Rankings;
+- wildcard, foco, landmarks y matriz responsive están cubiertos;
+- Aprende a jugar, Escuela y Club no tienen rutas, enlaces deshabilitados ni placeholders;
+- rutas heredadas, backend, CMS y `knowledge/` permanecen funcionalmente intactos;
+- 105 tests Vitest, lint, build y 13 escenarios E2E completan correctamente.
 
 ### Implementación posterior
 

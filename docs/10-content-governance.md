@@ -87,7 +87,7 @@ La navegación pública de primer nivel queda contratada en cinco rutas:
 
 La identidad del usuario, Mi Panel y el cierre de sesión permanecerán en una zona autenticada separada.
 
-Estas áreas son arquitectura objetivo. En el código auditado sólo `/` está registrada; las otras cuatro rutas no se consideran implementadas por aparecer en documentación.
+Estas áreas son la arquitectura objetivo. Tras 3B están registradas `/` y la landing mínima `/competicion`, y ambas son los únicos elementos editoriales del Navbar. Las otras tres rutas no se consideran implementadas por aparecer en documentación ni se muestran como enlaces deshabilitados.
 
 ### Inicio
 
@@ -120,7 +120,7 @@ Agrupa Nosotros, Federarse, Federaciones, Prensa y medios y Contacto. Su conteni
 
 ### Contenidos legado
 
-`/contenidos` y sus páginas constituyen una estructura actual y legada, no el destino final de la arquitectura de información. Permanecen sin cambios durante 3A. El backend excluye borradores y fechas futuras tanto del índice como del acceso por slug. El seeder institucional garantiza seis slugs sin sobrescribir páginas existentes: `prensa-media`, `nosotros`, `federaciones`, `academy`, `documentos` y `federarse`. Esta infraestructura verificada no convierte el índice técnico ni `academy` en áreas canónicas.
+`/contenidos` y sus páginas constituyen una estructura actual y legada, no el destino final de la arquitectura de información. Permanecen accesibles tras retirarse del primer nivel en 3B; no se han eliminado, migrado ni redirigido. El backend excluye borradores y fechas futuras tanto del índice como del acceso por slug. El seeder institucional garantiza seis slugs sin sobrescribir páginas existentes: `prensa-media`, `nosotros`, `federaciones`, `academy`, `documentos` y `federarse`. Esta infraestructura verificada no convierte el índice técnico ni `academy` en áreas canónicas.
 
 ## 6. Matriz de gobernanza
 

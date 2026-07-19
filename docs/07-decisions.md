@@ -692,8 +692,8 @@ Estado: Aceptada
 Fecha aproximada: 2026-07
 
 Contexto:
-- Navbar expone actualmente ocho enlaces públicos planos: Inicio, Torneos, Rankings, cuatro destinos CMS concretos y el índice técnico Contenidos.
-- El router conserva rutas funcionales de competición, una página React estática de Nosotros, rutas CMS bajo `/contenidos` y una zona de cuenta, pero no dispone de landings para organizar estos destinos.
+- Antes de 3B, Navbar exponía ocho enlaces públicos planos: Inicio, Torneos, Rankings, cuatro destinos CMS concretos y el índice técnico Contenidos.
+- En ese momento, el router conservaba rutas funcionales de competición, una página React estática de Nosotros, rutas CMS bajo `/contenidos` y una zona de cuenta, pero no disponía de landings para organizar estos destinos.
 - Nosotros está duplicado entre React y CMS; `academy` existe como slug legado, pero no acredita la futura arquitectura híbrida de Escuela.
 - `knowledge/` contiene Reglamento y Conceptos, pero todavía no tiene contrato normalizado, compilador, artefactos React ni colecciones de Historia o Escuela.
 - Retirar o redirigir rutas antes de disponer de contenido equivalente pondría en riesgo consumidores internos, marcadores, SEO y workflows funcionales.
@@ -709,6 +709,8 @@ Decisión:
 - No registrar ni enlazar una landing sin propósito, fuente, contenido inicial mínimo, destinos, SEO, responsive y pruebas definidos.
 - Aplazar aliases y redirects hasta que exista equivalencia. Los cambios con valor SEO deberán coordinar React Router con respuestas de servidor/CDN y canonical.
 - Utilizar `09-public-navigation.md` como contrato operativo de rutas, clasificación, compatibilidad y gates 3B/3C.
+- Aplicar el contrato progresivamente: en 3B el menú muestra sólo Inicio y Competición; las áreas pendientes no aparecen deshabilitadas, y Torneos y Rankings pasan a destinos secundarios de la landing mínima `/competicion`.
+- Conservar todas las URLs deportivas e institucionales heredadas y no introducir redirects en 3B.
 
 Alternativas descartadas:
 - Conservar los ocho enlaces planos: mezcla áreas, funciones deportivas, páginas institucionales y una ruta técnica sin jerarquía estable.
@@ -721,12 +723,13 @@ Alternativas descartadas:
 - Integrar Mi Panel como sexta área pública: mezclaría navegación editorial con permisos y estado de sesión.
 
 Consecuencias:
-- En 3A no cambia ninguna ruta ni elemento visible; las cuatro landings nuevas siguen sin implementar.
-- Inicio y una landing mínima de Competición tienen base funcional; Aprende a jugar, Escuela y Club conservan gates editoriales explícitos.
+- La auditoría 3A no cambió elementos visibles; 3B incorpora `/competicion` y una navegación progresiva compartida por desktop y móvil.
+- Inicio y la landing mínima de Competición están implementadas; Aprende a jugar, Escuela y Club conservan gates editoriales explícitos y no aparecen como enlaces deshabilitados.
 - La retirada de un enlace del Navbar, la conservación de una URL y un redirect son decisiones independientes.
 - Las rutas legadas pueden coexistir durante la migración sin convertirse en fuente canónica futura.
-- Desktop y móvil deberán compartir nombres, orden, estado activo y permisos; la cuenta seguirá siendo un grupo separado.
-- Fase 3B deberá implementar la navegación accesible y responsive, el fallback 404 y la landing mínima funcional de Competición sin placeholders.
+- Desktop y móvil comparten configuración, nombres, orden y estado activo; la cuenta es un grupo separado.
+- Torneos y Rankings siguen operativos como navegación secundaria; las rutas heredadas no se eliminan ni redirigen.
+- React dispone de fallback 404, aunque el estado HTTP real continúa dependiendo del hosting.
 - Fase 3C deberá aportar la estructura visual y técnica común, headings y metadatos básicos para futuras landings, sin desarrollar su contenido en profundidad.
 - Consolidación institucional, migraciones, aliases, redirects, canonical, indexación de `/contenidos` y SEO completo quedan para bloques posteriores.
 

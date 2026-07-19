@@ -8,6 +8,8 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 - Se incorpora la base administrativa `is_public` para temporadas, campeonatos y categorías, con nuevos registros privados, backfill compatible y validación jerárquica sin cascadas; la API pública todavía no filtra por este campo.
 - Se documenta el contrato de navegación pública de Fase 3A: cinco áreas canónicas, fuentes de verdad, rutas secundarias, compatibilidad heredada y gates de implementación, sin cambios visibles en Navbar ni nuevas landings.
+- Se incorpora la navegación pública progresiva de Fase 3B con configuración única para Inicio y Competición, cuenta separada y landing mínima `/competicion` enlazada a Torneos y Rankings.
+- Se añade una experiencia 404 de React Router con enlaces de recuperación, sin redirects ni cambios de hosting.
 
 ### Changed
 
@@ -18,6 +20,8 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - El CMS crea las páginas como borrador y exige contenido validado antes de publicarlas.
 - `published_at = null` representa publicación inmediata; las fechas futuras se presentan como Programada según la zona horaria configurada por Laravel.
 - El panel distingue Borrador, Programada y Publicada y muestra el feedback de las operaciones de bloques.
+- El Navbar comparte estructura entre desktop y móvil, representa el área activa en toda la rama deportiva, devuelve el foco al cerrar con Escape y evita la cabecera intermedia en dos filas.
+- Torneos, Rankings y las rutas deportivas, CMS e institucionales existentes se conservan, aunque dejan de ocupar el primer nivel público.
 
 ### Fixed
 
@@ -26,6 +30,7 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - El CRUD Blade de Temporadas valida y persiste nombre, estado y fechas nullable, respeta la cronología y selecciona correctamente el enum casteado al editar.
 - El CRUD Blade de Campeonatos valida y persiste explícitamente todos los campos no multimedia, recupera correctamente valores y errores, y conserva `image_path` durante la edición.
 - El CRUD Blade de Categorías valida y persiste sus campos no multimedia, respeta la relación con Campeonato y los valores nullable, y conserva `image_path` durante la edición.
+- Home y el índice CMS evitan landmarks `<main>` duplicados dentro del layout global.
 
 El primer candidato MVP continúa pendiente de revisión humana, commit de preparación, etiquetado y publicación.
 

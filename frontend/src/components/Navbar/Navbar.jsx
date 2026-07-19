@@ -1,14 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import {
+  getActivePublicNavigationItem,
+  getPublicNavigationAriaCurrent,
+  publicNavigation,
+} from '../../navigation/publicNavigation';
 import styles from './Navbar.module.css';
 import logo from '../../assets/images/Logo_Galotxas_Femenino.png';
 
 export const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const location = useLocation();
+  const menuToggleRef = useRef(null);
   const [menuState, setMenuState] = useState({ open: false, pathname: location.pathname });
   const isMenuOpen = menuState.open && menuState.pathname === location.pathname;
+  const activeItem = getActivePublicNavigationItem(location.pathname);
   const closeMenu = () => setMenuState({ open: false, pathname: location.pathname });
 
   useEffect(() => {
@@ -17,6 +24,7 @@ export const Navbar = () => {
     const handleEscape = (event) => {
       if (event.key === 'Escape') {
         setMenuState({ open: false, pathname: location.pathname });
+        menuToggleRef.current?.focus();
       }
     };
 
@@ -27,11 +35,12 @@ export const Navbar = () => {
   return (
     <nav className={styles.navbar} aria-label="Navegación principal">
       <Link to="/" className={styles.logoContainer} onClick={closeMenu}>
-        <img src={logo} alt="Galotxas Logo" className={styles.logoImage} />
+        <img src={logo} alt="Galotxas" className={styles.logoImage} />
       </Link>
 
       <button
         type="button"
+        ref={menuToggleRef}
         className={styles.menuToggle}
         aria-label={isMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
         aria-expanded={isMenuOpen}
@@ -48,29 +57,38 @@ export const Navbar = () => {
 
       <ul
         id="public-navigation"
+        aria-label="Navegación editorial"
         className={`${styles.navLinks} ${isMenuOpen ? styles.navLinksOpen : ''}`}
       >
-        <li><Link to="/" className={styles.navItem} onClick={closeMenu}>Inicio</Link></li>
-        <li><Link to="/torneos" className={styles.navItem} onClick={closeMenu}>Torneos</Link></li>
-        <li><Link to="/rankings" className={styles.navItem} onClick={closeMenu}>Rankings</Link></li>
-        <li><Link to="/contenidos/prensa-media" className={styles.navItem} onClick={closeMenu}>Prensa & Media</Link></li>
-        <li><Link to="/contenidos/nosotros" className={styles.navItem} onClick={closeMenu}>Nosotros</Link></li>
-        <li><Link to="/contenidos/federaciones" className={styles.navItem} onClick={closeMenu}>Federaciones</Link></li>
-        <li><Link to="/contenidos" className={styles.navItem} onClick={closeMenu}>Contenidos</Link></li>
-        <li><Link to="/contenidos/academy" className={styles.navItem} onClick={closeMenu}>Academy</Link></li>
+        {publicNavigation.map((item) => {
+          const isActive = activeItem?.id === item.id;
+
+          return (
+            <li key={item.id}>
+              <Link
+                to={item.to}
+                className={`${styles.navItem} ${isActive ? styles.navItemActive : ''}`}
+                aria-current={getPublicNavigationAriaCurrent(item, location.pathname)}
+                onClick={closeMenu}
+              >
+                {item.label}
+              </Link>
+            </li>
+          );
+        })}
       </ul>
 
-      <div className={styles.authSection}>
+      <div className={styles.authSection} role="group" aria-label="Cuenta">
         {isAuthenticated ? (
           <div className={styles.userGreeting}>
             <span className={styles.welcomeText}>
               Hola, <span className={styles.userName} title={user?.name}>{user?.name}</span>!
             </span>
             <Link to="/player" className={styles.miPanelLink} onClick={closeMenu}>Mi Panel</Link>
-            <button onClick={logout} className={styles.logoutBtn}>Salir</button>
+            <button type="button" onClick={logout} className={styles.logoutBtn}>Salir</button>
           </div>
         ) : (
-          <Link to="/login" className={styles.playerAreaBtn} onClick={closeMenu}>Área de jugadores</Link>
+          <Link to="/login" className={styles.playerAreaBtn} onClick={closeMenu}>Iniciar sesión</Link>
         )}
       </div>
     </nav>

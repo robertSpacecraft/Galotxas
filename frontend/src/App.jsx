@@ -18,6 +18,8 @@ import Dashboard from './pages/Dashboard';
 import { Rankings } from './pages/Rankings/Rankings';
 import { CmsPageIndex } from './pages/CmsPageIndex/CmsPageIndex';
 import { CmsPage } from './pages/CmsPage/CmsPage';
+import { CompetitionPage } from './pages/Competition/CompetitionPage';
+import { NotFoundPage } from './pages/NotFound/NotFoundPage';
 import './index.css';
 
 function App() {
@@ -30,6 +32,7 @@ function App() {
           <main className="main-content">
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/competicion" element={<CompetitionPage />} />
               <Route path="/nosotros" element={<Nosotros />} />
               <Route path="/torneos" element={<TournamentList />} />
               <Route path="/torneos/:championshipId" element={<TournamentDetail />} />
@@ -52,6 +55,7 @@ function App() {
                 }
               />
               <Route path="/rankings" element={<Rankings />} />
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </main>
         </div>

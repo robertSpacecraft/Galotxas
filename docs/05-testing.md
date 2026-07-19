@@ -421,7 +421,7 @@ FE-TEST-1 incorpora seis suites colocadas junto al código cubierto:
 
 RC-HARDEN-1 amplía esta base con pruebas de `formatDate`, detalle de torneo sin fechas válidas, formularios de registro y recuperación, encabezados únicos en autenticación y partido, coordinación de `AuthContext` ante respuestas 401/500 y resolución de la ruta pública `/torneos`. El test Feature del dashboard verifica además el contrato accesible del control móvil de Blade.
 
-La utilidad `renderWithProviders` ofrece únicamente `MemoryRouter`, rutas de prueba y `AuthContext` opcional. Los tests no dependen de nombres de clases CSS, no usan snapshots masivos y no hacen peticiones reales.
+La utilidad `renderWithProviders` ofrece únicamente `MemoryRouter`, rutas de prueba y `AuthContext` opcional. Los tests priorizan roles y nombres accesibles; las comprobaciones dirigidas de Navbar verifican además la clase visual activa y el estado abierto, sin snapshots masivos ni peticiones reales.
 
 Limitaciones deliberadas:
 
@@ -433,12 +433,15 @@ Limitaciones deliberadas:
 
 ## E2E-1 — Smoke del MVP
 
-La suite de nueve escenarios cubre:
+La suite ampliada a 13 escenarios cubre:
 
-- navegación pública e índice/detalle CMS;
+- navegación pública progresiva en escritorio, landing de Competición e índice/detalle CMS;
 - CTA del Hero hacia el listado real de torneos;
 - calendario de categoría con dos jornadas, partidos y navegación al detalle;
-- menú público a 390 × 844, cierre al navegar a Rankings y Contenidos, y ausencia de overflow horizontal;
+- menú público móvil, cierre al navegar y con Escape, foco recuperado y enlaces cerrados no visibles;
+- estado activo de Competición en `/competicion`, `/torneos` y `/rankings`;
+- matriz responsive a 320, 375, 768, 1024, 1280 y 1440 px con identidad larga, sin overflow ni solapamientos;
+- fallback 404 React y recuperación hacia Inicio;
 - login real y acciones pendientes de Mi Panel;
 - envío y confirmación coincidente de un resultado;
 - discrepancia visible y bloqueada para los jugadores;
@@ -449,11 +452,35 @@ Las comprobaciones incorporadas por RC-HARDEN-1 reutilizan esta suite y verifica
 
 Limitaciones deliberadas del smoke:
 
-- solo Chromium, con viewport de escritorio y un escenario móvil dirigido;
+- sólo Chromium; la matriz de tamaños no sustituye pruebas multibrowser ni una revisión visual completa;
 - ejecución serial sobre un único relato y datos sembrados;
 - no cubre dobles, porque ese flujo permanece en tests Feature;
 - no valida apariencia pixel a pixel, accesibilidad completa ni todos los formularios administrativos;
 - no sustituye la QA funcional, visual y responsive de QA-MVP-1.
+
+## PUBLIC-NAVIGATION-1 — Navegación pública funcional
+
+La cobertura de Fase 3B valida:
+
+- una configuración editorial única con exactamente Inicio y Competición, sin destinos futuros, deportivos secundarios ni CMS en el primer nivel;
+- Navbar anónimo y autenticado con logo, cuenta nombrada y separada, saludo, Mi Panel y logout conservado;
+- matcher exacto de Inicio y de toda la rama de Competición, una sola selección, clase visual y `aria-current="page"` o `location` según corresponda;
+- apertura y cierre móvil, `aria-expanded`, `aria-controls`, selección, cambio de ruta, Escape y retorno de foco;
+- landing `/competicion` con un `h1` y enlaces accesibles a `/torneos` y `/rankings`, sin datos simulados ni placeholders;
+- wildcard 404 sin redirect, enlaces de recuperación y prioridad correcta de rutas dinámicas válidas;
+- un único landmark `<main>` en Home y el índice CMS;
+- regresión representativa de auth, `/player`, Torneos, Rankings, Nosotros y CMS;
+- E2E real de navegación desktop/móvil, cuenta, estado activo, 404 y matriz responsive, además de los workflows previos.
+
+Instantánea verificada de PUBLIC-NAVIGATION-1, 2026-07-19:
+
+- frontend: 23 archivos y 105 tests Vitest;
+- calidad: ESLint y build Vite correctos;
+- E2E: 13 escenarios Playwright Chromium sobre el stack MariaDB temporal;
+- responsive: 320, 375, 768, 1024, 1280 y 1440 px sin overflow horizontal ni solapamiento de los grupos del Navbar;
+- artefactos: el cierre correcto desmonta el stack y elimina los informes Playwright.
+
+Vitest comprueba estructura e interacción, pero no puede acreditar por sí solo que `display: none` retire enlaces del foco. El E2E móvil verifica que el menú cerrado no expone esos enlaces como visibles o alcanzables y que Escape devuelve el foco al botón.
 
 ## Flujo de Inscripción y Administración (Fase 3 Core)
 - prevención de inscripciones si el campeonato está cerrado;
