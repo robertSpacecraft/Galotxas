@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\SeasonStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreSeasonRequest;
 use App\Http\Requests\Admin\UpdateSeasonRequest;
@@ -19,12 +20,23 @@ class SeasonController extends Controller
 
     public function create()
     {
-        return view('admin.seasons.create');
+        return view('admin.seasons.create', [
+            'season' => new Season,
+            'statusOptions' => SeasonStatus::cases(),
+            'defaultStatus' => SeasonStatus::PLANNED->value,
+        ]);
     }
 
     public function store(StoreSeasonRequest $request)
     {
-        Season::create($request->validated());
+        $validated = $request->validated();
+
+        Season::create([
+            'name' => $validated['name'],
+            'status' => $validated['status'],
+            'start_date' => $validated['start_date'] ?? null,
+            'end_date' => $validated['end_date'] ?? null,
+        ]);
 
         return redirect()
             ->route('admin.seasons.index')
@@ -45,12 +57,23 @@ class SeasonController extends Controller
 
     public function edit(Season $season)
     {
-        return view('admin.seasons.edit', compact('season'));
+        return view('admin.seasons.edit', [
+            'season' => $season,
+            'statusOptions' => SeasonStatus::cases(),
+            'defaultStatus' => SeasonStatus::PLANNED->value,
+        ]);
     }
 
     public function update(UpdateSeasonRequest $request, Season $season)
     {
-        $season->update($request->validated());
+        $validated = $request->validated();
+
+        $season->update([
+            'name' => $validated['name'],
+            'status' => $validated['status'],
+            'start_date' => $validated['start_date'] ?? null,
+            'end_date' => $validated['end_date'] ?? null,
+        ]);
 
         return redirect()
             ->route('admin.seasons.index')

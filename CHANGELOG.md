@@ -14,6 +14,7 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 - Se impide eliminar el último bloque de una página `published` sin despublicarla primero.
 - Se amplía la cobertura Feature del flujo editorial, el criterio público compartido y las sesiones administrativas activas.
+- El CRUD Blade de Temporadas valida y persiste nombre, estado y fechas nullable, respeta la cronología y selecciona correctamente el enum casteado al editar.
 
 El primer candidato MVP continúa pendiente de revisión humana, commit de preparación, etiquetado y publicación.
 

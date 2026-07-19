@@ -97,6 +97,18 @@ La ruta `/admin/venues` centraliza la configuración básica de pistas.
 - La navegación principal del panel incluye el acceso “Pistas”.
 - El conjunto mínimo de desarrollo se crea explícitamente con `php artisan db:seed --class=DefaultVenueSeeder`; repetir el comando no duplica ni sobrescribe pistas.
 
+### Temporadas
+
+La ruta `/admin/seasons` centraliza el CRUD Blade de temporadas.
+
+- El formulario gestiona los campos reales `name`, `status`, `start_date` y `end_date`.
+- El nombre y el estado son obligatorios; el estado se valida contra los casos reales de `SeasonStatus`.
+- Las fechas de inicio y fin son opcionales y se editan mediante controles HTML `date`.
+- Cuando se informan ambas fechas, la fecha de fin debe ser igual o posterior a la fecha de inicio.
+- La creación y actualización reciben exclusivamente datos validados y persisten explícitamente los cuatro campos, incluidos los valores nulos al limpiar las fechas.
+- La edición presenta el estado casteado correcto y da prioridad a `old()` después de un error de validación.
+- El listado conserva la presentación de estado y fechas, y el acceso requiere una sesión de administrador activo.
+
 ### Inventario de pantallas implementadas
 
 El panel web actual dispone de estas áreas reales:

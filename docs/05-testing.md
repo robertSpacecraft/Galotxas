@@ -521,6 +521,22 @@ La Fase 2A añade regresiones dirigidas para:
 
 Las fechas sensibles se fijan con Carbon y se restablecen en cada prueba. Toda la cobertura Feature usa factories y el MariaDB aislado del perfil Docker `test`; no depende de datos locales.
 
+## SEASON-ADMIN-1 — Integridad administrativa de temporadas
+
+`AdminSeasonTest` cubre el contrato Blade de Temporadas:
+
+- acceso al formulario para administradores activos y rechazo de usuarios normales o administradores inactivos;
+- creación y persistencia explícita de nombre, estado, fecha de inicio y fecha de fin;
+- conservación de la nulabilidad real de ambas fechas tanto en el alta como al limpiarlas durante la edición;
+- obligatoriedad del nombre, pertenencia del estado a `SeasonStatus` y validación individual de las fechas;
+- rechazo de una fecha de fin anterior al inicio sin persistir datos inválidos;
+- selección correcta del enum casteado, incluida la regresión que impide mostrar `planned` para una temporada `active`;
+- prioridad de `old()` sobre los valores persistidos después de un error de validación;
+- actualización completa e inmutabilidad de los datos previos ante una actualización inválida;
+- regresión de listado y borrado, y continuidad del envelope y los campos de `SeasonResource` en el endpoint público existente.
+
+La suite dirigida se ejecuta junto con `AdminActiveSessionTest` sobre el MariaDB aislado del perfil Docker `test`. Este bloque no modifica rutas, controladores o Resources de la API ni añade cobertura frontend o E2E.
+
 ## CMS público React
 - consumo del endpoint `GET /api/v1/cms/pages` desde el cliente API existente;
 - ruta pública `/contenidos`;
