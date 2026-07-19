@@ -87,7 +87,9 @@ La navegación pública de primer nivel queda contratada en cinco rutas:
 
 La identidad del usuario, Mi Panel y el cierre de sesión permanecerán en una zona autenticada separada.
 
-Estas áreas son la arquitectura objetivo. Tras 3B están registradas `/` y la landing mínima `/competicion`, y ambas son los únicos elementos editoriales del Navbar. Las otras tres rutas no se consideran implementadas por aparecer en documentación ni se muestran como enlaces deshabilitados.
+Estas áreas son la arquitectura objetivo. Tras 3C están registradas `/` y la landing mínima `/competicion`, y ambas son los únicos elementos editoriales del Navbar. Competición utiliza ya una estructura común de presentación; las otras tres rutas no se consideran implementadas por aparecer en documentación ni se muestran como enlaces deshabilitados.
+
+Los componentes de `frontend/src/components/PublicLanding/` son infraestructura de presentación, no una cuarta fuente de contenido. Pueden recibir datos ya autorizados del dominio Laravel, artefactos compilados desde `knowledge/` o contenido público del CMS, pero no conocen esas fuentes ni deciden visibilidad, publicación o reglas. Sus props admiten estructura, copy breve de interfaz y contenido procedente de la fuente canónica; no deben usarse para hardcodear contenido administrable como sustituto temporal del CMS o de `knowledge/`.
 
 ### Inicio
 
@@ -253,6 +255,8 @@ Las vistas públicas, metadatos, galerías y documentos deben minimizar datos pe
 - Los endpoints se verifican antes de crear consumidores.
 - Los Resources constituyen el contrato de salida y entregan solo información publicable.
 - Las vistas remotas contemplan `loading`, `error`, `empty` y `content`.
+- Las futuras landings reutilizan contenedor, cabecera, acciones, secciones y destinos de `PublicLanding` sin convertir esos componentes en fuente editorial o adaptador de datos.
+- Los estados remotos comunes sólo se abstraen cuando al menos dos consumidores compartan semántica y comportamiento; Fase 3C los aplaza para evitar código muerto y Fase 4 deberá resolverlos al incorporar datos reales a Competición.
 - Los artefactos de `knowledge/` se generan y validan en build cuando exista el compilador; no se copian manualmente a JSX.
 - Las rutas públicas mantienen estabilidad, accesibilidad, navegación por teclado y comportamiento responsive.
 - Las cinco áreas, sus rutas y familias activas respetan `09-public-navigation.md`; la cuenta permanece fuera del árbol editorial.

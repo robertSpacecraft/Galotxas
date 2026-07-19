@@ -11,5 +11,14 @@ describe('NotFoundPage', () => {
     expect(container.querySelectorAll('h1')).toHaveLength(1);
     expect(screen.getByRole('link', { name: 'Volver a Inicio' })).toHaveAttribute('href', '/');
     expect(screen.getByRole('link', { name: 'Ir a Competición' })).toHaveAttribute('href', '/competicion');
+    expect(document.title).toBe('Página no encontrada | Galotxas');
+    expect(document.head.querySelector('meta[name="description"]')).toHaveAttribute(
+      'content',
+      'La página solicitada no está disponible en Galotxas.',
+    );
+    expect(document.head.querySelector('meta[name="robots"]')).toHaveAttribute(
+      'content',
+      'noindex',
+    );
   });
 });

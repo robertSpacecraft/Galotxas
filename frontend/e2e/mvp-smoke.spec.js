@@ -73,6 +73,12 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await editorialNavigation.getByRole('link', { name: 'Competición' }).click();
     await expect(page).toHaveURL(/\/competicion$/);
     await expect(page.getByRole('heading', { name: 'Competición', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Torneos y rankings', level: 2 })).toBeVisible();
+    await expect(page).toHaveTitle('Competición | Galotxas');
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+      'content',
+      'Consulta campeonatos, categorías, calendarios, resultados y clasificaciones de Galotxas.',
+    );
 
     await page.getByRole('link', { name: /Torneos/ }).click();
     await expect(page).toHaveURL(/\/torneos$/);
@@ -135,6 +141,67 @@ test.describe.serial('smoke narrativo del MVP', () => {
       await expect(competitionLink).toHaveAttribute('aria-current', currentValue);
       await expect(editorialNavigation.locator('[aria-current]')).toHaveCount(1);
     }
+
+    assertNoConsoleErrors();
+  });
+
+  test('la landing común de Competición es responsive y navegable por teclado', async ({ page }) => {
+    const assertNoConsoleErrors = watchCriticalConsoleErrors(page);
+
+    await page.goto('/competicion');
+
+    for (const width of [320, 375, 768, 1024, 1280, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+
+      const destinations = page.getByRole('navigation', { name: 'Opciones de competición' });
+      const destinationLinks = destinations.getByRole('link');
+
+      await expect(destinationLinks).toHaveCount(2);
+      await expect(destinations.getByRole('link', { name: /Torneos/ })).toBeVisible();
+      await expect(destinations.getByRole('link', { name: /Rankings/ })).toBeVisible();
+
+      const layoutState = await destinationLinks.evaluateAll((links) => ({
+        cardsAreLegible: links.every((link) => {
+          const rect = link.getBoundingClientRect();
+
+          return rect.width > 0
+            && rect.height >= 44
+            && rect.left >= 0
+            && rect.right <= document.documentElement.clientWidth + 0.5
+            && link.scrollWidth <= link.clientWidth;
+        }),
+        hasHorizontalOverflow:
+          document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      }));
+
+      expect(layoutState, `Landing de Competición a ${width}px`).toEqual({
+        cardsAreLegible: true,
+        hasHorizontalOverflow: false,
+      });
+    }
+
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const accountLink = page
+      .getByRole('group', { name: 'Cuenta' })
+      .getByRole('link', { name: 'Iniciar sesión' });
+    const tournamentsLink = page
+      .getByRole('navigation', { name: 'Opciones de competición' })
+      .getByRole('link', { name: /Torneos/ });
+
+    await accountLink.focus();
+    await page.keyboard.press('Tab');
+    await expect(tournamentsLink).toBeFocused();
+    await expect(tournamentsLink.locator('a, button, input, select, textarea')).toHaveCount(0);
+
+    const focusStyle = await tournamentsLink.evaluate((link) => {
+      const style = getComputedStyle(link);
+
+      return { outlineStyle: style.outlineStyle, outlineWidth: style.outlineWidth };
+    });
+
+    expect(focusStyle).toEqual({ outlineStyle: 'solid', outlineWidth: '3px' });
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(/\/torneos$/);
 
     assertNoConsoleErrors();
   });
@@ -274,10 +341,13 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await page.goto('/cuenta/ruta-inexistente');
     await expect(page).toHaveURL(/\/cuenta\/ruta-inexistente$/);
     await expect(page.getByRole('heading', { name: 'Página no encontrada', level: 1 })).toBeVisible();
+    await expect(page).toHaveTitle('Página no encontrada | Galotxas');
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
 
     await page.getByRole('link', { name: 'Volver a Inicio' }).click();
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByRole('heading', { name: 'La emoción de las Galotxas' })).toBeVisible();
+    await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
 
     assertNoConsoleErrors();
   });

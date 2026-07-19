@@ -433,13 +433,14 @@ Limitaciones deliberadas:
 
 ## E2E-1 — Smoke del MVP
 
-La suite ampliada a 13 escenarios cubre:
+La suite ampliada a 14 escenarios cubre:
 
 - navegación pública progresiva en escritorio, landing de Competición e índice/detalle CMS;
 - CTA del Hero hacia el listado real de torneos;
 - calendario de categoría con dos jornadas, partidos y navegación al detalle;
 - menú público móvil, cierre al navegar y con Escape, foco recuperado y enlaces cerrados no visibles;
 - estado activo de Competición en `/competicion`, `/torneos` y `/rankings`;
+- sistema común de `/competicion` con jerarquía `h1`/`h2`, título y descripción por ruta, tarjetas legibles, foco visible, Tab y Enter;
 - matriz responsive a 320, 375, 768, 1024, 1280 y 1440 px con identidad larga, sin overflow ni solapamientos;
 - fallback 404 React y recuperación hacia Inicio;
 - login real y acciones pendientes de Mi Panel;
@@ -481,6 +482,31 @@ Instantánea verificada de PUBLIC-NAVIGATION-1, 2026-07-19:
 - artefactos: el cierre correcto desmonta el stack y elimina los informes Playwright.
 
 Vitest comprueba estructura e interacción, pero no puede acreditar por sí solo que `display: none` retire enlaces del foco. El E2E móvil verifica que el menú cerrado no expone esos enlaces como visibles o alcanzables y que Escape devuelve el foco al botón.
+
+## PUBLIC-LANDING-SYSTEM-1 — Sistema común de landings públicas
+
+La cobertura de Fase 3C valida:
+
+- contenedor `<article>` sin `<main>`, headings implícitos ni Layout paralelo;
+- cabecera con un único `h1`, introducción asociada y acciones opcionales;
+- secciones con `h2`, ID explícito estable, `aria-labelledby`, introducción opcional y contenido hijo;
+- acciones, rejilla y tarjetas basadas en `Link`, sin controles anidados, con nombre accesible, Tab y activación mediante Enter;
+- metadatos sin dependencias: actualización y restauración de `document.title`, una única meta description y `noindex` local reversible para 404;
+- `/competicion` sobre componentes compartidos, sin llamadas API ni datos deportivos simulados, con los destinos y copy funcional de 3B preservados;
+- 404 con identidad propia, acciones de recuperación y metadatos específicos, sin redirección;
+- ausencia de rutas placeholder para Aprende a jugar, Escuela y Club y regresión de Navbar, router, rutas deportivas, cuenta y CMS;
+- Playwright a 320, 375, 768, 1024, 1280 y 1440 px sin overflow, con tarjetas legibles y foco verificable por teclado.
+
+No se crea todavía un componente común para `loading`, error, vacío o reintento. Los consumidores actuales tienen contratos heterogéneos y no existe una adopción segura en dos ubicaciones sin modificar comportamiento; Fase 4 deberá cerrar ese patrón al conectar la landing de Competición con datos reales.
+
+Instantánea verificada de PUBLIC-LANDING-SYSTEM-1, 2026-07-19:
+
+- frontend: 25 archivos y 118 tests Vitest;
+- calidad: ESLint y build Vite correctos;
+- E2E: 14 escenarios Playwright Chromium sobre el stack MariaDB temporal;
+- responsive: landing y Navbar validados a 320, 375, 768, 1024, 1280 y 1440 px sin overflow horizontal;
+- teclado: los destinos de Competición reciben foco visible mediante Tab y navegan con Enter;
+- artefactos: el cierre correcto desmonta el stack y elimina los informes Playwright.
 
 ## Flujo de Inscripción y Administración (Fase 3 Core)
 - prevención de inscripciones si el campeonato está cerrado;

@@ -70,6 +70,17 @@ describe('App public routes', () => {
     expect(screen.getAllByRole('main')).toHaveLength(1);
   });
 
+  it.each(['/aprende-a-jugar', '/escuela', '/club'])(
+    'does not publish the future route %s as a placeholder',
+    async (pathname) => {
+      openAppAt(pathname);
+
+      expect(await screen.findByRole('heading', { name: 'Página no encontrada', level: 1 }))
+        .toBeInTheDocument();
+      expect(window.location.pathname).toBe(pathname);
+    },
+  );
+
   it('does not intercept a valid dynamic CMS route with the wildcard', async () => {
     openAppAt('/contenidos/nosotros');
 

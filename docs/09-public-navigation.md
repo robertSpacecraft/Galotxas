@@ -2,9 +2,9 @@
 
 ## 1. Objetivo
 
-Este documento fija el contrato de arquitectura de información pública y registra su primera aplicación funcional. Parte de la auditoría de Fase 3A y refleja la navegación implementada y validada en Fase 3B sobre `develop`.
+Este documento fija el contrato de arquitectura de información pública y registra su aplicación funcional. Parte de la auditoría de Fase 3A y refleja la navegación de Fase 3B y el sistema común de landings de Fase 3C implementados y validados sobre `develop`.
 
-La Fase 3B modifica únicamente React, sus pruebas y la documentación: no cambia backend, CMS, `knowledge/`, despliegue ni redirects. Las rutas objetivo pendientes no se consideran implementadas hasta que existan con contenido real, fuente verificable y pruebas.
+Las fases 3B y 3C modifican únicamente React, sus pruebas y la documentación: no cambian backend, CMS, `knowledge/`, despliegue ni redirects. Las rutas objetivo pendientes no se consideran implementadas hasta que existan con contenido real, fuente verificable y pruebas.
 
 ## 2. Principios de navegación
 
@@ -42,7 +42,7 @@ Las cinco rutas son canónicas como contrato. En 3B están registradas `/` y `/c
 | Ruta | Componente | Acceso | Fuente de datos | Enlaces entrantes verificados | Estado y comportamiento sin datos |
 |---|---|---|---|---|---|
 | `/` | `pages/Home/Home.jsx` | Público | Estructura y copy estáticos en React | Logo, Navbar | Canónica actual. `Hero` aporta el `h1`; sus tarjetas no son enlaces. |
-| `/competicion` | `pages/Competition/CompetitionPage.jsx` | Público | Estructura funcional mínima en React | Navbar | Canónica implementada en 3B. Enlaza Torneos y Rankings sin API, datos simulados ni contenido editorial largo. |
+| `/competicion` | `pages/Competition/CompetitionPage.jsx` | Público | Estructura funcional mínima en React | Navbar | Canónica implementada en 3B y adaptada al sistema común en 3C. Enlaza Torneos y Rankings sin API, datos simulados ni contenido editorial largo. |
 | `/nosotros` | `pages/Nosotros/Nosotros.jsx` | Público | Contenido estático en React | Ningún enlace interno actual localizado | Duplicada y heredada; conserva contenido único como material de migración. |
 | `/torneos` | `pages/Torneos/TournamentList.jsx` | Público | `GET /championships` y `GET /seasons` | Landing de Competición, CTA de Home, Mi Panel, detalles | Funcional secundaria. Tiene carga y vacío; un error de red termina presentándose como colección vacía. |
 | `/torneos/:championshipId` | `pages/Torneos/TournamentDetail.jsx` | Público; acciones de inscripción autenticadas | Campeonato, ranking e inscripción desde API | Tarjetas de torneo, Mi Panel, regreso desde categoría | Funcional secundaria. Un fallo del detalle presenta “Torneo no encontrado”, sin 404 de documento. |
@@ -107,9 +107,9 @@ No hay desplegables editoriales, breadcrumbs ni enlaces de footer. Desktop y mó
 
 ## 5. Clasificación de rutas
 
-| Clasificación | Rutas | Estado tras Fase 3B |
+| Clasificación | Rutas | Estado tras Fase 3C |
 |---|---|---|
-| Canónicas implementadas | `/`, `/competicion` | Inicio se conserva; Competición aporta una landing mínima funcional. |
+| Canónicas implementadas | `/`, `/competicion` | Inicio se conserva; Competición aporta una landing mínima funcional sobre el sistema común. |
 | Canónicas futuras | `/aprende-a-jugar`, `/escuela`, `/club` | Reservadas como contrato; no se registran ni enlazan sin contenido mínimo. |
 | Funcionales secundarias | `/torneos`, `/torneos/:championshipId`, `/categories/:categoryId`, sus rutas de standings/schedule, `/matches/:matchId`, `/rankings` | Conservar rutas y contratos. Relacionarlas semánticamente con Competición. |
 | Cuenta | `/login`, `/register`, `/forgot-password`, `/reset-password`, `/player` | Conservar separadas del menú editorial. |
@@ -186,7 +186,7 @@ No se implementa ningún redirect en 3B.
 | `/torneos` | Sin redirect | Sin redirect | Indefinido | Es una ruta funcional secundaria, no una landing obsoleta. |
 | `/rankings` | Sin redirect | Sin redirect | Indefinido | Conserva una funcionalidad y enlaces directos. |
 | Rutas de detalle de competición | Sin redirect | Sin redirect | Indefinido | Los IDs, workflows y enlaces existentes son válidos. |
-| `/contenidos` | Por decidir | Decisión aplazada | 3C o migración posterior | No existe todavía un índice canónico equivalente. |
+| `/contenidos` | Por decidir | Decisión aplazada | Migración posterior | No existe todavía un índice canónico equivalente. |
 | `/contenidos/nosotros` | `/club/nosotros` | Alias temporal y posterior redirect por decidir | Tras crear Club y verificar paridad | La fuente será CMS; deben revisarse Resource, canonical y enlaces guardados. |
 | `/nosotros` | `/club/nosotros` | Redirect permanente candidato | Tras migración editorial y medición | Elimina la fuente React duplicada sin perder marcadores. |
 | `/contenidos/federarse` | `/club/federarse` | Alias temporal candidato | Tras crear la página canónica | Preservar URLs y contenido CMS. |
@@ -337,11 +337,13 @@ Playwright cubre 320, 375, 768, 1024, 1280 y 1440 px con una identidad deliberad
 
 ## 19. Requisitos SEO
 
-### Estado auditado
+### Estado auditado y aplicación 3C
 
 - `frontend/index.html` declara `lang="en"` aunque la interfaz es española y usa el título genérico `frontend`.
-- Sólo el índice y detalle CMS actualizan `document.title`; el resto hereda el valor anterior, incluso después de navegar desde CMS.
-- No hay meta description por ruta, Open Graph, Twitter Cards, canonical, sitemap ni React Helmet o equivalente.
+- El índice y detalle CMS conservan su actualización directa heredada de `document.title`.
+- `PageMetadata` gestiona en `/competicion` y 404 un título y una meta description únicos, restaura los valores anteriores al salir y no crea una segunda descripción.
+- La 404 aplica `noindex` sólo mientras está montada y lo retira al navegar; no existe una política robots global.
+- El resto de rutas todavía puede heredar títulos anteriores. No hay Open Graph, Twitter Cards, canonical, sitemap ni React Helmet o equivalente.
 - No existe `robots.txt` en el frontend. `backend/public/robots.txt` permite todo, pero sólo gobierna el host que lo sirve.
 - Existe una 404 global React; la respuesta HTTP 404 coordinada para rutas desconocidas sigue pendiente de hosting.
 
@@ -355,7 +357,7 @@ Playwright cubre 320, 375, 768, 1024, 1280 y 1440 px con una identidad deliberad
 6. Las URLs heredadas conservarán canonical propio hasta que exista equivalencia; después, canonical y redirect deben apuntar al mismo destino.
 7. Un sitemap futuro incluirá sólo rutas canónicas y detalles públicos descubribles, nunca borradores, páginas futuras ni rutas de cuenta.
 
-No se instala una dependencia SEO en 3B. La elección entre una solución propia, librería o prerender/SSR pertenece al diseño de implementación y despliegue.
+No se instala una dependencia SEO en 3B ni 3C. `PageMetadata` cubre únicamente el contrato básico de las rutas adoptadas; la cobertura completa y la elección de prerender/SSR pertenecen al diseño de implementación y despliegue.
 
 ## 20. Estrategia de testing
 
@@ -380,11 +382,15 @@ Para los bloques posteriores de contenido y compatibilidad se requerirán:
 
 Los tests actuales de Navbar cubren la lista exacta de dos enlaces, cuenta anónima/autenticada, matcher de toda la rama deportiva, estado visual, ARIA, Escape, foco y cierres. Las pruebas de App y páginas cubren `/competicion`, wildcard, rutas dinámicas, regresiones y landmarks. El E2E cubre navegación desktop/móvil, separación de cuenta, estado activo, 404, matriz responsive, CMS, CTA, calendario, partidos, Mi Panel y resultados. Canonical, migración institucional, multibrowser y las tres landings futuras siguen pendientes.
 
+PUBLIC-LANDING-SYSTEM-1 añade en 3C tests de contenedor, cabecera, acciones, secciones, rejilla, tarjetas y metadatos; verifica IDs estables, `aria-labelledby`, un solo `h1`, ausencia de `<main>` anidado y controles anidados, restauración de description/robots, ausencia de llamadas API y de rutas placeholder. Playwright añade una matriz específica de la landing a 320–1440 px, comprueba legibilidad, overflow, foco por Tab y navegación con Enter.
+
 Línea base de Fase 3A, 2026-07-19: `npm run test:run` completó 65 tests en 18 archivos; `npm run lint` y `npm run build` finalizaron sin errores; `npm run e2e` completó sus nueve escenarios Chromium sobre el stack Docker temporal. No se ejecutó la suite backend completa porque no se modificó backend.
 
 Validación de Fase 3B, 2026-07-19: `npm run test:run` completó 105 tests en 23 archivos; lint y build finalizaron sin errores; `npm run e2e` completó 13 escenarios Chromium y la matriz 320–1440 px sobre el stack temporal. Backend no se modificó ni se ejecutó su suite completa.
 
-## 21. Estado de implementación 3B y plan 3C
+Validación de Fase 3C, 2026-07-19: `npm run test:run` completó 118 tests en 25 archivos; lint y build finalizaron sin errores; `npm run e2e` completó 14 escenarios Chromium, incluidos responsive y teclado de la landing, sobre el stack temporal. Backend no se modificó ni se ejecutó su suite completa.
+
+## 21. Estado de implementación de Fase 3
 
 ### Fase 3B — estructura navegable
 
@@ -401,16 +407,22 @@ Fase 3B está completada con:
 
 Home no se rediseña: conserva su CTA directo a Torneos y usa Navbar como entrada a Competición. El footer continúa exclusivo de Home. La rama `/dashboard` no consumida, Reset Password y estas diferencias de estructura permanecen como deuda explícita.
 
-### Fase 3C — estructura común de landings
+### Fase 3C — sistema común de landings
 
-1. Definir una estructura visual y técnica común para las futuras landings.
-2. Crear componentes reutilizables de cabecera, introducción, navegación secundaria, secciones, estados de carga/error y CTAs.
-3. Fijar el contrato común de títulos, headings y metadatos básicos por ruta.
-4. Aplicar un comportamiento responsive y accesible común.
-5. Preparar esta base para Competición, Aprende a jugar, Escuela y Club sin introducir contenido editorial hardcodeado.
-6. No desarrollar todavía en profundidad ninguna de esas cuatro áreas.
+Fase 3C está completada con:
 
-Fase 3C no sustituye el contrato y compilador de Knowledge, la vertical de Escuela ni el desarrollo completo de Competición previsto en Fase 4.
+1. `PublicLanding` como `<article>` responsive dentro del único `<main>` global;
+2. cabecera con `h1`, introducción y acciones opcionales, más secciones con `h2` e IDs explícitos estables;
+3. acciones, rejilla y tarjetas mediante `Link`, sin interacciones anidadas y con foco visible;
+4. `PageMetadata` para título, description y `noindex` local reversible de 404;
+5. componentes que reciben props o `children` y no importan API, CMS, `knowledge/` ni slugs editoriales;
+6. adopción real en `/competicion`, manteniendo `/torneos` y `/rankings`, sin API, datos simulados ni funcionalidad de Fase 4;
+7. reutilización acotada de acciones y metadatos en 404, sin convertirla en landing editorial;
+8. Vitest, lint, build, 14 E2E y matriz 320–1440 px validados.
+
+No se creó un estado remoto común porque Torneos, Rankings, CMS y Mi Panel no ofrecen todavía dos adopciones compatibles sin cambiar contratos. Tampoco se registraron `/aprende-a-jugar`, `/escuela` o `/club`; la base queda disponible para cuando sus fuentes reales superen los gates. Fase 3C no sustituye el contrato y compilador de Knowledge, la vertical de Escuela ni el desarrollo completo de Competición previsto en Fase 4.
+
+Con 3A, 3B y 3C completadas, la Fase 3 queda cerrada.
 
 ### Posterior a 3C
 
@@ -458,6 +470,16 @@ La Fase 4 desarrollará por completo `/competicion` a partir de la landing míni
 - Aprende a jugar, Escuela y Club no tienen rutas, enlaces deshabilitados ni placeholders;
 - rutas heredadas, backend, CMS y `knowledge/` permanecen funcionalmente intactos;
 - 105 tests Vitest, lint, build y 13 escenarios E2E completan correctamente.
+
+### Fase 3C
+
+- existe una estructura común desacoplada de las fuentes de contenido y sin Layout o `<main>` paralelos;
+- cabecera, secciones, acciones y destinos cumplen jerarquía, semántica, foco y navegación por teclado;
+- `/competicion` conserva sus destinos reales y utiliza los componentes sin llamadas API ni datos simulados;
+- 404 conserva recuperación y obtiene metadatos específicos reversibles;
+- Home, Navbar, matchers y rutas existentes no cambian;
+- Aprende a jugar, Escuela y Club siguen sin rutas o placeholders;
+- 118 tests Vitest, lint, build y 14 escenarios E2E completan correctamente.
 
 ### Implementación posterior
 

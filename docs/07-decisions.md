@@ -711,6 +711,12 @@ Decisión:
 - Utilizar `09-public-navigation.md` como contrato operativo de rutas, clasificación, compatibilidad y gates 3B/3C.
 - Aplicar el contrato progresivamente: en 3B el menú muestra sólo Inicio y Competición; las áreas pendientes no aparecen deshabilitadas, y Torneos y Rankings pasan a destinos secundarios de la landing mínima `/competicion`.
 - Conservar todas las URLs deportivas e institucionales heredadas y no introducir redirects en 3B.
+- Incorporar en 3C un sistema común de presentación para landings, compuesto por contenedor, cabecera, acciones, secciones, navegación secundaria y tarjetas-enlace, sin crear un Layout ni un `<main>` alternativos.
+- Mantener esos componentes desacoplados de API Laravel, CMS y `knowledge/`: reciben contenido y destinos mediante props o `children` y no almacenan contenido editorial.
+- Adoptar inicialmente la estructura común sólo en `/competicion`; la 404 reutiliza únicamente acciones y metadatos porque no es una landing editorial.
+- Gestionar título y meta description mediante un componente mínimo y reversible por ruta; aplicar `noindex` local a 404 sin introducir canonical, Open Graph o robots globales.
+- No crear en 3C rutas, enlaces o placeholders para Aprende a jugar, Escuela o Club, ni avanzar el contenido dinámico de Competición previsto para Fase 4.
+- Aplazar el componente común de estados remotos hasta disponer de dos adopciones con semántica compatible; los patrones actuales de Torneos, Rankings, CMS y Mi Panel no justifican una abstracción segura dentro de 3C.
 
 Alternativas descartadas:
 - Conservar los ocho enlaces planos: mezcla áreas, funciones deportivas, páginas institucionales y una ruta técnica sin jerarquía estable.
@@ -730,7 +736,10 @@ Consecuencias:
 - Desktop y móvil comparten configuración, nombres, orden y estado activo; la cuenta es un grupo separado.
 - Torneos y Rankings siguen operativos como navegación secundaria; las rutas heredadas no se eliminan ni redirigen.
 - React dispone de fallback 404, aunque el estado HTTP real continúa dependiendo del hosting.
-- Fase 3C deberá aportar la estructura visual y técnica común, headings y metadatos básicos para futuras landings, sin desarrollar su contenido en profundidad.
+- Fase 3C aporta la estructura visual y técnica común, headings, enlaces y metadatos básicos, validada inicialmente en `/competicion` sin desarrollar su contenido en profundidad.
+- La base común puede presentar en el futuro datos del dominio, artefactos de `knowledge/` o contenido CMS sin conocer ni sustituir esas fuentes de verdad.
+- La 404 deja de heredar el título de la ruta anterior y restaura su `noindex` al navegar; la cobertura de metadatos del resto de rutas continúa incompleta.
+- Aprende a jugar, Escuela y Club siguen sin rutas ni placeholders; la Fase 3 queda completada sin iniciar Fase 4.
 - Consolidación institucional, migraciones, aliases, redirects, canonical, indexación de `/contenidos` y SEO completo quedan para bloques posteriores.
 
 ---

@@ -279,7 +279,7 @@ Los servicios funcionales no deben duplicar esta resolución ni definir URLs bas
 `frontend/src/App.jsx` registra actualmente:
 
 - `/`: inicio público;
-- `/competicion`: landing mínima de acceso a Torneos y Rankings;
+- `/competicion`: landing mínima de acceso a Torneos y Rankings sobre el sistema común de landings públicas;
 - `/nosotros`: página estática heredada;
 - `/torneos` y `/torneos/:championshipId`: listado y detalle de campeonatos;
 - `/categories/:categoryId`, `/categories/:categoryId/standings` y `/categories/:categoryId/schedule`: detalle, clasificación y calendario de categoría;
@@ -298,7 +298,23 @@ El calendario independiente de categoría obtiene su contexto mediante `GET /cat
 
 En móvil y tablet se reutiliza ese mismo array mediante estado React y un botón con `aria-expanded` y `aria-controls`; el menú se cierra al seleccionar una ruta, al cambiar la ubicación, mediante el propio botón o con Escape, que devuelve el foco al control. Los enlaces cerrados quedan fuera de la navegación por teclado mediante el estado visual responsive. La cuenta es un grupo accesible hermano: el visitante recibe Iniciar sesión y el usuario autenticado conserva saludo, Mi Panel y Salir.
 
-El router no define nesting, loaders ni acciones, pero sí una ruta wildcard final que muestra una experiencia 404 con enlaces de recuperación y sin redirección automática. El servidor SPA puede seguir entregando inicialmente `index.html` con HTTP 200; coordinar una respuesta HTTP 404 real pertenece al despliegue posterior. Home y el índice CMS ya no crean un segundo `<main>` dentro del landmark global. El footer continúa montándose sólo en Home y no contiene navegación; su estructura común queda para 3C. La rama no consumida de `ProtectedRoute` hacia `/dashboard` se mantiene documentada como deuda, sin crear esa ruta.
+El router no define nesting, loaders ni acciones, pero sí una ruta wildcard final que muestra una experiencia 404 con enlaces de recuperación y sin redirección automática. El servidor SPA puede seguir entregando inicialmente `index.html` con HTTP 200; coordinar una respuesta HTTP 404 real pertenece al despliegue posterior. Home y el índice CMS ya no crean un segundo `<main>` dentro del landmark global. El footer continúa montándose sólo en Home y no contiene navegación; no forma parte del sistema común de landings. La rama no consumida de `ProtectedRoute` hacia `/dashboard` se mantiene documentada como deuda, sin crear esa ruta.
+
+## Sistema común de landings públicas
+
+`frontend/src/components/PublicLanding/` contiene la base visual y semántica incorporada en Fase 3C. Es una capa de presentación independiente de Laravel, CMS, `knowledge/`, slugs y servicios concretos: recibe títulos, introducciones, acciones, destinos y contenido mediante props o `children`.
+
+- `PublicLanding` aporta un contenedor `<article>` responsive, sin crear un Layout paralelo ni un segundo `<main>`.
+- `LandingHeader` produce el único `h1`, asocia su introducción y admite acciones opcionales controladas.
+- `LandingSection` exige un identificador explícito y estable, usa `<section>` y enlaza su `h2` mediante `aria-labelledby`.
+- `LandingActions`, `LandingLinkGrid` y `LandingLinkCard` generan navegación React Router real, targets de al menos 44 px, foco visible y una única interacción por tarjeta.
+- `PageMetadata` actualiza título y descripción por ruta sin dependencias, reutiliza una meta description existente y restaura el estado anterior al desmontarse. La 404 añade `noindex` de forma local y reversible; no se implementan canonical, Open Graph ni robots globales.
+
+El módulo CSS común usa grids fluidos, corte a una columna cuando no hay espacio y texto no truncado, sin alturas rígidas ni estilos globales nuevos. La matriz Playwright valida 320, 375, 768, 1024, 1280 y 1440 px, además del acceso por Tab y activación con Enter.
+
+La adopción inicial se limita a `/competicion`, que conserva el mismo propósito, copy estructural y enlaces a `/torneos` y `/rankings` sin consumir API. La 404 conserva su presentación propia y sólo reutiliza acciones y metadatos. Home no se ha refactorizado.
+
+Los estados remotos no se abstraen en 3C: Torneos, Rankings, CMS y Mi Panel mantienen contratos y semánticas diferentes, y no se ha identificado una adopción segura en dos consumidores sin ampliar el alcance. Fase 4 deberá definir loading, error, vacío y reintento al incorporar datos reales a Competición.
 
 ## Arquitectura pública objetivo
 
@@ -312,9 +328,9 @@ El contrato de primer nivel fija estas cinco rutas canónicas:
 
 La zona de autenticación conservará identidad, acceso, Mi Panel y cierre de sesión como bloque separado del menú editorial. Las rutas actuales de Torneos, Rankings y detalles deportivos permanecen como destinos funcionales secundarios; no se trasladarán bajo `/competicion` sin una necesidad demostrable. `/contenidos` y `/contenidos/:slug` permanecen como compatibilidad técnica durante una migración incremental, pero no formarán parte del primer nivel final.
 
-En el estado actual están registradas `/` y `/competicion`. La segunda aporta una landing mínima propia, sin API ni datos simulados, que describe y enlaza los destinos funcionales `/torneos` y `/rankings`. Aprende a jugar, Escuela y Club conservan dependencias editoriales explícitas, no aparecen como enlaces deshabilitados y no tienen rutas placeholder. El contrato detallado, los mínimos de contenido, la compatibilidad y los gates se definen en `09-public-navigation.md`.
+En el estado actual están registradas `/` y `/competicion`. La segunda aplica la estructura común de Fase 3C, sin API ni datos simulados, y describe y enlaza los destinos funcionales `/torneos` y `/rankings`. Aprende a jugar, Escuela y Club conservan dependencias editoriales explícitas, no aparecen como enlaces deshabilitados y no tienen rutas placeholder. El contrato detallado, los mínimos de contenido, la compatibilidad y los gates se definen en `09-public-navigation.md`.
 
-La secuencia aprobada separa responsabilidades: 3B ha implementado la navegación progresiva, el fallback 404 React y la landing mínima de `/competicion`; 3C establecerá la estructura visual y técnica reutilizable de las futuras landings, con headings y metadatos básicos pero sin contenido editorial hardcodeado ni desarrollo profundo. Consolidación institucional, migraciones, aliases, redirects, canonical, indexación de `/contenidos` y SEO completo quedan para bloques posteriores. La Fase 4 desarrollará completamente `/competicion`.
+La secuencia aprobada separa responsabilidades: 3B implementó la navegación progresiva, el fallback 404 React y la landing mínima de `/competicion`; 3C aporta ahora su estructura visual y técnica reutilizable, headings y metadatos básicos sin contenido editorial hardcodeado ni desarrollo profundo. Con ambas fases validadas, la Fase 3 queda completada. Consolidación institucional, migraciones, aliases, redirects, canonical, indexación de `/contenidos` y SEO completo quedan para bloques posteriores. La Fase 4 desarrollará completamente `/competicion`.
 
 ---
 
