@@ -92,8 +92,7 @@ export const championshipsService = {
   },
 
   /**
-   * Get all seasons
-   * NOTE: Backend returns raw JSON without wrapper for this endpoint
+   * Get all public seasons with their public championships
    */
   getSeasons: async () => {
     try {

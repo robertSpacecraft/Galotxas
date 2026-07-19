@@ -717,6 +717,9 @@ Decisión:
 - Gestionar título y meta description mediante un componente mínimo y reversible por ruta; aplicar `noindex` local a 404 sin introducir canonical, Open Graph o robots globales.
 - No crear en 3C rutas, enlaces o placeholders para Aprende a jugar, Escuela o Club, ni avanzar el contenido dinámico de Competición previsto para Fase 4.
 - Aplazar el componente común de estados remotos hasta disponer de dos adopciones con semántica compatible; los patrones actuales de Torneos, Rankings, CMS y Mi Panel no justifican una abstracción segura dentro de 3C.
+- Adoptar en 4A `GET /api/v1/seasons` como fuente primaria única de `/competicion`, porque ya entrega temporadas efectivamente públicas, campeonatos asociados y recuentos de categorías suficientes para el resumen; no duplicar la carga con `/championships` ni endpoints de detalle.
+- Mantener Laravel como fuente y filtro de visibilidad: React preserva el orden recibido, no consulta ni vuelve a filtrar `is_public` y no infiere estados deportivos a partir de fechas.
+- Separar en 4A la comunicación existente de `championshipsService`, el estado en `useCompetitionOverview`, la presentación en componentes específicos y la composición en `CompetitionPage`; loading, error, retry y vacío permanecen locales hasta acreditar una segunda adopción común.
 
 Alternativas descartadas:
 - Conservar los ocho enlaces planos: mezcla áreas, funciones deportivas, páginas institucionales y una ruta técnica sin jerarquía estable.
@@ -730,16 +733,17 @@ Alternativas descartadas:
 
 Consecuencias:
 - La auditoría 3A no cambió elementos visibles; 3B incorpora `/competicion` y una navegación progresiva compartida por desktop y móvil.
-- Inicio y la landing mínima de Competición están implementadas; Aprende a jugar, Escuela y Club conservan gates editoriales explícitos y no aparecen como enlaces deshabilitados.
+- Inicio y la landing dinámica de Competición están implementadas; Aprende a jugar, Escuela y Club conservan gates editoriales explícitos y no aparecen como enlaces deshabilitados.
 - La retirada de un enlace del Navbar, la conservación de una URL y un redirect son decisiones independientes.
 - Las rutas legadas pueden coexistir durante la migración sin convertirse en fuente canónica futura.
 - Desktop y móvil comparten configuración, nombres, orden y estado activo; la cuenta es un grupo separado.
 - Torneos y Rankings siguen operativos como navegación secundaria; las rutas heredadas no se eliminan ni redirigen.
 - React dispone de fallback 404, aunque el estado HTTP real continúa dependiendo del hosting.
 - Fase 3C aporta la estructura visual y técnica común, headings, enlaces y metadatos básicos, validada inicialmente en `/competicion` sin desarrollar su contenido en profundidad.
-- La base común puede presentar en el futuro datos del dominio, artefactos de `knowledge/` o contenido CMS sin conocer ni sustituir esas fuentes de verdad.
+- Fase 4A utiliza esa base para presentar temporadas y campeonatos públicos con enlaces por ID, estados remotos y datos nullable seguros; los componentes comunes continúan sin conocer el contrato deportivo.
+- La base común puede presentar datos del dominio, artefactos de `knowledge/` o contenido CMS sin conocer ni sustituir esas fuentes de verdad.
 - La 404 deja de heredar el título de la ruta anterior y restaura su `noindex` al navegar; la cobertura de metadatos del resto de rutas continúa incompleta.
-- Aprende a jugar, Escuela y Club siguen sin rutas ni placeholders; la Fase 3 queda completada sin iniciar Fase 4.
+- Aprende a jugar, Escuela y Club siguen sin rutas ni placeholders; 4A está completada, pero 4B y 4C continúan pendientes y la Fase 4 permanece abierta.
 - Consolidación institucional, migraciones, aliases, redirects, canonical, indexación de `/contenidos` y SEO completo quedan para bloques posteriores.
 
 ---

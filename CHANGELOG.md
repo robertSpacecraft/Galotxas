@@ -12,6 +12,7 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - Se añade una experiencia 404 de React Router con enlaces de recuperación, sin redirects ni cambios de hosting.
 - Se incorpora el sistema común de landings públicas de Fase 3C con contenedor, cabecera, acciones, secciones, rejilla y tarjetas-enlace desacoplados de las fuentes de contenido.
 - Se añaden metadatos básicos reversibles por ruta para Competición y 404, semántica y teclado cubiertos y una matriz responsive de 320 a 1440 px, cerrando técnicamente la Fase 3 sin publicar nuevas áreas.
+- Se incorpora la landing dinámica de Competición de Fase 4A con temporadas y campeonatos públicos obtenidos en una única carga, estados loading/error/retry/vacío y enlaces contextuales al detalle.
 
 ### Changed
 
@@ -24,7 +25,8 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - El panel distingue Borrador, Programada y Publicada y muestra el feedback de las operaciones de bloques.
 - El Navbar comparte estructura entre desktop y móvil, representa el área activa en toda la rama deportiva, devuelve el foco al cerrar con Escape y evita la cabecera intermedia en dos filas.
 - Torneos, Rankings y las rutas deportivas, CMS e institucionales existentes se conservan, aunque dejan de ocupar el primer nivel público.
-- La landing mínima `/competicion` reutiliza la estructura común y mantiene su copy y destinos reales sin API, datos simulados ni funcionalidades de Fase 4; la 404 conserva identidad propia y reutiliza sólo acciones y metadatos.
+- En Fase 3C, la landing mínima `/competicion` reutiliza la estructura común y mantiene su copy y destinos reales sin API ni datos simulados; la 404 conserva identidad propia y reutiliza sólo acciones y metadatos.
+- `/competicion` presenta desde 4A la jerarquía pública real de temporadas y campeonatos, conserva Torneos y Rankings en todos los estados y añade semántica, teclado y responsive 320–1440 px sin volver a filtrar la visibilidad decidida por backend.
 
 ### Fixed
 

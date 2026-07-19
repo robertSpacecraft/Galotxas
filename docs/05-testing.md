@@ -435,12 +435,12 @@ Limitaciones deliberadas:
 
 La suite ampliada a 14 escenarios cubre:
 
-- navegación pública progresiva en escritorio, landing de Competición e índice/detalle CMS;
+- navegación pública progresiva en escritorio, landing dinámica de Competición e índice/detalle CMS;
 - CTA del Hero hacia el listado real de torneos;
 - calendario de categoría con dos jornadas, partidos y navegación al detalle;
 - menú público móvil, cierre al navegar y con Escape, foco recuperado y enlaces cerrados no visibles;
 - estado activo de Competición en `/competicion`, `/torneos` y `/rankings`;
-- sistema común de `/competicion` con jerarquía `h1`/`h2`, título y descripción por ruta, tarjetas legibles, foco visible, Tab y Enter;
+- sistema común de `/competicion` con jerarquía pública real de temporada y campeonato, headings `h1`–`h4`, enlace al detalle, título y descripción por ruta, tarjetas legibles, foco visible, Tab y Enter;
 - matriz responsive a 320, 375, 768, 1024, 1280 y 1440 px con identidad larga, sin overflow ni solapamientos;
 - fallback 404 React y recuperación hacia Inicio;
 - login real y acciones pendientes de Mi Panel;
@@ -497,7 +497,7 @@ La cobertura de Fase 3C valida:
 - ausencia de rutas placeholder para Aprende a jugar, Escuela y Club y regresión de Navbar, router, rutas deportivas, cuenta y CMS;
 - Playwright a 320, 375, 768, 1024, 1280 y 1440 px sin overflow, con tarjetas legibles y foco verificable por teclado.
 
-No se crea todavía un componente común para `loading`, error, vacío o reintento. Los consumidores actuales tienen contratos heterogéneos y no existe una adopción segura en dos ubicaciones sin modificar comportamiento; Fase 4 deberá cerrar ese patrón al conectar la landing de Competición con datos reales.
+En 3C no se creó un componente común para `loading`, error, vacío o reintento. Los consumidores tenían contratos heterogéneos y no existía una adopción segura en dos ubicaciones sin modificar comportamiento. Fase 4A conecta la landing con datos reales mediante estados específicos de Competición y mantiene aplazada la abstracción global.
 
 Instantánea verificada de PUBLIC-LANDING-SYSTEM-1, 2026-07-19:
 
@@ -507,6 +507,29 @@ Instantánea verificada de PUBLIC-LANDING-SYSTEM-1, 2026-07-19:
 - responsive: landing y Navbar validados a 320, 375, 768, 1024, 1280 y 1440 px sin overflow horizontal;
 - teclado: los destinos de Competición reciben foco visible mediante Tab y navegan con Enter;
 - artefactos: el cierre correcto desmonta el stack y elimina los informes Playwright.
+
+## COMPETITION-LANDING-DATA-1 — Landing dinámica de Competición
+
+La cobertura de Fase 4A valida:
+
+- servicio: una única llamada a `GET /seasons`, extracción del envelope `{ message, data }`, propagación del error y ausencia de peticiones alternativas;
+- hook: loading inicial, éxito, vacío, error seguro, reintento real, ausencia de duplicados al rerenderizar y descarte de respuestas posteriores al desmontaje;
+- composición: un solo `h1`, sección dinámica mediante `PublicLanding`, temporadas con `h3`, campeonatos con `h4`, IDs derivados de identificadores reales y destinos generales conservados;
+- contrato deportivo: etiquetas comprensibles para estados y modalidad, fechas sólo cuando existen, recuento de categorías cuando está disponible y enlace `/torneos/{id}`;
+- privacidad de presentación: ausencia de `is_public`, slugs, timestamps y otros campos técnicos; React no aplica filtrado editorial;
+- estados específicos: loading anunciado, error anunciado con retry, vacío global y temporada visible sin campeonatos;
+- nullables: fechas nulas, descripción nula, recuento de categorías ausente y colección de campeonatos nula no rompen el renderizado;
+- regresión: `PublicLanding`, Navbar, router, 404, Torneos, Rankings, CMS, cuenta y Mi Panel conservan sus contratos;
+- E2E real: temporada y campeonato de `E2ESmokeSeeder`, estado y fechas, enlace de detalle, ausencia de `is_public`, destinos secundarios, teclado y matriz responsive 320–1440 px.
+
+Instantánea verificada de COMPETITION-LANDING-DATA-1, 2026-07-19:
+
+- frontend: 28 archivos y 134 tests Vitest;
+- calidad: ESLint y build Vite correctos;
+- E2E: 14 escenarios Playwright Chromium sobre el stack MariaDB temporal;
+- responsive: temporada, campeonato y destinos generales legibles a 320, 375, 768, 1024, 1280 y 1440 px sin overflow horizontal;
+- teclado: el enlace contextual de campeonato recibe foco visible mediante Tab y navega al detalle con Enter;
+- artefactos: el cierre correcto desmonta el stack, la red y los volúmenes temporales y elimina los informes Playwright.
 
 ## Flujo de Inscripción y Administración (Fase 3 Core)
 - prevención de inscripciones si el campeonato está cerrado;
