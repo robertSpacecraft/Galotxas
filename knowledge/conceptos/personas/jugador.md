@@ -4,7 +4,7 @@ slug: jugador
 titulo: Jugador
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-15
+ultima_revision: 2026-07-20
 ---
 
 # Jugador
@@ -17,7 +17,7 @@ Dependiendo de la modalidad de juego, un jugador podrá competir de forma indivi
 
 ---
 
-# Función
+## Función
 
 El jugador interviene directamente en el desarrollo del juego mediante el golpeo de la pilota y el cumplimiento de las reglas establecidas en el reglamento.
 
@@ -25,7 +25,7 @@ Su objetivo consiste en obtener los quinces y juegos necesarios para ganar la pa
 
 ---
 
-# Modalidades
+## Modalidades
 
 Un jugador puede participar en las siguientes modalidades:
 
@@ -34,7 +34,7 @@ Un jugador puede participar en las siguientes modalidades:
 
 ---
 
-# Posición durante el juego
+## Posición durante el juego
 
 En la modalidad individual el jugador ocupa la totalidad de su campo.
 
@@ -49,7 +49,7 @@ Las características propias de cada posición se desarrollan en sus correspondi
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-002 – Reglamento.
 - REG-003 – El saque.
@@ -59,19 +59,19 @@ Las características propias de cada posición se desarrollan en sus correspondi
 
 ---
 
-# Sinónimos
+## Sinónimos
 
 Actualmente no se documentan sinónimos de uso habitual.
 
 ---
 
-# Observaciones
+## Observaciones
 
 El reglamento no establece diferencias normativas entre los jugadores más allá de las derivadas de la modalidad de juego o de la posición ocupada dentro del equipo.
 
 ---
 
-# Véase también
+## Véase también
 
 - Delantero.
 - Trasero.
@@ -80,7 +80,7 @@ El reglamento no establece diferencias normativas entre los jugadores más allá
 
 ---
 
-# Notas
+## Notas
 
 Este apartado recoge información que ayuda a comprender el concepto, pero que no forma parte de la definición ni del reglamento.
 

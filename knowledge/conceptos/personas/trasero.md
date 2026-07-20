@@ -4,7 +4,7 @@ slug: trasero
 titulo: Trasero
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-15
+ultima_revision: 2026-07-20
 ---
 
 # Trasero
@@ -17,7 +17,7 @@ Habitualmente desarrolla su juego en la zona próxima al fondo de la cancha.
 
 ---
 
-# Función
+## Función
 
 Su función principal consiste en construir el juego de su equipo mediante devoluciones que dificulten la respuesta del equipo contrario y generen oportunidades favorables para el delantero.
 
@@ -25,7 +25,7 @@ Además de intentar obtener directamente el quince, participa activamente en el 
 
 ---
 
-# Responsabilidades
+## Responsabilidades
 
 Durante el desarrollo de la jugada podrá intervenir sobre la pilota en cualquier momento, respetando las reglas generales del juego.
 
@@ -33,7 +33,7 @@ El reglamento no establece limitaciones respecto a la zona de la cancha en la qu
 
 ---
 
-# Posición
+## Posición
 
 Aunque tradicionalmente ocupa la parte posterior del campo, podrá desplazarse libremente durante el desarrollo de una jugada.
 
@@ -41,38 +41,38 @@ Actualmente el Proyecto Galotxas mantiene pendiente de documentar si los integra
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-004 – Desarrollo de una jugada.
 - REG-007 – Modalidad por parejas.
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Trasero** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 Actualmente no se documentan sinónimos de uso habitual.
 
-## Valenciano
+### Valenciano
 
 - Darrere.
 
 ---
 
-# Observaciones
+## Observaciones
 
 La posición de trasero responde a una distribución funcional tradicional dentro del equipo y no limita la libertad de movimiento del jugador durante el desarrollo de una jugada.
 
 ---
 
-# Notas
+## Notas
 
 Desde un punto de vista táctico, el trasero suele ser el jugador que sostiene el ritmo de la partida y construye las jugadas que posteriormente puede finalizar el delantero.
 
@@ -80,7 +80,7 @@ En muchos equipos suele recaer sobre el trasero la mayor parte de la responsabil
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Delantero.
 - Equipo.
@@ -89,7 +89,7 @@ En muchos equipos suele recaer sobre el trasero la mayor parte de la responsabil
 
 ---
 
-# Véase también
+## Véase también
 
 - Jugador.
 - Equipo.

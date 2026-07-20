@@ -4,7 +4,7 @@ slug: quince
 titulo: Quince
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Quince
@@ -17,7 +17,7 @@ Cada quince comienza con un saque válido y finaliza cuando se produce una acci�
 
 ---
 
-# Función
+## Función
 
 El quince representa cada intercambio completo de juego entre ambos lados de la cancha.
 
@@ -25,7 +25,7 @@ La sucesión de quinces determina el resultado de cada juego y, posteriormente, 
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-003 – El saque.
 - REG-004 – Desarrollo de una jugada.
@@ -34,7 +34,7 @@ La sucesión de quinces determina el resultado de cada juego y, posteriormente, 
 
 ---
 
-# Inicio y finalización
+## Inicio y finalización
 
 Un quince comienza con la ejecución de un saque válido.
 
@@ -42,7 +42,7 @@ Finaliza cuando alguno de los jugadores o equipos obtiene el punto como consecue
 
 ---
 
-# Desarrollo
+## Desarrollo
 
 Durante un quince, la pilota podrá:
 
@@ -56,25 +56,25 @@ La combinación de estas acciones determinará la continuidad o finalización de
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Quince** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 Actualmente no se documentan sinónimos de uso habitual.
 
-## Valenciano
+### Valenciano
 
 - Quinze.
 
 ---
 
-# Observaciones
+## Observaciones
 
 Un quince constituye una unidad completa de juego independiente del marcador existente en ese momento.
 
@@ -82,13 +82,13 @@ Todas las reglas relativas a botes, rebotes, tamboriles, cajones y faltas se apl
 
 ---
 
-# Notas
+## Notas
 
 La obtención de un quince modifica el marcador del juego conforme al sistema de puntuación reglamentario.
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Juego.
 - Partido.
@@ -99,7 +99,7 @@ La obtención de un quince modifica el marcador del juego conforme al sistema de
 
 ---
 
-# Véase también
+## Véase también
 
 - Juego.
 - Partido.

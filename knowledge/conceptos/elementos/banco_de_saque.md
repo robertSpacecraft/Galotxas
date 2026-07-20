@@ -4,7 +4,7 @@ slug: banco-de-saque
 titulo: Banco de saque
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Banco de saque
@@ -17,7 +17,7 @@ Se encuentra situado junto a la red y sirve como apoyo para el bote inicial de l
 
 ---
 
-# Ubicación
+## Ubicación
 
 Se sitúa junto a la red, en el lado desde el que corresponde efectuar el saque.
 
@@ -25,7 +25,7 @@ Su posición permanece fija y forma parte de la configuración permanente de la 
 
 ---
 
-# Función
+## Función
 
 El banco de saque permite realizar el bote previo reglamentario de la pilota durante el saque inicial.
 
@@ -33,14 +33,14 @@ No interviene en el desarrollo ordinario de las jugadas una vez efectuado el saq
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-001 – Modelo de la cancha.
 - REG-003 – El saque.
 
 ---
 
-# Interacción con la pilota
+## Interacción con la pilota
 
 Durante la ejecución del saque, la pilota debe botar sobre el banco de saque antes de ser golpeada por el jugador que realiza el servicio.
 
@@ -48,25 +48,25 @@ Fuera de esta situación, el banco no forma parte del juego ordinario.
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Banco de saque** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 - Banco de saque.
 
-## Valenciano
+### Valenciano
 
 - Banqueta de traure. *(Pendiente de confirmar la denominación tradicional.)*
 
 ---
 
-# Observaciones
+## Observaciones
 
 El banco de saque constituye un elemento específico de las Galotxas y forma parte del procedimiento reglamentario del saque inicial.
 
@@ -74,13 +74,13 @@ Su presencia distingue esta modalidad de otras modalidades de pelota.
 
 ---
 
-# Notas
+## Notas
 
 La altura, dimensiones y materiales del banco pueden variar ligeramente entre instalaciones, siempre que permitan realizar correctamente el bote reglamentario del saque.
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Saque.
 - Pilota.
@@ -88,7 +88,7 @@ La altura, dimensiones y materiales del banco pueden variar ligeramente entre in
 
 ---
 
-# Véase también
+## Véase también
 
 - Saque.
 - Red.

@@ -4,7 +4,7 @@ slug: area-de-juego
 titulo: Área de juego
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Área de juego
@@ -17,7 +17,7 @@ Comprende toda la superficie delimitada por las paredes de fondo, los muros late
 
 ---
 
-# Ubicación
+## Ubicación
 
 Ocupa la totalidad del espacio interior de la cancha destinado al desarrollo del juego.
 
@@ -25,7 +25,7 @@ En ella se encuentran todos los elementos que intervienen directamente durante u
 
 ---
 
-# Función
+## Función
 
 El área de juego constituye el espacio válido en el que se desarrolla cada quince.
 
@@ -33,7 +33,7 @@ Las acciones realizadas fuera de ella únicamente serán válidas cuando el regl
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-001 – Modelo de la cancha.
 - REG-003 – El saque.
@@ -42,7 +42,7 @@ Las acciones realizadas fuera de ella únicamente serán válidas cuando el regl
 
 ---
 
-# Interacción con la pilota
+## Interacción con la pilota
 
 Salvo disposición específica del reglamento, la pilota podrá desplazarse y botar libremente dentro del área de juego.
 
@@ -50,37 +50,37 @@ La continuidad o finalización del quince dependerá de las reglas aplicables a 
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Área de juego** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 Actualmente no se documentan sinónimos de uso habitual.
 
-## Valenciano
+### Valenciano
 
 - Àrea de joc.
 
 ---
 
-# Observaciones
+## Observaciones
 
 Las líneas reglamentarias forman parte del área de juego y se consideran incluidas dentro de las zonas que delimitan, salvo que el reglamento establezca expresamente una excepción.
 
 ---
 
-# Notas
+## Notas
 
 La configuración física del área de juego podrá variar ligeramente entre instalaciones en aspectos constructivos, siempre que se respeten las características reglamentarias del juego.
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Cancha.
 - Red.
@@ -93,7 +93,7 @@ La configuración física del área de juego podrá variar ligeramente entre ins
 
 ---
 
-# Véase también
+## Véase también
 
 - Cancha.
 - Red.

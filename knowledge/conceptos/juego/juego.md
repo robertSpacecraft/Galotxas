@@ -4,7 +4,7 @@ slug: juego
 titulo: Juego
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Juego
@@ -17,7 +17,7 @@ Un juego finaliza cuando uno de los jugadores o equipos alcanza la puntuación n
 
 ---
 
-# Función
+## Función
 
 El juego constituye la unidad intermedia de puntuación entre el quince y el partido.
 
@@ -25,14 +25,14 @@ El resultado final de un partido se determina por el número de juegos obtenidos
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-003 – El saque.
 - REG-006 – Puntuación.
 
 ---
 
-# Desarrollo
+## Desarrollo
 
 Cada juego está formado por una sucesión de quinces.
 
@@ -42,25 +42,25 @@ Al finalizar un juego se procederá al cambio de campo y continuará el partido 
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Juego** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 Actualmente no se documentan sinónimos de uso habitual.
 
-## Valenciano
+### Valenciano
 
 - Joc.
 
 ---
 
-# Observaciones
+## Observaciones
 
 Un juego constituye una unidad independiente dentro del partido.
 
@@ -68,13 +68,13 @@ La puntuación obtenida en un juego no se acumula al siguiente, iniciándose cad
 
 ---
 
-# Notas
+## Notas
 
 El número de juegos necesarios para ganar un partido depende de la modalidad disputada y de las condiciones establecidas por la competición.
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Quince.
 - Partido.
@@ -83,7 +83,7 @@ El número de juegos necesarios para ganar un partido depende de la modalidad di
 
 ---
 
-# Véase también
+## Véase también
 
 - Quince.
 - Partido.

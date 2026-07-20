@@ -73,7 +73,9 @@ Se utilizará para el Manual, Reglamento, Conceptos, terminología y otros conte
 
 **Estado actual:** `knowledge/reglamento/` y `knowledge/conceptos/` existen.
 
-**Estado tras 5A:** existen contrato editorial, validación, compilador determinista y un artefacto JSON versionado con 40 documentos de cuatro colecciones. El artefacto todavía no tiene consumidor React ni ruta pública. La primera versión no usará MDX, HTML ejecutable, una API Laravel ni un CRUD Blade para el Manual.
+**Estado tras 5A.1:** existen contrato editorial, validación, compilador determinista y un artefacto JSON versionado con 40 documentos de cuatro colecciones. REG-001–REG-008 han recibido aprobación editorial humana como Reglamento inicial y todo el corpus está `Vigente`, con un único H1 y jerarquía coherente por documento. El artefacto todavía no tiene proyección pública, consumidor React ni ruta pública. La primera versión no usará MDX, HTML ejecutable, una API Laravel ni un CRUD Blade para el Manual.
+
+La normalización técnica sólo puede cambiar estructura expresamente autorizada, nunca reformular reglas, términos o referencias. Las revisiones editoriales futuras deberán ser conscientes, actualizar `ultima_revision` y revisar la versión conforme al alcance semántico del cambio. Un documento `Vigente` sólo puede referenciar otro documento `Vigente`; esta invariancia se valida antes de regenerar el artefacto.
 
 ## 5. Arquitectura pública aprobada
 
@@ -158,6 +160,8 @@ La tabla diferencia la fuente aprobada de las capacidades actuales que todavía 
 - Los administradores editoriales modifican contenido CMS desde Blade, dentro de sus permisos.
 - Las personas responsables del conocimiento editan `knowledge/` mediante Git, revisión y validación editorial.
 - Esas personas ejecutan `knowledge:check`, regeneran el artefacto con `knowledge:build` y entregan fuente y JSON juntos; nunca editan el JSON a mano.
+- Un cambio de estado requiere aprobación editorial. La autorización de 5A.1 se limita a REG-001–REG-008 y no constituye permiso general para publicar futuros borradores.
+- Las normalizaciones estructurales preservan texto, reglas, terminología, títulos, IDs, slugs y referencias; cualquier cambio semántico se tramita como revisión editorial versionada.
 - El equipo frontend mantiene estructura, accesibilidad y presentación; no altera la fuente editorial para resolver necesidades de contenido.
 - Los cambios con impacto cruzado requieren coordinación y actualización documental en el mismo bloque.
 
@@ -264,7 +268,7 @@ Las vistas públicas, metadatos, galerías y documentos deben minimizar datos pe
 - Las vistas remotas contemplan `loading`, `error`, `empty` y `content`.
 - Las futuras landings reutilizan contenedor, cabecera, acciones, secciones y destinos de `PublicLanding` sin convertir esos componentes en fuente editorial o adaptador de datos.
 - Los estados remotos comunes sólo se abstraen cuando al menos dos consumidores compartan semántica y comportamiento. Fases 4A–4C mantienen ciclos específicos por recurso; compartir composición o navegación contextual no los convierte en una abstracción remota global.
-- Los artefactos de `knowledge/` se validan y generan mediante los comandos build-time de 5A; no se copian manualmente a JSX. `dev` y `build` no se acoplan todavía porque falta confirmar el contexto de CI/despliegue.
+- Los artefactos de `knowledge/` se validan y generan mediante los comandos build-time de 5A/5A.1; no se copian manualmente a JSX. El compilador exige un H1 inicial único, jerarquía coherente y referencias desde documentos vigentes exclusivamente hacia destinos vigentes. `dev` y `build` no se acoplan todavía porque falta confirmar el contexto de CI/despliegue.
 - Las rutas públicas mantienen estabilidad, accesibilidad, navegación por teclado y comportamiento responsive.
 - Las cinco áreas, sus rutas y familias activas respetan `09-public-navigation.md`; la cuenta permanece fuera del árbol editorial.
 - Eliminar un enlace del primer nivel no elimina su URL. Aliases, canonical y redirects se aplican sólo tras paridad y pruebas.
@@ -281,7 +285,7 @@ El alcance concreto depende del riesgo, pero una sección administrable debe val
 - integración entre servicio, ruta y vista;
 - E2E para publicación administrativa y consumo público cuando el flujo sea crítico;
 - accesibilidad, teclado y responsive;
-- validación del contrato editorial, relaciones, slugs, seguridad y sincronía del artefacto de `knowledge/`; desde 5A la cubre KNOWLEDGE-COMPILER-1.
+- validación del contrato editorial, headings, relaciones por estado, slugs, seguridad y sincronía del artefacto de `knowledge/`; la cubren KNOWLEDGE-COMPILER-1 y KNOWLEDGE-PUBLICATION-READINESS-1.
 
 Las pruebas existentes del CMS básico se documentan en `05-testing.md`. Las pruebas anteriores son requisitos para futuras ampliaciones y no implican que todas estén implementadas hoy.
 

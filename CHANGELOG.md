@@ -18,6 +18,7 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - Se formaliza en Fase 5A el contrato de seis metadatos para 40 documentos compilables de Reglamento y Conceptos, con namespaces, orden y exclusiones explícitas.
 - Se incorpora un validador y compilador build-time sin dependencias para `knowledge/`, con referencias y contenido ejecutable controlados, salida JSON determinista de esquema v1 y escritura segura.
 - Se añade KNOWLEDGE-COMPILER-1 con fixtures temporales, validación del corpus real, sincronía byte a byte del artefacto y regresión del build frontend, sin publicar rutas de Aprende a jugar o Manual.
+- Se registra la aprobación editorial inicial de `REG-001`–`REG-008` y se prepara para Fase 5B un corpus canónico de 40 documentos `Vigente`, sin crear proyección pública, renderer ni rutas React.
 
 ### Changed
 
@@ -35,6 +36,8 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - Los detalles de campeonato y categoría exponen accesos claros a detalle, clasificación y calendario mediante las rutas deportivas existentes y generadores de URL compartidos, sin rutas nuevas ni cambios de API.
 - Torneos, detalles deportivos y Rankings distinguen loading, error recuperable, vacío y contenido; el fallo de un ranking o del contexto no oculta datos independientes ya disponibles.
 - El detalle de categoría queda como resumen de la entidad y delega clasificación y calendario en sus vistas dedicadas, eliminando su doble representación.
+- Se normalizan los 40 documentos canónicos a un H1 inicial único y una jerarquía H2/H3 coherente, preservando íntegramente texto, títulos, IDs, slugs, versiones y referencias.
+- El compilador de Knowledge valida la jerarquía de headings y rechaza referencias desde contenido `Vigente` hacia destinos no vigentes o inexistentes, con diagnóstico contextual de origen y destino.
 
 ### Fixed
 

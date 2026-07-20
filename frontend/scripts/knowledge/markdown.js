@@ -56,11 +56,25 @@ export function validateMarkdownSecurity(markdown, sourcePath) {
   }
 }
 
-function extractHeadings(markdown, sourcePath) {
-  const headings = []
+function documentLabel(documentId) {
+  return documentId ? `El documento "${documentId}"` : 'El documento'
+}
+
+function extractHeadings(markdown, sourcePath, documentId) {
+  const headingsWithLocation = []
   const anchorCounts = new Map()
 
-  for (const line of markdown.split('\n')) {
+  for (const [index, line] of markdown.split('\n').entries()) {
+    const invalidLevel = /^(#{7,})\s+/.exec(line)
+
+    if (invalidLevel) {
+      fail(
+        `${documentLabel(documentId)} contiene un heading fuera de H1-H6 en la línea ${index + 1}.`,
+        sourcePath,
+        'HEADING_LEVEL_INVALID',
+      )
+    }
+
     const match = /^(#{1,6})\s+(.+?)\s*#*\s*$/.exec(line)
 
     if (!match) {
@@ -77,18 +91,57 @@ function extractHeadings(markdown, sourcePath) {
     const count = (anchorCounts.get(baseAnchor) ?? 0) + 1
     anchorCounts.set(baseAnchor, count)
 
-    headings.push({
+    headingsWithLocation.push({
       level: match[1].length,
       text,
       anchor: count === 1 ? baseAnchor : `${baseAnchor}-${count}`,
+      line: index + 1,
     })
   }
 
-  if (headings.length === 0 || headings[0].level !== 1) {
-    fail('el cuerpo debe comenzar su jerarquía con un heading H1.', sourcePath, 'HEADING_REQUIRED')
+  if (headingsWithLocation.length === 0) {
+    fail(
+      `${documentLabel(documentId)} debe contener headings y comenzar con un H1.`,
+      sourcePath,
+      'HEADING_REQUIRED',
+    )
   }
 
-  return headings
+  if (headingsWithLocation[0].level !== 1) {
+    const firstHeading = headingsWithLocation[0]
+    fail(
+      `${documentLabel(documentId)} debe usar H1 como primer heading; se encontró H${firstHeading.level} "${firstHeading.text}" en la línea ${firstHeading.line}.`,
+      sourcePath,
+      'HEADING_H1_FIRST',
+    )
+  }
+
+  const additionalH1 = headingsWithLocation.find(
+    (heading, index) => index > 0 && heading.level === 1,
+  )
+
+  if (additionalH1) {
+    fail(
+      `${documentLabel(documentId)} contiene el H1 adicional "${additionalH1.text}" en la línea ${additionalH1.line}; sólo se admite el H1 del título.`,
+      sourcePath,
+      'HEADING_H1_MULTIPLE',
+    )
+  }
+
+  for (let index = 1; index < headingsWithLocation.length; index += 1) {
+    const previous = headingsWithLocation[index - 1]
+    const current = headingsWithLocation[index]
+
+    if (current.level > previous.level + 1) {
+      fail(
+        `${documentLabel(documentId)} salta de H${previous.level} "${previous.text}" a H${current.level} "${current.text}" en la línea ${current.line}.`,
+        sourcePath,
+        'HEADING_HIERARCHY_INVALID',
+      )
+    }
+  }
+
+  return headingsWithLocation.map(({ level, text, anchor }) => ({ level, text, anchor }))
 }
 
 function extractReferenceCandidates(markdown, sourcePath) {
@@ -136,11 +189,11 @@ function extractReferenceCandidates(markdown, sourcePath) {
   return candidates.sort((left, right) => left.index - right.index)
 }
 
-export function analyzeMarkdown(markdown, sourcePath) {
+export function analyzeMarkdown(markdown, sourcePath, documentId = null) {
   validateMarkdownSecurity(markdown, sourcePath)
 
   return {
-    headings: extractHeadings(markdown, sourcePath),
+    headings: extractHeadings(markdown, sourcePath, documentId),
     referenceCandidates: extractReferenceCandidates(markdown, sourcePath),
   }
 }
@@ -163,14 +216,14 @@ function splitReferenceTarget(target, sourcePath) {
   }
 }
 
-function ensureKnownAnchor(document, fragment, sourcePath) {
+function ensureKnownAnchor(document, fragment, sourcePath, sourceDocumentId) {
   if (!fragment) {
     return null
   }
 
   if (!document.headings.some((heading) => heading.anchor === fragment)) {
     fail(
-      `el anchor "#${fragment}" no existe en "${document.sourcePath}".`,
+      `el documento "${sourceDocumentId}" referencia el anchor "#${fragment}", que no existe en "${document.id}" (${document.sourcePath}).`,
       sourcePath,
       'REFERENCE_ANCHOR_MISSING',
     )
@@ -189,7 +242,7 @@ export function resolveReferences(document, documentsById, documentsBySourcePath
     if (candidate.type === 'id') {
       if (!documentsById.has(candidate.target)) {
         fail(
-          `la referencia por ID "${candidate.target}" no existe.`,
+          `el documento "${document.id}" contiene la referencia por ID inexistente "${candidate.target}".`,
           document.sourcePath,
           'REFERENCE_ID_MISSING',
         )
@@ -243,7 +296,12 @@ export function resolveReferences(document, documentsById, documentsBySourcePath
       reference = {
         type: 'document',
         targetId: targetDocument.id,
-        fragment: ensureKnownAnchor(targetDocument, fragment, document.sourcePath),
+        fragment: ensureKnownAnchor(
+          targetDocument,
+          fragment,
+          document.sourcePath,
+          document.id,
+        ),
       }
     }
 

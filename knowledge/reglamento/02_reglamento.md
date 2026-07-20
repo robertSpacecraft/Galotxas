@@ -3,8 +3,8 @@ id: REG-002
 slug: reglamento
 titulo: Reglamento
 version: 0.1.0
-estado: Borrador
-ultima_revision: 2026-07-13
+estado: Vigente
+ultima_revision: 2026-07-20
 ---
 
 # Reglamento
@@ -19,7 +19,7 @@ Las definiciones de los elementos físicos de la cancha se desarrollan en **REG-
 
 ---
 
-# 2. Objetivo de la partida
+## 2. Objetivo de la partida
 
 El objetivo de cada jugador o equipo consiste en ganar la partida.
 
@@ -32,11 +32,11 @@ No será necesario obtener una diferencia mínima de juegos respecto al adversar
 
 ---
 
-# 3. Modalidades de juego
+## 3. Modalidades de juego
 
 Actualmente se contemplan dos modalidades de juego.
 
-## Individual
+### Individual
 
 Dos jugadores compiten entre sí.
 
@@ -44,7 +44,7 @@ Cada jugador ocupa la totalidad de su campo.
 
 ---
 
-## Parejas
+### Parejas
 
 Dos equipos formados por dos jugadores compiten entre sí.
 
@@ -59,7 +59,7 @@ Las reglas específicas de esta modalidad se desarrollan en **REG-007 – Modali
 
 ---
 
-# 4. Participantes
+## 4. Participantes
 
 Cada participante deberá ocupar el campo que le corresponda al inicio de la partida.
 
@@ -67,7 +67,7 @@ Los jugadores podrán desplazarse libremente por su campo durante el desarrollo 
 
 ---
 
-# 5. Inicio de la partida
+## 5. Inicio de la partida
 
 La partida comienza mediante el procedimiento conocido tradicionalmente como **arrime**.
 
@@ -79,7 +79,7 @@ El procedimiento detallado del arrime se desarrollará en un apartado específic
 
 ---
 
-# 6. Desarrollo de una jugada
+## 6. Desarrollo de una jugada
 
 Cada jugada comienza con la ejecución de un saque reglamentario.
 
@@ -89,7 +89,7 @@ La jugada continúa mientras ninguno de los participantes cometa una acción que
 
 ---
 
-# 7. Finalización de una jugada
+## 7. Finalización de una jugada
 
 Una jugada finaliza cuando uno de los jugadores o equipos incurre en alguna de las situaciones previstas por el reglamento que implican la pérdida del quince.
 
@@ -97,7 +97,7 @@ Las causas concretas que determinan la finalización de una jugada se desarrolla
 
 ---
 
-# 8. Obtención del quince
+## 8. Obtención del quince
 
 Cada jugada otorga un único quince.
 
@@ -107,7 +107,7 @@ La forma de contabilizar los quinces se desarrolla en **REG-006 – Sistema de p
 
 ---
 
-# 9. Juegos
+## 9. Juegos
 
 Los quinces obtenidos permiten ganar juegos.
 
@@ -117,7 +117,7 @@ El sistema de puntuación utilizado para determinar el vencedor de un juego se d
 
 ---
 
-# 10. Victoria
+## 10. Victoria
 
 Resultará vencedor el jugador o equipo que alcance el número de juegos establecido para la modalidad que esté disputando.
 

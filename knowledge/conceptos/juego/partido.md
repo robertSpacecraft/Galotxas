@@ -4,7 +4,7 @@ slug: partido
 titulo: Partido
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Partido
@@ -17,20 +17,20 @@ El partido constituye la unidad competitiva completa de este deporte.
 
 ---
 
-# Función
+## Función
 
 El partido determina el vencedor del enfrentamiento mediante el sistema de puntuación establecido para cada modalidad de juego.
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-006 – Puntuación.
 - REG-007 – Modalidades de juego.
 
 ---
 
-# Modalidades
+## Modalidades
 
 Actualmente se contemplan las siguientes modalidades:
 
@@ -41,7 +41,7 @@ Cada modalidad establece el número de juegos necesarios para obtener la victori
 
 ---
 
-# Desarrollo
+## Desarrollo
 
 Un partido comienza con el primer saque y finaliza cuando uno de los jugadores o equipos alcanza el número de juegos establecido por el reglamento para su modalidad.
 
@@ -49,31 +49,31 @@ Durante el desarrollo del partido se suceden los distintos juegos, aplicándose 
 
 ---
 
-# Finalización
+## Finalización
 
 El partido concluye cuando uno de los participantes obtiene el número de juegos necesario para proclamarse vencedor.
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Partido** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 - Encuentro.
 
-## Valenciano
+### Valenciano
 
 - Partida.
 
 ---
 
-# Observaciones
+## Observaciones
 
 Un partido constituye la máxima unidad competitiva del reglamento.
 
@@ -81,13 +81,13 @@ Su desarrollo está formado por una secuencia ordenada de juegos, y cada juego, 
 
 ---
 
-# Notas
+## Notas
 
 Las condiciones particulares de una competición (liga, campeonato, eliminatoria, etc.) podrán establecer requisitos adicionales relativos al desarrollo de los partidos, siempre que no contradigan el reglamento general.
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Juego.
 - Quince.
@@ -97,7 +97,7 @@ Las condiciones particulares de una competición (liga, campeonato, eliminatoria
 
 ---
 
-# Véase también
+## Véase también
 
 - Juego.
 - Quince.

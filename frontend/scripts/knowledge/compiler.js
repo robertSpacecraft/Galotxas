@@ -148,11 +148,15 @@ async function compileDocument(entry) {
     )
   }
 
-  const { headings, referenceCandidates } = analyzeMarkdown(markdown, entry.sourcePath)
+  const { headings, referenceCandidates } = analyzeMarkdown(
+    markdown,
+    entry.sourcePath,
+    metadata.id,
+  )
 
   if (headings[0].text !== metadata.titulo) {
     fail(
-      'el primer H1 debe coincidir exactamente con "titulo".',
+      `el documento "${metadata.id}" usa el H1 "${headings[0].text}", que debe coincidir exactamente con "titulo" ("${metadata.titulo}").`,
       entry.sourcePath,
       'TITLE_HEADING_MISMATCH',
     )
@@ -217,6 +221,40 @@ function sortDocuments(documents) {
   )
 }
 
+export function validateReferencePublication(documents) {
+  const documentsById = new Map(documents.map((document) => [document.id, document]))
+
+  for (const document of documents) {
+    if (document.status !== 'Vigente') {
+      continue
+    }
+
+    for (const reference of document.references) {
+      if (reference.type !== 'document') {
+        continue
+      }
+
+      const target = documentsById.get(reference.targetId)
+
+      if (!target) {
+        fail(
+          `el documento Vigente "${document.id}" referencia el destino inexistente "${reference.targetId}".`,
+          document.sourcePath,
+          'REFERENCE_ID_MISSING',
+        )
+      }
+
+      if (target.status !== 'Vigente') {
+        fail(
+          `el documento Vigente "${document.id}" referencia "${target.id}" con estado "${target.status}", que no es publicable.`,
+          document.sourcePath,
+          'REFERENCE_STATUS_UNPUBLISHABLE',
+        )
+      }
+    }
+  }
+}
+
 export async function compileKnowledge(knowledgeRoot) {
   const discovery = await discoverKnowledge(knowledgeRoot)
   const documents = sortDocuments(
@@ -237,6 +275,8 @@ export async function compileKnowledge(knowledgeRoot) {
 
     return { ...normalizedDocument, references }
   })
+
+  validateReferencePublication(normalizedDocuments)
 
   const collections = COLLECTIONS.map((collection) => ({
     id: collection.id,

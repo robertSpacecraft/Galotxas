@@ -102,13 +102,15 @@ La arquitectura pública aprobada conecta tres canales diferentes:
 2. **Contenido administrable:** `Panel Blade → base de datos → API pública → React` para contenido institucional, noticias, actividades, convocatorias y demás información editable sin despliegue.
 3. **Conocimiento canónico:** `knowledge/ → compilador validado → datos generados → React` para Manual, Reglamento, Conceptos y contenido pedagógico estable.
 
-Los tres canales disponen ya de una base comprobable. En el tercero, Fase 5A implementa el contrato editorial, el validador, el compilador determinista y un artefacto JSON versionado; todavía no existe un consumidor React, renderer o ruta pública. La primera versión del Manual no utilizará MDX, HTML ejecutable, base de datos, API Laravel ni CRUD Blade.
+Los tres canales disponen ya de una base comprobable. En el tercero, Fase 5A implementa el contrato editorial, el validador, el compilador determinista y un artefacto JSON versionado. Fase 5A.1 aprueba editorialmente el Reglamento inicial, normaliza los 40 documentos a un único H1 y deja todo el corpus en estado `Vigente`; todavía no existe un consumidor React, renderer, proyección pública o ruta pública. La primera versión del Manual no utilizará MDX, HTML ejecutable, base de datos, API Laravel ni CRUD Blade.
 
 Una misma pieza no debe mantenerse de forma editable en más de un canal. Los criterios de elección y la matriz de fuentes se definen en `10-content-governance.md`.
 
 ## Canalización build-time de Knowledge
 
-`frontend/scripts/knowledge/` descubre únicamente las cuatro colecciones aprobadas, parsea el subconjunto escalar del front matter, valida UTF-8/LF, metadatos, IDs, slugs, rutas lógicas, headings, referencias y contenido no ejecutable, y serializa `frontend/src/generated/knowledge/knowledge.json` con `schemaVersion: 1`.
+`frontend/scripts/knowledge/` descubre únicamente las cuatro colecciones aprobadas, parsea el subconjunto escalar del front matter, valida UTF-8/LF, metadatos, IDs, slugs, rutas lógicas, headings, referencias y contenido no ejecutable, y serializa `frontend/src/generated/knowledge/knowledge.json` con `schemaVersion: 1`. Cada documento exige exactamente un H1 inicial coincidente con `titulo`, niveles H1–H6 y una jerarquía sin saltos; las secciones y subsecciones actuales usan H2 y H3.
+
+El grafo editorial también forma parte del contrato canónico: un documento `Vigente` sólo puede referenciar otro documento `Vigente`. Los borradores futuros podrán relacionarse con borradores o vigentes, pero nunca bloquearán silenciosamente una futura proyección pública. El corpus actual contiene 40 documentos vigentes y ninguna referencia hacia contenido no publicable, por lo que queda preparado para que 5B construya una proyección separada sin que 5A.1 la implemente.
 
 El mismo corpus genera los mismos bytes: colecciones, documentos, headings y referencias tienen orden explícito; el JSON no incorpora tiempo de ejecución, rutas absolutas, usuario o metadatos Git. La escritura valida antes de reemplazar y utiliza un archivo temporal en el directorio de destino.
 

@@ -4,7 +4,7 @@ slug: pared-de-grada
 titulo: Pared de grada
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Pared de grada
@@ -17,7 +17,7 @@ Recibe esta denominación por situarse junto a la zona destinada al público y a
 
 ---
 
-# Ubicación
+## Ubicación
 
 Se sitúa en el extremo opuesto a la pared del resto.
 
@@ -27,7 +27,7 @@ Dependiendo de la configuración de la instalación, presenta uno o varios cajon
 
 ---
 
-# Función
+## Función
 
 La pared de grada forma parte de la superficie válida de juego.
 
@@ -37,7 +37,7 @@ Asimismo, su configuración determina la existencia de los cajones de acceso, un
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-001 – Modelo de la cancha.
 - REG-004 – Desarrollo de una jugada.
@@ -45,7 +45,7 @@ Asimismo, su configuración determina la existencia de los cajones de acceso, un
 
 ---
 
-# Interacción con la pilota
+## Interacción con la pilota
 
 La pilota puede impactar sobre la pared de grada durante el desarrollo normal del juego.
 
@@ -53,7 +53,7 @@ Cuando la pilota entra en un cajón de acceso e impacta directamente contra la g
 
 ---
 
-## Particularidades
+### Particularidades
 
 Cuando la pilota abandona la cancha por encima de la pared de grada durante un quince válido, el juego no finaliza.
 
@@ -61,25 +61,25 @@ La reanudación del juego se realiza mediante un procedimiento específico descr
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Pared de grada** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 Actualmente no se documentan sinónimos de uso habitual.
 
-## Valenciano
+### Valenciano
 
 - Paret de la grada.
 
 ---
 
-# Observaciones
+## Observaciones
 
 La pared de grada no es completamente continua.
 
@@ -89,13 +89,13 @@ Esta característica constituye una particularidad arquitectónica propia de num
 
 ---
 
-# Notas
+## Notas
 
 Aunque la pared de grada comparte la misma función básica que la pared del resto durante el desarrollo del juego, su diseño condiciona la existencia de distintas tipologías de cajón y determinadas situaciones particulares del reglamento.
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Pared del resto.
 - Cajón.
@@ -105,7 +105,7 @@ Aunque la pared de grada comparte la misma función básica que la pared del res
 
 ---
 
-# Véase también
+## Véase también
 
 - Pared del resto.
 - Cajón.

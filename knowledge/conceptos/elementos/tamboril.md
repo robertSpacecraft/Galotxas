@@ -4,7 +4,7 @@ slug: tamboril
 titulo: Tamboril
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Tamboril
@@ -17,7 +17,7 @@ Forma parte de la superficie válida de juego.
 
 ---
 
-# Ubicación
+## Ubicación
 
 La cancha dispone de un tamboril en cada extremo:
 
@@ -36,7 +36,7 @@ Su geometría modifica la trayectoria de la pilota cuando esta impacta sobre él
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-001 – Modelo de la cancha.
 - REG-003 – El saque.
@@ -69,19 +69,19 @@ Si impacta directamente sobre el tamboril sin haber botado previamente en el sue
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Tamboril** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 Actualmente no se documentan sinónimos de uso habitual.
 
-## Valenciano
+### Valenciano
 
 - Tamborí.
 
@@ -95,7 +95,7 @@ Forma parte integrante de la cancha y constituye uno de los elementos constructi
 
 ---
 
-# Notas
+## Notas
 
 El dominio técnico del rebote en el tamboril constituye una parte importante del juego.
 
@@ -105,7 +105,7 @@ Estas aplicaciones tienen carácter técnico y táctico, no reglamentario.
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Pared del resto.
 - Pared de grada.
@@ -115,7 +115,7 @@ Estas aplicaciones tienen carácter técnico y táctico, no reglamentario.
 
 ---
 
-# Véase también
+## Véase también
 
 - Cancha.
 - Pared del resto.

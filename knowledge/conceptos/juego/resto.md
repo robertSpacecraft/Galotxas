@@ -4,7 +4,7 @@ slug: resto
 titulo: Resto
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Resto
@@ -17,7 +17,7 @@ Con el resto finaliza la fase inicial del saque y comienza el desarrollo ordinar
 
 ---
 
-# Función
+## Función
 
 El resto constituye la primera devolución del quince y da continuidad al juego tras un saque válido.
 
@@ -25,14 +25,14 @@ A partir del resto, todas las acciones posteriores se rigen por las normas gener
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-003 – El saque.
 - REG-004 – Desarrollo de una jugada.
 
 ---
 
-# Ejecución
+## Ejecución
 
 El resto deberá realizarse respetando las condiciones generales de golpeo establecidas por el reglamento.
 
@@ -40,31 +40,31 @@ La forma de efectuar el resto dependerá de la trayectoria seguida por la pilota
 
 ---
 
-# Desarrollo
+## Desarrollo
 
 Una vez realizado un resto válido, el intercambio continuará mediante la sucesión de golpes reglamentarios entre ambos lados de la cancha hasta la finalización del quince.
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Resto** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 Actualmente no se documentan sinónimos de uso habitual.
 
-## Valenciano
+### Valenciano
 
 - Rest.
 
 ---
 
-# Observaciones
+## Observaciones
 
 El resto constituye una acción del juego y no debe confundirse con:
 
@@ -76,13 +76,13 @@ Aunque estos conceptos comparten la misma denominación, representan elementos d
 
 ---
 
-# Notas
+## Notas
 
 Toda devolución posterior al resto deja de considerarse una acción específica y pasa a formar parte del desarrollo normal del quince.
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Saque.
 - Golpe.
@@ -91,7 +91,7 @@ Toda devolución posterior al resto deja de considerarse una acción específica
 
 ---
 
-# Véase también
+## Véase también
 
 - Saque.
 - Golpe.

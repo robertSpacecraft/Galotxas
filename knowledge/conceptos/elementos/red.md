@@ -4,7 +4,7 @@ slug: red
 titulo: Red
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Red
@@ -15,7 +15,7 @@ La red es el elemento situado en la zona central de la cancha que separa el Camp
 
 ---
 
-# Características
+## Características
 
 La red permanece destensada entre ambos laterales de la cancha.
 
@@ -25,7 +25,7 @@ Los extremos se encuentran a mayor altura que la zona central, generando una dis
 
 ---
 
-# Función
+## Función
 
 La red divide los dos campos y establece el obstáculo que la pilota debe superar en cada saque y devolución.
 
@@ -33,7 +33,7 @@ Su disposición destensada condiciona las trayectorias disponibles durante el ju
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-001 – Modelo de la cancha.
 - REG-003 – El saque.
@@ -42,7 +42,7 @@ Su disposición destensada condiciona las trayectorias disponibles durante el ju
 
 ---
 
-# Interacción con la pilota
+## Interacción con la pilota
 
 Para que un saque o devolución sea válido, la pilota deberá superar completamente la red sin tocarla.
 
@@ -52,25 +52,25 @@ No existen repeticiones de saque por contacto con la red.
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Red** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 Actualmente no se documentan sinónimos de uso habitual.
 
-## Valenciano
+### Valenciano
 
 - Xarxa.
 
 ---
 
-# Observaciones
+## Observaciones
 
 La red de Galotxas no presenta la tensión uniforme habitual en otros deportes de red.
 
@@ -78,13 +78,13 @@ Su proximidad al suelo en la zona central constituye una característica estruct
 
 ---
 
-# Notas
+## Notas
 
 Las dimensiones, materiales y sistema de fijación pueden variar entre instalaciones, siempre que se mantenga la configuración funcional propia del juego.
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Campo del resto.
 - Campo de la grada.
@@ -94,7 +94,7 @@ Las dimensiones, materiales y sistema de fijación pueden variar entre instalaci
 
 ---
 
-# Véase también
+## Véase también
 
 - Pilota.
 - Saque.

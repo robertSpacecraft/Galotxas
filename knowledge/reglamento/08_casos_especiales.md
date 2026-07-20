@@ -3,8 +3,8 @@ id: REG-008
 slug: casos-especiales
 titulo: Casos especiales
 version: 0.1.0
-estado: Borrador
-ultima_revision: 2026-07-13
+estado: Vigente
+ultima_revision: 2026-07-20
 ---
 
 # Casos especiales
@@ -17,15 +17,15 @@ Salvo que este documento indique expresamente lo contrario, continuarán siendo 
 
 ---
 
-# 2. Tamboriles
+## 2. Tamboriles
 
-## Consideración reglamentaria
+### Consideración reglamentaria
 
 Los tamboriles se consideran **aire**.
 
 En consecuencia, el impacto de la pilota sobre un tamboril no se contabiliza como un bote sobre la superficie de juego.
 
-## Ejemplos
+### Ejemplos
 
 Son situaciones válidas:
 
@@ -34,7 +34,7 @@ Son situaciones válidas:
 
 ---
 
-# 3. Banco de saque
+## 3. Banco de saque
 
 El banco de saque también se considera **aire**.
 
@@ -42,7 +42,7 @@ Por tanto, el contacto de la pilota con el banco no se considera un bote sobre l
 
 ---
 
-# 4. Cajones
+## 4. Cajones
 
 Cuando la pilota entre en un cajón continuará formando parte del juego mientras pueda ser devuelta reglamentariamente.
 
@@ -50,7 +50,7 @@ Si el jugador o equipo no consigue devolverla, perderá el quince conforme a **R
 
 ---
 
-# 5. Salida por la pared de la grada
+## 5. Salida por la pared de la grada
 
 Cuando la pilota abandone la cancha por encima de la pared de la grada sin tocar ningún elemento externo, la jugada no finalizará.
 
@@ -60,7 +60,7 @@ Esta reanudación forma parte del mismo quince.
 
 ---
 
-# 6. Elementos externos
+## 6. Elementos externos
 
 Si la pilota toca cualquier elemento externo a la cancha, el quince finalizará inmediatamente.
 
@@ -68,7 +68,7 @@ La definición de elemento externo se encuentra en **REG-001 – Modelo de la ca
 
 ---
 
-# 7. Arrastre
+## 7. Arrastre
 
 Se considera **arrastre** la acción consistente en deslizar la mano por la superficie de juego para introducirla bajo la pilota inmediatamente antes de que ésta produzca su segundo bote.
 
@@ -78,7 +78,7 @@ El jugador o equipo que incurra en esta acción perderá el quince.
 
 ---
 
-# 8. Segundo bote junto al tamboril
+## 8. Segundo bote junto al tamboril
 
 Cuando exista duda sobre si el segundo bote se ha producido sobre la superficie de juego o directamente sobre el tamboril, la jugada podrá dar lugar a controversia.
 
@@ -88,7 +88,7 @@ El Proyecto Galotxas mantiene pendiente de documentar un criterio arbitral espec
 
 ---
 
-# 9. Variantes constructivas
+## 9. Variantes constructivas
 
 Las instalaciones de Galotxas pueden presentar pequeñas diferencias constructivas.
 
@@ -101,7 +101,7 @@ Estas diferencias no modifican las reglas generales del juego salvo que se indiq
 
 ---
 
-# 10. Casos no contemplados
+## 10. Casos no contemplados
 
 Toda situación excepcional no prevista expresamente en el presente reglamento deberá resolverse aplicando los principios generales del juego y las reglas establecidas en el resto de documentos del Proyecto Galotxas.
 

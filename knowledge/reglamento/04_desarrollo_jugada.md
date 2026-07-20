@@ -3,8 +3,8 @@ id: REG-004
 slug: desarrollo-de-una-jugada
 titulo: Desarrollo de una jugada
 version: 0.1.0
-estado: Borrador
-ultima_revision: 2026-07-13
+estado: Vigente
+ultima_revision: 2026-07-20
 ---
 
 # Desarrollo de una jugada
@@ -17,13 +17,13 @@ A partir de ese momento, ambos jugadores o equipos intercambian golpes sobre la 
 
 ---
 
-# 2. Objetivo
+## 2. Objetivo
 
 Durante el desarrollo de la jugada, cada jugador o equipo intentará devolver la pilota al campo contrario respetando todas las reglas del juego y evitando perder el quince.
 
 ---
 
-# 3. Desarrollo normal
+## 3. Desarrollo normal
 
 Una jugada válida sigue, con carácter general, la siguiente secuencia.
 
@@ -37,7 +37,7 @@ Las reglas particulares que modifican esta secuencia se desarrollan en los capí
 
 ---
 
-# 4. Golpeo de la pilota
+## 4. Golpeo de la pilota
 
 La pilota únicamente podrá golpearse utilizando la palma de la mano.
 
@@ -55,7 +55,7 @@ Las situaciones que determinan la pérdida del quince por un golpeo no válido s
 
 ---
 
-# 5. Bote de la pilota
+## 5. Bote de la pilota
 
 Durante el desarrollo de una jugada la pilota podrá:
 
@@ -68,7 +68,7 @@ Las excepciones relacionadas con los tamboriles se desarrollan en **REG-008 – 
 
 ---
 
-# 6. Superación de la red
+## 6. Superación de la red
 
 Toda devolución deberá superar completamente la red.
 
@@ -78,7 +78,7 @@ En caso contrario, el jugador o equipo que haya efectuado el golpe perderá el q
 
 ---
 
-# 7. Devolución válida
+## 7. Devolución válida
 
 Se considera devolución válida aquella en la que la pilota:
 
@@ -90,7 +90,7 @@ La devolución podrá realizarse tanto antes del primer bote como después del p
 
 ---
 
-# 8. Continuidad del juego
+## 8. Continuidad del juego
 
 La jugada continuará mientras ninguno de los jugadores o equipos incurra en una situación que implique la pérdida del quince.
 
@@ -98,7 +98,7 @@ Las situaciones especiales que interrumpen temporalmente la jugada se desarrolla
 
 ---
 
-# 9. Finalización de la jugada
+## 9. Finalización de la jugada
 
 La jugada finalizará cuando se produzca cualquiera de las situaciones previstas en **REG-005 – Pérdida del quince**.
 

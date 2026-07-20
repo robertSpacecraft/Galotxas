@@ -4,7 +4,7 @@ slug: bote
 titulo: Bote
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Bote
@@ -17,7 +17,7 @@ El bote constituye una de las referencias fundamentales del reglamento, ya que d
 
 ---
 
-# Función
+## Función
 
 El bote regula la continuidad del juego y condiciona la forma en la que los jugadores pueden devolver la pilota.
 
@@ -25,7 +25,7 @@ Su número, orden y momento de producción determinan la validez de cada interca
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-003 – El saque.
 - REG-004 – Desarrollo de una jugada.
@@ -33,7 +33,7 @@ Su número, orden y momento de producción determinan la validez de cada interca
 
 ---
 
-# Tipos de bote
+## Tipos de bote
 
 A efectos reglamentarios pueden distinguirse distintas situaciones de bote, entre ellas:
 
@@ -46,7 +46,7 @@ Cada una de estas situaciones se regula específicamente en el apartado correspo
 
 ---
 
-# Interacción con la pilota
+## Interacción con la pilota
 
 Durante un quince válido, la pilota podrá ser golpeada antes del primer bote o después del primer bote.
 
@@ -54,25 +54,25 @@ Si la pilota produce un segundo bote sobre el área de juego antes de ser devuel
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Bote** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 Actualmente no se documentan sinónimos de uso habitual.
 
-## Valenciano
+### Valenciano
 
 - Bot.
 
 ---
 
-# Observaciones
+## Observaciones
 
 No todos los botes tienen el mismo significado reglamentario.
 
@@ -80,13 +80,13 @@ Su validez dependerá del momento del juego en que se produzcan y de las condici
 
 ---
 
-# Notas
+## Notas
 
 El concepto de bote constituye la base para definir numerosas reglas del juego, entre ellas la ejecución del saque, la continuidad de un quince y diversas situaciones de falta.
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Pilota.
 - Saque.
@@ -96,7 +96,7 @@ El concepto de bote constituye la base para definir numerosas reglas del juego, 
 
 ---
 
-# Véase también
+## Véase también
 
 - Pilota.
 - Saque.

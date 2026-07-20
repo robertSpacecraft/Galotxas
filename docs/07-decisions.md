@@ -810,12 +810,16 @@ Decisión:
 - Compilar en Node antes del futuro renderizado, sin dependencias nuevas y con un parser limitado a los seis valores escalares reales del front matter.
 - Exigir `id`, `slug`, `titulo`, `version`, `estado` y `ultima_revision`; derivar colección de la ruta y orden del sufijo numérico del ID.
 - Compilar sólo `REG-001`–`REG-008`, `conceptos/elementos`, `conceptos/personas` y `conceptos/juego`; excluir instrucciones, README y `REG-000`, que declara no formar parte del reglamento.
-- Validar ID único global, slug único por namespace, ruta lógica única, SemVer, fecha ISO real, estados `Borrador`/`Vigente`, primer H1, referencias y seguridad.
+- Validar ID único global, slug único por namespace, ruta lógica única, SemVer, fecha ISO real, estados `Borrador`/`Vigente`, headings, referencias y seguridad.
+- Exigir exactamente un H1 como primer heading, coincidente con `titulo`, y una jerarquía H1–H6 sin saltos arbitrarios.
+- Impedir que un documento `Vigente` referencie un documento que no esté también `Vigente`; permitir que un borrador futuro relacione borradores o vigentes mientras los destinos existan.
+- Registrar la aprobación editorial humana de REG-001–REG-008 como Reglamento inicial `Vigente`, sin reformular contenido, reglas, terminología o referencias y conservando sus versiones actuales.
+- Tratar cualquier modificación editorial futura como una revisión consciente: deberá revisar la versión y actualizar `ultima_revision` cuando corresponda.
 - Rechazar HTML, JSX/MDX, scripts, iframes, eventos, código ejecutable, URLs peligrosas, imágenes y rutas que salgan de `knowledge/`.
 - Generar JSON con `schemaVersion: 1`, orden explícito y sin timestamp, rutas absolutas, datos del sistema o HTML precompilado.
 - Versionar `frontend/src/generated/knowledge/knowledge.json` y comprobar en tests su igualdad byte a byte con el corpus.
 - No acoplar todavía `dev` o `build` a la generación. Mantener `knowledge:check` y `knowledge:build` explícitos hasta disponer de un contrato de CI/despliegue fiable.
-- No importar el artefacto en páginas ni registrar rutas durante 5A.
+- No importar el artefacto en páginas, crear una proyección pública ni registrar rutas durante 5A o su normalización 5A.1.
 
 Alternativas descartadas:
 - Hardcodear el contenido en JSX: duplicaría la fuente editorial y exigiría despliegues para cada corrección.
@@ -831,6 +835,8 @@ Consecuencias:
 - Fuente y artefacto versionado deben actualizarse en el mismo cambio; el JSON generado nunca se edita a mano.
 - Dos compilaciones del mismo corpus producen los mismos bytes.
 - Las rutas lógicas del artefacto no son URLs públicas y no cierran todavía el routing de Aprende a jugar o el Manual.
+- El corpus queda preparado para 5B con 40 documentos `Vigente`, un solo H1 por documento y todas las referencias estructuradas dirigidas a contenido vigente.
+- Una normalización técnica no autoriza cambios de texto editorial: estado, fecha y marcadores estructurales se revisan separadamente del contenido semántico.
 - 5B y 5C siguen pendientes; la Fase 5 no queda completa con este ADR.
 - Cuando CI y despliegue estén definidos podrá revisarse la política de versionado y generación automática sin cambiar la autoridad editorial.
 

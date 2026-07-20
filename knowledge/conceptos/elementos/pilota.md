@@ -4,7 +4,7 @@ slug: pilota
 titulo: Pilota
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-15
+ultima_revision: 2026-07-20
 ---
 
 # Pilota
@@ -17,7 +17,7 @@ Todas las acciones desarrolladas durante una partida tienen como finalidad poner
 
 ---
 
-# Función
+## Función
 
 La pilota constituye el único elemento móvil utilizado durante el desarrollo de una partida.
 
@@ -25,7 +25,7 @@ Su trayectoria, bote e interacción con los distintos elementos de la cancha det
 
 ---
 
-# Características
+## Características
 
 La pilota utilizada en las Galotxas presenta unas características físicas específicas que condicionan el desarrollo del juego.
 
@@ -41,7 +41,7 @@ Las especificaciones técnicas completas se documentarán cuando el Proyecto Gal
 
 ---
 
-# Utilización
+## Utilización
 
 Durante una jugada la pilota podrá:
 
@@ -53,7 +53,7 @@ Las condiciones de utilización se desarrollan en los documentos reglamentarios 
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-003 – El saque.
 - REG-004 – Desarrollo de una jugada.
@@ -62,7 +62,7 @@ Las condiciones de utilización se desarrollan en los documentos reglamentarios 
 
 ---
 
-# Sinónimos
+## Sinónimos
 
 - Pelota.
 
@@ -72,7 +72,7 @@ El término **Pelota** se mantiene como sinónimo por ser de uso habitual en cas
 
 ---
 
-# Observaciones
+## Observaciones
 
 La pilota constituye el elemento central del deporte.
 
@@ -80,13 +80,13 @@ Cualquier modificación de sus características físicas puede alterar significa
 
 ---
 
-# Notas
+## Notas
 
 Las características técnicas exactas de la pilota podrán ampliarse en futuras versiones de esta documentación, incorporando información sobre fabricación, materiales, variantes históricas y criterios de homologación.
 
 ---
 
-# Véase también
+## Véase también
 
 - Saque.
 - Tamboril.

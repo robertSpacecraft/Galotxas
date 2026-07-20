@@ -4,7 +4,7 @@ slug: sentaura
 titulo: Sentaura
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Sentaura
@@ -17,13 +17,13 @@ Se manifiesta habitualmente mediante una acumulación de sangre o una coloració
 
 ---
 
-# Función
+## Función
 
 El término permite identificar una dolencia habitual entre los jugadores, producida generalmente como consecuencia de los impactos repetidos de la pilota sobre la mano o los dedos.
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 La sentaura no constituye una acción de juego ni una infracción reglamentaria.
 
@@ -31,7 +31,7 @@ Puede relacionarse con las disposiciones sobre seguridad, protección de las man
 
 ---
 
-# Consecuencias
+## Consecuencias
 
 La sentaura puede provocar dolor y molestias importantes, dificultando o impidiendo temporalmente la práctica de Galotxas.
 
@@ -39,15 +39,15 @@ Su incidencia dependerá de la zona afectada y de la intensidad de la lesión.
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Sentaura** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 No se documentan sinónimos equivalentes de uso habitual dentro de Galotxas.
 
@@ -59,13 +59,13 @@ De manera coloquial, la lesión puede describirse como:
 
 Estas denominaciones son aproximadas y no sustituyen al término propio **sentaura**.
 
-## Valenciano
+### Valenciano
 
 - Sentaura.
 
 ---
 
-# Observaciones
+## Observaciones
 
 La sentaura suele aparecer en las manos o los dedos como consecuencia del golpeo de la pilota.
 
@@ -73,7 +73,7 @@ Aunque externamente pueda parecer una lesión menor, puede resultar especialment
 
 ---
 
-# Notas
+## Notas
 
 El término se documenta conforme al vocabulario tradicional utilizado entre los practicantes de Galotxas.
 
@@ -81,7 +81,7 @@ La descripción recogida en esta ficha tiene finalidad terminológica y deportiv
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Pilota.
 - Golpe.
@@ -89,7 +89,7 @@ La descripción recogida en esta ficha tiene finalidad terminológica y deportiv
 
 ---
 
-# Véase también
+## Véase también
 
 - Pilota.
 - Golpe.

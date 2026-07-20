@@ -4,7 +4,7 @@ slug: pared-del-resto
 titulo: Pared del resto
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Pared del resto
@@ -17,7 +17,7 @@ Recibe esta denominación por encontrarse en el lado desde el que se efectúa el
 
 ---
 
-# Ubicación
+## Ubicación
 
 Se sitúa en uno de los extremos de la cancha, frente a la pared de grada.
 
@@ -25,7 +25,7 @@ En su base se encuentra el tamboril correspondiente y, en las instalaciones habi
 
 ---
 
-# Función
+## Función
 
 La pared del resto forma parte de la superficie válida de juego.
 
@@ -35,7 +35,7 @@ La pilota puede impactar sobre ella durante el desarrollo normal de una jugada, 
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-001 – Modelo de la cancha.
 - REG-003 – El saque.
@@ -44,7 +44,7 @@ La pilota puede impactar sobre ella durante el desarrollo normal de una jugada, 
 
 ---
 
-# Interacción con la pilota
+## Interacción con la pilota
 
 Durante el desarrollo normal de una jugada, la pilota puede impactar sobre la pared del resto y continuar en juego.
 
@@ -52,25 +52,25 @@ No obstante, en la modalidad individual (mà a mà), durante la ejecución del s
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Pared del resto** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 - Resto.
 
-## Valenciano
+### Valenciano
 
 - Paret del rest.
 
 ---
 
-# Observaciones
+## Observaciones
 
 La denominación de esta pared responde a una convención funcional utilizada para identificar ambos extremos de la cancha.
 
@@ -78,13 +78,13 @@ No implica que dicha pared solo pueda intervenir durante el resto o que tenga un
 
 ---
 
-# Notas
+## Notas
 
 Aunque ambas paredes de fondo son superficies válidas de juego, determinadas acciones del saque utilizan la pared del resto como referencia para establecer la validez o invalidez del servicio.
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Pared de grada.
 - Tamboril.
@@ -94,7 +94,7 @@ Aunque ambas paredes de fondo son superficies válidas de juego, determinadas ac
 
 ---
 
-# Véase también
+## Véase también
 
 - Pared de grada.
 - Tamboril.

@@ -4,7 +4,7 @@ slug: cancha
 titulo: Cancha
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Cancha
@@ -17,7 +17,7 @@ Está formada por el área de juego y el conjunto de elementos constructivos y r
 
 ---
 
-# Composición
+## Composición
 
 Una cancha de Galotxas está integrada, entre otros, por los siguientes elementos:
 
@@ -36,7 +36,7 @@ Cada uno de estos elementos dispone de su propia definición y regulación dentr
 
 ---
 
-# Función
+## Función
 
 La cancha constituye el entorno reglamentario en el que se desarrolla el juego.
 
@@ -44,7 +44,7 @@ Su diseño permite la práctica tanto de la modalidad individual (mà a mà) com
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-001 – Modelo de la cancha.
 - REG-003 – El saque.
@@ -52,7 +52,7 @@ Su diseño permite la práctica tanto de la modalidad individual (mà a mà) com
 
 ---
 
-# Configuración general
+## Configuración general
 
 La cancha se divide mediante una red que separa ambos campos de juego.
 
@@ -64,39 +64,39 @@ Asimismo, la cancha incorpora las marcas reglamentarias necesarias para la ejecu
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Cancha** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 - Galotxa.
 - Pista.
 
 
-## Valenciano
+### Valenciano
 
 - Galotxeta.
 
 ---
 
-# Observaciones
+## Observaciones
 
 Aunque pueden existir pequeñas variaciones constructivas entre instalaciones, todas las canchas deberán conservar los elementos esenciales que definen la modalidad y permiten la aplicación uniforme del reglamento.
 
 ---
 
-# Notas
+## Notas
 
 Las dimensiones oficiales, tolerancias constructivas y demás especificaciones técnicas de la cancha se desarrollarán en el reglamento y en la documentación técnica correspondiente.
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Área de juego.
 - Red.
@@ -111,7 +111,7 @@ Las dimensiones oficiales, tolerancias constructivas y demás especificaciones t
 
 ---
 
-# Véase también
+## Véase también
 
 - Área de juego.
 - Red.

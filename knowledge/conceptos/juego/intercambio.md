@@ -4,7 +4,7 @@ slug: intercambio
 titulo: Intercambio
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Intercambio
@@ -17,7 +17,7 @@ Durante el intercambio, ambos jugadores o equipos alternan golpes reglamentarios
 
 ---
 
-# Función
+## Función
 
 El intercambio constituye el desarrollo principal del juego.
 
@@ -25,14 +25,14 @@ En él se suceden las distintas acciones reglamentarias hasta que una de ellas d
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-004 – Desarrollo de una jugada.
 - REG-005 – Faltas.
 
 ---
 
-# Desarrollo
+## Desarrollo
 
 Durante un intercambio pueden producirse, entre otras, las siguientes acciones:
 
@@ -46,7 +46,7 @@ La secuencia de estas acciones continúa hasta que el quince finaliza conforme a
 
 ---
 
-# Finalización
+## Finalización
 
 Un intercambio concluye cuando finaliza el quince.
 
@@ -58,25 +58,25 @@ Entre las causas de finalización pueden encontrarse:
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Intercambio** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 - Peloteo.
 
-## Valenciano
+### Valenciano
 
 Actualmente no se documentan sinónimos de uso habitual.
 
 ---
 
-# Observaciones
+## Observaciones
 
 El intercambio comienza únicamente tras la realización de un resto válido.
 
@@ -84,13 +84,13 @@ La ejecución del saque y del resto forman parte de la fase inicial del quince y
 
 ---
 
-# Notas
+## Notas
 
 Un intercambio puede estar compuesto por un único golpe o por una larga sucesión de acciones, dependiendo del desarrollo del quince.
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Saque.
 - Resto.
@@ -101,7 +101,7 @@ Un intercambio puede estar compuesto por un único golpe o por una larga sucesi�
 
 ---
 
-# Véase también
+## Véase también
 
 - Saque.
 - Resto.

@@ -14,6 +14,7 @@ import {
   discoverKnowledge,
   serializeArtifact,
   validateCorpusUniqueness,
+  validateReferencePublication,
 } from './compiler.js'
 import { parseFrontMatter } from './frontMatter.js'
 import { analyzeMarkdown } from './markdown.js'
@@ -247,6 +248,83 @@ describe('seguridad Markdown', () => {
   })
 })
 
+describe('jerarquía de headings', () => {
+  it('admite un único H1 seguido de secciones y subsecciones coherentes', () => {
+    const analysis = analyzeMarkdown(
+      '# Documento\n\n## Sección\n\n### Subsección\n',
+      'reglamento/01_doc.md',
+      'REG-001',
+    )
+
+    expect(analysis.headings.map(({ level, text }) => [level, text])).toEqual([
+      [1, 'Documento'],
+      [2, 'Sección'],
+      [3, 'Subsección'],
+    ])
+  })
+
+  it('rechaza un documento sin headings', () => {
+    expect(() =>
+      analyzeMarkdown('Contenido sin encabezado.\n', 'reglamento/01_doc.md', 'REG-001'),
+    ).toThrowError(expect.objectContaining({ code: 'HEADING_REQUIRED' }))
+  })
+
+  it('rechaza dos H1 e identifica el documento y el heading responsable', () => {
+    expect(() =>
+      analyzeMarkdown(
+        '# Documento\n\n# Segunda portada\n',
+        'reglamento/01_doc.md',
+        'REG-001',
+      ),
+    ).toThrowError(
+      expect.objectContaining({
+        code: 'HEADING_H1_MULTIPLE',
+        message: expect.stringMatching(/REG-001.*Segunda portada/),
+      }),
+    )
+  })
+
+  it('rechaza un H1 que no es el primer heading', () => {
+    expect(() =>
+      analyzeMarkdown(
+        '## Introducción\n\n# Documento\n',
+        'reglamento/01_doc.md',
+        'REG-001',
+      ),
+    ).toThrowError(expect.objectContaining({ code: 'HEADING_H1_FIRST' }))
+  })
+
+  it('rechaza un H1 que no coincide con titulo', async () => {
+    await expectCorpusError(
+      {
+        'reglamento/01_documento.md': documentSource({
+          title: 'Documento',
+          markdown: '# Otro título\n\nContenido.\n',
+        }),
+      },
+      'TITLE_HEADING_MISMATCH',
+    )
+  })
+
+  it('rechaza saltos de nivel y niveles superiores a H6', () => {
+    expect(() =>
+      analyzeMarkdown(
+        '# Documento\n\n## Sección\n\n#### Salto\n',
+        'reglamento/01_doc.md',
+        'REG-001',
+      ),
+    ).toThrowError(expect.objectContaining({ code: 'HEADING_HIERARCHY_INVALID' }))
+
+    expect(() =>
+      analyzeMarkdown(
+        '# Documento\n\n####### Fuera de contrato\n',
+        'reglamento/01_doc.md',
+        'REG-001',
+      ),
+    ).toThrowError(expect.objectContaining({ code: 'HEADING_LEVEL_INVALID' }))
+  })
+})
+
 describe('referencias internas', () => {
   it('normaliza un enlace relativo, su anchor y una referencia por ID', async () => {
     const root = await createTemporaryDirectory()
@@ -317,6 +395,82 @@ describe('referencias internas', () => {
       'REFERENCE_TRAVERSAL',
     )
   })
+
+  it('admite referencias Vigente a Vigente y resuelve el destino', async () => {
+    const root = await createTemporaryDirectory()
+    await writeFiles(root, {
+      'reglamento/01_uno.md': documentSource({
+        id: 'REG-001',
+        slug: 'uno',
+        markdown: '# Documento\n\nREG-002.\n',
+      }),
+      'reglamento/02_dos.md': documentSource({ id: 'REG-002', slug: 'dos' }),
+    })
+
+    const { artifact } = await compileKnowledge(root)
+    expect(artifact.documents[0].references).toEqual([
+      { type: 'document', targetId: 'REG-002', fragment: null },
+    ])
+  })
+
+  it('rechaza Vigente a Borrador con origen y destino en el diagnóstico', async () => {
+    const root = await createTemporaryDirectory()
+    await writeFiles(root, {
+      'reglamento/01_uno.md': documentSource({
+        id: 'REG-001',
+        slug: 'uno',
+        markdown: '# Documento\n\nREG-002.\n',
+      }),
+      'reglamento/02_dos.md': documentSource({
+        id: 'REG-002',
+        slug: 'dos',
+        status: 'Borrador',
+      }),
+    })
+
+    await expect(compileKnowledge(root)).rejects.toMatchObject({
+      code: 'REFERENCE_STATUS_UNPUBLISHABLE',
+      sourcePath: 'reglamento/01_uno.md',
+      message: expect.stringMatching(/REG-001.*REG-002.*Borrador/),
+    })
+  })
+
+  it.each([
+    ['Borrador a Borrador', 'Borrador'],
+    ['Borrador a Vigente', 'Vigente'],
+  ])('admite %s', async (_label, targetStatus) => {
+    const root = await createTemporaryDirectory()
+    await writeFiles(root, {
+      'reglamento/01_uno.md': documentSource({
+        id: 'REG-001',
+        slug: 'uno',
+        status: 'Borrador',
+        markdown: '# Documento\n\nREG-002.\n',
+      }),
+      'reglamento/02_dos.md': documentSource({
+        id: 'REG-002',
+        slug: 'dos',
+        status: targetStatus,
+      }),
+    })
+
+    await expect(compileKnowledge(root)).resolves.toMatchObject({
+      artifact: { documents: expect.any(Array) },
+    })
+  })
+
+  it('mantiene una defensa explícita frente a destinos ausentes al validar publicación', () => {
+    expect(() =>
+      validateReferencePublication([
+        {
+          id: 'REG-001',
+          status: 'Vigente',
+          sourcePath: 'reglamento/01_uno.md',
+          references: [{ type: 'document', targetId: 'REG-999', fragment: null }],
+        },
+      ]),
+    ).toThrowError(expect.objectContaining({ code: 'REFERENCE_ID_MISSING' }))
+  })
 })
 
 describe('determinismo', () => {
@@ -357,8 +511,34 @@ describe('corpus real y artefacto', () => {
       ['conceptos/juego', 16],
     ])
     expect(artifact.documents).toHaveLength(40)
+    expect(artifact.documents.filter(({ status }) => status === 'Vigente')).toHaveLength(40)
+    expect(artifact.documents.filter(({ status }) => status === 'Borrador')).toHaveLength(0)
     expect(artifact.documents.map(({ id }) => id)).toEqual(
       expect.arrayContaining(['REG-001', 'REG-008', 'CON-ELE-001', 'CON-JUE-016', 'CON-PER-004']),
+    )
+    expect(
+      artifact.documents
+        .filter(({ id }) => /^REG-00[1-8]$/.test(id))
+        .every(({ status }) => status === 'Vigente'),
+    ).toBe(true)
+    expect(
+      artifact.documents.every(
+        ({ headings, title }) =>
+          headings.filter(({ level }) => level === 1).length === 1 &&
+          headings[0].level === 1 &&
+          headings[0].text === title,
+      ),
+    ).toBe(true)
+    const documentsById = new Map(artifact.documents.map((document) => [document.id, document]))
+    expect(
+      artifact.documents.every((document) =>
+        document.references
+          .filter(({ type }) => type === 'document')
+          .every(({ targetId }) => documentsById.get(targetId)?.status === 'Vigente'),
+      ),
+    ).toBe(true)
+    expect(artifact.documents.find(({ id }) => id === 'REG-006')?.markdown).toContain(
+      '| Puntuación | Denominación |',
     )
     expect(artifact.documents.map(({ id }) => id)).not.toContain('REG-000')
     expect(artifact.documents.every(({ sourcePath }) => !sourcePath.endsWith('README.md'))).toBe(true)
@@ -370,6 +550,19 @@ describe('corpus real y artefacto', () => {
     const committedBytes = await readFile(DEFAULT_OUTPUT_PATH, 'utf8')
 
     expect(committedBytes).toBe(serializeArtifact(artifact))
+  })
+
+  it('valida en memoria sin escribir una salida', async () => {
+    const root = await createTemporaryDirectory()
+    const outputRoot = await createTemporaryDirectory()
+    const outputPath = path.join(outputRoot, 'knowledge.json')
+    await writeFiles(root, {
+      'reglamento/01_uno.md': documentSource(),
+    })
+
+    await compileKnowledge(root)
+
+    await expect(readFile(outputPath, 'utf8')).rejects.toMatchObject({ code: 'ENOENT' })
   })
 })
 

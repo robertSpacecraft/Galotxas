@@ -31,7 +31,7 @@ knowledge/
 
 No existen todavía colecciones de Instalaciones independiente, Historia, Escuela, multimedia o referencias. Se crearán únicamente cuando exista contenido real y se haya aprobado su contrato editorial.
 
-Las colecciones compilables actuales son `reglamento` (`REG-001`–`REG-008`), `conceptos/elementos`, `conceptos/personas` y `conceptos/juego`. `AGENTS.md`, los README y `reglamento/00_metodologia.md` no forman parte del artefacto público.
+Las colecciones compilables actuales son `reglamento` (`REG-001`–`REG-008`), `conceptos/elementos`, `conceptos/personas` y `conceptos/juego`. `AGENTS.md`, los README y `reglamento/00_metodologia.md` no forman parte del artefacto canónico.
 
 ## Contrato de front matter
 
@@ -44,7 +44,7 @@ slug: saque
 titulo: Saque
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 ```
 
@@ -57,9 +57,13 @@ ultima_revision: 2026-07-17
 
 La colección se deriva de la ruta y el orden del sufijo numérico del ID. No se admiten campos YAML complejos ni metadatos especulativos.
 
+Cada documento contiene exactamente un H1, que debe ser el primer heading y coincidir con `titulo`. Las secciones principales usan H2 y las subsecciones H3 o niveles inferiores coherentes, sin saltos arbitrarios y siempre dentro de H1–H6.
+
+Un cambio de estado requiere aprobación editorial humana. Las futuras revisiones deben actualizar `ultima_revision` y evaluar conscientemente si el alcance semántico exige cambiar `version`; una normalización técnica no autoriza por sí sola a reformular contenido.
+
 ## Referencias y seguridad
 
-Las relaciones canónicas deben usar IDs estables. El compilador valida también enlaces Markdown relativos y anchors cuando existan. Un destino inexistente o una ruta que salga de `knowledge/` invalida el corpus. Las menciones de «Véase también» que sólo contienen un título continúan siendo texto y no se convierten por heurística en relaciones.
+Las relaciones canónicas deben usar IDs estables. El compilador valida también enlaces Markdown relativos y anchors cuando existan. Un destino inexistente o una ruta que salga de `knowledge/` invalida el corpus. Además, un documento `Vigente` sólo puede referenciar otro documento `Vigente`; un borrador futuro podrá relacionar borradores o vigentes mientras los destinos existan. Las menciones de «Véase también» que sólo contienen un título continúan siendo texto y no se convierten por heurística en relaciones.
 
 No se admiten MDX, JSX, HTML, scripts, iframes, eventos HTML, expresiones ejecutables, URLs peligrosas ni imágenes en el contrato v1. El cuerpo se conserva como Markdown; no se compila a HTML ni se ejecuta.
 
@@ -72,7 +76,7 @@ npm run knowledge:check
 npm run knowledge:build
 ```
 
-`knowledge:check` valida sin escribir. `knowledge:build` genera de forma determinista `frontend/src/generated/knowledge/knowledge.json` mediante reemplazo seguro. Fuente y artefacto deben incluirse juntos en Git; el JSON no se edita manualmente. El contrato completo se documenta en [`docs/11-knowledge-pipeline.md`](../docs/11-knowledge-pipeline.md).
+`knowledge:check` valida metadatos, headings, referencias, estados y seguridad sin escribir. `knowledge:build` aplica las mismas invariantes y genera de forma determinista `frontend/src/generated/knowledge/knowledge.json` mediante reemplazo seguro. Fuente y artefacto deben incluirse juntos en Git; el JSON no se edita manualmente. El contrato completo se documenta en [`docs/11-knowledge-pipeline.md`](../docs/11-knowledge-pipeline.md).
 
 ## Principios
 
@@ -98,7 +102,7 @@ Cuando existan varias denominaciones tradicionales, podrán conservarse como var
 
 ## Relación futura con el Manual
 
-El Manual será un consumidor y una organización pública de este conocimiento, no una segunda fuente editorial. La canalización de Fase 5A ya valida y genera el artefacto, pero todavía no existe ruta, renderer ni consumidor público. No utilizará MDX, HTML ejecutable, base de datos, API Laravel ni CRUD Blade.
+El Manual será un consumidor y una organización pública de este conocimiento, no una segunda fuente editorial. Las fases 5A y 5A.1 ya validan y generan el artefacto canónico y han dejado los 40 documentos `Vigente`, pero todavía no existe proyección pública, ruta, renderer ni consumidor React. No utilizará MDX, HTML ejecutable, base de datos, API Laravel ni CRUD Blade.
 
 ## Relación futura con la Escuela de Galotxas
 

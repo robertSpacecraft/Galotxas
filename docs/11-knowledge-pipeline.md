@@ -2,7 +2,7 @@
 
 ## 1. Objetivo
 
-KNOWLEDGE-COMPILER-1 formaliza y valida el contenido canónico de `knowledge/` y genera un artefacto estructurado para un futuro consumidor React. La Fase 5A no registra rutas, no renderiza Markdown y no publica Aprende a jugar ni el Manual.
+KNOWLEDGE-COMPILER-1 formaliza y valida el contenido canónico de `knowledge/` y genera un artefacto estructurado para un futuro consumidor React. KNOWLEDGE-PUBLICATION-READINESS-1 normaliza en 5A.1 los estados, headings y grafo editorial para dejar el corpus preparado para 5B. Ninguno de los dos bloques registra rutas, crea una proyección pública, renderiza Markdown o publica Aprende a jugar o el Manual.
 
 ## 2. Fuente canónica
 
@@ -16,7 +16,7 @@ knowledge/ → validación y compilación Node → JSON versionado → futuro co
 
 ## 3. Auditoría del corpus
 
-La auditoría de 2026-07-20 localizó 44 archivos Markdown: 40 documentos compilables y cuatro exclusiones explícitas. `conceptos/instalaciones/` no existe; los elementos constructivos actuales permanecen en `conceptos/elementos/` y no se crea una colección vacía.
+La auditoría de 2026-07-20 localizó 44 archivos Markdown: 40 documentos compilables y cuatro exclusiones explícitas. `conceptos/instalaciones/` no existe; los elementos constructivos actuales permanecen en `conceptos/elementos/` y no se crea una colección vacía. Tras 5A.1 los 40 documentos están `Vigente`; REG-001–REG-008 corresponden al Reglamento inicial aprobado editorialmente.
 
 Abreviaturas de la matriz:
 
@@ -96,8 +96,8 @@ id: REG-001
 slug: modelo-de-la-cancha
 titulo: Modelo de la cancha
 version: 0.1.0
-estado: Borrador
-ultima_revision: 2026-07-13
+estado: Vigente
+ultima_revision: 2026-07-20
 ---
 ```
 
@@ -109,6 +109,8 @@ Reglas:
 - `version`: SemVer numérico `X.Y.Z`;
 - `estado`: `Borrador` o `Vigente`, los dos valores reales del corpus;
 - `ultima_revision`: fecha de calendario ISO `YYYY-MM-DD` válida.
+
+El cambio de estado requiere aprobación editorial. La publicación inicial de REG-001–REG-008 conserva `version: 0.1.0` porque no modifica su contenido semántico; futuras revisiones deberán valorar conscientemente el incremento de versión y actualizar `ultima_revision`.
 
 No se admiten YAML arbitrario, arrays, objetos, bloques multilínea, claves desconocidas o duplicadas. No se añaden SEO, autor, imagen, keywords, dificultad, audiencia o tiempo de lectura.
 
@@ -133,6 +135,12 @@ La versión inicial conserva Markdown como texto y reconoce headings ATX para ge
 
 No se implementa un parser o renderer Markdown completo. Los enlaces deben usar forma inline; referencias Markdown por etiqueta o enlaces inline mal formados se rechazan para no omitir su validación. Imágenes, HTML, JSX, MDX y bloques etiquetados como JavaScript, TypeScript, JSX, MDX o HTML se rechazan en v1. Las imágenes se aplazan hasta definir procedencia, licencia, rutas y texto alternativo.
 
+### Contrato de headings
+
+Cada documento debe contener exactamente un H1, que será el primer heading y coincidirá exactamente con `titulo`. Las secciones principales usan H2 y las subsecciones H3 o niveles inferiores cuando sean necesarios. El compilador rechaza headings fuera de H1–H6, H1 adicionales, headings anteriores al H1 y saltos ascendentes incoherentes como H2 → H4.
+
+La normalización de 5A.1 conserva los textos y el orden de todos los headings. Los antiguos H1 de sección pasan a H2; los headings realmente subordinados pasan a H3. No se reformula ni reordena contenido.
+
 ## 9. Seguridad
 
 El validador rechaza:
@@ -153,6 +161,8 @@ El contenido nunca se evalúa ni pasa por `eval`, `Function` o `dangerouslySetIn
 ## 10. Referencias internas
 
 El compilador valida referencias `REG-*` y `CON-*` presentes en el cuerpo. También admite enlaces Markdown inline relativos entre documentos compilables, anchors extraídos de headings y enlaces externos `http(s)`. Una referencia rota identifica el documento origen y el destino.
+
+Además de resolver el destino, valida su estado: un documento `Vigente` sólo puede referenciar otro documento `Vigente`. Un borrador futuro puede referenciar borradores o vigentes, pero todos sus destinos deben seguir existiendo. El corpus actual contiene 108 relaciones documentales normalizadas, todas `Vigente → Vigente`.
 
 El artefacto normaliza las relaciones a `targetId` y fragmento. No convierte estas relaciones en rutas públicas. Las menciones por título de «Véase también» no se enlazan automáticamente y quedan como deuda editorial para una fase que pueda asignar IDs con revisión humana.
 
@@ -187,7 +197,7 @@ Cada colección incluye `id`, `title`, `order` y `documentCount`. Cada documento
 
 No contiene rutas absolutas, timestamp de generación, datos Git, usuario, HTML precompilado o contenido de los cuatro archivos excluidos.
 
-El artefacto estructural incluye documentos `Borrador` y `Vigente` y conserva su estado. Como 5A no lo publica, esto no expone borradores. Antes de crear un consumidor público, 5B deberá fijar y probar qué estados pueden entrar en la experiencia visible; React no debe improvisar esa política.
+El artefacto estructural conserva el estado de cada documento y puede representar `Borrador` o `Vigente`. El corpus actual contiene 40 documentos `Vigente` y cero borradores. El JSON canónico continúa sin ser un artefacto público: 5B deberá crear una proyección separada y probar que sólo incorpora estados publicables; React no debe importar el corpus completo ni improvisar esa política.
 
 ## 13. Ubicación y política de versionado
 
@@ -209,7 +219,7 @@ npm run lint
 npm run build
 ```
 
-`knowledge:check` no escribe. `knowledge:build` valida antes de crear directorios o reemplazar la salida y usa escritura atómica. Ni `dev` ni `build` regeneran por sí solos el artefacto en 5A.
+`knowledge:check` valida metadatos, headings, grafo editorial, referencias y seguridad sin escribir. `knowledge:build` aplica las mismas invariantes antes de crear directorios o reemplazar la salida y usa escritura atómica. Ni `dev` ni `build` regeneran por sí solos el artefacto en 5A.1.
 
 ## 15. Testing
 
@@ -228,9 +238,11 @@ KNOWLEDGE-COMPILER-1 cubre con fixtures temporales:
 
 Los tests no modifican `knowledge/` y limpian sus directorios temporales.
 
+KNOWLEDGE-PUBLICATION-READINESS-1 añade cobertura para H1 único, orden y coincidencia del título, jerarquía sin saltos, niveles H1–H6, relaciones permitidas y prohibidas según estado, diagnósticos con origen y destino, 40 documentos vigentes, tabla de REG-006, validación sin escritura y sincronía determinista del artefacto.
+
 ## 16. Diagnóstico de errores
 
-Los fallos usan un código estable y, cuando corresponde, `sourcePath`, por ejemplo `METADATA_REQUIRED`, `ID_DUPLICATE`, `REFERENCE_FILE_MISSING` o `SECURITY_MDX_MODULE`. La CLI escribe el diagnóstico en stderr y devuelve un código distinto de cero.
+Los fallos usan un código estable y, cuando corresponde, `sourcePath`, ID y elemento responsable. Entre ellos están `HEADING_H1_FIRST`, `HEADING_H1_MULTIPLE`, `HEADING_HIERARCHY_INVALID`, `REFERENCE_STATUS_UNPUBLISHABLE`, `METADATA_REQUIRED`, `ID_DUPLICATE`, `REFERENCE_FILE_MISSING` o `SECURITY_MDX_MODULE`. La CLI escribe el diagnóstico en stderr y devuelve un código distinto de cero.
 
 ## 17. Flujo editorial y responsabilidades
 
@@ -241,17 +253,18 @@ Los fallos usan un código estable y, cuando corresponde, `sourcePath`, por ejem
 5. Incluye fuente y artefacto en el mismo cambio Git.
 6. Ejecuta tests, lint y build frontend.
 7. La revisión humana valida contenido y estructura; React no edita la fuente.
+8. Un cambio de estado o de significado exige autorización editorial y revisión de versión; una normalización técnica no permite reformular contenido.
 
 ## 18. Futuro consumo desde React
 
-5B podrá importar el JSON generado y construir Aprende a jugar o el Manual sin leer archivos del sistema en navegador. Antes deberá decidir rutas públicas, navegación, renderizado seguro, estados y accesibilidad. El `outputPath` de 5A es una identidad lógica, no una promesa de URL.
+El bloqueo editorial detectado al preparar 5B queda resuelto: el corpus tiene 40 documentos vigentes, H1 único y grafo publicable. 5B puede construir una proyección pública separada y después su consumidor sin leer archivos del sistema en navegador. Todavía debe implementar y probar filtrado, estructura renderizable, rutas, navegación, seguridad y accesibilidad. El `outputPath` canónico es una identidad lógica, no una promesa de URL.
 
 ## 19. Límites y deuda aplazada
 
 - no hay renderer ni rutas públicas;
 - no existe colección de Historia, Instalaciones independiente o Escuela;
 - «Véase también» por título no es todavía relación estructural;
-- no se normaliza la jerarquía editorial de headings existente;
+- no existe todavía proyección pública ni transformación a estructura renderizable;
 - imágenes, multimedia, búsqueda y filtros quedan fuera;
 - no se integra el compilador en CI, dev o build hasta confirmar el contexto de despliegue;
 - no se modifica contenido deportivo ni se resuelven denominaciones pendientes.
@@ -259,3 +272,5 @@ Los fallos usan un código estable y, cuando corresponde, `sourcePath`, por ejem
 ## 20. Criterios de aceptación
 
 5A se considera completada cuando los 40 documentos pasan validación, dos compilaciones producen los mismos bytes, el artefacto versionado coincide con el corpus, los cuatro archivos técnicos quedan excluidos, referencias y seguridad fallan de forma explícita, y la suite frontend, lint y build continúan correctos sin nuevas rutas, backend o dependencias.
+
+5A.1 se considera completada cuando REG-001–REG-008 y los 32 Conceptos están `Vigente`, cada documento tiene un único H1 coincidente con `titulo`, la jerarquía no contiene saltos, las 108 referencias documentales son `Vigente → Vigente`, REG-006 conserva su tabla y la regeneración continúa sincronizada y determinista. Esto habilita 5B, pero no crea su artefacto público, renderer, rutas o páginas.

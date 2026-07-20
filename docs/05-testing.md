@@ -597,6 +597,28 @@ Instantánea verificada de KNOWLEDGE-COMPILER-1, 2026-07-20:
 - determinismo: dos compilaciones consecutivas producen el mismo SHA-256;
 - backend y E2E: no ejecutados porque no cambian aplicación pública, API o base de datos.
 
+## KNOWLEDGE-PUBLICATION-READINESS-1 — Preparación editorial del corpus
+
+La cobertura de Fase 5A.1 amplía el compilador para validar:
+
+- un único H1 por documento, situado como primer heading y coincidente con `titulo`;
+- secciones y subsecciones H2/H3 coherentes, rechazo de niveles fuera de H1–H6 y de saltos como H2 → H4;
+- referencias `Vigente → Vigente` válidas y rechazo diagnosticado de `Vigente → Borrador` o destinos inexistentes;
+- referencias desde un borrador hacia borradores o vigentes permitidas mientras el grafo canónico sea válido;
+- corpus real con 40 documentos `Vigente`, cero borradores, los ocho Reglamentos aprobados, un H1 exacto por documento y la tabla de REG-006 preservada;
+- validación en memoria sin escritura, regeneración segura, sincronía byte a byte y determinismo independiente del orden del filesystem.
+
+Los diagnósticos de headings y referencias incluyen `sourcePath`, ID de origen y el heading o destino responsable. La normalización modifica sólo estado, fecha de revisión y marcadores de headings: no altera texto, títulos, IDs, slugs, versiones ni referencias.
+
+Instantánea verificada de KNOWLEDGE-PUBLICATION-READINESS-1, 2026-07-20:
+
+- corpus: 40 documentos vigentes, cuatro colecciones y cero referencias a contenido no publicable;
+- compilador: 44 tests Vitest dirigidos;
+- frontend: 37 archivos de test y 210 tests Vitest;
+- calidad: `knowledge:check`, `knowledge:build`, ESLint y build Vite correctos;
+- determinismo: dos compilaciones consecutivas producen el mismo SHA-256;
+- backend y E2E: no ejecutados porque no cambian React público, API, base de datos ni navegación.
+
 ## Flujo de Inscripción y Administración (Fase 3 Core)
 - prevención de inscripciones si el campeonato está cerrado;
 - prevención de inscripciones duplicadas;

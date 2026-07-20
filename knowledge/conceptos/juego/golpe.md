@@ -4,7 +4,7 @@ slug: golpe
 titulo: Golpe
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Golpe
@@ -17,7 +17,7 @@ El golpe constituye la acción técnica fundamental de Galotxas.
 
 ---
 
-# Función
+## Función
 
 El golpe permite mantener la continuidad del juego y dirigir la pilota con un objetivo táctico o estratégico.
 
@@ -25,7 +25,7 @@ Todo intercambio entre jugadores se desarrolla mediante una sucesión de golpes 
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-003 – El saque.
 - REG-004 – Desarrollo de una jugada.
@@ -33,7 +33,7 @@ Todo intercambio entre jugadores se desarrolla mediante una sucesión de golpes 
 
 ---
 
-# Ejecución
+## Ejecución
 
 Todo golpe deberá realizarse respetando las condiciones establecidas por el reglamento.
 
@@ -43,7 +43,7 @@ Cualquier impacto realizado con una parte del cuerpo no autorizada constituirá 
 
 ---
 
-# Tipos de golpe
+## Tipos de golpe
 
 Durante un partido pueden producirse, entre otros:
 
@@ -57,7 +57,7 @@ La finalidad y ejecución de cada uno de ellos dependerá de la situación de ju
 
 ---
 
-# Objetivos
+## Objetivos
 
 Un golpe puede perseguir distintos objetivos, entre ellos:
 
@@ -68,25 +68,25 @@ Un golpe puede perseguir distintos objetivos, entre ellos:
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Golpe** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 Actualmente no se documentan sinónimos de uso habitual.
 
-## Valenciano
+### Valenciano
 
 - Colp.
 
 ---
 
-# Observaciones
+## Observaciones
 
 El concepto de golpe describe la acción de impactar la pilota, independientemente de la técnica empleada.
 
@@ -94,13 +94,13 @@ Las distintas formas de ejecución pertenecen al ámbito técnico del juego y no
 
 ---
 
-# Notas
+## Notas
 
 Las técnicas de golpeo, la biomecánica del movimiento y los aspectos de aprendizaje se desarrollarán en la documentación correspondiente a la Academy de Galotxas.
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Pilota.
 - Saque.
@@ -111,7 +111,7 @@ Las técnicas de golpeo, la biomecánica del movimiento y los aspectos de aprend
 
 ---
 
-# Véase también
+## Véase también
 
 - Saque.
 - Resto.

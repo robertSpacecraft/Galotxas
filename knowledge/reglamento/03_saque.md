@@ -3,8 +3,8 @@ id: REG-003
 slug: saque
 titulo: El saque
 version: 0.1.0
-estado: Borrador
-ultima_revision: 2026-07-13
+estado: Vigente
+ultima_revision: 2026-07-20
 ---
 
 # El saque
@@ -19,13 +19,13 @@ Las modalidades de juego se encuentran definidas en **REG-002 – Reglamento**, 
 
 ---
 
-# 2. Objetivo del saque
+## 2. Objetivo del saque
 
 El saque tiene como finalidad poner la pilota en juego permitiendo que ambos jugadores o equipos comiencen el intercambio de golpes que dará lugar al desarrollo de la jugada.
 
 ---
 
-# 3. Saque en modalidad individual
+## 3. Saque en modalidad individual
 
 En la modalidad individual el saque se ejecutará desde el **Punto de saque**, definido en **REG-001 – Modelo de la cancha**, apartado 11.
 
@@ -37,7 +37,7 @@ Actualmente no existe una dirección de saque normalizada dentro del Proyecto Ga
 
 ---
 
-# 4. Saque en modalidad por parejas
+## 4. Saque en modalidad por parejas
 
 En la modalidad por parejas el saque se ejecutará desde el **Banco de saque**, definido en **REG-001 – Modelo de la cancha**, apartado 9.
 
@@ -47,7 +47,7 @@ Tras el golpeo, la pilota deberá botar dentro de la **Zona de recepción del sa
 
 ---
 
-# 5. Requisitos del saque
+## 5. Requisitos del saque
 
 Para que el saque sea válido deberán cumplirse todas las condiciones siguientes.
 
@@ -60,7 +60,7 @@ Una vez cumplidas estas condiciones, la jugada quedará iniciada.
 
 ---
 
-# 6. Saque no válido
+## 6. Saque no válido
 
 Se considerará saque no válido cuando ocurra cualquiera de las siguientes situaciones.
 
@@ -76,7 +76,7 @@ Las situaciones que determinan la pérdida del quince se desarrollan en **REG-00
 
 ---
 
-# 7. Reanudación del juego
+## 7. Reanudación del juego
 
 Determinadas situaciones no implican la finalización de la jugada, sino únicamente una interrupción temporal.
 
@@ -84,7 +84,7 @@ En estos casos el juego se reanudará mediante un procedimiento específico.
 
 Actualmente se contempla el siguiente supuesto.
 
-## Salida de la pilota por encima de la pared de la grada
+### Salida de la pilota por encima de la pared de la grada
 
 Cuando la pilota abandone la cancha por encima de la pared de la grada sin haber tocado ningún elemento externo a la cancha, la jugada no finalizará.
 
@@ -96,7 +96,7 @@ Las situaciones especiales relacionadas con la salida de la pilota se desarrolla
 
 ---
 
-# 8. Observaciones
+## 8. Observaciones
 
 El Proyecto Galotxas mantiene pendiente de normalización algunos aspectos relacionados con el saque, entre ellos:
 
