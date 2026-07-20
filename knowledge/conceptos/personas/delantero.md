@@ -1,5 +1,6 @@
 ---
 id: CON-PER-003
+slug: delantero
 titulo: Delantero
 version: 1.0.0
 estado: Vigente

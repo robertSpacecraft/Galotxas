@@ -29,7 +29,50 @@ knowledge/
 - `reglamento/` contiene la formulación normativa editorial.
 - `conceptos/` contiene vocabulario y definiciones, agrupados actualmente en elementos, juego y personas.
 
-No existen todavía colecciones de Historia, Escuela, multimedia o referencias. Se crearán únicamente cuando exista contenido real y se haya aprobado su contrato editorial.
+No existen todavía colecciones de Instalaciones independiente, Historia, Escuela, multimedia o referencias. Se crearán únicamente cuando exista contenido real y se haya aprobado su contrato editorial.
+
+Las colecciones compilables actuales son `reglamento` (`REG-001`–`REG-008`), `conceptos/elementos`, `conceptos/personas` y `conceptos/juego`. `AGENTS.md`, los README y `reglamento/00_metodologia.md` no forman parte del artefacto público.
+
+## Contrato de front matter
+
+Todo documento compilable debe comenzar con seis campos escalares simples:
+
+```yaml
+---
+id: CON-JUE-008
+slug: saque
+titulo: Saque
+version: 1.0.0
+estado: Vigente
+ultima_revision: 2026-07-17
+---
+```
+
+- `id` es estable y único globalmente; usa `REG-NNN`, `CON-ELE-NNN`, `CON-PER-NNN` o `CON-JUE-NNN` según la ruta.
+- `slug` usa `kebab-case` ASCII y es único dentro de su colección.
+- `titulo` coincide con el primer H1.
+- `version` usa SemVer `X.Y.Z`.
+- `estado` admite los valores reales `Borrador` y `Vigente`.
+- `ultima_revision` es una fecha ISO válida `YYYY-MM-DD`.
+
+La colección se deriva de la ruta y el orden del sufijo numérico del ID. No se admiten campos YAML complejos ni metadatos especulativos.
+
+## Referencias y seguridad
+
+Las relaciones canónicas deben usar IDs estables. El compilador valida también enlaces Markdown relativos y anchors cuando existan. Un destino inexistente o una ruta que salga de `knowledge/` invalida el corpus. Las menciones de «Véase también» que sólo contienen un título continúan siendo texto y no se convierten por heurística en relaciones.
+
+No se admiten MDX, JSX, HTML, scripts, iframes, eventos HTML, expresiones ejecutables, URLs peligrosas ni imágenes en el contrato v1. El cuerpo se conserva como Markdown; no se compila a HTML ni se ejecuta.
+
+## Validación y generación
+
+Desde `frontend/`:
+
+```bash
+npm run knowledge:check
+npm run knowledge:build
+```
+
+`knowledge:check` valida sin escribir. `knowledge:build` genera de forma determinista `frontend/src/generated/knowledge/knowledge.json` mediante reemplazo seguro. Fuente y artefacto deben incluirse juntos en Git; el JSON no se edita manualmente. El contrato completo se documenta en [`docs/11-knowledge-pipeline.md`](../docs/11-knowledge-pipeline.md).
 
 ## Principios
 
@@ -55,7 +98,7 @@ Cuando existan varias denominaciones tradicionales, podrán conservarse como var
 
 ## Relación futura con el Manual
 
-El Manual será un consumidor y una organización pública de este conocimiento, no una segunda fuente editorial. En su primera versión se generará en build desde `knowledge/` mediante un compilador validado todavía no implementado. No utilizará MDX, HTML ejecutable, base de datos, API Laravel ni CRUD Blade.
+El Manual será un consumidor y una organización pública de este conocimiento, no una segunda fuente editorial. La canalización de Fase 5A ya valida y genera el artefacto, pero todavía no existe ruta, renderer ni consumidor público. No utilizará MDX, HTML ejecutable, base de datos, API Laravel ni CRUD Blade.
 
 ## Relación futura con la Escuela de Galotxas
 

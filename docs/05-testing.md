@@ -572,6 +572,31 @@ Instantánea verificada de COMPETITION-UX-CLOSURE-1, 2026-07-19:
 - backend: inspeccionado como fuente de contrato, no modificado y sin suite backend necesaria para este bloque frontend;
 - artefactos: el cierre correcto desmontó contenedores y red temporal; `dist` e informes generados se eliminan antes de la entrega.
 
+## KNOWLEDGE-COMPILER-1 — Contrato y compilador build-time
+
+La cobertura de Fase 5A valida:
+
+- descubrimiento de las cuatro colecciones aprobadas, exclusión explícita de AGENTS, README y metodología, orden previo al procesamiento e ignorado de archivos no Markdown;
+- front matter escalar válido, campos obligatorios, delimitadores, duplicados, valores complejos, SemVer, fechas ISO reales, estados y slugs;
+- ID único global, slug único por namespace, ruta lógica y orden únicos;
+- rechazo de scripts, iframes, eventos HTML, esquemas peligrosos, imports/exports MDX, JSX, expresiones ejecutables, imágenes y traversal, sin confundir llaves descriptivas con código;
+- enlaces relativos, anchors e IDs válidos, y errores explícitos para destinos rotos;
+- igualdad byte a byte con distinto orden de creación, sin timestamp ni rutas absolutas;
+- corpus real con 40 documentos, cuatro colecciones, IDs esperados y ausencia de los documentos excluidos;
+- sincronía exacta entre el corpus y `frontend/src/generated/knowledge/knowledge.json`;
+- creación del directorio de salida, escritura completa y conservación de una salida anterior cuando la validación falla.
+
+Los 32 casos del compilador usan únicamente directorios temporales bajo el entorno del runner, no modifican el corpus real y limpian sus fixtures. `knowledge:check` y `knowledge:build` no requieren backend, MariaDB o red. La regresión completa de frontend confirma que el artefacto no se importa todavía en páginas y que el build Vite conserva su comportamiento.
+
+Instantánea verificada de KNOWLEDGE-COMPILER-1, 2026-07-20:
+
+- corpus: 40 documentos compilables y cuatro exclusiones explícitas;
+- compilador: 32 tests Vitest dirigidos;
+- frontend: 37 archivos de test y 198 tests Vitest;
+- calidad: `knowledge:check`, `knowledge:build`, ESLint y build Vite correctos;
+- determinismo: dos compilaciones consecutivas producen el mismo SHA-256;
+- backend y E2E: no ejecutados porque no cambian aplicación pública, API o base de datos.
+
 ## Flujo de Inscripción y Administración (Fase 3 Core)
 - prevención de inscripciones si el campeonato está cerrado;
 - prevención de inscripciones duplicadas;
@@ -817,11 +842,9 @@ Cada ampliación debe seleccionar pruebas proporcionales a su riesgo e incluir, 
 
 El backend debe probar el filtro de publicación. Una prueba que solo comprueba que React oculta un borrador no satisface la seguridad editorial.
 
-## Validación futura de `knowledge/`
+## Validación de `knowledge/`
 
-Cuando se defina el contrato editorial y el compilador build-time, su validación deberá cubrir estructura, campos obligatorios, IDs y slugs únicos y estables, relaciones por ID, rutas internas, codificación, rechazo de MDX o HTML ejecutable y generación determinista de artefactos.
-
-También se deben probar los consumidores React del Manual con datos generados válidos, ausentes e inválidos. Estas pruebas y el compilador son requisitos futuros; no existen en la Fase 0.
+KNOWLEDGE-COMPILER-1 cubre en 5A estructura, campos obligatorios, IDs, slugs, namespaces, rutas lógicas, referencias, seguridad y generación determinista. Los consumidores React del Manual deberán probar datos generados válidos, ausentes e inválidos en 5B; esa cobertura no se atribuye al compilador ni se considera publicada en 5A.
 
 ---
 

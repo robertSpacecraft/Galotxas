@@ -1,5 +1,6 @@
 ---
 id: CON-ELE-001
+slug: pilota
 titulo: Pilota
 version: 1.0.0
 estado: Vigente

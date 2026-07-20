@@ -1,5 +1,6 @@
 ---
 id: CON-PER-004
+slug: trasero
 titulo: Trasero
 version: 1.0.0
 estado: Vigente

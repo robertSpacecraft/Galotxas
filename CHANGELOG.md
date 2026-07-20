@@ -15,6 +15,9 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - Se incorpora la landing dinámica de Competición de Fase 4A con temporadas y campeonatos públicos obtenidos en una única carga, estados loading/error/retry/vacío y enlaces contextuales al detalle.
 - Se integra en `/competicion` el preview histórico de Fase 4B mediante una carga independiente, limitado visualmente a cinco filas en el orden del backend y enlazado a la experiencia completa `/rankings`.
 - Se completa la Fase 4 con el recorrido público de Competición desde la landing hasta campeonato, categoría, clasificación, calendario y partido, con retornos deterministas, metadatos básicos y navegación contextual accesible.
+- Se formaliza en Fase 5A el contrato de seis metadatos para 40 documentos compilables de Reglamento y Conceptos, con namespaces, orden y exclusiones explícitas.
+- Se incorpora un validador y compilador build-time sin dependencias para `knowledge/`, con referencias y contenido ejecutable controlados, salida JSON determinista de esquema v1 y escritura segura.
+- Se añade KNOWLEDGE-COMPILER-1 con fixtures temporales, validación del corpus real, sincronía byte a byte del artefacto y regresión del build frontend, sin publicar rutas de Aprende a jugar o Manual.
 
 ### Changed
 

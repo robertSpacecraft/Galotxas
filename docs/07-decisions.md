@@ -793,6 +793,49 @@ Seguimiento de Fase 4C, 2026-07-19:
 
 ---
 
+# ADR-030 — Contrato y compilación build-time del conocimiento canónico
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-07
+
+Contexto:
+- `knowledge/` ya contenía Reglamento y Conceptos reales, pero trece documentos compilables carecían de slug y no existían contrato ejecutable, validación global o artefacto consumible.
+- React no puede convertirse en fuente editorial ni leer Markdown suelto desde el navegador.
+- El Manual v1 no necesita Laravel, base de datos, API, CMS, MDX o HTML ejecutable.
+- El repositorio no dispone de CI o configuración de despliegue que garantice que un build con raíz `frontend/` pueda acceder a la carpeta hermana `knowledge/`.
+
+Decisión:
+- Mantener `knowledge/` como única fuente canónica y editarla mediante Git y revisión humana.
+- Compilar en Node antes del futuro renderizado, sin dependencias nuevas y con un parser limitado a los seis valores escalares reales del front matter.
+- Exigir `id`, `slug`, `titulo`, `version`, `estado` y `ultima_revision`; derivar colección de la ruta y orden del sufijo numérico del ID.
+- Compilar sólo `REG-001`–`REG-008`, `conceptos/elementos`, `conceptos/personas` y `conceptos/juego`; excluir instrucciones, README y `REG-000`, que declara no formar parte del reglamento.
+- Validar ID único global, slug único por namespace, ruta lógica única, SemVer, fecha ISO real, estados `Borrador`/`Vigente`, primer H1, referencias y seguridad.
+- Rechazar HTML, JSX/MDX, scripts, iframes, eventos, código ejecutable, URLs peligrosas, imágenes y rutas que salgan de `knowledge/`.
+- Generar JSON con `schemaVersion: 1`, orden explícito y sin timestamp, rutas absolutas, datos del sistema o HTML precompilado.
+- Versionar `frontend/src/generated/knowledge/knowledge.json` y comprobar en tests su igualdad byte a byte con el corpus.
+- No acoplar todavía `dev` o `build` a la generación. Mantener `knowledge:check` y `knowledge:build` explícitos hasta disponer de un contrato de CI/despliegue fiable.
+- No importar el artefacto en páginas ni registrar rutas durante 5A.
+
+Alternativas descartadas:
+- Hardcodear el contenido en JSX: duplicaría la fuente editorial y exigiría despliegues para cada corrección.
+- Cargar Markdown directamente en el navegador: expondría archivos sin contrato y trasladaría parsing y seguridad al cliente.
+- Importar Reglamento y Conceptos a Laravel o MariaDB: añadiría persistencia y sincronización sin necesidad funcional para el Manual v1.
+- Duplicar el contenido en el CMS: crearía dos autoridades editables para las mismas reglas.
+- Usar MDX: permitiría componentes y expresiones ejecutables dentro de la fuente canónica.
+- Compilar HTML sin una política de sanitización y renderer aprobados: ampliaría la superficie de ejecución antes de construir la experiencia pública.
+- Ignorar el artefacto y regenerarlo automáticamente en cada build: el contexto de despliegue actual no garantiza acceso a `knowledge/` desde la raíz frontend.
+
+Consecuencias:
+- Un cambio estructural inválido falla con un diagnóstico localizado antes de producir una salida nueva.
+- Fuente y artefacto versionado deben actualizarse en el mismo cambio; el JSON generado nunca se edita a mano.
+- Dos compilaciones del mismo corpus producen los mismos bytes.
+- Las rutas lógicas del artefacto no son URLs públicas y no cierran todavía el routing de Aprende a jugar o el Manual.
+- 5B y 5C siguen pendientes; la Fase 5 no queda completa con este ADR.
+- Cuando CI y despliegue estén definidos podrá revisarse la política de versionado y generación automática sin cambiar la autoridad editorial.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

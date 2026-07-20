@@ -1,5 +1,6 @@
 ---
 id: REG-005
+slug: perdida-del-quince
 titulo: Pérdida del quince
 version: 0.1.0
 estado: Borrador

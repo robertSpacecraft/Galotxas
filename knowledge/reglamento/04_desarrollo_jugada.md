@@ -1,5 +1,6 @@
 ---
 id: REG-004
+slug: desarrollo-de-una-jugada
 titulo: Desarrollo de una jugada
 version: 0.1.0
 estado: Borrador

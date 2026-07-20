@@ -1,5 +1,6 @@
 ---
 id: CON-PER-002
+slug: equipo
 titulo: Equipo
 version: 1.0.0
 estado: Vigente

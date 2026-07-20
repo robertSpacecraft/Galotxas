@@ -1,5 +1,6 @@
 ---
 id: REG-003
+slug: saque
 titulo: El saque
 version: 0.1.0
 estado: Borrador

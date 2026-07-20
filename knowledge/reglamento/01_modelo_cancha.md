@@ -1,5 +1,6 @@
 ---
 id: REG-001
+slug: modelo-de-la-cancha
 titulo: Modelo de la cancha
 version: 0.1.0
 estado: Borrador

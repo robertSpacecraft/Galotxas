@@ -241,16 +241,16 @@ Los tests emplean además slugs como `borrador`, `programada`, `federarse`, `aca
 
 ## 14. Knowledge y Aprende a jugar
 
-La estructura actual contiene:
+La auditoría y compilación de 5A determina:
 
-- nueve documentos en `knowledge/reglamento/`, incluida la metodología;
-- 33 Markdown bajo `knowledge/conceptos/`, incluido su README, repartidos entre elementos, juego y personas;
-- IDs, títulos y versiones en el front matter;
-- sólo 27 archivos con `slug`; el reglamento, `pilota` y las cuatro fichas de personas carecen de slug;
-- ninguna colección de Historia, Escuela, multimedia o referencias;
-- ningún compilador ni artefacto generado para React.
+- 40 documentos compilables: ocho de Reglamento y 32 Conceptos repartidos entre elementos, personas y juego;
+- cuatro exclusiones explícitas: instrucciones, README raíz, índice README de Conceptos y la metodología `REG-000`;
+- seis metadatos obligatorios, con IDs, slugs, versiones, estados y fechas validados;
+- cuatro namespaces y un orden determinista;
+- un artefacto JSON de esquema v1, sin HTML, MDX, rutas absolutas o tiempo de generación;
+- ninguna colección de Instalaciones independiente, Historia, Escuela, multimedia o referencias.
 
-Por tanto, Reglamento y Conceptos aportan material real para el futuro, pero todavía no un contrato navegable completo. Antes de registrar `/aprende-a-jugar` deben normalizarse los metadatos, definir relaciones y orden, validar slugs y generar artefactos deterministas. Historia no debe aparecer como enlace vacío hasta disponer de una colección aprobada.
+Reglamento y Conceptos ya disponen de contrato y artefacto, pero todavía no de renderer, consumidor o ruta pública. Antes de registrar `/aprende-a-jugar`, 5B y 5C deben definir el recorrido real, las URLs, la presentación segura y sus pruebas. Historia no debe aparecer como enlace vacío hasta disponer de una colección aprobada.
 
 El Manual será una organización y un consumidor de `knowledge/`, no una copia editable en JSX, base de datos o CMS. La ruta de la landing queda fijada; las rutas de detalle se cerrarán con el contrato editorial para no prometer slugs incompatibles.
 
@@ -492,7 +492,7 @@ Con 4A, 4B y 4C completadas, la Fase 4 queda cerrada. No se incorporan en la lan
 
 ## 23. Deuda aplazada
 
-- normalizar slugs y metadatos de `knowledge/` e implementar su compilador;
+- consumir de forma segura el artefacto de `knowledge/` y definir renderer, rutas e integración de CI/despliegue;
 - definir colecciones reales de Historia y Escuela;
 - crear contrato CMS operativo de Escuela, con privacidad de menores;
 - consolidar el contenido institucional y clasificar `documentos` y `academy` antes de migrarlos, sin equivalencias automáticas;

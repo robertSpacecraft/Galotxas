@@ -102,9 +102,19 @@ La arquitectura pública aprobada conecta tres canales diferentes:
 2. **Contenido administrable:** `Panel Blade → base de datos → API pública → React` para contenido institucional, noticias, actividades, convocatorias y demás información editable sin despliegue.
 3. **Conocimiento canónico:** `knowledge/ → compilador validado → datos generados → React` para Manual, Reglamento, Conceptos y contenido pedagógico estable.
 
-Los dos primeros canales disponen actualmente de infraestructura en distintas áreas del proyecto. El tercero es arquitectura objetivo: el compilador, el contrato editorial normalizado y los artefactos generados todavía no están implementados. La primera versión del Manual no utilizará MDX, HTML ejecutable, base de datos, API Laravel ni CRUD Blade.
+Los tres canales disponen ya de una base comprobable. En el tercero, Fase 5A implementa el contrato editorial, el validador, el compilador determinista y un artefacto JSON versionado; todavía no existe un consumidor React, renderer o ruta pública. La primera versión del Manual no utilizará MDX, HTML ejecutable, base de datos, API Laravel ni CRUD Blade.
 
 Una misma pieza no debe mantenerse de forma editable en más de un canal. Los criterios de elección y la matriz de fuentes se definen en `10-content-governance.md`.
+
+## Canalización build-time de Knowledge
+
+`frontend/scripts/knowledge/` descubre únicamente las cuatro colecciones aprobadas, parsea el subconjunto escalar del front matter, valida UTF-8/LF, metadatos, IDs, slugs, rutas lógicas, headings, referencias y contenido no ejecutable, y serializa `frontend/src/generated/knowledge/knowledge.json` con `schemaVersion: 1`.
+
+El mismo corpus genera los mismos bytes: colecciones, documentos, headings y referencias tienen orden explícito; el JSON no incorpora tiempo de ejecución, rutas absolutas, usuario o metadatos Git. La escritura valida antes de reemplazar y utiliza un archivo temporal en el directorio de destino.
+
+El artefacto se versiona porque no existe todavía configuración CI o de despliegue que garantice acceso desde una raíz `frontend/` a la carpeta hermana `knowledge/`. Por esa misma razón, `npm run dev` y `npm run build` no ejecutan implícitamente el compilador. `npm run knowledge:check` valida sin escribir, `npm run knowledge:build` regenera y la suite comprueba que el JSON versionado coincide byte a byte con el corpus.
+
+La canalización no crea una API, CMS o segunda fuente editorial. React no importa todavía la salida. El contrato completo, las colecciones y las exclusiones se mantienen en `11-knowledge-pipeline.md`.
 
 ## Base de visibilidad de la competición
 

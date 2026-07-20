@@ -1,5 +1,6 @@
 ---
 id: REG-006
+slug: sistema-de-puntuacion
 titulo: Sistema de puntuación
 version: 0.1.0
 estado: Borrador

@@ -68,6 +68,14 @@ cd frontend
 VITE_API_BASE_URL=/api/v1 npm run build
 ~~~
 
+El conocimiento canónico dispone de una validación y compilación independiente. El JSON generado se versiona y todavía no se consume desde rutas públicas:
+
+~~~bash
+cd frontend
+npm run knowledge:check
+npm run knowledge:build
+~~~
+
 El servidor de producción deberá servir `frontend/dist` con fallback SPA a `index.html` y enrutar `/api/v1` y `/admin` hacia Laravel.
 
 ## Pruebas
@@ -104,6 +112,7 @@ El stack E2E es desechable y no utiliza la base de desarrollo.
 
 - [Índice técnico y funcional](docs/README.md)
 - [Gobernanza de contenidos y arquitectura pública](docs/10-content-governance.md)
+- [Canalización build-time de Knowledge](docs/11-knowledge-pipeline.md)
 - [Conocimiento canónico del deporte](knowledge/README.md)
 - [Roadmap y estado del MVP](docs/06-roadmap.md)
 - [Candidato MVP y publicación](docs/09-release-candidate.md)

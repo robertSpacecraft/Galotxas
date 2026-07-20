@@ -73,7 +73,7 @@ Se utilizará para el Manual, Reglamento, Conceptos, terminología y otros conte
 
 **Estado actual:** `knowledge/reglamento/` y `knowledge/conceptos/` existen.
 
-**Implementación futura:** el compilador, el contrato editorial normalizado y los artefactos generados todavía no existen. La primera versión no usará MDX, HTML ejecutable, una API Laravel ni un CRUD Blade para el Manual.
+**Estado tras 5A:** existen contrato editorial, validación, compilador determinista y un artefacto JSON versionado con 40 documentos de cuatro colecciones. El artefacto todavía no tiene consumidor React ni ruta pública. La primera versión no usará MDX, HTML ejecutable, una API Laravel ni un CRUD Blade para el Manual.
 
 ## 5. Arquitectura pública aprobada
 
@@ -157,6 +157,7 @@ La tabla diferencia la fuente aprobada de las capacidades actuales que todavía 
 - El equipo de dominio y administración deportiva modifica reglas ejecutables y datos competitivos en backend o mediante los flujos Blade autorizados.
 - Los administradores editoriales modifican contenido CMS desde Blade, dentro de sus permisos.
 - Las personas responsables del conocimiento editan `knowledge/` mediante Git, revisión y validación editorial.
+- Esas personas ejecutan `knowledge:check`, regeneran el artefacto con `knowledge:build` y entregan fuente y JSON juntos; nunca editan el JSON a mano.
 - El equipo frontend mantiene estructura, accesibilidad y presentación; no altera la fuente editorial para resolver necesidades de contenido.
 - Los cambios con impacto cruzado requieren coordinación y actualización documental en el mismo bloque.
 
@@ -263,7 +264,7 @@ Las vistas públicas, metadatos, galerías y documentos deben minimizar datos pe
 - Las vistas remotas contemplan `loading`, `error`, `empty` y `content`.
 - Las futuras landings reutilizan contenedor, cabecera, acciones, secciones y destinos de `PublicLanding` sin convertir esos componentes en fuente editorial o adaptador de datos.
 - Los estados remotos comunes sólo se abstraen cuando al menos dos consumidores compartan semántica y comportamiento. Fases 4A–4C mantienen ciclos específicos por recurso; compartir composición o navegación contextual no los convierte en una abstracción remota global.
-- Los artefactos de `knowledge/` se generan y validan en build cuando exista el compilador; no se copian manualmente a JSX.
+- Los artefactos de `knowledge/` se validan y generan mediante los comandos build-time de 5A; no se copian manualmente a JSX. `dev` y `build` no se acoplan todavía porque falta confirmar el contexto de CI/despliegue.
 - Las rutas públicas mantienen estabilidad, accesibilidad, navegación por teclado y comportamiento responsive.
 - Las cinco áreas, sus rutas y familias activas respetan `09-public-navigation.md`; la cuenta permanece fuera del árbol editorial.
 - Eliminar un enlace del primer nivel no elimina su URL. Aliases, canonical y redirects se aplican sólo tras paridad y pruebas.
@@ -280,7 +281,7 @@ El alcance concreto depende del riesgo, pero una sección administrable debe val
 - integración entre servicio, ruta y vista;
 - E2E para publicación administrativa y consumo público cuando el flujo sea crítico;
 - accesibilidad, teclado y responsive;
-- validación del contrato editorial, relaciones, slugs y artefactos de `knowledge/` cuando exista el compilador.
+- validación del contrato editorial, relaciones, slugs, seguridad y sincronía del artefacto de `knowledge/`; desde 5A la cubre KNOWLEDGE-COMPILER-1.
 
 Las pruebas existentes del CMS básico se documentan en `05-testing.md`. Las pruebas anteriores son requisitos para futuras ampliaciones y no implican que todas estén implementadas hoy.
 
@@ -307,7 +308,7 @@ La Fase 3A no elimina `/contenidos`, no crea redirects, no cambia su API ni borr
 - Necesidades editoriales de noticias, actividades, galerías, documentos y formularios.
 - Estrategia de almacenamiento persistente y ciclo de vida de archivos.
 - Modelo de consentimiento y privacidad para contenido de menores.
-- Contrato editorial de `knowledge/` y validaciones del compilador.
+- Consumo React, renderer, rutas públicas e integración automática de la canalización con CI/despliegue.
 - URLs de detalle, aliases, redirects, canonical, sitemap, 404 y SEO de la migración pública.
 - Roles, permisos, trazabilidad y vista previa requeridos por los editores.
 

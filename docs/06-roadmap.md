@@ -30,18 +30,17 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 12. **Fase 4A — Landing dinámica de Competición:** una única carga de temporadas con sus campeonatos públicos desde la API, jerarquía accesible, enlaces de detalle, estados loading/error/retry/vacío y matriz responsive validados sin modificar backend.
 13. **Fase 4B — Rankings y navegación contextual en Competición:** preview independiente de las primeras cinco filas del ranking histórico en orden backend, enlace al ranking completo y accesos de categoría a detalle, clasificación y calendario mediante las rutas existentes.
 14. **Fase 4C — Cierre de la experiencia pública de Competición:** composición final, navegación contextual determinista, estados remotos recuperables, jerarquía y etiquetas coherentes, tablas accesibles y recorrido completo hasta partido y rankings sin ampliar backend.
+15. **Fase 5A — Contrato y compilador de Knowledge:** auditoría de las colecciones reales, contrato de seis metadatos, validación de IDs, slugs, referencias y seguridad, compilador determinista y artefacto JSON versionado sin rutas públicas.
 
-La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A, 3B y 3C completan la Fase 3. Los subbloques 4A, 4B y 4C completan la Fase 4. Redirects y migraciones editoriales no se han iniciado.
+La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A, 3B y 3C completan la Fase 3. Los subbloques 4A, 4B y 4C completan la Fase 4. Sólo 5A está completada dentro de la Fase 5; 5B y 5C permanecen pendientes y la Fase 5 no está cerrada. Redirects y migraciones editoriales no se han iniciado.
 
 ## Bloques posteriores aprobados y no iniciados
 
-1. **Landing Aprende a jugar:** crear la entrada divulgativa diferenciada del Manual cuando exista un artefacto real que consumir.
-2. **Contrato editorial de `knowledge/`:** normalizar metadatos, IDs, slugs, relaciones y validaciones de las colecciones aprobadas.
-3. **Compilador build-time:** validar `knowledge/` y generar artefactos seguros y deterministas para React, sin MDX ni HTML ejecutable.
-4. **Manual MVP:** construir la experiencia pública desde los artefactos generados, sin base de datos, API Laravel o CRUD Blade.
-5. **Escuela de Galotxas:** combinar contenido pedagógico estable con actividad operativa administrable y protección específica de menores.
-6. **Club y migración de Contenidos:** asignar una fuente canónica a cada página institucional y retirar gradualmente la arquitectura legada.
-7. **QA, accesibilidad y despliegue:** validar contratos, recorridos, responsive, teclado, multimedia, persistencia y operación.
+1. **Fase 5B — Consumo público del conocimiento:** definir rutas y renderer seguro del Manual sobre el artefacto de 5A, sin duplicar Markdown en JSX.
+2. **Fase 5C — Aprende a jugar:** crear la entrada divulgativa diferenciada del Manual cuando exista un recorrido público funcional y accesible.
+3. **Escuela de Galotxas:** combinar contenido pedagógico estable con actividad operativa administrable y protección específica de menores.
+4. **Club y migración de Contenidos:** asignar una fuente canónica a cada página institucional y retirar gradualmente la arquitectura legada.
+5. **QA, accesibilidad y despliegue:** validar contratos, recorridos, responsive, teclado, multimedia, persistencia y operación.
 
 La Fase 4 está completada. `/competicion` presenta su acceso principal, temporadas, campeonatos y preview real del ranking histórico; la rama conserva Torneos y Rankings como destinos secundarios y ofrece un recorrido coherente por campeonato, categoría, clasificación, calendario y partido. La landing no incrusta tablas, partidos recientes ni resultados destacados porque 4C cierra la experiencia mediante las rutas funcionales existentes. `/aprende-a-jugar`, `/escuela` y `/club` no están implementadas por aparecer en el roadmap.
 
@@ -116,7 +115,7 @@ La ausencia de una interfaz React de reprogramación no bloquea este cierre. El 
 ## Frontend, despliegue y calidad
 
 - URL API por `VITE_API_BASE_URL`, fallback local de desarrollo y `/api/v1` en producción (DEPLOY-1);
-- Vitest, React Testing Library y 166 tests en 36 archivos, incluidos composición de Competición, estados remotos recuperables, rutas contextuales, jerarquía, etiquetas, tablas y posiciones backend, metadatos, cuenta, foco, landmarks, 404 y regresiones previas (FE-TEST-1, QA-FIX-1, RC-HARDEN-1, PUBLIC-NAVIGATION-1, PUBLIC-LANDING-SYSTEM-1, COMPETITION-LANDING-DATA-1, COMPETITION-RANKING-NAVIGATION-1 y COMPETITION-UX-CLOSURE-1);
+- Vitest, React Testing Library y 198 tests en 37 archivos, incluidos el contrato/compilador de Knowledge, composición de Competición, estados remotos recuperables, rutas contextuales, jerarquía, etiquetas, tablas y posiciones backend, metadatos, cuenta, foco, landmarks, 404 y regresiones previas (FE-TEST-1, QA-FIX-1, RC-HARDEN-1, PUBLIC-NAVIGATION-1, PUBLIC-LANDING-SYSTEM-1, COMPETITION-LANDING-DATA-1, COMPETITION-RANKING-NAVIGATION-1, COMPETITION-UX-CLOSURE-1 y KNOWLEDGE-COMPILER-1);
 - smoke Playwright de 15 escenarios con Chromium y stack temporal aislado, incluido el recorrido público completo, vacíos, ranking, foco, zoom y matriz responsive 320–1440 px sobre toda la rama deportiva, además de los workflows anteriores;
 - auditoría y actualización compatible de npm/Composer sin vulnerabilidades conocidas pendientes en la instantánea de cierre (DEPS-1);
 - documentación técnica 00–08 reconciliada con el código (DOC-1);
@@ -127,6 +126,7 @@ La ausencia de una interfaz React de reprogramación no bloquea este cierre. El 
 - landing dinámica de Competición basada en una única respuesta pública de temporadas y campeonatos, con estados locales, detalle contextual, accesibilidad y responsive sin duplicar el filtrado backend (COMPETITION-LANDING-DATA-1 / Fase 4A).
 - preview independiente del ranking histórico, límite visual de cinco sin reordenar, enlace a la vista completa y navegación contextual de categorías sobre las URLs existentes (COMPETITION-RANKING-NAVIGATION-1 / Fase 4B).
 - cierre compositivo y funcional de la rama pública de Competición con navegación determinista, estados recuperables, jerarquía y tablas accesibles sin ampliar el dominio (COMPETITION-UX-CLOSURE-1 / Fase 4C).
+- contrato y compilador determinista de `knowledge/`, con 40 documentos en cuatro colecciones, artefacto de esquema v1 y 32 tests dirigidos sin publicar rutas (KNOWLEDGE-COMPILER-1 / Fase 5A).
 - inventario, instalación limpia, regresión, auditoría, notas de versión y runbook del candidato preparados sin publicar ni etiquetar (MVP-RC-1).
 
 ---

@@ -1,5 +1,6 @@
 ---
 id: CON-PER-001
+slug: jugador
 titulo: Jugador
 version: 1.0.0
 estado: Vigente

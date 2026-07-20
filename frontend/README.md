@@ -1,5 +1,16 @@
 # React + Vite
 
+## Knowledge
+
+El Reglamento y los Conceptos canónicos se validan y compilan desde la carpeta hermana `knowledge/`:
+
+```bash
+npm run knowledge:check
+npm run knowledge:build
+```
+
+La salida versionada es `src/generated/knowledge/knowledge.json`. Es un archivo generado y no debe editarse manualmente. En Fase 5A no se importa desde páginas React y los comandos `dev` y `build` no lo regeneran automáticamente porque el repositorio no dispone todavía de un contrato de CI/despliegue que garantice acceso a la raíz completa del monorepo.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

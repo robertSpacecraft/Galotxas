@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "knowledge:check": "node scripts/knowledge/cli.js check",
+    "knowledge:build": "node scripts/knowledge/cli.js build",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "TMPDIR=/tmp TMP=/tmp TEMP=/tmp vitest",

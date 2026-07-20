@@ -1,5 +1,6 @@
 ---
 id: REG-007
+slug: modalidad-por-parejas
 titulo: Modalidad por parejas
 version: 0.1.0
 estado: Borrador

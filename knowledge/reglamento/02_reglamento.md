@@ -1,5 +1,6 @@
 ---
 id: REG-002
+slug: reglamento
 titulo: Reglamento
 version: 0.1.0
 estado: Borrador

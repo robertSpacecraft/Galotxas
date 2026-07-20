@@ -1,5 +1,6 @@
 ---
 id: REG-008
+slug: casos-especiales
 titulo: Casos especiales
 version: 0.1.0
 estado: Borrador
