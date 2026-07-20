@@ -1,0 +1,93 @@
+.content {
+  color: #263549;
+  font-size: 1.05rem;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+.content h2,
+.content h3,
+.content h4,
+.content h5,
+.content h6 {
+  color: #003366;
+  font-family: 'Outfit', sans-serif;
+  line-height: 1.3;
+  scroll-margin-top: 2rem;
+}
+
+.content h2 {
+  margin: 2.75rem 0 1rem;
+  font-size: clamp(1.65rem, 4vw, 2.1rem);
+}
+
+.content h3 {
+  margin: 2rem 0 0.75rem;
+  font-size: clamp(1.3rem, 3vw, 1.55rem);
+}
+
+.content h4,
+.content h5,
+.content h6 {
+  margin: 1.5rem 0 0.65rem;
+  font-size: 1.15rem;
+}
+
+.content p,
+.content ul,
+.content ol {
+  margin: 0 0 1.15rem;
+}
+
+.content ul,
+.content ol {
+  padding-left: 1.6rem;
+}
+
+.content li + li {
+  margin-top: 0.45rem;
+}
+
+.content a {
+  color: #005ea8;
+  font-weight: 700;
+  text-underline-offset: 0.2em;
+}
+
+.content a:focus-visible,
+.tableContainer:focus-visible {
+  outline: 3px solid #003366;
+  outline-offset: 3px;
+}
+
+.content hr {
+  margin: 2rem 0;
+  border: 0;
+  border-top: 1px solid #cbd5e1;
+}
+
+.tableContainer {
+  max-width: 100%;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}
+
+.tableContainer table {
+  width: 100%;
+  min-width: 32rem;
+  border-collapse: collapse;
+  background: #ffffff;
+}
+
+.tableContainer th,
+.tableContainer td {
+  padding: 0.8rem 1rem;
+  border: 1px solid #cbd5e1;
+  text-align: left;
+  vertical-align: top;
+}
+
+.tableContainer th {
+  background: #e8f0f7;
+  color: #003366;
+}

@@ -1,4 +1,4 @@
-import { mkdir, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import {
   COLLECTIONS,
@@ -8,6 +8,9 @@ import {
 import { KnowledgeValidationError } from './errors.js'
 import { parseFrontMatter } from './frontMatter.js'
 import { analyzeMarkdown, resolveReferences } from './markdown.js'
+import { createPublicKnowledgeArtifact } from './publicProjection.js'
+
+let writeTransaction = 0
 
 function fail(message, sourcePath = null, code = 'KNOWLEDGE_INVALID') {
   throw new KnowledgeValidationError(message, { code, sourcePath })
@@ -297,27 +300,103 @@ export async function compileKnowledge(knowledgeRoot) {
   }
 }
 
+export async function compileKnowledgeArtifacts(knowledgeRoot) {
+  const result = await compileKnowledge(knowledgeRoot)
+
+  return {
+    ...result,
+    publicArtifact: createPublicKnowledgeArtifact(result.artifact),
+  }
+}
+
 export function serializeArtifact(artifact) {
   return `${JSON.stringify(artifact, null, 2)}\n`
 }
 
-export async function buildKnowledge(knowledgeRoot, outputPath) {
-  const result = await compileKnowledge(knowledgeRoot)
-  const bytes = serializeArtifact(result.artifact)
-  const outputDirectory = path.dirname(outputPath)
-  const temporaryPath = path.join(
-    outputDirectory,
-    `.${path.basename(outputPath)}.${process.pid}.tmp`,
-  )
-
-  await mkdir(outputDirectory, { recursive: true })
-
+async function pathExists(absolutePath, operations) {
   try {
-    await writeFile(temporaryPath, bytes, 'utf8')
-    await rename(temporaryPath, outputPath)
-  } finally {
-    await rm(temporaryPath, { force: true })
+    await operations.stat(absolutePath)
+    return true
+  } catch (error) {
+    if (error.code === 'ENOENT') return false
+    throw error
+  }
+}
+
+export async function writeArtifactPair(outputs, operations = {
+  mkdir,
+  rename,
+  rm,
+  stat,
+  writeFile,
+}) {
+  if (outputs.length !== 2 || outputs[0].outputPath === outputs[1].outputPath) {
+    fail('la escritura coordinada requiere dos destinos distintos.', null, 'OUTPUT_PAIR_INVALID')
   }
 
-  return { ...result, bytes, outputPath }
+  writeTransaction += 1
+  const suffix = `${process.pid}.${writeTransaction}`
+  const entries = outputs.map(({ outputPath, bytes }, index) => ({
+    outputPath,
+    bytes,
+    temporaryPath: `${outputPath}.${suffix}.${index}.tmp`,
+    backupPath: `${outputPath}.${suffix}.${index}.bak`,
+    backedUp: false,
+    promoted: false,
+  }))
+
+  try {
+    await Promise.all(entries.map((entry) =>
+      operations.mkdir(path.dirname(entry.outputPath), { recursive: true }),
+    ))
+
+    await Promise.all(entries.map((entry) =>
+      operations.writeFile(entry.temporaryPath, entry.bytes, 'utf8'),
+    ))
+
+    for (const entry of entries) {
+      if (await pathExists(entry.outputPath, operations)) {
+        await operations.rename(entry.outputPath, entry.backupPath)
+        entry.backedUp = true
+      }
+    }
+
+    for (const entry of entries) {
+      await operations.rename(entry.temporaryPath, entry.outputPath)
+      entry.promoted = true
+    }
+
+    await Promise.all(entries.map((entry) => operations.rm(entry.backupPath, { force: true })))
+  } catch (error) {
+    for (const entry of [...entries].reverse()) {
+      if (entry.promoted) {
+        await operations.rm(entry.outputPath, { force: true })
+      }
+
+      if (entry.backedUp) {
+        await operations.rename(entry.backupPath, entry.outputPath)
+        entry.backedUp = false
+      }
+    }
+
+    throw error
+  } finally {
+    await Promise.all(entries.flatMap((entry) => [
+      operations.rm(entry.temporaryPath, { force: true }),
+      operations.rm(entry.backupPath, { force: true }),
+    ]))
+  }
+}
+
+export async function buildKnowledge(knowledgeRoot, outputPath, publicOutputPath) {
+  const result = await compileKnowledgeArtifacts(knowledgeRoot)
+  const bytes = serializeArtifact(result.artifact)
+  const publicBytes = serializeArtifact(result.publicArtifact)
+
+  await writeArtifactPair([
+    { outputPath, bytes },
+    { outputPath: publicOutputPath, bytes: publicBytes },
+  ])
+
+  return { ...result, bytes, publicBytes, outputPath, publicOutputPath }
 }

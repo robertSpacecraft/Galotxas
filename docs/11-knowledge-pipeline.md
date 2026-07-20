@@ -2,7 +2,7 @@
 
 ## 1. Objetivo
 
-KNOWLEDGE-COMPILER-1 formaliza y valida el contenido canónico de `knowledge/` y genera un artefacto estructurado para un futuro consumidor React. KNOWLEDGE-PUBLICATION-READINESS-1 normaliza en 5A.1 los estados, headings y grafo editorial para dejar el corpus preparado para 5B. Ninguno de los dos bloques registra rutas, crea una proyección pública, renderiza Markdown o publica Aprende a jugar o el Manual.
+KNOWLEDGE-COMPILER-1 formaliza y valida el contenido canónico de `knowledge/`. KNOWLEDGE-PUBLICATION-READINESS-1 normaliza en 5A.1 los estados, headings y grafo editorial. KNOWLEDGE-PUBLIC-CONSUMER-1 implementa en 5B una proyección sin borradores ni Markdown, su consumo React seguro y las rutas iniciales de Aprende a jugar y el Manual.
 
 ## 2. Fuente canónica
 
@@ -11,7 +11,11 @@ KNOWLEDGE-COMPILER-1 formaliza y valida el contenido canónico de `knowledge/` y
 Flujo aprobado:
 
 ```text
-knowledge/ → validación y compilación Node → JSON versionado → futuro consumidor React
+knowledge/
+  → validación y compilación Node
+  → knowledge.json (canónico completo, no importable por React)
+  → public-knowledge.json (sólo Vigente y nodos seguros)
+  → repositorio y renderer React
 ```
 
 ## 3. Auditoría del corpus
@@ -123,7 +127,7 @@ Patrones de ID:
 - Personas: `CON-PER-NNN`;
 - Juego: `CON-JUE-NNN`.
 
-El ID es único globalmente. El slug es único en su namespace de colección. La ruta lógica de salida se forma como `<collection>/<slug>`, por ejemplo `conceptos/juego/saque`; no es todavía una URL React ni aprueba un namespace público.
+El ID es único globalmente. El slug es único en su namespace de colección. La ruta lógica canónica se forma como `<collection>/<slug>`, por ejemplo `conceptos/juego/saque`; no es una URL React. La proyección asigna por separado las URLs públicas aprobadas bajo `/aprende-a-jugar/manual`.
 
 ## 7. Orden determinista
 
@@ -131,9 +135,9 @@ Las colecciones usan el orden explícito anterior. Los documentos se ordenan por
 
 ## 8. Sintaxis Markdown
 
-La versión inicial conserva Markdown como texto y reconoce headings ATX para generar el índice estructurado. Puede preservar párrafos, énfasis, listas ordenadas y no ordenadas, tablas, separadores, citas, código inline, bloques de código no ejecutable y enlaces inline, siempre sujetos a las reglas de seguridad.
+El artefacto canónico conserva Markdown como texto y reconoce headings ATX para generar el índice estructurado. Su análisis de referencias puede admitir enlaces inline sujetos a seguridad.
 
-No se implementa un parser o renderer Markdown completo. Los enlaces deben usar forma inline; referencias Markdown por etiqueta o enlaces inline mal formados se rechazan para no omitir su validación. Imágenes, HTML, JSX, MDX y bloques etiquetados como JavaScript, TypeScript, JSX, MDX o HTML se rechazan en v1. Las imágenes se aplazan hasta definir procedencia, licencia, rutas y texto alternativo.
+La proyección pública no utiliza un parser Markdown general. Sólo admite headings ATX, párrafos, listas no ordenadas, listas ordenadas, la tabla actual y separadores; inline admite texto, `strong`, `emphasis` y referencias documentales explícitas. El parser rechaza HTML, imágenes, blockquotes, código, enlaces Markdown, listas anidadas, tablas incompletas, delimitadores inline sin cerrar y nesting ambiguo. Una nueva sintaxis requiere ampliar contrato y tests antes de publicarse.
 
 ### Contrato de headings
 
@@ -156,7 +160,7 @@ El validador rechaza:
 - enlaces absolutos, destinos no compilables y traversal fuera de `knowledge/`;
 - symlinks dentro del corpus.
 
-El contenido nunca se evalúa ni pasa por `eval`, `Function` o `dangerouslySetInnerHTML`.
+El contenido nunca se evalúa ni pasa por `eval`, `Function` o `dangerouslySetInnerHTML`. El navegador tampoco recibe Markdown o ejecuta un parser.
 
 ## 10. Referencias internas
 
@@ -164,7 +168,7 @@ El compilador valida referencias `REG-*` y `CON-*` presentes en el cuerpo. Tambi
 
 Además de resolver el destino, valida su estado: un documento `Vigente` sólo puede referenciar otro documento `Vigente`. Un borrador futuro puede referenciar borradores o vigentes, pero todos sus destinos deben seguir existiendo. El corpus actual contiene 108 relaciones documentales normalizadas, todas `Vigente → Vigente`.
 
-El artefacto normaliza las relaciones a `targetId` y fragmento. No convierte estas relaciones en rutas públicas. Las menciones por título de «Véase también» no se enlazan automáticamente y quedan como deuda editorial para una fase que pueda asignar IDs con revisión humana.
+El artefacto canónico normaliza las relaciones a `targetId` y fragmento. En la proyección sólo la forma explícita reconocida `ID – etiqueta` se convierte en un nodo `reference` con `targetId`, `label` y `href`; una mención aislada de ID permanece como texto. El destino debe estar en la proyección y su ruta se resuelve antes de escribir. Las menciones por título de «Véase también» no se enlazan automáticamente.
 
 ## 11. Arquitectura del compilador
 
@@ -176,14 +180,16 @@ El artefacto normaliza las relaciones a `targetId` y fragmento. No convierte est
 - parsing del front matter escalar;
 - análisis de headings, seguridad y referencias;
 - validación global de IDs, slugs, órdenes y rutas;
-- serialización JSON;
-- escritura mediante archivo temporal y `rename`.
+- filtrado público y parser de bloques e inline nodes;
+- validación de rutas y referencias públicas;
+- serialización de dos JSON;
+- escritura coordinada mediante temporales, backups y rollback.
 
 No usa dependencias externas ni ejecuta contenido.
 
 ## 12. Formato del artefacto
 
-El esquema versionado es:
+Ambos artefactos utilizan un esquema raíz versionado:
 
 ```json
 {
@@ -193,17 +199,21 @@ El esquema versionado es:
 }
 ```
 
-Cada colección incluye `id`, `title`, `order` y `documentCount`. Cada documento incluye `id`, `slug`, `title`, `version`, `status`, `lastRevision`, `collection`, `sourcePath`, `outputPath`, `order`, `markdown`, `headings` y `references`.
+Cada colección incluye `id`, `title`, `order` y `documentCount`. En `knowledge.json`, cada documento incluye `id`, `slug`, `title`, `version`, `status`, `lastRevision`, `collection`, `sourcePath`, `outputPath`, `order`, `markdown`, `headings` y `references`.
+
+En `public-knowledge.json`, cada documento incluye `id`, `slug`, `title`, `version`, `lastRevision`, `collection`, `group` cuando corresponde, `order`, `route`, headings internos, bloques y referencias públicas. No incluye `status`, `sourcePath`, `outputPath`, Markdown, HTML o información de documentos no vigentes.
+
+Los bloques públicos son `heading`, `paragraph`, `unorderedList`, `orderedList`, `table` y `thematicBreak`. Los nodos inline son `text`, `strong`, `emphasis` y `reference`; los items de lista usan `listItem`. El H1 se valida en el canónico y se excluye de `blocks`; los H2–H6 conservan un ID determinista con sufijos estables ante colisiones.
 
 No contiene rutas absolutas, timestamp de generación, datos Git, usuario, HTML precompilado o contenido de los cuatro archivos excluidos.
 
-El artefacto estructural conserva el estado de cada documento y puede representar `Borrador` o `Vigente`. El corpus actual contiene 40 documentos `Vigente` y cero borradores. El JSON canónico continúa sin ser un artefacto público: 5B deberá crear una proyección separada y probar que sólo incorpora estados publicables; React no debe importar el corpus completo ni improvisar esa política.
+El artefacto canónico conserva el estado de cada documento y puede representar `Borrador` o `Vigente`. La proyección incluye exclusivamente `Vigente`; una colección sin documentos públicos se omite y cero documentos públicos bloquea la generación. React no importa el corpus completo ni improvisa esa política.
 
 ## 13. Ubicación y política de versionado
 
-La salida es `frontend/src/generated/knowledge/knowledge.json` y se versiona. No se añade a `.gitignore`.
+Las salidas son `frontend/src/generated/knowledge/knowledge.json` y `frontend/src/generated/knowledge/public-knowledge.json`; ambas se versionan y no se añaden a `.gitignore`.
 
-No existe configuración CI o de despliegue que garantice que un build ejecutado con `frontend/` como raíz pueda leer la carpeta hermana `knowledge/`. Por ello 5A no acopla `dev` ni `build` al compilador. Versionar la salida permite una entrega reproducible sin improvisar configuración de hosting. El test del corpus real exige que el JSON versionado coincida byte a byte con una compilación actual.
+No existe configuración CI o de despliegue que garantice que un build ejecutado con `frontend/` como raíz pueda leer la carpeta hermana `knowledge/`. Por ello `dev` y `build` no se acoplan al compilador. Versionar las salidas permite una entrega reproducible sin improvisar configuración de hosting. Los tests del corpus real exigen que ambos JSON coincidan byte a byte con una compilación actual.
 
 Esta política puede revisarse cuando CI y despliegue estén definidos y acrediten acceso fiable al monorepo completo.
 
@@ -219,7 +229,7 @@ npm run lint
 npm run build
 ```
 
-`knowledge:check` valida metadatos, headings, grafo editorial, referencias y seguridad sin escribir. `knowledge:build` aplica las mismas invariantes antes de crear directorios o reemplazar la salida y usa escritura atómica. Ni `dev` ni `build` regeneran por sí solos el artefacto en 5A.1.
+`knowledge:check` compila y valida dos veces en memoria metadatos, headings, grafo, parser, privacidad, referencias, rutas y determinismo sin escribir. `knowledge:build` aplica las mismas invariantes, prepara las dos salidas y las reemplaza como pareja; ante un fallo restaura las dos versiones anteriores y limpia temporales. Ni `dev` ni `build` regeneran por sí solos los artefactos.
 
 ## 15. Testing
 
@@ -240,9 +250,11 @@ Los tests no modifican `knowledge/` y limpian sus directorios temporales.
 
 KNOWLEDGE-PUBLICATION-READINESS-1 añade cobertura para H1 único, orden y coincidencia del título, jerarquía sin saltos, niveles H1–H6, relaciones permitidas y prohibidas según estado, diagnósticos con origen y destino, 40 documentos vigentes, tabla de REG-006, validación sin escritura y sincronía determinista del artefacto.
 
+KNOWLEDGE-PUBLIC-CONSUMER-1 añade fixtures de borradores, colecciones vacías, cero documentos públicos, referencias explícitas y privadas, todos los nodos soportados, sintaxis rechazada, anchors, UTF-8, determinismo de ambas salidas y fallo simulado de la segunda promoción. La capa React cubre repositorio, helpers, renderer, landing, Manual, documentos, metadatos, 404 y Navbar. El E2E recorre la sección, sigue una referencia real, valida REG-006 y la matriz responsive.
+
 ## 16. Diagnóstico de errores
 
-Los fallos usan un código estable y, cuando corresponde, `sourcePath`, ID y elemento responsable. Entre ellos están `HEADING_H1_FIRST`, `HEADING_H1_MULTIPLE`, `HEADING_HIERARCHY_INVALID`, `REFERENCE_STATUS_UNPUBLISHABLE`, `METADATA_REQUIRED`, `ID_DUPLICATE`, `REFERENCE_FILE_MISSING` o `SECURITY_MDX_MODULE`. La CLI escribe el diagnóstico en stderr y devuelve un código distinto de cero.
+Los fallos usan un código estable y, cuando corresponde, `sourcePath`, ID y elemento responsable. Entre ellos están `HEADING_H1_FIRST`, `REFERENCE_STATUS_UNPUBLISHABLE`, `PUBLIC_REFERENCE_UNPUBLISHABLE`, `PUBLIC_DOCUMENTS_REQUIRED`, `PUBLIC_TABLE_COLUMNS_INVALID`, `PUBLIC_INLINE_INCOMPLETE`, `METADATA_REQUIRED`, `ID_DUPLICATE` o `SECURITY_MDX_MODULE`. La CLI escribe el diagnóstico en stderr y devuelve un código distinto de cero sin actualizar sólo uno de los artefactos.
 
 ## 17. Flujo editorial y responsabilidades
 
@@ -250,27 +262,30 @@ Los fallos usan un código estable y, cuando corresponde, `sourcePath`, ID y ele
 2. Revisa impacto sobre reglas ejecutables cuando corresponda.
 3. Ejecuta `npm run knowledge:check`.
 4. Regenera con `npm run knowledge:build`.
-5. Incluye fuente y artefacto en el mismo cambio Git.
+5. Incluye fuente y ambos artefactos en el mismo cambio Git.
 6. Ejecuta tests, lint y build frontend.
 7. La revisión humana valida contenido y estructura; React no edita la fuente.
 8. Un cambio de estado o de significado exige autorización editorial y revisión de versión; una normalización técnica no permite reformular contenido.
 
-## 18. Futuro consumo desde React
+## 18. Consumo desde React
 
-El bloqueo editorial detectado al preparar 5B queda resuelto: el corpus tiene 40 documentos vigentes, H1 único y grafo publicable. 5B puede construir una proyección pública separada y después su consumidor sin leer archivos del sistema en navegador. Todavía debe implementar y probar filtrado, estructura renderizable, rutas, navegación, seguridad y accesibilidad. El `outputPath` canónico es una identidad lógica, no una promesa de URL.
+`frontend/src/features/knowledge/knowledgeRepository.js` es la única capa que importa `public-knowledge.json`, valida `schemaVersion: 1`, conserva el orden y resuelve colecciones, grupos, slugs e IDs con `null` para valores desconocidos. No realiza fetch, caché o estado remoto. Los helpers centralizan las rutas y validan los tres grupos de Conceptos.
+
+`KnowledgeRenderer` recibe sólo bloques compilados y los convierte a HTML semántico y `Link`. La landing usa `PublicLanding` y `PageMetadata`; el Manual agrupa cuatro colecciones y la composición documental común muestra título, ID, versión, revisión, contenido y retorno. Un grupo o slug inválido renderiza la 404 existente sin redirección o filtración editorial. El `outputPath` canónico continúa siendo una identidad lógica, no una promesa de URL.
 
 ## 19. Límites y deuda aplazada
 
-- no hay renderer ni rutas públicas;
 - no existe colección de Historia, Instalaciones independiente o Escuela;
 - «Véase también» por título no es todavía relación estructural;
-- no existe todavía proyección pública ni transformación a estructura renderizable;
 - imágenes, multimedia, búsqueda y filtros quedan fuera;
 - no se integra el compilador en CI, dev o build hasta confirmar el contexto de despliegue;
 - no se modifica contenido deportivo ni se resuelven denominaciones pendientes.
+- 5C debe ampliar la experiencia divulgativa sin introducir Historia u otras colecciones vacías.
 
 ## 20. Criterios de aceptación
 
 5A se considera completada cuando los 40 documentos pasan validación, dos compilaciones producen los mismos bytes, el artefacto versionado coincide con el corpus, los cuatro archivos técnicos quedan excluidos, referencias y seguridad fallan de forma explícita, y la suite frontend, lint y build continúan correctos sin nuevas rutas, backend o dependencias.
 
 5A.1 se considera completada cuando REG-001–REG-008 y los 32 Conceptos están `Vigente`, cada documento tiene un único H1 coincidente con `titulo`, la jerarquía no contiene saltos, las 108 referencias documentales son `Vigente → Vigente`, REG-006 conserva su tabla y la regeneración continúa sincronizada y determinista. Esto habilita 5B, pero no crea su artefacto público, renderer, rutas o páginas.
+
+5B se considera completada cuando la proyección excluye por construcción cualquier borrador, el parser sólo produce nodos seguros, referencias y rutas resuelven antes de escribir, ambas salidas son deterministas y coordinadas, React importa únicamente el artefacto público, las cuatro familias de rutas funcionan con 404 segura, Navbar activa toda la rama y Vitest, lint, build y E2E quedan verdes. Fase 5 permanece abierta para 5C.

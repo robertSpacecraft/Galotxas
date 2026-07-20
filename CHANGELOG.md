@@ -19,6 +19,10 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - Se incorpora un validador y compilador build-time sin dependencias para `knowledge/`, con referencias y contenido ejecutable controlados, salida JSON determinista de esquema v1 y escritura segura.
 - Se añade KNOWLEDGE-COMPILER-1 con fixtures temporales, validación del corpus real, sincronía byte a byte del artefacto y regresión del build frontend, sin publicar rutas de Aprende a jugar o Manual.
 - Se registra la aprobación editorial inicial de `REG-001`–`REG-008` y se prepara para Fase 5B un corpus canónico de 40 documentos `Vigente`, sin crear proyección pública, renderer ni rutas React.
+- Se añade `public-knowledge.json` como proyección versionada exclusiva de documentos `Vigente`, sin Markdown, estado ni datos editoriales de borradores, con escritura coordinada junto al artefacto canónico.
+- Se incorpora un parser build-time limitado y un renderer React semántico para headings, párrafos, énfasis, listas, tabla, separadores y referencias internas, sin HTML inyectado.
+- Se publican la landing `/aprende-a-jugar`, el Manual, los documentos de Reglamento y los tres grupos de Conceptos, con repositorio frontend, metadatos, retorno y 404 segura.
+- El Navbar incorpora Aprende a jugar tras Competición y mantiene activa toda la rama formativa en desktop y móvil, con cuenta separada.
 
 ### Changed
 
@@ -38,6 +42,8 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - El detalle de categoría queda como resumen de la entidad y delega clasificación y calendario en sus vistas dedicadas, eliminando su doble representación.
 - Se normalizan los 40 documentos canónicos a un H1 inicial único y una jerarquía H2/H3 coherente, preservando íntegramente texto, títulos, IDs, slugs, versiones y referencias.
 - El compilador de Knowledge valida la jerarquía de headings y rechaza referencias desde contenido `Vigente` hacia destinos no vigentes o inexistentes, con diagnóstico contextual de origen y destino.
+- `knowledge:check` valida en memoria y de forma determinista los dos artefactos; `knowledge:build` los promueve como pareja y restaura ambos si falla una escritura.
+- React importa únicamente la proyección pública mediante una capa de repositorio; el artefacto canónico permanece fuera del bundle.
 
 ### Fixed
 

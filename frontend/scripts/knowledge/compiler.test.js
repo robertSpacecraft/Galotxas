@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import {
   DEFAULT_KNOWLEDGE_ROOT,
   DEFAULT_OUTPUT_PATH,
+  DEFAULT_PUBLIC_OUTPUT_PATH,
 } from './config.js'
 import {
   buildKnowledge,
@@ -575,9 +576,11 @@ describe('escritura segura', () => {
       'reglamento/01_uno.md': documentSource(),
     })
 
-    const result = await buildKnowledge(root, outputPath)
+    const publicOutputPath = path.join(outputRoot, 'nested', 'public-knowledge.json')
+    const result = await buildKnowledge(root, outputPath, publicOutputPath)
 
     expect(await readFile(outputPath, 'utf8')).toBe(result.bytes)
+    expect(await readFile(publicOutputPath, 'utf8')).toBe(result.publicBytes)
     expect(JSON.parse(result.bytes).documents).toHaveLength(1)
   })
 
@@ -585,15 +588,30 @@ describe('escritura segura', () => {
     const root = await createTemporaryDirectory()
     const outputRoot = await createTemporaryDirectory()
     const outputPath = path.join(outputRoot, 'knowledge.json')
+    const publicOutputPath = path.join(outputRoot, 'public-knowledge.json')
     await writeFiles(root, {
       'reglamento/01_uno.md': documentSource({ status: 'Archivado' }),
     })
     await writeFile(outputPath, 'salida anterior\n', 'utf8')
 
-    await expect(buildKnowledge(root, outputPath)).rejects.toMatchObject({
+    await expect(buildKnowledge(root, outputPath, publicOutputPath)).rejects.toMatchObject({
       code: 'STATUS_INVALID',
     })
     expect(await readFile(outputPath, 'utf8')).toBe('salida anterior\n')
+    await expect(readFile(publicOutputPath, 'utf8')).rejects.toMatchObject({ code: 'ENOENT' })
     expect((await readdir(outputRoot)).filter((name) => name.endsWith('.tmp'))).toEqual([])
+  })
+
+  it('mantiene sincronizada la proyección pública versionada', async () => {
+    const root = DEFAULT_KNOWLEDGE_ROOT
+    const publicOutputPath = DEFAULT_PUBLIC_OUTPUT_PATH
+    const outputRoot = await createTemporaryDirectory()
+    const canonicalOutputPath = path.join(outputRoot, 'knowledge.json')
+    const generatedPublicPath = path.join(outputRoot, 'public-knowledge.json')
+
+    const result = await buildKnowledge(root, canonicalOutputPath, generatedPublicPath)
+    const committedBytes = await readFile(publicOutputPath, 'utf8')
+
+    expect(committedBytes).toBe(result.publicBytes)
   })
 })

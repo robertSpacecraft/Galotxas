@@ -20,6 +20,9 @@ import { CmsPageIndex } from './pages/CmsPageIndex/CmsPageIndex';
 import { CmsPage } from './pages/CmsPage/CmsPage';
 import { CompetitionPage } from './pages/Competition/CompetitionPage';
 import { NotFoundPage } from './pages/NotFound/NotFoundPage';
+import { LearnPage } from './pages/Learn/LearnPage';
+import { ManualPage } from './pages/Learn/ManualPage';
+import { KnowledgeDocumentPage } from './pages/Learn/KnowledgeDocumentPage';
 import './index.css';
 
 function App() {
@@ -33,6 +36,16 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/competicion" element={<CompetitionPage />} />
+              <Route path="/aprende-a-jugar" element={<LearnPage />} />
+              <Route path="/aprende-a-jugar/manual" element={<ManualPage />} />
+              <Route
+                path="/aprende-a-jugar/manual/reglamento/:slug"
+                element={<KnowledgeDocumentPage type="regulation" />}
+              />
+              <Route
+                path="/aprende-a-jugar/manual/conceptos/:group/:slug"
+                element={<KnowledgeDocumentPage type="concept" />}
+              />
               <Route path="/nosotros" element={<Nosotros />} />
               <Route path="/torneos" element={<TournamentList />} />
               <Route path="/torneos/:championshipId" element={<TournamentDetail />} />

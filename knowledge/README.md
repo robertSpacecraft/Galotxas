@@ -76,7 +76,7 @@ npm run knowledge:check
 npm run knowledge:build
 ```
 
-`knowledge:check` valida metadatos, headings, referencias, estados y seguridad sin escribir. `knowledge:build` aplica las mismas invariantes y genera de forma determinista `frontend/src/generated/knowledge/knowledge.json` mediante reemplazo seguro. Fuente y artefacto deben incluirse juntos en Git; el JSON no se edita manualmente. El contrato completo se documenta en [`docs/11-knowledge-pipeline.md`](../docs/11-knowledge-pipeline.md).
+`knowledge:check` valida metadatos, headings, referencias, estados, proyección pública, seguridad y determinismo sin escribir. `knowledge:build` aplica las mismas invariantes y genera de forma coordinada `frontend/src/generated/knowledge/knowledge.json` y `frontend/src/generated/knowledge/public-knowledge.json`. El primero conserva el corpus editorial completo; el segundo incluye sólo documentos `Vigente`, transforma el subconjunto Markdown aprobado a nodos seguros y no expone datos de borradores. Fuente y artefactos deben incluirse juntos en Git; los JSON generados no se editan manualmente. El contrato completo se documenta en [`docs/11-knowledge-pipeline.md`](../docs/11-knowledge-pipeline.md).
 
 ## Principios
 
@@ -100,9 +100,9 @@ El conocimiento puede ampliarse, corregirse y reorganizarse, pero los IDs, slugs
 
 Cuando existan varias denominaciones tradicionales, podrán conservarse como variantes o sinónimos. El proyecto puede adoptar una denominación principal para mantener consistencia sin borrar esa riqueza cultural.
 
-## Relación futura con el Manual
+## Relación con el Manual
 
-El Manual será un consumidor y una organización pública de este conocimiento, no una segunda fuente editorial. Las fases 5A y 5A.1 ya validan y generan el artefacto canónico y han dejado los 40 documentos `Vigente`, pero todavía no existe proyección pública, ruta, renderer ni consumidor React. No utilizará MDX, HTML ejecutable, base de datos, API Laravel ni CRUD Blade.
+El Manual es un consumidor y una organización pública de este conocimiento, no una segunda fuente editorial. Fase 5B publica los 40 documentos `Vigente` mediante una proyección segura, un repositorio frontend y un renderer semántico; React no importa el artefacto canónico ni interpreta Markdown. Las referencias públicas deben usar la forma explícita `ID – etiqueta` y resolver a otro documento público antes de escribir. Las futuras modificaciones editoriales continúan realizándose exclusivamente en `knowledge/` y requieren regenerar ambos JSON. El Manual no utiliza MDX, HTML ejecutable, base de datos, API Laravel ni CRUD Blade.
 
 ## Relación futura con la Escuela de Galotxas
 

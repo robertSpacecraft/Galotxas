@@ -819,7 +819,13 @@ Decisión:
 - Generar JSON con `schemaVersion: 1`, orden explícito y sin timestamp, rutas absolutas, datos del sistema o HTML precompilado.
 - Versionar `frontend/src/generated/knowledge/knowledge.json` y comprobar en tests su igualdad byte a byte con el corpus.
 - No acoplar todavía `dev` o `build` a la generación. Mantener `knowledge:check` y `knowledge:build` explícitos hasta disponer de un contrato de CI/despliegue fiable.
-- No importar el artefacto en páginas, crear una proyección pública ni registrar rutas durante 5A o su normalización 5A.1.
+- No importar el artefacto canónico en páginas, crear una proyección pública ni registrar rutas durante 5A o su normalización 5A.1.
+- En 5B, generar `public-knowledge.json` como proyección separada que incluye exclusivamente documentos `Vigente`, omite colecciones vacías y no conserva estado, `sourcePath`, Markdown, rutas lógicas editoriales ni información de borradores.
+- Transformar el Markdown público durante build a una estructura cerrada de bloques e inline nodes; rechazar cualquier sintaxis no soportada en lugar de interpretarla en el navegador.
+- Resolver sólo referencias explícitas hacia IDs públicos y sus rutas React; bloquear la generación si el destino no existe o no es publicable.
+- Versionar los dos artefactos y promoverlos de forma coordinada con temporales, copias anteriores y rollback para no dejar una pareja desincronizada.
+- Permitir que React importe únicamente `public-knowledge.json` mediante un repositorio de esquema v1 y renderice los nodos con HTML semántico, `Link` y sin `dangerouslySetInnerHTML`.
+- Registrar `/aprende-a-jugar`, `/aprende-a-jugar/manual`, los documentos de Reglamento y los tres grupos de Conceptos; utilizar la 404 existente para cualquier grupo, slug o forma no válida.
 
 Alternativas descartadas:
 - Hardcodear el contenido en JSX: duplicaría la fuente editorial y exigiría despliegues para cada corrección.
@@ -828,16 +834,19 @@ Alternativas descartadas:
 - Duplicar el contenido en el CMS: crearía dos autoridades editables para las mismas reglas.
 - Usar MDX: permitiría componentes y expresiones ejecutables dentro de la fuente canónica.
 - Compilar HTML sin una política de sanitización y renderer aprobados: ampliaría la superficie de ejecución antes de construir la experiencia pública.
+- Importar `knowledge.json` desde React y filtrar allí: introduciría borradores y metadatos editoriales en el bundle antes de aplicar la política de publicación.
+- Usar un parser Markdown en navegador: duplicaría el contrato build-time y ampliaría la superficie de sintaxis y ejecución del cliente.
+- Degradar silenciosamente nodos no soportados: podría publicar contenido incompleto o con semántica distinta de la fuente revisada.
 - Ignorar el artefacto y regenerarlo automáticamente en cada build: el contexto de despliegue actual no garantiza acceso a `knowledge/` desde la raíz frontend.
 
 Consecuencias:
 - Un cambio estructural inválido falla con un diagnóstico localizado antes de producir una salida nueva.
 - Fuente y artefacto versionado deben actualizarse en el mismo cambio; el JSON generado nunca se edita a mano.
 - Dos compilaciones del mismo corpus producen los mismos bytes.
-- Las rutas lógicas del artefacto no son URLs públicas y no cierran todavía el routing de Aprende a jugar o el Manual.
-- El corpus queda preparado para 5B con 40 documentos `Vigente`, un solo H1 por documento y todas las referencias estructuradas dirigidas a contenido vigente.
+- Las rutas lógicas del artefacto canónico no son URLs públicas. La proyección asigna rutas públicas mediante helpers cerrados para Reglamento y Conceptos.
+- El corpus alimenta en 5B una proyección de 40 documentos `Vigente`; un borrador futuro permanecerá en el JSON canónico y quedará completamente fuera del público y del bundle.
 - Una normalización técnica no autoriza cambios de texto editorial: estado, fecha y marcadores estructurales se revisan separadamente del contenido semántico.
-- 5B y 5C siguen pendientes; la Fase 5 no queda completa con este ADR.
+- Fase 5B queda implementada con una experiencia inicial funcional de Aprende a jugar y Manual; 5C sigue pendiente y la Fase 5 no queda completa con este ADR.
 - Cuando CI y despliegue estén definidos podrá revisarse la política de versionado y generación automática sin cambiar la autoridad editorial.
 
 ---

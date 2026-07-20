@@ -65,3 +65,7 @@ export const DEFAULT_KNOWLEDGE_ROOT = fileURLToPath(
 export const DEFAULT_OUTPUT_PATH = fileURLToPath(
   new URL('../../src/generated/knowledge/knowledge.json', import.meta.url),
 )
+
+export const DEFAULT_PUBLIC_OUTPUT_PATH = fileURLToPath(
+  new URL('../../src/generated/knowledge/public-knowledge.json', import.meta.url),
+)

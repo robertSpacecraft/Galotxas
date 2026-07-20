@@ -32,18 +32,18 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 14. **Fase 4C — Cierre de la experiencia pública de Competición:** composición final, navegación contextual determinista, estados remotos recuperables, jerarquía y etiquetas coherentes, tablas accesibles y recorrido completo hasta partido y rankings sin ampliar backend.
 15. **Fase 5A — Contrato y compilador de Knowledge:** auditoría de las colecciones reales, contrato de seis metadatos, validación de IDs, slugs, referencias y seguridad, compilador determinista y artefacto JSON versionado sin rutas públicas.
 16. **Fase 5A.1 — Preparación del corpus publicable:** aprobación editorial de REG-001–REG-008, 40 documentos `Vigente`, un único H1 y jerarquía coherente por documento, y referencias vigentes restringidas a destinos vigentes.
+17. **Fase 5B — Consumo público seguro de Knowledge:** proyección pública sin borradores ni Markdown, parser build-time limitado, renderer semántico, repositorio frontend, landing `/aprende-a-jugar`, Manual, documentos, referencias, Navbar y 404 validados.
 
-La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A, 3B y 3C completan la Fase 3. Los subbloques 4A, 4B y 4C completan la Fase 4. Dentro de la Fase 5 están completadas 5A y 5A.1; el bloqueo editorial detectado antes de 5B está resuelto, pero 5B y 5C permanecen pendientes y la Fase 5 no está cerrada. Redirects y migraciones editoriales no se han iniciado.
+La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A, 3B y 3C completan la Fase 3. Los subbloques 4A, 4B y 4C completan la Fase 4. Dentro de la Fase 5 están completadas 5A, 5A.1 y 5B; 5C permanece pendiente y la Fase 5 no está cerrada. Redirects y migraciones editoriales no se han iniciado.
 
 ## Bloques posteriores aprobados y no iniciados
 
-1. **Fase 5B — Consumo público del conocimiento:** definir la proyección pública, rutas y renderer seguro del Manual sobre el artefacto preparado por 5A/5A.1, sin duplicar Markdown en JSX.
-2. **Fase 5C — Aprende a jugar:** crear la entrada divulgativa diferenciada del Manual cuando exista un recorrido público funcional y accesible.
-3. **Escuela de Galotxas:** combinar contenido pedagógico estable con actividad operativa administrable y protección específica de menores.
-4. **Club y migración de Contenidos:** asignar una fuente canónica a cada página institucional y retirar gradualmente la arquitectura legada.
-5. **QA, accesibilidad y despliegue:** validar contratos, recorridos, responsive, teclado, multimedia, persistencia y operación.
+1. **Fase 5C — Ampliación de Aprende a jugar:** desarrollar la experiencia divulgativa completa sobre la base pública ya funcional, sin duplicar la fuente editorial.
+2. **Escuela de Galotxas:** combinar contenido pedagógico estable con actividad operativa administrable y protección específica de menores.
+3. **Club y migración de Contenidos:** asignar una fuente canónica a cada página institucional y retirar gradualmente la arquitectura legada.
+4. **QA, accesibilidad y despliegue:** validar contratos, recorridos, responsive, teclado, multimedia, persistencia y operación.
 
-La Fase 4 está completada. `/competicion` presenta su acceso principal, temporadas, campeonatos y preview real del ranking histórico; la rama conserva Torneos y Rankings como destinos secundarios y ofrece un recorrido coherente por campeonato, categoría, clasificación, calendario y partido. La landing no incrusta tablas, partidos recientes ni resultados destacados porque 4C cierra la experiencia mediante las rutas funcionales existentes. `/aprende-a-jugar`, `/escuela` y `/club` no están implementadas por aparecer en el roadmap.
+La Fase 4 está completada. `/competicion` presenta su acceso principal, temporadas, campeonatos y preview real del ranking histórico; la rama conserva Torneos y Rankings como destinos secundarios y ofrece un recorrido coherente por campeonato, categoría, clasificación, calendario y partido. Fase 5B publica `/aprende-a-jugar`, el Manual y sus 40 documentos desde la proyección segura de `knowledge/`. `/escuela` y `/club` no están implementadas por aparecer en el roadmap.
 
 Después de 3C permanecen en bloques posteriores la consolidación institucional, la migración de Nosotros, aliases, redirects, canonical, indexación de `/contenidos`, SEO completo, sitemap y robots, limpieza de código huérfano y migración de `academy` y `documentos`. No forman parte de 3C ni del cierre de la Fase 4.
 
@@ -116,8 +116,8 @@ La ausencia de una interfaz React de reprogramación no bloquea este cierre. El 
 ## Frontend, despliegue y calidad
 
 - URL API por `VITE_API_BASE_URL`, fallback local de desarrollo y `/api/v1` en producción (DEPLOY-1);
-- Vitest, React Testing Library y 210 tests en 37 archivos, incluidos el contrato/compilador y la preparación publicable de Knowledge, composición de Competición, estados remotos recuperables, rutas contextuales, jerarquía, etiquetas, tablas y posiciones backend, metadatos, cuenta, foco, landmarks, 404 y regresiones previas (FE-TEST-1, QA-FIX-1, RC-HARDEN-1, PUBLIC-NAVIGATION-1, PUBLIC-LANDING-SYSTEM-1, COMPETITION-LANDING-DATA-1, COMPETITION-RANKING-NAVIGATION-1, COMPETITION-UX-CLOSURE-1, KNOWLEDGE-COMPILER-1 y KNOWLEDGE-PUBLICATION-READINESS-1);
-- smoke Playwright de 15 escenarios con Chromium y stack temporal aislado, incluido el recorrido público completo, vacíos, ranking, foco, zoom y matriz responsive 320–1440 px sobre toda la rama deportiva, además de los workflows anteriores;
+- Vitest, React Testing Library y 261 tests en 42 archivos, incluidos la proyección y consumo público seguro de Knowledge, composición de Competición, estados remotos recuperables, rutas contextuales, jerarquía, etiquetas, tablas y posiciones backend, metadatos, cuenta, foco, landmarks, 404 y regresiones previas (FE-TEST-1, QA-FIX-1, RC-HARDEN-1, PUBLIC-NAVIGATION-1, PUBLIC-LANDING-SYSTEM-1, COMPETITION-LANDING-DATA-1, COMPETITION-RANKING-NAVIGATION-1, COMPETITION-UX-CLOSURE-1, KNOWLEDGE-COMPILER-1, KNOWLEDGE-PUBLICATION-READINESS-1 y KNOWLEDGE-PUBLIC-CONSUMER-1);
+- smoke Playwright de 16 escenarios con Chromium y stack temporal aislado, incluido el recorrido público completo deportivo y de Aprende a jugar, referencias, tabla, 404, foco, zoom y matriz responsive 320–1440 px, además de los workflows anteriores;
 - auditoría y actualización compatible de npm/Composer sin vulnerabilidades conocidas pendientes en la instantánea de cierre (DEPS-1);
 - documentación técnica 00–08 reconciliada con el código (DOC-1);
 - corrección de los bloqueantes QA del calendario público y de la navegación responsive, con revalidación dirigida en 1440 × 900, 1280 × 720 y 390 × 844 (QA-FIX-1).
@@ -129,6 +129,7 @@ La ausencia de una interfaz React de reprogramación no bloquea este cierre. El 
 - cierre compositivo y funcional de la rama pública de Competición con navegación determinista, estados recuperables, jerarquía y tablas accesibles sin ampliar el dominio (COMPETITION-UX-CLOSURE-1 / Fase 4C).
 - contrato y compilador determinista de `knowledge/`, con 40 documentos en cuatro colecciones, artefacto de esquema v1 y 32 tests dirigidos sin publicar rutas (KNOWLEDGE-COMPILER-1 / Fase 5A).
 - corpus canónico preparado para 5B con los ocho Reglamentos aprobados, 40 documentos vigentes, headings normalizados y grafo publicable, validado mediante 44 tests dirigidos sin crear proyección pública, páginas o rutas (KNOWLEDGE-PUBLICATION-READINESS-1 / Fase 5A.1).
+- proyección pública versionada con 40 documentos vigentes, parser seguro, repositorio y renderer frontend, landing de Aprende, Manual, referencias internas, Navbar y 404 validados sin backend o API (KNOWLEDGE-PUBLIC-CONSUMER-1 / Fase 5B).
 - inventario, instalación limpia, regresión, auditoría, notas de versión y runbook del candidato preparados sin publicar ni etiquetar (MVP-RC-1).
 
 ---

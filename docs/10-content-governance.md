@@ -73,9 +73,9 @@ Se utilizará para el Manual, Reglamento, Conceptos, terminología y otros conte
 
 **Estado actual:** `knowledge/reglamento/` y `knowledge/conceptos/` existen.
 
-**Estado tras 5A.1:** existen contrato editorial, validación, compilador determinista y un artefacto JSON versionado con 40 documentos de cuatro colecciones. REG-001–REG-008 han recibido aprobación editorial humana como Reglamento inicial y todo el corpus está `Vigente`, con un único H1 y jerarquía coherente por documento. El artefacto todavía no tiene proyección pública, consumidor React ni ruta pública. La primera versión no usará MDX, HTML ejecutable, una API Laravel ni un CRUD Blade para el Manual.
+**Estado tras 5B:** existen contrato editorial, validación, compilador determinista, artefacto canónico completo y proyección pública versionada con los 40 documentos `Vigente` de cuatro colecciones. REG-001–REG-008 han recibido aprobación editorial humana como Reglamento inicial. React importa sólo la proyección, mediante un repositorio y renderer de nodos seguros, y publica la landing de Aprende, el Manual y sus documentos sin API Laravel ni CRUD Blade.
 
-La normalización técnica sólo puede cambiar estructura expresamente autorizada, nunca reformular reglas, términos o referencias. Las revisiones editoriales futuras deberán ser conscientes, actualizar `ultima_revision` y revisar la versión conforme al alcance semántico del cambio. Un documento `Vigente` sólo puede referenciar otro documento `Vigente`; esta invariancia se valida antes de regenerar el artefacto.
+La normalización técnica sólo puede cambiar estructura expresamente autorizada, nunca reformular reglas, términos o referencias. Las revisiones editoriales futuras deberán ser conscientes, actualizar `ultima_revision` y revisar la versión conforme al alcance semántico del cambio. Un documento `Vigente` sólo puede referenciar otro documento `Vigente`; un borrador permanece en el artefacto canónico, pero ni él ni sus metadatos, rutas o referencias pueden entrar en la proyección o el bundle.
 
 ## 5. Arquitectura pública aprobada
 
@@ -89,7 +89,7 @@ La navegación pública de primer nivel queda contratada en cinco rutas:
 
 La identidad del usuario, Mi Panel y el cierre de sesión permanecerán en una zona autenticada separada.
 
-Estas áreas son la arquitectura objetivo. Tras 4C están registradas `/` y la landing dinámica `/competicion`, y ambas son los únicos elementos editoriales del Navbar. Competición utiliza la estructura común de presentación con datos públicos reales; las otras tres rutas no se consideran implementadas por aparecer en documentación ni se muestran como enlaces deshabilitados.
+Estas áreas son la arquitectura objetivo. Tras 5B están registradas `/`, la landing dinámica `/competicion` y `/aprende-a-jugar`, y las tres forman el Navbar editorial actual. Competición utiliza datos públicos reales; Aprende consume la proyección compilada de Knowledge. Escuela y Club no se consideran implementadas por aparecer en documentación ni se muestran como enlaces deshabilitados.
 
 Los componentes de `frontend/src/components/PublicLanding/` son infraestructura de presentación, no una cuarta fuente de contenido. Pueden recibir datos ya autorizados del dominio Laravel, artefactos compilados desde `knowledge/` o contenido público del CMS, pero no conocen esas fuentes ni deciden visibilidad, publicación o reglas. Sus props admiten estructura, copy breve de interfaz y contenido procedente de la fuente canónica; no deben usarse para hardcodear contenido administrable como sustituto temporal del CMS o de `knowledge/`.
 
@@ -109,9 +109,9 @@ Fase 4C cierra el recorrido público sin cambiar fuentes: la landing prioriza To
 
 ### Aprende a jugar
 
-Puerta de entrada divulgativa a qué son las Galotxas, cómo se juega, modalidades, Manual, Reglamento, Conceptos e Historia cuando exista. Su landing y el Manual cumplen funciones distintas.
+Puerta de entrada divulgativa al Manual, Reglamento y Conceptos en su primera versión funcional. Su landing y el Manual cumplen funciones distintas.
 
-La landing canónica futura es `/aprende-a-jugar`. Los namespaces de Manual, Reglamento, Conceptos e Historia se cerrarán con el contrato editorial de `knowledge/`: los ejemplos anteriores `/aprende` y `/manual` nunca se implementaron y no se mantienen como contrato paralelo. No se crearán enlaces de Historia mientras no exista esa colección.
+La landing canónica es `/aprende-a-jugar`; el índice se publica en `/aprende-a-jugar/manual`, los reglamentos en `/manual/reglamento/:slug` dentro de esa rama y los conceptos en `/manual/conceptos/:group/:slug`, con `group` limitado a elementos, personas y juego. Los ejemplos anteriores `/aprende` y `/manual` en raíz nunca se implementaron. No se crean enlaces de Historia mientras no exista esa colección.
 
 ### Escuela de Galotxas
 
@@ -159,7 +159,7 @@ La tabla diferencia la fuente aprobada de las capacidades actuales que todavía 
 - El equipo de dominio y administración deportiva modifica reglas ejecutables y datos competitivos en backend o mediante los flujos Blade autorizados.
 - Los administradores editoriales modifican contenido CMS desde Blade, dentro de sus permisos.
 - Las personas responsables del conocimiento editan `knowledge/` mediante Git, revisión y validación editorial.
-- Esas personas ejecutan `knowledge:check`, regeneran el artefacto con `knowledge:build` y entregan fuente y JSON juntos; nunca editan el JSON a mano.
+- Esas personas ejecutan `knowledge:check`, regeneran los artefactos con `knowledge:build` y entregan fuente y JSON juntos; nunca editan archivos de `generated/` a mano.
 - Un cambio de estado requiere aprobación editorial. La autorización de 5A.1 se limita a REG-001–REG-008 y no constituye permiso general para publicar futuros borradores.
 - Las normalizaciones estructurales preservan texto, reglas, terminología, títulos, IDs, slugs y referencias; cualquier cambio semántico se tramita como revisión editorial versionada.
 - El equipo frontend mantiene estructura, accesibilidad y presentación; no altera la fuente editorial para resolver necesidades de contenido.
@@ -268,7 +268,7 @@ Las vistas públicas, metadatos, galerías y documentos deben minimizar datos pe
 - Las vistas remotas contemplan `loading`, `error`, `empty` y `content`.
 - Las futuras landings reutilizan contenedor, cabecera, acciones, secciones y destinos de `PublicLanding` sin convertir esos componentes en fuente editorial o adaptador de datos.
 - Los estados remotos comunes sólo se abstraen cuando al menos dos consumidores compartan semántica y comportamiento. Fases 4A–4C mantienen ciclos específicos por recurso; compartir composición o navegación contextual no los convierte en una abstracción remota global.
-- Los artefactos de `knowledge/` se validan y generan mediante los comandos build-time de 5A/5A.1; no se copian manualmente a JSX. El compilador exige un H1 inicial único, jerarquía coherente y referencias desde documentos vigentes exclusivamente hacia destinos vigentes. `dev` y `build` no se acoplan todavía porque falta confirmar el contexto de CI/despliegue.
+- Los artefactos de `knowledge/` se validan y generan mediante los comandos build-time de 5A–5B; no se copian manualmente a JSX. El compilador exige un H1 inicial único, jerarquía coherente y referencias desde documentos vigentes exclusivamente hacia destinos vigentes. React no importa `knowledge.json`: consume sólo `public-knowledge.json`, ya filtrado y transformado a nodos seguros. `dev` y `build` no se acoplan todavía porque falta confirmar el contexto de CI/despliegue.
 - Las rutas públicas mantienen estabilidad, accesibilidad, navegación por teclado y comportamiento responsive.
 - Las cinco áreas, sus rutas y familias activas respetan `09-public-navigation.md`; la cuenta permanece fuera del árbol editorial.
 - Eliminar un enlace del primer nivel no elimina su URL. Aliases, canonical y redirects se aplican sólo tras paridad y pruebas.
@@ -285,7 +285,7 @@ El alcance concreto depende del riesgo, pero una sección administrable debe val
 - integración entre servicio, ruta y vista;
 - E2E para publicación administrativa y consumo público cuando el flujo sea crítico;
 - accesibilidad, teclado y responsive;
-- validación del contrato editorial, headings, relaciones por estado, slugs, seguridad y sincronía del artefacto de `knowledge/`; la cubren KNOWLEDGE-COMPILER-1 y KNOWLEDGE-PUBLICATION-READINESS-1.
+- validación del contrato editorial, headings, relaciones por estado, slugs, privacidad, parser seguro y sincronía de los dos artefactos de `knowledge/`; la cubren KNOWLEDGE-COMPILER-1, KNOWLEDGE-PUBLICATION-READINESS-1 y KNOWLEDGE-PUBLIC-CONSUMER-1.
 
 Las pruebas existentes del CMS básico se documentan en `05-testing.md`. Las pruebas anteriores son requisitos para futuras ampliaciones y no implican que todas estén implementadas hoy.
 

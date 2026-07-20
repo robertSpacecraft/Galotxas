@@ -619,6 +619,32 @@ Instantánea verificada de KNOWLEDGE-PUBLICATION-READINESS-1, 2026-07-20:
 - determinismo: dos compilaciones consecutivas producen el mismo SHA-256;
 - backend y E2E: no ejecutados porque no cambian React público, API, base de datos ni navegación.
 
+## KNOWLEDGE-PUBLIC-CONSUMER-1 — Proyección y consumo público seguro
+
+La cobertura de Fase 5B valida:
+
+- separación entre el artefacto canónico completo y `public-knowledge.json`, inclusión exclusiva de `Vigente`, omisión de colecciones vacías y fallo cuando no queda contenido público;
+- ausencia total de ID, slug, título, cuerpo, ruta, estado o referencias de un borrador mediante fixtures temporales que no modifican el corpus real;
+- bloqueo de referencias públicas hacia borradores o destinos inexistentes y resolución de referencias explícitas a rutas públicas, sin convertir menciones de ID no explícitas;
+- parser build-time limitado para H2–H6, párrafos, negrita, énfasis, listas, tabla, separadores, UTF-8 y anchors deterministas, con exclusión del H1 canónico;
+- rechazo de HTML, imágenes, blockquotes, código, listas anidadas, tablas inconsistentes, inline incompleto, URLs peligrosas y nesting ambiguo;
+- determinismo de ambos JSON, sincronía byte a byte, escritura coordinada y rollback de las dos salidas si falla la segunda promoción;
+- repositorio frontend de esquema v1, orden, grupos, resolución por ID/slug y ausencia de campos editoriales;
+- renderer semántico sin HTML inyectado, rutas de landing, Manual y documentos, metadatos, referencias, tabla y 404 sin filtración;
+- Navbar con Inicio, Competición y Aprende a jugar, `aria-current` en toda la rama, menú móvil, cuenta separada y regresión de rutas existentes;
+- recorrido Playwright, teclado, foco, un H1, tabla localmente desplazable, zoom al 200 %, matriz responsive 320–1440 px y 404 para slug o grupo inválido.
+
+Instantánea verificada de KNOWLEDGE-PUBLIC-CONSUMER-1, 2026-07-20:
+
+- corpus público: 40 documentos, cuatro colecciones, 117 enlaces inline resueltos y una tabla en REG-006;
+- compilador: 61 tests dirigidos entre contrato canónico y proyección pública;
+- frontend: 42 archivos de test y 261 tests Vitest;
+- E2E: 16 escenarios Playwright sobre stack temporal aislado, incluido el recorrido de Aprende a jugar;
+- calidad: `knowledge:check`, doble `knowledge:build`, ESLint y build Vite correctos;
+- artefactos: 199.120 bytes canónicos y 622.547 bytes públicos; ambos hashes permanecen estables entre regeneraciones consecutivas;
+- bundle: 697,04 kB JavaScript (154,83 kB gzip) en la compilación de producción;
+- backend: suite no ejecutada porque Fase 5B no modifica backend, API, base de datos o seeders.
+
 ## Flujo de Inscripción y Administración (Fase 3 Core)
 - prevención de inscripciones si el campeonato está cerrado;
 - prevención de inscripciones duplicadas;

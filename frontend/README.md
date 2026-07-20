@@ -9,7 +9,14 @@ npm run knowledge:check
 npm run knowledge:build
 ```
 
-La salida versionada es `src/generated/knowledge/knowledge.json`. Es un archivo generado y no debe editarse manualmente. En Fase 5A no se importa desde páginas React y los comandos `dev` y `build` no lo regeneran automáticamente porque el repositorio no dispone todavía de un contrato de CI/despliegue que garantice acceso a la raíz completa del monorepo.
+Las salidas versionadas son:
+
+- `src/generated/knowledge/knowledge.json`: artefacto canónico completo; nunca se importa en código del navegador;
+- `src/generated/knowledge/public-knowledge.json`: proyección exclusiva de documentos `Vigente`, sin Markdown ni metadatos editoriales privados.
+
+Ambos son archivos generados y no deben editarse manualmente. `knowledge:check` valida los dos en memoria y `knowledge:build` los reemplaza de forma coordinada. Los comandos `dev` y `build` no regeneran automáticamente porque todavía no existe un contrato de CI/despliegue que garantice acceso a la raíz completa del monorepo.
+
+React consume la proyección únicamente mediante `src/features/knowledge/knowledgeRepository.js`. Los helpers de la misma feature centralizan las rutas bajo `/aprende-a-jugar`; `KnowledgeRenderer` renderiza nodos seguros ya compilados y no interpreta Markdown ni inyecta HTML. Las páginas no deben buscar directamente dentro del JSON.
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

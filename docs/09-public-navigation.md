@@ -2,9 +2,9 @@
 
 ## 1. Objetivo
 
-Este documento fija el contrato de arquitectura de información pública y registra su aplicación funcional. Parte de la auditoría de Fase 3A y refleja la navegación de Fase 3B, el sistema común de landings de Fase 3C y la Fase 4 de Competición, completada con 4A, 4B y 4C sobre `develop`.
+Este documento fija el contrato de arquitectura de información pública y registra su aplicación funcional. Parte de la auditoría de Fase 3A y refleja la navegación de Fase 3B, el sistema común de landings de Fase 3C, la Fase 4 de Competición y el consumo inicial de Aprende a jugar implementado en Fase 5B.
 
-Las fases 3B, 3C y 4A–4C modifican únicamente React, sus pruebas y la documentación: no cambian backend, CMS, `knowledge/`, despliegue ni redirects. Las rutas objetivo pendientes no se consideran implementadas hasta que existan con contenido real, fuente verificable y pruebas.
+Las fases 3B, 3C, 4A–4C y 5B modifican únicamente compilación/frontend, sus pruebas y la documentación: no cambian backend, CMS, contenido canónico, despliegue ni redirects. Las rutas objetivo pendientes no se consideran implementadas hasta que existan con contenido real, fuente verificable y pruebas.
 
 ## 2. Principios de navegación
 
@@ -27,22 +27,26 @@ El contrato definitivo del primer nivel es el siguiente. La abreviatura móvil c
 |---:|---|---|---|---|---|---|
 | 1 | Inicio | Inicio | Inicio | Inicio \| Galotxas | `/` | Sólo en `/` |
 | 2 | Competición | Competición | Competición | Competición \| Galotxas | `/competicion` | En la landing y en las rutas funcionales de competición |
-| 3 | Aprende a jugar | Aprende a jugar | Aprende a jugar | Aprende a jugar \| Galotxas | `/aprende-a-jugar` | En la landing y en sus futuras rutas formativas |
+| 3 | Aprende a jugar | Aprende a jugar | Aprende a jugar | Aprende a jugar \| Galotxas | `/aprende-a-jugar` | En la landing, Manual y documentos de Reglamento o Conceptos |
 | 4 | Escuela de Galotxas | Escuela de Galotxas | Escuela de Galotxas | Escuela de Galotxas \| Galotxas | `/escuela` | En la landing y en sus futuras rutas pedagógicas u operativas |
 | 5 | Club | Club | Club | Club \| Galotxas | `/club` | En la landing y, durante la migración, en las páginas institucionales asociadas |
 
 El estado activo visual se acompaña de `aria-current="page"` cuando el enlace representa la URL exacta y de `aria-current="location"` cuando una ruta secundaria activa semánticamente su área. Sólo puede existir un elemento editorial activo.
 
-Las cinco rutas son canónicas como contrato. En 3B están registradas `/` y `/competicion`; Aprende a jugar, Escuela y Club no existen todavía ni aparecen como enlaces deshabilitados.
+Las cinco rutas son canónicas como contrato. El Navbar actual enlaza, por este orden, Inicio, Competición y Aprende a jugar. Escuela y Club no existen todavía ni aparecen como enlaces deshabilitados. La cuenta continúa separada.
 
 ## 4. Inventario de rutas actuales
 
-`frontend/src/App.jsx` utiliza `BrowserRouter`, `Routes` y `Route`. Registra 17 rutas explícitas planas y un wildcard final, sin nesting, loaders, acciones de router ni lazy loading. Navbar se renderiza fuera de `Routes` y aparece también ante una URL desconocida.
+`frontend/src/App.jsx` utiliza `BrowserRouter`, `Routes` y `Route`. Registra 21 rutas explícitas planas y un wildcard final, sin nesting, loaders, acciones de router ni lazy loading. Navbar se renderiza fuera de `Routes` y aparece también ante una URL desconocida.
 
 | Ruta | Componente | Acceso | Fuente de datos | Enlaces entrantes verificados | Estado y comportamiento sin datos |
 |---|---|---|---|---|---|
 | `/` | `pages/Home/Home.jsx` | Público | Estructura y copy estáticos en React | Logo, Navbar | Canónica actual. `Hero` aporta el `h1`; sus tarjetas no son enlaces. |
 | `/competicion` | `pages/Competition/CompetitionPage.jsx` | Público | `GET /seasons` y `GET /rankings/all-time` mediante servicios y hooks | Navbar | Canónica y cerrada en 4C. Prioriza propósito, Torneos, temporadas/campeonatos y ranking histórico, sin duplicar el acceso a Rankings. |
+| `/aprende-a-jugar` | `pages/Learn/LearnPage.jsx` | Público | Copy breve de interfaz y artefacto público disponible en el Manual | Navbar | Landing mínima funcional con acceso al Manual, sin placeholders de Historia, Escuela, cursos o vídeos. |
+| `/aprende-a-jugar/manual` | `pages/Learn/ManualPage.jsx` | Público | Repositorio local sobre `public-knowledge.json` | Landing y retornos de documentos | Agrupa cuatro colecciones y enlaza 40 documentos en orden canónico. |
+| `/aprende-a-jugar/manual/reglamento/:slug` | `pages/Learn/KnowledgeDocumentPage.jsx` | Público | Repositorio Knowledge y bloques seguros | Manual y referencias | Detalle reutilizable; slug ausente o no público conserva URL y muestra la 404. |
+| `/aprende-a-jugar/manual/conceptos/:group/:slug` | `pages/Learn/KnowledgeDocumentPage.jsx` | Público | Repositorio Knowledge y bloques seguros | Manual y referencias | Admite sólo `elementos`, `personas` y `juego`; grupo o slug inválido muestra la 404. |
 | `/nosotros` | `pages/Nosotros/Nosotros.jsx` | Público | Contenido estático en React | Ningún enlace interno actual localizado | Duplicada y heredada; conserva contenido único como material de migración. |
 | `/torneos` | `pages/Torneos/TournamentList.jsx` | Público | `GET /championships` y `GET /seasons` | Landing de Competición, CTA de Home, Mi Panel, detalles | Funcional secundaria. Distingue carga, error con retry y vacío filtrado; cada tarjeta tiene una única acción al detalle. |
 | `/torneos/:championshipId` | `pages/Torneos/TournamentDetail.jsx` | Público; acciones de inscripción autenticadas | Campeonato, ranking e inscripción desde API | Tarjetas de torneo, Mi Panel, regreso desde categoría | Funcional secundaria. Campeonato y ranking tienen disponibilidad independiente; las categorías enlazan sus tres vistas reales. |
@@ -128,11 +132,11 @@ También existen módulos React no montados: `pages/Home.jsx` y `CategoryCard`, 
 |---|---|---|---|---|---|
 | `/` | Home pública y puerta de entrada actual | Estructura React más fuentes conectadas según cada bloque | `h1`, propuesta de valor y CTA deportivo existente | Navbar y `/torneos` | Implementada y sin rediseño; el Navbar aporta el acceso a Competición. |
 | `/competicion` | Landing funcional de actividad deportiva pública | API pública del dominio Laravel | `h1`, acceso principal, temporadas/campeonatos y preview histórico con estados independientes; sin recalcular reglas | Rama deportiva completa y `/rankings` | Fase 4 completada con 4A–4C. |
-| `/aprende-a-jugar` | Entrada divulgativa a introducción, cómo se juega, Manual, Reglamento, Conceptos e Historia | Artefactos compilados desde `knowledge/` | `h1`, introducción validada y al menos un recorrido real generado; no copy editorial duplicado en JSX | Namespace formativo por definir con el contrato de Knowledge; no se ratifican todavía slugs de detalle | No. Depende de normalizar metadatos, implementar compilador y disponer de contenido para las colecciones anunciadas. |
+| `/aprende-a-jugar` | Entrada divulgativa inicial al Manual, Reglamento y Conceptos | Proyección pública compilada desde `knowledge/` | `h1`, introducción de interfaz, acceso al Manual y recorrido real; no copy editorial duplicado en JSX | `/manual`, `/manual/reglamento/:slug` y `/manual/conceptos/:group/:slug` | Implementada en 5B con 40 documentos; la experiencia ampliada queda para 5C. |
 | `/escuela` | Identidad, públicos y actividad real de la Escuela | Híbrida: `knowledge/` futuro para pedagogía estable y CMS/backend para actividad temporal | `h1`, contenido pedagógico aprobado y/o actividad publicable real con responsabilidades diferenciadas | Se definirán al existir vertical editorial, privacidad y contenido real | No. No existe colección de Escuela ni contrato CMS específico; `academy` no satisface el requisito. |
 | `/club` | Landing institucional que agrupa páginas editables | CMS administrado en Blade y API pública | `h1` y enlaces a un conjunto publicado y clasificado de páginas institucionales; estado vacío controlado | Futuras páginas de Nosotros, Federarse, Federaciones, Prensa y medios, Contacto y, si se aprueba, Documentos | Parcial. El CMS y cuatro piezas existen, pero faltan el mapeo canónico, Contacto y resolver la duplicidad de Nosotros. |
 
-Los namespaces internos de Aprende a jugar, Escuela y Club sólo se cerrarán cuando sus contratos de contenido puedan garantizar URLs estables. Los ejemplos de documentos anteriores como `/aprende` o `/manual` nunca se implementaron y no sustituyen este primer nivel.
+Los namespaces de Aprende a jugar quedan cerrados para el Manual inicial. Escuela y Club sólo definirán los suyos cuando sus contratos puedan garantizar URLs estables. Los ejemplos anteriores `/aprende` o `/manual` en raíz nunca se implementaron y no sustituyen este primer nivel.
 
 ## 7. Rutas secundarias
 
@@ -175,7 +179,7 @@ La ruta estática `/nosotros` es heredada y duplicada, pero no está vacía. Su 
 | Rutas de auth | Zona de cuenta | Separadas | Se conservan | Sólo cambios propios del flujo de cuenta. |
 | `/player` | Mi Panel | Separada | Se conserva | No se migra al árbol editorial. |
 
-No se ha localizado un enlace público activo cuyo destino carezca hoy de `Route`. La excepción es la rama inactiva hacia `/dashboard` ya descrita. Sí faltan enlaces entrantes para `/nosotros` y rutas para las tres landings futuras, que todavía no deben enlazarse.
+No se ha localizado un enlace público activo cuyo destino carezca hoy de `Route`. La excepción es la rama inactiva hacia `/dashboard` ya descrita. Sí faltan enlaces entrantes para `/nosotros` y rutas para Escuela y Club, que todavía no deben enlazarse.
 
 ## 10. Propuesta de redirects futuros
 
@@ -216,7 +220,7 @@ En móvil puede compartirse la misma cabecera visual, pero deben mantenerse grup
 |---|---|---|---|
 | Inicio | Híbrida | Estructura y composición | Entrega sólo elementos dinámicos publicables; Knowledge aporta artefactos cuando existan. |
 | Competición | Dominio Laravel | Presentar y enlazar datos | Aplicar visibilidad, estados y reglas; serializar Resources públicos. |
-| Aprende a jugar | `knowledge/` | Presentar artefactos generados | Compilador futuro valida y genera; Laravel no sirve el Manual v1. |
+| Aprende a jugar | `knowledge/` | Presentar exclusivamente la proyección pública | Compilador build-time valida, filtra y genera; Laravel no sirve el Manual v1. |
 | Escuela de Galotxas | `knowledge/` futuro + CMS/backend | Componer ambas fuentes sin duplicarlas | Compilador para pedagogía estable; CMS para actividad y publicación. |
 | Club | CMS | Landing y presentación de páginas públicas | Blade administra; API excluye borradores y publicaciones futuras. |
 | Cuenta | Dominio Laravel autenticado | Formularios y Mi Panel | Autenticación, autorización y datos propios. |
@@ -241,18 +245,18 @@ Los tests emplean además slugs como `borrador`, `programada`, `federarse`, `aca
 
 ## 14. Knowledge y Aprende a jugar
 
-La auditoría y compilación de 5A determina:
+Las fases 5A, 5A.1 y 5B determinan:
 
 - 40 documentos compilables: ocho de Reglamento y 32 Conceptos repartidos entre elementos, personas y juego;
 - cuatro exclusiones explícitas: instrucciones, README raíz, índice README de Conceptos y la metodología `REG-000`;
 - seis metadatos obligatorios, con IDs, slugs, versiones, estados y fechas validados;
 - cuatro namespaces y un orden determinista;
-- un artefacto JSON de esquema v1, sin HTML, MDX, rutas absolutas o tiempo de generación;
+- un artefacto canónico JSON de esquema v1 y una proyección pública independiente, ambos sin HTML, MDX, rutas absolutas o tiempo de generación;
 - ninguna colección de Instalaciones independiente, Historia, Escuela, multimedia o referencias.
 
-Reglamento y Conceptos ya disponen de contrato y artefacto, pero todavía no de renderer, consumidor o ruta pública. Antes de registrar `/aprende-a-jugar`, 5B y 5C deben definir el recorrido real, las URLs, la presentación segura y sus pruebas. Historia no debe aparecer como enlace vacío hasta disponer de una colección aprobada.
+Reglamento y Conceptos disponen de contrato, proyección exclusiva de documentos `Vigente`, repositorio frontend y renderer semántico sin HTML inyectado. El H1 procede del título documental y los bloques compilados conservan headings internos, párrafos, énfasis, listas, tabla y separadores. Las referencias explícitas resuelven a rutas públicas antes de escribir el JSON.
 
-El Manual será una organización y un consumidor de `knowledge/`, no una copia editable en JSX, base de datos o CMS. La ruta de la landing queda fijada; las rutas de detalle se cerrarán con el contrato editorial para no prometer slugs incompatibles.
+El Manual es una organización y un consumidor de `knowledge/`, no una copia editable en JSX, base de datos o CMS. `/aprende-a-jugar` y `/aprende-a-jugar/manual` cumplen funciones distintas; las rutas de detalle sólo admiten las cuatro colecciones actuales. Historia no aparece como enlace vacío y continúa pendiente de una colección aprobada para 5C.
 
 ## 15. Escuela híbrida
 
@@ -388,7 +392,7 @@ Para los bloques posteriores de contenido y compatibilidad se requerirán:
 - comprobación de URLs directas sobre el hosting con fallback y respuestas/redirects HTTP esperados;
 - validación de artefactos de `knowledge/` antes de probar sus rutas.
 
-Los tests actuales de Navbar cubren la lista exacta de dos enlaces, cuenta anónima/autenticada, matcher de toda la rama deportiva, estado visual, ARIA, Escape, foco y cierres. Las pruebas de App y páginas cubren `/competicion`, wildcard, rutas dinámicas, regresiones y landmarks. El E2E cubre navegación desktop/móvil, separación de cuenta, estado activo, 404, matriz responsive, CMS, CTA, calendario, partidos, Mi Panel y resultados. Canonical, migración institucional, multibrowser y las tres landings futuras siguen pendientes.
+Los tests actuales de Navbar cubren la lista exacta de tres enlaces, cuenta anónima/autenticada, matchers de Competición y Aprende, estado visual, ARIA, Escape, foco y cierres. Las pruebas de App y páginas cubren `/competicion`, Aprende, Manual, documentos, wildcard, rutas dinámicas, regresiones y landmarks. El E2E cubre navegación desktop/móvil, referencias, tabla, separación de cuenta, estado activo, 404, matriz responsive, CMS, CTA, calendario, partidos, Mi Panel y resultados. Canonical, migración institucional, multibrowser, Escuela y Club siguen pendientes.
 
 PUBLIC-LANDING-SYSTEM-1 añade en 3C tests de contenedor, cabecera, acciones, secciones, rejilla, tarjetas y metadatos; verifica IDs estables, `aria-labelledby`, un solo `h1`, ausencia de `<main>` anidado y controles anidados, restauración de description/robots, ausencia de llamadas API y de rutas placeholder. Playwright añade una matriz específica de la landing a 320–1440 px, comprueba legibilidad, overflow, foco por Tab y navegación con Enter.
 
@@ -440,7 +444,7 @@ Fase 3C está completada con:
 7. reutilización acotada de acciones y metadatos en 404, sin convertirla en landing editorial;
 8. Vitest, lint, build, 14 E2E y matriz 320–1440 px validados.
 
-No se creó un estado remoto común porque Torneos, Rankings, CMS y Mi Panel no ofrecen todavía dos adopciones compatibles sin cambiar contratos. Tampoco se registraron `/aprende-a-jugar`, `/escuela` o `/club`; la base queda disponible para cuando sus fuentes reales superen los gates. Fase 3C no sustituye el contrato y compilador de Knowledge, la vertical de Escuela ni el desarrollo completo de Competición previsto en Fase 4.
+En 3C no se creó un estado remoto común porque Torneos, Rankings, CMS y Mi Panel no ofrecían dos adopciones compatibles sin cambiar contratos. Tampoco se registraron entonces `/aprende-a-jugar`, `/escuela` o `/club`; 5B incorpora después la primera, mientras Escuela y Club continúan sujetas a sus gates. Fase 3C no sustituye el contrato y compilador de Knowledge, la vertical de Escuela ni el desarrollo completo de Competición previsto en Fase 4.
 
 Con 3A, 3B y 3C completadas, la Fase 3 queda cerrada.
 
@@ -492,13 +496,13 @@ Con 4A, 4B y 4C completadas, la Fase 4 queda cerrada. No se incorporan en la lan
 
 ## 23. Deuda aplazada
 
-- consumir de forma segura el artefacto de `knowledge/` y definir renderer, rutas e integración de CI/despliegue;
+- integrar la regeneración de los dos artefactos en CI/despliegue cuando la raíz del monorepo esté garantizada;
 - definir colecciones reales de Historia y Escuela;
 - crear contrato CMS operativo de Escuela, con privacidad de menores;
 - consolidar el contenido institucional y clasificar `documentos` y `academy` antes de migrarlos, sin equivalencias automáticas;
 - crear y administrar Contacto;
 - migrar Nosotros y resolver su duplicidad;
-- decidir URLs de detalle bajo Aprende a jugar, Escuela y Club;
+- decidir URLs de detalle bajo Escuela y Club; ampliar Aprende sólo mediante el contrato de 5C;
 - definir aliases, redirects, canonical e indexación de `/contenidos` tras verificar paridad;
 - corregir `/dashboard` latente y revisar componentes huérfanos;
 - decidir si se consolida el detalle agregado de categoría con standings/schedule;
@@ -574,6 +578,17 @@ Con 4A, 4B y 4C completadas, la Fase 4 queda cerrada. No se incorporan en la lan
 - tablas, tarjetas, foco, teclado, zoom y responsive 320–1440 px se validan en unitarios y E2E;
 - backend, API, Resources, rutas, seeders, Home, Navbar, `knowledge/` y dependencias no cambian;
 - 166 tests Vitest, lint, build y 15 escenarios E2E completan correctamente y cierran Fase 4.
+
+### Fase 5B
+
+- Navbar expone Inicio, Competición y Aprende a jugar en el mismo orden para desktop y móvil, con cuenta separada y una única rama activa;
+- landing, Manual y documentos disponen de un único H1, metadatos básicos, rutas compartibles y retorno determinista;
+- el Manual agrupa las cuatro colecciones públicas y enlaza los 40 documentos en orden, sin exponer estado, `sourcePath` o Markdown;
+- Reglamento y Conceptos se resuelven mediante el repositorio frontend y las referencias explícitas usan enlaces internos ya validados;
+- slug, grupo, colección o forma inválidos conservan la URL y muestran la experiencia 404 con `noindex` reversible;
+- tabla, listas, headings, foco, teclado, zoom y responsive 320–1440 px se validan sin overflow global;
+- backend, API, CMS, base de datos, seeders, contenido canónico y dependencias no cambian;
+- 261 tests Vitest, lint, build y 16 escenarios E2E completan correctamente; 5C y la Fase 5 permanecen abiertas.
 
 ### Implementación posterior
 
