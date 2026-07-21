@@ -645,6 +645,28 @@ Instantánea verificada de KNOWLEDGE-PUBLIC-CONSUMER-1, 2026-07-20:
 - bundle: 697,04 kB JavaScript (154,83 kB gzip) en la compilación de producción;
 - backend: suite no ejecutada porque Fase 5B no modifica backend, API, base de datos o seeders.
 
+## KNOWLEDGE-EXPERIENCE-CLOSURE-1 — Cierre de Aprende a jugar y el Manual
+
+La cobertura de Fase 5C valida:
+
+- repositorio: orden de colecciones y documentos, posición, anterior/siguiente, límites primero/medio/último, colección de un documento, ausencia de wrap o cruces y copias de arrays que no permiten mutar el estado interno;
+- tabla de contenidos: exclusión de H1, inclusión de H2–H6 en orden, IDs compilados y colisiones preservados, caracteres valencianos, nombre accesible y criterio explícito de mostrar también un único heading y omitir cero headings;
+- composición: contexto local Aprende → Manual → colección, un H1, metadata, contenido seguro, tabla REG-006 y navegación documental sin retornos duplicados;
+- fragmentos: navegación SPA con foco solicitado desde el índice, carga directa y recarga sin cambiar metadatos ni volver a parsear contenido;
+- lazy loading: sólo las tres páginas de Aprende se importan mediante `React.lazy`, el fallback `Suspense` usa `role=status` sin añadir `<main>`, H1 o 404 y ninguna ruta ajena importa el repositorio o el artefacto;
+- regresión: Navbar conserva tres entradas y su estado activo, 404 conserva URL y `noindex`, rutas deportivas, cuenta, CMS, renderer, referencias, listas y tabla mantienen sus contratos;
+- Playwright: estado diferido observable sin sleep, recorrido landing → Manual → documento, índice y deep link, recarga directa, vecinos primero/medio/último, referencias, tabla, responsive 320–1440 px, zoom 200 %, teclado y 404.
+
+Instantánea verificada de KNOWLEDGE-EXPERIENCE-CLOSURE-1, 2026-07-21:
+
+- frontend: 43 archivos y 271 tests Vitest;
+- E2E: 16 escenarios Playwright Chromium sobre el stack temporal aislado;
+- build anterior: un único JS inicial de 697.044 bytes y 153.194 bytes gzip medidos localmente, con aviso Vite por superar 500 kB;
+- build 5C: JS inicial de 412.506 bytes y 121.161 bytes gzip; chunk compartido de Knowledge de 282.957 bytes y 32.083 bytes gzip, más entradas diferidas de 885, 1.308 y 5.358 bytes;
+- privacidad del bundle: la frase de control «La cancha de Galotxas constituye el espacio donde se desarrolla el juego.» desaparece del JS referenciado por `dist/index.html` y aparece exclusivamente en el chunk diferido de Knowledge;
+- calidad: `knowledge:check`, doble `knowledge:build`, suite Vitest, ESLint, build Vite y E2E correctos; el build final no emite el aviso de chunk superior a 500 kB;
+- backend: no modificado y sin suite backend necesaria para este bloque frontend.
+
 ## Flujo de Inscripción y Administración (Fase 3 Core)
 - prevención de inscripciones si el campeonato está cerrado;
 - prevención de inscripciones duplicadas;

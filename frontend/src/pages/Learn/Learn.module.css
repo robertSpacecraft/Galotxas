@@ -1,3 +1,43 @@
+.learnAction {
+  margin-top: 1.5rem;
+}
+
+.collectionNavigation {
+  max-width: 980px;
+  margin: 0 auto clamp(2.5rem, 6vw, 4rem);
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  background: #e8f0f7;
+}
+
+.collectionNavigation > span {
+  display: block;
+  margin-bottom: 0.65rem;
+  color: #003366;
+  font-weight: 800;
+}
+
+.collectionNavigation ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.collectionNavigation a {
+  color: #005ea8;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  text-underline-offset: 0.2em;
+}
+
+.collectionNavigation a:focus-visible {
+  outline: 3px solid #003366;
+  outline-offset: 3px;
+}
+
 .manualSections {
   display: grid;
   gap: clamp(2.5rem, 6vw, 4rem);
@@ -16,8 +56,7 @@
   padding-left: 0.25rem;
 }
 
-.documentList a,
-.backLink {
+.documentList a {
   color: #005ea8;
   font-weight: 700;
   line-height: 1.5;
@@ -25,8 +64,7 @@
   text-underline-offset: 0.2em;
 }
 
-.documentList a:focus-visible,
-.backLink:focus-visible {
+.documentList a:focus-visible {
   outline: 3px solid #003366;
   outline-offset: 3px;
 }
@@ -73,13 +111,11 @@
   margin: 0;
 }
 
-.documentFooter {
-  margin-top: 3rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #cbd5e1;
-}
-
 @media (max-width: 480px) {
+  .collectionNavigation ul {
+    flex-direction: column;
+  }
+
   .metadata,
   .metadata div {
     align-items: flex-start;

@@ -846,8 +846,17 @@ Consecuencias:
 - Las rutas lógicas del artefacto canónico no son URLs públicas. La proyección asigna rutas públicas mediante helpers cerrados para Reglamento y Conceptos.
 - El corpus alimenta en 5B una proyección de 40 documentos `Vigente`; un borrador futuro permanecerá en el JSON canónico y quedará completamente fuera del público y del bundle.
 - Una normalización técnica no autoriza cambios de texto editorial: estado, fecha y marcadores estructurales se revisan separadamente del contenido semántico.
-- Fase 5B queda implementada con una experiencia inicial funcional de Aprende a jugar y Manual; 5C sigue pendiente y la Fase 5 no queda completa con este ADR.
+- Fase 5B queda implementada con una experiencia inicial funcional de Aprende a jugar y Manual.
 - Cuando CI y despliegue estén definidos podrá revisarse la política de versionado y generación automática sin cambiar la autoridad editorial.
+
+Seguimiento de Fase 5C, 2026-07-21:
+
+- El repositorio conserva como unidad de navegación cada colección canónica y resuelve posición, anterior y siguiente sin wrap ni cruces entre Reglamento y los tres grupos de Conceptos.
+- La tabla de contenidos consume exclusivamente `headings` H2–H6 ya compilados, conserva sus IDs y no analiza bloques o Markdown en el navegador.
+- Los fragmentos forman parte de las URLs documentales existentes; el montaje diferido desplaza al destino tras navegación SPA o carga directa y sólo solicita foco programático cuando el usuario activa el índice.
+- La navegación de contexto es local a Aprende a jugar y no establece un sistema global de breadcrumbs.
+- Las tres páginas de Aprende se cargan mediante `React.lazy` y `Suspense`; repositorio, renderer y `public-knowledge.json` quedan fuera del chunk inicial sin cambiar rutas, metadatos, Navbar o 404.
+- El esquema v1, el corpus, los artefactos, el backend, la API y el CMS permanecen inalterados. Fase 5C y la Fase 5 quedan completadas.
 
 ---
 

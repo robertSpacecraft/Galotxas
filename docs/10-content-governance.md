@@ -73,7 +73,7 @@ Se utilizará para el Manual, Reglamento, Conceptos, terminología y otros conte
 
 **Estado actual:** `knowledge/reglamento/` y `knowledge/conceptos/` existen.
 
-**Estado tras 5B:** existen contrato editorial, validación, compilador determinista, artefacto canónico completo y proyección pública versionada con los 40 documentos `Vigente` de cuatro colecciones. REG-001–REG-008 han recibido aprobación editorial humana como Reglamento inicial. React importa sólo la proyección, mediante un repositorio y renderer de nodos seguros, y publica la landing de Aprende, el Manual y sus documentos sin API Laravel ni CRUD Blade.
+**Estado tras 5C:** existen contrato editorial, validación, compilador determinista, artefacto canónico completo y proyección pública versionada con los 40 documentos `Vigente` de cuatro colecciones. REG-001–REG-008 han recibido aprobación editorial humana como Reglamento inicial. React importa sólo la proyección, mediante un repositorio y renderer de nodos seguros, y publica la landing de Aprende, el Manual y sus documentos sin API Laravel ni CRUD Blade. La interfaz deriva recuentos, colecciones, índices y anterior/siguiente de ese contrato; no crea una fuente editorial adicional. La rama completa se carga de forma diferida para mantener el corpus fuera del JavaScript inicial.
 
 La normalización técnica sólo puede cambiar estructura expresamente autorizada, nunca reformular reglas, términos o referencias. Las revisiones editoriales futuras deberán ser conscientes, actualizar `ultima_revision` y revisar la versión conforme al alcance semántico del cambio. Un documento `Vigente` sólo puede referenciar otro documento `Vigente`; un borrador permanece en el artefacto canónico, pero ni él ni sus metadatos, rutas o referencias pueden entrar en la proyección o el bundle.
 
@@ -89,7 +89,7 @@ La navegación pública de primer nivel queda contratada en cinco rutas:
 
 La identidad del usuario, Mi Panel y el cierre de sesión permanecerán en una zona autenticada separada.
 
-Estas áreas son la arquitectura objetivo. Tras 5B están registradas `/`, la landing dinámica `/competicion` y `/aprende-a-jugar`, y las tres forman el Navbar editorial actual. Competición utiliza datos públicos reales; Aprende consume la proyección compilada de Knowledge. Escuela y Club no se consideran implementadas por aparecer en documentación ni se muestran como enlaces deshabilitados.
+Estas áreas son la arquitectura objetivo. Tras 5C están registradas `/`, la landing dinámica `/competicion` y `/aprende-a-jugar`, y las tres forman el Navbar editorial actual. Competición utiliza datos públicos reales; Aprende consume la proyección compilada de Knowledge. Escuela y Club no se consideran implementadas por aparecer en documentación ni se muestran como enlaces deshabilitados.
 
 Los componentes de `frontend/src/components/PublicLanding/` son infraestructura de presentación, no una cuarta fuente de contenido. Pueden recibir datos ya autorizados del dominio Laravel, artefactos compilados desde `knowledge/` o contenido público del CMS, pero no conocen esas fuentes ni deciden visibilidad, publicación o reglas. Sus props admiten estructura, copy breve de interfaz y contenido procedente de la fuente canónica; no deben usarse para hardcodear contenido administrable como sustituto temporal del CMS o de `knowledge/`.
 
@@ -112,6 +112,8 @@ Fase 4C cierra el recorrido público sin cambiar fuentes: la landing prioriza To
 Puerta de entrada divulgativa al Manual, Reglamento y Conceptos en su primera versión funcional. Su landing y el Manual cumplen funciones distintas.
 
 La landing canónica es `/aprende-a-jugar`; el índice se publica en `/aprende-a-jugar/manual`, los reglamentos en `/manual/reglamento/:slug` dentro de esa rama y los conceptos en `/manual/conceptos/:group/:slug`, con `group` limitado a elementos, personas y juego. Los ejemplos anteriores `/aprende` y `/manual` en raíz nunca se implementaron. No se crean enlaces de Historia mientras no exista esa colección.
+
+El cierre 5C mantiene esas rutas y fuentes. La landing presenta los recuentos obtenidos del repositorio; el Manual enlaza sus cuatro colecciones; y cada documento usa exclusivamente headings compilados para su tabla de contenidos, conserva fragmentos estables y permite avanzar o retroceder sólo dentro de la colección. La navegación contextual es local a Aprende y no introduce breadcrumbs globales. Ninguno de estos controles interpreta Markdown, inventa orden o modifica el corpus.
 
 ### Escuela de Galotxas
 

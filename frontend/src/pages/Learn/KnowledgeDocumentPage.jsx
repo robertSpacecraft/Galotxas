@@ -1,8 +1,11 @@
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { PageMetadata } from '../../components/PublicLanding/PageMetadata';
+import { KnowledgeContextNavigation } from '../../features/knowledge/KnowledgeContextNavigation';
+import { KnowledgeDocumentNavigation } from '../../features/knowledge/KnowledgeDocumentNavigation';
 import { KnowledgeRenderer } from '../../features/knowledge/KnowledgeRenderer';
+import { KnowledgeTableOfContents } from '../../features/knowledge/KnowledgeTableOfContents';
 import { knowledgeRepository } from '../../features/knowledge/knowledgeRepository';
-import { manualPath } from '../../features/knowledge/knowledgeRoutes';
+import { useKnowledgeFragment } from '../../features/knowledge/useKnowledgeFragment';
 import { NotFoundPage } from '../NotFound/NotFoundPage';
 import styles from './Learn.module.css';
 
@@ -16,8 +19,11 @@ export const KnowledgeDocumentPage = ({ type }) => {
   const document = type === 'regulation'
     ? knowledgeRepository.getRegulationBySlug(slug)
     : knowledgeRepository.getConceptByGroupAndSlug(group, slug);
+  const context = knowledgeRepository.getDocumentContext(document);
 
-  if (!document) {
+  useKnowledgeFragment(document?.id);
+
+  if (!document || !context) {
     return <NotFoundPage />;
   }
 
@@ -27,7 +33,7 @@ export const KnowledgeDocumentPage = ({ type }) => {
         title={`${document.title} | Manual | Galotxas`}
         description={`Consulta ${document.title} en el Manual público de Galotxas.`}
       />
-      <Link className={styles.backLink} to={manualPath()}>← Volver al Manual</Link>
+      <KnowledgeContextNavigation collection={context.collection} />
       <header className={styles.documentHeader}>
         <h1>{document.title}</h1>
         <dl className={styles.metadata}>
@@ -45,10 +51,11 @@ export const KnowledgeDocumentPage = ({ type }) => {
           </div>
         </dl>
       </header>
+      <KnowledgeTableOfContents document={document} />
       <KnowledgeRenderer blocks={document.blocks} />
-      <footer className={styles.documentFooter}>
-        <Link className={styles.backLink} to={manualPath()}>← Volver al Manual</Link>
-      </footer>
+      <KnowledgeDocumentNavigation context={context} />
     </article>
   );
 };
+
+export default KnowledgeDocumentPage;

@@ -68,7 +68,7 @@ cd frontend
 VITE_API_BASE_URL=/api/v1 npm run build
 ~~~
 
-El conocimiento canónico dispone de una validación y compilación independiente. El JSON generado se versiona y todavía no se consume desde rutas públicas:
+El conocimiento canónico dispone de una validación y compilación independiente. La proyección pública generada se versiona y alimenta las rutas de Aprende a jugar y Manual mediante carga diferida en React:
 
 ~~~bash
 cd frontend

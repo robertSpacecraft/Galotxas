@@ -177,12 +177,28 @@ test.describe.serial('smoke narrativo del MVP', () => {
 
   test('Aprende conecta landing, Manual, documentos, referencias y 404 segura', async ({ page }) => {
     const assertNoConsoleErrors = watchCriticalConsoleErrors(page);
+    let releaseLearnModule;
+    const learnModuleGate = new Promise((resolve) => {
+      releaseLearnModule = resolve;
+    });
+
+    await page.route('**/src/pages/Learn/LearnPage.jsx*', async (route) => {
+      await learnModuleGate;
+      await route.continue();
+    });
 
     await page.goto('/');
     const editorialNavigation = page.getByRole('list', { name: 'Navegación editorial' });
     const learnNavigationLink = editorialNavigation.getByRole('link', { name: 'Aprende a jugar' });
 
     await learnNavigationLink.click();
+    const routeLoading = page.getByRole('status');
+    await expect(routeLoading).toContainText('Cargando Aprende a jugar');
+    await expect(page.locator('main')).toHaveCount(1);
+    await expect(page.locator('main h1')).toHaveCount(0);
+    await expect(page.getByText('Página no encontrada')).toHaveCount(0);
+    releaseLearnModule();
+
     await expect(page).toHaveURL(/\/aprende-a-jugar$/);
     await expect(page.getByRole('heading', { name: 'Aprende a jugar', level: 1 })).toBeVisible();
     await expect(page.locator('h1')).toHaveCount(1);
@@ -190,6 +206,7 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await expect(editorialNavigation.getByRole('link', { name: 'Competición' }))
       .not.toHaveAttribute('aria-current');
     await expect(page).toHaveTitle('Aprende a jugar | Galotxas');
+    await expect(page.getByText(/40 documentos organizados en 4 colecciones/)).toBeVisible();
 
     const manualAccess = page.getByRole('link', { name: 'Consultar el Manual' });
     await manualAccess.focus();
@@ -197,8 +214,19 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/\/aprende-a-jugar\/manual$/);
     await expect(page.getByRole('heading', { name: 'Manual', level: 1 })).toBeVisible();
-    await expect(page.locator('main a[href*="/aprende-a-jugar/manual/"]')).toHaveCount(40);
+    await expect(page.locator('main ol a[href^="/aprende-a-jugar/manual/"]')).toHaveCount(40);
+    await expect(page.getByRole('navigation', { name: 'Colecciones del Manual' }).getByRole('link'))
+      .toHaveCount(4);
     await expect(learnNavigationLink).toHaveAttribute('aria-current', 'location');
+
+    await page.getByRole('link', { name: 'Modelo de la cancha', exact: true }).click();
+    await expect(page.getByText('Documento 1 de 8 en Reglamento')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Siguiente: Reglamento' })).toBeVisible();
+    await expect(page.getByText('Anterior', { exact: true })).toHaveCount(0);
+    await page.getByRole('navigation', { name: 'Contexto del Manual' })
+      .getByRole('link', { name: 'Reglamento', exact: true }).click();
+    await expect(page).toHaveURL(/\/aprende-a-jugar\/manual#manual-reglamento$/);
+    await expect(page.getByRole('heading', { name: 'Reglamento', level: 2 })).toBeVisible();
 
     const regulationLink = page.getByRole('link', { name: 'El saque', exact: true });
     await regulationLink.focus();
@@ -207,6 +235,27 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await expect(page.getByRole('heading', { name: 'El saque', level: 1 })).toBeVisible();
     await expect(page.locator('h1')).toHaveCount(1);
     await expect(page.getByText('REG-003', { exact: true })).toBeVisible();
+    await expect(page.getByText('Documento 3 de 8 en Reglamento')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Anterior: Reglamento' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Siguiente: Desarrollo de una jugada' })).toBeVisible();
+
+    const contentsNavigation = page.getByRole('navigation', { name: 'En este documento' });
+    const objectiveHeading = page.getByRole('heading', { name: '2. Objetivo del saque', level: 2 });
+    await contentsNavigation.getByRole('link', { name: '2. Objetivo del saque' }).click();
+    await expect(page).toHaveURL(/\/aprende-a-jugar\/manual\/reglamento\/saque#2-objetivo-del-saque$/);
+    await expect(objectiveHeading).toBeFocused();
+
+    await page.goto('/aprende-a-jugar/manual/reglamento/saque#3-saque-en-modalidad-individual');
+    const directFragmentHeading = page.getByRole('heading', {
+      name: '3. Saque en modalidad individual',
+      level: 2,
+    });
+    await expect(directFragmentHeading).toBeVisible();
+    await page.reload();
+    await expect(page).toHaveURL(
+      /\/aprende-a-jugar\/manual\/reglamento\/saque#3-saque-en-modalidad-individual$/,
+    );
+    await expect(directFragmentHeading).toBeVisible();
 
     const realReference = page.getByRole('link', { name: 'REG-002 – Reglamento' }).first();
     await realReference.focus();
@@ -215,13 +264,19 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await expect(page).toHaveURL(/\/aprende-a-jugar\/manual\/reglamento\/reglamento$/);
     await expect(page.getByRole('heading', { name: 'Reglamento', level: 1 })).toBeVisible();
 
-    await page.getByRole('link', { name: '← Volver al Manual' }).first().click();
+    await page.getByRole('navigation', { name: 'Contexto del Manual' })
+      .getByRole('link', { name: 'Reglamento', exact: true }).click();
+    await expect(page).toHaveURL(/\/aprende-a-jugar\/manual#manual-reglamento$/);
     await page.getByRole('link', { name: 'Pilota', exact: true }).click();
     await expect(page).toHaveURL(/\/aprende-a-jugar\/manual\/conceptos\/elementos\/pilota$/);
     await expect(page.getByRole('heading', { name: 'Pilota', level: 1 })).toBeVisible();
     await expect(page.getByText(/pilota/).first()).toBeVisible();
 
-    await page.getByRole('link', { name: '← Volver al Manual' }).first().click();
+    await expect(page.getByText('Documento 1 de 12 en Conceptos — Elementos')).toBeVisible();
+    await expect(page.getByText('Anterior', { exact: true })).toHaveCount(0);
+    await page.getByRole('navigation', { name: 'Contexto del Manual' })
+      .getByRole('link', { name: 'Conceptos — Elementos', exact: true }).click();
+    await expect(page).toHaveURL(/\/aprende-a-jugar\/manual#manual-conceptos-elementos$/);
     await page.getByRole('link', { name: 'Sistema de puntuación', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Sistema de puntuación', level: 1 })).toBeVisible();
     const scoreTable = page.getByRole('table');
@@ -251,6 +306,12 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await page.evaluate(() => {
       document.body.style.zoom = '';
     });
+
+    await page.getByRole('link', { name: 'Siguiente: Modalidad por parejas' }).click();
+    await page.getByRole('link', { name: 'Siguiente: Casos especiales' }).click();
+    await expect(page.getByText('Documento 8 de 8 en Reglamento')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Anterior: Modalidad por parejas' })).toBeVisible();
+    await expect(page.getByText('Siguiente', { exact: true })).toHaveCount(0);
 
     for (const pathname of [
       '/aprende-a-jugar/manual/reglamento/inexistente',

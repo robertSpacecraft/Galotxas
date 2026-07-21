@@ -2,7 +2,7 @@
 
 ## 1. Objetivo
 
-KNOWLEDGE-COMPILER-1 formaliza y valida el contenido canónico de `knowledge/`. KNOWLEDGE-PUBLICATION-READINESS-1 normaliza en 5A.1 los estados, headings y grafo editorial. KNOWLEDGE-PUBLIC-CONSUMER-1 implementa en 5B una proyección sin borradores ni Markdown, su consumo React seguro y las rutas iniciales de Aprende a jugar y el Manual.
+KNOWLEDGE-COMPILER-1 formaliza y valida el contenido canónico de `knowledge/`. KNOWLEDGE-PUBLICATION-READINESS-1 normaliza en 5A.1 los estados, headings y grafo editorial. KNOWLEDGE-PUBLIC-CONSUMER-1 implementa en 5B una proyección sin borradores ni Markdown, su consumo React seguro y las rutas iniciales de Aprende a jugar y el Manual. KNOWLEDGE-EXPERIENCE-CLOSURE-1 completa en 5C la navegación documental, los fragmentos y la carga diferida sin cambiar el contrato editorial ni el esquema v1.
 
 ## 2. Fuente canónica
 
@@ -271,7 +271,9 @@ Los fallos usan un código estable y, cuando corresponde, `sourcePath`, ID y ele
 
 `frontend/src/features/knowledge/knowledgeRepository.js` es la única capa que importa `public-knowledge.json`, valida `schemaVersion: 1`, conserva el orden y resuelve colecciones, grupos, slugs e IDs con `null` para valores desconocidos. No realiza fetch, caché o estado remoto. Los helpers centralizan las rutas y validan los tres grupos de Conceptos.
 
-`KnowledgeRenderer` recibe sólo bloques compilados y los convierte a HTML semántico y `Link`. La landing usa `PublicLanding` y `PageMetadata`; el Manual agrupa cuatro colecciones y la composición documental común muestra título, ID, versión, revisión, contenido y retorno. Un grupo o slug inválido renderiza la 404 existente sin redirección o filtración editorial. El `outputPath` canónico continúa siendo una identidad lógica, no una promesa de URL.
+`KnowledgeRenderer` recibe sólo bloques compilados y los convierte a HTML semántico y `Link`. La landing usa `PublicLanding` y `PageMetadata`, y obtiene del repositorio sus cuatro colecciones y 40 documentos. El Manual mantiene el orden canónico, incorpora anchors por colección y no expone sus arrays internos. La composición documental común muestra contexto local Aprende → Manual → colección, título, ID, versión, revisión, tabla de contenidos derivada exclusivamente de `headings`, contenido y anterior/siguiente dentro de la misma colección.
+
+Los enlaces de tabla de contenidos conservan los IDs ya compilados, incluida su desambiguación, y el montaje diferido resuelve el fragmento tanto en navegación SPA como en carga directa. El código sólo solicita foco programático cuando el usuario activa un enlace del índice; una carga normal no lo fuerza. Las rutas de Aprende se importan con `React.lazy` y comparten un `Suspense` accesible: `public-knowledge.json`, repositorio y renderer no aparecen en el chunk inicial. Un grupo o slug inválido renderiza la 404 existente sin redirección o filtración editorial; un error de descarga de chunk no se transforma en documento inexistente. El `outputPath` canónico continúa siendo una identidad lógica, no una promesa de URL.
 
 ## 19. Límites y deuda aplazada
 
@@ -280,7 +282,7 @@ Los fallos usan un código estable y, cuando corresponde, `sourcePath`, ID y ele
 - imágenes, multimedia, búsqueda y filtros quedan fuera;
 - no se integra el compilador en CI, dev o build hasta confirmar el contexto de despliegue;
 - no se modifica contenido deportivo ni se resuelven denominaciones pendientes.
-- 5C debe ampliar la experiencia divulgativa sin introducir Historia u otras colecciones vacías.
+- Historia, Escuela, búsqueda, filtros, multimedia y nuevas colecciones requieren bloques y fuentes aprobados posteriores; 5C no los introduce.
 
 ## 20. Criterios de aceptación
 
@@ -289,3 +291,5 @@ Los fallos usan un código estable y, cuando corresponde, `sourcePath`, ID y ele
 5A.1 se considera completada cuando REG-001–REG-008 y los 32 Conceptos están `Vigente`, cada documento tiene un único H1 coincidente con `titulo`, la jerarquía no contiene saltos, las 108 referencias documentales son `Vigente → Vigente`, REG-006 conserva su tabla y la regeneración continúa sincronizada y determinista. Esto habilita 5B, pero no crea su artefacto público, renderer, rutas o páginas.
 
 5B se considera completada cuando la proyección excluye por construcción cualquier borrador, el parser sólo produce nodos seguros, referencias y rutas resuelven antes de escribir, ambas salidas son deterministas y coordinadas, React importa únicamente el artefacto público, las cuatro familias de rutas funcionan con 404 segura, Navbar activa toda la rama y Vitest, lint, build y E2E quedan verdes. Fase 5 permanece abierta para 5C.
+
+5C se considera completada cuando el repositorio devuelve colecciones y vecinos canónicos sin exponer arrays internos, el índice usa sólo H2–H6 compilados, anterior/siguiente no envuelve ni cruza colecciones, los fragmentos funcionan tras carga diferida y recarga directa, el corpus queda ausente del chunk inicial y las regresiones unitarias, de build y E2E permanecen verdes. Con ello se cierra la Fase 5 sin modificar `knowledge/`, los artefactos, su esquema o el contenido editorial.

@@ -36,6 +36,70 @@ describe('knowledgeRepository', () => {
     expect(knowledgeRepository.getConceptByGroupAndSlug('instalaciones', 'cancha')).toBeNull();
     expect(knowledgeRepository.getDocumentById('BORRADOR-001')).toBeNull();
     expect(knowledgeRepository.getCollectionsWithDocuments()).toHaveLength(4);
+    expect(knowledgeRepository.getDocumentContext('BORRADOR-001')).toBeNull();
+  });
+
+  it('resuelve posición, anterior y siguiente sólo dentro de la colección canónica', () => {
+    expect(knowledgeRepository.getDocumentContext('REG-001')).toMatchObject({
+      position: 1,
+      total: 8,
+      previousDocument: null,
+      nextDocument: { id: 'REG-002' },
+    });
+    expect(knowledgeRepository.getDocumentContext('REG-004')).toMatchObject({
+      position: 4,
+      total: 8,
+      previousDocument: { id: 'REG-003' },
+      nextDocument: { id: 'REG-005' },
+    });
+    expect(knowledgeRepository.getDocumentContext('REG-008')).toMatchObject({
+      position: 8,
+      total: 8,
+      previousDocument: { id: 'REG-007' },
+      nextDocument: null,
+    });
+
+    expect(knowledgeRepository.getDocumentContext('CON-ELE-012')?.nextDocument).toBeNull();
+    expect(knowledgeRepository.getDocumentContext('CON-PER-001')?.previousDocument).toBeNull();
+  });
+
+  it('no expone arrays internos mutables', () => {
+    const collections = knowledgeRepository.getCollections();
+    const documents = knowledgeRepository.getDocuments();
+    const grouped = knowledgeRepository.getCollectionsWithDocuments();
+
+    collections.pop();
+    documents.splice(0, documents.length);
+    grouped[0].documents.pop();
+
+    expect(knowledgeRepository.getCollections()).toHaveLength(4);
+    expect(knowledgeRepository.getDocuments()).toHaveLength(40);
+    expect(knowledgeRepository.getDocumentsByCollection('reglamento')).toHaveLength(8);
+  });
+
+  it('trata una colección de un documento sin wrap ni cruces', () => {
+    const document = {
+      id: 'REG-001',
+      slug: 'unico',
+      title: 'Único',
+      route: '/aprende-a-jugar/manual/reglamento/unico',
+      collection: 'reglamento',
+      order: 1,
+      blocks: [],
+      references: [],
+    };
+    const repository = createKnowledgeRepository({
+      schemaVersion: 1,
+      collections: [{ id: 'reglamento', title: 'Reglamento', order: 1 }],
+      documents: [document],
+    });
+
+    expect(repository.getDocumentContext(document)).toMatchObject({
+      position: 1,
+      total: 1,
+      previousDocument: null,
+      nextDocument: null,
+    });
   });
 
   it('no expone campos editoriales ni admite un artefacto público con datos privados', () => {

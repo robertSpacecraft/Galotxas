@@ -54,6 +54,10 @@ describe('KnowledgeRenderer', () => {
       'id',
       'area-de-joc',
     );
+    expect(screen.getByRole('heading', { name: 'Àrea de joc', level: 2 })).toHaveAttribute(
+      'tabindex',
+      '-1',
+    );
     expect(screen.getByText('essencial').tagName).toBe('STRONG');
     expect(screen.getByText('tradicional').tagName).toBe('EM');
     expect(screen.getByRole('link', { name: 'REG-003 – El saque' })).toHaveAttribute(

@@ -23,6 +23,8 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - Se incorpora un parser build-time limitado y un renderer React semántico para headings, párrafos, énfasis, listas, tabla, separadores y referencias internas, sin HTML inyectado.
 - Se publican la landing `/aprende-a-jugar`, el Manual, los documentos de Reglamento y los tres grupos de Conceptos, con repositorio frontend, metadatos, retorno y 404 segura.
 - El Navbar incorpora Aprende a jugar tras Competición y mantiene activa toda la rama formativa en desktop y móvil, con cuenta separada.
+- Se completa Fase 5C con resumen derivado de Aprende, accesos a colecciones, contexto documental local, tabla de contenidos y navegación anterior/siguiente sin cruzar colecciones.
+- Los headings compilados disponen de deep links estables que funcionan tanto en navegación SPA como tras recarga directa.
 
 ### Changed
 
@@ -44,6 +46,8 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - El compilador de Knowledge valida la jerarquía de headings y rechaza referencias desde contenido `Vigente` hacia destinos no vigentes o inexistentes, con diagnóstico contextual de origen y destino.
 - `knowledge:check` valida en memoria y de forma determinista los dos artefactos; `knowledge:build` los promueve como pareja y restaura ambos si falla una escritura.
 - React importa únicamente la proyección pública mediante una capa de repositorio; el artefacto canónico permanece fuera del bundle.
+- Las rutas de Aprende se cargan mediante `React.lazy` y `Suspense`; el corpus público sale del chunk inicial sin alterar rutas, metadatos, Navbar o la 404.
+- El repositorio Knowledge devuelve copias de sus colecciones y documentos y resuelve posición y vecinos según el orden canónico de cada colección.
 
 ### Fixed
 

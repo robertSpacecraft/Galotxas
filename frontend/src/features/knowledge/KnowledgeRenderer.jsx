@@ -29,7 +29,7 @@ const KnowledgeHeading = ({ block, blockKey }) => {
 
   const Heading = `h${block.level}`;
   return (
-    <Heading id={block.id}>
+    <Heading id={block.id} tabIndex={-1}>
       {renderInlineNodes(block.children, `${blockKey}-inline`)}
     </Heading>
   );

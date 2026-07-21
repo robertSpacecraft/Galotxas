@@ -16,6 +16,15 @@
   scroll-margin-top: 2rem;
 }
 
+.content h2:focus,
+.content h3:focus,
+.content h4:focus,
+.content h5:focus,
+.content h6:focus {
+  outline: 3px solid #003366;
+  outline-offset: 4px;
+}
+
 .content h2 {
   margin: 2.75rem 0 1rem;
   font-size: clamp(1.65rem, 4vw, 2.1rem);

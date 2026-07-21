@@ -1,8 +1,9 @@
+import { lazy } from 'react';
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { championshipsService } from './api/championships';
 import { cmsService } from './api/cms';
-import App from './App';
+import App, { KnowledgeRoute } from './App';
 
 vi.mock('./api/championships', () => ({
   championshipsService: {
@@ -37,6 +38,21 @@ describe('App public routes', () => {
       title: 'Nosotros',
       blocks: [],
     });
+  });
+
+  it('muestra un fallback accesible sin main, H1 ni 404 mientras carga una ruta diferida', () => {
+    const PendingPage = lazy(() => new Promise(() => {}));
+
+    render(
+      <KnowledgeRoute>
+        <PendingPage />
+      </KnowledgeRoute>,
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando Aprende a jugar');
+    expect(screen.queryByRole('main')).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
+    expect(screen.queryByText('Página no encontrada')).not.toBeInTheDocument();
   });
 
   it('renders the functional tournament list without the legacy placeholder', async () => {
