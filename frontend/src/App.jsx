@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -20,7 +21,18 @@ import { CmsPageIndex } from './pages/CmsPageIndex/CmsPageIndex';
 import { CmsPage } from './pages/CmsPage/CmsPage';
 import { CompetitionPage } from './pages/Competition/CompetitionPage';
 import { NotFoundPage } from './pages/NotFound/NotFoundPage';
+import { RouteLoading } from './components/RouteLoading/RouteLoading';
 import './index.css';
+
+const LearnPage = lazy(() => import('./pages/Learn/LearnPage'));
+const ManualPage = lazy(() => import('./pages/Learn/ManualPage'));
+const KnowledgeDocumentPage = lazy(() => import('./pages/Learn/KnowledgeDocumentPage'));
+
+export const KnowledgeRoute = ({ children }) => (
+  <Suspense fallback={<RouteLoading label="Cargando Aprende a jugar" />}>
+    {children}
+  </Suspense>
+);
 
 function App() {
   return (
@@ -33,6 +45,30 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/competicion" element={<CompetitionPage />} />
+              <Route
+                path="/aprende-a-jugar"
+                element={<KnowledgeRoute><LearnPage /></KnowledgeRoute>}
+              />
+              <Route
+                path="/aprende-a-jugar/manual"
+                element={<KnowledgeRoute><ManualPage /></KnowledgeRoute>}
+              />
+              <Route
+                path="/aprende-a-jugar/manual/reglamento/:slug"
+                element={(
+                  <KnowledgeRoute>
+                    <KnowledgeDocumentPage type="regulation" />
+                  </KnowledgeRoute>
+                )}
+              />
+              <Route
+                path="/aprende-a-jugar/manual/conceptos/:group/:slug"
+                element={(
+                  <KnowledgeRoute>
+                    <KnowledgeDocumentPage type="concept" />
+                  </KnowledgeRoute>
+                )}
+              />
               <Route path="/nosotros" element={<Nosotros />} />
               <Route path="/torneos" element={<TournamentList />} />
               <Route path="/torneos/:championshipId" element={<TournamentDetail />} />

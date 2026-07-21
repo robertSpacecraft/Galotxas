@@ -793,6 +793,73 @@ Seguimiento de Fase 4C, 2026-07-19:
 
 ---
 
+# ADR-030 — Contrato y compilación build-time del conocimiento canónico
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-07
+
+Contexto:
+- `knowledge/` ya contenía Reglamento y Conceptos reales, pero trece documentos compilables carecían de slug y no existían contrato ejecutable, validación global o artefacto consumible.
+- React no puede convertirse en fuente editorial ni leer Markdown suelto desde el navegador.
+- El Manual v1 no necesita Laravel, base de datos, API, CMS, MDX o HTML ejecutable.
+- El repositorio no dispone de CI o configuración de despliegue que garantice que un build con raíz `frontend/` pueda acceder a la carpeta hermana `knowledge/`.
+
+Decisión:
+- Mantener `knowledge/` como única fuente canónica y editarla mediante Git y revisión humana.
+- Compilar en Node antes del futuro renderizado, sin dependencias nuevas y con un parser limitado a los seis valores escalares reales del front matter.
+- Exigir `id`, `slug`, `titulo`, `version`, `estado` y `ultima_revision`; derivar colección de la ruta y orden del sufijo numérico del ID.
+- Compilar sólo `REG-001`–`REG-008`, `conceptos/elementos`, `conceptos/personas` y `conceptos/juego`; excluir instrucciones, README y `REG-000`, que declara no formar parte del reglamento.
+- Validar ID único global, slug único por namespace, ruta lógica única, SemVer, fecha ISO real, estados `Borrador`/`Vigente`, headings, referencias y seguridad.
+- Exigir exactamente un H1 como primer heading, coincidente con `titulo`, y una jerarquía H1–H6 sin saltos arbitrarios.
+- Impedir que un documento `Vigente` referencie un documento que no esté también `Vigente`; permitir que un borrador futuro relacione borradores o vigentes mientras los destinos existan.
+- Registrar la aprobación editorial humana de REG-001–REG-008 como Reglamento inicial `Vigente`, sin reformular contenido, reglas, terminología o referencias y conservando sus versiones actuales.
+- Tratar cualquier modificación editorial futura como una revisión consciente: deberá revisar la versión y actualizar `ultima_revision` cuando corresponda.
+- Rechazar HTML, JSX/MDX, scripts, iframes, eventos, código ejecutable, URLs peligrosas, imágenes y rutas que salgan de `knowledge/`.
+- Generar JSON con `schemaVersion: 1`, orden explícito y sin timestamp, rutas absolutas, datos del sistema o HTML precompilado.
+- Versionar `frontend/src/generated/knowledge/knowledge.json` y comprobar en tests su igualdad byte a byte con el corpus.
+- No acoplar todavía `dev` o `build` a la generación. Mantener `knowledge:check` y `knowledge:build` explícitos hasta disponer de un contrato de CI/despliegue fiable.
+- No importar el artefacto canónico en páginas, crear una proyección pública ni registrar rutas durante 5A o su normalización 5A.1.
+- En 5B, generar `public-knowledge.json` como proyección separada que incluye exclusivamente documentos `Vigente`, omite colecciones vacías y no conserva estado, `sourcePath`, Markdown, rutas lógicas editoriales ni información de borradores.
+- Transformar el Markdown público durante build a una estructura cerrada de bloques e inline nodes; rechazar cualquier sintaxis no soportada en lugar de interpretarla en el navegador.
+- Resolver sólo referencias explícitas hacia IDs públicos y sus rutas React; bloquear la generación si el destino no existe o no es publicable.
+- Versionar los dos artefactos y promoverlos de forma coordinada con temporales, copias anteriores y rollback para no dejar una pareja desincronizada.
+- Permitir que React importe únicamente `public-knowledge.json` mediante un repositorio de esquema v1 y renderice los nodos con HTML semántico, `Link` y sin `dangerouslySetInnerHTML`.
+- Registrar `/aprende-a-jugar`, `/aprende-a-jugar/manual`, los documentos de Reglamento y los tres grupos de Conceptos; utilizar la 404 existente para cualquier grupo, slug o forma no válida.
+
+Alternativas descartadas:
+- Hardcodear el contenido en JSX: duplicaría la fuente editorial y exigiría despliegues para cada corrección.
+- Cargar Markdown directamente en el navegador: expondría archivos sin contrato y trasladaría parsing y seguridad al cliente.
+- Importar Reglamento y Conceptos a Laravel o MariaDB: añadiría persistencia y sincronización sin necesidad funcional para el Manual v1.
+- Duplicar el contenido en el CMS: crearía dos autoridades editables para las mismas reglas.
+- Usar MDX: permitiría componentes y expresiones ejecutables dentro de la fuente canónica.
+- Compilar HTML sin una política de sanitización y renderer aprobados: ampliaría la superficie de ejecución antes de construir la experiencia pública.
+- Importar `knowledge.json` desde React y filtrar allí: introduciría borradores y metadatos editoriales en el bundle antes de aplicar la política de publicación.
+- Usar un parser Markdown en navegador: duplicaría el contrato build-time y ampliaría la superficie de sintaxis y ejecución del cliente.
+- Degradar silenciosamente nodos no soportados: podría publicar contenido incompleto o con semántica distinta de la fuente revisada.
+- Ignorar el artefacto y regenerarlo automáticamente en cada build: el contexto de despliegue actual no garantiza acceso a `knowledge/` desde la raíz frontend.
+
+Consecuencias:
+- Un cambio estructural inválido falla con un diagnóstico localizado antes de producir una salida nueva.
+- Fuente y artefacto versionado deben actualizarse en el mismo cambio; el JSON generado nunca se edita a mano.
+- Dos compilaciones del mismo corpus producen los mismos bytes.
+- Las rutas lógicas del artefacto canónico no son URLs públicas. La proyección asigna rutas públicas mediante helpers cerrados para Reglamento y Conceptos.
+- El corpus alimenta en 5B una proyección de 40 documentos `Vigente`; un borrador futuro permanecerá en el JSON canónico y quedará completamente fuera del público y del bundle.
+- Una normalización técnica no autoriza cambios de texto editorial: estado, fecha y marcadores estructurales se revisan separadamente del contenido semántico.
+- Fase 5B queda implementada con una experiencia inicial funcional de Aprende a jugar y Manual.
+- Cuando CI y despliegue estén definidos podrá revisarse la política de versionado y generación automática sin cambiar la autoridad editorial.
+
+Seguimiento de Fase 5C, 2026-07-21:
+
+- El repositorio conserva como unidad de navegación cada colección canónica y resuelve posición, anterior y siguiente sin wrap ni cruces entre Reglamento y los tres grupos de Conceptos.
+- La tabla de contenidos consume exclusivamente `headings` H2–H6 ya compilados, conserva sus IDs y no analiza bloques o Markdown en el navegador.
+- Los fragmentos forman parte de las URLs documentales existentes; el montaje diferido desplaza al destino tras navegación SPA o carga directa y sólo solicita foco programático cuando el usuario activa el índice.
+- La navegación de contexto es local a Aprende a jugar y no establece un sistema global de breadcrumbs.
+- Las tres páginas de Aprende se cargan mediante `React.lazy` y `Suspense`; repositorio, renderer y `public-knowledge.json` quedan fuera del chunk inicial sin cambiar rutas, metadatos, Navbar o 404.
+- El esquema v1, el corpus, los artefactos, el backend, la API y el CMS permanecen inalterados. Fase 5C y la Fase 5 quedan completadas.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

@@ -19,6 +19,12 @@ export const publicNavigation = [
     to: '/competicion',
     matches: (pathname) => competitionRoutePatterns.some((pattern) => pattern.test(pathname)),
   },
+  {
+    id: 'learn',
+    label: 'Aprende a jugar',
+    to: '/aprende-a-jugar',
+    matches: (pathname) => /^\/aprende-a-jugar(?:\/.*)?$/.test(pathname),
+  },
 ];
 
 export const getActivePublicNavigationItem = (pathname) => (

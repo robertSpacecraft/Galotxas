@@ -4,7 +4,7 @@ slug: falta
 titulo: Falta
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Falta
@@ -17,13 +17,13 @@ Las faltas pueden producirse durante la ejecución del saque o durante el desarr
 
 ---
 
-# Función
+## Función
 
 El concepto de falta permite determinar de forma objetiva cuándo un quince debe darse por finalizado como consecuencia del incumplimiento de una regla del juego.
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-003 – El saque.
 - REG-004 – Desarrollo de una jugada.
@@ -31,7 +31,7 @@ El concepto de falta permite determinar de forma objetiva cuándo un quince debe
 
 ---
 
-# Tipos de falta
+## Tipos de falta
 
 Las faltas pueden clasificarse, entre otras, en:
 
@@ -44,7 +44,7 @@ La descripción detallada de cada una de ellas se desarrolla en el reglamento.
 
 ---
 
-# Consecuencias
+## Consecuencias
 
 Cuando se produce una falta, el quince finaliza inmediatamente.
 
@@ -52,7 +52,7 @@ El quince será adjudicado al jugador o equipo contrario, salvo que el reglament
 
 ---
 
-# Ejemplos
+## Ejemplos
 
 Constituyen ejemplos de falta, entre otros:
 
@@ -64,25 +64,25 @@ Constituyen ejemplos de falta, entre otros:
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Falta** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 Actualmente no se documentan sinónimos de uso habitual.
 
-## Valenciano
+### Valenciano
 
 - Falta.
 
 ---
 
-# Observaciones
+## Observaciones
 
 No todas las acciones que finalizan un quince constituyen una falta.
 
@@ -90,7 +90,7 @@ Por ejemplo, un jugador puede obtener un quince mediante un golpe ganador sin qu
 
 ---
 
-# Notas
+## Notas
 
 La determinación de si una acción constituye o no una falta corresponde exclusivamente al reglamento.
 
@@ -98,7 +98,7 @@ Este documento define únicamente el concepto general de falta.
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Quince.
 - Saque.
@@ -108,7 +108,7 @@ Este documento define únicamente el concepto general de falta.
 
 ---
 
-# Véase también
+## Véase también
 
 - Quince.
 - Saque.

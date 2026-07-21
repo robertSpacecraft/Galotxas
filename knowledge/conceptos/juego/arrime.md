@@ -4,7 +4,7 @@ slug: arrime
 titulo: Arrime
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Arrime
@@ -17,20 +17,20 @@ Dado que el lado de la cancha determina igualmente quién realiza el primer saqu
 
 ---
 
-# Función
+## Función
 
 El arrime establece de forma objetiva qué jugador o equipo obtiene la elección inicial antes del comienzo del partido.
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-002 – Inicio del partido.
 - REG-003 – El saque.
 
 ---
 
-# Desarrollo
+## Desarrollo
 
 Cada jugador, o un representante de cada equipo en la modalidad de dobles, se sitúa con la espalda apoyada sobre una de las paredes laterales de la cancha.
 
@@ -42,7 +42,7 @@ La trayectoria seguida por la pilota es irrelevante a efectos del resultado, pud
 
 ---
 
-# Resultado
+## Resultado
 
 El vencedor del arrime obtiene el derecho a elegir el lado de la cancha desde el que comenzará el partido.
 
@@ -50,25 +50,25 @@ Como consecuencia de dicha elección, también determina quién realizará el pr
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Arrime** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 Actualmente no se documentan sinónimos de uso habitual.
 
-## Valenciano
+### Valenciano
 
 - Arrim.
 
 ---
 
-# Observaciones
+## Observaciones
 
 En el arrime únicamente se tiene en cuenta la posición final de cada pilota respecto a la pared lateral de destino.
 
@@ -76,13 +76,13 @@ No influye el recorrido seguido ni el número de rebotes producidos durante el l
 
 ---
 
-# Notas
+## Notas
 
 El arrime se realiza una única vez antes del comienzo del partido.
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Partido.
 - Saque.
@@ -90,7 +90,7 @@ El arrime se realiza una única vez antes del comienzo del partido.
 
 ---
 
-# Véase también
+## Véase también
 
 - Partido.
 - Saque.

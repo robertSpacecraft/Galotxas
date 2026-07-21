@@ -1,9 +1,10 @@
 ---
 id: CON-PER-002
+slug: equipo
 titulo: Equipo
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-15
+ultima_revision: 2026-07-20
 ---
 
 # Equipo
@@ -16,7 +17,7 @@ El equipo constituye la unidad competitiva de dicha modalidad y actúa como un �
 
 ---
 
-# Composición
+## Composición
 
 Un equipo está formado por dos jugadores.
 
@@ -29,7 +30,7 @@ Estas posiciones son:
 
 ---
 
-# Función
+## Función
 
 Los integrantes del equipo colaboran para devolver la pilota al campo contrario y obtener los quinces necesarios para ganar la partida.
 
@@ -37,7 +38,7 @@ Cada jugador podrá intervenir sobre la pilota respetando las reglas generales d
 
 ---
 
-# Organización
+## Organización
 
 Aunque tradicionalmente existe una distribución funcional entre delantero y trasero, ambos jugadores forman parte de un único equipo y comparten el mismo marcador durante toda la partida.
 
@@ -45,7 +46,7 @@ Las funciones habituales de cada posición se desarrollan en sus correspondiente
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-002 – Reglamento.
 - REG-003 – El saque.
@@ -55,13 +56,13 @@ Las funciones habituales de cada posición se desarrollan en sus correspondiente
 
 ---
 
-# Sinónimos
+## Sinónimos
 
 Actualmente no se documentan sinónimos de uso habitual.
 
 ---
 
-# Observaciones
+## Observaciones
 
 El reglamento mantiene pendiente de documentación si los integrantes de un equipo pueden intercambiar las posiciones de delantero y trasero una vez iniciada la partida.
 
@@ -69,7 +70,7 @@ Hasta que dicha cuestión quede definida, este aspecto no forma parte del reglam
 
 ---
 
-# Notas
+## Notas
 
 La modalidad por parejas constituye una de las características más representativas de las Galotxas.
 
@@ -77,7 +78,7 @@ Aunque reglamentariamente ambos jugadores poseen los mismos derechos y obligacio
 
 ---
 
-# Véase también
+## Véase también
 
 - Jugador.
 - Delantero.

@@ -572,6 +572,101 @@ Instantánea verificada de COMPETITION-UX-CLOSURE-1, 2026-07-19:
 - backend: inspeccionado como fuente de contrato, no modificado y sin suite backend necesaria para este bloque frontend;
 - artefactos: el cierre correcto desmontó contenedores y red temporal; `dist` e informes generados se eliminan antes de la entrega.
 
+## KNOWLEDGE-COMPILER-1 — Contrato y compilador build-time
+
+La cobertura de Fase 5A valida:
+
+- descubrimiento de las cuatro colecciones aprobadas, exclusión explícita de AGENTS, README y metodología, orden previo al procesamiento e ignorado de archivos no Markdown;
+- front matter escalar válido, campos obligatorios, delimitadores, duplicados, valores complejos, SemVer, fechas ISO reales, estados y slugs;
+- ID único global, slug único por namespace, ruta lógica y orden únicos;
+- rechazo de scripts, iframes, eventos HTML, esquemas peligrosos, imports/exports MDX, JSX, expresiones ejecutables, imágenes y traversal, sin confundir llaves descriptivas con código;
+- enlaces relativos, anchors e IDs válidos, y errores explícitos para destinos rotos;
+- igualdad byte a byte con distinto orden de creación, sin timestamp ni rutas absolutas;
+- corpus real con 40 documentos, cuatro colecciones, IDs esperados y ausencia de los documentos excluidos;
+- sincronía exacta entre el corpus y `frontend/src/generated/knowledge/knowledge.json`;
+- creación del directorio de salida, escritura completa y conservación de una salida anterior cuando la validación falla.
+
+Los 32 casos del compilador usan únicamente directorios temporales bajo el entorno del runner, no modifican el corpus real y limpian sus fixtures. `knowledge:check` y `knowledge:build` no requieren backend, MariaDB o red. La regresión completa de frontend confirma que el artefacto no se importa todavía en páginas y que el build Vite conserva su comportamiento.
+
+Instantánea verificada de KNOWLEDGE-COMPILER-1, 2026-07-20:
+
+- corpus: 40 documentos compilables y cuatro exclusiones explícitas;
+- compilador: 32 tests Vitest dirigidos;
+- frontend: 37 archivos de test y 198 tests Vitest;
+- calidad: `knowledge:check`, `knowledge:build`, ESLint y build Vite correctos;
+- determinismo: dos compilaciones consecutivas producen el mismo SHA-256;
+- backend y E2E: no ejecutados porque no cambian aplicación pública, API o base de datos.
+
+## KNOWLEDGE-PUBLICATION-READINESS-1 — Preparación editorial del corpus
+
+La cobertura de Fase 5A.1 amplía el compilador para validar:
+
+- un único H1 por documento, situado como primer heading y coincidente con `titulo`;
+- secciones y subsecciones H2/H3 coherentes, rechazo de niveles fuera de H1–H6 y de saltos como H2 → H4;
+- referencias `Vigente → Vigente` válidas y rechazo diagnosticado de `Vigente → Borrador` o destinos inexistentes;
+- referencias desde un borrador hacia borradores o vigentes permitidas mientras el grafo canónico sea válido;
+- corpus real con 40 documentos `Vigente`, cero borradores, los ocho Reglamentos aprobados, un H1 exacto por documento y la tabla de REG-006 preservada;
+- validación en memoria sin escritura, regeneración segura, sincronía byte a byte y determinismo independiente del orden del filesystem.
+
+Los diagnósticos de headings y referencias incluyen `sourcePath`, ID de origen y el heading o destino responsable. La normalización modifica sólo estado, fecha de revisión y marcadores de headings: no altera texto, títulos, IDs, slugs, versiones ni referencias.
+
+Instantánea verificada de KNOWLEDGE-PUBLICATION-READINESS-1, 2026-07-20:
+
+- corpus: 40 documentos vigentes, cuatro colecciones y cero referencias a contenido no publicable;
+- compilador: 44 tests Vitest dirigidos;
+- frontend: 37 archivos de test y 210 tests Vitest;
+- calidad: `knowledge:check`, `knowledge:build`, ESLint y build Vite correctos;
+- determinismo: dos compilaciones consecutivas producen el mismo SHA-256;
+- backend y E2E: no ejecutados porque no cambian React público, API, base de datos ni navegación.
+
+## KNOWLEDGE-PUBLIC-CONSUMER-1 — Proyección y consumo público seguro
+
+La cobertura de Fase 5B valida:
+
+- separación entre el artefacto canónico completo y `public-knowledge.json`, inclusión exclusiva de `Vigente`, omisión de colecciones vacías y fallo cuando no queda contenido público;
+- ausencia total de ID, slug, título, cuerpo, ruta, estado o referencias de un borrador mediante fixtures temporales que no modifican el corpus real;
+- bloqueo de referencias públicas hacia borradores o destinos inexistentes y resolución de referencias explícitas a rutas públicas, sin convertir menciones de ID no explícitas;
+- parser build-time limitado para H2–H6, párrafos, negrita, énfasis, listas, tabla, separadores, UTF-8 y anchors deterministas, con exclusión del H1 canónico;
+- rechazo de HTML, imágenes, blockquotes, código, listas anidadas, tablas inconsistentes, inline incompleto, URLs peligrosas y nesting ambiguo;
+- determinismo de ambos JSON, sincronía byte a byte, escritura coordinada y rollback de las dos salidas si falla la segunda promoción;
+- repositorio frontend de esquema v1, orden, grupos, resolución por ID/slug y ausencia de campos editoriales;
+- renderer semántico sin HTML inyectado, rutas de landing, Manual y documentos, metadatos, referencias, tabla y 404 sin filtración;
+- Navbar con Inicio, Competición y Aprende a jugar, `aria-current` en toda la rama, menú móvil, cuenta separada y regresión de rutas existentes;
+- recorrido Playwright, teclado, foco, un H1, tabla localmente desplazable, zoom al 200 %, matriz responsive 320–1440 px y 404 para slug o grupo inválido.
+
+Instantánea verificada de KNOWLEDGE-PUBLIC-CONSUMER-1, 2026-07-20:
+
+- corpus público: 40 documentos, cuatro colecciones, 117 enlaces inline resueltos y una tabla en REG-006;
+- compilador: 61 tests dirigidos entre contrato canónico y proyección pública;
+- frontend: 42 archivos de test y 261 tests Vitest;
+- E2E: 16 escenarios Playwright sobre stack temporal aislado, incluido el recorrido de Aprende a jugar;
+- calidad: `knowledge:check`, doble `knowledge:build`, ESLint y build Vite correctos;
+- artefactos: 199.120 bytes canónicos y 622.547 bytes públicos; ambos hashes permanecen estables entre regeneraciones consecutivas;
+- bundle: 697,04 kB JavaScript (154,83 kB gzip) en la compilación de producción;
+- backend: suite no ejecutada porque Fase 5B no modifica backend, API, base de datos o seeders.
+
+## KNOWLEDGE-EXPERIENCE-CLOSURE-1 — Cierre de Aprende a jugar y el Manual
+
+La cobertura de Fase 5C valida:
+
+- repositorio: orden de colecciones y documentos, posición, anterior/siguiente, límites primero/medio/último, colección de un documento, ausencia de wrap o cruces y copias de arrays que no permiten mutar el estado interno;
+- tabla de contenidos: exclusión de H1, inclusión de H2–H6 en orden, IDs compilados y colisiones preservados, caracteres valencianos, nombre accesible y criterio explícito de mostrar también un único heading y omitir cero headings;
+- composición: contexto local Aprende → Manual → colección, un H1, metadata, contenido seguro, tabla REG-006 y navegación documental sin retornos duplicados;
+- fragmentos: navegación SPA con foco solicitado desde el índice, carga directa y recarga sin cambiar metadatos ni volver a parsear contenido;
+- lazy loading: sólo las tres páginas de Aprende se importan mediante `React.lazy`, el fallback `Suspense` usa `role=status` sin añadir `<main>`, H1 o 404 y ninguna ruta ajena importa el repositorio o el artefacto;
+- regresión: Navbar conserva tres entradas y su estado activo, 404 conserva URL y `noindex`, rutas deportivas, cuenta, CMS, renderer, referencias, listas y tabla mantienen sus contratos;
+- Playwright: estado diferido observable sin sleep, recorrido landing → Manual → documento, índice y deep link, recarga directa, vecinos primero/medio/último, referencias, tabla, responsive 320–1440 px, zoom 200 %, teclado y 404.
+
+Instantánea verificada de KNOWLEDGE-EXPERIENCE-CLOSURE-1, 2026-07-21:
+
+- frontend: 43 archivos y 271 tests Vitest;
+- E2E: 16 escenarios Playwright Chromium sobre el stack temporal aislado;
+- build anterior: un único JS inicial de 697.044 bytes y 153.194 bytes gzip medidos localmente, con aviso Vite por superar 500 kB;
+- build 5C: JS inicial de 412.506 bytes y 121.161 bytes gzip; chunk compartido de Knowledge de 282.957 bytes y 32.083 bytes gzip, más entradas diferidas de 885, 1.308 y 5.358 bytes;
+- privacidad del bundle: la frase de control «La cancha de Galotxas constituye el espacio donde se desarrolla el juego.» desaparece del JS referenciado por `dist/index.html` y aparece exclusivamente en el chunk diferido de Knowledge;
+- calidad: `knowledge:check`, doble `knowledge:build`, suite Vitest, ESLint, build Vite y E2E correctos; el build final no emite el aviso de chunk superior a 500 kB;
+- backend: no modificado y sin suite backend necesaria para este bloque frontend.
+
 ## Flujo de Inscripción y Administración (Fase 3 Core)
 - prevención de inscripciones si el campeonato está cerrado;
 - prevención de inscripciones duplicadas;
@@ -817,11 +912,9 @@ Cada ampliación debe seleccionar pruebas proporcionales a su riesgo e incluir, 
 
 El backend debe probar el filtro de publicación. Una prueba que solo comprueba que React oculta un borrador no satisface la seguridad editorial.
 
-## Validación futura de `knowledge/`
+## Validación de `knowledge/`
 
-Cuando se defina el contrato editorial y el compilador build-time, su validación deberá cubrir estructura, campos obligatorios, IDs y slugs únicos y estables, relaciones por ID, rutas internas, codificación, rechazo de MDX o HTML ejecutable y generación determinista de artefactos.
-
-También se deben probar los consumidores React del Manual con datos generados válidos, ausentes e inválidos. Estas pruebas y el compilador son requisitos futuros; no existen en la Fase 0.
+KNOWLEDGE-COMPILER-1 cubre en 5A estructura, campos obligatorios, IDs, slugs, namespaces, rutas lógicas, referencias, seguridad y generación determinista. Los consumidores React del Manual deberán probar datos generados válidos, ausentes e inválidos en 5B; esa cobertura no se atribuye al compilador ni se considera publicada en 5A.
 
 ---
 

@@ -1,0 +1,64 @@
+.container {
+  margin: 0 0 2.5rem;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  border-left: 4px solid #005ea8;
+  border-radius: 0 10px 10px 0;
+  background: #eef5fb;
+}
+
+.title {
+  margin: 0 0 0.8rem;
+  color: #003366;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.list {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding-left: 1.4rem;
+}
+
+.list li {
+  min-width: 0;
+  padding-left: 0.15rem;
+}
+
+.list a {
+  color: #005ea8;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  text-underline-offset: 0.2em;
+}
+
+.list a:focus-visible {
+  outline: 3px solid #003366;
+  outline-offset: 3px;
+}
+
+.level3 {
+  margin-left: 0.75rem;
+}
+
+.level4 {
+  margin-left: 1.5rem;
+}
+
+.level5 {
+  margin-left: 2.25rem;
+}
+
+.level6 {
+  margin-left: 3rem;
+}
+
+@media (max-width: 480px) {
+  .level3,
+  .level4,
+  .level5,
+  .level6 {
+    margin-left: 0.5rem;
+  }
+}

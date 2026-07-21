@@ -1,9 +1,10 @@
 ---
 id: REG-006
+slug: sistema-de-puntuacion
 titulo: Sistema de puntuación
 version: 0.1.0
-estado: Borrador
-ultima_revision: 2026-07-13
+estado: Vigente
+ultima_revision: 2026-07-20
 ---
 
 # Sistema de puntuación
@@ -16,7 +17,7 @@ Cada jugada válida otorga un único quince al jugador o equipo vencedor de la m
 
 ---
 
-# 2. El quince
+## 2. El quince
 
 El quince constituye la unidad mínima de puntuación.
 
@@ -24,7 +25,7 @@ Cada jugada finalizada conforme a **REG-005 – Pérdida del quince** concede un
 
 ---
 
-# 3. Puntuación de un juego
+## 3. Puntuación de un juego
 
 La puntuación tradicional de un juego es la siguiente.
 
@@ -39,7 +40,7 @@ La puntuación tradicional de un juego es la siguiente.
 
 ---
 
-# 4. Denominación del marcador
+## 4. Denominación del marcador
 
 Tradicionalmente el marcador se anuncia utilizando la denominación valenciana correspondiente a cada puntuación.
 
@@ -58,7 +59,7 @@ El Proyecto Galotxas mantiene este aspecto como pendiente de normalización.
 
 ---
 
-# 5. Obtención de un juego
+## 5. Obtención de un juego
 
 Un jugador o equipo obtendrá un juego cuando alcance la puntuación necesaria conforme al sistema tradicional de ventajas.
 
@@ -66,7 +67,7 @@ En caso de empate a quaranta, será necesario obtener dos quinces consecutivos p
 
 ---
 
-# 6. Obtención de la partida
+## 6. Obtención de la partida
 
 Resultará vencedor de la partida el jugador o equipo que alcance:
 
@@ -79,7 +80,7 @@ La partida finalizará inmediatamente al alcanzarse dicho número.
 
 ---
 
-# 7. Cambio de campo
+## 7. Cambio de campo
 
 Al finalizar cada juego, ambos jugadores o equipos intercambiarán sus respectivos campos.
 
@@ -89,7 +90,7 @@ En consecuencia, el saque alternará entre ambos jugadores o equipos al comienzo
 
 ---
 
-# 8. Observaciones
+## 8. Observaciones
 
 No existe sistema de desempate (tie-break).
 

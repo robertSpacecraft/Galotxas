@@ -1,0 +1,132 @@
+.learnAction {
+  margin-top: 1.5rem;
+}
+
+.collectionNavigation {
+  max-width: 980px;
+  margin: 0 auto clamp(2.5rem, 6vw, 4rem);
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  background: #e8f0f7;
+}
+
+.collectionNavigation > span {
+  display: block;
+  margin-bottom: 0.65rem;
+  color: #003366;
+  font-weight: 800;
+}
+
+.collectionNavigation ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.collectionNavigation a {
+  color: #005ea8;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  text-underline-offset: 0.2em;
+}
+
+.collectionNavigation a:focus-visible {
+  outline: 3px solid #003366;
+  outline-offset: 3px;
+}
+
+.manualSections {
+  display: grid;
+  gap: clamp(2.5rem, 6vw, 4rem);
+}
+
+.documentList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: 0.8rem 1.5rem;
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.documentList li {
+  min-width: 0;
+  padding-left: 0.25rem;
+}
+
+.documentList a {
+  color: #005ea8;
+  font-weight: 700;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  text-underline-offset: 0.2em;
+}
+
+.documentList a:focus-visible {
+  outline: 3px solid #003366;
+  outline-offset: 3px;
+}
+
+.document {
+  width: min(100%, 900px);
+  min-width: 0;
+  margin: 0 auto;
+  padding: clamp(2rem, 6vw, 4.5rem) clamp(1rem, 5vw, 3rem);
+}
+
+.documentHeader {
+  margin: 2rem 0 2.5rem;
+}
+
+.documentHeader h1 {
+  margin: 0;
+  color: #003366;
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(2.25rem, 6vw, 3.75rem);
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+.metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  margin: 1.5rem 0 0;
+  color: #4b5563;
+  font-size: 0.95rem;
+}
+
+.metadata div {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.metadata dt {
+  font-weight: 700;
+}
+
+.metadata dd {
+  margin: 0;
+}
+
+@media (max-width: 480px) {
+  .collectionNavigation ul {
+    flex-direction: column;
+  }
+
+  .metadata,
+  .metadata div {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .metadata {
+    gap: 0.85rem;
+  }
+
+  .metadata div {
+    gap: 0.1rem;
+  }
+}

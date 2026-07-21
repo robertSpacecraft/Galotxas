@@ -1,9 +1,10 @@
 ---
 id: REG-007
+slug: modalidad-por-parejas
 titulo: Modalidad por parejas
 version: 0.1.0
-estado: Borrador
-ultima_revision: 2026-07-13
+estado: Vigente
+ultima_revision: 2026-07-20
 ---
 
 # Modalidad por parejas
@@ -16,7 +17,7 @@ Salvo las particularidades descritas en este documento, serán de aplicación to
 
 ---
 
-# 2. Composición de los equipos
+## 2. Composición de los equipos
 
 Cada equipo estará formado por dos jugadores.
 
@@ -29,7 +30,7 @@ Estas posiciones describen la función habitual de cada integrante del equipo du
 
 ---
 
-# 3. Función del delantero
+## 3. Función del delantero
 
 El delantero desarrolla principalmente su juego en la zona próxima a la red.
 
@@ -39,7 +40,7 @@ Esta descripción responde a la función tradicional del delantero y no limita l
 
 ---
 
-# 4. Función del trasero
+## 4. Función del trasero
 
 El trasero desarrolla principalmente su juego en la zona próxima al fondo de la cancha.
 
@@ -51,7 +52,7 @@ Esta descripción responde a la función tradicional del trasero y no limita las
 
 ---
 
-# 5. Saque
+## 5. Saque
 
 En la modalidad por parejas el saque se realizará conforme a lo establecido en **REG-003 – El saque**.
 
@@ -59,7 +60,7 @@ El saque será ejecutado por el jugador que ocupe la posición de delantero.
 
 ---
 
-# 6. Posiciones durante la partida
+## 6. Posiciones durante la partida
 
 Actualmente el Proyecto Galotxas mantiene pendiente de documentar si los integrantes de un mismo equipo pueden intercambiar las posiciones de delantero y trasero una vez iniciada la partida.
 
@@ -67,13 +68,13 @@ Actualmente el Proyecto Galotxas mantiene pendiente de documentar si los integra
 
 ---
 
-# 7. Obtención de la victoria
+## 7. Obtención de la victoria
 
 La partida finalizará cuando uno de los equipos obtenga doce juegos, conforme a lo establecido en **REG-006 – Sistema de puntuación**.
 
 ---
 
-# 8. Recomendaciones
+## 8. Recomendaciones
 
 Con el fin de facilitar la visibilidad de la pilota y reducir el riesgo de impacto sobre el delantero, se recomienda evitar el uso de prendas de color oscuro, especialmente negras.
 

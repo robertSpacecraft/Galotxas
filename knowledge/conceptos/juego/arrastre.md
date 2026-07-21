@@ -4,7 +4,7 @@ slug: arrastre
 titulo: Arrastre
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Arrastre
@@ -17,26 +17,26 @@ El arrastre constituye una acción no permitida por el reglamento.
 
 ---
 
-# Función
+## Función
 
 El concepto de arrastre permite identificar una de las acciones que pueden dar lugar a la pérdida inmediata del quince por infracción reglamentaria.
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-004 – Desarrollo de una jugada.
 - REG-005 – Faltas.
 
 ---
 
-# Consecuencias
+## Consecuencias
 
 Cuando se determine que un jugador ha realizado un arrastre, la acción constituirá una falta y el quince será adjudicado al adversario.
 
 ---
 
-# Apreciación
+## Apreciación
 
 La existencia de un arrastre deberá determinarse atendiendo al desarrollo de la jugada.
 
@@ -44,25 +44,25 @@ En determinadas situaciones, su apreciación puede resultar compleja debido a la
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Arrastre** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 Actualmente no se documentan sinónimos de uso habitual.
 
-## Valenciano
+### Valenciano
 
 Actualmente no se documentan sinónimos de uso habitual.
 
 ---
 
-# Observaciones
+## Observaciones
 
 El arrastre suele producirse en acciones defensivas en las que el jugador intenta alcanzar una pilota próxima al segundo bote.
 
@@ -70,7 +70,7 @@ Su apreciación puede generar controversia cuando no resulta evidente si la mano
 
 ---
 
-# Notas
+## Notas
 
 La valoración definitiva de un posible arrastre corresponde a quien ejerza las funciones arbitrales conforme al reglamento.
 
@@ -78,7 +78,7 @@ Queda pendiente de validación lingüística y documental si la denominación va
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Falta.
 - Golpe.
@@ -87,7 +87,7 @@ Queda pendiente de validación lingüística y documental si la denominación va
 
 ---
 
-# Véase también
+## Véase también
 
 - Falta.
 - Golpe.

@@ -1,0 +1,48 @@
+.navigation {
+  color: #4b5563;
+  font-size: 0.95rem;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.navigation ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.navigation li + li {
+  padding-left: 0.9rem;
+  border-left: 1px solid #94a3b8;
+}
+
+.navigation a {
+  color: #005ea8;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  text-underline-offset: 0.2em;
+}
+
+.navigation a:focus-visible {
+  outline: 3px solid #003366;
+  outline-offset: 3px;
+}
+
+@media (max-width: 480px) {
+  .navigation ul {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .navigation li + li {
+    padding-left: 0;
+    border-left: 0;
+  }
+}

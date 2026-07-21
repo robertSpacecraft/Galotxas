@@ -4,7 +4,7 @@ slug: rebote
 titulo: Rebote
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Rebote
@@ -17,7 +17,7 @@ El rebote forma parte del desarrollo normal del juego y constituye uno de los el
 
 ---
 
-# Función
+## Función
 
 El rebote permite prolongar el juego y amplía las posibilidades tácticas de cada intercambio.
 
@@ -25,7 +25,7 @@ Los jugadores pueden utilizar deliberadamente las paredes para modificar la tray
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-003 – El saque.
 - REG-004 – Desarrollo de una jugada.
@@ -33,7 +33,7 @@ Los jugadores pueden utilizar deliberadamente las paredes para modificar la tray
 
 ---
 
-# Tipos de rebote
+## Tipos de rebote
 
 Entre las situaciones más habituales se encuentran:
 
@@ -46,7 +46,7 @@ Cada una de estas situaciones se considera válida siempre que respete las regla
 
 ---
 
-# Interacción con la pilota
+## Interacción con la pilota
 
 La pilota podrá impactar una o varias veces contra las paredes de la cancha durante un mismo quince, siempre que no se infrinjan las demás reglas del reglamento.
 
@@ -54,25 +54,25 @@ El rebote no reinicia el número de botes permitidos sobre el área de juego.
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Rebote** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 Actualmente no se documentan sinónimos de uso habitual.
 
-## Valenciano
+### Valenciano
 
 - Rebot.
 
 ---
 
-# Observaciones
+## Observaciones
 
 A efectos reglamentarios, el rebote constituye un evento distinto del bote y del impacto sobre el tamboril.
 
@@ -80,13 +80,13 @@ Cada uno de ellos posee un comportamiento propio dentro del desarrollo del juego
 
 ---
 
-# Notas
+## Notas
 
 Las paredes de la cancha forman parte de la superficie válida de juego, por lo que el rebote constituye una acción completamente reglamentaria, salvo en aquellas situaciones en las que el reglamento establezca una excepción expresa.
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Pilota.
 - Bote.
@@ -96,7 +96,7 @@ Las paredes de la cancha forman parte de la superficie válida de juego, por lo 
 
 ---
 
-# Véase también
+## Véase también
 
 - Bote.
 - Tamboril.

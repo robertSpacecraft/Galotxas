@@ -4,7 +4,7 @@ slug: punto-de-saque
 titulo: Punto de saque
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Punto de saque
@@ -17,7 +17,7 @@ Su posición garantiza que todos los jugadores inicien el saque desde el mismo l
 
 ---
 
-# Ubicación
+## Ubicación
 
 El punto de saque se encuentra situado en el lado de la pared de grada, en la cancha contraria a aquella en la que se encuentran el banco y el cuadro de saque.
 
@@ -25,7 +25,7 @@ Forma parte de la configuración permanente de la cancha y se utiliza exclusivam
 
 ---
 
-# Función
+## Función
 
 El punto de saque establece la posición reglamentaria desde la que debe iniciarse el saque en la modalidad individual.
 
@@ -33,14 +33,14 @@ Al tratarse de un punto fijo, determina de forma natural la posición del jugado
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-001 – Modelo de la cancha.
 - REG-003 – El saque.
 
 ---
 
-# Interacción con los jugadores
+## Interacción con los jugadores
 
 Durante el saque en la modalidad individual, el jugador deberá ejecutar el saque desde el punto de saque conforme a las condiciones establecidas por el reglamento.
 
@@ -48,25 +48,25 @@ La posición del punto obliga al jugador a iniciar la ejecución del saque desde
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Punto de saque** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 Actualmente no se documentan sinónimos de uso habitual.
 
-## Valenciano
+### Valenciano
 
 - Punt de traure.
 
 ---
 
-# Observaciones
+## Observaciones
 
 El punto de saque únicamente interviene en la modalidad individual (mà a mà), cuyo saque se ejecuta desde el lado de la pared de grada.
 
@@ -74,13 +74,13 @@ En la modalidad por parejas, el saque se realiza desde el lado de la pared del r
 
 ---
 
-# Notas
+## Notas
 
 El punto de saque no delimita ninguna zona de juego, sino que constituye exclusivamente una referencia fija para la ejecución del saque en la modalidad individual.
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Banco de saque.
 - Cuadro de saque.
@@ -89,7 +89,7 @@ El punto de saque no delimita ninguna zona de juego, sino que constituye exclusi
 
 ---
 
-# Véase también
+## Véase también
 
 - Banco de saque.
 - Cuadro de saque.

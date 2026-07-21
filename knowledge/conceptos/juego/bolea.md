@@ -4,7 +4,7 @@ slug: bolea
 titulo: Bolea
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Bolea
@@ -17,19 +17,19 @@ La bolea constituye uno de los golpes más característicos y eficaces de Galotx
 
 ---
 
-# Función
+## Función
 
 La bolea permite devolver la pilota sin esperar a que produzca un bote, reduciendo el tiempo de reacción del adversario y aumentando las posibilidades de obtener una posición ventajosa durante el intercambio.
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-004 – Desarrollo de una jugada.
 
 ---
 
-# Ejecución
+## Ejecución
 
 La bolea consiste en golpear reglamentariamente la pilota antes de que contacte con el área de juego.
 
@@ -37,7 +37,7 @@ Podrá ejecutarse en cualquier momento del intercambio siempre que se respeten l
 
 ---
 
-# Utilización
+## Utilización
 
 La bolea puede emplearse con distintos objetivos, entre ellos:
 
@@ -48,25 +48,25 @@ La bolea puede emplearse con distintos objetivos, entre ellos:
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Bolea** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 Actualmente no se documentan sinónimos de uso habitual.
 
-## Valenciano
+### Valenciano
 
 - Volea.
 
 ---
 
-# Observaciones
+## Observaciones
 
 La bolea constituye uno de los recursos ofensivos más importantes de Galotxas.
 
@@ -74,13 +74,13 @@ Su utilización resulta especialmente valiosa cuando el jugador consigue anticip
 
 ---
 
-# Notas
+## Notas
 
 Las diferentes técnicas de ejecución de la bolea y su aplicación táctica se desarrollarán en la documentación de la Academy de Galotxas.
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Golpe.
 - Golpe ganador.
@@ -89,7 +89,7 @@ Las diferentes técnicas de ejecución de la bolea y su aplicación táctica se 
 
 ---
 
-# Véase también
+## Véase también
 
 - Golpe.
 - Golpe ganador.

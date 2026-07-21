@@ -1,5 +1,25 @@
 # React + Vite
 
+## Knowledge
+
+El Reglamento y los Conceptos canónicos se validan y compilan desde la carpeta hermana `knowledge/`:
+
+```bash
+npm run knowledge:check
+npm run knowledge:build
+```
+
+Las salidas versionadas son:
+
+- `src/generated/knowledge/knowledge.json`: artefacto canónico completo; nunca se importa en código del navegador;
+- `src/generated/knowledge/public-knowledge.json`: proyección exclusiva de documentos `Vigente`, sin Markdown ni metadatos editoriales privados.
+
+Ambos son archivos generados y no deben editarse manualmente. `knowledge:check` valida los dos en memoria y `knowledge:build` los reemplaza de forma coordinada. Los comandos `dev` y `build` no regeneran automáticamente porque todavía no existe un contrato de CI/despliegue que garantice acceso a la raíz completa del monorepo.
+
+React consume la proyección únicamente mediante `src/features/knowledge/knowledgeRepository.js`. Los helpers de la misma feature centralizan las rutas, anchors de colección y fragmentos bajo `/aprende-a-jugar`; `KnowledgeRenderer` renderiza nodos seguros ya compilados y no interpreta Markdown ni inyecta HTML. Las páginas no deben buscar directamente dentro del JSON.
+
+El repositorio conserva el orden canónico y resuelve el contexto y los vecinos dentro de cada colección. La tabla de contenidos usa exclusivamente `headings` H2–H6 del artefacto; no analiza bloques o Markdown en runtime. `App.jsx` carga con `React.lazy` sólo las tres páginas de Aprende, por lo que el repositorio, el renderer y `public-knowledge.json` permanecen fuera del chunk inicial. El fallback `Suspense` es un estado anunciado dentro del `<main>` existente y no representa una 404.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

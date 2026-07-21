@@ -1,9 +1,10 @@
 ---
 id: REG-005
+slug: perdida-del-quince
 titulo: Pérdida del quince
 version: 0.1.0
-estado: Borrador
-ultima_revision: 2026-07-13
+estado: Vigente
+ultima_revision: 2026-07-20
 ---
 
 # Pérdida del quince
@@ -16,7 +17,7 @@ En ese momento, el jugador o equipo contrario obtendrá el quince correspondient
 
 ---
 
-# 2. Golpeo no válido
+## 2. Golpeo no válido
 
 Se perderá el quince cuando la pilota sea golpeada utilizando una parte del cuerpo distinta de la palma de la mano.
 
@@ -32,7 +33,7 @@ Las condiciones del golpeo se encuentran definidas en **REG-004 – Desarrollo d
 
 ---
 
-# 3. Segundo bote
+## 3. Segundo bote
 
 Se perderá el quince cuando la pilota bote dos veces sobre la superficie de juego antes de ser devuelta.
 
@@ -40,7 +41,7 @@ Las situaciones especiales relacionadas con el tamboril se desarrollan en **REG-
 
 ---
 
-# 4. Red
+## 4. Red
 
 Se perderá el quince cuando la pilota:
 
@@ -51,7 +52,7 @@ Las condiciones específicas del saque se desarrollan en **REG-003 – El saque*
 
 ---
 
-# 5. Salida por los límites de la cancha
+## 5. Salida por los límites de la cancha
 
 Se perderá el quince cuando la pilota abandone la cancha por cualquiera de sus límites laterales.
 
@@ -59,7 +60,7 @@ La salida por encima de la pared de la grada constituye una excepción y se desa
 
 ---
 
-# 6. Elementos externos
+## 6. Elementos externos
 
 Se perderá el quince cuando la pilota toque cualquier elemento externo a la cancha.
 
@@ -67,7 +68,7 @@ La definición de estos elementos se encuentra en **REG-001 – Modelo de la can
 
 ---
 
-# 7. Cajones
+## 7. Cajones
 
 Cuando la pilota entre en un cajón y el jugador o equipo contrario no consiga devolverla reglamentariamente al terreno de juego, perderá el quince.
 
@@ -75,7 +76,7 @@ Las características físicas de los cajones se desarrollan en **REG-001 – Mod
 
 ---
 
-# 8. Saque no válido
+## 8. Saque no válido
 
 Las situaciones que invalidan un saque se encuentran definidas en **REG-003 – El saque**.
 
@@ -83,6 +84,6 @@ Todo saque no válido supondrá la pérdida inmediata del quince.
 
 ---
 
-# 9. Otras situaciones
+## 9. Otras situaciones
 
 Cualquier situación excepcional no contemplada en el presente documento será resuelta conforme a lo establecido en **REG-008 – Casos especiales**.

@@ -4,7 +4,7 @@ slug: cuadro-de-saque
 titulo: Cuadro de saque
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Cuadro de saque
@@ -17,7 +17,7 @@ Su función es determinar la posición que debe mantener el jugador durante la e
 
 ---
 
-# Ubicación
+## Ubicación
 
 Se encuentra situado entre el banco de saque y la pared del resto.
 
@@ -27,20 +27,20 @@ Su posición forma parte de la configuración permanente de la cancha.
 
 ---
 
-# Función
+## Función
 
 El cuadro de saque garantiza que todos los jugadores ejecuten el saque desde la misma posición, asegurando unas condiciones homogéneas al inicio de cada juego en la modalidad por parejas.
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-001 – Modelo de la cancha.
 - REG-003 – El saque.
 
 ---
 
-# Interacción con los jugadores
+## Interacción con los jugadores
 
 Durante la ejecución del saque en la modalidad por parejas, el jugador que realiza el servicio deberá mantener, al menos, uno de sus pies en contacto con el interior del cuadro de saque.
 
@@ -50,25 +50,25 @@ Abandonar completamente el cuadro antes del golpe constituirá una falta de saqu
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Cuadro de saque** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 Actualmente no se documentan sinónimos de uso habitual.
 
-## Valenciano
+### Valenciano
 
 - Quadre de traure.
 
 ---
 
-# Observaciones
+## Observaciones
 
 El cuadro de saque únicamente interviene durante la ejecución del saque en la modalidad por parejas.
 
@@ -76,13 +76,13 @@ No tiene ninguna función durante el desarrollo ordinario del juego.
 
 ---
 
-# Notas
+## Notas
 
 La dimensión exacta del cuadro podrá definirse reglamentariamente, manteniendo siempre una posición fija inmediatamente detrás del banco de saque.
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Banco de saque.
 - Punto de saque.
@@ -91,7 +91,7 @@ La dimensión exacta del cuadro podrá definirse reglamentariamente, manteniendo
 
 ---
 
-# Véase también
+## Véase también
 
 - Banco de saque.
 - Punto de saque.

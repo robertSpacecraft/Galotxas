@@ -4,7 +4,7 @@ slug: saque
 titulo: Saque
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Saque
@@ -17,7 +17,7 @@ Constituye la única acción del juego cuya ejecución se encuentra completament
 
 ---
 
-# Función
+## Función
 
 El saque inicia cada quince y establece el comienzo del intercambio entre ambos lados de la cancha.
 
@@ -25,14 +25,14 @@ Su ejecución debe ajustarse a las condiciones establecidas por el reglamento pa
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-003 – El saque.
 - REG-005 – Faltas.
 
 ---
 
-# Ejecución
+## Ejecución
 
 Todo saque deberá realizarse golpeando la pilota con la palma de la mano mediante un movimiento ascendente.
 
@@ -40,7 +40,7 @@ Una vez ejecutado un saque válido, el quince comenzará y la pilota permanecer�
 
 ---
 
-# Modalidades de saque
+## Modalidades de saque
 
 La forma de ejecutar el saque depende de la modalidad disputada.
 
@@ -53,7 +53,7 @@ Cada modalidad establece sus propias condiciones de ejecución, posición del sa
 
 ---
 
-# Validez
+## Validez
 
 Un saque será válido únicamente cuando cumpla todas las condiciones establecidas por el reglamento.
 
@@ -61,26 +61,26 @@ El incumplimiento de cualquiera de ellas constituirá una falta y supondrá la p
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Saque** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 - Servicio.
 
-## Valenciano
+### Valenciano
 
 - Traure.
 - Servei.
 
 ---
 
-# Observaciones
+## Observaciones
 
 El saque constituye el único momento del juego en el que la posición del jugador, la forma de ejecutar el golpe y la trayectoria inicial de la pilota se encuentran específicamente reguladas antes del comienzo del intercambio.
 
@@ -88,13 +88,13 @@ Una vez realizado un saque válido, la jugada pasa a regirse por las normas gene
 
 ---
 
-# Notas
+## Notas
 
 Las condiciones particulares del saque (posición, zonas permitidas, trayectoria de la pilota y demás requisitos reglamentarios) dependen de la modalidad de juego y se desarrollan en el reglamento.
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Quince.
 - Falta.
@@ -105,7 +105,7 @@ Las condiciones particulares del saque (posición, zonas permitidas, trayectoria
 
 ---
 
-# Véase también
+## Véase también
 
 - Quince.
 - Falta.

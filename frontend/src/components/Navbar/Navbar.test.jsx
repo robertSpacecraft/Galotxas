@@ -30,10 +30,12 @@ describe('Navbar', () => {
     const accountArea = screen.getByRole('group', { name: 'Cuenta' });
 
     expect(screen.getByRole('link', { name: 'Galotxas' })).toHaveAttribute('href', '/');
-    expect(within(editorialNavigation).getAllByRole('link')).toHaveLength(2);
+    expect(within(editorialNavigation).getAllByRole('link')).toHaveLength(3);
     expect(within(editorialNavigation).getByRole('link', { name: 'Inicio' })).toHaveAttribute('href', '/');
     expect(within(editorialNavigation).getByRole('link', { name: 'Competición' }))
       .toHaveAttribute('href', '/competicion');
+    expect(within(editorialNavigation).getByRole('link', { name: 'Aprende a jugar' }))
+      .toHaveAttribute('href', '/aprende-a-jugar');
     expect(within(accountArea).getByRole('link', { name: 'Iniciar sesión' }))
       .toHaveAttribute('href', '/login');
 
@@ -45,7 +47,6 @@ describe('Navbar', () => {
       'Federaciones',
       'Contenidos',
       'Academy',
-      'Aprende a jugar',
       'Escuela de Galotxas',
       'Club',
     ]) {
@@ -140,6 +141,10 @@ describe('Navbar', () => {
     ['/categories/8/schedule', 'Competición', 'location'],
     ['/matches/20', 'Competición', 'location'],
     ['/rankings', 'Competición', 'location'],
+    ['/aprende-a-jugar', 'Aprende a jugar', 'page'],
+    ['/aprende-a-jugar/manual', 'Aprende a jugar', 'location'],
+    ['/aprende-a-jugar/manual/reglamento/el-saque', 'Aprende a jugar', 'location'],
+    ['/aprende-a-jugar/manual/conceptos/juego/saque', 'Aprende a jugar', 'location'],
   ])('marks one active item at %s', (route, expectedName, expectedCurrent) => {
     renderWithProviders(<Navbar />, { route, authValue: anonymousAuth });
 

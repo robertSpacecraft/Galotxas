@@ -4,7 +4,7 @@ slug: cajon
 titulo: Cajón
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Cajón
@@ -19,7 +19,7 @@ Además de producir rebotes, permite que la pilota entre en su interior, generan
 
 ---
 
-# Ubicación
+## Ubicación
 
 Los cajones se sitúan en las paredes laterales de la cancha.
 
@@ -29,7 +29,7 @@ En las pistas centrales existen cajones en ambos laterales, mientras que las pis
 
 ---
 
-# Configuración
+## Configuración
 
 Pueden encontrarse dos configuraciones constructivas.
 
@@ -49,7 +49,7 @@ Esta configuración permite introducir la pilota prácticamente en línea recta 
 
 ---
 
-# Función
+## Función
 
 El cajón modifica la trayectoria de la pilota cuando esta impacta sobre sus paredes interiores o las esquinas.
 
@@ -59,7 +59,7 @@ Introducir la pilota en un cajón constituye uno de los principales objetivos es
 
 ---
 
-## Caso especial: contacto con la grada
+### Caso especial: contacto con la grada
 
 Cuando la pilota entra en un cajón de acceso y, desde su interior, impacta directamente contra la grada, el jugador o equipo que realizó el golpe obtiene el quince.
 
@@ -67,7 +67,7 @@ Este criterio se aplica con independencia de que, tras dicho impacto, la pilota 
 
 ---
 
-## Pendiente de documentación
+### Pendiente de documentación
 
 En determinadas instalaciones, una pilota introducida en un cajón lateral podría, teóricamente, ser alcanzada desde la pista contigua antes de que finalizara la jugada lanzando la pilota por encima del muro lateral.
 
@@ -75,7 +75,7 @@ Actualmente no existe un criterio reglamentario documentado sobre la validez de 
 
 Hasta disponer de una regulación expresa, el Proyecto Galotxas mantiene este supuesto como pendiente de documentación.
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-001 – Modelo de la cancha.
 - REG-004 – Desarrollo de una jugada.
@@ -84,7 +84,7 @@ Hasta disponer de una regulación expresa, el Proyecto Galotxas mantiene este su
 
 ---
 
-# Interacción con la pilota
+## Interacción con la pilota
 
 La pilota puede:
 
@@ -96,25 +96,25 @@ El hecho de que la pilota entre en un cajón no supone por sí mismo el final de
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Cajón** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 - Cajón.
 
-## Valenciano
+### Valenciano
 
 - Caxó. *(Pendiente de confirmar la grafía normativa.)*
 
 ---
 
-# Observaciones
+## Observaciones
 
 La geometría exacta de los cajones puede variar ligeramente entre instalaciones.
 
@@ -122,7 +122,7 @@ No obstante, todos ellos responden a la misma finalidad funcional y forman parte
 
 ---
 
-# Notas
+## Notas
 
 Conseguir introducir la pilota en un cajón se considera una de las acciones técnicas de mayor mérito dentro de una partida.
 
@@ -130,7 +130,7 @@ Su aprovechamiento requiere un elevado dominio de los rebotes y del control de l
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Pilota.
 - Pared lateral.
@@ -140,7 +140,7 @@ Su aprovechamiento requiere un elevado dominio de los rebotes y del control de l
 
 ---
 
-# Véase también
+## Véase también
 
 - Cancha.
 - Tamboril.

@@ -1,9 +1,10 @@
 ---
 id: REG-001
+slug: modelo-de-la-cancha
 titulo: Modelo de la cancha
 version: 0.1.0
-estado: Borrador
-ultima_revision: 2026-07-13
+estado: Vigente
+ultima_revision: 2026-07-20
 ---
 
 # Modelo de la cancha
@@ -22,7 +23,7 @@ Las reglas de utilización de cada uno de ellos se desarrollarán en el Reglamen
 
 ---
 
-# 2. Estructura general
+## 2. Estructura general
 
 Una cancha de Galotxas está formada por dos campos separados por una red central.
 
@@ -32,11 +33,11 @@ Aunque puedan existir pequeñas diferencias constructivas entre distintas locali
 
 ---
 
-# 3. Convenciones utilizadas en este documento
+## 3. Convenciones utilizadas en este documento
 
 Con el fin de mantener una terminología consistente, el Proyecto Galotxas adopta las siguientes convenciones documentales.
 
-## Campo del resto
+### Campo del resto
 
 Se denomina Campo del resto al lado de la cancha cuyo fondo está delimitado por la pared tradicionalmente conocida como resto.
 
@@ -44,7 +45,7 @@ Esta pared constituye el límite posterior del campo.
 
 ---
 
-## Campo de la grada
+### Campo de la grada
 
 Se denomina Campo de la grada al lado opuesto.
 
@@ -54,7 +55,7 @@ En aquellas instalaciones donde no existan gradas, la denominación continuará 
 
 ---
 
-## Convención documental
+### Convención documental
 
 Estas denominaciones tienen como único objetivo facilitar la lectura y mantener una referencia constante durante toda la documentación.
 
@@ -62,7 +63,7 @@ No sustituyen necesariamente la terminología tradicional utilizada por jugadore
 
 ---
 
-# 4. Elementos estructurales
+## 4. Elementos estructurales
 
 Una cancha de Galotxas está compuesta por los siguientes elementos principales.
 
@@ -84,15 +85,15 @@ Cada uno de estos elementos se describe en los apartados siguientes.
 
 ---
 
-# 5. Campo del resto
+## 5. Campo del resto
 
-## Definición
+### Definición
 
 Mitad de la cancha cuyo fondo está delimitado por la pared del resto.
 
 Constituye uno de los dos espacios principales de juego.
 
-## Elementos característicos
+### Elementos característicos
 
 Habitualmente incorpora:
 
@@ -101,21 +102,21 @@ Habitualmente incorpora:
 - Banco de saque.
 - Dos cajones laterales.
 
-## Observaciones
+### Observaciones
 
 Durante la modalidad por parejas, el saque se inicia desde este campo.
 
 ---
 
-# 6. Campo de la grada
+## 6. Campo de la grada
 
-## Definición
+### Definición
 
 Mitad opuesta al Campo del resto.
 
 Su fondo está delimitado por una pared de menor altura conocida en esta documentación como pared de la grada.
 
-## Elementos característicos
+### Elementos característicos
 
 Habitualmente incorpora:
 
@@ -127,13 +128,13 @@ Habitualmente incorpora:
 
 ---
 
-# 7. Red
+## 7. Red
 
-## Definición
+### Definición
 
 Elemento situado en el centro de la cancha que separa ambos campos.
 
-## Características
+### Características
 
 La red permanece destensada entre ambos laterales de la cancha.
 
@@ -143,17 +144,17 @@ Esta geometría constituye una característica propia de las Galotxas y condicio
 
 ---
 
-# 8. Tamboriles
+## 8. Tamboriles
 
-## Definición
+### Definición
 
 Planos inclinados situados en la unión entre la pared del fondo y el suelo de ambos campos.
 
-## Función estructural
+### Función estructural
 
 Sustituyen el ángulo recto existente entre ambas superficies.
 
-## Función durante el juego
+### Función durante el juego
 
 El tamboril forma parte activa del juego.
 
@@ -161,15 +162,15 @@ Las reglas relativas a su utilización se desarrollan en el Reglamento.
 
 ---
 
-# 9. Banco de saque
+## 9. Banco de saque
 
-## Definición
+### Definición
 
 Elemento fijo situado en el lado derecho y próximo a la red del Campo del resto.
 
 Tradicionalmente construido en obra.
 
-## Función
+### Función
 
 Permite la ejecución del saque en la modalidad por parejas.
 
@@ -177,43 +178,43 @@ Su utilización durante el juego queda regulada en el Reglamento.
 
 ---
 
-# 10. Zona de recepción del saque
+## 10. Zona de recepción del saque
 
-## Definición
+### Definición
 
 Área delimitada mediante líneas sobre el suelo del Campo de la grada.
 
-## Función
+### Función
 
 Determina la zona donde deberá producirse el bote del saque en la modalidad por parejas.
 
 ---
 
-# 11. Punto de saque
+## 11. Punto de saque
 
-## Definición
+### Definición
 
 Marca circular situada en el interior de la zona de recepción del saque.
 
-## Función
+### Función
 
 Indica el lugar desde el que se inicia el saque en la modalidad individual.
 
 ---
 
-# 12. Cajones
+## 12. Cajones
 
-## Definición
+### Definición
 
 Aberturas existentes en ambos campos que comunican las canchas.
 
-## Función
+### Función
 
 Los cajones forman parte activa del juego.
 
 Las consecuencias reglamentarias derivadas de la entrada de la pilota en ellos se desarrollan en el Reglamento.
 
-## Variantes constructivas
+### Variantes constructivas
 
 Aunque la configuración habitual de una instalación permite que una cancha disponga de dos cajones por cada campo, las pistas situadas en los extremos de una instalación pueden carecer de los cajones ubicados en el lateral exterior.
 
@@ -221,13 +222,13 @@ Esta diferencia constructiva no modifica las reglas del juego, simplemente elimi
 
 ---
 
-# 13. Pared del resto
+## 13. Pared del resto
 
-## Definición
+### Definición
 
 Pared situada al fondo del Campo del resto.
 
-## Características
+### Características
 
 Presenta una altura considerablemente superior a la pared existente en el campo opuesto.
 
@@ -235,13 +236,13 @@ Constituye uno de los elementos más representativos de la cancha.
 
 ---
 
-# 14. Pared de la grada
+## 14. Pared de la grada
 
-## Definición
+### Definición
 
 Pared situada al fondo del Campo de la grada.
 
-## Características
+### Características
 
 Su altura es notablemente inferior a la de la pared del resto.
 
@@ -251,13 +252,13 @@ Las reglas relativas a la salida de la pilota por encima de esta pared se desarr
 
 ---
 
-# 15. Paredes laterales
+## 15. Paredes laterales
 
-## Definición
+### Definición
 
 Paredes longitudinales que delimitan ambos lados de la cancha, tienen la misma altura que la pared de resto.
 
-## Función
+### Función
 
 Delimitan lateralmente el terreno de juego.
 
@@ -265,25 +266,25 @@ Las interacciones de la pilota con estas paredes forman parte del desarrollo nor
 
 ---
 
-# 16. Elementos externos
+## 16. Elementos externos
 
-## Definición
+### Definición
 
 Conjunto de elementos externos a la cancha tales como las bigas situadas sobre la cancha que forman parte de la estructura de cubierta, paneles de aislamiento de las instalaciones, ventanales, etc.
 
-## Observaciones
+### Observaciones
 
 Determinadas situaciones de juego relacionadas con estos elementos poseen tratamiento reglamentario específico.
 
 ---
 
-# 17. Superficie de juego
+## 17. Superficie de juego
 
-## Definición
+### Definición
 
 Zona transitable comprendida entre ambos fondos de la cancha.
 
-## Características
+### Características
 
 La superficie deberá permitir el bote normal de la pilota y el desplazamiento seguro de los jugadores.
 
@@ -291,7 +292,7 @@ Las dimensiones concretas podrán variar entre instalaciones.
 
 ---
 
-# 18. Relaciones entre elementos
+## 18. Relaciones entre elementos
 
 La cancha de Galotxas debe entenderse como un sistema donde todos sus elementos mantienen relaciones funcionales.
 

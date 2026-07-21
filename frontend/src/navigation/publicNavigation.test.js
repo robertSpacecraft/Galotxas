@@ -10,6 +10,7 @@ describe('publicNavigation', () => {
     expect(publicNavigation.map(({ id, label, to }) => ({ id, label, to }))).toEqual([
       { id: 'home', label: 'Inicio', to: '/' },
       { id: 'competition', label: 'Competición', to: '/competicion' },
+      { id: 'learn', label: 'Aprende a jugar', to: '/aprende-a-jugar' },
     ]);
 
     const serializedNavigation = JSON.stringify(publicNavigation);
@@ -17,7 +18,6 @@ describe('publicNavigation', () => {
     for (const excludedValue of [
       'Torneos',
       'Rankings',
-      'Aprende a jugar',
       'Escuela de Galotxas',
       'Club',
       '/contenidos',
@@ -36,6 +36,10 @@ describe('publicNavigation', () => {
     ['/categories/7/schedule', 'competition'],
     ['/matches/15', 'competition'],
     ['/rankings', 'competition'],
+    ['/aprende-a-jugar', 'learn'],
+    ['/aprende-a-jugar/manual', 'learn'],
+    ['/aprende-a-jugar/manual/reglamento/el-saque', 'learn'],
+    ['/aprende-a-jugar/manual/conceptos/juego/saque', 'learn'],
     ['/contenidos/nosotros', null],
     ['/nosotros', null],
     ['/torneos/1/otra-ruta', null],
@@ -49,5 +53,13 @@ describe('publicNavigation', () => {
     expect(getPublicNavigationAriaCurrent(competition, '/competicion')).toBe('page');
     expect(getPublicNavigationAriaCurrent(competition, '/torneos')).toBe('location');
     expect(getPublicNavigationAriaCurrent(competition, '/contenidos/nosotros')).toBeUndefined();
+  });
+
+  it('distinguishes the Aprende landing from all of its descendants', () => {
+    const learn = publicNavigation[2];
+
+    expect(getPublicNavigationAriaCurrent(learn, '/aprende-a-jugar')).toBe('page');
+    expect(getPublicNavigationAriaCurrent(learn, '/aprende-a-jugar/manual')).toBe('location');
+    expect(getPublicNavigationAriaCurrent(learn, '/competicion')).toBeUndefined();
   });
 });

@@ -1,8 +1,9 @@
+import { lazy } from 'react';
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { championshipsService } from './api/championships';
 import { cmsService } from './api/cms';
-import App from './App';
+import App, { KnowledgeRoute } from './App';
 
 vi.mock('./api/championships', () => ({
   championshipsService: {
@@ -39,6 +40,21 @@ describe('App public routes', () => {
     });
   });
 
+  it('muestra un fallback accesible sin main, H1 ni 404 mientras carga una ruta diferida', () => {
+    const PendingPage = lazy(() => new Promise(() => {}));
+
+    render(
+      <KnowledgeRoute>
+        <PendingPage />
+      </KnowledgeRoute>,
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando Aprende a jugar');
+    expect(screen.queryByRole('main')).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
+    expect(screen.queryByText('Página no encontrada')).not.toBeInTheDocument();
+  });
+
   it('renders the functional tournament list without the legacy placeholder', async () => {
     openAppAt('/torneos');
 
@@ -70,7 +86,7 @@ describe('App public routes', () => {
     expect(screen.getAllByRole('main')).toHaveLength(1);
   });
 
-  it.each(['/aprende-a-jugar', '/escuela', '/club'])(
+  it.each(['/escuela', '/club'])(
     'does not publish the future route %s as a placeholder',
     async (pathname) => {
       openAppAt(pathname);
@@ -80,6 +96,31 @@ describe('App public routes', () => {
       expect(window.location.pathname).toBe(pathname);
     },
   );
+
+  it.each([
+    ['/aprende-a-jugar', 'Aprende a jugar'],
+    ['/aprende-a-jugar/manual', 'Manual'],
+    ['/aprende-a-jugar/manual/reglamento/saque', 'El saque'],
+    ['/aprende-a-jugar/manual/conceptos/elementos/pilota', 'Pilota'],
+  ])('registers the functional Knowledge route %s', async (pathname, heading) => {
+    openAppAt(pathname);
+
+    expect(await screen.findByRole('heading', { name: heading, level: 1 })).toBeInTheDocument();
+    expect(screen.getAllByRole('main')).toHaveLength(1);
+  });
+
+  it.each([
+    '/aprende-a-jugar/manual/reglamento/inexistente',
+    '/aprende-a-jugar/manual/conceptos/instalaciones/cancha',
+    '/aprende-a-jugar/manual/conceptos/juego/inexistente',
+    '/aprende-a-jugar/manual/ruta-mal-formada',
+  ])('uses the existing 404 without redirecting for %s', async (pathname) => {
+    openAppAt(pathname);
+
+    expect(await screen.findByRole('heading', { name: 'Página no encontrada', level: 1 }))
+      .toBeInTheDocument();
+    expect(window.location.pathname).toBe(pathname);
+  });
 
   it('does not intercept a valid dynamic CMS route with the wildcard', async () => {
     openAppAt('/contenidos/nosotros');

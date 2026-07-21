@@ -4,7 +4,7 @@ slug: zona-de-recepcion-del-saque
 titulo: Zona de recepción del saque
 version: 1.0.0
 estado: Vigente
-ultima_revision: 2026-07-17
+ultima_revision: 2026-07-20
 ---
 
 # Zona de recepción del saque
@@ -17,7 +17,7 @@ Su finalidad es garantizar que el saque se realice en condiciones de igualdad y 
 
 ---
 
-# Ubicación
+## Ubicación
 
 La zona de recepción del saque se encuentra situada en el lado de la pared de grada, frente al jugador que realiza el saque.
 
@@ -25,7 +25,7 @@ Está delimitada por las líneas reglamentarias de la cancha y forma parte de su
 
 ---
 
-# Función
+## Función
 
 La zona de recepción determina el lugar en el que debe producirse el primer bote de la pilota tras el saque en la modalidad por parejas.
 
@@ -33,14 +33,14 @@ Fuera de esta situación, no tiene ninguna función específica durante el desar
 
 ---
 
-# Reglas relacionadas
+## Reglas relacionadas
 
 - REG-001 – Modelo de la cancha.
 - REG-003 – El saque.
 
 ---
 
-# Interacción con la pilota
+## Interacción con la pilota
 
 En la modalidad por parejas, el primer bote de la pilota tras el saque deberá producirse dentro de la zona de recepción del saque.
 
@@ -48,25 +48,25 @@ Las líneas que delimitan esta zona se consideran parte integrante de la misma.
 
 ---
 
-# Denominación preferente
+## Denominación preferente
 
 El Proyecto Galotxas adopta **Zona de recepción del saque** como término principal de la documentación.
 
 ---
 
-# Sinónimos
+## Sinónimos
 
-## Castellano
+### Castellano
 
 Actualmente no se documentan sinónimos de uso habitual.
 
-## Valenciano
+### Valenciano
 
 - Zona de recepció del traure.
 
 ---
 
-# Observaciones
+## Observaciones
 
 La zona de recepción únicamente interviene durante la ejecución del saque en la modalidad por parejas.
 
@@ -74,7 +74,7 @@ En la modalidad individual (mà a mà), esta zona no resulta de aplicación.
 
 ---
 
-# Notas
+## Notas
 
 Los límites de la zona de recepción vienen determinados por las marcas reglamentarias de la cancha.
 
@@ -82,7 +82,7 @@ Su configuración deberá mantenerse uniforme en todas las instalaciones.
 
 ---
 
-# Denominaciones relacionadas
+## Denominaciones relacionadas
 
 - Saque.
 - Punto de saque.
@@ -91,7 +91,7 @@ Su configuración deberá mantenerse uniforme en todas las instalaciones.
 
 ---
 
-# Véase también
+## Véase también
 
 - Punto de saque.
 - Cuadro de saque.
