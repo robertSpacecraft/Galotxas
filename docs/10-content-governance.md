@@ -117,14 +117,18 @@ El cierre 5C mantiene esas rutas y fuentes. La landing presenta los recuentos ob
 
 ### Escuela de Galotxas
 
-Sección pública propia para niños, familias, centros educativos, docentes, monitores, iniciación, programas educativos y actividad real de la Escuela. No es una subsección del Manual y no debe denominarse públicamente “Academy”, salvo para explicar una referencia legada durante la migración.
+Sección pública propia para la oferta formativa y la actividad real de la Escuela. Sus públicos concretos —posiblemente participantes, familias, centros educativos, docentes o monitores— deben confirmarse antes de modelar grupos o publicar mensajes. No es una subsección del Manual y no debe denominarse públicamente “Academy”, salvo para explicar una referencia legada durante la migración.
 
 Su arquitectura será híbrida:
 
-- presentación, metodología, ejercicios y recursos pedagógicos estables desde una futura colección de `knowledge/`;
-- actividades, convocatorias, noticias, fechas, centros, galerías, documentos e inscripciones desde el backend CMS.
+- metodología, iniciación, ejercicios y recursos pedagógicos estables desde una futura colección de `knowledge/`, sólo cuando exista contenido real y aprobado;
+- programa, grupos, horarios, ubicaciones y estado de inscripción desde un dominio Laravel específico administrado con Blade;
+- solicitudes futuras desde un modelo transaccional escolar independiente, únicamente después de aprobar finalidad, datos mínimos, menores, consentimiento y conservación;
+- avisos o páginas simples desde el CMS genérico cuando no necesiten relaciones propias.
 
-La ruta canónica futura es `/escuela`. No se aprueba `/manual/academy`. Las posibles subáreas se definirán cuando exista alcance funcional y contenido real.
+La Escuela puede enlazar al Manual existente, pero no copiarlo ni anidarse dentro de Aprende a jugar. React sólo compondrá la proyección estable y los datos operativos ya autorizados. El CMS genérico no se fuerza para grupos, horarios o solicitudes, y la inscripción a campeonatos no se reutiliza como inscripción escolar.
+
+La ruta canónica futura es `/escuela`. No se aprueba `/manual/academy`. Fase 6A define el contrato en `12-school-of-galotxas.md`, pero no implementa la ruta, el Navbar, el dominio, la API, una colección o un formulario. Las posibles subáreas se definirán cuando exista alcance funcional y contenido real.
 
 ### Club
 
@@ -149,7 +153,9 @@ La tabla diferencia la fuente aprobada de las capacidades actuales que todavía 
 | Reglamento | `knowledge/reglamento/` | Git y revisión | No | No | Normativa |
 | Conceptos | `knowledge/conceptos/` | Git y revisión | No | No | Canónica |
 | Escuela: contenido estable | `knowledge/` futuro | Git y revisión | No inicialmente | No | Pedagógica |
-| Escuela: actividad | Backend CMS | Administrador | Sí | Sí | Operativa |
+| Escuela: actividad | Dominio Laravel específico futuro | Administrador desde Blade | Pendiente 6B | Pendiente 6B | Operativa |
+| Escuela: solicitudes | Dominio Laravel transaccional futuro e independiente | Solicitante + administrador autorizado | No existe | No existe | Privada |
+| Escuela: avisos simples | CMS genérico, si se aprueba | Administrador | Genérico actual | Genérica actual | Editorial |
 | Club | Backend CMS | Administrador | Sí | Sí | Institucional |
 | Prensa y medios | Backend CMS genérico auditado; contrato específico pendiente | Administrador | Genérico actual | Genérica actual | Editorial |
 | Contenidos legado | Backend CMS | Administrador | Existente y auditado | Existente y auditado | Legada |
@@ -256,11 +262,15 @@ Los recursos estáticos pequeños y adecuados para versionado pueden formar part
 
 Cada tipo de archivo debe definir permisos, propietario, procedencia, licencia, texto alternativo, sustitución, borrado y limpieza de huérfanos. Los vídeos pesados no se almacenarán normalmente en Git. Esta fase no implementa almacenamiento externo.
 
+Para Escuela, una imagen o galería debe registrar además el responsable editorial y la posibilidad de retirada. Los bloques CMS actuales basados en URLs no resuelven procedencia, consentimiento, texto alternativo individual de galería o ciclo de vida. La portada, el orden y cualquier medio con menores se omiten hasta disponer de permisos verificables; las subidas administrativas no se guardarán en Git.
+
 ## 15. Contenido relacionado con menores
 
 La Escuela puede tratar imágenes o información de menores. Antes de publicar se deben definir autorización verificable, finalidad, alcance, vigencia, responsables, privacidad, retirada y canales de respuesta. La ausencia de consentimiento o procedencia clara impide incorporar el material.
 
 Las vistas públicas, metadatos, galerías y documentos deben minimizar datos personales y evitar información que permita localizar o perfilar innecesariamente a un menor.
+
+Una futura solicitud escolar recogerá únicamente los datos confirmados por su proceso real, usará Resources separados por contexto, respuestas que no permitan enumeración, limitación de frecuencia propia y acceso administrativo restringido. No se exigirá una cuenta o perfil `Player` por analogía, no se registrará el contenido personal en logs ordinarios y no se admitirán adjuntos en su primera versión.
 
 ## 16. Integración frontend/backend
 
@@ -309,7 +319,11 @@ La Fase 3A no elimina `/contenidos`, no crea redirects, no cambia su API ni borr
 
 - Inventario editorial de los datos reales de cada entorno antes de migrarlos; el catálogo del seeder no sustituye ese inventario.
 - Resolución y compatibilidad de Nosotros entre página estática y CMS.
-- Uso y destino editorial de `academy` y clasificación de `documentos`.
+- Contenido real de `academy` por entorno, clasificación de sus piezas, consumidores y momento futuro de migración, despublicación o redirect; clasificación de `documentos`.
+- Definición real de programa, grupos, recurrencia de horarios, ubicaciones y ámbito del periodo de inscripción de Escuela.
+- Canal organizativo de contacto y decisión sobre si se necesita un formulario escolar.
+- Solicitante, datos mínimos, cuenta, flujo, conservación y decisiones humanas sobre menores antes de cualquier solicitud.
+- Existencia y responsable editorial de material pedagógico suficiente para una colección de Escuela.
 - Creación de Contacto: no existe slug sembrado ni contenido verificable actual.
 - Necesidades editoriales de noticias, actividades, galerías, documentos y formularios.
 - Estrategia de almacenamiento persistente y ciclo de vida de archivos.

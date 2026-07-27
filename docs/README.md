@@ -13,8 +13,9 @@ La documentación se organiza para separar claramente:
 - decisiones arquitectónicas;
 - criterios de uso de Resources;
 - contrato de navegación y rutas públicas;
-- gobernanza de contenidos y arquitectura pública.
+- gobernanza de contenidos y arquitectura pública;
 - canalización build-time del conocimiento canónico.
+- auditoría y contrato de Escuela de Galotxas.
 
 ## Orden recomendado de lectura
 
@@ -31,8 +32,9 @@ La documentación se organiza para separar claramente:
 11. [Candidato MVP y proceso de publicación](09-release-candidate.md)
 12. [Gobernanza de contenidos y arquitectura pública](10-content-governance.md)
 13. [Canalización build-time de Knowledge](11-knowledge-pipeline.md)
+14. [Auditoría y contrato de Escuela de Galotxas](12-school-of-galotxas.md)
 
-El contrato de navegación inventaría el router y los enlaces actuales, fija las cinco áreas canónicas y define compatibilidad, accesibilidad, SEO y gates de implementación sin presentar las rutas futuras como existentes. El documento de gobernanza define qué información pertenece al dominio Laravel, al CMS administrable o al conocimiento canónico. El contrato de la canalización documenta cómo se valida y compila `knowledge/` sin convertir el artefacto en fuente editorial. El conocimiento estable del deporte se mantiene por separado en [`knowledge/`](../knowledge/README.md); los documentos técnicos describen el software y no sustituyen esa fuente editorial.
+El contrato de navegación inventaría el router y los enlaces actuales, fija las cinco áreas canónicas y define compatibilidad, accesibilidad, SEO y gates de implementación sin presentar las rutas futuras como existentes. El documento de gobernanza define qué información pertenece al dominio Laravel, al CMS administrable o al conocimiento canónico. El contrato de la canalización documenta cómo se valida y compila `knowledge/` sin convertir el artefacto en fuente editorial. La auditoría de Escuela concreta su reparto híbrido, el MVP, el dominio provisional y los planes pendientes de 6B y 6C sin publicar la sección. El conocimiento estable del deporte se mantiene por separado en [`knowledge/`](../knowledge/README.md); los documentos técnicos describen el software y no sustituyen esa fuente editorial.
 
 Los dos documentos con prefijo `09-` conservan nombres históricos distintos: uno pertenece al contrato público de la Fase 3A y el otro al proceso del candidato MVP. No son versiones alternativas del mismo documento.
 

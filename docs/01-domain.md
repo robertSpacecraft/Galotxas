@@ -340,7 +340,7 @@ Los Conceptos reúnen vocabulario y definiciones canónicas en `knowledge/concep
 
 El Manual será un consumidor público del conocimiento estable de `knowledge/`. Su función será organizar y explicar Reglamento y Conceptos, no duplicarlos. La landing Aprende a jugar será una puerta de entrada divulgativa y no debe confundirse con el Manual.
 
-La Escuela de Galotxas es una sección distinta del Manual. Su metodología, ejercicios y recursos docentes estables podrán proceder de una futura colección de `knowledge/`; sus actividades, fechas, convocatorias y demás información operativa pertenecerán al backend CMS. Esa colección y esos flujos todavía no están implementados.
+La Escuela de Galotxas es una sección distinta del Manual. Su metodología, ejercicios y recursos docentes estables podrán proceder de una futura colección de `knowledge/`; su programa, grupos, horarios, ubicaciones y estado de inscripción pertenecerán a un dominio Laravel específico administrado desde Blade. El CMS genérico sólo podrá conservar piezas simples no estructuradas. Una eventual solicitud escolar tendrá un modelo independiente de la inscripción deportiva. La colección, el dominio y esos flujos todavía no están implementados; su propuesta reversible y las preguntas humanas previas se documentan en `12-school-of-galotxas.md`.
 
 ## Contenido institucional
 

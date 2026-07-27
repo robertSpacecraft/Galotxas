@@ -860,6 +860,58 @@ Seguimiento de Fase 5C, 2026-07-21:
 
 ---
 
+# ADR-031 — Escuela como vertical híbrida con dominio operativo propio
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-07
+
+Contexto:
+
+- “Escuela de Galotxas” es una de las cinco áreas públicas aprobadas, pero `/escuela` no existe todavía y no aparece en el Navbar.
+- `knowledge/` contiene Reglamento y Conceptos publicables, pero no una colección, metodología o programa pedagógico de Escuela.
+- el CMS incluye una página genérica sembrada con slug `academy`; sus bloques no representan grupos, horarios, ubicaciones, periodos o solicitudes y el seeder no acredita el contenido real de cada entorno;
+- Home y `/nosotros` contienen menciones React hardcodeadas que no son fuentes editoriales;
+- las solicitudes de inscripción a campeonatos presuponen usuario y jugador y responden a una finalidad deportiva distinta;
+- la futura Escuela puede involucrar menores, contacto y datos transaccionales con requisitos de minimización y autorización propios.
+
+Decisión:
+
+- tratar Escuela como una vertical híbrida independiente:
+  - `knowledge/` será la única fuente de metodología, iniciación y recursos pedagógicos estables cuando exista contenido real y una colección aprobada;
+  - Laravel/MariaDB será la fuente de programa, grupos, horarios, ubicaciones, estado de inscripción y cualquier proceso transaccional;
+  - Blade será la interfaz administrativa oficial de la información operativa;
+  - una API pública específica filtrará la visibilidad antes de entregar datos;
+  - React será consumidor y capa de presentación de `/escuela`, nunca fuente editorial;
+- permitir que la experiencia enlace al Manual existente sin copiar sus reglas;
+- conservar temporalmente `academy` como contenido CMS legado, sin equipararlo, renombrarlo, redirigirlo o eliminarlo hasta inventariar datos y consumidores y disponer de paridad;
+- preferir un dominio operativo mínimo basado provisionalmente en programa, grupos, horarios, ubicaciones y periodo de inscripción, pero exigir respuestas humanas antes de fijar campos, estados o recurrencia;
+- separar cualquier futura solicitud escolar de `ChampionshipRegistrationRequest`, `CategoryRegistration`, `User` y `Player`; sólo se reutilizarán patrones técnicos;
+- dejar el formulario fuera del MVP informativo-operativo hasta confirmar solicitante, proceso, datos mínimos, menores, consentimiento, conservación y canal de respuesta;
+- usar `/escuela` y la etiqueta “Escuela de Galotxas” cuando 6C supere los gates de contenido, backend, API y pruebas;
+- mantener Fase 6 abierta: 6A cierra el contrato; 6B y 6C continúan pendientes.
+
+Alternativas descartadas:
+
+- usar `academy` como solución final: sólo ofrece una página CMS genérica y una URL técnica, con nombre y capacidades distintos;
+- almacenar toda la Escuela en el CMS: forzaría bloques sin relaciones para información operativa y transaccional;
+- almacenar toda la Escuela en `knowledge/`: convertiría fechas y oferta cambiante en contenido que necesita despliegue y no podría gestionar solicitudes;
+- hardcodear la landing en React: duplicaría o inventaría contenido y eliminaría la edición administrativa;
+- incorporar Escuela dentro de Aprende a jugar: confundiría una oferta operativa con el Manual canónico;
+- reutilizar la inscripción deportiva o el perfil `Player`: impondría finalidad, estados, identidad y datos no justificados;
+- modelar desde 6A una plataforma educativa completa: introduciría pagos, asistencia, expedientes, calificaciones o perfiles sin necesidad real;
+- publicar una ruta o enlace vacío mientras se construye el backend: violaría el gate de navegación funcional.
+
+Consecuencias:
+
+- 6B debe cerrar primero las preguntas operativas y luego implementar una vertical Laravel pequeña, con registros privados por defecto, administración Blade, consulta pública y tests.
+- 6C podrá ampliar `knowledge/` sólo si hay material aprobado; en caso contrario, enlazará el Manual y compondrá únicamente datos operativos reales.
+- el modelo propuesto en la auditoría es reversible y no constituye todavía un contrato de base de datos o API.
+- el CMS genérico conserva utilidad para piezas no estructuradas, pero no se convierte en una segunda fuente de grupos, horarios o solicitudes.
+- privacidad, medios y migración de `academy` se resuelven por bloques explícitos antes de ampliar la superficie pública.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

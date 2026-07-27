@@ -12,6 +12,7 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - Se añade una experiencia 404 de React Router con enlaces de recuperación, sin redirects ni cambios de hosting.
 - Se incorpora el sistema común de landings públicas de Fase 3C con contenedor, cabecera, acciones, secciones, rejilla y tarjetas-enlace desacoplados de las fuentes de contenido.
 - Se añaden metadatos básicos reversibles por ruta para Competición y 404, semántica y teclado cubiertos y una matriz responsive de 320 a 1440 px, cerrando técnicamente la Fase 3 sin publicar nuevas áreas.
+- Se completa la auditoría y el contrato documental de Fase 6A para Escuela de Galotxas: arquitectura híbrida, fuentes de verdad, MVP informativo-operativo, dominio provisional, privacidad, migración futura de `academy` y planes pendientes de 6B/6C, sin modelos, API, ruta, Navbar o formulario.
 - Se incorpora la landing dinámica de Competición de Fase 4A con temporadas y campeonatos públicos obtenidos en una única carga, estados loading/error/retry/vacío y enlaces contextuales al detalle.
 - Se integra en `/competicion` el preview histórico de Fase 4B mediante una carga independiente, limitado visualmente a cinco filas en el orden del backend y enlazado a la experiencia completa `/rankings`.
 - Se completa la Fase 4 con el recorrido público de Competición desde la landing hasta campeonato, categoría, clasificación, calendario y partido, con retornos deterministas, metadatos básicos y navegación contextual accesible.

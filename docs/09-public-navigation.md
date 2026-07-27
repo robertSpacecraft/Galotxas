@@ -133,10 +133,24 @@ También existen módulos React no montados: `pages/Home.jsx` y `CategoryCard`, 
 | `/` | Home pública y puerta de entrada actual | Estructura React más fuentes conectadas según cada bloque | `h1`, propuesta de valor y CTA deportivo existente | Navbar y `/torneos` | Implementada y sin rediseño; el Navbar aporta el acceso a Competición. |
 | `/competicion` | Landing funcional de actividad deportiva pública | API pública del dominio Laravel | `h1`, acceso principal, temporadas/campeonatos y preview histórico con estados independientes; sin recalcular reglas | Rama deportiva completa y `/rankings` | Fase 4 completada con 4A–4C. |
 | `/aprende-a-jugar` | Entrada divulgativa al Manual, Reglamento y Conceptos | Proyección pública compilada desde `knowledge/` | `h1`, resumen derivado, acceso al Manual y recorrido real; no copy editorial duplicado en JSX | `/manual`, `/manual/reglamento/:slug` y `/manual/conceptos/:group/:slug` | Completada en 5C con 40 documentos, contexto, índice, vecinos, fragmentos y carga diferida. |
-| `/escuela` | Identidad, públicos y actividad real de la Escuela | Híbrida: `knowledge/` futuro para pedagogía estable y CMS/backend para actividad temporal | `h1`, contenido pedagógico aprobado y/o actividad publicable real con responsabilidades diferenciadas | Se definirán al existir vertical editorial, privacidad y contenido real | No. No existe colección de Escuela ni contrato CMS específico; `academy` no satisface el requisito. |
+| `/escuela` | Identidad, públicos y actividad real de la Escuela | Híbrida: `knowledge/` futuro para pedagogía estable y dominio Laravel específico para actividad operativa | `h1`, enlace al Manual y datos públicos reales de grupos, horarios, ubicaciones y estado de inscripción; contenido pedagógico sólo si está aprobado | Se definirán al existir datos y necesidades reales; el MVP no requiere subrutas | No. Fase 6A sólo define el contrato; no existen colección de Escuela, dominio, API, ruta ni Navbar y `academy` no satisface el requisito. |
 | `/club` | Landing institucional que agrupa páginas editables | CMS administrado en Blade y API pública | `h1` y enlaces a un conjunto publicado y clasificado de páginas institucionales; estado vacío controlado | Futuras páginas de Nosotros, Federarse, Federaciones, Prensa y medios, Contacto y, si se aprueba, Documentos | Parcial. El CMS y cuatro piezas existen, pero faltan el mapeo canónico, Contacto y resolver la duplicidad de Nosotros. |
 
-Los namespaces de Aprende a jugar quedan cerrados para el Manual inicial. Escuela y Club sólo definirán los suyos cuando sus contratos puedan garantizar URLs estables. Los ejemplos anteriores `/aprende` o `/manual` en raíz nunca se implementaron y no sustituyen este primer nivel.
+Los namespaces de Aprende a jugar quedan cerrados para el Manual inicial. La ruta única recomendada para el MVP de Escuela es `/escuela`; no necesita subrutas hasta que existan destinos reales con URLs estables. Club definirá las suyas cuando su contrato pueda garantizar esa estabilidad. Los ejemplos anteriores `/aprende` o `/manual` en raíz nunca se implementaron y no sustituyen este primer nivel.
+
+### Gate específico de Escuela
+
+La etiqueta pública y el H1 serán “Escuela de Galotxas”. Ocupará la cuarta posición del Navbar, entre Aprende a jugar y Club, y su estado activo abarcará `/escuela` y las subrutas que se aprueben en el futuro. Actualmente el Navbar conserva sólo Inicio, Competición y Aprende a jugar y la 404 para `/escuela`; no se muestra un enlace deshabilitado.
+
+Antes de registrar la ruta deben existir:
+
+- contenido estable real o, como mínimo, un enlace útil al Manual sin duplicarlo;
+- dominio Laravel y API pública para cualquier grupo, horario, ubicación o estado de inscripción mostrado;
+- estados de carga, error, parcial y vacío;
+- decisión de privacidad y canal de contacto;
+- tests frontend, accesibilidad, responsive y regresión del Navbar.
+
+Escuela se relaciona con Aprende mediante conocimiento y con Club mediante la organización responsable, pero no se anida bajo ninguno. El contrato funcional completo se mantiene en `12-school-of-galotxas.md`.
 
 ## 7. Rutas secundarias
 
@@ -162,7 +176,7 @@ El contrato API refuerza hoy esa URL: `PublicCmsPageSummaryResource` genera `url
 
 La ruta estática `/nosotros` es heredada y duplicada, pero no está vacía. Su ausencia de enlaces internos no demuestra ausencia de tráfico externo ni autoriza su borrado.
 
-`academy` es un slug CMS sembrado y un nombre todavía presente en Home, además de haber formado parte del Navbar anterior a 3B. No es sinónimo contractual de Escuela de Galotxas ni de Aprende a jugar. Se conservará sin reinterpretación automática hasta inventariar y migrar su contenido real.
+`academy` es un slug CMS sembrado y un nombre todavía presente en Home, además de haber formado parte del Navbar anterior a 3B. No es sinónimo contractual de Escuela de Galotxas ni de Aprende a jugar. Se conservará sin reinterpretación automática hasta inventariar su contenido real. Después se clasificarán y migrarán las piezas útiles, se comprobarán consumidores y paridad, y sólo entonces podrán decidirse despublicación, canonical o redirect hacia `/escuela`; datos, URL, navegación y SEO se tratan como problemas separados.
 
 ## 9. Matriz de compatibilidad
 
@@ -221,7 +235,7 @@ En móvil puede compartirse la misma cabecera visual, pero deben mantenerse grup
 | Inicio | Híbrida | Estructura y composición | Entrega sólo elementos dinámicos publicables; Knowledge aporta artefactos cuando existan. |
 | Competición | Dominio Laravel | Presentar y enlazar datos | Aplicar visibilidad, estados y reglas; serializar Resources públicos. |
 | Aprende a jugar | `knowledge/` | Presentar exclusivamente la proyección pública | Compilador build-time valida, filtra y genera; Laravel no sirve el Manual v1. |
-| Escuela de Galotxas | `knowledge/` futuro + CMS/backend | Componer ambas fuentes sin duplicarlas | Compilador para pedagogía estable; CMS para actividad y publicación. |
+| Escuela de Galotxas | `knowledge/` futuro + dominio Laravel específico | Componer ambas fuentes sin duplicarlas | Compilador para pedagogía estable; Blade/API para programa, grupos, horarios, ubicaciones y estado de inscripción. |
 | Club | CMS | Landing y presentación de páginas públicas | Blade administra; API excluye borradores y publicaciones futuras. |
 | Cuenta | Dominio Laravel autenticado | Formularios y Mi Panel | Autenticación, autorización y datos propios. |
 
@@ -262,7 +276,7 @@ Los fragmentos conservan los IDs del artefacto y funcionan en navegación SPA, c
 
 ## 15. Escuela híbrida
 
-Escuela de Galotxas es una sección distinta de Academy y del Manual. Su parte estable podrá incluir metodología, ejercicios y recursos pedagógicos desde una colección futura de `knowledge/`. La actividad real —talleres, centros, docentes, fechas, noticias, galerías, documentos o inscripciones— requerirá una vertical CMS/backend con estados, permisos y API adecuados.
+Escuela de Galotxas es una sección distinta del `academy` legado y del Manual. Su parte estable podrá incluir metodología, ejercicios y recursos pedagógicos desde una colección futura de `knowledge/`, únicamente cuando exista contenido aprobado. Programa, grupos, horarios, ubicaciones y estado de inscripción requerirán un dominio Laravel específico con Blade, visibilidad y API pública. Un aviso simple podrá permanecer en el CMS si no necesita estructura; cualquier solicitud será transaccional, independiente de la inscripción deportiva y posterior al MVP.
 
 Antes de publicar `/escuela` se requieren al menos:
 
@@ -270,7 +284,7 @@ Antes de publicar `/escuela` se requieren al menos:
 2. contenido real mínimo con propietario editorial;
 3. separación explícita entre material estable y actividad operativa;
 4. modelo de privacidad, consentimiento y retirada para datos o imágenes de menores;
-5. URLs y Resources de la actividad publicable;
+5. modelo Laravel, administración, endpoint y Resources de la actividad publicable;
 6. estados remotos, accesibilidad y pruebas.
 
 El CMS genérico demuestra una infraestructura, pero el slug `academy` y dos bloques sembrados no demuestran estas capacidades verticales.

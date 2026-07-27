@@ -916,6 +916,26 @@ El backend debe probar el filtro de publicación. Una prueba que solo comprueba 
 
 KNOWLEDGE-COMPILER-1 cubre en 5A estructura, campos obligatorios, IDs, slugs, namespaces, rutas lógicas, referencias, seguridad y generación determinista. Los consumidores React del Manual deberán probar datos generados válidos, ausentes e inválidos en 5B; esa cobertura no se atribuye al compilador ni se considera publicada en 5A.
 
+## SCHOOL-CONTRACT-AUDIT-1 — Plan de verificación de Escuela
+
+Fase 6A sólo audita y define el contrato; no añade tests ni atribuye cobertura inexistente. Los bloques 6B y 6C deberán seleccionar, como mínimo:
+
+- tests backend de migraciones, modelos, relaciones, casts, defaults privados, factories, estados y cronología;
+- autorización y persistencia Blade para administrador activo, administrador inactivo, usuario normal y anónimo;
+- validación jerárquica, campos completos antes de publicar, relaciones inmutables y borrados conservadores;
+- consultas públicas que excluyan programas, grupos, horarios, ubicaciones y periodos no efectivos antes de serializar;
+- Resources cerrados sin flags, notas administrativas, datos personales o solicitudes;
+- contrato del agregado público para contenido, vacío, orden, ramas parciales y ausencia de datos;
+- tests React del servicio/hook, schema inesperado y estados `loading`, `error`, `retry`, `empty`, `partial` y `content`;
+- semántica, H1, metadatos, teclado, foco, responsive y navegación activa de `/escuela`;
+- Navbar desktop y móvil en la cuarta posición sólo cuando la ruta sea funcional;
+- integración segura con el Manual y, si existe contenido aprobado, cobertura del contrato ampliado de `knowledge/`;
+- E2E del recorrido Blade → API pública → React sobre MariaDB y datos controlados;
+- rate limiting, no enumeración, autorización, minimización y conservación si un bloque posterior aprueba solicitudes;
+- compatibilidad y ausencia de pérdida de contenido antes de despublicar, redirigir o retirar `academy`.
+
+El formulario escolar, si se aprueba, necesitará cobertura independiente de la inscripción deportiva; los tests de `ChampionshipRegistrationRequest` no demuestran seguridad o corrección del flujo escolar.
+
 ---
 
 # 11. Evolución

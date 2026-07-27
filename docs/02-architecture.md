@@ -106,6 +106,20 @@ Los tres canales disponen ya de una base comprobable. En el tercero, Fase 5A imp
 
 Una misma pieza no debe mantenerse de forma editable en más de un canal. Los criterios de elección y la matriz de fuentes se definen en `10-content-governance.md`.
 
+### Contrato híbrido de Escuela de Galotxas
+
+La Fase 6A audita Escuela como una vertical híbrida independiente de Aprende a jugar, Club y Competición:
+
+- `knowledge/` podrá aportar metodología, iniciación y recursos pedagógicos estables únicamente cuando exista una colección real y aprobada; mientras tanto, Escuela puede enlazar al Manual existente;
+- un dominio Laravel específico administrado desde Blade aportará programa, grupos, horarios, ubicaciones y estado de inscripción del curso vigente;
+- una API pública cerrada entregará a React sólo las ramas operativas efectivamente públicas;
+- React compondrá la futura `/escuela` y sus estados, pero no almacenará contenido editorial ni decidirá visibilidad;
+- el CMS genérico podrá conservar piezas no estructuradas, pero `CmsPage` y el slug legado `academy` no sustituyen el dominio operativo.
+
+El modelo `SchoolProgram → SchoolGroup → SchoolSchedule → SchoolLocation`, junto a un periodo de inscripción, es una propuesta reversible: sus campos y estados no se congelarán hasta confirmar la operativa real. Las solicitudes escolares, si llegan a aprobarse, tendrán modelo y contrato separados de las inscripciones a campeonatos y no exigirán `User` o `Player` por analogía.
+
+Fase 6A no implementa ninguna parte de este flujo. Fase 6B permanece pendiente para el dominio, Blade y la lectura pública; Fase 6C permanece pendiente para cualquier extensión de `knowledge/`, la landing, el consumo React y el Navbar. El contrato completo está en `12-school-of-galotxas.md`.
+
 ## Canalización build-time de Knowledge
 
 `frontend/scripts/knowledge/` descubre únicamente las cuatro colecciones aprobadas, parsea el subconjunto escalar del front matter, valida UTF-8/LF, metadatos, IDs, slugs, rutas lógicas, headings, referencias y contenido no ejecutable, y serializa dos artefactos con `schemaVersion: 1`: `frontend/src/generated/knowledge/knowledge.json`, que conserva el corpus editorial completo, y `frontend/src/generated/knowledge/public-knowledge.json`, que sólo contiene documentos `Vigente`. Cada documento exige exactamente un H1 inicial coincidente con `titulo`, niveles H1–H6 y una jerarquía sin saltos; las secciones y subsecciones actuales usan H2 y H3.
