@@ -340,7 +340,14 @@ Los Conceptos reúnen vocabulario y definiciones canónicas en `knowledge/concep
 
 El Manual será un consumidor público del conocimiento estable de `knowledge/`. Su función será organizar y explicar Reglamento y Conceptos, no duplicarlos. La landing Aprende a jugar será una puerta de entrada divulgativa y no debe confundirse con el Manual.
 
-La Escuela de Galotxas es una sección distinta del Manual. Su metodología, ejercicios y recursos docentes estables podrán proceder de una futura colección de `knowledge/`; su programa, grupos, horarios, ubicaciones y estado de inscripción pertenecerán a un dominio Laravel específico administrado desde Blade. El CMS genérico sólo podrá conservar piezas simples no estructuradas. Una eventual solicitud escolar tendrá un modelo independiente de la inscripción deportiva. La colección, el dominio y esos flujos todavía no están implementados; su propuesta reversible y las preguntas humanas previas se documentan en `12-school-of-galotxas.md`.
+La Escuela de Galotxas es una sección distinta del Manual. Su metodología, ejercicios y recursos docentes estables podrán proceder de una futura colección de `knowledge/`; los datos operativos y personales pertenecerán a Laravel y se administrarán desde Blade. El CMS genérico sólo podrá conservar piezas simples no estructuradas. La colección y el dominio todavía no están implementados; el contrato funcional cerrado se documenta en `12-school-of-galotxas.md`.
+
+Ese dominio tendrá dos subdominios independientes:
+
+1. **Escuela permanente:** `SchoolProgram`, niveles `SchoolLevel`, horarios semanales, ubicaciones escolares y `SchoolEnrollment`. Admite participantes menores y adultos; la solicitud pública no exige cuenta, comienza pendiente y requiere aprobación. Un menor necesita representante, mientras teléfono y correo son obligatorios en todos los casos.
+2. **Centros y actividades educativas:** `EducationalCenter` registra cada centro una sola vez y `EducationalActivity` sus actividades planificadas, realizadas o canceladas. Sólo se conserva el número previsto de alumnos, nunca asistentes nominales.
+
+El participante individual de la Escuela no es un `Player`, un centro educativo no es un usuario o equipo y una actividad con un centro no genera inscripciones individuales. `SchoolLevel` tampoco reutiliza las categorías de campeonatos. La inscripción deportiva y la escolar comparten únicamente patrones técnicos.
 
 ## Contenido institucional
 

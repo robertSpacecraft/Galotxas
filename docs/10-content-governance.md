@@ -117,18 +117,21 @@ El cierre 5C mantiene esas rutas y fuentes. La landing presenta los recuentos ob
 
 ### Escuela de Galotxas
 
-Sección pública propia para la oferta formativa y la actividad real de la Escuela. Sus públicos concretos —posiblemente participantes, familias, centros educativos, docentes o monitores— deben confirmarse antes de modelar grupos o publicar mensajes. No es una subsección del Manual y no debe denominarse públicamente “Academy”, salvo para explicar una referencia legada durante la migración.
+Sección pública propia para una Escuela permanente orientada principalmente a menores y abierta también a solicitudes de adultos. No es una subsección del Manual y no debe denominarse públicamente “Academy”, salvo para explicar una referencia legada durante la migración.
 
 Su arquitectura será híbrida:
 
 - metodología, iniciación, ejercicios y recursos pedagógicos estables desde una futura colección de `knowledge/`, sólo cuando exista contenido real y aprobado;
-- programa, grupos, horarios, ubicaciones y estado de inscripción desde un dominio Laravel específico administrado con Blade;
-- solicitudes futuras desde un modelo transaccional escolar independiente, únicamente después de aprobar finalidad, datos mínimos, menores, consentimiento y conservación;
+- programa permanente, niveles, horarios semanales, ubicaciones y apertura desde un dominio Laravel específico administrado con Blade;
+- solicitudes, participantes, representantes, contactos, estados y fechas del ciclo exclusivamente en Laravel;
+- centros educativos y sus actividades en un subdominio administrativo Laravel separado de las inscripciones individuales;
 - avisos o páginas simples desde el CMS genérico cuando no necesiten relaciones propias.
 
-La Escuela puede enlazar al Manual existente, pero no copiarlo ni anidarse dentro de Aprende a jugar. React sólo compondrá la proyección estable y los datos operativos ya autorizados. El CMS genérico no se fuerza para grupos, horarios o solicitudes, y la inscripción a campeonatos no se reutiliza como inscripción escolar.
+La Escuela puede enlazar al Manual existente, pero no copiarlo ni anidarse dentro de Aprende a jugar. React sólo compondrá la proyección estable y los datos operativos ya autorizados. El CMS y JSX nunca almacenarán niveles, horarios, alumnos, solicitudes, centros o actividades como fuente alternativa, y la inscripción a campeonatos no se reutiliza como inscripción escolar.
 
-La ruta canónica futura es `/escuela`. No se aprueba `/manual/academy`. Fase 6A define el contrato en `12-school-of-galotxas.md`, pero no implementa la ruta, el Navbar, el dominio, la API, una colección o un formulario. Las posibles subáreas se definirán cuando exista alcance funcional y contenido real.
+La lectura pública sólo podrá exponer configuración, niveles, horarios, ubicaciones, apertura y contacto general. Nombres, fechas de nacimiento, representante, teléfono, correo, estado individual y observaciones nunca son públicos. Centros y actividades tampoco se publican en el MVP; las actividades sólo conservan un número previsto, no asistentes nominales.
+
+La ruta canónica futura es `/escuela`. No se aprueba `/manual/academy`. Fases 6A y 6A.1 definen el contrato en `12-school-of-galotxas.md`, pero no implementan la ruta, el Navbar, el dominio, la API, una colección o un formulario.
 
 ### Club
 
@@ -153,8 +156,9 @@ La tabla diferencia la fuente aprobada de las capacidades actuales que todavía 
 | Reglamento | `knowledge/reglamento/` | Git y revisión | No | No | Normativa |
 | Conceptos | `knowledge/conceptos/` | Git y revisión | No | No | Canónica |
 | Escuela: contenido estable | `knowledge/` futuro | Git y revisión | No inicialmente | No | Pedagógica |
-| Escuela: actividad | Dominio Laravel específico futuro | Administrador desde Blade | Pendiente 6B | Pendiente 6B | Operativa |
-| Escuela: solicitudes | Dominio Laravel transaccional futuro e independiente | Solicitante + administrador autorizado | No existe | No existe | Privada |
+| Escuela: programa, niveles y horarios | Dominio Laravel futuro | Administrador desde Blade | Pendiente 6B.1 | Pendiente 6B.4 | Operativa |
+| Escuela: inscripciones | `SchoolEnrollment` futuro | Solicitante público + administrador autorizado | Pendiente 6B.2 | Sólo POST futuro | Personal y privada |
+| Escuela: centros y actividades | Dominio Laravel futuro | Administrador desde Blade | Pendiente 6B.3 | No en MVP | Administrativa |
 | Escuela: avisos simples | CMS genérico, si se aprueba | Administrador | Genérico actual | Genérica actual | Editorial |
 | Club | Backend CMS | Administrador | Sí | Sí | Institucional |
 | Prensa y medios | Backend CMS genérico auditado; contrato específico pendiente | Administrador | Genérico actual | Genérica actual | Editorial |
@@ -320,9 +324,10 @@ La Fase 3A no elimina `/contenidos`, no crea redirects, no cambia su API ni borr
 - Inventario editorial de los datos reales de cada entorno antes de migrarlos; el catálogo del seeder no sustituye ese inventario.
 - Resolución y compatibilidad de Nosotros entre página estática y CMS.
 - Contenido real de `academy` por entorno, clasificación de sus piezas, consumidores y momento futuro de migración, despublicación o redirect; clasificación de `documentos`.
-- Definición real de programa, grupos, recurrencia de horarios, ubicaciones y ámbito del periodo de inscripción de Escuela.
-- Canal organizativo de contacto y decisión sobre si se necesita un formulario escolar.
-- Solicitante, datos mínimos, cuenta, flujo, conservación y decisiones humanas sobre menores antes de cualquier solicitud.
+- Canal organizativo público de contacto de Escuela.
+- Textos aprobados de privacidad, aceptación y, si aplica, consentimiento antes de publicar el formulario.
+- Política de conservación y borrado extraordinario de solicitudes.
+- Reglas futuras para reinscripciones complejas o varios programas públicos.
 - Existencia y responsable editorial de material pedagógico suficiente para una colección de Escuela.
 - Creación de Contacto: no existe slug sembrado ni contenido verificable actual.
 - Necesidades editoriales de noticias, actividades, galerías, documentos y formularios.

@@ -918,23 +918,36 @@ KNOWLEDGE-COMPILER-1 cubre en 5A estructura, campos obligatorios, IDs, slugs, na
 
 ## SCHOOL-CONTRACT-AUDIT-1 — Plan de verificación de Escuela
 
-Fase 6A sólo audita y define el contrato; no añade tests ni atribuye cobertura inexistente. Los bloques 6B y 6C deberán seleccionar, como mínimo:
+Fases 6A y 6A.1 sólo auditan y cierran el contrato; no añaden tests ni atribuyen cobertura inexistente. 6B.1–6B.4 y 6C deberán cubrir, como mínimo:
 
-- tests backend de migraciones, modelos, relaciones, casts, defaults privados, factories, estados y cronología;
-- autorización y persistencia Blade para administrador activo, administrador inactivo, usuario normal y anónimo;
-- validación jerárquica, campos completos antes de publicar, relaciones inmutables y borrados conservadores;
-- consultas públicas que excluyan programas, grupos, horarios, ubicaciones y periodos no efectivos antes de serializar;
-- Resources cerrados sin flags, notas administrativas, datos personales o solicitudes;
-- contrato del agregado público para contenido, vacío, orden, ramas parciales y ausencia de datos;
-- tests React del servicio/hook, schema inesperado y estados `loading`, `error`, `retry`, `empty`, `partial` y `content`;
+- migraciones, modelos, enums string, casts, relaciones, factories y defaults seguros;
+- un único programa público en el MVP, niveles activos/públicos y consistencia entre programa y nivel;
+- `SchoolLevel` como única clasificación formativa del MVP y sin slug;
+- día semanal ISO 1–7, hora inicial anterior a final, ubicación escolar activa y orden;
+- decisión de no incorporar ubicaciones escolares al conjunto de `Venue` usado por Competición;
+- solicitud anónima y asociación opcional con el usuario autenticado sin aceptar `user_id` del payload ni sobrescribir datos;
+- mayoría de edad calculada desde nacimiento y `requested_at`, sin edad persistida;
+- menores con representante y relación obligatorios, y adultos sin esa obligación;
+- teléfono y correo obligatorios en todos los casos;
+- nivel omitido, válido, privado, inactivo o perteneciente a otro programa;
+- apertura/cierre efectiva en backend, incluido programa privado con `enrollments_open = true`;
+- creación siempre pendiente y transiciones válidas `pending → active → withdrawn` o `pending → rejected`;
+- timestamps de alta, rechazo y baja, rechazo de transiciones inválidas y ausencia de borrado físico normal;
+- centros con nombres repetidos, contacto nullable, activación y notas privadas;
+- actividades con nombre libre, estados planificada/realizada/cancelada, fecha, horas emparejadas y ubicación opcional;
+- `expected_students` nullable al planificar y positivo al realizar, con cero rechazado;
+- ausencia de asistentes nominales, plazas, pagos, exports, adjuntos y API pública de centros;
+- autorización y persistencia Blade para administrador activo, inactivo, usuario normal y anónimo;
+- visibilidad efectiva de programa, nivel, horario y ubicación, sin cascadas de flags;
+- `GET /api/v1/school` con Resources cerrados y sin datos personales o administrativos;
+- `POST /api/v1/school/enrollments` con `201`, errores de validación, cierre, ausencia de programa, rate limiting y respuesta no enumerable;
+- tests React del servicio/hook, formulario y estados `loading`, `error`, `retry`, `empty`, `partial`, envío y éxito;
 - semántica, H1, metadatos, teclado, foco, responsive y navegación activa de `/escuela`;
-- Navbar desktop y móvil en la cuarta posición sólo cuando la ruta sea funcional;
-- integración segura con el Manual y, si existe contenido aprobado, cobertura del contrato ampliado de `knowledge/`;
-- E2E del recorrido Blade → API pública → React sobre MariaDB y datos controlados;
-- rate limiting, no enumeración, autorización, minimización y conservación si un bloque posterior aprueba solicitudes;
-- compatibilidad y ausencia de pérdida de contenido antes de despublicar, redirigir o retirar `academy`.
+- Navbar desktop y móvil en cuarta posición sólo cuando la ruta sea funcional;
+- integración con el Manual y E2E del recorrido Blade → API → React sobre MariaDB;
+- compatibilidad antes de despublicar, redirigir o retirar `academy`.
 
-El formulario escolar, si se aprueba, necesitará cobertura independiente de la inscripción deportiva; los tests de `ChampionshipRegistrationRequest` no demuestran seguridad o corrección del flujo escolar.
+La cobertura de inscripciones deportivas no demuestra seguridad o corrección de `SchoolEnrollment`.
 
 ---
 

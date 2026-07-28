@@ -108,17 +108,23 @@ Una misma pieza no debe mantenerse de forma editable en más de un canal. Los cr
 
 ### Contrato híbrido de Escuela de Galotxas
 
-La Fase 6A audita Escuela como una vertical híbrida independiente de Aprende a jugar, Club y Competición:
+Fases 6A y 6A.1 definen Escuela como una vertical híbrida independiente de Aprende a jugar, Club y Competición:
 
-- `knowledge/` podrá aportar metodología, iniciación y recursos pedagógicos estables únicamente cuando exista una colección real y aprobada; mientras tanto, Escuela puede enlazar al Manual existente;
-- un dominio Laravel específico administrado desde Blade aportará programa, grupos, horarios, ubicaciones y estado de inscripción del curso vigente;
-- una API pública cerrada entregará a React sólo las ramas operativas efectivamente públicas;
-- React compondrá la futura `/escuela` y sus estados, pero no almacenará contenido editorial ni decidirá visibilidad;
-- el CMS genérico podrá conservar piezas no estructuradas, pero `CmsPage` y el slug legado `academy` no sustituyen el dominio operativo.
+- `knowledge/` podrá aportar metodología, iniciación y recursos pedagógicos estables únicamente cuando exista una colección real y aprobada; mientras tanto, Escuela enlazará al Manual existente;
+- Laravel/MariaDB será la fuente del programa permanente, niveles, horarios, ubicaciones, inscripciones y datos personales;
+- Blade será la interfaz administrativa de la Escuela permanente y del subdominio independiente de centros y actividades educativas;
+- `GET /api/v1/school` entregará sólo configuración, niveles, horarios, ubicaciones, apertura y contacto efectivos;
+- `POST /api/v1/school/enrollments` recibirá solicitudes anónimas o vinculadas opcionalmente a la sesión, siempre pendientes y sujetas a revisión;
+- React compondrá la futura `/escuela` y su formulario, pero no almacenará contenido editorial ni decidirá visibilidad o mayoría de edad;
+- el CMS genérico podrá conservar piezas no estructuradas, pero nunca alumnos, centros, actividades, horarios o solicitudes.
 
-El modelo `SchoolProgram → SchoolGroup → SchoolSchedule → SchoolLocation`, junto a un periodo de inscripción, es una propuesta reversible: sus campos y estados no se congelarán hasta confirmar la operativa real. Las solicitudes escolares, si llegan a aprobarse, tendrán modelo y contrato separados de las inscripciones a campeonatos y no exigirán `User` o `Player` por analogía.
+El contrato de implementación queda formado por `SchoolProgram`, `SchoolLevel`, `SchoolSchedule`, `SchoolLocation`, `SchoolEnrollment`, `EducationalCenter` y `EducationalActivity`.
 
-Fase 6A no implementa ninguna parte de este flujo. Fase 6B permanece pendiente para el dominio, Blade y la lectura pública; Fase 6C permanece pendiente para cualquier extensión de `knowledge/`, la landing, el consumo React y el Navbar. El contrato completo está en `12-school-of-galotxas.md`.
+`SchoolLocation` será propia del dominio escolar y compartida por horarios y actividades. El `Venue` existente no se reutiliza: el generador de liga trata todos los registros de `venues` como pistas competitivas y sus relaciones y restricciones de borrado están acopladas a partidos y reprogramaciones.
+
+La Escuela admite menores y adultos. El representante se exige sólo al menor calculado desde nacimiento y fecha de solicitud; teléfono y correo siempre son obligatorios. No se gestionan plazas, pagos, asistentes nominales de centros o cuentas obligatorias.
+
+Nada de este flujo está implementado. 6B.1–6B.4 permanecen pendientes para núcleo, inscripciones, centros y lectura pública; 6C permanece pendiente para landing, formulario, Navbar y E2E. El contrato completo está en `12-school-of-galotxas.md`.
 
 ## Canalización build-time de Knowledge
 

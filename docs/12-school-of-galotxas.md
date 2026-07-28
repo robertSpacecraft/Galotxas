@@ -1,604 +1,770 @@
-# Auditoría y contrato de Escuela de Galotxas
+# Contrato funcional de Escuela de Galotxas
 
 ## 1. Propósito
 
-Este documento cierra la Fase 6A: audita las capacidades reales relacionadas con la Escuela de Galotxas y define el contrato que deberá guiar su futura implementación. Separa el conocimiento pedagógico estable, la información operativa administrable y cualquier proceso transaccional.
+Este documento registra la auditoría de Fase 6A y el cierre funcional aprobado en Fase 6A.1. Define el dominio que deberá implementar 6B y la experiencia pública que deberá implementar 6C sin presentar ninguna de esas capacidades como existente.
 
-La Fase 6A es exclusivamente documental. No crea modelos, migraciones, rutas, endpoints, pantallas Blade, componentes React, colecciones de `knowledge/`, formularios ni contenido público.
+Fase 6A.1 es exclusivamente documental. No crea modelos, migraciones, enums, factories, seeders, controladores, Form Requests, Services, Resources, rutas, API, pantallas Blade, componentes React, formularios ni contenido en `knowledge/`.
 
 ## 2. Estado actual
 
-La Escuela de Galotxas no está implementada como vertical funcional:
+La Escuela de Galotxas continúa sin implementación funcional:
 
-- no existen entidades `School*` o equivalentes en Laravel;
+- no existen entidades `School*`, `EducationalCenter` o `EducationalActivity`;
 - no existe administración Blade específica;
-- no existe endpoint público o administrativo de Escuela;
-- no existe `/escuela` en React ni en el Navbar;
-- `knowledge/` no contiene una colección de Escuela;
-- el CMS genérico incluye una página sembrada con slug `academy`, pero no acredita contenido real de un entorno ni cubre datos estructurados;
-- Home y la página React estática `/nosotros` contienen menciones hardcodeadas, no administrables y no verificadas como contrato editorial;
-- las inscripciones existentes son solicitudes deportivas a campeonatos y no representan alumnado o solicitudes escolares.
+- no existen `GET /api/v1/school` o `POST /api/v1/school/enrollments`;
+- React no registra `/escuela` y el Navbar no la enlaza;
+- `knowledge/` no contiene una colección pedagógica de Escuela;
+- el CMS genérico conserva el slug legado `academy`, que no equivale a este dominio;
+- las inscripciones deportivas exigen cuenta y perfil `Player`, por lo que no representan el flujo escolar.
 
-La arquitectura objetivo sigue siendo híbrida:
+Las decisiones de 6A.1 cierran el contrato de implementación, no cambian este estado.
+
+## 3. Auditoría de capacidades reutilizables
+
+| Área actual | Capacidad reutilizable | Límite |
+|---|---|---|
+| Laravel y MariaDB | Modelos, relaciones, Services, Form Requests y transacciones | No existen entidades escolares |
+| Blade | Interfaz administrativa oficial y middleware de administrador activo | No existen pantallas de Escuela |
+| API | Resources por contexto y envelopes existentes | No existen contratos escolares |
+| Rate limiting | Mecanismo ya usado en auth y resultados | La inscripción necesitará una clave y límites propios |
+| `User` | Asociación opcional con una persona autenticada | Nunca será requisito ni fuente de los datos enviados |
+| `Player` | Ninguna reutilización semántica | Es un perfil deportivo con datos no necesarios |
+| Inscripción a campeonato | Patrones técnicos de validación, servicio, transición y tests | Finalidad, identidad, estados y datos son distintos |
+| CMS | Página o aviso simple no estructurado | No almacena niveles, horarios, alumnos, centros o actividades |
+| `knowledge/` | Manual, reglas y conceptos enlazables | No existe pedagogía específica de Escuela |
+| React | `PublicLanding`, metadatos, navegación y estados remotos | No es fuente editorial ni barrera de seguridad |
+
+Las solicitudes escolares podrán reutilizar infraestructura técnica, pero no `ChampionshipRegistrationRequest`, `CategoryRegistration`, `Player`, categorías competitivas o equipos.
+
+## 4. Decisión sobre ubicaciones
+
+No existe un modelo `Location`. El modelo real es `Venue`, con `name`, `location` y `description`, administrado públicamente como “Pistas”.
+
+`Venue` no es suficientemente genérico para Escuela:
+
+- `GenerateLeagueScheduleService` toma todos los registros de `venues` como pistas utilizables por la competición;
+- `GameMatch` y las solicitudes de reprogramación dependen directamente de él;
+- `Venue::isInUse()` sólo contempla partidos y reprogramaciones;
+- su CRUD, seeder y feedback están expresados en términos de pistas deportivas;
+- carece de activación y de un contrato de uso por módulos.
+
+Guardar en `venues` un colegio u otra ubicación puntual permitiría que el generador la asignase a partidos. Reutilizarlo exigiría rediseñar primero su semántica y todas sus consultas, algo fuera del dominio escolar.
+
+Decisión cerrada: 6B creará `SchoolLocation`, compartida por los horarios de la Escuela permanente y las actividades con centros. No se modificará ni duplicará un mismo lugar dentro de los dos subdominios escolares. `Venue` continuará reservado al contrato competitivo actual.
+
+Campos mínimos de `SchoolLocation`:
+
+- `name`;
+- `location`, texto público de dirección o localidad;
+- `description`, nullable y publicable;
+- `is_active`;
+- timestamps.
+
+No necesita `is_public`: sólo se descubrirá públicamente cuando una programación efectiva la referencie. Desactivarla impedirá nuevas asociaciones y excluirá los horarios relacionados de la lectura pública, sin borrar el historial administrativo.
+
+## 5. Arquitectura híbrida
 
 ```text
-knowledge/ ── compilación validada ──► React
-   contenido pedagógico estable
+knowledge/ ── compilador ──► React
+  Manual y futura pedagogía estable
 
-Laravel ── API pública ──► React
-   programa, grupos, horarios, ubicaciones y estado de inscripción
+Blade ──► Laravel/MariaDB ──► API pública ──► React
+  programa, niveles, horarios, ubicaciones e inscripción
 
-Blade ── Laravel/MariaDB
-   administración de la información operativa
+Blade ──► Laravel/MariaDB
+  centros y actividades educativas, sólo administración en el MVP
 ```
 
-## 3. Auditoría backend
+Responsabilidades:
 
-### Inventario relacionado
+- `knowledge/`: reglas, conceptos y futura metodología estable;
+- Laravel: datos operativos, datos personales, estados y restricciones;
+- Blade: administración;
+- API: proyección pública cerrada y recepción segura de solicitudes;
+- React: presentación, validación básica y estados de interfaz;
+- CMS genérico: sólo piezas simples no estructuradas que no dupliquen el dominio.
 
-| Área | Implementación localizada | Capacidad real | Límite para Escuela |
-|---|---|---|---|
-| CMS | `CmsPage`, `CmsBlock`, controladores, Form Requests, Resources, vistas y rutas CMS | Páginas y bloques genéricos con borrador, publicación inmediata o programada | No estructura grupos, horarios, ubicaciones, periodos ni solicitudes |
-| Usuarios | `User`, autenticación Sanctum y middleware de usuario activo | Cuenta, rol `user`/`admin`, sesión y zona privada | No representa alumno, tutor o responsable escolar |
-| Jugadores | `Player` y perfil privado | Identidad deportiva, licencia y atributos de jugador | Recoge datos excesivos y presupone cuenta; no debe reutilizarse como perfil de alumno |
-| Inscripción deportiva | `ChampionshipRegistrationRequest`, `CategoryRegistration` y Services/controladores asociados | Solicitud de participación en campeonato y asignación posterior | Finalidad, sujeto, datos y riesgos distintos a una solicitud escolar |
-| Ubicaciones deportivas | `Venue` y CRUD Blade | Pista usada por partidos | No debe suponerse que una sede escolar es una pista de competición |
-| Archivos | `config/filesystems.php` y campos de ruta aislados | Configuración técnica de discos | No existe flujo administrado de subida, autorización, borrado o persistencia de medios |
-| Seguridad | `auth`, `EnsureUserIsActive`, `IsAdmin` y limitadores de auth/resultados | Separación básica de público, cuenta y admin activo | No hay Policies ni limitador, consentimiento o conservación específicos de Escuela |
-| Notificaciones | Recuperación de contraseña | Notificación propia del framework | No existe notificación escolar |
+## 6. Dos subdominios
 
-Las migraciones, modelos, factories, seeders, Requests, controladores, Resources, rutas y tests no contienen un dominio `School` o `Academy`. Tampoco existen modelos de contacto, aviso, programa formativo, grupo escolar, horario escolar, solicitud de información o matrícula.
+### Escuela permanente
 
-Trazas principales inspeccionadas:
+Gestiona:
 
-- `backend/database/migrations/2026_06_25_000000_create_cms_pages_table.php` y `2026_06_25_000001_create_cms_blocks_table.php`;
-- migraciones de `users`, `players`, `venues`, `category_registrations` y `championship_registration_requests`;
-- `backend/app/Models/{CmsPage,CmsBlock,User,Player,Venue,CategoryRegistration,ChampionshipRegistrationRequest}.php`;
-- controladores y Form Requests CMS, perfiles, registros deportivos y administración;
-- `backend/app/Services/ChampionshipRegistrationRequestService.php`;
-- Resources públicos CMS, de jugador y de solicitudes deportivas;
-- `backend/routes/api.php`, `backend/routes/web.php`, middleware y limitadores de `AppServiceProvider`;
-- factories, `DatabaseSeeder`, `InstitutionalCmsPageSeeder`, `E2ESmokeSeeder` y sus tests Feature.
-
-### Patrones reutilizables
-
-Pueden reutilizarse patrones técnicos, no entidades ni semántica:
-
-- Form Requests para validar whitelists;
-- Services cuando una transición o regla se use en más de un contexto;
-- controladores web y vistas Blade protegidos por administrador activo;
-- Resources públicos específicos y consultas que filtren antes de serializar;
-- factories y tests Feature sobre MariaDB;
-- respuestas y feedback administrativo coherentes;
-- limitación de frecuencia como mecanismo, con una clave y umbral propios si se aprueba un formulario.
-
-No deben copiarse automáticamente los estados de competición, la publicación editorial del CMS, `Player`, `Venue` o `ChampionshipRegistrationRequest`.
-
-## 4. Auditoría frontend
-
-`frontend/src/App.jsx` no registra `/escuela`; el wildcard muestra la 404 y un test exige expresamente que `/escuela` y `/club` no se publiquen como placeholders. `publicNavigation.js` y `Navbar.jsx` exponen sólo Inicio, Competición y Aprende a jugar, con cuenta separada.
-
-El estado actual relevante es:
-
-| Elemento | Estado | Reutilización futura |
-|---|---|---|
-| `PublicLanding` y componentes asociados | Contenedor, cabecera, secciones, acciones y tarjetas accesibles | Sí, como estructura sin contenido editorial embebido |
-| `PageMetadata` | Título, descripción y `robots` reversibles | Sí |
-| Navbar y contrato activo | Configuración única, desktop/móvil, Escape, cierre al navegar y `aria-current` | Sí; se ampliará sólo cuando `/escuela` sea funcional |
-| Servicio CMS | Lista y detalle bajo `/cms/pages` | Sólo para contenido CMS genérico que siga siendo canónico |
-| Estados de Competición/CMS | Patrones de carga, error, vacío y contenido | Sí como referencia; la composición parcial de Escuela será específica |
-| Home | Tarjeta visual “Academy” sin enlace | No como fuente ni como prueba de funcionalidad |
-| `/nosotros` | Texto e imagen hardcodeados sobre la Escuela | Material pendiente de revisión editorial, no fuente reutilizable |
-| Aprende a jugar | Consumidor de `public-knowledge.json` y Manual | Sí para enlaces al conocimiento ya publicado; no como contenedor de Escuela |
-| Formularios deportivos | Inscripción a campeonato ligada a cuenta y jugador | No para solicitudes escolares |
-
-No hay servicio, hook, repositorio, página, formulario, estado remoto o E2E específico de Escuela.
-
-Las trazas principales fueron `frontend/src/App.jsx`, `navigation/publicNavigation.js`, `components/Navbar/`, `pages/Home/Home.jsx`, `pages/Nosotros/`, `pages/Learn/`, `pages/CmsPage*`, `api/cms.js`, `components/CmsBlocks/`, `components/PublicLanding/`, sus tests Vitest y `frontend/e2e/mvp-smoke.spec.js`. El smoke E2E cubre el CMS genérico, no Escuela.
-
-## 5. Auditoría de `knowledge/`
-
-Existen cuatro colecciones públicas: Reglamento, Conceptos de elementos, Conceptos de personas y Conceptos de juego. El corpus actual contiene 40 documentos `Vigente` y alimenta Aprende a jugar y el Manual.
-
-No existen:
-
-- `knowledge/escuela/`;
-- programa pedagógico;
-- metodología docente;
-- itinerarios de iniciación;
-- ejercicios o sesiones;
-- recursos para familias, centros o monitores;
-- contenido institucional de la Escuela.
-
-Los documentos `Golpe` y `Bolea` mencionan que técnicas y aprendizaje se desarrollarán en una futura “Academy”. Estas frases expresan deuda editorial y no constituyen contenido pedagógico publicable.
-
-La Escuela puede enlazar al Manual actual para reglas, vocabulario y elementos del juego. Sólo necesitará una colección canónica nueva cuando exista material pedagógico real, revisado y con responsable editorial. Esa colección requerirá ampliar conscientemente el contrato y el compilador; no se crea vacía ni se sustituye con copy React.
-
-## 6. CMS heredado y `academy`
-
-`InstitutionalCmsPageSeeder` declara una página:
-
-- slug: `academy`;
-- título: `Academy`;
-- estado inicial: `published`;
-- `published_at`: momento de siembra;
-- descripción: información pública sobre aprendizaje, escuela y actividades formativas;
-- bloques iniciales para una página nueva: heading H2 y texto genérico.
-
-El seeder usa `firstOrCreate`: garantiza el mínimo anterior sólo al crear. No permite conocer ni sobrescribe el contenido, estado, fechas o bloques de una base real preexistente. No se inspecciona la base de desarrollo en esta auditoría.
-
-`InstitutionalCmsPageSeeder` es explícito y no forma parte de `DatabaseSeeder`; `E2ESmokeSeeder` crea otra página CMS de prueba y no garantiza `academy`. Por tanto, ni siquiera la existencia del registro puede inferirse para todos los entornos sólo desde el código.
-
-La página está disponible en el CRUD Blade genérico y, si cumple el criterio público, mediante `GET /api/v1/cms/pages/academy` y `/contenidos/academy`. React no enlaza actualmente esa URL desde Home o Navbar; las referencias visuales de Home no son enlaces.
-
-| Aspecto | Estado actual | Problema | Decisión recomendada |
-|---|---|---|---|
-| Modelo | `CmsPage` + `CmsBlock` genéricos | Sin estructura escolar ni pertenencia de área | No convertirlos en el dominio operativo |
-| Datos sembrados | Copy mínimo, no destructivo | No demuestra datos reales ni vigencia editorial | Inventariar cada entorno antes de migrar |
-| Nombre | `Academy` | No coincide con la etiqueta pública cerrada | Usar “Escuela de Galotxas” en la experiencia futura |
-| Estado y fecha | Publicado al crear; variable si ya existía | Puede ser públicamente visible sin satisfacer el contrato de Escuela | Conservar de momento; revisar en la migración |
-| API | Endpoint CMS por slug | Expone sólo bloques genéricos | No usarlo para grupos, horarios o solicitudes |
-| URL React | `/contenidos/academy` | Técnica, legada y no canónica | Mantener compatibilidad hasta migrar contenido y consumidores |
-| Administración | CRUD CMS genérico | No ofrece validaciones ni relaciones operativas | Crear vertical Blade específica en 6B |
-| Tests | Seeder, CRUD, bloques y lectura pública | Validan CMS, no Escuela | Añadir cobertura propia en 6B/6C |
-
-El CMS genérico puede seguir alojando una página o aviso simple sin estructura cuando esa pieza tenga una fuente editorial única. No debe forzarse para horarios, grupos, plazas, periodos o solicitudes.
-
-## 7. Necesidades
-
-La clasificación siguiente no convierte todos los elementos en requisitos.
-
-| Necesidad | Prioridad | Existe actualmente | Fuente adecuada | Persistencia | Fase prevista |
-|---|---|---|---|---|---|
-| Presentación general | MVP, con contenido real | Sólo menciones no gobernadas | `knowledge/` si es estable | Git + artefacto público | 6C, condicionada |
-| Objetivos | Recomendable | No como pieza canónica | `knowledge/` | Git + artefacto público | 6C o posterior |
-| Metodología | Recomendable | No; sólo promesas editoriales | `knowledge/` | Git + artefacto público | Posterior o 6C si existe contenido aprobado |
-| Valores | Pendiente de decisión humana | Texto institucional disperso | `knowledge/` o CMS según estabilidad | Por decidir una única vez | 6C o posterior |
-| Relación con el Manual | MVP | Manual funcional | `knowledge/` existente | Artefacto generado | 6C |
-| Destinatarios | MVP si están confirmados | Afirmaciones hardcodeadas no validadas | Laravel para oferta actual; `knowledge/` para marco estable | MariaDB y/o Git, sin duplicar | 6B/6C |
-| Niveles o grupos | MVP | No | Laravel | MariaDB | 6B |
-| Horarios | MVP para grupos publicados | No | Laravel | MariaDB | 6B |
-| Ubicaciones | MVP para horarios presenciales | No como sede escolar | Laravel | MariaDB | 6B |
-| Calendario de curso | Recomendable | No | Laravel | MariaDB | Iteración posterior, salvo necesidad real en 6B |
-| Plazas/capacidad | Pendiente humana | No | Laravel | MariaDB | 6B sólo si se gestiona realmente |
-| Estado de inscripción | MVP | Sólo campeonato | Laravel | MariaDB | 6B |
-| Contacto | MVP condicionado a canal organizativo aprobado | No | Laravel o CMS si es una página genérica | MariaDB | 6B |
-| Responsables | Pendiente humana | No gobernado | Laravel, sólo si debe publicarse | MariaDB | Posterior o 6B tras minimización |
-| Avisos | Recomendable | CMS genérico disponible | CMS para avisos simples; entidad propia sólo si se necesita estructura | MariaDB | Posterior |
-| Preguntas frecuentes | Recomendable | No | `knowledge/` si son estables; CMS si cambian | Git o MariaDB | Posterior |
-| Solicitud de información | Siguiente iteración | No | Laravel transaccional | MariaDB | Bloque independiente tras 6B |
-| Solicitud de inscripción | Siguiente iteración | Sólo un flujo deportivo no equivalente | Laravel transaccional | MariaDB | Bloque independiente tras 6B |
-| Imágenes | Opcional, no bloquea MVP | Assets y URLs CMS sin gestión integral | Medio administrado con metadatos y permisos | Almacenamiento persistente desacoplado | Posterior |
-| Vídeos | Futuro | No | Proveedor/medio aprobado | Referencia persistida, no Git para subidas | Futuro |
-| Documentos descargables | Futuro | Bloque CMS por URL | CMS o dominio según finalidad | Almacenamiento persistente | Futuro |
-
-Quedan descartados para esta vertical: plataforma académica completa, expedientes, calificaciones, asistencia, pagos, estadísticas, mensajería interna y perfiles públicos de alumnos.
-
-## 8. Fuentes de verdad
-
-| Tipo de información | Fuente de verdad | Editor | Consumidor | Motivo |
-|---|---|---|---|---|
-| Reglas y vocabulario ya publicados | `knowledge/` actual | Revisión editorial por Git | Compilador y React | Ya son canónicos y versionables |
-| Metodología, iniciación o recursos estables futuros | Nueva colección de `knowledge/`, sólo con contenido real | Responsable editorial por Git | Compilador y React | No cambian con el curso y requieren trazabilidad |
-| Programa/edición actual | Laravel | Administrador activo desde Blade | API pública y React | Es operativo y cambia sin despliegue |
-| Grupos, horarios y ubicaciones | Laravel | Administrador activo desde Blade | API pública y React | Requieren estructura, validación y visibilidad |
-| Estado o ventana de inscripción | Laravel | Administrador activo desde Blade | API pública y React | Es temporal y no puede inferirse en JSX |
-| Solicitudes futuras | Laravel transaccional independiente | Persona solicitante y administrador autorizado | Respuesta opaca y panel Blade | Contiene datos no públicos y requiere ciclo de vida |
-| Aviso simple no estructurado | CMS genérico, si se aprueba y queda clasificado | Administrador activo | API CMS y React | Reutilización válida sólo si no necesita relaciones escolares |
-| Labels, mensajes de estado y navegación | React | Desarrollo | Navegador | Son copy de interfaz, no contenido editorial |
-
-No se mantendrá una misma pieza editable en `knowledge/`, CMS, tablas escolares, seeders y JSX. React compone resultados ya autorizados y no decide reglas de publicación.
-
-## 9. Contenido estable
-
-El MVP puede enlazar al Manual actual sin duplicar sus explicaciones. La presentación, objetivos, metodología, ejercicios o materiales propios de la Escuela sólo se publicarán desde `knowledge/` cuando:
-
-- exista contenido real;
-- se aprueben responsable, colección, metadatos, orden y rutas;
-- el compilador y la proyección pública soporten esa colección;
-- la revisión humana determine que no contiene información personal u operativa;
-- se actualicen fuente y artefactos de forma coordinada.
-
-La ausencia de una colección nueva no debe resolverse con placeholders o copy editorial en React. La landing podrá mostrar los datos operativos reales y un enlace contextual al Manual.
-
-## 10. Contenido operativo
-
-Laravel será la fuente del curso vigente y de lo que un administrador necesite cambiar sin desplegar:
-
-- programa o edición;
-- grupos y destinatarios actuales;
-- horarios con su contexto;
+- configuración pública;
+- niveles formativos;
+- horarios semanales;
 - ubicaciones;
-- periodo y estado de inscripción;
-- canal organizativo de contacto, si se aprueba;
-- avisos estructurados futuros, sólo si el CMS genérico deja de ser suficiente.
+- apertura y cierre de inscripciones;
+- solicitudes pendientes;
+- participantes activos;
+- rechazos y bajas.
 
-La información pública se obtendrá mediante consultas específicas; las filas privadas, incompletas o fuera de vigencia no se serializarán. Los seeders podrán preparar datos controlados de desarrollo/E2E, pero no serán fuente editorial viva.
+### Centros y actividades educativas
 
-## 11. Funcionalidad transaccional
+Gestiona:
 
-El MVP recomendado es informativo-operativo y no incluye todavía un formulario de información o inscripción. El proceso real, la necesidad de cuenta, los participantes, los datos mínimos, el tratamiento de menores, el consentimiento, la conservación y el canal de respuesta necesitan decisión humana previa.
+- centros educativos persistentes;
+- actividades múltiples por centro;
+- fechas, horarios, ubicación y alumnado previsto;
+- estados planificada, realizada y cancelada;
+- información exclusivamente administrativa en el MVP.
 
-| Aspecto | Campeonato | Escuela |
+No se registran nominalmente participantes de las actividades con centros y no se crean inscripciones escolares por cada asistente.
+
+## 7. Escuela permanente
+
+La Escuela es una actividad permanente. El MVP no la divide en cursos, temporadas, convocatorias académicas o programas temporales sucesivos.
+
+`SchoolProgram` representa su configuración operativa. El modelo admitirá varios registros para no imponer un singleton rígido, pero el MVP administrará un solo programa permanente y permitirá como máximo un programa público. La API expondrá únicamente ese programa público.
+
+No se almacenan fechas de inicio o fin del programa. Una futura coexistencia de programas públicos exigirá revisar el contrato de selección y la API, no crear ahora una plataforma académica.
+
+## 8. Participantes menores y adultos
+
+La Escuela se orienta principalmente a menores, pero admite solicitudes de adultos.
+
+La condición de menor se calcula desde `participant_birth_date` respecto de `requested_at`, usando 18 años como umbral funcional de mayoría de edad. No se almacena edad calculada y no se fija una edad mínima o máxima global de admisión.
+
+Las edades mínima y máxima de un nivel son opcionales. Si se configuran, describen ese nivel y se validan al solicitarlo; no impiden que administración asigne otro nivel durante la revisión.
+
+## 9. Representante condicional
+
+El formulario es único.
+
+Para una persona menor de 18 años en la fecha de solicitud:
+
+- `guardian_name` es obligatorio;
+- `guardian_relationship` es obligatorio;
+- `contact_phone` y `contact_email` representan normalmente el contacto del adulto responsable.
+
+Para una persona adulta:
+
+- representante y relación no son obligatorios;
+- teléfono y correo continúan siendo obligatorios;
+- si llegan valores de representante sin necesidad funcional, el Request los normalizará a `null` para no conservar datos personales innecesarios.
+
+La validación decisiva se ejecuta en backend usando `requested_at` generado por el servidor. React sólo anticipará el feedback.
+
+## 10. Contacto de solicitud y contacto público
+
+Toda solicitud exige:
+
+- `contact_phone`;
+- `contact_email`.
+
+Estos campos pertenecen a `SchoolEnrollment` y nunca son públicos.
+
+El canal público general es distinto y todavía no está confirmado. `SchoolProgram` tendrá `contact_phone` y `contact_email` nullable, editables desde Blade. La API omitirá cada campo ausente y la landing omitirá el bloque completo si no existe ningún canal aprobado; esa ausencia no bloqueará el resto de la experiencia.
+
+No se inventan teléfonos, correos institucionales, textos legales o consentimientos.
+
+## 11. Niveles
+
+La denominación técnica cerrada es `SchoolLevel`. Evita confusión con las categorías de Competición y no usa `Category` sin contexto.
+
+Un nivel:
+
+- pertenece a un programa;
+- clasifica la oferta;
+- agrupa horarios;
+- puede orientar por edad;
+- permite solicitar o asignar participantes;
+- dispone de activación, visibilidad y orden.
+
+No necesita slug en el MVP: no existe ruta de detalle por nivel y el identificador público será el necesario para seleccionar el nivel en una solicitud. Si en el futuro un nivel se divide en varios grupos con horarios propios, podrá evaluarse `SchoolGroup` como ampliación; no forma parte del modelo 6B actual.
+
+## 12. Nivel inicial
+
+La situación inicial tendrá conceptualmente un nivel “Infantil/juvenil”.
+
+Esto no implica:
+
+- seeder en 6A.1;
+- edades mínima o máxima inventadas;
+- exclusión de adultos del dominio;
+- clasificación deportiva;
+- imposibilidad de añadir niveles infantiles, juveniles o de adultos en el futuro.
+
+El nivel se creará mediante el flujo administrativo cuando 6B exista.
+
+## 13. Horarios semanales
+
+`SchoolSchedule` representa una recurrencia semanal simple:
+
+- nivel;
+- día de la semana;
+- hora de inicio;
+- hora de finalización;
+- ubicación;
+- activo/inactivo;
+- orden.
+
+Contrato de `day_of_week`: entero ISO 8601 de 1 a 7, donde 1 es lunes y 7 domingo. Es compacto, independiente del idioma, compatible con las utilidades de fecha del backend y evita persistir labels traducibles. Blade, API y React traducirán el número a una etiqueta.
+
+Validaciones:
+
+- día entre 1 y 7;
+- `starts_at` anterior a `ends_at`;
+- nivel perteneciente a un programa y activo al crear o reactivar;
+- ubicación escolar existente y activa;
+- orden entero no negativo;
+- no crear sesiones individuales, reglas RFC, festivos, excepciones o recuperaciones.
+
+No se define todavía una regla de solapamiento: puede haber niveles distintos simultáneos y no existe una restricción humana aprobada sobre recursos compartidos.
+
+## 14. Apertura y cierre
+
+`SchoolProgram.enrollments_open` controla la recepción de solicitudes.
+
+Cuando sea `false`:
+
+- la información pública puede seguir visible;
+- `POST /api/v1/school/enrollments` rechazará nuevas solicitudes;
+- React mostrará el estado cerrado y no ofrecerá un formulario operativo;
+- las solicitudes existentes y su administración no cambian.
+
+La apertura pública efectiva requiere simultáneamente:
+
+- programa público;
+- `enrollments_open = true`.
+
+Un programa privado puede conservar internamente `enrollments_open = true`, pero la API lo tratará como cerrado/no disponible y el POST rechazará la solicitud. Esta conservación evita modificar configuración al ocultar temporalmente el programa.
+
+## 15. Solicitud pública
+
+La inscripción pública forma parte de las fases 6B.2 y 6C:
+
+- no requiere registro ni autenticación;
+- crea un `SchoolEnrollment` en estado pendiente;
+- no crea un alumno activo, `Player` o permiso;
+- requiere revisión administrativa;
+- permite solicitar opcionalmente un nivel activo y público;
+- administración puede cambiar o asignar el nivel al aprobar.
+
+Se adopta la opción A: el nivel puede solicitarse públicamente y modificarse al aprobar. Con un único nivel, el campo puede omitirse o preseleccionarse en interfaz; mantenerlo opcional evita rediseñar el formulario cuando existan varios.
+
+`school_level_id` conserva el nivel solicitado mientras la inscripción está pendiente y el nivel asignado tras la activación. No se crea un segundo campo ni historial de cambios en el MVP.
+
+## 16. Cuenta opcional
+
+`SchoolEnrollment.user_id` es nullable.
+
+- una solicitud anónima lo deja a `null`;
+- si existe una sesión autenticada válida, el controlador podrá asignar el usuario actual;
+- el cliente nunca podrá enviar un `user_id` arbitrario;
+- la vinculación no sobrescribe nombre, nacimiento, contacto o representante enviados;
+- no crea `Player`;
+- no concede zona privada escolar ni acceso adicional;
+- no altera el mismo flujo de aprobación.
+
+## 17. Ciclo de inscripción
+
+Se utilizará un enum PHP respaldado por string y una columna string:
+
+| Valor técnico | Etiqueta | Semántica |
 |---|---|---|
-| Finalidad | Solicitar participación deportiva en un campeonato | Pedir información o plaza en una actividad formativa |
-| Solicitante | Usuario activo con perfil `Player` | Por determinar: persona adulta, tutor o participante |
-| Datos requeridos | Usuario, jugador, campeonato, categoría sugerida y comentario | No definidos; deberán minimizarse tras confirmar el proceso |
-| Estado | Enum deportivo de solicitud y pago | Ciclo independiente por definir; no reutilizar enum |
-| Aprobación | Administración deportiva y posible asignación a categoría | Responsable escolar y reglas operativas por confirmar |
-| Temporalidad | Ventana del campeonato | Curso, grupo o periodo escolar por definir |
-| Relación con usuario | Obligatoria | Pendiente; no debe imponerse una cuenta sin necesidad |
-| Menores | No modelados como flujo específico | Riesgo central; requiere responsable, consentimiento y exposición mínima |
-| Consentimiento | No forma parte del contrato deportivo auditado | Debe definirse antes de recoger datos |
-| Administración | Listado y cambios de estado deportivos | Vista y permisos propios, sin mezclar con campeonatos |
+| `pending` | Pendiente | Solicitud recibida, todavía no resuelta |
+| `active` | Activa | Participante admitido y actualmente inscrito |
+| `rejected` | Rechazada | Solicitud no aceptada |
+| `withdrawn` | Baja | Participante previamente activo que dejó la Escuela |
 
-Se pueden reutilizar infraestructura y patrones técnicos de Requests, Services, rate limiting, middleware, Resources y tests. Debe existir un modelo escolar independiente si se aprueba el formulario. No se reutilizarán `ChampionshipRegistrationRequest`, `CategoryRegistration` ni `Player`.
-
-Un futuro endpoint de escritura deberá devolver una confirmación opaca, no permitir enumerar solicitudes, aplicar limitación propia y evitar adjuntos en su primera versión.
-
-## 12. Alcance MVP
-
-| Capacidad | Decisión para MVP |
-|---|---|
-| Landing pública | Sí, en 6C y sólo tras disponer de datos reales o contenido estable útil |
-| Información estable | Sí mediante enlaces al Manual; colección propia sólo si hay material aprobado |
-| Grupos activos | Sí |
-| Horarios | Sí para cada grupo público, una vez confirmada su estructura temporal |
-| Ubicaciones | Sí cuando un horario presencial las requiera |
-| Estado de inscripción | Sí, como dato operativo; no como formulario |
-| Contacto | Condicionado a un canal organizativo y publicable confirmado; el bloque se omite si falta |
-| Solicitud de información o inscripción | No en el MVP; siguiente iteración independiente |
-
-No son requisitos de salida: avisos, noticias, galería, vídeos, descargas, plazas restantes, perfiles de responsables o alumnado, pagos ni área privada escolar.
-
-## 13. Modelo de dominio propuesto
-
-Se recomienda un vertical Laravel específico y pequeño, no una adaptación de `CmsPage` ni de Competición. El núcleo candidato es:
+Transiciones MVP:
 
 ```text
-SchoolProgram
-├── SchoolGroup
-│   └── SchoolSchedule ──► SchoolLocation
-└── SchoolEnrollmentPeriod
+pending ──► active ──► withdrawn
+    └─────► rejected
 ```
 
-Los nombres y campos son provisionales hasta cerrar las preguntas humanas. Antes de crear migraciones, 6B debe confirmar qué representa un programa, si el horario es semanal o por sesiones y si la inscripción se abre para el programa o para cada grupo.
+No se permiten activación directa desde rechazada o baja, rechazo de una inscripción activa ni retorno automático a pendiente.
 
-`SchoolEnrollmentRequest`, `SchoolNotice` y un posible `SchoolContact` no forman parte del núcleo MVP. Sólo se añadirán en bloques posteriores si su necesidad real supera una referencia de contacto o una página CMS simple.
+Fechas:
 
-| Alternativa | Evaluación |
+- `requested_at`: siempre, asignada por servidor;
+- `activated_at`: obligatoria al pasar a activa;
+- `rejected_at`: obligatoria al rechazar;
+- `withdrawn_at`: obligatoria al dar de baja;
+- las demás fechas de transición permanecen nulas cuando no aplican.
+
+No hay eliminación física desde el flujo normal. Una futura reinscripción creará un nuevo `SchoolEnrollment` pendiente y conservará el anterior como baja o rechazado. La vinculación histórica entre intentos y los periodos múltiples se aplaza hasta existir una necesidad real.
+
+## 18. Plazas, pagos y exclusiones
+
+El MVP no gestiona:
+
+- capacidad;
+- plazas libres;
+- lista de espera;
+- bloqueos o asignación automática por cupo;
+- cuotas o pagos;
+- renovaciones anuales;
+- asistencia;
+- expedientes;
+- calificaciones;
+- historial médico;
+- documentos de identidad;
+- dirección postal completa;
+- imágenes o adjuntos;
+- mensajería interna;
+- estadísticas escolares.
+
+La falta de plazas y los pagos permanecen como posibles ampliaciones, no como campos ocultos o estados anticipados.
+
+## 19. Centros educativos
+
+`EducationalCenter` representa un centro reutilizable en múltiples actividades.
+
+Contrato mínimo:
+
+- `name` y `locality` obligatorios;
+- `contact_name`, `contact_phone` y `contact_email` nullable;
+- `is_active`;
+- `admin_notes` nullable;
+- timestamps.
+
+No será público en el MVP. No se añade CIF, código de centro, dirección completa, datos fiscales o adjuntos.
+
+No se impone unicidad global ni compuesta en base de datos. Dos centros pueden compartir nombre, incluso en una misma localidad; Blade deberá mostrar contexto suficiente y podrá advertir de coincidencias sin bloquearlas.
+
+## 20. Actividades educativas
+
+`EducationalActivity` pertenece a un centro y registra:
+
+- nombre libre obligatorio;
+- fecha obligatoria;
+- hora de inicio y fin opcionales, ambas presentes o ambas ausentes;
+- número previsto de alumnos;
+- ubicación escolar opcional;
+- estado;
+- observaciones administrativas;
+- timestamps.
+
+Los nombres “Jornada de convivencia”, “Clase de Galotxas” o “Introducción a las Galotxas” son ejemplos, no enums ni seeders.
+
+Estados mediante enum PHP respaldado por string:
+
+| Valor técnico | Etiqueta |
 |---|---|
-| Sólo CMS genérico | Descartada: no expresa relaciones, completitud o visibilidad efectiva de la oferta |
-| Sólo `knowledge/` | Descartada: fechas y oferta operativa exigirían despliegue y no admitirían transacciones |
-| CMS más tablas escolares para la misma pieza | Descartada: crearía dos autoridades y sincronización |
-| Dominio Laravel específico + `knowledge/` estable | Recomendada: separa ritmo editorial, estructura operativa y privacidad |
+| `planned` | Planificada |
+| `completed` | Realizada |
+| `cancelled` | Cancelada |
 
-## 14. Entidades
+`expected_students` será nullable mientras la actividad esté planificada y deberá ser un entero positivo al marcarla como realizada. Cero no es un valor válido: una actividad sin participación debe permanecer planificada, cancelarse o corregirse. Una cancelada puede conservar el último valor previsto.
 
-| Entidad | Responsabilidad | Campos mínimos propuestos | Relaciones | Administrable | Pública |
-|---|---|---|---|---|---|
-| `SchoolProgram` | Representar una edición u oferta operativa de Escuela | nombre, inicio/fin si existen, estado operativo aprobado, `is_public` | tiene grupos y periodos | Sí | Resumen filtrado |
-| `SchoolGroup` | Agrupar una oferta real para un público concreto | programa, nombre, descripción pública de destinatarios, estado operativo, `is_public`, orden; capacidad sólo si se gestiona | pertenece a programa; tiene horarios | Sí | Sólo rama efectiva |
-| `SchoolSchedule` | Estructurar cuándo se reúne un grupo | grupo, ubicación, definición temporal confirmada, vigencia si aplica, `is_public`, orden | pertenece a grupo y ubicación | Sí | Sólo con contexto completo |
-| `SchoolLocation` | Identificar una sede escolar publicable | nombre, dirección o indicación pública mínima, `is_public` | tiene horarios | Sí | Sólo datos públicos |
-| `SchoolEnrollmentPeriod` | Expresar apertura/cierre de inscripción sin recibir solicitudes | programa o grupo —a confirmar—, inicio/fin, estado operativo, `is_public` | pertenece al ámbito aprobado | Sí | Estado derivado y fechas necesarias |
+Si hay horas, `starts_at` será anterior a `ends_at`. La ubicación debe existir y estar activa al asignarla. Desactivar después el centro o la ubicación no borra la actividad histórica.
 
-No se congela la forma exacta de la “definición temporal”: si la operación es semanal podrá modelarse por día y horas; si usa fechas irregulares se necesitarán sesiones. Elegir una forma antes de obtener esa respuesta produciría campos especulativos.
+No existe formulario público para centros, reservas, cuentas, aprobación externa, asistentes nominales, asistencia, facturación, pagos o adjuntos.
 
-Entidades evaluadas y aplazadas:
+## 21. Modelo funcional definitivo
 
-- `SchoolEnrollmentRequest`: siguiente iteración, modelo independiente si se aprueba el formulario;
-- `SchoolNotice`: usar CMS simple o aplazar; crear entidad sólo si requiere ámbito, vigencia u orden propios;
-- `SchoolContact`: evitar entidad para un único canal; valorar campos mínimos en programa o configuración tras decidir responsable y exposición;
-- perfil de alumno: descartado;
-- reutilización de `Venue`: condicionada a demostrar identidad semántica entre sede escolar y pista deportiva; por defecto son conceptos separados.
+```text
+SchoolLocation
+├── SchoolProgram (default location)
+├── SchoolSchedule
+└── EducationalActivity
 
-## 15. Relaciones
+SchoolProgram
+├── SchoolLevel
+│   ├── SchoolSchedule
+│   └── SchoolEnrollment (nullable while pending)
+└── SchoolEnrollment
 
-- Un programa tiene cero o más grupos; un grupo pertenece a un programa.
-- Un grupo tiene cero o más horarios; un horario pertenece a un único grupo.
-- Un horario usa una ubicación escolar; una ubicación puede servir a varios horarios.
-- Un periodo de inscripción pertenece al ámbito real que se confirme antes de 6B: programa o grupo, pero no ambos de forma ambigua.
-- Una futura solicitud pertenecerá al periodo y, si procede, al grupo; no se relacionará con campeonato o categoría.
+EducationalCenter
+└── EducationalActivity
+```
 
-Se deben definir claves foráneas y restricciones de borrado conservadoras. No se borrará una entidad con dependencias operativas sin una decisión explícita; archivar u ocultar será preferible cuando exista historial.
+Entidades cerradas para 6B:
 
-## 16. Estados y visibilidad
+| Entidad | Responsabilidad | Pública en MVP |
+|---|---|---|
+| `SchoolProgram` | Configuración de la Escuela permanente | Sí, si es pública |
+| `SchoolLevel` | Oferta formativa y asignación | Sí, si es efectiva |
+| `SchoolSchedule` | Horario semanal | Sí, si es efectivo |
+| `SchoolLocation` | Ubicación común al dominio escolar | Sólo mediante horarios efectivos |
+| `SchoolEnrollment` | Solicitud, alta, rechazo y baja | Nunca |
+| `EducationalCenter` | Centro reutilizable | No |
+| `EducationalActivity` | Actividad con un centro | No |
 
-El estado operativo y la intención pública deben ser dimensiones separadas, pero no se copiarán los enums de Competición ni `draft`/`published` del CMS.
+No forman parte del modelo los periodos de inscripción separados, solicitudes distintas de `SchoolEnrollment`, alumnos nominales de centros o un perfil escolar separado.
 
-Contrato propuesto:
+## 22. Campos mínimos
 
-- `is_public` booleano, privado por defecto, para cada entidad que pueda aparecer públicamente;
-- enum operativo sólo en programa, grupo y periodo cuando el flujo real confirme sus valores;
-- fechas de vigencia únicamente donde representen hechos reales;
-- sin publicación programada editorial en el MVP salvo necesidad demostrada;
-- sin global scopes.
+| Entidad | Campos |
+|---|---|
+| `SchoolProgram` | `name`, `is_public`, `enrollments_open`, `default_location_id` nullable, `contact_phone` nullable, `contact_email` nullable, `sort_order`, timestamps |
+| `SchoolLevel` | `school_program_id`, `name`, `minimum_age` nullable, `maximum_age` nullable, `is_active`, `is_public`, `sort_order`, timestamps |
+| `SchoolSchedule` | `school_level_id`, `day_of_week`, `starts_at`, `ends_at`, `school_location_id`, `is_active`, `sort_order`, timestamps |
+| `SchoolLocation` | `name`, `location`, `description` nullable, `is_active`, timestamps |
+| `SchoolEnrollment` | `school_program_id`, `school_level_id` nullable, `user_id` nullable, `participant_name`, `participant_birth_date`, `contact_phone`, `contact_email`, `guardian_name` nullable condicional, `guardian_relationship` nullable condicional, `status`, `requested_at`, `activated_at` nullable, `rejected_at` nullable, `withdrawn_at` nullable, `admin_notes` nullable, timestamps |
+| `EducationalCenter` | `name`, `locality`, `contact_name` nullable, `contact_phone` nullable, `contact_email` nullable, `is_active`, `admin_notes` nullable, timestamps |
+| `EducationalActivity` | `educational_center_id`, `name`, `activity_date`, `starts_at` nullable, `ends_at` nullable, `expected_students` nullable condicional, `school_location_id` nullable, `status`, `admin_notes` nullable, timestamps |
 
-Visibilidad efectiva:
+Defaults seguros:
 
-- programa: propio `is_public`;
-- grupo: propio `is_public` y programa efectivo;
-- horario: propio `is_public`, grupo/programa efectivos y ubicación pública;
-- ubicación: propio `is_public`; se descubre desde un horario efectivo;
-- periodo: propio `is_public`, padre efectivo y estado/ventana coherentes.
+- programa privado y con inscripciones cerradas;
+- nivel inactivo y privado;
+- horario inactivo;
+- ubicación inactiva;
+- inscripción pendiente;
+- centro y actividad con estados explícitos definidos por el flujo administrativo.
 
-Blade impedirá hacer público un hijo bajo un padre privado y publicar registros incompletos. Ocultar un padre no necesita reescribir hijos: conservar flags facilita restaurar la rama, pero esta semántica deberá aprobarse y probarse dentro del dominio escolar, no heredarse sólo por analogía. La API filtra antes del Resource.
+No se añaden slugs porque no existen rutas públicas de detalle para estas entidades.
 
-“Inscripción abierta” no se infiere sólo de que exista un formulario o un grupo. Debe resultar del periodo operativo aprobado y sus fechas coherentes. Un periodo cerrado puede mostrarse como cerrado cuando sea útil, pero nunca como abierto.
-
-## 17. Administración
-
-6B necesitará controladores web, Form Requests, vistas Blade y rutas bajo el grupo administrativo actual:
-
-| Bloque | CRUD/acción | Validaciones y visibilidad | Permisos, feedback y tests |
-|---|---|---|---|
-| Programa | Índice, alta, detalle, edición; borrado sólo si es seguro | campos mínimos, fechas coherentes, estado permitido, privado por defecto | administrador activo; mensajes de éxito/error y cobertura de roles |
-| Grupos | CRUD anidado en programa | padre inmutable, destinatario explícito, orden, completitud para publicar | misma autorización; errores de jerarquía comprensibles |
-| Horarios | CRUD anidado en grupo | forma temporal aprobada, inicio anterior a fin, ubicación válida, sin contexto huérfano | feedback y tests de conflicto sólo si existe regla real |
-| Ubicaciones | CRUD reutilizable | nombre y dato público mínimo; no asumir `Venue` | impedir borrados con horarios o definir archivo |
-| Periodos | CRUD/acciones de estado | ámbito único, cronología y coherencia de apertura | no mostrar como abierto lo que está cerrado |
-| Contacto | Configuración mínima si se aprueba | canal organizativo validado y exposición explícita | no publicar datos personales por defecto |
-| Solicitudes | No en MVP; futuro listado/detalle/transición, no CRUD indiscriminado | minimización, estados y conservación aprobados | permiso específico, auditoría y respuestas opacas |
-| Avisos | CMS genérico o futuro bloque específico | fuente única, fecha/ámbito si se estructura | evitar duplicidad entre CMS y dominio escolar |
-
-Los controladores usarán exclusivamente `validated()` y persistencia explícita. No se añade una arquitectura excesiva ni se ofrece edición de campos técnicos o relaciones mediante payload manipulado.
-
-## 18. API pública
-
-Para el MVP se recomienda una única lectura agregada. Reduce estados inconsistentes y entrega exactamente la composición operativa necesaria para `/escuela`.
-
-| Método y ruta propuesta | Responsabilidad | Resource | Visibilidad | Consumidor |
-|---|---|---|---|---|
-| `GET /api/v1/school` | Resumen de programas efectivos con grupos, horarios, ubicaciones y estado de inscripción | `PublicSchoolOverviewResource` y Resources hijos cerrados | Sólo ramas efectivamente públicas; sin flags ni campos admin | Landing React `/escuela` |
-
-El contrato deberá conservar el envelope API del proyecto y distinguir colección vacía de fallo. No expondrá IDs innecesarios, notas internas, capacidad si no es publicable, datos personales, solicitantes, responsables privados, flags, timestamps administrativos o filas ocultas.
-
-No se justifican inicialmente endpoints públicos genéricos para alumnos, contactos, ubicaciones aisladas, solicitudes o avisos. Si el volumen o las rutas de detalle futuras lo exigen, se diseñarán tras medir el caso real.
-
-Un eventual `POST /api/v1/school/enrollment-requests` queda fuera del MVP y requiere un contrato separado de seguridad, validación y privacidad.
-
-## 19. API administrativa
-
-No se necesita API administrativa para 6B: Blade puede operar mediante controladores web Laravel, como interfaz oficial de administración. Añadir un CRUD JSON duplicaría autorización y contratos sin consumidor real.
-
-Si en el futuro existe un cliente administrativo distinto de Blade, se diseñarán rutas y Resources administrativos propios. Nunca se reutilizará el Resource público ni se expondrán solicitudes a través de endpoints de colección sin autorización estricta.
-
-## 20. Experiencia pública
-
-La landing de 6C reutilizará la estructura de `PublicLanding`, sin convertir sus props en fuente editorial. Sólo montará bloques con datos reales:
-
-1. cabecera con H1 y explicación procedente de la fuente aprobada;
-2. acceso contextual al Manual;
-3. grupos públicos con destinatarios confirmados;
-4. horarios acompañados de grupo y ubicación;
-5. estado de inscripción;
-6. canal de contacto aprobado;
-7. avisos sólo si hay una fuente clasificada y datos vigentes.
-
-La metodología o presentación estable aparecerán sólo si existe una colección pública aprobada. No habrá tarjetas vacías, edades inventadas, responsables ficticios, horarios de muestra, ubicaciones simuladas o CTA sin destino.
-
-## 21. Ruta recomendada
-
-La ruta canónica será `/escuela`.
-
-Es breve, coherente con `/competicion` y `/aprende-a-jugar`, ya está reservada por el contrato público y evita fijar el nombre completo en todas las subrutas. La etiqueta y H1 serán “Escuela de Galotxas”; el título básico será “Escuela de Galotxas | Galotxas”.
-
-`/escuela-de-galotxas` no aporta una ventaja que compense una URL más larga. No se crea alias ni redirect en 6A.
-
-## 22. Navegación
-
-Cuando 6C supere sus gates, “Escuela de Galotxas” ocupará la cuarta posición del Navbar, después de Aprende a jugar y antes de Club. Su criterio activo cubrirá `/escuela` y las subrutas que se aprueben.
+## 23. Relaciones y consistencia
 
 Relaciones:
 
-- Aprende a jugar ofrece el conocimiento general y el Manual;
-- Escuela presenta la oferta formativa real y puede enlazar al Manual;
-- Club conserva la información institucional;
-- el CMS genérico puede aportar una pieza clasificada, pero `/contenidos/academy` no es la ruta canónica.
+- `SchoolProgram hasMany SchoolLevel`;
+- `SchoolProgram hasMany SchoolEnrollment`;
+- `SchoolProgram belongsTo SchoolLocation` como ubicación habitual nullable;
+- `SchoolLevel belongsTo SchoolProgram`;
+- `SchoolLevel hasMany SchoolSchedule`;
+- `SchoolLevel hasMany SchoolEnrollment`;
+- `SchoolSchedule belongsTo SchoolLevel`;
+- `SchoolSchedule belongsTo SchoolLocation`;
+- `SchoolEnrollment belongsTo SchoolProgram`;
+- `SchoolEnrollment belongsTo SchoolLevel`, nullable;
+- `SchoolEnrollment belongsTo User`, nullable;
+- `EducationalCenter hasMany EducationalActivity`;
+- `EducationalActivity belongsTo EducationalCenter`;
+- `EducationalActivity belongsTo SchoolLocation`, nullable.
 
-Actualmente Escuela sigue ausente del Navbar y `/escuela` continúa resolviendo a la 404. Esta ausencia es correcta hasta que la landing tenga fuente, datos, estados y tests.
+Se conservan `school_program_id` y `school_level_id` en `SchoolEnrollment`:
 
-## 23. Estados remotos
+- el programa debe conocerse aunque la persona no solicite un nivel;
+- el nivel puede ser nullable durante la revisión;
+- cuando exista nivel, debe pertenecer al mismo programa;
+- el POST no acepta `school_program_id`: el backend asigna el único programa público;
+- cambiar el nivel desde Blade validará la misma consistencia.
 
-La futura landing separará la carga operativa de la disponibilidad del conocimiento compilado:
+La ubicación habitual sólo preselecciona nuevos horarios o sirve de dato general. Cambiarla no modifica horarios ni actividades existentes.
+
+Los borrados serán conservadores:
+
+- no borrar programa, nivel, ubicación o centro con relaciones;
+- no borrar inscripciones desde el flujo normal;
+- desactivar preserva el histórico;
+- una actividad histórica conserva su centro y ubicación aunque se desactiven.
+
+## 24. Visibilidad efectiva
+
+Política pública:
+
+- programa visible: `is_public = true`;
+- nivel visible: programa visible, `is_active = true` e `is_public = true`;
+- horario visible: nivel efectivo, `is_active = true` y ubicación activa;
+- ubicación: se expone únicamente dentro de un horario efectivo;
+- inscripciones abiertas: programa visible y `enrollments_open = true`.
+
+Casos:
+
+| Estado declarado | Resultado público |
+|---|---|
+| Programa privado + nivel público | No se expone programa, nivel ni horarios |
+| Nivel privado + horario activo | No se expone nivel ni horario |
+| Ubicación inactiva | Se excluyen los horarios que la usan |
+| Programa privado + inscripciones abiertas | No hay formulario efectivo y el POST rechaza |
+| Programa público + inscripciones cerradas | Información visible, formulario cerrado |
+
+No se copian cascadas de Competición. Ocultar o desactivar un padre no reescribe flags hijos; la consulta pública aplica la conjunción efectiva. Blade impedirá activar/publicar un hijo bajo un padre no válido, pero permitirá ocultar el padre conservando configuración.
+
+`EducationalCenter` y `EducationalActivity` son administrativos. Su estado operativo nunca implica publicación y no necesitan `is_public` en el MVP.
+
+## 25. Administración Blade
+
+### Programa
+
+- listado y edición del único programa MVP;
+- nombre, visibilidad, apertura/cierre, ubicación habitual, contacto público y orden;
+- impedir un segundo programa público;
+- mostrar por separado visibilidad y apertura efectiva.
+
+### Niveles
+
+- listado por programa, alta, edición, activación, publicación y orden;
+- edades nullable con `minimum_age <= maximum_age`;
+- borrado bloqueado cuando tenga horarios o inscripciones;
+- sin slug.
+
+### Horarios
+
+- listado por nivel, alta, edición, activación y orden;
+- día ISO, horas y ubicación activa;
+- sin sesiones ni excepciones.
+
+### Ubicaciones
+
+- listado, alta, edición, activación y uso;
+- mostrar dependencias con programas, horarios y actividades;
+- borrado bloqueado mientras tenga relaciones.
+
+### Inscripciones
+
+- filtros para pendientes, activas, rechazadas y bajas;
+- detalle privado;
+- aprobar y asignar/reasignar nivel;
+- rechazar;
+- dar de baja;
+- observaciones privadas;
+- fechas de transición;
+- sin eliminación física normal.
+
+### Centros
+
+- listado, alta, edición, activación y detalle;
+- contacto y notas privadas;
+- historial de actividades;
+- coincidencias de nombre informativas, no restricción de unicidad.
+
+### Actividades
+
+- listado, alta, edición, estado, fecha, horas, alumnado previsto, ubicación y observaciones;
+- nombre libre;
+- sin dashboard analítico.
+
+Todos los flujos usarán administrador activo, Form Requests, `validated()`, persistencia explícita, feedback y tests de autorización. No se añade API administrativa mientras Blade sea el único consumidor.
+
+## 26. API pública
+
+### Lectura
+
+`GET /api/v1/school`
+
+Entregará:
+
+- programa público;
+- niveles activos y públicos;
+- horarios efectivos;
+- ubicaciones asociadas;
+- estado efectivo de inscripción;
+- contacto público cuando exista.
+
+No entregará flags administrativos, notas, alumnado, solicitudes, fechas de nacimiento, contactos privados, centros o actividades. Si no existe programa público, responderá `404`; React lo tratará como ausencia de configuración operativa y podrá conservar el enlace al Manual.
+
+### Escritura
+
+`POST /api/v1/school/enrollments`
+
+Payload público:
+
+- `participant_name`;
+- `participant_birth_date`;
+- `contact_phone`;
+- `contact_email`;
+- `guardian_name`, condicional;
+- `guardian_relationship`, condicional;
+- `school_level_id`, opcional.
+
+El backend:
+
+- resuelve el único programa público;
+- exige inscripción efectiva abierta;
+- asigna `requested_at` y estado pendiente;
+- calcula minoría de edad sin almacenar edad;
+- valida representante;
+- acepta sólo un nivel activo, público y del programa;
+- toma `user_id` de la sesión opcional, nunca del payload;
+- aplica rate limiting y medidas antispam;
+- devuelve `201` con confirmación genérica, sin ID administrativo.
+
+Respuestas previstas:
+
+- `422` para validación;
+- `404` si no existe programa público;
+- `409` si las inscripciones están cerradas;
+- `429` al superar el límite.
+
+No existirán listado público, consulta por ID, estado individual, endpoints de alumnos, centros o actividades. Blade operará con rutas web, no con API administrativa.
+
+## 27. Experiencia pública
+
+Fase 6C implementará `/escuela` con:
+
+1. H1 “Escuela de Galotxas”;
+2. enlace al Manual;
+3. niveles públicos;
+4. horarios semanales y ubicaciones;
+5. inscripción abierta o cerrada;
+6. formulario público cuando esté abierta;
+7. contacto general sólo si está configurado;
+8. estados remotos y confirmación opaca.
+
+La landing reutilizará `PublicLanding` y `PageMetadata`, y “Escuela de Galotxas” ocupará la cuarta posición del Navbar. No publicará centros, actividades o alumnos.
+
+Estados:
 
 | Situación | Comportamiento |
 |---|---|
-| Carga | Estado anunciado en el bloque operativo; no sustituye el H1 por un placeholder |
-| Error total de API | Mensaje recuperable y reintento; conservar enlaces estáticos al Manual si están disponibles |
-| Datos parciales | Mostrar bloques válidos y aislar el error o ausencia local |
-| Sin programas/grupos públicos | Estado neutral “sin grupos publicados”, sin simular oferta |
-| Inscripción cerrada | Mostrar cerrada con contexto real; no renderizar CTA de solicitud |
-| Sin horarios | Omitir horario o indicar ausencia dentro del grupo; nunca mostrar una tabla huérfana |
-| Sin avisos | Omitir por completo el bloque |
-| Sin contenido estable propio | Mantener sólo enlaces reales al Manual y datos operativos; no crear copy de relleno |
-| Esquema API inválido | Tratar como error del bloque, no intentar adivinar campos |
+| Loading | Estado anunciado del bloque operativo |
+| Error de lectura | Mensaje recuperable y reintento; conservar enlace al Manual |
+| `404` de lectura | Estado sin configuración pública, no datos simulados |
+| Datos parciales | Mostrar niveles/horarios válidos y omitir bloques ausentes |
+| Inscripción cerrada | Mensaje claro, sin formulario enviable |
+| Error de envío | Mantener valores no sensibles y errores por campo |
+| Éxito | Confirmación genérica sin ID o consulta de estado |
+| Sin contacto público | Omitir bloque sin afectar el resto |
 
-Sólo bloquea toda la información operativa un fallo que impida validar el agregado. Un error en avisos, contacto opcional o contenido estable no debe ocultar grupos y horarios válidos.
+React no calculará mayoría de edad como decisión final, no confiará en ocultar el formulario y no persistirá contenido editorial.
 
-## 24. Privacidad y seguridad
+## 28. Privacidad y seguridad
 
-Principios obligatorios:
+Nunca serán públicos:
 
-- recoger sólo datos necesarios para el proceso aprobado;
-- no crear perfiles públicos de alumnado;
-- no exigir cuenta o `Player` sin necesidad confirmada;
-- tratar nombres de menores, tutores y responsables como privados por defecto;
-- separar Resources públicos, administrativos y, si llega a existir, del propio solicitante;
-- impedir enumeración mediante identificadores o respuestas diferenciadas;
-- aplicar rate limiting y medidas antispam propias a escrituras anónimas;
-- validar y autorizar en backend, no confiar en el formulario React;
-- evitar datos personales y contenido de solicitudes en logs ordinarios;
-- definir acceso administrativo, transiciones, exportación y conservación antes de almacenar solicitudes;
-- empezar sin adjuntos;
-- probar anónimo, usuario, administrador activo e inactivo y acceso directo;
-- no dar asesoramiento legal desde el software ni inventar requisitos; las decisiones organizativas y de privacidad requieren revisión humana.
+- nombres de participantes;
+- fechas de nacimiento;
+- representante o relación;
+- teléfonos y correos de solicitudes;
+- estados individuales;
+- observaciones;
+- `user_id`;
+- centros, contactos de centros y actividades del MVP.
 
-La cuenta deportiva y el perfil `Player` no constituyen consentimiento ni autorización para procesos escolares.
+Controles:
 
-## 25. Multimedia
+- minimización de campos;
+- Request público cerrado;
+- asociación de usuario sólo desde sesión;
+- validación condicional en backend;
+- respuesta sin ID;
+- sin endpoint de consulta;
+- rate limiting y antispam;
+- datos personales fuera de logs ordinarios;
+- administrador activo para toda consulta o transición;
+- Resources públicos separados;
+- sin exportaciones ni adjuntos;
+- conservación y textos de aceptación pendientes de aprobación antes de producción.
 
-Necesidades probables: imagen institucional de portada, fotografías de actividades, eventualmente vídeo y documentos. No son necesarias para publicar el MVP.
+No se redactan textos legales, política de privacidad, consentimiento o autorización de imagen. El formulario deberá incorporar las aceptaciones necesarias sólo cuando sus textos estén aprobados.
 
-Antes de implementarlas se requiere:
+## 29. Contenido editorial y `academy`
 
-- procedencia, titularidad, permiso de uso, responsable y posibilidad de retirada;
-- autorización específica cuando aparezcan menores;
-- texto alternativo significativo;
-- portada y orden editorial explícitos;
-- variantes/tamaños y límites de formato;
-- almacenamiento persistente desacoplado del contenedor y de Git;
-- subida, reemplazo y eliminación administradas sin dejar referencias rotas.
+La landing podrá:
 
-Las galerías CMS actuales sólo almacenan URLs y no aportan por sí mismas procedencia, consentimiento, alt por imagen o ciclo de vida. No se usarán como atajo para fotografías escolares.
+- enlazar al Manual;
+- mostrar datos operativos de Laravel;
+- incluir copy breve de interfaz.
 
-## 26. Migración de `academy`
+No copiará reglas o conceptos a MariaDB, CMS o JSX y no inventará metodología. Una colección de Escuela en `knowledge/` sólo se creará con contenido real, revisado y un contrato editorial.
 
-Estrategia recomendada, sin ejecutar en 6A:
+`academy`:
 
-1. conservar temporalmente la página y `/contenidos/academy`;
-2. inventariar en cada entorno sus datos, bloques, estado, enlaces y tráfico;
-3. revisar editorialmente qué contenido es útil y clasificarlo como estable, operativo o descartable;
-4. migrar cada pieza a una única fuente nueva y verificar paridad;
-5. retirar cualquier enlace legado cuando `/escuela` sea funcional;
-6. decidir despublicación y un redirect futuro sólo con destino equivalente, pruebas, canonical y plan SEO;
-7. eliminar la página únicamente cuando no queden datos útiles, consumidores ni compatibilidad pendiente.
+- no equivale a Escuela de Galotxas;
+- no es el dominio operativo;
+- no se elimina, despublica, redirige o migra automáticamente;
+- permanece accesible según las reglas CMS actuales;
+- se revisará editorialmente después de que `/escuela` tenga implementación y paridad.
 
-No se recomienda redirigir ahora: `/escuela` no existe y el contenido genérico de `academy` no es equivalente. La URL, los datos y la navegación se migran como problemas separados.
+La URL, los datos, la navegación y el SEO se migrarán como problemas separados.
 
-## 27. Preguntas abiertas
+## 30. Plan 6B
 
-Prioridad bloqueante para 6B:
+Fase 6B continúa pendiente y se divide así:
 
-1. ¿Qué representa un programa: curso anual, campaña, actividad o varias ofertas simultáneas?
-2. ¿Cuáles son los grupos reales y cómo se describen sus destinatarios sin inventar edades o niveles?
-3. ¿Los horarios son semanales recurrentes, sesiones con fecha o una combinación?
-4. ¿Cuáles son las ubicaciones escolares reales y coinciden o no con `Venue`?
-5. ¿La inscripción se abre por programa o por grupo y cuáles son sus estados reales?
-6. ¿Qué canal organizativo de contacto puede publicarse y quién lo mantiene?
-7. ¿El MVP puede publicarse sin recibir solicitudes, como recomienda esta auditoría?
+### 6B.1 — Núcleo operativo
 
-Prioridad previa a una iteración transaccional:
+- migraciones, modelos, relaciones, enums y factories;
+- `SchoolProgram`, `SchoolLevel`, `SchoolSchedule` y `SchoolLocation`;
+- decisión ya cerrada de no reutilizar `Venue`;
+- administración Blade;
+- activación, visibilidad efectiva y apertura;
+- tests y documentación.
 
-8. ¿Quién presenta la solicitud: adulto participante, tutor o centro educativo?
-9. ¿Se necesita cuenta o debe admitirse una petición anónima?
-10. ¿Qué datos son estrictamente necesarios y durante cuánto tiempo se conservan?
-11. ¿Cómo se documentan consentimiento, respuesta, retirada y tratamiento de menores?
-12. ¿Qué flujo y estados usa realmente el responsable de la Escuela?
-13. ¿Existen capacidad/plazas y deben mostrarse o sólo gestionarse internamente?
+### 6B.2 — Inscripciones y participantes
 
-Prioridad editorial y multimedia:
+- `SchoolEnrollment` y enum de estado;
+- `POST /api/v1/school/enrollments`;
+- programa abierto y nivel opcional;
+- mayoría de edad, representante condicional, teléfono y correo;
+- asociación opcional con usuario;
+- aprobación, rechazo, baja y reasignación;
+- rate limiting, administración Blade, tests y documentación.
 
-14. ¿Existe material pedagógico revisado para una colección propia?
-15. ¿Quién aprueba y mantiene ese contenido?
-16. ¿Qué contenido real tiene `academy` en cada entorno?
-17. ¿Qué imágenes o vídeos tienen procedencia y permisos documentados?
-18. ¿Se necesitan avisos propios o basta una pieza CMS genérica?
+El POST pertenece a 6B.2 porque es parte del mismo flujo transaccional. React lo consumirá en 6C.
 
-## 28. Plan 6B
+### 6B.3 — Centros y actividades
 
-Fase 6B permanece pendiente y conviene dividirla:
+- `EducationalCenter` y `EducationalActivity`;
+- administración Blade;
+- enums, fechas, horas, alumnado previsto y ubicación;
+- validaciones, estados, tests y documentación;
+- sin API pública.
 
-### 6B.1 — Cierre funcional y esquema
+### 6B.4 — API pública de lectura
 
-- obtener respuestas humanas bloqueantes;
-- fijar vocabulario, entidades, campos, enums y regla temporal;
-- confirmar contacto, ámbito de inscripción y semántica de visibilidad;
-- decidir independencia o relación explícita con `Venue`;
-- actualizar contratos antes de migrar.
+- `GET /api/v1/school`;
+- Resources públicos;
+- programa principal;
+- niveles, horarios, ubicaciones, inscripción y contacto;
+- visibilidad efectiva, contratos, tests y documentación.
 
-### 6B.2 — Dominio y administración operativa
+No se inicia ningún subbloque con este documento.
 
-- nuevas migraciones MariaDB reversibles;
-- modelos, relaciones, casts, factories y seeders sólo para desarrollo/E2E;
-- Form Requests, persistencia explícita y reglas jerárquicas;
-- controladores, rutas y vistas Blade para el núcleo aprobado;
-- permisos de administrador activo, feedback y restricciones de borrado;
-- nuevos registros privados y protección de registros incompletos;
-- tests Feature administrativos, de modelo y migración.
+## 31. Plan 6C y testing
 
-### 6B.3 — Lectura pública
+6C permanece pendiente:
 
-- scopes o consultas efectivas explícitas;
-- endpoint agregado y Resources públicos cerrados;
-- contratos de vacío, orden y fechas;
-- exclusión de información privada y campos administrativos;
-- tests de listados, ramas ocultas, acceso directo y regresión;
-- documentación de API/Resources cuando el contrato exista.
+- servicio y hook;
+- landing `/escuela`;
+- niveles, horarios y ubicación;
+- estado de inscripción;
+- formulario y validación básica;
+- estados de lectura y envío;
+- Navbar;
+- accesibilidad, responsive y E2E;
+- enlace al Manual;
+- revisión posterior de `academy`;
+- cierre de Fase 6.
 
-Un formulario de solicitud no se añade a estos subbloques salvo que las decisiones de privacidad y proceso se cierren primero. En ese caso se planificará como subbloque transaccional separado, no como ampliación incidental.
+`SCHOOL-CONTRACT-AUDIT-1` prevé para 6B/6C:
 
-## 29. Plan 6C
+- defaults, casts, relaciones y consistencia programa/nivel;
+- adulto y menor calculados en la fecha de solicitud;
+- representante condicional;
+- teléfono y correo obligatorios;
+- solicitud anónima y asociación autenticada opcional sin sobrescritura;
+- nivel omitido, válido, privado, inactivo o de otro programa;
+- día ISO, cronología, ubicación activa y orden;
+- programa privado, niveles privados y ubicación inactiva;
+- apertura/cierre protegidos en backend;
+- transiciones, fechas, rechazo de transiciones inválidas y ausencia de borrado;
+- centros con nombres repetidos;
+- actividad con nombre libre, estados, horas y `expected_students`;
+- ausencia de asistentes nominales, plazas, pagos y API de centros;
+- permisos Blade;
+- Resources sin datos personales;
+- `GET` y `POST`, rate limiting, no enumeración y contratos de error;
+- React, formulario, estados remotos, teclado, foco, responsive, Navbar y E2E.
 
-Fase 6C permanece pendiente:
+Este plan no representa tests implementados o ejecutados en 6A.1.
 
-1. decidir si se enlaza sólo el Manual o si existe contenido suficiente para ampliar `knowledge/`;
-2. si procede, definir colección, metadatos, rutas lógicas, validación, proyección y responsabilidad editorial antes de crear documentos;
-3. crear servicio y hook React para el agregado público con validación del contrato;
-4. registrar `/escuela` y componer la landing con `PublicLanding`;
-5. implementar estados de carga, error, parcial y vacío por bloque;
-6. montar sólo secciones con datos reales;
-7. añadir metadatos y navegación contextual accesible;
-8. incorporar “Escuela de Galotxas” al Navbar en cuarta posición y cubrir estado activo, móvil y Escape;
-9. añadir formulario sólo si un bloque transaccional previo lo ha aprobado e implementado;
-10. probar componentes, integración, responsive, teclado, E2E y regresión;
-11. ejecutar la migración de `academy` únicamente con paridad y compatibilidad verificadas;
-12. actualizar documentación y mantener fuera los placeholders.
+## 32. Deuda y criterios de cierre
 
-## 30. Testing
+Deuda futura no bloqueante:
 
-El plan `SCHOOL-CONTRACT-AUDIT-1` no representa pruebas de código existentes. Para 6B/6C prevé:
+- canal público de contacto definitivo;
+- textos aprobados de privacidad y aceptaciones;
+- política de conservación y borrado extraordinario;
+- reglas de duplicados o reinscripción compleja;
+- varios programas públicos;
+- subdivisión futura de niveles en grupos;
+- plazas, lista de espera, cuotas y pagos;
+- excepciones de horarios y calendario;
+- asistencia o métricas de actividades;
+- API o formulario para centros;
+- multimedia, permisos y almacenamiento persistente;
+- colección pedagógica propia;
+- SEO, canonical y migración de `academy`;
+- roles administrativos granulares.
 
-- modelos, casts, relaciones, factories, migraciones y defaults;
-- autorización de admin activo, inactivo, usuario y anónimo;
-- Form Requests, whitelists, cronología, estados y jerarquía;
-- alta/edición/ocultación y prevención de publicación incompleta;
-- persistencia y feedback Blade;
-- visibilidad efectiva, ramas privadas y Resources sin campos administrativos;
-- endpoint agregado con contenido, vacío, datos parciales y orden determinista;
-- ausencia pública de personas, flags internos y solicitudes;
-- servicio/hook React y estados loading/error/retry/empty/partial/content;
-- una sola H1, metadatos, semántica, teclado, foco y responsive;
-- Navbar desktop/móvil, orden, estado activo, cierre al navegar y Escape;
-- enlaces al Manual y cualquier extensión del compilador de `knowledge/`;
-- E2E administrativo-público sobre MariaDB y datos controlados;
-- rate limiting, enumeración, permisos y conservación si se aprueba el formulario;
-- pruebas de compatibilidad antes de redirigir o retirar `academy`.
+Fase 6A.1 queda cerrada documentalmente cuando:
 
-No se ejecutan suites en 6A porque no se modifica código.
-
-## 31. Deuda futura
-
-- formulario de información o inscripción y su privacidad;
-- avisos estructurados si el CMS genérico no basta;
-- capacidad o plazas reales;
-- calendario no semanal;
-- cuenta/seguimiento privado del solicitante, sólo si se demuestra necesario;
-- notificaciones;
-- almacenamiento persistente, multimedia y retirada;
-- permisos administrativos granulares y auditoría;
-- exportación y conservación de solicitudes;
-- URLs secundarias, SEO, canonical y redirect de `academy`;
-- colección pedagógica de Escuela y evolución del compilador;
-- traducciones;
-- limpieza de menciones hardcodeadas en Home y `/nosotros`;
-- integración o separación definitiva respecto a `Venue`.
-
-No forman parte del objetivo: pagos, asistencia, expedientes, calificaciones, estadísticas escolares, mensajería interna o plataforma educativa.
-
-## 32. Criterios de aceptación
-
-Fase 6A se considera cerrada documentalmente cuando:
-
-- el estado backend, frontend, CMS y `knowledge/` está auditado;
-- `academy` está localizado y dispone de estrategia no ejecutada;
-- necesidades, fuentes de verdad y MVP están clasificados;
-- existe una propuesta de dominio provisional sin confundir Escuela y competición;
-- Blade, API pública, experiencia React, estados, privacidad y multimedia están planificados;
-- las preguntas humanas bloqueantes son explícitas;
-- 6B y 6C tienen un plan, pero siguen pendientes;
-- no se ha creado `/escuela`, enlace de Navbar, formulario, modelo, endpoint o contenido;
+- la Escuela permanente, menores, adultos, niveles y horarios están definidos;
+- los niveles han sustituido la agrupación provisional del MVP;
+- ubicación, inscripción, estados, centros y actividades tienen un contrato único;
+- no se gestionan plazas, pagos o asistentes nominales de centros;
+- relaciones, consistencia, visibilidad, Blade y API están planificados;
+- 6B.1–6B.4 y 6C siguen pendientes;
+- no se ha modificado código o `knowledge/`;
+- `/escuela`, Navbar, modelos y endpoints continúan sin implementar;
 - Fase 6 permanece abierta;
-- la documentación refleja con claridad estado actual y objetivo;
 - `git diff --check` no devuelve errores.

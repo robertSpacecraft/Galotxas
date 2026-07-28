@@ -879,17 +879,26 @@ Decisión:
 
 - tratar Escuela como una vertical híbrida independiente:
   - `knowledge/` será la única fuente de metodología, iniciación y recursos pedagógicos estables cuando exista contenido real y una colección aprobada;
-  - Laravel/MariaDB será la fuente de programa, grupos, horarios, ubicaciones, estado de inscripción y cualquier proceso transaccional;
-  - Blade será la interfaz administrativa oficial de la información operativa;
-  - una API pública específica filtrará la visibilidad antes de entregar datos;
+  - Laravel/MariaDB será la fuente del programa permanente, niveles, horarios, ubicaciones, inscripciones, centros, actividades y datos personales;
+  - Blade será la interfaz administrativa oficial de los dos subdominios: Escuela permanente y centros/actividades educativas;
+  - una API pública específica filtrará la visibilidad y nunca expondrá alumnado, solicitudes, centros o actividades;
   - React será consumidor y capa de presentación de `/escuela`, nunca fuente editorial;
 - permitir que la experiencia enlace al Manual existente sin copiar sus reglas;
 - conservar temporalmente `academy` como contenido CMS legado, sin equipararlo, renombrarlo, redirigirlo o eliminarlo hasta inventariar datos y consumidores y disponer de paridad;
-- preferir un dominio operativo mínimo basado provisionalmente en programa, grupos, horarios, ubicaciones y periodo de inscripción, pero exigir respuestas humanas antes de fijar campos, estados o recurrencia;
-- separar cualquier futura solicitud escolar de `ChampionshipRegistrationRequest`, `CategoryRegistration`, `User` y `Player`; sólo se reutilizarán patrones técnicos;
-- dejar el formulario fuera del MVP informativo-operativo hasta confirmar solicitante, proceso, datos mínimos, menores, consentimiento, conservación y canal de respuesta;
+- representar la Escuela permanente mediante un `SchoolProgram` capaz de admitir varios registros, aunque el MVP administre uno y permita un único programa público;
+- utilizar `SchoolLevel`, no `Category`, para una oferta extensible cuyo nivel inicial será infantil/juvenil;
+- modelar horarios semanales con `SchoolSchedule` y día ISO 1–7, sin sesiones, excepciones o recurrencias complejas;
+- crear `SchoolLocation` compartida por horarios y actividades, sin reutilizar `Venue`: el generador competitivo consume todas las filas de `venues` como pistas;
+- recibir solicitudes públicas en `SchoolEnrollment` sin exigir cuenta; una sesión podrá asociarse opcionalmente sin sobrescribir datos ni crear `Player`;
+- exigir teléfono y correo en toda solicitud, y representante y relación sólo cuando el participante sea menor al comparar nacimiento con fecha de solicitud;
+- crear toda solicitud como pendiente y permitir únicamente los ciclos pendiente → activa → baja o pendiente → rechazada, conservando fechas e historial sin borrado normal;
+- abrir o cerrar inscripciones desde `SchoolProgram`; el backend aplicará la restricción aunque React o el programa oculten el formulario;
+- mantener fuera del MVP plazas, lista de espera, pagos, asistencia, perfiles académicos y adjuntos;
+- representar centros reutilizables con `EducationalCenter` y actividades de nombre libre con `EducationalActivity`, sin asistentes nominales, cuentas de centro o API pública;
+- implementar en el futuro `GET /api/v1/school` y `POST /api/v1/school/enrollments`; Blade seguirá sin API administrativa mientras sea su único consumidor;
 - usar `/escuela` y la etiqueta “Escuela de Galotxas” cuando 6C supere los gates de contenido, backend, API y pruebas;
-- mantener Fase 6 abierta: 6A cierra el contrato; 6B y 6C continúan pendientes.
+- tratar estas entidades como contrato de implementación de 6B, no como capacidades existentes;
+- mantener Fase 6 abierta: 6A y 6A.1 cierran el contrato; 6B.1–6B.4 y 6C continúan pendientes.
 
 Alternativas descartadas:
 
@@ -899,16 +908,20 @@ Alternativas descartadas:
 - hardcodear la landing en React: duplicaría o inventaría contenido y eliminaría la edición administrativa;
 - incorporar Escuela dentro de Aprende a jugar: confundiría una oferta operativa con el Manual canónico;
 - reutilizar la inscripción deportiva o el perfil `Player`: impondría finalidad, estados, identidad y datos no justificados;
+- reutilizar `Venue`: incorporaría colegios u otras sedes al conjunto que el generador de liga interpreta como pistas de Competición;
+- exigir cuenta: excluiría el flujo público aprobado y confundiría identidad digital con admisión;
+- registrar nominalmente asistentes de actividades con centros: ampliaría datos personales sin necesidad operativa;
 - modelar desde 6A una plataforma educativa completa: introduciría pagos, asistencia, expedientes, calificaciones o perfiles sin necesidad real;
 - publicar una ruta o enlace vacío mientras se construye el backend: violaría el gate de navegación funcional.
 
 Consecuencias:
 
-- 6B debe cerrar primero las preguntas operativas y luego implementar una vertical Laravel pequeña, con registros privados por defecto, administración Blade, consulta pública y tests.
+- 6B se divide en núcleo operativo, inscripciones, centros/actividades y lectura pública; cada bloque incorporará administración, validación, tests y documentación.
 - 6C podrá ampliar `knowledge/` sólo si hay material aprobado; en caso contrario, enlazará el Manual y compondrá únicamente datos operativos reales.
-- el modelo propuesto en la auditoría es reversible y no constituye todavía un contrato de base de datos o API.
-- el CMS genérico conserva utilidad para piezas no estructuradas, pero no se convierte en una segunda fuente de grupos, horarios o solicitudes.
-- privacidad, medios y migración de `academy` se resuelven por bloques explícitos antes de ampliar la superficie pública.
+- el contrato funcional ya no depende de preguntas bloqueantes, pero los nombres de columnas y detalles técnicos deberán validarse al crear migraciones y Resources.
+- el CMS genérico conserva utilidad para piezas no estructuradas, pero no se convierte en una segunda fuente de niveles, horarios, solicitudes, centros o actividades.
+- el canal público de contacto, los textos de aceptación, la conservación, la reinscripción compleja y varios programas públicos son decisiones futuras no bloqueantes para iniciar 6B.1.
+- los textos de aceptación, la política de conservación extraordinaria, cualquier multimedia futura y la migración de `academy` se resolverán por bloques explícitos antes de ampliar la superficie pública.
 
 ---
 
