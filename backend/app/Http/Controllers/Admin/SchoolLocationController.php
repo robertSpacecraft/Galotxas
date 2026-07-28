@@ -12,7 +12,11 @@ class SchoolLocationController extends Controller
     public function index()
     {
         $locations = SchoolLocation::query()
-            ->withCount(['defaultForPrograms', 'schedules'])
+            ->withCount([
+                'defaultForPrograms',
+                'schedules',
+                'educationalActivities',
+            ])
             ->ordered()
             ->get();
 
@@ -58,7 +62,7 @@ class SchoolLocationController extends Controller
                 ->route('admin.school.locations.index')
                 ->with(
                     'error',
-                    'No se puede eliminar la ubicación porque está asociada a programas u horarios.'
+                    'No se puede eliminar la ubicación porque está asociada a programas, horarios o actividades con centros.'
                 );
         }
 

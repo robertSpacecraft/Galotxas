@@ -643,9 +643,10 @@ Continúan ausentes:
 - `GET /api/v1/school`, previsto para 6B.4;
 - `GET /api/v1/school/enrollments` y cualquier consulta por ID;
 - Resources públicos de Escuela;
-- endpoints públicos de alumnos, centros o actividades.
+- endpoints públicos de alumnos, centros o actividades;
+- endpoints administrativos de `EducationalCenter` o `EducationalActivity`.
 
-No existe API administrativa de Escuela: Blade utiliza rutas web con sesión, CSRF y administrador activo.
+Los centros y actividades implementados en 6B.3 son deliberadamente privados y administrativos. No forman parte del futuro `GET /api/v1/school`, que se limita al programa permanente, niveles, horarios, ubicaciones efectivas, apertura y contacto. No existe API administrativa de Escuela: Blade utiliza rutas web con sesión, CSRF y administrador activo.
 
 ---
 

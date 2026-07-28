@@ -9,6 +9,8 @@ use App\Http\Controllers\Admin\ChampionshipRegistrationController as AdminChampi
 use App\Http\Controllers\Admin\CmsBlockController;
 use App\Http\Controllers\Admin\CmsPageController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\EducationalActivityController;
+use App\Http\Controllers\Admin\EducationalCenterController;
 use App\Http\Controllers\Admin\GameMatchController;
 use App\Http\Controllers\Admin\MatchConflictController;
 use App\Http\Controllers\Admin\PlayerController;
@@ -99,6 +101,22 @@ Route::prefix('admin')->group(function () {
             Route::resource('levels', SchoolLevelController::class)->except('show');
             Route::resource('locations', SchoolLocationController::class)->except('show');
             Route::resource('schedules', SchoolScheduleController::class)->except('show');
+            Route::resource(
+                'educational-centers',
+                EducationalCenterController::class
+            );
+            Route::post(
+                'educational-activities/{educational_activity}/complete',
+                [EducationalActivityController::class, 'complete']
+            )->name('educational-activities.complete');
+            Route::post(
+                'educational-activities/{educational_activity}/cancel',
+                [EducationalActivityController::class, 'cancel']
+            )->name('educational-activities.cancel');
+            Route::resource(
+                'educational-activities',
+                EducationalActivityController::class
+            );
         });
 
         // Temporadas

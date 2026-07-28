@@ -38,6 +38,7 @@
                                 <th>Estado</th>
                                 <th class="text-end">Programas</th>
                                 <th class="text-end">Horarios</th>
+                                <th class="text-end">Actividades</th>
                                 <th class="text-end">Orden</th>
                                 <th class="text-center" style="width: 180px;">Acciones</th>
                             </tr>
@@ -46,7 +47,8 @@
                             @foreach ($locations as $location)
                                 @php
                                     $isInUse = $location->default_for_programs_count > 0
-                                        || $location->schedules_count > 0;
+                                        || $location->schedules_count > 0
+                                        || $location->educational_activities_count > 0;
                                 @endphp
                                 <tr>
                                     <td>{{ $location->name }}</td>
@@ -59,6 +61,9 @@
                                     </td>
                                     <td class="text-end">{{ $location->default_for_programs_count }}</td>
                                     <td class="text-end">{{ $location->schedules_count }}</td>
+                                    <td class="text-end">
+                                        {{ $location->educational_activities_count }}
+                                    </td>
                                     <td class="text-end">{{ $location->sort_order }}</td>
                                     <td class="text-center">
                                         <div class="d-flex flex-wrap justify-content-center gap-2">
@@ -74,7 +79,7 @@
                                                     type="button"
                                                     class="btn btn-sm btn-outline-danger"
                                                     disabled
-                                                    title="La ubicación está asociada a programas u horarios"
+                                                    title="La ubicación está asociada a programas, horarios o actividades"
                                                 >
                                                     Eliminar
                                                 </button>
@@ -96,7 +101,7 @@
                                 </tr>
                                 @if ($location->admin_notes)
                                     <tr>
-                                        <td colspan="8">
+                                        <td colspan="9">
                                             <strong>Notas administrativas:</strong>
                                             {{ $location->admin_notes }}
                                         </td>

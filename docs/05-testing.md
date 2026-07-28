@@ -953,15 +953,28 @@ Fase 6B.2 incorpora 38 tests Feature dirigidos y 283 aserciones sobre MariaDB pa
 
 La regresión dirigida del núcleo escolar, sesión administrativa y limitadores añade 38 tests y 233 aserciones. La suite backend completa finaliza con 321 tests y 2441 aserciones. `migrate:fresh` y el rollback de la migración más reciente se verifican en el perfil Docker `test`; no se utiliza SQLite ni la base de desarrollo.
 
+## SCHOOL-EDUCATIONAL-ACTIVITIES-1 — Centros y actividades
+
+Fase 6B.3 incorpora 27 tests Feature dirigidos y 213 aserciones sobre MariaDB para:
+
+- las dos migraciones, defaults, casts, relaciones, claves foráneas restrictivas y factories de `EducationalCenter` y `EducationalActivity`;
+- centros homónimos, orden estable por localidad/nombre/ID, contacto nullable, notas privadas y activación;
+- actividades de nombre libre, fecha obligatoria, horas ambas presentes o ausentes y hora inicial anterior a la final;
+- `expected_students` nullable al planificar, positivo cuando se informa y obligatorio al completar;
+- creación siempre `planned` aunque el payload intente asignar estado;
+- transiciones exclusivas `planned → completed` y `planned → cancelled`, sin repetición, reversión o reactivación;
+- conservación de centro y ubicación históricos al desactivarlos, con rechazo de asociaciones nuevas inactivas;
+- borrado permitido sólo para actividades planificadas y protección de centros y ubicaciones con histórico;
+- listados, filtros, detalle, formularios, `old()`, acciones contextuales, estados vacíos y navegación Blade;
+- autorización para administrador activo y rechazo de administrador inactivo, usuario normal y anónimo;
+- ausencia de alumnos nominales, campos extra persistidos, rutas web públicas, API pública y API administrativa.
+
+La regresión dirigida del conjunto escolar finaliza con 93 tests y 678 aserciones. La suite backend completa finaliza con 348 tests y 2654 aserciones. `migrate:fresh`, rollback de las dos migraciones de 6B.3 y reaplicación se verifican en el perfil Docker `test`; no se utiliza SQLite ni la base de desarrollo.
+
 ## SCHOOL-CONTRACT-AUDIT-1 — Cobertura pendiente de Escuela
 
-Fases 6A y 6A.1 cerraron el contrato. Tras SCHOOL-CORE-ADMIN-1 y SCHOOL-ENROLLMENT-ADMIN-1, 6B.3, 6B.4 y 6C deberán cubrir:
+Fases 6A y 6A.1 cerraron el contrato. Tras SCHOOL-CORE-ADMIN-1, SCHOOL-ENROLLMENT-ADMIN-1 y SCHOOL-EDUCATIONAL-ACTIVITIES-1, 6B.4 y 6C deberán cubrir:
 
-- centros con nombres repetidos, contacto nullable, activación y notas privadas;
-- actividades con nombre libre, estados planificada/realizada/cancelada, fecha, horas emparejadas y ubicación opcional;
-- `expected_students` nullable al planificar y positivo al realizar, con cero rechazado;
-- ausencia de asistentes nominales, plazas, pagos, exports, adjuntos y API pública de centros;
-- autorización y persistencia Blade para administrador activo, inactivo, usuario normal y anónimo;
 - visibilidad efectiva de programa, nivel, horario y ubicación, sin cascadas de flags;
 - `GET /api/v1/school` con Resources cerrados y sin datos personales o administrativos;
 - tests React del servicio/hook, formulario y estados `loading`, `error`, `retry`, `empty`, `partial`, envío y éxito;

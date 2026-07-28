@@ -7,22 +7,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class SchoolLocation extends Model
+class EducationalCenter extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'name',
         'locality',
-        'address',
+        'contact_name',
+        'contact_phone',
+        'contact_email',
         'is_active',
-        'sort_order',
         'admin_notes',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
-        'sort_order' => 'integer',
     ];
 
     public function scopeActive(Builder $query): Builder
@@ -33,29 +33,18 @@ class SchoolLocation extends Model
     public function scopeOrdered(Builder $query): Builder
     {
         return $query
-            ->orderBy($query->qualifyColumn('sort_order'))
+            ->orderBy($query->qualifyColumn('locality'))
+            ->orderBy($query->qualifyColumn('name'))
             ->orderBy($query->qualifyColumn('id'));
     }
 
-    public function defaultForPrograms(): HasMany
-    {
-        return $this->hasMany(SchoolProgram::class, 'default_school_location_id');
-    }
-
-    public function schedules(): HasMany
-    {
-        return $this->hasMany(SchoolSchedule::class);
-    }
-
-    public function educationalActivities(): HasMany
+    public function activities(): HasMany
     {
         return $this->hasMany(EducationalActivity::class);
     }
 
     public function isInUse(): bool
     {
-        return $this->defaultForPrograms()->exists()
-            || $this->schedules()->exists()
-            || $this->educationalActivities()->exists();
+        return $this->activities()->exists();
     }
 }

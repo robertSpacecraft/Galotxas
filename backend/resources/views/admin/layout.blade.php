@@ -119,6 +119,23 @@
                                 Horarios
                             </a>
                         </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a
+                                class="dropdown-item"
+                                href="{{ route('admin.school.educational-centers.index') }}"
+                            >
+                                Centros educativos
+                            </a>
+                        </li>
+                        <li>
+                            <a
+                                class="dropdown-item"
+                                href="{{ route('admin.school.educational-activities.index') }}"
+                            >
+                                Actividades con centros
+                            </a>
+                        </li>
                     </ul>
                 </li>
                 <li class="nav-item">

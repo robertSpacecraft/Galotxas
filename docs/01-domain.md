@@ -345,7 +345,7 @@ La Escuela de Galotxas es una sección distinta del Manual. Su metodología, eje
 Ese dominio tendrá dos subdominios independientes:
 
 1. **Escuela permanente:** `SchoolProgram`, niveles `SchoolLevel`, horarios semanales, ubicaciones escolares y `SchoolEnrollment`. Admite participantes menores y adultos; la solicitud pública no exige cuenta, comienza pendiente y requiere aprobación. Un menor necesita representante, mientras teléfono y correo son obligatorios en todos los casos.
-2. **Centros y actividades educativas:** `EducationalCenter` registra cada centro una sola vez y `EducationalActivity` sus actividades planificadas, realizadas o canceladas. Sólo se conserva el número previsto de alumnos, nunca asistentes nominales.
+2. **Centros y actividades educativas:** `EducationalCenter` registra cada centro una sola vez y `EducationalActivity` sus actividades planificadas, completadas o canceladas. Sólo se conserva el número previsto de alumnos, nunca asistentes nominales.
 
 El participante individual de la Escuela no es un `Player`, un centro educativo no es un usuario o equipo y una actividad con un centro no genera inscripciones individuales. `SchoolLevel` tampoco reutiliza las categorías de campeonatos. La inscripción deportiva y la escolar comparten únicamente patrones técnicos.
 
@@ -364,7 +364,13 @@ La minoría de edad se calcula de forma determinista con nacimiento y `requested
 
 Las claves foráneas usan borrado restrictivo para programas y niveles. Una restricción compuesta garantiza que el nivel asignado pertenezca al programa; eliminar una cuenta deja `user_id = null` y conserva el histórico. El flujo administrativo no ofrece eliminación normal de inscripciones y los servicios transaccionales asignan estados y fechas.
 
-El único endpoint escolar existente es `POST /api/v1/school/enrollments`: resuelve en backend el programa público abierto, admite nivel público y activo opcional, toma la cuenta exclusivamente de una sesión Sanctum opcional y crea una solicitud pendiente. No existe lectura pública, seguimiento por ID, API administrativa, ruta React o formulario frontend. Centros, actividades y datos sembrados tampoco forman parte de 6B.2.
+Desde 6B.3, el segundo subdominio dispone de persistencia y administración propias. `EducationalCenter` exige nombre y localidad, admite contacto opcional, nace inactivo y conserva múltiples `EducationalActivity`. Los centros homónimos son válidos y su orden administrativo es localidad, nombre e ID.
+
+`EducationalActivity` pertenece siempre a un centro y opcionalmente a `SchoolLocation`, usa nombre libre, fecha obligatoria, horas emparejadas, alumnado previsto positivo nullable y el enum `planned`, `completed` o `cancelled`. Toda alta nace planificada. Sólo se admite `planned → completed` o `planned → cancelled`; completar exige alumnado previsto positivo y no existe reactivación. Un centro o ubicación inactivos no admiten asociaciones nuevas, pero las relaciones históricas continúan editables si no se cambian.
+
+Los borrados son conservadores: un centro o ubicación con actividades no se elimina; sólo una actividad planificada creada por error puede borrarse. Una actividad completada o cancelada conserva su histórico. Este subdominio no registra alumnos nominales, no crea `SchoolEnrollment` y no tiene API pública o administrativa.
+
+El único endpoint escolar existente es `POST /api/v1/school/enrollments`: resuelve en backend el programa público abierto, admite nivel público y activo opcional, toma la cuenta exclusivamente de una sesión Sanctum opcional y crea una solicitud pendiente. No existe lectura pública, seguimiento por ID, API administrativa, ruta React o formulario frontend. Tampoco existen datos sembrados para Escuela.
 
 ## Contenido institucional
 

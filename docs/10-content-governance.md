@@ -124,12 +124,14 @@ Su arquitectura es híbrida y se implementa por bloques:
 - metodología, iniciación, ejercicios y recursos pedagógicos estables desde una futura colección de `knowledge/`, sólo cuando exista contenido real y aprobado;
 - programa permanente, niveles, horarios semanales, ubicaciones y apertura declarada desde el dominio Laravel administrado con Blade implementado en 6B.1;
 - solicitudes, participantes, representantes, contactos, estados y fechas del ciclo exclusivamente en Laravel, implementados en 6B.2;
-- centros educativos y sus actividades en un subdominio administrativo Laravel separado de las inscripciones individuales;
+- centros educativos y sus actividades en un subdominio administrativo Laravel separado de las inscripciones individuales, implementado en 6B.3;
 - avisos o páginas simples desde el CMS genérico cuando no necesiten relaciones propias.
 
-La Escuela puede enlazar al Manual existente, pero no copiarlo ni anidarse dentro de Aprende a jugar. React sólo compondrá la proyección estable y los datos operativos ya autorizados. El CMS y JSX nunca almacenarán niveles, horarios, alumnos, solicitudes, centros o actividades como fuente alternativa, y la inscripción a campeonatos no se reutiliza como inscripción escolar.
+La Escuela puede enlazar al Manual existente, pero no copiarlo ni anidarse dentro de Aprende a jugar. React sólo compondrá la proyección estable y los datos operativos ya autorizados. El CMS, `knowledge/` y JSX nunca almacenarán niveles, horarios, alumnos, solicitudes, centros o actividades como fuente alternativa, y la inscripción a campeonatos no se reutiliza como inscripción escolar.
 
-La lectura pública futura sólo podrá exponer configuración, niveles, horarios, ubicaciones, apertura y contacto general. Nombres, fechas de nacimiento, representante, teléfono, correo, estado individual y observaciones nunca son públicos. El POST de 6B.2 devuelve sólo una confirmación genérica y no permite consultar solicitudes. Los datos personales permanecen en MariaDB y Blade; no se copian a CMS, `knowledge/`, React, URLs, logs añadidos o métricas. Centros y actividades tampoco se publican en el MVP; las actividades sólo conservarán un número previsto, no asistentes nominales.
+La lectura pública futura sólo podrá exponer configuración, niveles, horarios, ubicaciones, apertura y contacto general. Nombres, fechas de nacimiento, representante, teléfono, correo, estado individual y observaciones nunca son públicos. El POST de 6B.2 devuelve sólo una confirmación genérica y no permite consultar solicitudes. Los datos personales permanecen en MariaDB y Blade; no se copian a CMS, `knowledge/`, React, URLs, logs añadidos o métricas.
+
+Los centros y actividades de 6B.3 también permanecen en MariaDB y Blade y no se publican en el MVP. Contactos de centros y `admin_notes` son privados; no se duplican en CMS o Knowledge. Las actividades conservan únicamente un número previsto, nunca asistentes nominales, y no forman parte del futuro `GET /api/v1/school`.
 
 La ruta canónica futura es `/escuela`. No se aprueba `/manual/academy`. Fases 6A y 6A.1 definen el contrato en `12-school-of-galotxas.md`; 6B.1 implementa el núcleo administrativo y 6B.2 la recepción pública y gestión privada de inscripciones. La ruta, el Navbar, la API de lectura, la colección pedagógica y el formulario React continúan ausentes.
 
@@ -158,7 +160,7 @@ La tabla diferencia la fuente aprobada de las capacidades actuales que todavía 
 | Escuela: contenido estable | `knowledge/` futuro | Git y revisión | No inicialmente | No | Pedagógica |
 | Escuela: programa, niveles, ubicaciones y horarios | Dominio Laravel | Administrador desde Blade | Sí, desde 6B.1 | Pendiente 6B.4 | Operativa |
 | Escuela: inscripciones | `SchoolEnrollment` | Solicitante público + administrador autorizado | Sí, desde 6B.2 | Sólo POST, sin lectura | Personal y privada |
-| Escuela: centros y actividades | Dominio Laravel futuro | Administrador desde Blade | Pendiente 6B.3 | No en MVP | Administrativa |
+| Escuela: centros y actividades | `EducationalCenter` y `EducationalActivity` | Administrador desde Blade | Sí, desde 6B.3 | No en MVP | Operativa y privada |
 | Escuela: avisos simples | CMS genérico, si se aprueba | Administrador | Genérico actual | Genérica actual | Editorial |
 | Club | Backend CMS | Administrador | Sí | Sí | Institucional |
 | Prensa y medios | Backend CMS genérico auditado; contrato específico pendiente | Administrador | Genérico actual | Genérica actual | Editorial |

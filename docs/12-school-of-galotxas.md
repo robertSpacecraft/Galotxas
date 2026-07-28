@@ -2,32 +2,33 @@
 
 ## 1. Propósito
 
-Este documento registra la auditoría de Fase 6A, el cierre funcional aprobado en Fase 6A.1, el núcleo operativo implementado en Fase 6B.1 y las inscripciones implementadas en Fase 6B.2. Define el estado real sin presentar las capacidades pendientes de 6B.3, 6B.4 o 6C como existentes.
+Este documento registra la auditoría de Fase 6A, el cierre funcional aprobado en Fase 6A.1, el núcleo operativo implementado en Fase 6B.1, las inscripciones implementadas en Fase 6B.2 y los centros y actividades implementados en Fase 6B.3. Define el estado real sin presentar las capacidades pendientes de 6B.4 o 6C como existentes.
 
-Fase 6A.1 fue exclusivamente documental. Fase 6B.1 crea programa, niveles, ubicaciones y horarios. Fase 6B.2 añade `SchoolEnrollment`, su ciclo de estados, servicio, Form Requests, administración Blade y el POST público. No crea seeders, Resources de lectura, componentes React, formulario React ni contenido en `knowledge/`.
+Fase 6A.1 fue exclusivamente documental. Fase 6B.1 crea programa, niveles, ubicaciones y horarios. Fase 6B.2 añade `SchoolEnrollment`, su ciclo de estados, servicio, Form Requests, administración Blade y el POST público. Fase 6B.3 añade `EducationalCenter`, `EducationalActivity`, su ciclo operativo y administración Blade. No crea seeders, Resources de lectura, componentes React, formulario React ni contenido en `knowledge/`.
 
 ## 2. Estado actual
 
-La Escuela de Galotxas dispone de núcleo operativo e inscripciones administrativas:
+La Escuela de Galotxas dispone de núcleo operativo, inscripciones, centros y actividades administrativas:
 
 - existen `SchoolProgram`, `SchoolLevel`, `SchoolLocation` y `SchoolSchedule`, con relaciones, visibilidad efectiva, defaults seguros y administración Blade;
 - existe `SchoolEnrollment` con solicitudes pendientes, participantes activos, rechazos y bajas, sin eliminación normal;
-- las cinco áreas Blade están protegidas por sesión, CSRF y administrador activo;
+- las siete áreas Blade están protegidas por sesión, CSRF y administrador activo;
 - existe `POST /api/v1/school/enrollments`, anónimo y con cuenta opcional, limitado y sin respuesta enumerable;
-- no existen `EducationalCenter`, `EducationalActivity` o `GET /api/v1/school`;
+- existen `EducationalCenter` y `EducationalActivity`, exclusivamente administrativos;
+- no existe `GET /api/v1/school`;
 - React no registra `/escuela` y el Navbar no la enlaza;
 - `knowledge/` no contiene una colección pedagógica de Escuela;
 - el CMS genérico conserva el slug legado `academy`, que no equivale a este dominio;
 - las inscripciones deportivas exigen cuenta y perfil `Player`, por lo que no representan el flujo escolar.
 
-Fase 6B.2 no publica la sección: el backend acepta solicitudes, pero la lectura pública, ruta, formulario React y Navbar continúan pendientes.
+Fase 6B.3 no publica la sección: el backend acepta solicitudes y administra centros y actividades, pero la lectura pública, ruta, formulario React y Navbar continúan pendientes.
 
 ## 3. Auditoría de capacidades reutilizables
 
 | Área actual | Capacidad reutilizable | Límite |
 |---|---|---|
-| Laravel y MariaDB | Modelos, relaciones, Services, Form Requests y transacciones | Núcleo e inscripciones implementados; centros y actividades pendientes |
-| Blade | Interfaz administrativa oficial y middleware de administrador activo | Programa, niveles, ubicaciones, horarios e inscripciones implementados |
+| Laravel y MariaDB | Modelos, relaciones, Services, Form Requests y transacciones | Núcleo, inscripciones, centros y actividades implementados |
+| Blade | Interfaz administrativa oficial y middleware de administrador activo | Programa, niveles, ubicaciones, horarios, inscripciones, centros y actividades implementados |
 | API | Resources por contexto y envelopes existentes | POST escolar implementado; lectura pendiente |
 | Rate limiting | Mecanismo ya usado en auth y resultados | `school-enrollments` implementado con clave no reversible |
 | `User` | Asociación opcional con una persona autenticada | Nunca será requisito ni fuente de los datos enviados |
@@ -53,7 +54,7 @@ No existe un modelo `Location`. El modelo real es `Venue`, con `name`, `location
 
 Guardar en `venues` un colegio u otra ubicación puntual permitiría que el generador la asignase a partidos. Reutilizarlo exigiría rediseñar primero su semántica y todas sus consultas, algo fuera del dominio escolar.
 
-Decisión implementada: 6B.1 crea `SchoolLocation`, utilizada por los horarios de la Escuela permanente y preparada para las futuras actividades con centros. No se modifica `Venue`, que continúa reservado al contrato competitivo actual.
+Decisión implementada: 6B.1 crea `SchoolLocation` para los horarios de la Escuela permanente y 6B.3 incorpora su relación opcional con las actividades de centros. No se modifica `Venue`, que continúa reservado al contrato competitivo actual.
 
 Campos de `SchoolLocation` en 6B.1:
 
@@ -65,7 +66,7 @@ Campos de `SchoolLocation` en 6B.1:
 - `admin_notes`, nullable y nunca pública;
 - timestamps.
 
-No necesita `is_public`: sólo se descubrirá públicamente cuando una programación efectiva la referencie. Desactivarla impedirá nuevas asociaciones y excluirá los horarios relacionados de la lectura pública, sin borrar el historial administrativo.
+No necesita `is_public`: sólo se descubrirá públicamente cuando una programación efectiva la referencie. Desactivarla impide asociaciones nuevas, excluye los horarios relacionados de la lectura pública futura y conserva horarios y actividades históricos.
 
 ## 5. Arquitectura híbrida
 
@@ -111,7 +112,7 @@ Gestiona:
 - centros educativos persistentes;
 - actividades múltiples por centro;
 - fechas, horarios, ubicación y alumnado previsto;
-- estados planificada, realizada y cancelada;
+- estados planificada, completada y cancelada;
 - información exclusivamente administrativa en el MVP.
 
 No se registran nominalmente participantes de las actividades con centros y no se crean inscripciones escolares por cada asistente.
@@ -317,7 +318,7 @@ La falta de plazas y los pagos permanecen como posibles ampliaciones, no como ca
 
 ## 19. Centros educativos
 
-`EducationalCenter` representa un centro reutilizable en múltiples actividades.
+Desde 6B.3, `EducationalCenter` representa un centro reutilizable en múltiples actividades.
 
 Contrato mínimo:
 
@@ -327,13 +328,13 @@ Contrato mínimo:
 - `admin_notes` nullable;
 - timestamps.
 
-No será público en el MVP. No se añade CIF, código de centro, dirección completa, datos fiscales o adjuntos.
+Nace inactivo para exigir revisión antes de recibir una actividad. No es público en el MVP. No se añade CIF, código de centro, dirección completa, datos fiscales o adjuntos.
 
 No se impone unicidad global ni compuesta en base de datos. Dos centros pueden compartir nombre, incluso en una misma localidad; Blade deberá mostrar contexto suficiente y podrá advertir de coincidencias sin bloquearlas.
 
 ## 20. Actividades educativas
 
-`EducationalActivity` pertenece a un centro y registra:
+Desde 6B.3, `EducationalActivity` pertenece a un centro y registra:
 
 - nombre libre obligatorio;
 - fecha obligatoria;
@@ -351,12 +352,14 @@ Estados mediante enum PHP respaldado por string:
 | Valor técnico | Etiqueta |
 |---|---|
 | `planned` | Planificada |
-| `completed` | Realizada |
+| `completed` | Completada |
 | `cancelled` | Cancelada |
 
-`expected_students` será nullable mientras la actividad esté planificada y deberá ser un entero positivo al marcarla como realizada. Cero no es un valor válido: una actividad sin participación debe permanecer planificada, cancelarse o corregirse. Una cancelada puede conservar el último valor previsto.
+`expected_students` es nullable mientras la actividad está planificada y debe ser un entero positivo al marcarla como completada. Cero no es un valor válido: una actividad sin participación debe permanecer planificada, cancelarse o corregirse. Una cancelada puede conservar el último valor previsto.
 
 Si hay horas, `starts_at` será anterior a `ends_at`. La ubicación debe existir y estar activa al asignarla. Desactivar después el centro o la ubicación no borra la actividad histórica.
+
+Toda alta nace `planned`. `EducationalActivityService` aplica en transacciones únicamente `planned → completed` o `planned → cancelled`; repetir o revertir una transición se rechaza. El formulario general no acepta `status`.
 
 No existe formulario público para centros, reservas, cuentas, aprobación externa, asistentes nominales, asistencia, facturación, pagos o adjuntos.
 
@@ -411,7 +414,8 @@ Defaults seguros:
 - horario inactivo;
 - ubicación inactiva;
 - inscripción pendiente;
-- centro y actividad con estados explícitos definidos por el flujo administrativo.
+- centro inactivo;
+- actividad planificada.
 
 No se añaden slugs porque no existen rutas públicas de detalle para estas entidades.
 
@@ -449,7 +453,8 @@ Los borrados serán conservadores:
 - no borrar programa, nivel, ubicación o centro con relaciones;
 - no borrar inscripciones desde el flujo normal;
 - desactivar preserva el histórico;
-- una actividad histórica conserva su centro y ubicación aunque se desactiven.
+- una actividad histórica conserva su centro y ubicación aunque se desactiven;
+- sólo una actividad que continúa `planned` puede borrarse; `completed` y `cancelled` se conservan.
 
 ## 24. Visibilidad efectiva
 
@@ -516,17 +521,24 @@ No se copian cascadas de Competición. Ocultar o desactivar un padre no reescrib
 
 El listado incluye contadores y filtros por programa, nivel y estado con orden estable por solicitud e ID. El alta manual crea una pendiente; la edición no cambia programa, nivel, cuenta, estado o fechas. Aprobar exige un nivel activo del programa, aunque sea privado; una activa puede reasignarse o darse de baja. Rechazadas y bajas no se reactivan.
 
-### Centros — pendiente 6B.3
+### Centros — implementado en 6B.3
 
 - listado, alta, edición, activación y detalle;
 - contacto y notas privadas;
 - historial de actividades;
-- coincidencias de nombre informativas, no restricción de unicidad.
+- filtros por estado y localidad;
+- contador y fecha de última actividad;
+- coincidencias de nombre permitidas, sin restricción de unicidad;
+- borrado bloqueado cuando existe cualquier actividad.
 
-### Actividades — pendiente 6B.3
+### Actividades — implementado en 6B.3
 
-- listado, alta, edición, estado, fecha, horas, alumnado previsto, ubicación y observaciones;
+- listado por centro, estado e intervalo; alta, detalle y edición;
+- fecha obligatoria, horas emparejadas, alumnado previsto, ubicación opcional y observaciones privadas;
 - nombre libre;
+- creación siempre planificada y acciones explícitas de completar o cancelar;
+- centro y ubicación activos para asociaciones nuevas, con relaciones históricas preservadas;
+- borrado sólo mientras continúa planificada;
 - sin dashboard analítico.
 
 Los flujos implementados usan administrador activo, Form Requests, `validated()`, persistencia explícita, feedback y tests de autorización. Los bloques pendientes deberán mantener el mismo contrato. No se añade API administrativa mientras Blade sea el único consumidor.
@@ -689,13 +701,15 @@ El bloque implementa las cuatro tablas y modelos, enum de día, factories, valid
 
 El bloque implementa migración, enum, modelo, factory, cálculo histórico de minoría de edad, coherencia programa–nivel en servicio y MariaDB, transiciones transaccionales, POST anónimo con sesión opcional, limitador, privacidad, administración Blade y tests. No añade seeders, lectura pública o frontend. React consumirá el POST en 6C.
 
-### 6B.3 — Centros y actividades — pendiente
+### 6B.3 — Centros y actividades — completada
 
 - `EducationalCenter` y `EducationalActivity`;
 - administración Blade;
 - enums, fechas, horas, alumnado previsto y ubicación;
 - validaciones, estados, tests y documentación;
 - sin API pública.
+
+El bloque implementa dos migraciones reversibles, modelos, enum, factories, Form Requests, servicio transaccional, CRUD Blade, filtros y protección de borrados. Los centros nacen inactivos y las actividades planificadas; completar exige alumnado previsto positivo. No añade seeders, asistentes nominales, API pública o administrativa, frontend o contenido pedagógico.
 
 ### 6B.4 — API pública de lectura — pendiente
 
@@ -705,7 +719,7 @@ El bloque implementa migración, enum, modelo, factory, cálculo histórico de m
 - niveles, horarios, ubicaciones, inscripción y contacto;
 - visibilidad efectiva, contratos, tests y documentación.
 
-Completar 6B.2 no inicia 6B.3 o 6B.4.
+Completar 6B.3 no inicia 6B.4.
 
 ## 31. Plan 6C y testing
 
@@ -723,13 +737,10 @@ Completar 6B.2 no inicia 6B.3 o 6B.4.
 - revisión posterior de `academy`;
 - cierre de Fase 6.
 
-`SCHOOL-CORE-ADMIN-1` cubre el núcleo y `SCHOOL-ENROLLMENT-ADMIN-1` añade 38 tests y 283 aserciones para migración, modelo, factories, consistencia programa–nivel, edad histórica, representante, contacto, apertura, sesión opcional, transiciones, fechas, Blade, privacidad, limitador y ausencia de GET o borrado. La suite backend queda en 321 tests y 2441 aserciones.
+`SCHOOL-CORE-ADMIN-1` cubre el núcleo y `SCHOOL-ENROLLMENT-ADMIN-1` añade 38 tests y 283 aserciones para migración, modelo, factories, consistencia programa–nivel, edad histórica, representante, contacto, apertura, sesión opcional, transiciones, fechas, Blade, privacidad, limitador y ausencia de GET o borrado. `SCHOOL-EDUCATIONAL-ACTIVITIES-1` añade 27 tests y 213 aserciones para migraciones, modelos, factories, relaciones, validación, transiciones, borrados, Blade, permisos y ausencia de API. La regresión escolar finaliza con 93 tests y 678 aserciones; la suite backend completa, con 348 tests y 2654 aserciones.
 
-`SCHOOL-CONTRACT-AUDIT-1` conserva para 6B.3, 6B.4 y 6C:
+`SCHOOL-CONTRACT-AUDIT-1` conserva para 6B.4 y 6C:
 
-- centros con nombres repetidos;
-- actividad con nombre libre, estados, horas y `expected_students`;
-- ausencia de asistentes nominales, plazas, pagos y API de centros;
 - Resources sin datos personales;
 - `GET`, Resources y contratos de lectura sin información privada;
 - React, formulario, estados remotos, teclado, foco, responsive, Navbar y E2E.
@@ -768,4 +779,4 @@ Fase 6A.1 quedó cerrada documentalmente al cumplir:
 - Fase 6 permanece abierta;
 - `git diff --check` no devuelve errores.
 
-Fase 6B.2 actualiza ese estado: los cuatro modelos del núcleo, `SchoolEnrollment`, su administración y el POST público existen. `/escuela`, Navbar, `GET /api/v1/school`, Resources, formulario React, centros, actividades y contenido pedagógico continúan pendientes. Fase 6 permanece abierta.
+Fase 6B.3 actualiza ese estado: los cuatro modelos del núcleo, `SchoolEnrollment`, `EducationalCenter`, `EducationalActivity`, su administración y el POST público existen. `/escuela`, Navbar, `GET /api/v1/school`, Resources, formulario React y contenido pedagógico continúan pendientes. Fase 6 permanece abierta.

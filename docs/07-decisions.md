@@ -944,6 +944,16 @@ Seguimiento de Fase 6B.2, 2026-07-28:
 - Blade ofrece listado, filtros, contadores, alta manual pendiente, detalle, edición limitada y acciones explícitas, sin `destroy`, API administrativa, reactivación o edición directa de estados y fechas.
 - No se crean seeders, `Player`, centros, actividades, lectura pública, Resources, React, ruta `/escuela`, Navbar o contenido pedagógico. Fase 6 continúa abierta con 6B.3, 6B.4 y 6C pendientes.
 
+Seguimiento de Fase 6B.3, 2026-07-28:
+
+- Se implementan `EducationalCenter` y `EducationalActivity` como subdominio operativo separado de `SchoolEnrollment`, administrado exclusivamente mediante Blade.
+- Los centros admiten nombre libre no único, localidad, contacto opcional, activación y notas privadas. Nacen inactivos para exigir revisión antes de recibir actividades.
+- Las actividades usan nombre libre, fecha, horas opcionales emparejadas, alumnado previsto nullable, `SchoolLocation` opcional y el enum string-backed `planned`, `completed` y `cancelled`.
+- `EducationalActivityService` crea siempre en `planned` y aplica transaccionalmente sólo `planned → completed` o `planned → cancelled`. Completar exige alumnado previsto positivo; no existe reactivación ni edición arbitraria del estado.
+- `SchoolLocation` se comparte con actividades sin reutilizar `Venue`. Un centro o ubicación inactivos bloquean asociaciones nuevas, pero conservan las relaciones históricas si no se cambian.
+- El borrado es conservador: centros y ubicaciones con actividades quedan protegidos; sólo una actividad todavía planificada puede eliminarse. Completadas y canceladas permanecen como histórico.
+- No se registran alumnos nominales, cuentas de centro, asistencia, pagos o adjuntos. No se crean seeders, API pública o administrativa, Resources, React, ruta `/escuela`, Navbar o contenido pedagógico. Fase 6 continúa abierta con 6B.4 y 6C pendientes.
+
 ---
 
 ## Mantenimiento

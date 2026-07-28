@@ -38,18 +38,18 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 20. **Fase 6A.1 — Cierre funcional de Escuela de Galotxas:** Escuela permanente, niveles, horarios semanales, ubicación escolar, inscripción pública sin cuenta obligatoria, ciclo de estados, centros y actividades definidos como contrato documental sin implementar código.
 21. **Fase 6B.1 — Núcleo operativo de Escuela:** `SchoolProgram`, `SchoolLevel`, `SchoolLocation` y `SchoolSchedule`, integridad relacional, visibilidad efectiva, administración Blade, permisos y tests sobre MariaDB, sin API o frontend públicos.
 22. **Fase 6B.2 — Inscripciones de Escuela:** `SchoolEnrollment`, enum y ciclo de estados, solicitud pública anónima con cuenta opcional, menores y adultos, administración Blade, privacidad, rate limiting y cobertura MariaDB, sin lectura pública o frontend.
+23. **Fase 6B.3 — Centros y actividades educativas:** `EducationalCenter`, `EducationalActivity`, enum y transiciones definitivas, ubicación opcional, administración Blade, borrado conservador, permisos y cobertura MariaDB, sin API pública o frontend.
 
-La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A, 3B y 3C completan la Fase 3. Los subbloques 4A, 4B y 4C completan la Fase 4. Los subbloques 5A, 5A.1, 5B y 5C completan la Fase 5. La Fase 6 permanece abierta: 6A, 6A.1, 6B.1 y 6B.2 están completadas; 6B.3, 6B.4 y 6C no se han iniciado. Redirects y migraciones editoriales no se han iniciado.
+La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A, 3B y 3C completan la Fase 3. Los subbloques 4A, 4B y 4C completan la Fase 4. Los subbloques 5A, 5A.1, 5B y 5C completan la Fase 5. La Fase 6 permanece abierta: 6A, 6A.1 y 6B.1–6B.3 están completadas; 6B.4 y 6C no se han iniciado. Redirects y migraciones editoriales no se han iniciado.
 
 ## Bloques posteriores aprobados y no iniciados
 
-1. **Fase 6B.3 — Centros y actividades:** `EducationalCenter`, `EducationalActivity`, administración, estados, validaciones y tests. Pendiente.
-2. **Fase 6B.4 — Lectura pública:** `GET /api/v1/school`, Resources, visibilidad y tests. Pendiente.
-3. **Fase 6C — Experiencia pública de Escuela:** consumir lectura y escritura, registrar `/escuela`, formulario, Navbar, accesibilidad, responsive y E2E. Pendiente.
-4. **Club y migración de Contenidos:** asignar una fuente canónica a cada página institucional y retirar gradualmente la arquitectura legada.
-5. **QA, accesibilidad y despliegue:** validar contratos, recorridos, responsive, teclado, multimedia, persistencia y operación.
+1. **Fase 6B.4 — Lectura pública:** `GET /api/v1/school`, Resources, visibilidad y tests. Pendiente.
+2. **Fase 6C — Experiencia pública de Escuela:** consumir lectura y escritura, registrar `/escuela`, formulario, Navbar, accesibilidad, responsive y E2E. Pendiente.
+3. **Club y migración de Contenidos:** asignar una fuente canónica a cada página institucional y retirar gradualmente la arquitectura legada.
+4. **QA, accesibilidad y despliegue:** validar contratos, recorridos, responsive, teclado, multimedia, persistencia y operación.
 
-Las fases 4 y 5 están completadas. `/competicion` presenta su acceso principal, temporadas, campeonatos y preview real del ranking histórico; la rama conserva Torneos y Rankings como destinos secundarios y ofrece un recorrido coherente por campeonato, categoría, clasificación, calendario y partido. `/aprende-a-jugar` y el Manual presentan los 40 documentos desde la proyección segura de `knowledge/`, con navegación interna y carga diferida. Fases 6B.1 y 6B.2 aportan el núcleo administrativo de Escuela y la escritura pública de solicitudes; `/escuela`, `GET /api/v1/school`, su formulario React, centros, actividades y `/club` no están implementados por aparecer en el roadmap.
+Las fases 4 y 5 están completadas. `/competicion` presenta su acceso principal, temporadas, campeonatos y preview real del ranking histórico; la rama conserva Torneos y Rankings como destinos secundarios y ofrece un recorrido coherente por campeonato, categoría, clasificación, calendario y partido. `/aprende-a-jugar` y el Manual presentan los 40 documentos desde la proyección segura de `knowledge/`, con navegación interna y carga diferida. Fases 6B.1–6B.3 aportan el núcleo administrativo de Escuela, la escritura pública de solicitudes y la gestión privada de centros y actividades; `/escuela`, `GET /api/v1/school`, su formulario React y `/club` no están implementados por aparecer en el roadmap.
 
 Después de 3C permanecen en bloques posteriores la consolidación institucional, la migración de Nosotros, aliases, redirects, canonical, indexación de `/contenidos`, SEO completo, sitemap y robots, limpieza de código huérfano y migración de `academy` y `documentos`. No forman parte de 3C ni del cierre de la Fase 4.
 

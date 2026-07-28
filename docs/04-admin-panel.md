@@ -29,7 +29,7 @@ No todo contenido público pertenece al panel: Reglamento, Conceptos, Manual y c
 
 Las pantallas descritas a continuación son capacidades actuales documentadas. La Fase 1 verificó las rutas, permisos, estados, API, contenido y pruebas del CMS genérico; la Fase 2A ha endurecido su invariancia editorial. La adecuación de ese CMS a cada futura área específica sigue necesitando un bloque propio antes de ampliarlo.
 
-El núcleo operativo de Escuela dispone desde 6B.1 de administración específica para programa, niveles, ubicaciones y horarios. 6B.2 incorpora inscripciones y participantes; centros, actividades, lectura pública, carga persistente de archivos y formulario React siguen siendo capacidades futuras.
+El núcleo operativo de Escuela dispone desde 6B.1 de administración específica para programa, niveles, ubicaciones y horarios. 6B.2 incorpora inscripciones y participantes, y 6B.3 añade centros educativos y actividades. La lectura pública, la carga persistente de archivos y el formulario React siguen siendo capacidades futuras.
 
 ## Vistas Principales
 
@@ -99,13 +99,15 @@ La ruta `/admin/venues` centraliza la configuración básica de pistas.
 
 ### Escuela de Galotxas
 
-Las rutas `/admin/school/*` agrupan cinco áreas bajo un único acceso de navegación:
+Las rutas `/admin/school/*` agrupan siete áreas bajo un único acceso de navegación:
 
 - **Inscripciones:** listado y filtros, alta manual pendiente, detalle privado, corrección limitada, aprobación, rechazo, baja y reasignación de nivel, sin eliminación.
 - **Programa:** listado, alta, edición, visibilidad, apertura declarada de inscripciones, ubicación habitual, contacto, orden y borrado conservador. Sólo puede existir un programa público.
 - **Niveles:** listado filtrable por programa, alta, edición, edades opcionales, activación, visibilidad, orden y borrado conservador.
 - **Ubicaciones:** listado, alta, edición, activación, dirección, localidad, orden, notas administrativas y borrado conservador.
 - **Horarios:** listado filtrable por programa y nivel, alta, edición, día ISO, horas, ubicación, activación, orden y borrado.
+- **Centros educativos:** listado por estado y localidad, alta, detalle con histórico, edición, activación, contacto y notas privadas.
+- **Actividades con centros:** listado por centro, estado e intervalo, alta, detalle, corrección de datos y acciones explícitas de completar o cancelar.
 
 Los registros nuevos son privados o inactivos. Los formularios usan `old()`, valores ocultos para checkboxes, errores por campo y `validated()`. Activar un horario exige nivel y ubicación activos; publicar un nivel exige programa público; publicar un programa con ubicación habitual exige que ésta esté activa.
 
@@ -113,7 +115,13 @@ La navegación muestra por separado activo, público y visibilidad efectiva. Un 
 
 El listado de inscripciones permite filtrar por programa, nivel y estado, usa `requested_at` e ID como orden estable, presenta contadores y enlaza al detalle. El alta manual registra siempre una solicitud pendiente y nunca expone `user_id`. La edición sólo corrige participante, nacimiento, contacto, representante y notas; programa, nivel, cuenta, estado y fechas quedan fuera.
 
-Las acciones son explícitas: una pendiente puede aprobarse con un nivel activo del mismo programa o rechazarse; una activa puede reasignarse a otro nivel activo del programa o darse de baja. Rechazadas y bajas sólo admiten consulta y corrección limitada. El panel confirma rechazo y baja, conserva `old()`, muestra errores junto a campos y no define `destroy`. Centros y actividades siguen sin pantallas.
+Las acciones de inscripción son explícitas: una pendiente puede aprobarse con un nivel activo del mismo programa o rechazarse; una activa puede reasignarse a otro nivel activo del programa o darse de baja. Rechazadas y bajas sólo admiten consulta y corrección limitada. El panel confirma rechazo y baja, conserva `old()`, muestra errores junto a campos y no define `destroy`.
+
+Los centros nuevos nacen inactivos. El listado muestra contacto, estado, número de actividades y última fecha; el detalle conserva notas privadas, histórico y acceso a una actividad preseleccionada. Un centro con actividades no puede borrarse.
+
+Las actividades nuevas nacen `planned` y el formulario general no acepta `status`. Centro y ubicación deben estar activos al crear o cambiar la relación; si se desactivan después, el registro histórico sigue visible y editable mientras no se cambie esa asociación. Las horas son ambas nullable o ambas obligatorias y la inicial debe preceder a la final. `expected_students` es positivo si se informa y obligatorio al completar.
+
+Las únicas transiciones son `planned → completed` y `planned → cancelled`; no hay reactivación. Sólo se elimina una actividad que continúa planificada. Completadas y canceladas admiten corrección de datos, pero conservan estado e histórico. Las ubicaciones usadas por actividades se incorporan a su protección de borrado.
 
 ### Temporadas
 
@@ -193,7 +201,7 @@ El panel web actual dispone de estas áreas reales:
 | Partidos | edición dentro del detalle de categoría; no existe un índice Blade independiente de todos los partidos |
 | Conflictos | listado, detalle comparativo y resolución de partidos `under_review` |
 | Pistas | listado, alta, edición y borrado seguro |
-| Escuela | programa, niveles, ubicaciones, horarios e inscripciones; gestión operativa, ciclo de participantes y borrado conservador |
+| Escuela | programa, niveles, ubicaciones, horarios, inscripciones, centros y actividades; gestión operativa, ciclos explícitos y borrado conservador |
 | Jugadores | listado, alta, detalle, edición y borrado |
 | Usuarios | listado, alta, detalle, edición y borrado |
 | Rankings | vista del ranking histórico; los demás rankings aparecen en los contextos de temporada, campeonato o categoría |
@@ -244,7 +252,7 @@ El administrador puede gestionar:
 - rankings;
 - páginas públicas CMS;
 - pistas;
-- programa, niveles, ubicaciones, horarios e inscripciones de la Escuela.
+- programa, niveles, ubicaciones, horarios, inscripciones, centros y actividades de la Escuela.
 
 ---
 
