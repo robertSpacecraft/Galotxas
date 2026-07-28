@@ -129,11 +129,11 @@ Su arquitectura es híbrida y se implementa por bloques:
 
 La Escuela puede enlazar al Manual existente, pero no copiarlo ni anidarse dentro de Aprende a jugar. React sólo compondrá la proyección estable y los datos operativos ya autorizados. El CMS, `knowledge/` y JSX nunca almacenarán niveles, horarios, alumnos, solicitudes, centros o actividades como fuente alternativa, y la inscripción a campeonatos no se reutiliza como inscripción escolar.
 
-La lectura pública futura sólo podrá exponer configuración, niveles, horarios, ubicaciones, apertura y contacto general. Nombres, fechas de nacimiento, representante, teléfono, correo, estado individual y observaciones nunca son públicos. El POST de 6B.2 devuelve sólo una confirmación genérica y no permite consultar solicitudes. Los datos personales permanecen en MariaDB y Blade; no se copian a CMS, `knowledge/`, React, URLs, logs añadidos o métricas.
+La lectura pública `GET /api/v1/school` expone mediante allowlists únicamente nombre del programa, apertura efectiva, contacto general nullable, ubicación habitual activa, niveles activos y públicos, horarios efectivos y sus ubicaciones activas. La ausencia de programa público se representa como `data: null`; niveles sin horarios y demás datos parciales siguen siendo válidos. Nombres, fechas de nacimiento, representante, teléfono, correo, estado individual y observaciones de solicitudes nunca son públicos. El POST de 6B.2 devuelve sólo una confirmación genérica y no permite consultar solicitudes. Los datos personales permanecen en MariaDB y Blade; no se copian a CMS, `knowledge/`, React, URLs, logs añadidos o métricas.
 
-Los centros y actividades de 6B.3 también permanecen en MariaDB y Blade y no se publican en el MVP. Contactos de centros y `admin_notes` son privados; no se duplican en CMS o Knowledge. Las actividades conservan únicamente un número previsto, nunca asistentes nominales, y no forman parte del futuro `GET /api/v1/school`.
+Los centros y actividades de 6B.3 también permanecen en MariaDB y Blade y no se publican en el MVP. Contactos de centros y `admin_notes` son privados; no se duplican en CMS o Knowledge. Las actividades conservan únicamente un número previsto, nunca asistentes nominales, y no forman parte de `GET /api/v1/school`.
 
-La ruta canónica futura es `/escuela`. No se aprueba `/manual/academy`. Fases 6A y 6A.1 definen el contrato en `12-school-of-galotxas.md`; 6B.1 implementa el núcleo administrativo y 6B.2 la recepción pública y gestión privada de inscripciones. La ruta, el Navbar, la API de lectura, la colección pedagógica y el formulario React continúan ausentes.
+La ruta canónica futura es `/escuela`. No se aprueba `/manual/academy`. Fases 6A y 6A.1 definen el contrato en `12-school-of-galotxas.md`; 6B.1–6B.4 implementan núcleo, inscripciones, centros/actividades y lectura pública. La ruta, el Navbar, la colección pedagógica y el formulario React continúan ausentes.
 
 ### Club
 
@@ -158,7 +158,7 @@ La tabla diferencia la fuente aprobada de las capacidades actuales que todavía 
 | Reglamento | `knowledge/reglamento/` | Git y revisión | No | No | Normativa |
 | Conceptos | `knowledge/conceptos/` | Git y revisión | No | No | Canónica |
 | Escuela: contenido estable | `knowledge/` futuro | Git y revisión | No inicialmente | No | Pedagógica |
-| Escuela: programa, niveles, ubicaciones y horarios | Dominio Laravel | Administrador desde Blade | Sí, desde 6B.1 | Pendiente 6B.4 | Operativa |
+| Escuela: programa, niveles, ubicaciones y horarios | Dominio Laravel | Administrador desde Blade | Sí, desde 6B.1 | Sí, lectura cerrada desde 6B.4 | Operativa |
 | Escuela: inscripciones | `SchoolEnrollment` | Solicitante público + administrador autorizado | Sí, desde 6B.2 | Sólo POST, sin lectura | Personal y privada |
 | Escuela: centros y actividades | `EducationalCenter` y `EducationalActivity` | Administrador desde Blade | Sí, desde 6B.3 | No en MVP | Operativa y privada |
 | Escuela: avisos simples | CMS genérico, si se aprueba | Administrador | Genérico actual | Genérica actual | Editorial |

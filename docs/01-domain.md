@@ -370,7 +370,9 @@ Desde 6B.3, el segundo subdominio dispone de persistencia y administración prop
 
 Los borrados son conservadores: un centro o ubicación con actividades no se elimina; sólo una actividad planificada creada por error puede borrarse. Una actividad completada o cancelada conserva su histórico. Este subdominio no registra alumnos nominales, no crea `SchoolEnrollment` y no tiene API pública o administrativa.
 
-El único endpoint escolar existente es `POST /api/v1/school/enrollments`: resuelve en backend el programa público abierto, admite nivel público y activo opcional, toma la cuenta exclusivamente de una sesión Sanctum opcional y crea una solicitud pendiente. No existe lectura pública, seguimiento por ID, API administrativa, ruta React o formulario frontend. Tampoco existen datos sembrados para Escuela.
+La lectura pública `GET /api/v1/school` resuelve el único programa público y proyecta mediante Resources cerrados su apertura efectiva, contacto general, ubicación habitual activa, niveles activos y públicos, horarios efectivos y ubicaciones activas. Un programa público puede carecer de contacto, ubicación, niveles u horarios; esos vacíos se representan de forma estable. Si no existe programa público, la ruta responde `200` con `data: null` sin revelar si falta, es privado o está incompleto.
+
+`POST /api/v1/school/enrollments` resuelve en backend el programa público abierto, admite nivel público y activo opcional, toma la cuenta exclusivamente de una sesión Sanctum opcional y crea una solicitud pendiente. No existe seguimiento por ID, API administrativa, ruta React o formulario frontend. Ninguna lectura expone inscripciones, alumnado, centros o actividades, y tampoco existen datos sembrados para Escuela.
 
 ## Contenido institucional
 

@@ -29,7 +29,7 @@ No todo contenido público pertenece al panel: Reglamento, Conceptos, Manual y c
 
 Las pantallas descritas a continuación son capacidades actuales documentadas. La Fase 1 verificó las rutas, permisos, estados, API, contenido y pruebas del CMS genérico; la Fase 2A ha endurecido su invariancia editorial. La adecuación de ese CMS a cada futura área específica sigue necesitando un bloque propio antes de ampliarlo.
 
-El núcleo operativo de Escuela dispone desde 6B.1 de administración específica para programa, niveles, ubicaciones y horarios. 6B.2 incorpora inscripciones y participantes, y 6B.3 añade centros educativos y actividades. La lectura pública, la carga persistente de archivos y el formulario React siguen siendo capacidades futuras.
+El núcleo operativo de Escuela dispone desde 6B.1 de administración específica para programa, niveles, ubicaciones y horarios. 6B.2 incorpora inscripciones y participantes, 6B.3 añade centros educativos y actividades y 6B.4 aporta su lectura pública sin cambiar Blade. La carga persistente de archivos y el formulario React siguen siendo capacidades futuras.
 
 ## Vistas Principales
 

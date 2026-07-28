@@ -2,9 +2,9 @@
 
 ## 1. Propósito
 
-Este documento registra la auditoría de Fase 6A, el cierre funcional aprobado en Fase 6A.1, el núcleo operativo implementado en Fase 6B.1, las inscripciones implementadas en Fase 6B.2 y los centros y actividades implementados en Fase 6B.3. Define el estado real sin presentar las capacidades pendientes de 6B.4 o 6C como existentes.
+Este documento registra la auditoría de Fase 6A, el cierre funcional aprobado en Fase 6A.1 y las implementaciones de Fase 6B.1–6B.4: núcleo operativo, inscripciones, centros/actividades y lectura pública. Define el estado real sin presentar la experiencia React pendiente de 6C como existente.
 
-Fase 6A.1 fue exclusivamente documental. Fase 6B.1 crea programa, niveles, ubicaciones y horarios. Fase 6B.2 añade `SchoolEnrollment`, su ciclo de estados, servicio, Form Requests, administración Blade y el POST público. Fase 6B.3 añade `EducationalCenter`, `EducationalActivity`, su ciclo operativo y administración Blade. No crea seeders, Resources de lectura, componentes React, formulario React ni contenido en `knowledge/`.
+Fase 6A.1 fue exclusivamente documental. Fase 6B.1 crea programa, niveles, ubicaciones y horarios. Fase 6B.2 añade `SchoolEnrollment`, su ciclo de estados, servicio, Form Requests, administración Blade y el POST público. Fase 6B.3 añade `EducationalCenter`, `EducationalActivity`, su ciclo operativo y administración Blade. Fase 6B.4 añade consulta centralizada, controlador, Resources cerrados y `GET /api/v1/school`. Ningún bloque crea seeders, componentes React, formulario React ni contenido en `knowledge/`.
 
 ## 2. Estado actual
 
@@ -13,15 +13,15 @@ La Escuela de Galotxas dispone de núcleo operativo, inscripciones, centros y ac
 - existen `SchoolProgram`, `SchoolLevel`, `SchoolLocation` y `SchoolSchedule`, con relaciones, visibilidad efectiva, defaults seguros y administración Blade;
 - existe `SchoolEnrollment` con solicitudes pendientes, participantes activos, rechazos y bajas, sin eliminación normal;
 - las siete áreas Blade están protegidas por sesión, CSRF y administrador activo;
+- existe `GET /api/v1/school`, anónimo y de sólo lectura, con visibilidad efectiva y allowlist;
 - existe `POST /api/v1/school/enrollments`, anónimo y con cuenta opcional, limitado y sin respuesta enumerable;
 - existen `EducationalCenter` y `EducationalActivity`, exclusivamente administrativos;
-- no existe `GET /api/v1/school`;
 - React no registra `/escuela` y el Navbar no la enlaza;
 - `knowledge/` no contiene una colección pedagógica de Escuela;
 - el CMS genérico conserva el slug legado `academy`, que no equivale a este dominio;
 - las inscripciones deportivas exigen cuenta y perfil `Player`, por lo que no representan el flujo escolar.
 
-Fase 6B.3 no publica la sección: el backend acepta solicitudes y administra centros y actividades, pero la lectura pública, ruta, formulario React y Navbar continúan pendientes.
+Fase 6B.4 tampoco publica la sección React: el backend permite leer la configuración y presentar solicitudes, pero la ruta `/escuela`, el consumidor, el formulario y el Navbar continúan pendientes.
 
 ## 3. Auditoría de capacidades reutilizables
 
@@ -66,7 +66,7 @@ Campos de `SchoolLocation` en 6B.1:
 - `admin_notes`, nullable y nunca pública;
 - timestamps.
 
-No necesita `is_public`: sólo se descubrirá públicamente cuando una programación efectiva la referencie. Desactivarla impide asociaciones nuevas, excluye los horarios relacionados de la lectura pública futura y conserva horarios y actividades históricos.
+No necesita `is_public`: sólo se descubre públicamente cuando una programación efectiva la referencia. Desactivarla impide asociaciones nuevas, excluye los horarios relacionados de la lectura pública y conserva horarios y actividades históricos.
 
 ## 5. Arquitectura híbrida
 
@@ -160,7 +160,7 @@ Toda solicitud exige:
 
 Estos campos pertenecen a `SchoolEnrollment` y nunca son públicos.
 
-El canal público general es distinto y todavía no está confirmado. `SchoolProgram` tendrá `contact_phone` y `contact_email` nullable, editables desde Blade. La API omitirá cada campo ausente y la landing omitirá el bloque completo si no existe ningún canal aprobado; esa ausencia no bloqueará el resto de la experiencia.
+El canal público general es distinto. `SchoolProgram` dispone de `contact_phone` y `contact_email` nullable, editables desde Blade. La API conserva un objeto estable `contact` con `phone` y `email`, ambos nullable; esa ausencia no oculta el programa ni bloquea el resto de la experiencia. La decisión de mostrar u omitir visualmente el bloque completo pertenece a 6C.
 
 No se inventan teléfonos, correos institucionales, textos legales o consentimientos.
 
@@ -458,7 +458,7 @@ Los borrados serán conservadores:
 
 ## 24. Visibilidad efectiva
 
-Política efectiva implementada como scopes internos, pendiente de consumo por la API de 6B.4:
+Política efectiva implementada como scopes internos y consumida por la API de 6B.4:
 
 - programa visible: `is_public = true`;
 - nivel visible: programa visible, `is_active = true` e `is_public = true`;
@@ -549,7 +549,7 @@ Los flujos implementados usan administrador activo, Form Requests, `validated()`
 
 `GET /api/v1/school`
 
-Entregará:
+Entrega:
 
 - programa público;
 - niveles activos y públicos;
@@ -558,7 +558,25 @@ Entregará:
 - estado efectivo de inscripción;
 - contacto público cuando exista.
 
-No entregará flags administrativos, notas, alumnado, solicitudes, fechas de nacimiento, contactos privados, centros o actividades. Si no existe programa público, responderá `404`; React lo tratará como ausencia de configuración operativa y podrá conservar el enlace al Manual.
+La consulta se centraliza en `SchoolPublicOverviewService`. Restringe las columnas, reutiliza los scopes efectivos, carga de forma anticipada ubicación habitual, niveles, horarios y ubicaciones, y aplica:
+
+- niveles por `sort_order`, `id`;
+- horarios por `day_of_week`, `starts_at`, `sort_order`, `id`.
+
+`PublicSchoolResource`, `PublicSchoolLevelResource`, `PublicSchoolScheduleResource` y `PublicSchoolLocationResource` serializan mediante allowlist. El contacto conserva `phone` y `email` nullable; la ubicación habitual sólo aparece si está activa; un nivel efectivo sin horarios continúa con `schedules: []`; el día es ISO 1–7 y las horas usan `HH:MM`.
+
+No entrega ID de programa, flags administrativos, órdenes, claves foráneas, ranura generada, notas, timestamps, alumnado, solicitudes, fechas de nacimiento, contactos privados, usuarios, centros o actividades. Sólo se exponen los IDs mínimos de nivel, horario y ubicación.
+
+Si no existe programa público, responde `200`:
+
+```json
+{
+  "message": null,
+  "data": null
+}
+```
+
+No selecciona programas privados ni diferencia ausencia, ocultación o configuración incompleta. Un programa público sin contacto, ubicación habitual, niveles u horarios continúa siendo una respuesta válida.
 
 ### Escritura
 
@@ -615,7 +633,7 @@ Estados:
 |---|---|
 | Loading | Estado anunciado del bloque operativo |
 | Error de lectura | Mensaje recuperable y reintento; conservar enlace al Manual |
-| `404` de lectura | Estado sin configuración pública, no datos simulados |
+| `data: null` en lectura | Estado sin configuración pública, no datos simulados |
 | Datos parciales | Mostrar niveles/horarios válidos y omitir bloques ausentes |
 | Inscripción cerrada | Mensaje claro, sin formulario enviable |
 | Error de envío | Mantener valores no sensibles y errores por campo |
@@ -711,7 +729,7 @@ El bloque implementa migración, enum, modelo, factory, cálculo histórico de m
 
 El bloque implementa dos migraciones reversibles, modelos, enum, factories, Form Requests, servicio transaccional, CRUD Blade, filtros y protección de borrados. Los centros nacen inactivos y las actividades planificadas; completar exige alumnado previsto positivo. No añade seeders, asistentes nominales, API pública o administrativa, frontend o contenido pedagógico.
 
-### 6B.4 — API pública de lectura — pendiente
+### 6B.4 — API pública de lectura — completada
 
 - `GET /api/v1/school`;
 - Resources públicos;
@@ -719,7 +737,7 @@ El bloque implementa dos migraciones reversibles, modelos, enum, factories, Form
 - niveles, horarios, ubicaciones, inscripción y contacto;
 - visibilidad efectiva, contratos, tests y documentación.
 
-Completar 6B.3 no inicia 6B.4.
+El bloque implementa la ruta anónima, `SchoolPublicOverviewService`, controlador invocable, cuatro Resources allowlist y cobertura de contrato, visibilidad, orden, datos parciales, formato horario, privacidad y N+1. El POST, su limitador y su respuesta permanecen intactos. No añade migraciones, seeders, administración, frontend o contenido pedagógico.
 
 ## 31. Plan 6C y testing
 
@@ -739,13 +757,24 @@ Completar 6B.3 no inicia 6B.4.
 
 `SCHOOL-CORE-ADMIN-1` cubre el núcleo y `SCHOOL-ENROLLMENT-ADMIN-1` añade 38 tests y 283 aserciones para migración, modelo, factories, consistencia programa–nivel, edad histórica, representante, contacto, apertura, sesión opcional, transiciones, fechas, Blade, privacidad, limitador y ausencia de GET o borrado. `SCHOOL-EDUCATIONAL-ACTIVITIES-1` añade 27 tests y 213 aserciones para migraciones, modelos, factories, relaciones, validación, transiciones, borrados, Blade, permisos y ausencia de API. La regresión escolar finaliza con 93 tests y 678 aserciones; la suite backend completa, con 348 tests y 2654 aserciones.
 
-`SCHOOL-CONTRACT-AUDIT-1` conserva para 6B.4 y 6C:
+`SCHOOL-PUBLIC-READ-API-1` cubre en 6B.4:
 
-- Resources sin datos personales;
-- `GET`, Resources y contratos de lectura sin información privada;
+- ausencia o privacidad del programa con el mismo `data: null`;
+- contrato mínimo, completo y parcial;
+- apertura efectiva, contacto nullable y ubicación habitual activa;
+- niveles efectivos, niveles sin horarios y orden estable;
+- horarios efectivos, día ISO, horas `HH:MM` y ubicación activa;
+- allowlists recursivas sin datos administrativos, inscripciones, usuarios, centros o actividades;
+- cantidad constante y acotada de consultas al crecer la jerarquía;
+- ruta anónima, ausencia de mutación y regresión del POST.
+
+La regresión explícita de Escuela, centros, actividades, inscripciones, permisos y rate limiting completa 111 tests y 783 aserciones. La suite backend completa finaliza con 356 tests y 2708 aserciones sobre MariaDB.
+
+`SCHOOL-CONTRACT-AUDIT-1` conserva para 6C:
+
 - React, formulario, estados remotos, teclado, foco, responsive, Navbar y E2E.
 
-La cobertura de 6B.1 y 6B.2 no representa tests de los bloques pendientes.
+La cobertura backend de 6B.1–6B.4 no representa tests de la experiencia React pendiente.
 
 ## 32. Deuda y criterios de cierre
 
@@ -779,4 +808,4 @@ Fase 6A.1 quedó cerrada documentalmente al cumplir:
 - Fase 6 permanece abierta;
 - `git diff --check` no devuelve errores.
 
-Fase 6B.3 actualiza ese estado: los cuatro modelos del núcleo, `SchoolEnrollment`, `EducationalCenter`, `EducationalActivity`, su administración y el POST público existen. `/escuela`, Navbar, `GET /api/v1/school`, Resources, formulario React y contenido pedagógico continúan pendientes. Fase 6 permanece abierta.
+Fase 6B.4 actualiza ese estado: los cuatro modelos del núcleo, `SchoolEnrollment`, `EducationalCenter`, `EducationalActivity`, su administración, el POST y `GET /api/v1/school` con sus Resources existen. `/escuela`, Navbar, formulario React y contenido pedagógico continúan pendientes. Fase 6 permanece abierta.

@@ -162,6 +162,21 @@ El seeder `InstitutionalCmsPageSeeder` puede crear estas páginas y sus bloques 
 
 ---
 
+## Resources públicos de Escuela
+
+`GET /api/v1/school` utiliza cuatro Resources cerrados:
+
+- `PublicSchoolResource` expone nombre, apertura efectiva, contacto estable, ubicación habitual activa nullable y niveles cargados;
+- `PublicSchoolLevelResource` expone ID, nombre, edades nullable y horarios cargados, incluida la colección vacía;
+- `PublicSchoolScheduleResource` expone ID, día ISO, horas `HH:MM` y ubicación activa cargada;
+- `PublicSchoolLocationResource` reutiliza una única allowlist de ID, nombre, localidad y dirección para ubicación habitual y horarios.
+
+`SchoolPublicOverviewService` entrega a los Resources únicamente el programa público y relaciones ya filtradas y ordenadas mediante eager loading. Los Resources usan relaciones cargadas y no consultan la base de datos. El envelope lo aporta `ApiResponse`: la ausencia de programa produce `message: null` y `data: null` sin instanciar un Resource vacío.
+
+No forman parte de estos contratos el ID del programa, flags, órdenes, claves foráneas, ranura generada, notas, timestamps, inscripciones, alumnado, usuarios, centros o actividades. No existen Resources públicos para `SchoolEnrollment`, `EducationalCenter` o `EducationalActivity`.
+
+---
+
 ## Inventario de Resources implementados
 
 Los Resources públicos de competición mantienen su forma, nombres, tipos y envelopes. Reciben las entidades y relaciones ya restringidas por las consultas de sus controladores: el Resource serializa, pero no decide por sí mismo si una entidad es pública. Las relaciones anidadas de temporadas y campeonatos llegan filtradas para impedir lazy loading de descendientes privados. `is_public` permanece como detalle interno y no se expone en ninguno de estos Resources ni en los de partidos o rankings.
@@ -182,6 +197,10 @@ Los Resources públicos de competición mantienen su forma, nombres, tipos y env
 | `PublicCmsPageSummaryResource` | índice público CMS |
 | `PublicCmsPageResource` | detalle público CMS |
 | `PublicCmsBlockResource` | bloques estructurados de una página pública |
+| `PublicSchoolResource` | agregado público de Escuela y apertura efectiva |
+| `PublicSchoolLevelResource` | niveles efectivos y sus horarios cargados |
+| `PublicSchoolScheduleResource` | horario efectivo, día ISO, horas y ubicación |
+| `PublicSchoolLocationResource` | ubicación pública reutilizada por programa y horarios |
 | `UserResource` | cuenta del usuario autenticado dentro de `MeResource` |
 | `PlayerProfileResource` | perfil deportivo privado del propio usuario y respuestas de auth |
 | `MeResource` | composición privada de cuenta y perfil opcional |
@@ -208,6 +227,7 @@ Los tres Resources administrativos de competición evitan serializar modelos Elo
 - `ParticipantMatchResultReportResource` limita cada reporte a lado, tanteo, estado y comentario.
 - `PendingMatchActionResource` solo añade el tipo de acción y el partido mínimo del participante.
 - los tres Resources públicos CMS omiten IDs internos, estado administrativo, claves foráneas y timestamps de edición.
+- los cuatro Resources públicos de Escuela omiten programa, flags, órdenes, notas, timestamps, claves foráneas y cualquier dato de inscripciones, centros o actividades.
 - `UserResource`, `PlayerProfileResource`, `ChampionshipRegistrationRequestResource` y `MatchRescheduleRequestResource` pueden contener datos personales o administrativos y no deben reutilizarse en endpoints de lectura anónima.
 - `MatchResource` y `MatchResultReportResource` contienen identificadores, responsables y trazabilidad. El primero sigue usándose en varios endpoints privados heredados; ambos están prohibidos para un detalle público nuevo.
 

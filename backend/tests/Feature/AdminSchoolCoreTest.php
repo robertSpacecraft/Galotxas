@@ -594,9 +594,14 @@ class AdminSchoolCoreTest extends TestCase
         $this->assertSame(2, SchoolSchedule::query()->count());
     }
 
-    public function test_no_public_school_api_or_web_route_is_introduced(): void
+    public function test_public_school_api_exists_without_public_web_route(): void
     {
-        $this->getJson('/api/v1/school')->assertNotFound();
+        $this->getJson('/api/v1/school')
+            ->assertOk()
+            ->assertExactJson([
+                'message' => null,
+                'data' => null,
+            ]);
         $this->get('/escuela')->assertNotFound();
     }
 

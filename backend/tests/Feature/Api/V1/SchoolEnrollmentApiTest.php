@@ -332,9 +332,14 @@ class SchoolEnrollmentApiTest extends TestCase
         $this->assertDatabaseCount('school_enrollments', 5);
     }
 
-    public function test_no_public_read_or_tracking_endpoint_exists(): void
+    public function test_public_read_exists_without_exposing_tracking_endpoints(): void
     {
-        $this->getJson('/api/v1/school')->assertNotFound();
+        $this->getJson('/api/v1/school')
+            ->assertOk()
+            ->assertExactJson([
+                'message' => null,
+                'data' => null,
+            ]);
         $this->getJson('/api/v1/school/enrollments')->assertMethodNotAllowed();
         $this->getJson('/api/v1/school/enrollments/1')->assertNotFound();
     }

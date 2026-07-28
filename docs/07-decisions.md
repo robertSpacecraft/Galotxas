@@ -954,6 +954,15 @@ Seguimiento de Fase 6B.3, 2026-07-28:
 - El borrado es conservador: centros y ubicaciones con actividades quedan protegidos; sólo una actividad todavía planificada puede eliminarse. Completadas y canceladas permanecen como histórico.
 - No se registran alumnos nominales, cuentas de centro, asistencia, pagos o adjuntos. No se crean seeders, API pública o administrativa, Resources, React, ruta `/escuela`, Navbar o contenido pedagógico. Fase 6 continúa abierta con 6B.4 y 6C pendientes.
 
+Seguimiento de Fase 6B.4, 2026-07-28:
+
+- Se implementa `GET /api/v1/school` como lectura anónima del único agregado público. La ausencia de programa público responde `200` con `data: null` y no diferencia ausencia, privacidad o configuración incompleta.
+- `SchoolPublicOverviewService` concentra visibilidad efectiva, selección restringida de columnas, eager loading y orden de niveles y horarios. El controlador invocable no contiene consultas ni reglas de serialización.
+- Cuatro Resources públicos aplican allowlists para programa, nivel, horario y ubicación. El contacto conserva siempre `phone` y `email` nullable; la ubicación habitual sólo aparece activa y un nivel efectivo puede publicarse con `schedules: []`.
+- Se exponen únicamente los IDs mínimos de nivel, horario y ubicación. Programa, flags, órdenes, claves foráneas, notas, timestamps, inscripciones, alumnado, usuarios, centros y actividades permanecen fuera del contrato.
+- Los horarios utilizan día ISO 1–7, horas `HH:MM` y orden por día, hora inicial, orden administrativo e ID. La cantidad de consultas permanece constante al crecer niveles, horarios y ubicaciones.
+- `POST /api/v1/school/enrollments`, su limiter y su respuesta permanecen intactos. No se crean migraciones, seeders, frontend, `/escuela`, Navbar o contenido pedagógico. Fase 6 continúa abierta con 6C pendiente.
+
 ---
 
 ## Mantenimiento

@@ -80,6 +80,8 @@ El inventario siguiente corresponde a `backend/routes/api.php` y a la salida de 
 | `GET` | `/matches/{gameMatch}` | `PublicMatchResource` |
 | `GET` | `/cms/pages` | colección `PublicCmsPageSummaryResource` |
 | `GET` | `/cms/pages/{slug}` | `PublicCmsPageResource` o `404` |
+| `GET` | `/school` | `PublicSchoolResource` o `data: null` |
+| `POST` | `/school/enrollments` | confirmación genérica sin datos personales |
 | `GET` | `/seasons/{season}/ranking` | colección `ChampionshipRankingResource` |
 | `GET` | `/rankings/all-time` | colección `AllTimeRankingResource` |
 
@@ -597,6 +599,71 @@ React renderiza los bloques con componentes controlados por `type` y no interpre
 
 ## Escuela de Galotxas
 
+### `GET /api/v1/school`
+
+Endpoint público de sólo lectura implementado en 6B.4. No exige autenticación, no usa el limitador específico de inscripciones y no modifica estado.
+
+Cuando no existe un programa con `is_public = true`, la ruta continúa existiendo y responde:
+
+```json
+{
+  "message": null,
+  "data": null
+}
+```
+
+Este contrato no diferencia públicamente entre ausencia, privacidad o una configuración todavía incompleta y nunca selecciona un programa privado como fallback.
+
+Cuando existe programa público, la forma es:
+
+```json
+{
+  "message": null,
+  "data": {
+    "name": "Escuela de Galotxas",
+    "enrollments_open": true,
+    "contact": {
+      "phone": null,
+      "email": null
+    },
+    "default_location": {
+      "id": 1,
+      "name": "Canchas de Monóvar",
+      "locality": "Monóvar",
+      "address": null
+    },
+    "levels": [
+      {
+        "id": 1,
+        "name": "Infantil/juvenil",
+        "minimum_age": null,
+        "maximum_age": null,
+        "schedules": [
+          {
+            "id": 1,
+            "day_of_week": 2,
+            "starts_at": "17:00",
+            "ends_at": "18:30",
+            "location": {
+              "id": 1,
+              "name": "Canchas de Monóvar",
+              "locality": "Monóvar",
+              "address": null
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+`enrollments_open` expresa la apertura efectiva del programa público. `contact` siempre contiene `phone` y `email`, ambos nullable. `default_location` es nullable y sólo aparece como objeto si la ubicación habitual está activa.
+
+Los niveles deben pertenecer al programa y ser activos y públicos; se ordenan por `sort_order` e `id`. Un nivel sin horario efectivo permanece en la colección con `schedules: []`. Los horarios exigen horario activo, nivel efectivo y ubicación activa; se ordenan por día ISO, hora inicial, `sort_order` e `id`. `day_of_week` utiliza ISO 1–7 y las horas usan `HH:MM`.
+
+Los cuatro Resources públicos usan allowlist. Sólo se exponen los IDs de nivel, horario y ubicación. No se exponen ID de programa, flags, órdenes, claves foráneas, notas, timestamps, inscripciones, alumnado, usuarios, centros o actividades educativas.
+
 ### `POST /api/v1/school/enrollments`
 
 Endpoint público de escritura implementado en 6B.2. No exige autenticación; si se presenta una sesión Sanctum válida, el backend toma exclusivamente de ella el `user_id` opcional. No crea cuenta, `Player`, perfil deportivo o permisos.
@@ -640,13 +707,11 @@ El limitador se llama `school-enrollments`, no afecta al resto de la API y nunca
 
 Continúan ausentes:
 
-- `GET /api/v1/school`, previsto para 6B.4;
 - `GET /api/v1/school/enrollments` y cualquier consulta por ID;
-- Resources públicos de Escuela;
 - endpoints públicos de alumnos, centros o actividades;
 - endpoints administrativos de `EducationalCenter` o `EducationalActivity`.
 
-Los centros y actividades implementados en 6B.3 son deliberadamente privados y administrativos. No forman parte del futuro `GET /api/v1/school`, que se limita al programa permanente, niveles, horarios, ubicaciones efectivas, apertura y contacto. No existe API administrativa de Escuela: Blade utiliza rutas web con sesión, CSRF y administrador activo.
+Los centros y actividades implementados en 6B.3 son deliberadamente privados y administrativos. No forman parte de `GET /api/v1/school`, que se limita al programa permanente, niveles, horarios, ubicaciones efectivas, apertura y contacto. No existe API administrativa de Escuela: Blade utiliza rutas web con sesión, CSRF y administrador activo.
 
 ---
 

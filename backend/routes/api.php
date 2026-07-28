@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V1\CmsPageController;
 use App\Http\Controllers\Api\V1\MatchController;
 use App\Http\Controllers\Api\V1\MyChampionshipRegistrationController;
 use App\Http\Controllers\Api\V1\MyDashboardController;
+use App\Http\Controllers\Api\V1\SchoolController;
 use App\Http\Controllers\Api\V1\SchoolEnrollmentController;
 use App\Http\Controllers\Api\V1\SeasonController;
 use App\Http\Controllers\Api\V1\SeasonRankingController;
@@ -52,6 +53,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/seasons/{season}/ranking', SeasonRankingController::class);
     Route::get('/rankings/all-time', AllTimeRankingController::class);
 
+    Route::get('/school', SchoolController::class);
     Route::post('/school/enrollments', [SchoolEnrollmentController::class, 'store'])
         ->middleware('throttle:school-enrollments');
 

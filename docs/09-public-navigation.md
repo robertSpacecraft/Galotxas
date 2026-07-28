@@ -133,7 +133,7 @@ También existen módulos React no montados: `pages/Home.jsx` y `CategoryCard`, 
 | `/` | Home pública y puerta de entrada actual | Estructura React más fuentes conectadas según cada bloque | `h1`, propuesta de valor y CTA deportivo existente | Navbar y `/torneos` | Implementada y sin rediseño; el Navbar aporta el acceso a Competición. |
 | `/competicion` | Landing funcional de actividad deportiva pública | API pública del dominio Laravel | `h1`, acceso principal, temporadas/campeonatos y preview histórico con estados independientes; sin recalcular reglas | Rama deportiva completa y `/rankings` | Fase 4 completada con 4A–4C. |
 | `/aprende-a-jugar` | Entrada divulgativa al Manual, Reglamento y Conceptos | Proyección pública compilada desde `knowledge/` | `h1`, resumen derivado, acceso al Manual y recorrido real; no copy editorial duplicado en JSX | `/manual`, `/manual/reglamento/:slug` y `/manual/conceptos/:group/:slug` | Completada en 5C con 40 documentos, contexto, índice, vecinos, fragmentos y carga diferida. |
-| `/escuela` | Escuela permanente, niveles, horarios e inscripción pública | Híbrida: `knowledge/` futuro para pedagogía estable y dominio Laravel específico para operación y solicitudes | `h1`, enlace al Manual, niveles, horarios, ubicaciones, apertura y formulario cuando esté abierto | El MVP no requiere subrutas | No. 6B.1 aporta el núcleo y 6B.2 las inscripciones Blade y el POST público; faltan lectura API, ruta, formulario React y Navbar. `academy` no satisface el requisito. |
+| `/escuela` | Escuela permanente, niveles, horarios e inscripción pública | Híbrida: `knowledge/` futuro para pedagogía estable y dominio Laravel específico para operación y solicitudes | `h1`, enlace al Manual, niveles, horarios, ubicaciones, apertura y formulario cuando esté abierto | El MVP no requiere subrutas | No. 6B.1–6B.4 aportan dominio, Blade, POST y lectura API; faltan ruta, consumidor, formulario React y Navbar. `academy` no satisface el requisito. |
 | `/club` | Landing institucional que agrupa páginas editables | CMS administrado en Blade y API pública | `h1` y enlaces a un conjunto publicado y clasificado de páginas institucionales; estado vacío controlado | Futuras páginas de Nosotros, Federarse, Federaciones, Prensa y medios, Contacto y, si se aprueba, Documentos | Parcial. El CMS y cuatro piezas existen, pero faltan el mapeo canónico, Contacto y resolver la duplicidad de Nosotros. |
 
 Los namespaces de Aprende a jugar quedan cerrados para el Manual inicial. La ruta única recomendada para el MVP de Escuela es `/escuela`; no necesita subrutas hasta que existan destinos reales con URLs estables. Club definirá las suyas cuando su contrato pueda garantizar esa estabilidad. Los ejemplos anteriores `/aprende` o `/manual` en raíz nunca se implementaron y no sustituyen este primer nivel.
@@ -145,7 +145,7 @@ La etiqueta pública y el H1 serán “Escuela de Galotxas”. Ocupará la cuart
 Antes de registrar la ruta deben existir:
 
 - contenido estable real o, como mínimo, un enlace útil al Manual sin duplicarlo;
-- dominio Laravel y API pública de lectura/escritura para niveles, horarios, ubicaciones, apertura y solicitud;
+- consumo React de la API pública de lectura/escritura ya implementada para niveles, horarios, ubicaciones, apertura y solicitud;
 - estados de carga, error, parcial y vacío;
 - textos de aceptación y controles de privacidad aprobados antes de habilitar el formulario; el contacto público general sigue siendo opcional;
 - tests frontend, accesibilidad, responsive y regresión del Navbar.
@@ -276,7 +276,7 @@ Los fragmentos conservan los IDs del artefacto y funcionan en navegación SPA, c
 
 ## 15. Escuela híbrida
 
-Escuela de Galotxas es una sección distinta del `academy` legado y del Manual. Su parte estable podrá incluir metodología, ejercicios y recursos pedagógicos desde una colección futura de `knowledge/`, únicamente cuando exista contenido aprobado. Fase 6B.1 implementa el dominio Laravel y Blade para programa permanente, niveles, horarios y ubicaciones, con visibilidad efectiva interna; 6B.2 añade solicitudes anónimas, gestión privada y POST público; 6B.3 incorpora centros y actividades exclusivamente administrativos. Todavía no existe lectura pública, que corresponde a 6B.4. El futuro formulario no exigirá cuenta, creará una solicitud pendiente y sólo estará operativo cuando el backend confirme inscripciones abiertas. Centros y actividades no se publicarán en el MVP. Un aviso simple podrá permanecer en el CMS si no necesita estructura.
+Escuela de Galotxas es una sección distinta del `academy` legado y del Manual. Su parte estable podrá incluir metodología, ejercicios y recursos pedagógicos desde una colección futura de `knowledge/`, únicamente cuando exista contenido aprobado. Fase 6B.1 implementa el dominio Laravel y Blade para programa permanente, niveles, horarios y ubicaciones; 6B.2 añade solicitudes anónimas, gestión privada y POST público; 6B.3 incorpora centros y actividades exclusivamente administrativos; 6B.4 añade `GET /api/v1/school` con visibilidad efectiva, orden estable y Resources cerrados. El futuro formulario no exigirá cuenta, creará una solicitud pendiente y sólo estará operativo cuando el backend confirme inscripciones abiertas. Centros, actividades, inscripciones y alumnado no se publican en la lectura. Un aviso simple podrá permanecer en el CMS si no necesita estructura.
 
 Antes de publicar `/escuela` se requieren al menos:
 
@@ -284,7 +284,7 @@ Antes de publicar `/escuela` se requieren al menos:
 2. contenido real mínimo con propietario editorial;
 3. separación explícita entre material estable y actividad operativa;
 4. textos de aceptación y política de conservación aprobados para los datos personales del formulario;
-5. modelo Laravel, administración, endpoint y Resources de la actividad publicable;
+5. consumo React del modelo Laravel, administración, endpoint y Resources ya implementados;
 6. estados remotos, accesibilidad y pruebas.
 
 El CMS genérico demuestra una infraestructura, pero el slug `academy` y dos bloques sembrados no demuestran estas capacidades verticales.

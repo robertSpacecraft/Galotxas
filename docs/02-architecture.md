@@ -113,7 +113,7 @@ Fases 6A y 6A.1 definen Escuela como una vertical híbrida independiente de Apre
 - `knowledge/` podrá aportar metodología, iniciación y recursos pedagógicos estables únicamente cuando exista una colección real y aprobada; mientras tanto, Escuela enlazará al Manual existente;
 - Laravel/MariaDB es la fuente del programa permanente, niveles, horarios, ubicaciones, inscripciones, centros, actividades y datos personales;
 - Blade administra programa, niveles, ubicaciones, horarios, inscripciones, centros y actividades;
-- `GET /api/v1/school` sigue pendiente y entregará sólo configuración, niveles, horarios, ubicaciones, apertura y contacto efectivos;
+- `GET /api/v1/school` entrega sólo configuración, niveles, horarios, ubicaciones, apertura y contacto efectivos;
 - `POST /api/v1/school/enrollments` recibe solicitudes anónimas o vinculadas opcionalmente a la sesión, siempre pendientes y sujetas a revisión;
 - React compondrá la futura `/escuela` y su formulario, pero no almacenará contenido editorial ni decidirá visibilidad o mayoría de edad;
 - el CMS genérico podrá conservar piezas no estructuradas, pero nunca alumnos, centros, actividades, horarios o solicitudes.
@@ -134,7 +134,11 @@ La escritura pública se limita a cinco intentos por minuto por combinación de 
 
 Centros y actividades constituyen un subdominio operativo separado de las inscripciones. Sus dos tablas usan claves foráneas restrictivas, sus registros no se publican, Blade es su único consumidor y no existe API pública o administrativa. Los centros nacen inactivos; las actividades nacen `planned` y sólo pasan a `completed` o `cancelled`. Desactivar un centro o una ubicación preserva las relaciones históricas y sólo bloquea asociaciones nuevas.
 
-No existe todavía consumidor React de Escuela. 6B.4 permanece pendiente para lectura pública del programa permanente; 6C permanece pendiente para landing, formulario, Navbar y E2E. El contrato completo está en `12-school-of-galotxas.md`.
+`SchoolPublicOverviewService` centraliza la consulta pública de sólo lectura: resuelve el programa público, restringe y ordena niveles y horarios, limita las columnas cargadas y obtiene todas las relaciones mediante eager loading. `SchoolController` sólo coordina esa consulta y el envelope. `PublicSchoolResource`, `PublicSchoolLevelResource`, `PublicSchoolScheduleResource` y `PublicSchoolLocationResource` aplican allowlists por contexto y no consultan la base de datos.
+
+La ausencia de programa público devuelve `200` con `data: null`; la respuesta no diferencia ausencia, privacidad o configuración incompleta. Con programa público, el contrato admite contacto nullable, ubicación habitual activa opcional, niveles sin horarios y datos parciales. Inscripciones, usuarios, centros, actividades, notas, flags y timestamps permanecen fuera de la lectura.
+
+No existe todavía consumidor React de Escuela. 6B.4 completa la lectura pública del programa permanente; 6C permanece pendiente para landing, formulario, Navbar y E2E. El contrato completo está en `12-school-of-galotxas.md`.
 
 ## Canalización build-time de Knowledge
 

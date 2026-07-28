@@ -971,12 +971,25 @@ Fase 6B.3 incorpora 27 tests Feature dirigidos y 213 aserciones sobre MariaDB pa
 
 La regresión dirigida del conjunto escolar finaliza con 93 tests y 678 aserciones. La suite backend completa finaliza con 348 tests y 2654 aserciones. `migrate:fresh`, rollback de las dos migraciones de 6B.3 y reaplicación se verifican en el perfil Docker `test`; no se utiliza SQLite ni la base de desarrollo.
 
+## SCHOOL-PUBLIC-READ-API-1 — Lectura pública de Escuela
+
+Fase 6B.4 incorpora 8 tests Feature y 52 aserciones dirigidas sobre MariaDB para:
+
+- `GET /api/v1/school` anónimo, de sólo lectura y con envelope exacto;
+- respuesta `200` con `data: null` idéntica ante ausencia o privacidad del programa;
+- contrato mínimo, completo y parcial con contacto nullable, ubicación habitual activa y apertura efectiva;
+- niveles activos y públicos en orden `sort_order`, ID, incluidos niveles sin horarios;
+- horarios efectivos en orden día ISO, hora inicial, `sort_order`, ID y horas `HH:MM`;
+- exclusión de niveles privados o inactivos, horarios inactivos y ubicaciones inactivas;
+- allowlists recursivas sin flags, órdenes, claves foráneas, notas, timestamps, inscripciones, usuarios, centros o actividades;
+- ausencia de mutación y número de consultas constante y no superior a cinco al crecer niveles, horarios y ubicaciones.
+
+La regresión conjunta del nuevo GET y el POST existente completa 19 tests y 134 aserciones. `--filter=School` completa 80 tests y 557 aserciones. La regresión explícita de Escuela, centros, actividades, inscripciones, permisos y rate limiting completa 111 tests y 783 aserciones; la suite backend completa, 356 tests y 2708 aserciones. El limitador `school-enrollments`, payload, `201`, `409` y privacidad del POST permanecen intactos. No se atribuye cobertura a React, `/escuela`, Navbar o E2E.
+
 ## SCHOOL-CONTRACT-AUDIT-1 — Cobertura pendiente de Escuela
 
-Fases 6A y 6A.1 cerraron el contrato. Tras SCHOOL-CORE-ADMIN-1, SCHOOL-ENROLLMENT-ADMIN-1 y SCHOOL-EDUCATIONAL-ACTIVITIES-1, 6B.4 y 6C deberán cubrir:
+Fases 6A y 6A.1 cerraron el contrato. Tras SCHOOL-CORE-ADMIN-1, SCHOOL-ENROLLMENT-ADMIN-1, SCHOOL-EDUCATIONAL-ACTIVITIES-1 y SCHOOL-PUBLIC-READ-API-1, 6C deberá cubrir:
 
-- visibilidad efectiva de programa, nivel, horario y ubicación, sin cascadas de flags;
-- `GET /api/v1/school` con Resources cerrados y sin datos personales o administrativos;
 - tests React del servicio/hook, formulario y estados `loading`, `error`, `retry`, `empty`, `partial`, envío y éxito;
 - semántica, H1, metadatos, teclado, foco, responsive y navegación activa de `/escuela`;
 - Navbar desktop y móvil en cuarta posición sólo cuando la ruta sea funcional;
