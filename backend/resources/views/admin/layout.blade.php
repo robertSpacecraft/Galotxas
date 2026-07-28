@@ -82,6 +82,40 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.venues.index') }}">Pistas</a>
                 </li>
+                <li class="nav-item dropdown">
+                    <a
+                        class="nav-link dropdown-toggle"
+                        href="#"
+                        id="schoolAdminDropdown"
+                        role="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                    >
+                        Escuela de Galotxas
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="schoolAdminDropdown">
+                        <li>
+                            <a class="dropdown-item" href="{{ route('admin.school.programs.index') }}">
+                                Programa
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ route('admin.school.levels.index') }}">
+                                Niveles
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ route('admin.school.locations.index') }}">
+                                Ubicaciones
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ route('admin.school.schedules.index') }}">
+                                Horarios
+                            </a>
+                        </li>
+                    </ul>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.match-conflicts.index') }}">Conflictos</a>
                 </li>

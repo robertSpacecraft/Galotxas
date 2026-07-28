@@ -119,10 +119,10 @@ El cierre 5C mantiene esas rutas y fuentes. La landing presenta los recuentos ob
 
 Sección pública propia para una Escuela permanente orientada principalmente a menores y abierta también a solicitudes de adultos. No es una subsección del Manual y no debe denominarse públicamente “Academy”, salvo para explicar una referencia legada durante la migración.
 
-Su arquitectura será híbrida:
+Su arquitectura es híbrida y se implementa por bloques:
 
 - metodología, iniciación, ejercicios y recursos pedagógicos estables desde una futura colección de `knowledge/`, sólo cuando exista contenido real y aprobado;
-- programa permanente, niveles, horarios semanales, ubicaciones y apertura desde un dominio Laravel específico administrado con Blade;
+- programa permanente, niveles, horarios semanales, ubicaciones y apertura declarada desde el dominio Laravel administrado con Blade implementado en 6B.1;
 - solicitudes, participantes, representantes, contactos, estados y fechas del ciclo exclusivamente en Laravel;
 - centros educativos y sus actividades en un subdominio administrativo Laravel separado de las inscripciones individuales;
 - avisos o páginas simples desde el CMS genérico cuando no necesiten relaciones propias.
@@ -131,7 +131,7 @@ La Escuela puede enlazar al Manual existente, pero no copiarlo ni anidarse dentr
 
 La lectura pública sólo podrá exponer configuración, niveles, horarios, ubicaciones, apertura y contacto general. Nombres, fechas de nacimiento, representante, teléfono, correo, estado individual y observaciones nunca son públicos. Centros y actividades tampoco se publican en el MVP; las actividades sólo conservan un número previsto, no asistentes nominales.
 
-La ruta canónica futura es `/escuela`. No se aprueba `/manual/academy`. Fases 6A y 6A.1 definen el contrato en `12-school-of-galotxas.md`, pero no implementan la ruta, el Navbar, el dominio, la API, una colección o un formulario.
+La ruta canónica futura es `/escuela`. No se aprueba `/manual/academy`. Fases 6A y 6A.1 definen el contrato en `12-school-of-galotxas.md` y 6B.1 implementa el núcleo administrativo. La ruta, el Navbar, la API, la colección pedagógica y el formulario continúan ausentes.
 
 ### Club
 
@@ -156,7 +156,7 @@ La tabla diferencia la fuente aprobada de las capacidades actuales que todavía 
 | Reglamento | `knowledge/reglamento/` | Git y revisión | No | No | Normativa |
 | Conceptos | `knowledge/conceptos/` | Git y revisión | No | No | Canónica |
 | Escuela: contenido estable | `knowledge/` futuro | Git y revisión | No inicialmente | No | Pedagógica |
-| Escuela: programa, niveles y horarios | Dominio Laravel futuro | Administrador desde Blade | Pendiente 6B.1 | Pendiente 6B.4 | Operativa |
+| Escuela: programa, niveles, ubicaciones y horarios | Dominio Laravel | Administrador desde Blade | Sí, desde 6B.1 | Pendiente 6B.4 | Operativa |
 | Escuela: inscripciones | `SchoolEnrollment` futuro | Solicitante público + administrador autorizado | Pendiente 6B.2 | Sólo POST futuro | Personal y privada |
 | Escuela: centros y actividades | Dominio Laravel futuro | Administrador desde Blade | Pendiente 6B.3 | No en MVP | Administrativa |
 | Escuela: avisos simples | CMS genérico, si se aprueba | Administrador | Genérico actual | Genérica actual | Editorial |

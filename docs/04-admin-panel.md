@@ -29,7 +29,7 @@ No todo contenido público pertenece al panel: Reglamento, Conceptos, Manual y c
 
 Las pantallas descritas a continuación son capacidades actuales documentadas. La Fase 1 verificó las rutas, permisos, estados, API, contenido y pruebas del CMS genérico; la Fase 2A ha endurecido su invariancia editorial. La adecuación de ese CMS a cada futura área específica sigue necesitando un bloque propio antes de ampliarlo.
 
-Noticias, actividades de la Escuela, carga persistente de archivos, formularios públicos y nuevas pantallas editoriales son capacidades futuras; no se consideran implementadas.
+El núcleo operativo de Escuela dispone desde 6B.1 de administración específica para programa, niveles, ubicaciones y horarios. Sus inscripciones, centros, actividades, API pública, carga persistente de archivos y formularios públicos siguen siendo capacidades futuras.
 
 ## Vistas Principales
 
@@ -96,6 +96,19 @@ La ruta `/admin/venues` centraliza la configuración básica de pistas.
 - El borrado se deshabilita y se rechaza en backend si existen partidos o solicitudes de reprogramación asociadas.
 - La navegación principal del panel incluye el acceso “Pistas”.
 - El conjunto mínimo de desarrollo se crea explícitamente con `php artisan db:seed --class=DefaultVenueSeeder`; repetir el comando no duplica ni sobrescribe pistas.
+
+### Escuela de Galotxas
+
+Las rutas `/admin/school/*` agrupan cuatro áreas bajo un único acceso de navegación:
+
+- **Programa:** listado, alta, edición, visibilidad, apertura declarada de inscripciones, ubicación habitual, contacto, orden y borrado conservador. Sólo puede existir un programa público.
+- **Niveles:** listado filtrable por programa, alta, edición, edades opcionales, activación, visibilidad, orden y borrado conservador.
+- **Ubicaciones:** listado, alta, edición, activación, dirección, localidad, orden, notas administrativas y borrado conservador.
+- **Horarios:** listado filtrable por programa y nivel, alta, edición, día ISO, horas, ubicación, activación, orden y borrado.
+
+Los registros nuevos son privados o inactivos. Los formularios usan `old()`, valores ocultos para checkboxes, errores por campo y `validated()`. Activar un horario exige nivel y ubicación activos; publicar un nivel exige programa público; publicar un programa con ubicación habitual exige que ésta esté activa.
+
+La navegación muestra por separado activo, público y visibilidad efectiva. Un programa privado puede conservar la apertura declarada y los flags hijos sin hacerlos públicos. No existen pantallas de alumnado, centros o actividades.
 
 ### Temporadas
 
@@ -175,6 +188,7 @@ El panel web actual dispone de estas áreas reales:
 | Partidos | edición dentro del detalle de categoría; no existe un índice Blade independiente de todos los partidos |
 | Conflictos | listado, detalle comparativo y resolución de partidos `under_review` |
 | Pistas | listado, alta, edición y borrado seguro |
+| Escuela | programa, niveles, ubicaciones y horarios; alta, edición, activación, visibilidad, orden y borrado seguro |
 | Jugadores | listado, alta, detalle, edición y borrado |
 | Usuarios | listado, alta, detalle, edición y borrado |
 | Rankings | vista del ranking histórico; los demás rankings aparecen en los contextos de temporada, campeonato o categoría |
@@ -224,7 +238,8 @@ El administrador puede gestionar:
 - resultados;
 - rankings;
 - páginas públicas CMS;
-- pistas.
+- pistas;
+- programa, niveles, ubicaciones y horarios de la Escuela.
 
 ---
 

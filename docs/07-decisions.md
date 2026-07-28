@@ -923,6 +923,16 @@ Consecuencias:
 - el canal público de contacto, los textos de aceptación, la conservación, la reinscripción compleja y varios programas públicos son decisiones futuras no bloqueantes para iniciar 6B.1.
 - los textos de aceptación, la política de conservación extraordinaria, cualquier multimedia futura y la migración de `academy` se resolverán por bloques explícitos antes de ampliar la superficie pública.
 
+Seguimiento de Fase 6B.1, 2026-07-28:
+
+- Se implementan `SchoolProgram`, `SchoolLevel`, `SchoolLocation` y `SchoolSchedule` como núcleo operativo administrado exclusivamente mediante Blade.
+- `SchoolLocation` exige nombre y localidad y conserva dirección, orden y notas administrativas opcionales; continúa separada de `Venue`.
+- Los registros nacen privados o inactivos. La visibilidad efectiva se expresa mediante scopes de modelo y conjuga programa público, nivel activo y público, horario activo y ubicación activa sin modificar flags hijos.
+- `SchoolDayOfWeek` representa el día ISO 1–7 como enum entero; un índice compuesto rechaza horarios exactamente duplicados y permite solapamientos parciales.
+- MariaDB garantiza un único programa público mediante una columna generada nullable con índice único. `SchoolProgramService` añade transacción, bloqueo y un error de validación comprensible, sin despublicar otro programa.
+- Las claves foráneas y los flujos Blade aplican borrado conservador. No se crean datos sembrados, inscripciones, centros, actividades, API, Resources, ruta React, Navbar o contenido pedagógico.
+- Fase 6 continúa abierta con 6B.2–6B.4 y 6C pendientes.
+
 ---
 
 ## Mantenimiento

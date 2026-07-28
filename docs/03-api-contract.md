@@ -595,6 +595,18 @@ React renderiza los bloques con componentes controlados por `type` y no interpre
 - `02-architecture.md`
 - `08-resources.md`
 
+## Escuela de Galotxas
+
+Fase 6B.1 no incorpora contrato API. `SchoolProgram`, `SchoolLevel`, `SchoolLocation` y `SchoolSchedule` existen únicamente como dominio Laravel administrado mediante Blade y disponen de scopes internos de visibilidad efectiva.
+
+Continúan pendientes:
+
+- `GET /api/v1/school`, previsto para 6B.4;
+- `POST /api/v1/school/enrollments`, previsto para 6B.2;
+- Resources, controladores y rutas API de Escuela.
+
+No existe API administrativa de Escuela: Blade utiliza rutas web con sesión, CSRF y administrador activo.
+
 ---
 
 ## Mantenimiento

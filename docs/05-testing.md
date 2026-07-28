@@ -916,15 +916,27 @@ El backend debe probar el filtro de publicación. Una prueba que solo comprueba 
 
 KNOWLEDGE-COMPILER-1 cubre en 5A estructura, campos obligatorios, IDs, slugs, namespaces, rutas lógicas, referencias, seguridad y generación determinista. Los consumidores React del Manual deberán probar datos generados válidos, ausentes e inválidos en 5B; esa cobertura no se atribuye al compilador ni se considera publicada en 5A.
 
-## SCHOOL-CONTRACT-AUDIT-1 — Plan de verificación de Escuela
+## SCHOOL-CORE-ADMIN-1 — Núcleo operativo de Escuela
 
-Fases 6A y 6A.1 sólo auditan y cierran el contrato; no añaden tests ni atribuyen cobertura inexistente. 6B.1–6B.4 y 6C deberán cubrir, como mínimo:
+Fase 6B.1 incorpora 28 tests Feature dirigidos sobre MariaDB para:
 
-- migraciones, modelos, enums string, casts, relaciones, factories y defaults seguros;
-- un único programa público en el MVP, niveles activos/públicos y consistencia entre programa y nivel;
-- `SchoolLevel` como única clasificación formativa del MVP y sin slug;
-- día semanal ISO 1–7, hora inicial anterior a final, ubicación escolar activa y orden;
-- decisión de no incorporar ubicaciones escolares al conjunto de `Venue` usado por Competición;
+- las cuatro migraciones, defaults seguros, casts, relaciones, factories y estados expresivos de `SchoolProgram`, `SchoolLevel`, `SchoolLocation` y `SchoolSchedule`;
+- un único programa público garantizado por servicio y restricción de MariaDB, con error administrativo comprensible;
+- `SchoolLevel` como clasificación formativa propia, sin slug y sin reutilizar `Category`;
+- `SchoolLocation` separada de `Venue`, con localidad obligatoria y notas exclusivamente administrativas;
+- día semanal ISO 1–7, hora inicial anterior a final, ubicación y nivel activos al activar, duplicado exacto rechazado y solapamientos parciales permitidos;
+- visibilidad efectiva de programa, nivel y horario, incluida la ubicación activa, sin cascadas de flags al ocultar un padre;
+- borrado restrictivo y feedback para programa, nivel y ubicación en uso;
+- persistencia explícita, filtros, recuperación de valores, estados vacíos y navegación de las cuatro áreas Blade;
+- permisos de administrador activo y rechazo de administrador inactivo, usuario normal y anónimo;
+- ausencia de rutas públicas web o API de Escuela.
+
+La ejecución dirigida `--filter=School` finaliza con 28 tests y 182 aserciones. La suite backend completa finaliza con 283 tests y 2158 aserciones. Estos tests no atribuyen cobertura a inscripciones, centros, actividades, API o React.
+
+## SCHOOL-CONTRACT-AUDIT-1 — Cobertura pendiente de Escuela
+
+Fases 6A y 6A.1 cerraron el contrato. Tras SCHOOL-CORE-ADMIN-1, 6B.2–6B.4 y 6C deberán cubrir:
+
 - solicitud anónima y asociación opcional con el usuario autenticado sin aceptar `user_id` del payload ni sobrescribir datos;
 - mayoría de edad calculada desde nacimiento y `requested_at`, sin edad persistida;
 - menores con representante y relación obligatorios, y adultos sin esa obligación;

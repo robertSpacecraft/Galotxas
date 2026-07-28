@@ -108,23 +108,27 @@ Una misma pieza no debe mantenerse de forma editable en más de un canal. Los cr
 
 ### Contrato híbrido de Escuela de Galotxas
 
-Fases 6A y 6A.1 definen Escuela como una vertical híbrida independiente de Aprende a jugar, Club y Competición:
+Fases 6A y 6A.1 definen Escuela como una vertical híbrida independiente de Aprende a jugar, Club y Competición. 6B.1 implementa únicamente su núcleo operativo administrable:
 
 - `knowledge/` podrá aportar metodología, iniciación y recursos pedagógicos estables únicamente cuando exista una colección real y aprobada; mientras tanto, Escuela enlazará al Manual existente;
 - Laravel/MariaDB será la fuente del programa permanente, niveles, horarios, ubicaciones, inscripciones y datos personales;
-- Blade será la interfaz administrativa de la Escuela permanente y del subdominio independiente de centros y actividades educativas;
+- Blade ya administra programa, niveles, ubicaciones y horarios; las inscripciones y el subdominio independiente de centros y actividades continúan pendientes;
 - `GET /api/v1/school` entregará sólo configuración, niveles, horarios, ubicaciones, apertura y contacto efectivos;
 - `POST /api/v1/school/enrollments` recibirá solicitudes anónimas o vinculadas opcionalmente a la sesión, siempre pendientes y sujetas a revisión;
 - React compondrá la futura `/escuela` y su formulario, pero no almacenará contenido editorial ni decidirá visibilidad o mayoría de edad;
 - el CMS genérico podrá conservar piezas no estructuradas, pero nunca alumnos, centros, actividades, horarios o solicitudes.
 
-El contrato de implementación queda formado por `SchoolProgram`, `SchoolLevel`, `SchoolSchedule`, `SchoolLocation`, `SchoolEnrollment`, `EducationalCenter` y `EducationalActivity`.
+El contrato completo queda formado por `SchoolProgram`, `SchoolLevel`, `SchoolSchedule`, `SchoolLocation`, `SchoolEnrollment`, `EducationalCenter` y `EducationalActivity`. Los cuatro primeros disponen de tablas, modelos, factories, Form Requests, controladores y vistas Blade desde 6B.1; los tres últimos todavía no existen.
 
-`SchoolLocation` será propia del dominio escolar y compartida por horarios y actividades. El `Venue` existente no se reutiliza: el generador de liga trata todos los registros de `venues` como pistas competitivas y sus relaciones y restricciones de borrado están acopladas a partidos y reprogramaciones.
+`SchoolLocation` es propia del dominio escolar y será compartida por horarios y futuras actividades. El `Venue` existente no se reutiliza: el generador de liga trata todos los registros de `venues` como pistas competitivas y sus relaciones y restricciones de borrado están acopladas a partidos y reprogramaciones.
+
+La persistencia mantiene defaults privados e inactivos y claves foráneas restrictivas. Un `SchoolProgramService` coordina la escritura del programa dentro de una transacción y bloquea el programa público existente. MariaDB completa la garantía concurrente mediante `public_slot`, una columna generada que vale `1` sólo para el programa público y `NULL` para los privados, con índice único. No se despublica silenciosamente otro registro.
+
+Los scopes `effectivelyPublic()` de programa, nivel y horario centralizan la futura consulta pública. El horario efectivo exige programa público, nivel activo y público, horario activo y ubicación activa; no se propagan flags al ocultar padres. `SchoolDayOfWeek` aporta el valor ISO int-backed y las etiquetas administrativas.
 
 La Escuela admite menores y adultos. El representante se exige sólo al menor calculado desde nacimiento y fecha de solicitud; teléfono y correo siempre son obligatorios. No se gestionan plazas, pagos, asistentes nominales de centros o cuentas obligatorias.
 
-Nada de este flujo está implementado. 6B.1–6B.4 permanecen pendientes para núcleo, inscripciones, centros y lectura pública; 6C permanece pendiente para landing, formulario, Navbar y E2E. El contrato completo está en `12-school-of-galotxas.md`.
+No existe todavía API pública ni consumidor React de Escuela. 6B.2–6B.4 permanecen pendientes para inscripciones, centros y lectura pública; 6C permanece pendiente para landing, formulario, Navbar y E2E. El contrato completo está en `12-school-of-galotxas.md`.
 
 ## Canalización build-time de Knowledge
 

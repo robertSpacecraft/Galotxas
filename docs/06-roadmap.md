@@ -36,20 +36,20 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 18. **Fase 5C — Cierre de Aprende a jugar y el Manual:** contexto local, índice por headings compilados, navegación anterior/siguiente dentro de colección, deep links estables y carga diferida de toda la rama con regresión completa.
 19. **Fase 6A — Auditoría y contrato de Escuela de Galotxas:** backend, frontend, CMS, `academy`, inscripciones deportivas y `knowledge/` auditados; fuentes, MVP, dominio provisional, privacidad y planes de implementación documentados sin publicar la sección.
 20. **Fase 6A.1 — Cierre funcional de Escuela de Galotxas:** Escuela permanente, niveles, horarios semanales, ubicación escolar, inscripción pública sin cuenta obligatoria, ciclo de estados, centros y actividades definidos como contrato documental sin implementar código.
+21. **Fase 6B.1 — Núcleo operativo de Escuela:** `SchoolProgram`, `SchoolLevel`, `SchoolLocation` y `SchoolSchedule`, integridad relacional, visibilidad efectiva, administración Blade, permisos y tests sobre MariaDB, sin API o frontend públicos.
 
-La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A, 3B y 3C completan la Fase 3. Los subbloques 4A, 4B y 4C completan la Fase 4. Los subbloques 5A, 5A.1, 5B y 5C completan la Fase 5. La Fase 6 permanece abierta: 6A y 6A.1 están completadas documentalmente; 6B.1–6B.4 y 6C no se han iniciado. Redirects y migraciones editoriales no se han iniciado.
+La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A, 3B y 3C completan la Fase 3. Los subbloques 4A, 4B y 4C completan la Fase 4. Los subbloques 5A, 5A.1, 5B y 5C completan la Fase 5. La Fase 6 permanece abierta: 6A, 6A.1 y 6B.1 están completadas; 6B.2–6B.4 y 6C no se han iniciado. Redirects y migraciones editoriales no se han iniciado.
 
 ## Bloques posteriores aprobados y no iniciados
 
-1. **Fase 6B.1 — Núcleo operativo:** `SchoolProgram`, `SchoolLevel`, `SchoolSchedule`, `SchoolLocation`, Blade, visibilidad y tests. Pendiente.
-2. **Fase 6B.2 — Inscripciones:** `SchoolEnrollment`, estados, solicitud pública backend, validación de menores, administración, rate limiting y tests. Pendiente.
-3. **Fase 6B.3 — Centros y actividades:** `EducationalCenter`, `EducationalActivity`, administración, estados, validaciones y tests. Pendiente.
-4. **Fase 6B.4 — Lectura pública:** `GET /api/v1/school`, Resources, visibilidad y tests. Pendiente.
-5. **Fase 6C — Experiencia pública de Escuela:** consumir lectura y escritura, registrar `/escuela`, formulario, Navbar, accesibilidad, responsive y E2E. Pendiente.
-6. **Club y migración de Contenidos:** asignar una fuente canónica a cada página institucional y retirar gradualmente la arquitectura legada.
-7. **QA, accesibilidad y despliegue:** validar contratos, recorridos, responsive, teclado, multimedia, persistencia y operación.
+1. **Fase 6B.2 — Inscripciones:** `SchoolEnrollment`, estados, solicitud pública backend, validación de menores, administración, rate limiting y tests. Pendiente.
+2. **Fase 6B.3 — Centros y actividades:** `EducationalCenter`, `EducationalActivity`, administración, estados, validaciones y tests. Pendiente.
+3. **Fase 6B.4 — Lectura pública:** `GET /api/v1/school`, Resources, visibilidad y tests. Pendiente.
+4. **Fase 6C — Experiencia pública de Escuela:** consumir lectura y escritura, registrar `/escuela`, formulario, Navbar, accesibilidad, responsive y E2E. Pendiente.
+5. **Club y migración de Contenidos:** asignar una fuente canónica a cada página institucional y retirar gradualmente la arquitectura legada.
+6. **QA, accesibilidad y despliegue:** validar contratos, recorridos, responsive, teclado, multimedia, persistencia y operación.
 
-Las fases 4 y 5 están completadas. `/competicion` presenta su acceso principal, temporadas, campeonatos y preview real del ranking histórico; la rama conserva Torneos y Rankings como destinos secundarios y ofrece un recorrido coherente por campeonato, categoría, clasificación, calendario y partido. `/aprende-a-jugar` y el Manual presentan los 40 documentos desde la proyección segura de `knowledge/`, con navegación interna y carga diferida. Fases 6A y 6A.1 definen y cierran el contrato funcional de Escuela, pero `/escuela` y `/club` no están implementadas por aparecer en el roadmap.
+Las fases 4 y 5 están completadas. `/competicion` presenta su acceso principal, temporadas, campeonatos y preview real del ranking histórico; la rama conserva Torneos y Rankings como destinos secundarios y ofrece un recorrido coherente por campeonato, categoría, clasificación, calendario y partido. `/aprende-a-jugar` y el Manual presentan los 40 documentos desde la proyección segura de `knowledge/`, con navegación interna y carga diferida. Fase 6B.1 aporta el núcleo administrativo de Escuela, pero `/escuela`, sus endpoints públicos y `/club` no están implementados por aparecer en el roadmap.
 
 Después de 3C permanecen en bloques posteriores la consolidación institucional, la migración de Nosotros, aliases, redirects, canonical, indexación de `/contenidos`, SEO completo, sitemap y robots, limpieza de código huérfano y migración de `academy` y `documentos`. No forman parte de 3C ni del cierre de la Fase 4.
 

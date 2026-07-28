@@ -14,6 +14,10 @@ use App\Http\Controllers\Admin\MatchConflictController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\RankingController as AdminRankingController;
 use App\Http\Controllers\Admin\RegistrationRequestController;
+use App\Http\Controllers\Admin\SchoolLevelController;
+use App\Http\Controllers\Admin\SchoolLocationController;
+use App\Http\Controllers\Admin\SchoolProgramController;
+use App\Http\Controllers\Admin\SchoolScheduleController;
 use App\Http\Controllers\Admin\SeasonController as AdminSeasonController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\VenueController;
@@ -69,6 +73,14 @@ Route::prefix('admin')->group(function () {
         Route::get('/venues/{venue}/edit', [VenueController::class, 'edit'])->name('admin.venues.edit');
         Route::put('/venues/{venue}', [VenueController::class, 'update'])->name('admin.venues.update');
         Route::delete('/venues/{venue}', [VenueController::class, 'destroy'])->name('admin.venues.destroy');
+
+        // Escuela de Galotxas
+        Route::prefix('school')->name('admin.school.')->group(function () {
+            Route::resource('programs', SchoolProgramController::class)->except('show');
+            Route::resource('levels', SchoolLevelController::class)->except('show');
+            Route::resource('locations', SchoolLocationController::class)->except('show');
+            Route::resource('schedules', SchoolScheduleController::class)->except('show');
+        });
 
         // Temporadas
         Route::get('/seasons', [AdminSeasonController::class, 'index'])->name('admin.seasons.index');

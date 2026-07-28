@@ -2,30 +2,31 @@
 
 ## 1. Propósito
 
-Este documento registra la auditoría de Fase 6A y el cierre funcional aprobado en Fase 6A.1. Define el dominio que deberá implementar 6B y la experiencia pública que deberá implementar 6C sin presentar ninguna de esas capacidades como existente.
+Este documento registra la auditoría de Fase 6A, el cierre funcional aprobado en Fase 6A.1 y el núcleo operativo implementado en Fase 6B.1. Define el estado real de cada bloque sin presentar las capacidades pendientes de 6B.2–6B.4 o 6C como existentes.
 
-Fase 6A.1 es exclusivamente documental. No crea modelos, migraciones, enums, factories, seeders, controladores, Form Requests, Services, Resources, rutas, API, pantallas Blade, componentes React, formularios ni contenido en `knowledge/`.
+Fase 6A.1 fue exclusivamente documental. Fase 6B.1 crea modelos, migraciones, enum, factories, Form Requests, servicio, controladores, rutas web y pantallas Blade para programa, niveles, ubicaciones y horarios. No crea seeders, Resources, rutas API, componentes React, formularios públicos ni contenido en `knowledge/`.
 
 ## 2. Estado actual
 
-La Escuela de Galotxas continúa sin implementación funcional:
+La Escuela de Galotxas dispone de núcleo operativo administrativo:
 
-- no existen entidades `School*`, `EducationalCenter` o `EducationalActivity`;
-- no existe administración Blade específica;
+- existen `SchoolProgram`, `SchoolLevel`, `SchoolLocation` y `SchoolSchedule`, con relaciones, visibilidad efectiva, defaults seguros y administración Blade;
+- las cuatro áreas están protegidas por sesión, CSRF y administrador activo;
+- no existen `SchoolEnrollment`, `EducationalCenter` o `EducationalActivity`;
 - no existen `GET /api/v1/school` o `POST /api/v1/school/enrollments`;
 - React no registra `/escuela` y el Navbar no la enlaza;
 - `knowledge/` no contiene una colección pedagógica de Escuela;
 - el CMS genérico conserva el slug legado `academy`, que no equivale a este dominio;
 - las inscripciones deportivas exigen cuenta y perfil `Player`, por lo que no representan el flujo escolar.
 
-Las decisiones de 6A.1 cierran el contrato de implementación, no cambian este estado.
+Fase 6B.1 no publica la sección: el dominio operativo y su interfaz administrativa existen, pero la superficie pública continúa pendiente.
 
 ## 3. Auditoría de capacidades reutilizables
 
 | Área actual | Capacidad reutilizable | Límite |
 |---|---|---|
-| Laravel y MariaDB | Modelos, relaciones, Services, Form Requests y transacciones | No existen entidades escolares |
-| Blade | Interfaz administrativa oficial y middleware de administrador activo | No existen pantallas de Escuela |
+| Laravel y MariaDB | Modelos, relaciones, Services, Form Requests y transacciones | Núcleo operativo implementado; inscripciones, centros y actividades pendientes |
+| Blade | Interfaz administrativa oficial y middleware de administrador activo | Programa, niveles, ubicaciones y horarios implementados |
 | API | Resources por contexto y envelopes existentes | No existen contratos escolares |
 | Rate limiting | Mecanismo ya usado en auth y resultados | La inscripción necesitará una clave y límites propios |
 | `User` | Asociación opcional con una persona autenticada | Nunca será requisito ni fuente de los datos enviados |
@@ -51,14 +52,16 @@ No existe un modelo `Location`. El modelo real es `Venue`, con `name`, `location
 
 Guardar en `venues` un colegio u otra ubicación puntual permitiría que el generador la asignase a partidos. Reutilizarlo exigiría rediseñar primero su semántica y todas sus consultas, algo fuera del dominio escolar.
 
-Decisión cerrada: 6B creará `SchoolLocation`, compartida por los horarios de la Escuela permanente y las actividades con centros. No se modificará ni duplicará un mismo lugar dentro de los dos subdominios escolares. `Venue` continuará reservado al contrato competitivo actual.
+Decisión implementada: 6B.1 crea `SchoolLocation`, utilizada por los horarios de la Escuela permanente y preparada para las futuras actividades con centros. No se modifica `Venue`, que continúa reservado al contrato competitivo actual.
 
-Campos mínimos de `SchoolLocation`:
+Campos de `SchoolLocation` en 6B.1:
 
 - `name`;
-- `location`, texto público de dirección o localidad;
-- `description`, nullable y publicable;
+- `locality`;
+- `address`, nullable;
 - `is_active`;
+- `sort_order`;
+- `admin_notes`, nullable y nunca pública;
 - timestamps.
 
 No necesita `is_public`: sólo se descubrirá públicamente cuando una programación efectiva la referencie. Desactivarla impedirá nuevas asociaciones y excluirá los horarios relacionados de la lectura pública, sin borrar el historial administrativo.
@@ -116,7 +119,7 @@ No se registran nominalmente participantes de las actividades con centros y no s
 
 La Escuela es una actividad permanente. El MVP no la divide en cursos, temporadas, convocatorias académicas o programas temporales sucesivos.
 
-`SchoolProgram` representa su configuración operativa. El modelo admitirá varios registros para no imponer un singleton rígido, pero el MVP administrará un solo programa permanente y permitirá como máximo un programa público. La API expondrá únicamente ese programa público.
+`SchoolProgram` representa su configuración operativa. El modelo admite varios registros para no imponer un singleton rígido, pero el MVP permite como máximo un programa público. MariaDB garantiza esa exclusividad mediante una columna generada nullable e índice único; el servicio añade transacción, bloqueo y un error administrativo comprensible. La futura API expondrá únicamente ese programa público.
 
 No se almacenan fechas de inicio o fin del programa. Una futura coexistencia de programas públicos exigirá revisar el contrato de selección y la API, no crear ahora una plataforma académica.
 
@@ -186,7 +189,7 @@ Esto no implica:
 - clasificación deportiva;
 - imposibilidad de añadir niveles infantiles, juveniles o de adultos en el futuro.
 
-El nivel se creará mediante el flujo administrativo cuando 6B exista.
+El nivel se crea mediante el flujo administrativo disponible desde 6B.1; no se incorpora un seeder.
 
 ## 13. Horarios semanales
 
@@ -209,9 +212,10 @@ Validaciones:
 - nivel perteneciente a un programa y activo al crear o reactivar;
 - ubicación escolar existente y activa;
 - orden entero no negativo;
+- combinación exacta de nivel, ubicación, día y horas no duplicada;
 - no crear sesiones individuales, reglas RFC, festivos, excepciones o recuperaciones.
 
-No se define todavía una regla de solapamiento: puede haber niveles distintos simultáneos y no existe una restricción humana aprobada sobre recursos compartidos.
+Los solapamientos parciales se permiten deliberadamente: puede haber niveles distintos simultáneos y no existe una restricción humana aprobada sobre recursos compartidos.
 
 ## 14. Apertura y cierre
 
@@ -391,10 +395,10 @@ No forman parte del modelo los periodos de inscripción separados, solicitudes d
 
 | Entidad | Campos |
 |---|---|
-| `SchoolProgram` | `name`, `is_public`, `enrollments_open`, `default_location_id` nullable, `contact_phone` nullable, `contact_email` nullable, `sort_order`, timestamps |
+| `SchoolProgram` | `name`, `is_public`, `enrollments_open`, `default_school_location_id` nullable, `contact_phone` nullable, `contact_email` nullable, `sort_order`, `public_slot` generado, timestamps |
 | `SchoolLevel` | `school_program_id`, `name`, `minimum_age` nullable, `maximum_age` nullable, `is_active`, `is_public`, `sort_order`, timestamps |
 | `SchoolSchedule` | `school_level_id`, `day_of_week`, `starts_at`, `ends_at`, `school_location_id`, `is_active`, `sort_order`, timestamps |
-| `SchoolLocation` | `name`, `location`, `description` nullable, `is_active`, timestamps |
+| `SchoolLocation` | `name`, `locality`, `address` nullable, `is_active`, `sort_order`, `admin_notes` nullable, timestamps |
 | `SchoolEnrollment` | `school_program_id`, `school_level_id` nullable, `user_id` nullable, `participant_name`, `participant_birth_date`, `contact_phone`, `contact_email`, `guardian_name` nullable condicional, `guardian_relationship` nullable condicional, `status`, `requested_at`, `activated_at` nullable, `rejected_at` nullable, `withdrawn_at` nullable, `admin_notes` nullable, timestamps |
 | `EducationalCenter` | `name`, `locality`, `contact_name` nullable, `contact_phone` nullable, `contact_email` nullable, `is_active`, `admin_notes` nullable, timestamps |
 | `EducationalActivity` | `educational_center_id`, `name`, `activity_date`, `starts_at` nullable, `ends_at` nullable, `expected_students` nullable condicional, `school_location_id` nullable, `status`, `admin_notes` nullable, timestamps |
@@ -448,7 +452,7 @@ Los borrados serán conservadores:
 
 ## 24. Visibilidad efectiva
 
-Política pública:
+Política efectiva implementada como scopes internos, pendiente de consumo por la API de 6B.4:
 
 - programa visible: `is_public = true`;
 - nivel visible: programa visible, `is_active = true` e `is_public = true`;
@@ -466,39 +470,39 @@ Casos:
 | Programa privado + inscripciones abiertas | No hay formulario efectivo y el POST rechaza |
 | Programa público + inscripciones cerradas | Información visible, formulario cerrado |
 
-No se copian cascadas de Competición. Ocultar o desactivar un padre no reescribe flags hijos; la consulta pública aplica la conjunción efectiva. Blade impedirá activar/publicar un hijo bajo un padre no válido, pero permitirá ocultar el padre conservando configuración.
+No se copian cascadas de Competición. Ocultar o desactivar un padre no reescribe flags hijos; los scopes aplican la conjunción efectiva. Blade impide activar/publicar un hijo bajo un padre no válido, pero permite ocultar el padre conservando configuración.
 
 `EducationalCenter` y `EducationalActivity` son administrativos. Su estado operativo nunca implica publicación y no necesitan `is_public` en el MVP.
 
 ## 25. Administración Blade
 
-### Programa
+### Programa — implementado en 6B.1
 
-- listado y edición del único programa MVP;
+- listado, alta y edición;
 - nombre, visibilidad, apertura/cierre, ubicación habitual, contacto público y orden;
 - impedir un segundo programa público;
 - mostrar por separado visibilidad y apertura efectiva.
 
-### Niveles
+### Niveles — implementado en 6B.1
 
 - listado por programa, alta, edición, activación, publicación y orden;
 - edades nullable con `minimum_age <= maximum_age`;
 - borrado bloqueado cuando tenga horarios o inscripciones;
 - sin slug.
 
-### Horarios
+### Horarios — implementado en 6B.1
 
 - listado por nivel, alta, edición, activación y orden;
 - día ISO, horas y ubicación activa;
 - sin sesiones ni excepciones.
 
-### Ubicaciones
+### Ubicaciones — implementado en 6B.1
 
 - listado, alta, edición, activación y uso;
-- mostrar dependencias con programas, horarios y actividades;
+- mostrar dependencias con programas y horarios;
 - borrado bloqueado mientras tenga relaciones.
 
-### Inscripciones
+### Inscripciones — pendiente 6B.2
 
 - filtros para pendientes, activas, rechazadas y bajas;
 - detalle privado;
@@ -509,20 +513,20 @@ No se copian cascadas de Competición. Ocultar o desactivar un padre no reescrib
 - fechas de transición;
 - sin eliminación física normal.
 
-### Centros
+### Centros — pendiente 6B.3
 
 - listado, alta, edición, activación y detalle;
 - contacto y notas privadas;
 - historial de actividades;
 - coincidencias de nombre informativas, no restricción de unicidad.
 
-### Actividades
+### Actividades — pendiente 6B.3
 
 - listado, alta, edición, estado, fecha, horas, alumnado previsto, ubicación y observaciones;
 - nombre libre;
 - sin dashboard analítico.
 
-Todos los flujos usarán administrador activo, Form Requests, `validated()`, persistencia explícita, feedback y tests de autorización. No se añade API administrativa mientras Blade sea el único consumidor.
+Los flujos implementados usan administrador activo, Form Requests, `validated()`, persistencia explícita, feedback y tests de autorización. Los bloques pendientes deberán mantener el mismo contrato. No se añade API administrativa mientras Blade sea el único consumidor.
 
 ## 26. API pública
 
@@ -658,9 +662,9 @@ La URL, los datos, la navegación y el SEO se migrarán como problemas separados
 
 ## 30. Plan 6B
 
-Fase 6B continúa pendiente y se divide así:
+Fase 6B permanece abierta y se divide así:
 
-### 6B.1 — Núcleo operativo
+### 6B.1 — Núcleo operativo — completada
 
 - migraciones, modelos, relaciones, enums y factories;
 - `SchoolProgram`, `SchoolLevel`, `SchoolSchedule` y `SchoolLocation`;
@@ -669,7 +673,9 @@ Fase 6B continúa pendiente y se divide así:
 - activación, visibilidad efectiva y apertura;
 - tests y documentación.
 
-### 6B.2 — Inscripciones y participantes
+El bloque implementa las cuatro tablas y modelos, enum de día, factories, validación, servicio transaccional del programa, CRUD Blade, filtros, integridad relacional y cobertura sobre MariaDB. No incluye datos sembrados ni superficie pública.
+
+### 6B.2 — Inscripciones y participantes — pendiente
 
 - `SchoolEnrollment` y enum de estado;
 - `POST /api/v1/school/enrollments`;
@@ -681,7 +687,7 @@ Fase 6B continúa pendiente y se divide así:
 
 El POST pertenece a 6B.2 porque es parte del mismo flujo transaccional. React lo consumirá en 6C.
 
-### 6B.3 — Centros y actividades
+### 6B.3 — Centros y actividades — pendiente
 
 - `EducationalCenter` y `EducationalActivity`;
 - administración Blade;
@@ -689,7 +695,7 @@ El POST pertenece a 6B.2 porque es parte del mismo flujo transaccional. React lo
 - validaciones, estados, tests y documentación;
 - sin API pública.
 
-### 6B.4 — API pública de lectura
+### 6B.4 — API pública de lectura — pendiente
 
 - `GET /api/v1/school`;
 - Resources públicos;
@@ -697,7 +703,7 @@ El POST pertenece a 6B.2 porque es parte del mismo flujo transaccional. React lo
 - niveles, horarios, ubicaciones, inscripción y contacto;
 - visibilidad efectiva, contratos, tests y documentación.
 
-No se inicia ningún subbloque con este documento.
+Completar 6B.1 no inicia 6B.2, 6B.3 o 6B.4.
 
 ## 31. Plan 6C y testing
 
@@ -715,7 +721,7 @@ No se inicia ningún subbloque con este documento.
 - revisión posterior de `academy`;
 - cierre de Fase 6.
 
-`SCHOOL-CONTRACT-AUDIT-1` prevé para 6B/6C:
+`SCHOOL-CORE-ADMIN-1` cubre ya defaults, casts, relaciones, factories, programa público único, día ISO, cronología, duplicados exactos, ubicación activa, orden, visibilidad efectiva, borrado conservador y permisos Blade. `SCHOOL-CONTRACT-AUDIT-1` conserva para 6B.2–6B.4 y 6C:
 
 - defaults, casts, relaciones y consistencia programa/nivel;
 - adulto y menor calculados en la fecha de solicitud;
@@ -723,19 +729,16 @@ No se inicia ningún subbloque con este documento.
 - teléfono y correo obligatorios;
 - solicitud anónima y asociación autenticada opcional sin sobrescritura;
 - nivel omitido, válido, privado, inactivo o de otro programa;
-- día ISO, cronología, ubicación activa y orden;
-- programa privado, niveles privados y ubicación inactiva;
 - apertura/cierre protegidos en backend;
 - transiciones, fechas, rechazo de transiciones inválidas y ausencia de borrado;
 - centros con nombres repetidos;
 - actividad con nombre libre, estados, horas y `expected_students`;
 - ausencia de asistentes nominales, plazas, pagos y API de centros;
-- permisos Blade;
 - Resources sin datos personales;
 - `GET` y `POST`, rate limiting, no enumeración y contratos de error;
 - React, formulario, estados remotos, teclado, foco, responsive, Navbar y E2E.
 
-Este plan no representa tests implementados o ejecutados en 6A.1.
+La cobertura de 6B.1 no representa tests de los bloques pendientes.
 
 ## 32. Deuda y criterios de cierre
 
@@ -756,15 +759,17 @@ Deuda futura no bloqueante:
 - SEO, canonical y migración de `academy`;
 - roles administrativos granulares.
 
-Fase 6A.1 queda cerrada documentalmente cuando:
+Fase 6A.1 quedó cerrada documentalmente al cumplir:
 
 - la Escuela permanente, menores, adultos, niveles y horarios están definidos;
 - los niveles han sustituido la agrupación provisional del MVP;
 - ubicación, inscripción, estados, centros y actividades tienen un contrato único;
 - no se gestionan plazas, pagos o asistentes nominales de centros;
 - relaciones, consistencia, visibilidad, Blade y API están planificados;
-- 6B.1–6B.4 y 6C siguen pendientes;
-- no se ha modificado código o `knowledge/`;
-- `/escuela`, Navbar, modelos y endpoints continúan sin implementar;
+- 6B.1–6B.4 y 6C seguían pendientes en ese cierre;
+- no se modificó código o `knowledge/` en aquella fase;
+- `/escuela`, Navbar, modelos y endpoints continuaban sin implementar;
 - Fase 6 permanece abierta;
 - `git diff --check` no devuelve errores.
+
+Fase 6B.1 actualiza ese estado: los cuatro modelos del núcleo y su administración existen; `/escuela`, Navbar, endpoints, inscripciones, centros, actividades y contenido pedagógico continúan pendientes. Fase 6 permanece abierta.

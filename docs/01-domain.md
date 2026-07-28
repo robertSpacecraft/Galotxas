@@ -340,7 +340,7 @@ Los Conceptos reúnen vocabulario y definiciones canónicas en `knowledge/concep
 
 El Manual será un consumidor público del conocimiento estable de `knowledge/`. Su función será organizar y explicar Reglamento y Conceptos, no duplicarlos. La landing Aprende a jugar será una puerta de entrada divulgativa y no debe confundirse con el Manual.
 
-La Escuela de Galotxas es una sección distinta del Manual. Su metodología, ejercicios y recursos docentes estables podrán proceder de una futura colección de `knowledge/`; los datos operativos y personales pertenecerán a Laravel y se administrarán desde Blade. El CMS genérico sólo podrá conservar piezas simples no estructuradas. La colección y el dominio todavía no están implementados; el contrato funcional cerrado se documenta en `12-school-of-galotxas.md`.
+La Escuela de Galotxas es una sección distinta del Manual. Su metodología, ejercicios y recursos docentes estables podrán proceder de una futura colección de `knowledge/`; los datos operativos y personales pertenecen a Laravel y se administran desde Blade cuando su bloque está implementado. El CMS genérico sólo podrá conservar piezas simples no estructuradas. El contrato funcional y el estado de cada bloque se documentan en `12-school-of-galotxas.md`.
 
 Ese dominio tendrá dos subdominios independientes:
 
@@ -348,6 +348,19 @@ Ese dominio tendrá dos subdominios independientes:
 2. **Centros y actividades educativas:** `EducationalCenter` registra cada centro una sola vez y `EducationalActivity` sus actividades planificadas, realizadas o canceladas. Sólo se conserva el número previsto de alumnos, nunca asistentes nominales.
 
 El participante individual de la Escuela no es un `Player`, un centro educativo no es un usuario o equipo y una actividad con un centro no genera inscripciones individuales. `SchoolLevel` tampoco reutiliza las categorías de campeonatos. La inscripción deportiva y la escolar comparten únicamente patrones técnicos.
+
+Desde 6B.1 existe el núcleo operativo de la Escuela permanente:
+
+- `SchoolProgram` conserva configuración, visibilidad, apertura declarada de inscripciones, contacto público opcional, ubicación habitual y orden. Los registros nacen privados y cerrados. MariaDB garantiza como máximo un programa público mediante una ranura generada nullable e índice único; el servicio de persistencia añade transacción, bloqueo y feedback administrativo.
+- `SchoolLevel` pertenece a un programa, admite edades mínima y máxima opcionales, distingue activación y visibilidad y no utiliza slug.
+- `SchoolLocation` pertenece exclusivamente al dominio escolar, exige nombre y localidad y admite dirección, activación, orden y notas administrativas privadas. No reutiliza `Venue`, que continúa reservado a pistas competitivas.
+- `SchoolSchedule` pertenece a un nivel y una ubicación, usa día ISO 1–7, exige hora inicial anterior a la final y bloquea únicamente duplicados exactos. Los solapamientos parciales continúan permitidos.
+
+La visibilidad efectiva está centralizada en backend: un programa exige `is_public`; un nivel exige programa público y sus propios flags activo y público; un horario exige además horario y ubicación activos. Ocultar o desactivar un padre no modifica flags hijos.
+
+Las claves foráneas usan borrado restrictivo. El flujo administrativo impide borrar programas con niveles, niveles con horarios y ubicaciones usadas como habituales o por horarios. La desactivación conserva la configuración.
+
+6B.1 no crea alumnado, solicitudes, centros, actividades, API pública, ruta React o datos sembrados. `enrollments_open` sólo conserva configuración hasta que 6B.2 implemente la recepción de solicitudes.
 
 ## Contenido institucional
 
