@@ -87,12 +87,12 @@
                                                 Editar
                                             </a>
 
-                                            @if ($program->levels_count > 0)
+                                            @if ($program->levels_count > 0 || $program->enrollments_count > 0)
                                                 <button
                                                     type="button"
                                                     class="btn btn-sm btn-outline-danger"
                                                     disabled
-                                                    title="El programa tiene niveles asociados"
+                                                    title="El programa tiene niveles o inscripciones asociadas"
                                                 >
                                                     Eliminar
                                                 </button>

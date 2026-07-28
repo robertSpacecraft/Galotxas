@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\MatchConflictController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\RankingController as AdminRankingController;
 use App\Http\Controllers\Admin\RegistrationRequestController;
+use App\Http\Controllers\Admin\SchoolEnrollmentController;
 use App\Http\Controllers\Admin\SchoolLevelController;
 use App\Http\Controllers\Admin\SchoolLocationController;
 use App\Http\Controllers\Admin\SchoolProgramController;
@@ -76,6 +77,24 @@ Route::prefix('admin')->group(function () {
 
         // Escuela de Galotxas
         Route::prefix('school')->name('admin.school.')->group(function () {
+            Route::resource('enrollments', SchoolEnrollmentController::class)
+                ->except('destroy');
+            Route::post(
+                'enrollments/{enrollment}/approve',
+                [SchoolEnrollmentController::class, 'approve']
+            )->name('enrollments.approve');
+            Route::post(
+                'enrollments/{enrollment}/reject',
+                [SchoolEnrollmentController::class, 'reject']
+            )->name('enrollments.reject');
+            Route::post(
+                'enrollments/{enrollment}/withdraw',
+                [SchoolEnrollmentController::class, 'withdraw']
+            )->name('enrollments.withdraw');
+            Route::post(
+                'enrollments/{enrollment}/reassign-level',
+                [SchoolEnrollmentController::class, 'reassignLevel']
+            )->name('enrollments.reassign-level');
             Route::resource('programs', SchoolProgramController::class)->except('show');
             Route::resource('levels', SchoolLevelController::class)->except('show');
             Route::resource('locations', SchoolLocationController::class)->except('show');

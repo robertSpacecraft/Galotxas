@@ -65,8 +65,13 @@ class SchoolLevel extends Model
         return $this->hasMany(SchoolSchedule::class);
     }
 
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(SchoolEnrollment::class);
+    }
+
     public function isInUse(): bool
     {
-        return $this->schedules()->exists();
+        return $this->schedules()->exists() || $this->enrollments()->exists();
     }
 }

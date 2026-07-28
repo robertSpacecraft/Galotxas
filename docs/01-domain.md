@@ -358,9 +358,13 @@ Desde 6B.1 existe el núcleo operativo de la Escuela permanente:
 
 La visibilidad efectiva está centralizada en backend: un programa exige `is_public`; un nivel exige programa público y sus propios flags activo y público; un horario exige además horario y ubicación activos. Ocultar o desactivar un padre no modifica flags hijos.
 
-Las claves foráneas usan borrado restrictivo. El flujo administrativo impide borrar programas con niveles, niveles con horarios y ubicaciones usadas como habituales o por horarios. La desactivación conserva la configuración.
+Desde 6B.2, `SchoolEnrollment` registra solicitudes y participantes sin crear `Player`. Pertenece siempre a un programa, puede tener nivel y cuenta opcionales, y conserva nombre, nacimiento, teléfono, correo, representante condicional, estado, fechas del ciclo y notas privadas. El estado nace `pending` y sólo admite `pending → active`, `pending → rejected` y `active → withdrawn`; una baja conserva `activated_at` y una reinscripción futura crea otro registro.
 
-6B.1 no crea alumnado, solicitudes, centros, actividades, API pública, ruta React o datos sembrados. `enrollments_open` sólo conserva configuración hasta que 6B.2 implemente la recepción de solicitudes.
+La minoría de edad se calcula de forma determinista con nacimiento y `requested_at`, nunca con la fecha de consulta ni mediante edad persistida. Quien cumple 18 años el día de la solicitud ya se considera adulto; para nacimientos del 29 de febrero se usa la fecha equivalente sin desbordamiento. Un menor exige nombre y relación del representante. En adultos esos campos se normalizan a `null`; teléfono y correo siguen siendo obligatorios.
+
+Las claves foráneas usan borrado restrictivo para programas y niveles. Una restricción compuesta garantiza que el nivel asignado pertenezca al programa; eliminar una cuenta deja `user_id = null` y conserva el histórico. El flujo administrativo no ofrece eliminación normal de inscripciones y los servicios transaccionales asignan estados y fechas.
+
+El único endpoint escolar existente es `POST /api/v1/school/enrollments`: resuelve en backend el programa público abierto, admite nivel público y activo opcional, toma la cuenta exclusivamente de una sesión Sanctum opcional y crea una solicitud pendiente. No existe lectura pública, seguimiento por ID, API administrativa, ruta React o formulario frontend. Centros, actividades y datos sembrados tampoco forman parte de 6B.2.
 
 ## Contenido institucional
 

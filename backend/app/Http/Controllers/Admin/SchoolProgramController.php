@@ -15,7 +15,7 @@ class SchoolProgramController extends Controller
     {
         $programs = SchoolProgram::query()
             ->with('defaultLocation')
-            ->withCount('levels')
+            ->withCount(['levels', 'enrollments'])
             ->ordered()
             ->get();
 
@@ -66,7 +66,10 @@ class SchoolProgramController extends Controller
         if ($program->isInUse()) {
             return redirect()
                 ->route('admin.school.programs.index')
-                ->with('error', 'No se puede eliminar el programa porque tiene niveles asociados.');
+                ->with(
+                    'error',
+                    'No se puede eliminar el programa porque tiene niveles o inscripciones asociadas.'
+                );
         }
 
         $program->delete();

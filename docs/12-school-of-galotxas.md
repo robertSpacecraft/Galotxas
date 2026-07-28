@@ -2,33 +2,34 @@
 
 ## 1. Propósito
 
-Este documento registra la auditoría de Fase 6A, el cierre funcional aprobado en Fase 6A.1 y el núcleo operativo implementado en Fase 6B.1. Define el estado real de cada bloque sin presentar las capacidades pendientes de 6B.2–6B.4 o 6C como existentes.
+Este documento registra la auditoría de Fase 6A, el cierre funcional aprobado en Fase 6A.1, el núcleo operativo implementado en Fase 6B.1 y las inscripciones implementadas en Fase 6B.2. Define el estado real sin presentar las capacidades pendientes de 6B.3, 6B.4 o 6C como existentes.
 
-Fase 6A.1 fue exclusivamente documental. Fase 6B.1 crea modelos, migraciones, enum, factories, Form Requests, servicio, controladores, rutas web y pantallas Blade para programa, niveles, ubicaciones y horarios. No crea seeders, Resources, rutas API, componentes React, formularios públicos ni contenido en `knowledge/`.
+Fase 6A.1 fue exclusivamente documental. Fase 6B.1 crea programa, niveles, ubicaciones y horarios. Fase 6B.2 añade `SchoolEnrollment`, su ciclo de estados, servicio, Form Requests, administración Blade y el POST público. No crea seeders, Resources de lectura, componentes React, formulario React ni contenido en `knowledge/`.
 
 ## 2. Estado actual
 
-La Escuela de Galotxas dispone de núcleo operativo administrativo:
+La Escuela de Galotxas dispone de núcleo operativo e inscripciones administrativas:
 
 - existen `SchoolProgram`, `SchoolLevel`, `SchoolLocation` y `SchoolSchedule`, con relaciones, visibilidad efectiva, defaults seguros y administración Blade;
-- las cuatro áreas están protegidas por sesión, CSRF y administrador activo;
-- no existen `SchoolEnrollment`, `EducationalCenter` o `EducationalActivity`;
-- no existen `GET /api/v1/school` o `POST /api/v1/school/enrollments`;
+- existe `SchoolEnrollment` con solicitudes pendientes, participantes activos, rechazos y bajas, sin eliminación normal;
+- las cinco áreas Blade están protegidas por sesión, CSRF y administrador activo;
+- existe `POST /api/v1/school/enrollments`, anónimo y con cuenta opcional, limitado y sin respuesta enumerable;
+- no existen `EducationalCenter`, `EducationalActivity` o `GET /api/v1/school`;
 - React no registra `/escuela` y el Navbar no la enlaza;
 - `knowledge/` no contiene una colección pedagógica de Escuela;
 - el CMS genérico conserva el slug legado `academy`, que no equivale a este dominio;
 - las inscripciones deportivas exigen cuenta y perfil `Player`, por lo que no representan el flujo escolar.
 
-Fase 6B.1 no publica la sección: el dominio operativo y su interfaz administrativa existen, pero la superficie pública continúa pendiente.
+Fase 6B.2 no publica la sección: el backend acepta solicitudes, pero la lectura pública, ruta, formulario React y Navbar continúan pendientes.
 
 ## 3. Auditoría de capacidades reutilizables
 
 | Área actual | Capacidad reutilizable | Límite |
 |---|---|---|
-| Laravel y MariaDB | Modelos, relaciones, Services, Form Requests y transacciones | Núcleo operativo implementado; inscripciones, centros y actividades pendientes |
-| Blade | Interfaz administrativa oficial y middleware de administrador activo | Programa, niveles, ubicaciones y horarios implementados |
-| API | Resources por contexto y envelopes existentes | No existen contratos escolares |
-| Rate limiting | Mecanismo ya usado en auth y resultados | La inscripción necesitará una clave y límites propios |
+| Laravel y MariaDB | Modelos, relaciones, Services, Form Requests y transacciones | Núcleo e inscripciones implementados; centros y actividades pendientes |
+| Blade | Interfaz administrativa oficial y middleware de administrador activo | Programa, niveles, ubicaciones, horarios e inscripciones implementados |
+| API | Resources por contexto y envelopes existentes | POST escolar implementado; lectura pendiente |
+| Rate limiting | Mecanismo ya usado en auth y resultados | `school-enrollments` implementado con clave no reversible |
 | `User` | Asociación opcional con una persona autenticada | Nunca será requisito ni fuente de los datos enviados |
 | `Player` | Ninguna reutilización semántica | Es un perfil deportivo con datos no necesarios |
 | Inscripción a campeonato | Patrones técnicos de validación, servicio, transición y tests | Finalidad, identidad, estados y datos son distintos |
@@ -237,7 +238,7 @@ Un programa privado puede conservar internamente `enrollments_open = true`, pero
 
 ## 15. Solicitud pública
 
-La inscripción pública forma parte de las fases 6B.2 y 6C:
+El backend de inscripción pública se implementa en 6B.2 y su formulario React pertenece a 6C:
 
 - no requiere registro ni autenticación;
 - crea un `SchoolEnrollment` en estado pendiente;
@@ -255,7 +256,7 @@ Se adopta la opción A: el nivel puede solicitarse públicamente y modificarse a
 `SchoolEnrollment.user_id` es nullable.
 
 - una solicitud anónima lo deja a `null`;
-- si existe una sesión autenticada válida, el controlador podrá asignar el usuario actual;
+- si existe una sesión Sanctum válida, el controlador asigna el usuario actual;
 - el cliente nunca podrá enviar un `user_id` arbitrario;
 - la vinculación no sobrescribe nombre, nacimiento, contacto o representante enviados;
 - no crea `Player`;
@@ -502,7 +503,7 @@ No se copian cascadas de Competición. Ocultar o desactivar un padre no reescrib
 - mostrar dependencias con programas y horarios;
 - borrado bloqueado mientras tenga relaciones.
 
-### Inscripciones — pendiente 6B.2
+### Inscripciones — implementado en 6B.2
 
 - filtros para pendientes, activas, rechazadas y bajas;
 - detalle privado;
@@ -512,6 +513,8 @@ No se copian cascadas de Competición. Ocultar o desactivar un padre no reescrib
 - observaciones privadas;
 - fechas de transición;
 - sin eliminación física normal.
+
+El listado incluye contadores y filtros por programa, nivel y estado con orden estable por solicitud e ID. El alta manual crea una pendiente; la edición no cambia programa, nivel, cuenta, estado o fechas. Aprobar exige un nivel activo del programa, aunque sea privado; una activa puede reasignarse o darse de baja. Rechazadas y bajas no se reactivan.
 
 ### Centros — pendiente 6B.3
 
@@ -571,14 +574,13 @@ El backend:
 - aplica rate limiting y medidas antispam;
 - devuelve `201` con confirmación genérica, sin ID administrativo.
 
-Respuestas previstas:
+Respuestas:
 
 - `422` para validación;
-- `404` si no existe programa público;
-- `409` si las inscripciones están cerradas;
-- `429` al superar el límite.
+- `409` con un mensaje único si no existe un programa público abierto, sin distinguir ausencia, privacidad o cierre;
+- `429` al superar cinco intentos por minuto por IP y hash SHA-256 del correo normalizado.
 
-No existirán listado público, consulta por ID, estado individual, endpoints de alumnos, centros o actividades. Blade operará con rutas web, no con API administrativa.
+La respuesta `201` sólo contiene `message` y `data: null`; no incluye identificador, nombre, correo, nivel, estado o timestamps. No existen listado público, consulta por ID, estado individual, endpoints de alumnos, centros o actividades. Blade opera con rutas web, no con API administrativa.
 
 ## 27. Experiencia pública
 
@@ -675,7 +677,7 @@ Fase 6B permanece abierta y se divide así:
 
 El bloque implementa las cuatro tablas y modelos, enum de día, factories, validación, servicio transaccional del programa, CRUD Blade, filtros, integridad relacional y cobertura sobre MariaDB. No incluye datos sembrados ni superficie pública.
 
-### 6B.2 — Inscripciones y participantes — pendiente
+### 6B.2 — Inscripciones y participantes — completada
 
 - `SchoolEnrollment` y enum de estado;
 - `POST /api/v1/school/enrollments`;
@@ -685,7 +687,7 @@ El bloque implementa las cuatro tablas y modelos, enum de día, factories, valid
 - aprobación, rechazo, baja y reasignación;
 - rate limiting, administración Blade, tests y documentación.
 
-El POST pertenece a 6B.2 porque es parte del mismo flujo transaccional. React lo consumirá en 6C.
+El bloque implementa migración, enum, modelo, factory, cálculo histórico de minoría de edad, coherencia programa–nivel en servicio y MariaDB, transiciones transaccionales, POST anónimo con sesión opcional, limitador, privacidad, administración Blade y tests. No añade seeders, lectura pública o frontend. React consumirá el POST en 6C.
 
 ### 6B.3 — Centros y actividades — pendiente
 
@@ -703,7 +705,7 @@ El POST pertenece a 6B.2 porque es parte del mismo flujo transaccional. React lo
 - niveles, horarios, ubicaciones, inscripción y contacto;
 - visibilidad efectiva, contratos, tests y documentación.
 
-Completar 6B.1 no inicia 6B.2, 6B.3 o 6B.4.
+Completar 6B.2 no inicia 6B.3 o 6B.4.
 
 ## 31. Plan 6C y testing
 
@@ -721,24 +723,18 @@ Completar 6B.1 no inicia 6B.2, 6B.3 o 6B.4.
 - revisión posterior de `academy`;
 - cierre de Fase 6.
 
-`SCHOOL-CORE-ADMIN-1` cubre ya defaults, casts, relaciones, factories, programa público único, día ISO, cronología, duplicados exactos, ubicación activa, orden, visibilidad efectiva, borrado conservador y permisos Blade. `SCHOOL-CONTRACT-AUDIT-1` conserva para 6B.2–6B.4 y 6C:
+`SCHOOL-CORE-ADMIN-1` cubre el núcleo y `SCHOOL-ENROLLMENT-ADMIN-1` añade 38 tests y 283 aserciones para migración, modelo, factories, consistencia programa–nivel, edad histórica, representante, contacto, apertura, sesión opcional, transiciones, fechas, Blade, privacidad, limitador y ausencia de GET o borrado. La suite backend queda en 321 tests y 2441 aserciones.
 
-- defaults, casts, relaciones y consistencia programa/nivel;
-- adulto y menor calculados en la fecha de solicitud;
-- representante condicional;
-- teléfono y correo obligatorios;
-- solicitud anónima y asociación autenticada opcional sin sobrescritura;
-- nivel omitido, válido, privado, inactivo o de otro programa;
-- apertura/cierre protegidos en backend;
-- transiciones, fechas, rechazo de transiciones inválidas y ausencia de borrado;
+`SCHOOL-CONTRACT-AUDIT-1` conserva para 6B.3, 6B.4 y 6C:
+
 - centros con nombres repetidos;
 - actividad con nombre libre, estados, horas y `expected_students`;
 - ausencia de asistentes nominales, plazas, pagos y API de centros;
 - Resources sin datos personales;
-- `GET` y `POST`, rate limiting, no enumeración y contratos de error;
+- `GET`, Resources y contratos de lectura sin información privada;
 - React, formulario, estados remotos, teclado, foco, responsive, Navbar y E2E.
 
-La cobertura de 6B.1 no representa tests de los bloques pendientes.
+La cobertura de 6B.1 y 6B.2 no representa tests de los bloques pendientes.
 
 ## 32. Deuda y criterios de cierre
 
@@ -772,4 +768,4 @@ Fase 6A.1 quedó cerrada documentalmente al cumplir:
 - Fase 6 permanece abierta;
 - `git diff --check` no devuelve errores.
 
-Fase 6B.1 actualiza ese estado: los cuatro modelos del núcleo y su administración existen; `/escuela`, Navbar, endpoints, inscripciones, centros, actividades y contenido pedagógico continúan pendientes. Fase 6 permanece abierta.
+Fase 6B.2 actualiza ese estado: los cuatro modelos del núcleo, `SchoolEnrollment`, su administración y el POST público existen. `/escuela`, Navbar, `GET /api/v1/school`, Resources, formulario React, centros, actividades y contenido pedagógico continúan pendientes. Fase 6 permanece abierta.

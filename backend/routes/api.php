@@ -1,29 +1,29 @@
 <?php
 
-use App\Http\Controllers\Api\V1\MyDashboardController;
-use App\Http\Middleware\EnsureUserIsActive;
-use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\Api\V1\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Api\V1\Admin\ChampionshipController as AdminChampionshipController;
+use App\Http\Controllers\Api\V1\Admin\ChampionshipRegistrationController as AdminChampionshipRegistrationController;
+use App\Http\Controllers\Api\V1\Admin\MatchController as AdminMatchController;
+use App\Http\Controllers\Api\V1\Admin\SeasonController as AdminSeasonController;
+use App\Http\Controllers\Api\V1\AllTimeRankingController;
 use App\Http\Controllers\Api\V1\AuthController;
-use App\Http\Controllers\Api\V1\SeasonController;
-use App\Http\Controllers\Api\V1\ChampionshipController;
 use App\Http\Controllers\Api\V1\CategoryController;
+use App\Http\Controllers\Api\V1\ChampionshipController;
+use App\Http\Controllers\Api\V1\ChampionshipRankingController;
+use App\Http\Controllers\Api\V1\ChampionshipRegistrationController;
 use App\Http\Controllers\Api\V1\CmsPageController;
 use App\Http\Controllers\Api\V1\MatchController;
-use App\Http\Controllers\Api\V1\ChampionshipRegistrationController;
-
-use App\Http\Controllers\Api\V1\Admin\SeasonController as AdminSeasonController;
-use App\Http\Controllers\Api\V1\Admin\ChampionshipController as AdminChampionshipController;
-use App\Http\Controllers\Api\V1\Admin\CategoryController as AdminCategoryController;
-use App\Http\Controllers\Api\V1\Admin\MatchController as AdminMatchController;
-use App\Http\Controllers\Api\V1\Admin\ChampionshipRegistrationController as AdminChampionshipRegistrationController;
-use App\Http\Controllers\Api\V1\ChampionshipRankingController;
-use App\Http\Controllers\Api\V1\AllTimeRankingController;
-use App\Http\Controllers\Api\V1\SeasonRankingController;
 use App\Http\Controllers\Api\V1\MyChampionshipRegistrationController;
+use App\Http\Controllers\Api\V1\MyDashboardController;
+use App\Http\Controllers\Api\V1\SchoolEnrollmentController;
+use App\Http\Controllers\Api\V1\SeasonController;
+use App\Http\Controllers\Api\V1\SeasonRankingController;
+use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\IsAdmin;
+use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
-    //Auth
+    // Auth
     Route::post('/auth/register', [AuthController::class, 'register'])
         ->middleware('throttle:auth.register');
     Route::post('/auth/login', [AuthController::class, 'login'])
@@ -33,7 +33,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])
         ->middleware('throttle:auth.password');
 
-    //Public API
+    // Public API
     Route::get('/seasons', [SeasonController::class, 'index']);
 
     Route::get('/championships', [ChampionshipController::class, 'index']);
@@ -52,13 +52,16 @@ Route::prefix('v1')->group(function () {
     Route::get('/seasons/{season}/ranking', SeasonRankingController::class);
     Route::get('/rankings/all-time', AllTimeRankingController::class);
 
-    //Authenticated API
+    Route::post('/school/enrollments', [SchoolEnrollmentController::class, 'store'])
+        ->middleware('throttle:school-enrollments');
+
+    // Authenticated API
     Route::post('/auth/logout', [AuthController::class, 'logout'])
         ->middleware('auth:sanctum');
 
     Route::middleware(['auth:sanctum', EnsureUserIsActive::class])->group(function () {
 
-        //Me
+        // Me
         Route::get('/me', [AuthController::class, 'me']);
         Route::get('/me/player-profile', [AuthController::class, 'myPlayerProfile']);
         Route::post('/me/player-profile', [AuthController::class, 'createMyPlayerProfile']);
@@ -70,7 +73,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/me/calendar', [MyDashboardController::class, 'calendar']);
         Route::get('/me/rankings', [MyDashboardController::class, 'rankings']);
 
-        //Player match flow
+        // Player match flow
         Route::get('/matches/{gameMatch}/workflow', [MatchController::class, 'workflow']);
         Route::post('/matches/{gameMatch}/submit-result', [MatchController::class, 'submitResult'])
             ->middleware('throttle:match.results');
@@ -81,13 +84,13 @@ Route::prefix('v1')->group(function () {
         Route::post('/matches/{gameMatch}/request-reschedule', [MatchController::class, 'requestReschedule']);
         Route::post('/matches/{gameMatch}/confirm-reschedule', [MatchController::class, 'confirmReschedule']);
 
-        //Championship registration requests (player)
+        // Championship registration requests (player)
         Route::get('/championships/{championship}/registration', [ChampionshipRegistrationController::class, 'show']);
         Route::post('/championships/{championship}/register', [ChampionshipRegistrationController::class, 'submit']);
 
-        //Admin API
+        // Admin API
         Route::prefix('admin')
-            ->middleware(\App\Http\Middleware\IsAdmin::class)
+            ->middleware(IsAdmin::class)
             ->group(function () {
                 Route::apiResource('seasons', AdminSeasonController::class);
                 Route::apiResource('championships', AdminChampionshipController::class);
@@ -95,13 +98,13 @@ Route::prefix('v1')->group(function () {
 
                 Route::post('/categories/{category}/entries', [AdminCategoryController::class, 'storeEntry']);
 
-                //Match conflict management
+                // Match conflict management
                 Route::get('/matches/under-review', [AdminMatchController::class, 'underReview']);
                 Route::get('/matches/{gameMatch}/conflict', [AdminMatchController::class, 'showConflict']);
                 Route::post('/matches/{gameMatch}/resolve-conflict', [AdminMatchController::class, 'resolveConflict']);
                 Route::post('/matches/{gameMatch}/validate-result', [AdminMatchController::class, 'validateResult']);
 
-                //Championship registration requests (admin)
+                // Championship registration requests (admin)
                 Route::get(
                     '/championships/{championship}/registration-requests',
                     [AdminChampionshipRegistrationController::class, 'index']

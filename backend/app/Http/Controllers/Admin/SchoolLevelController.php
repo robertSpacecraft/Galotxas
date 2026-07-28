@@ -18,7 +18,7 @@ class SchoolLevelController extends Controller
 
         $levels = SchoolLevel::query()
             ->with('program')
-            ->withCount('schedules')
+            ->withCount(['schedules', 'enrollments'])
             ->when(
                 $selectedProgramId !== null,
                 fn ($query) => $query->where('school_program_id', $selectedProgramId)
@@ -77,7 +77,10 @@ class SchoolLevelController extends Controller
         if ($level->isInUse()) {
             return redirect()
                 ->route('admin.school.levels.index')
-                ->with('error', 'No se puede eliminar el nivel porque tiene horarios asociados.');
+                ->with(
+                    'error',
+                    'No se puede eliminar el nivel porque tiene horarios o inscripciones asociadas.'
+                );
         }
 
         $level->delete();

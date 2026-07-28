@@ -597,13 +597,53 @@ React renderiza los bloques con componentes controlados por `type` y no interpre
 
 ## Escuela de Galotxas
 
-Fase 6B.1 no incorpora contrato API. `SchoolProgram`, `SchoolLevel`, `SchoolLocation` y `SchoolSchedule` existen únicamente como dominio Laravel administrado mediante Blade y disponen de scopes internos de visibilidad efectiva.
+### `POST /api/v1/school/enrollments`
 
-Continúan pendientes:
+Endpoint público de escritura implementado en 6B.2. No exige autenticación; si se presenta una sesión Sanctum válida, el backend toma exclusivamente de ella el `user_id` opcional. No crea cuenta, `Player`, perfil deportivo o permisos.
+
+Payload admitido:
+
+```json
+{
+  "participant_name": "Nombre completo",
+  "participant_birth_date": "2012-08-01",
+  "contact_phone": "600 000 000",
+  "contact_email": "contacto@example.com",
+  "guardian_name": "Nombre del representante",
+  "guardian_relationship": "Madre",
+  "school_level_id": 1
+}
+```
+
+`school_level_id` es opcional. Si se informa, debe identificar un nivel activo y público del único programa público con `enrollments_open = true`. El programa nunca se acepta desde el payload. Nombre, nacimiento no futuro, teléfono y correo válido son obligatorios; un menor en la fecha de solicitud exige los dos campos de representante. Para adultos se normalizan a `null`.
+
+El payload es cerrado. Se rechazan campos desconocidos y, expresamente, `school_program_id`, `user_id`, `status`, fechas del ciclo, `admin_notes`, `is_public` y `enrollments_open`. El servidor normaliza espacios, correo a minúsculas y genera `requested_at`; toda solicitud se crea `pending`.
+
+Respuesta `201 Created`:
+
+```json
+{
+  "message": "La solicitud de inscripción se ha recibido correctamente.",
+  "data": null
+}
+```
+
+La respuesta no incluye identificador, estado, nombre, correo, teléfono, nivel, fechas ni notas. No existe código de seguimiento.
+
+Errores:
+
+- `409 Conflict` con `La inscripción no está disponible actualmente.` cuando no hay programa público abierto; no distingue programa inexistente, privado o cerrado;
+- `422 Unprocessable Entity` para validación de payload o nivel;
+- `429 Too Many Requests` al superar cinco intentos por minuto para la combinación de IP y hash del correo normalizado.
+
+El limitador se llama `school-enrollments`, no afecta al resto de la API y nunca conserva el correo en claro en su clave.
+
+Continúan ausentes:
 
 - `GET /api/v1/school`, previsto para 6B.4;
-- `POST /api/v1/school/enrollments`, previsto para 6B.2;
-- Resources, controladores y rutas API de Escuela.
+- `GET /api/v1/school/enrollments` y cualquier consulta por ID;
+- Resources públicos de Escuela;
+- endpoints públicos de alumnos, centros o actividades.
 
 No existe API administrativa de Escuela: Blade utiliza rutas web con sesión, CSRF y administrador activo.
 

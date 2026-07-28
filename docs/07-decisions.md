@@ -933,6 +933,17 @@ Seguimiento de Fase 6B.1, 2026-07-28:
 - Las claves foráneas y los flujos Blade aplican borrado conservador. No se crean datos sembrados, inscripciones, centros, actividades, API, Resources, ruta React, Navbar o contenido pedagógico.
 - Fase 6 continúa abierta con 6B.2–6B.4 y 6C pendientes.
 
+Seguimiento de Fase 6B.2, 2026-07-28:
+
+- Se implementan `SchoolEnrollment` y el enum string-backed `pending`, `active`, `rejected` y `withdrawn`. Toda alta pública o manual nace pendiente.
+- La minoría de edad se calcula de forma centralizada respecto de `requested_at`; el mismo día del 18.º cumpleaños ya es adulto. Los menores exigen representante y relación, mientras los adultos normalizan esos campos a `null`; teléfono y correo son siempre obligatorios.
+- `POST /api/v1/school/enrollments` es anónimo y admite una cuenta Sanctum opcional obtenida sólo de la sesión. Resuelve el único programa público abierto, acepta un nivel público y activo opcional y devuelve `201` sin identificador, estado o datos personales.
+- El limitador `school-enrollments` permite cinco intentos por minuto por IP y hash SHA-256 del correo normalizado. Cuando el programa no está disponible, un único `409` evita distinguir ausencia, privacidad o cierre.
+- `SchoolEnrollmentService` aplica en transacciones sólo `pending → active`, `pending → rejected` y `active → withdrawn`; activar exige nivel activo del programa, la reasignación sólo se admite en activas y la baja conserva `activated_at`.
+- MariaDB garantiza la coherencia programa–nivel mediante clave foránea compuesta. Programa y nivel usan borrado restrictivo; eliminar una cuenta conserva la inscripción con `user_id = null`.
+- Blade ofrece listado, filtros, contadores, alta manual pendiente, detalle, edición limitada y acciones explícitas, sin `destroy`, API administrativa, reactivación o edición directa de estados y fechas.
+- No se crean seeders, `Player`, centros, actividades, lectura pública, Resources, React, ruta `/escuela`, Navbar o contenido pedagógico. Fase 6 continúa abierta con 6B.3, 6B.4 y 6C pendientes.
+
 ---
 
 ## Mantenimiento

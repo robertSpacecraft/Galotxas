@@ -29,7 +29,7 @@ No todo contenido público pertenece al panel: Reglamento, Conceptos, Manual y c
 
 Las pantallas descritas a continuación son capacidades actuales documentadas. La Fase 1 verificó las rutas, permisos, estados, API, contenido y pruebas del CMS genérico; la Fase 2A ha endurecido su invariancia editorial. La adecuación de ese CMS a cada futura área específica sigue necesitando un bloque propio antes de ampliarlo.
 
-El núcleo operativo de Escuela dispone desde 6B.1 de administración específica para programa, niveles, ubicaciones y horarios. Sus inscripciones, centros, actividades, API pública, carga persistente de archivos y formularios públicos siguen siendo capacidades futuras.
+El núcleo operativo de Escuela dispone desde 6B.1 de administración específica para programa, niveles, ubicaciones y horarios. 6B.2 incorpora inscripciones y participantes; centros, actividades, lectura pública, carga persistente de archivos y formulario React siguen siendo capacidades futuras.
 
 ## Vistas Principales
 
@@ -99,8 +99,9 @@ La ruta `/admin/venues` centraliza la configuración básica de pistas.
 
 ### Escuela de Galotxas
 
-Las rutas `/admin/school/*` agrupan cuatro áreas bajo un único acceso de navegación:
+Las rutas `/admin/school/*` agrupan cinco áreas bajo un único acceso de navegación:
 
+- **Inscripciones:** listado y filtros, alta manual pendiente, detalle privado, corrección limitada, aprobación, rechazo, baja y reasignación de nivel, sin eliminación.
 - **Programa:** listado, alta, edición, visibilidad, apertura declarada de inscripciones, ubicación habitual, contacto, orden y borrado conservador. Sólo puede existir un programa público.
 - **Niveles:** listado filtrable por programa, alta, edición, edades opcionales, activación, visibilidad, orden y borrado conservador.
 - **Ubicaciones:** listado, alta, edición, activación, dirección, localidad, orden, notas administrativas y borrado conservador.
@@ -108,7 +109,11 @@ Las rutas `/admin/school/*` agrupan cuatro áreas bajo un único acceso de naveg
 
 Los registros nuevos son privados o inactivos. Los formularios usan `old()`, valores ocultos para checkboxes, errores por campo y `validated()`. Activar un horario exige nivel y ubicación activos; publicar un nivel exige programa público; publicar un programa con ubicación habitual exige que ésta esté activa.
 
-La navegación muestra por separado activo, público y visibilidad efectiva. Un programa privado puede conservar la apertura declarada y los flags hijos sin hacerlos públicos. No existen pantallas de alumnado, centros o actividades.
+La navegación muestra por separado activo, público y visibilidad efectiva. Un programa privado puede conservar la apertura declarada y los flags hijos sin hacerlos públicos.
+
+El listado de inscripciones permite filtrar por programa, nivel y estado, usa `requested_at` e ID como orden estable, presenta contadores y enlaza al detalle. El alta manual registra siempre una solicitud pendiente y nunca expone `user_id`. La edición sólo corrige participante, nacimiento, contacto, representante y notas; programa, nivel, cuenta, estado y fechas quedan fuera.
+
+Las acciones son explícitas: una pendiente puede aprobarse con un nivel activo del mismo programa o rechazarse; una activa puede reasignarse a otro nivel activo del programa o darse de baja. Rechazadas y bajas sólo admiten consulta y corrección limitada. El panel confirma rechazo y baja, conserva `old()`, muestra errores junto a campos y no define `destroy`. Centros y actividades siguen sin pantallas.
 
 ### Temporadas
 
@@ -188,7 +193,7 @@ El panel web actual dispone de estas áreas reales:
 | Partidos | edición dentro del detalle de categoría; no existe un índice Blade independiente de todos los partidos |
 | Conflictos | listado, detalle comparativo y resolución de partidos `under_review` |
 | Pistas | listado, alta, edición y borrado seguro |
-| Escuela | programa, niveles, ubicaciones y horarios; alta, edición, activación, visibilidad, orden y borrado seguro |
+| Escuela | programa, niveles, ubicaciones, horarios e inscripciones; gestión operativa, ciclo de participantes y borrado conservador |
 | Jugadores | listado, alta, detalle, edición y borrado |
 | Usuarios | listado, alta, detalle, edición y borrado |
 | Rankings | vista del ranking histórico; los demás rankings aparecen en los contextos de temporada, campeonato o categoría |
@@ -239,7 +244,7 @@ El administrador puede gestionar:
 - rankings;
 - páginas públicas CMS;
 - pistas;
-- programa, niveles, ubicaciones y horarios de la Escuela.
+- programa, niveles, ubicaciones, horarios e inscripciones de la Escuela.
 
 ---
 

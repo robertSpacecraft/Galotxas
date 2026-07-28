@@ -121,12 +121,12 @@
                                                 Editar
                                             </a>
 
-                                            @if ($level->schedules_count > 0)
+                                            @if ($level->schedules_count > 0 || $level->enrollments_count > 0)
                                                 <button
                                                     type="button"
                                                     class="btn btn-sm btn-outline-danger"
                                                     disabled
-                                                    title="El nivel tiene horarios asociados"
+                                                    title="El nivel tiene horarios o inscripciones asociadas"
                                                 >
                                                     Eliminar
                                                 </button>

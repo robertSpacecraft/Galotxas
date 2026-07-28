@@ -95,6 +95,11 @@
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="schoolAdminDropdown">
                         <li>
+                            <a class="dropdown-item" href="{{ route('admin.school.enrollments.index') }}">
+                                Inscripciones
+                            </a>
+                        </li>
+                        <li>
                             <a class="dropdown-item" href="{{ route('admin.school.programs.index') }}">
                                 Programa
                             </a>

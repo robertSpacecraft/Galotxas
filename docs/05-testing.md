@@ -933,18 +933,30 @@ Fase 6B.1 incorpora 28 tests Feature dirigidos sobre MariaDB para:
 
 La ejecución dirigida `--filter=School` finaliza con 28 tests y 182 aserciones. La suite backend completa finaliza con 283 tests y 2158 aserciones. Estos tests no atribuyen cobertura a inscripciones, centros, actividades, API o React.
 
+## SCHOOL-ENROLLMENT-ADMIN-1 — Inscripciones de Escuela
+
+Fase 6B.2 incorpora 38 tests Feature dirigidos y 283 aserciones sobre MariaDB para:
+
+- tabla, defaults, enum casteado, fechas inmutables, relaciones, estados de factory, scopes y orden estable;
+- claves foráneas restrictivas, `user_id` con `nullOnDelete` y restricción compuesta programa–nivel;
+- edad en `requested_at`, cumpleaños exacto de 18 años, día anterior, fecha futura, consulta histórica y nacimiento en año bisiesto;
+- menores con representante obligatorio, adultos con representante normalizado a `null`, teléfono y correo siempre obligatorios;
+- solicitud anónima y vinculación opcional desde Sanctum, sin aceptar cuenta, estado, fechas o notas desde el payload;
+- programa público abierto resuelto en backend y respuesta `409` idéntica para ausencia, privacidad o cierre;
+- nivel público opcional y rechazo de nivel privado, inactivo, inexistente o de otro programa;
+- creación siempre pendiente, aprobación con nivel, rechazo, baja histórica, reasignación e imposibilidad de repetir o revertir transiciones;
+- `POST /api/v1/school/enrollments` con `201` genérico sin identificador ni datos personales, ausencia de GET y payload cerrado;
+- limitador `school-enrollments` de cinco intentos por minuto por IP y hash del correo, sin afectar rutas públicas ajenas;
+- listado, filtros, contadores, alta manual, detalle, edición limitada, acciones por estado, estados vacíos, `old()` y ausencia de `destroy`;
+- autorización para administrador activo y rechazo de administrador inactivo, usuario normal y anónimo;
+- ausencia de `Player`, seeders, colegios, actividades, API de lectura, Resources y frontend.
+
+La regresión dirigida del núcleo escolar, sesión administrativa y limitadores añade 38 tests y 233 aserciones. La suite backend completa finaliza con 321 tests y 2441 aserciones. `migrate:fresh` y el rollback de la migración más reciente se verifican en el perfil Docker `test`; no se utiliza SQLite ni la base de desarrollo.
+
 ## SCHOOL-CONTRACT-AUDIT-1 — Cobertura pendiente de Escuela
 
-Fases 6A y 6A.1 cerraron el contrato. Tras SCHOOL-CORE-ADMIN-1, 6B.2–6B.4 y 6C deberán cubrir:
+Fases 6A y 6A.1 cerraron el contrato. Tras SCHOOL-CORE-ADMIN-1 y SCHOOL-ENROLLMENT-ADMIN-1, 6B.3, 6B.4 y 6C deberán cubrir:
 
-- solicitud anónima y asociación opcional con el usuario autenticado sin aceptar `user_id` del payload ni sobrescribir datos;
-- mayoría de edad calculada desde nacimiento y `requested_at`, sin edad persistida;
-- menores con representante y relación obligatorios, y adultos sin esa obligación;
-- teléfono y correo obligatorios en todos los casos;
-- nivel omitido, válido, privado, inactivo o perteneciente a otro programa;
-- apertura/cierre efectiva en backend, incluido programa privado con `enrollments_open = true`;
-- creación siempre pendiente y transiciones válidas `pending → active → withdrawn` o `pending → rejected`;
-- timestamps de alta, rechazo y baja, rechazo de transiciones inválidas y ausencia de borrado físico normal;
 - centros con nombres repetidos, contacto nullable, activación y notas privadas;
 - actividades con nombre libre, estados planificada/realizada/cancelada, fecha, horas emparejadas y ubicación opcional;
 - `expected_students` nullable al planificar y positivo al realizar, con cero rechazado;
@@ -952,7 +964,6 @@ Fases 6A y 6A.1 cerraron el contrato. Tras SCHOOL-CORE-ADMIN-1, 6B.2–6B.4 y 6C
 - autorización y persistencia Blade para administrador activo, inactivo, usuario normal y anónimo;
 - visibilidad efectiva de programa, nivel, horario y ubicación, sin cascadas de flags;
 - `GET /api/v1/school` con Resources cerrados y sin datos personales o administrativos;
-- `POST /api/v1/school/enrollments` con `201`, errores de validación, cierre, ausencia de programa, rate limiting y respuesta no enumerable;
 - tests React del servicio/hook, formulario y estados `loading`, `error`, `retry`, `empty`, `partial`, envío y éxito;
 - semántica, H1, metadatos, teclado, foco, responsive y navegación activa de `/escuela`;
 - Navbar desktop y móvil en cuarta posición sólo cuando la ruta sea funcional;
