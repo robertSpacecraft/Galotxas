@@ -94,6 +94,16 @@ No existe compatibilidad con SQLite.
 
 Las pruebas utilizan una instancia MariaDB completamente aislada.
 
+## Aislamiento de entornos Docker
+
+Desarrollo, integración backend y E2E son proyectos Compose distintos y explícitos:
+
+- `galotxas` usa `docker-compose.yml`, su red propia y el único volumen persistente de desarrollo;
+- `galotxas-test` usa `docker-compose.test.yml`, una red propia y MariaDB sobre `tmpfs`;
+- `galotxas-e2e` usa `docker-compose.e2e.yml`, una red propia y MariaDB sobre `tmpfs`.
+
+Los archivos de test no declaran `container_name` ni referencian la red o el volumen de desarrollo. Los runners pasan siempre `--project-name` y el archivo absoluto esperado. Antes de cualquier cleanup, una guarda inspecciona `docker compose config`, el entorno, la base y los recursos etiquetados; sólo un helper validado puede ejecutar `down --volumes --remove-orphans`. El contrato completo está en `13-docker-environment-isolation.md`.
+
 ## Arquitectura híbrida de contenidos
 
 La arquitectura pública aprobada conecta tres canales diferentes:
@@ -115,7 +125,7 @@ Fases 6A y 6A.1 definen Escuela como una vertical híbrida independiente de Apre
 - Blade administra programa, niveles, ubicaciones, horarios, inscripciones, centros y actividades;
 - `GET /api/v1/school` entrega sólo configuración, niveles, horarios, ubicaciones, apertura y contacto efectivos;
 - `POST /api/v1/school/enrollments` recibe solicitudes anónimas o vinculadas opcionalmente a la sesión, siempre pendientes y sujetas a revisión;
-- React compondrá la futura `/escuela` y su formulario, pero no almacenará contenido editorial ni decidirá visibilidad o mayoría de edad;
+- React compone `/escuela` y su formulario desde la API, pero no almacena contenido editorial ni decide visibilidad o mayoría de edad;
 - el CMS genérico podrá conservar piezas no estructuradas, pero nunca alumnos, centros, actividades, horarios o solicitudes.
 
 El contrato completo queda formado por `SchoolProgram`, `SchoolLevel`, `SchoolSchedule`, `SchoolLocation`, `SchoolEnrollment`, `EducationalCenter` y `EducationalActivity`. Todos disponen de persistencia y dominio. `SchoolEnrollment` añade su servicio transaccional, controlador público de escritura y administración Blade. `EducationalActivityService` es el único punto para crear actividades planificadas, aplicar las transiciones definitivas, validar alumnado al completar y borrar únicamente registros planificados; sus controladores Blade no aceptan `status` desde el formulario general.
@@ -138,7 +148,7 @@ Centros y actividades constituyen un subdominio operativo separado de las inscri
 
 La ausencia de programa público devuelve `200` con `data: null`; la respuesta no diferencia ausencia, privacidad o configuración incompleta. Con programa público, el contrato admite contacto nullable, ubicación habitual activa opcional, niveles sin horarios y datos parciales. Inscripciones, usuarios, centros, actividades, notas, flags y timestamps permanecen fuera de la lectura.
 
-No existe todavía consumidor React de Escuela. 6B.4 completa la lectura pública del programa permanente; 6C permanece pendiente para landing, formulario, Navbar y E2E. El contrato completo está en `12-school-of-galotxas.md`.
+Fase 6C completa el consumidor React en `frontend/src/features/school/`: servicio Axios y normalización ligera, hook remoto local, helpers puros, landing diferida y formulario. El cliente conserva el orden recibido, no importa el corpus Knowledge, no persiste datos personales y trata `data: null` como ausencia válida. Fase 6C.1 revalida ese cierre tras separar los tres entornos Docker; no cambia el dominio ni los contratos School. El contrato completo está en `12-school-of-galotxas.md`.
 
 ## Canalización build-time de Knowledge
 
@@ -328,6 +338,8 @@ Los servicios funcionales no deben duplicar esta resolución ni definir URLs bas
 
 - `/`: inicio público;
 - `/competicion`: landing dinámica de temporadas y campeonatos públicos, preview del ranking histórico global y acceso a los destinos deportivos, sobre el sistema común de landings públicas;
+- `/aprende-a-jugar` y sus rutas de Manual: conocimiento público compilado y carga diferida;
+- `/escuela`: landing diferida del programa público, niveles, horarios, ubicaciones, contacto e inscripción;
 - `/nosotros`: página estática heredada;
 - `/torneos` y `/torneos/:championshipId`: listado y detalle de campeonatos;
 - `/categories/:categoryId`, `/categories/:categoryId/standings` y `/categories/:categoryId/schedule`: detalle, clasificación y calendario de categoría;
@@ -344,7 +356,7 @@ El calendario y la clasificación independientes de categoría obtienen su conte
 
 `frontend/src/navigation/competitionRoutes.js` centraliza las raíces estáticas y la construcción defensiva de las URLs deportivas reutilizadas. No registra rutas ni aliases: refleja exclusivamente Competición, Torneos, Rankings y los detalles existentes de campeonato, categoría, standings, schedule y partido ya declarados en `App.jsx`. `CategoryNavigation` comparte las tres vistas de categoría y marca la actual con `aria-current="page"`; los retornos apuntan a un destino determinista de la jerarquía y no dependen del historial del navegador.
 
-`frontend/src/navigation/publicNavigation.js` es la fuente única del menú editorial. En 3B contiene exclusivamente Inicio y Competición; Torneos y Rankings siguen disponibles como destinos secundarios y las rutas CMS e institucionales conservan acceso directo sin ocupar el primer nivel. El matcher compartido activa Inicio sólo en `/` y Competición en su landing, campeonatos, categorías, standings, schedule, partidos y rankings. La ruta exacta utiliza `aria-current="page"` y las ubicaciones secundarias `aria-current="location"`.
+`frontend/src/navigation/publicNavigation.js` es la fuente única del menú editorial. Tras 6C contiene, en orden, Inicio, Competición, Aprende a jugar y Escuela de Galotxas; Club continúa ausente. Torneos y Rankings siguen disponibles como destinos secundarios y las rutas CMS e institucionales conservan acceso directo sin ocupar el primer nivel. Los matchers compartidos activan cada rama; la ruta exacta utiliza `aria-current="page"` y las ubicaciones secundarias `aria-current="location"`.
 
 En móvil y tablet se reutiliza ese mismo array mediante estado React y un botón con `aria-expanded` y `aria-controls`; el menú se cierra al seleccionar una ruta, al cambiar la ubicación, mediante el propio botón o con Escape, que devuelve el foco al control. Los enlaces cerrados quedan fuera de la navegación por teclado mediante el estado visual responsive. La cuenta es un grupo accesible hermano: el visitante recibe Iniciar sesión y el usuario autenticado conserva saludo, Mi Panel y Salir.
 
@@ -362,7 +374,7 @@ El router no define nesting, loaders ni acciones, pero sí una ruta wildcard fin
 
 El módulo CSS común usa grids fluidos, corte a una columna cuando no hay espacio y texto no truncado, sin alturas rígidas ni estilos globales nuevos. La matriz Playwright valida 320, 375, 768, 1024, 1280 y 1440 px, además del acceso por Tab y activación con Enter.
 
-La adopción inicial se limita a `/competicion`. Desde Fase 4A, la página conserva el propósito, la estructura común y los enlaces a `/torneos` y `/rankings`, y añade la jerarquía real de temporadas y campeonatos obtenida mediante una única petición pública a `GET /api/v1/seasons`. Fase 4B añade una carga independiente de `GET /api/v1/rankings/all-time` y presenta como máximo las primeras cinco filas del orden canónico recibido. La 404 conserva su presentación propia y sólo reutiliza acciones y metadatos. Home no se ha refactorizado.
+La adopción comenzó en `/competicion` y se extendió a Aprende a jugar y `/escuela`. Escuela reutiliza cabecera, secciones, acciones y metadatos, pero mantiene sus estados y componentes operativos dentro de la feature. Home no se ha refactorizado como landing común; en 6C sólo sustituye su referencia pública “Academy” por una tarjeta-enlace funcional a `/escuela`.
 
 `championshipsService.getSeasons` mantiene la comunicación HTTP y extrae `data` del envelope; `useCompetitionOverview` coordina carga, éxito, error, vacío, reintento y descarte de respuestas posteriores al desmontaje; los componentes específicos `CompetitionOverview`, `CompetitionSeason` y `CompetitionChampionshipCard` se limitan a presentar el contrato deportivo, y `CompetitionPage` compone esos estados dentro de `PublicLanding`. No se consulta `/championships` ni detalles para construir el resumen, porque `/seasons` ya entrega los campeonatos públicos y su recuento de categorías en una sola respuesta.
 
@@ -384,9 +396,9 @@ El contrato de primer nivel fija estas cinco rutas canónicas:
 
 La zona de autenticación conservará identidad, acceso, Mi Panel y cierre de sesión como bloque separado del menú editorial. Las rutas actuales de Torneos, Rankings y detalles deportivos permanecen como destinos funcionales secundarios; no se trasladarán bajo `/competicion` sin una necesidad demostrable. `/contenidos` y `/contenidos/:slug` permanecen como compatibilidad técnica durante una migración incremental, pero no formarán parte del primer nivel final.
 
-En el estado actual están registradas `/`, `/competicion` y `/aprende-a-jugar`. Competición aplica la estructura común de Fase 3C, presenta datos deportivos públicos de `GET /api/v1/seasons` y `GET /api/v1/rankings/all-time` sin entidades simuladas y mantiene los destinos funcionales `/torneos` y `/rankings`. Aprende a jugar resume de forma derivada sus 40 documentos y cuatro colecciones; el Manual añade accesos por colección, y cada detalle dispone de contexto local, tabla de contenidos H2–H6, fragmentos compartibles y anterior/siguiente sin cruzar colecciones. Escuela y Club conservan dependencias editoriales explícitas, no aparecen como enlaces deshabilitados y no tienen rutas placeholder. El contrato detallado, los mínimos de contenido, la compatibilidad y los gates se definen en `09-public-navigation.md`.
+En el estado actual están registradas `/`, `/competicion`, `/aprende-a-jugar` y `/escuela`. Competición presenta datos deportivos públicos reales; Aprende deriva sus 40 documentos y cuatro colecciones; Escuela presenta exclusivamente el agregado `GET /api/v1/school`, enlaza el Manual y envía solicitudes al POST existente. Club conserva dependencias editoriales explícitas, no aparece como enlace deshabilitado y no tiene ruta placeholder. El contrato detallado se define en `09-public-navigation.md`.
 
-La secuencia aprobada separa responsabilidades: 3B implementó la navegación progresiva, el fallback 404 React y la landing mínima de `/competicion`; 3C aportó su estructura visual y técnica reutilizable, headings y metadatos básicos; 4A–4C completaron el recorrido deportivo; 5A/5A.1 consolidaron el corpus, 5B publicó su primer consumo seguro y 5C cerró la experiencia, navegación documental y carga diferida. La Fase 5 queda completa. Consolidación institucional, migraciones, aliases, redirects, canonical, indexación de `/contenidos` y SEO completo quedan en bloques independientes posteriores.
+La secuencia aprobada separa responsabilidades: 3B–3C establecieron navegación y landings; 4A–4C completaron Competición; 5A–5C consolidaron Knowledge y Aprende; 6A–6B.4 establecieron el dominio escolar, 6C publica su consumo y 6C.1 revalida el cierre de la Fase 6 con aislamiento Docker efectivo. Consolidación institucional, migraciones, aliases, redirects, canonical, indexación de `/contenidos` y SEO completo quedan en bloques independientes posteriores.
 
 ---
 
@@ -434,7 +446,7 @@ Las pruebas se mantienen junto al código cubierto. `renderWithProviders` aporta
 
 Vitest/RTL no sustituye las pruebas Feature de Laravel ni constituye E2E.
 
-El smoke E2E implementado utiliza Playwright con Chromium y un stack Compose independiente. Levanta Laravel, Nginx y una MariaDB `galotxas_e2e` temporal, ejecuta `E2ESmokeSeeder`, inicia Vite desde el runner oficial y recorre frontend React y panel Blade con servicios reales. La suite es serial y el script elimina contenedores, red y volúmenes al finalizar.
+El smoke E2E implementado utiliza Playwright con Chromium y el proyecto Compose explícito `galotxas-e2e`. Levanta Laravel, Nginx y una MariaDB `galotxas_e2e` sobre `tmpfs`, ejecuta `E2ESmokeSeeder`, inicia Vite desde el runner oficial y recorre frontend React y panel Blade con servicios reales. La suite es serial. El script valida la configuración resuelta antes de levantar y antes de limpiar, y elimina únicamente contenedores y red etiquetados para ese proyecto.
 
 El E2E cubre el recorrido crítico del MVP; no constituye una matriz multibrowser ni sustituye QA visual/manual.
 

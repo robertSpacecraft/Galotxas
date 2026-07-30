@@ -18,6 +18,8 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - Se incorpora en Fase 6B.2 `SchoolEnrollment` con solicitudes anónimas o vinculadas opcionalmente a la sesión, validación de menores y adultos, ciclo pendiente/activa/rechazada/baja, nivel controlado, administración Blade, rate limiting y respuesta pública sin identificador ni datos personales, sin lectura pública, centros, actividades o React.
 - Se incorpora en Fase 6B.3 la gestión administrativa de centros educativos y actividades con nombre libre, estados planificada/completada/cancelada, fechas, horas emparejadas, alumnado previsto, ubicación escolar opcional, transiciones y borrados conservadores, sin API pública, frontend ni asistentes nominales.
 - Se incorpora en Fase 6B.4 `GET /api/v1/school` con programa público, apertura efectiva, contacto nullable, ubicación habitual activa, niveles y horarios efectivos ordenados, Resources cerrados y privacidad verificada, sin publicar `/escuela`, centros, actividades o inscripciones.
+- Se completa Fase 6C y la Fase 6 con `/escuela` diferida, consumo del agregado público, niveles, horarios, ubicaciones, contacto, apertura y formulario anónimo para menores y adultos; el Navbar y Home enlazan la sección sin migrar ni redirigir el CMS `academy`.
+- Se incorpora DOCKER-ENVIRONMENT-ISOLATION-1 con proyectos y archivos Compose independientes para desarrollo, backend test y E2E, runners seguros, configuración resuelta validada y cleanup limitado por proyecto.
 - Se incorpora la landing dinámica de Competición de Fase 4A con temporadas y campeonatos públicos obtenidos en una única carga, estados loading/error/retry/vacío y enlaces contextuales al detalle.
 - Se integra en `/competicion` el preview histórico de Fase 4B mediante una carga independiente, limitado visualmente a cinco filas en el orden del backend y enlazado a la experiencia completa `/rankings`.
 - Se completa la Fase 4 con el recorrido público de Competición desde la landing hasta campeonato, categoría, clasificación, calendario y partido, con retornos deterministas, metadatos básicos y navegación contextual accesible.
@@ -65,6 +67,7 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - Home y el índice CMS evitan landmarks `<main>` duplicados dentro del layout global.
 - Las vistas públicas usan etiquetas deportivas coherentes, fechas parciales sin separadores vacíos y posiciones suministradas por backend; las tablas quedan contenidas y navegables en la matriz responsive 320–1440 px.
 - Las tarjetas de torneo eliminan el doble CTA al mismo detalle y los partidos regresan al calendario real de su categoría.
+- Se remedia la colisión Compose que durante la validación de 6C eliminó el volumen local de desarrollo: se retiran servicios compartidos y nombres fijos, se añaden guardas negativas y una prueba centinela de no destrucción, y se revalida Escuela completa sin reconstruir la base perdida.
 
 El primer candidato MVP continúa pendiente de revisión humana, commit de preparación, etiquetado y publicación.
 

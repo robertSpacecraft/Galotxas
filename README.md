@@ -26,15 +26,15 @@ Requisitos: Docker con Compose y Node.js 22.
 
 ~~~bash
 cp backend/.env.example backend/.env
-docker compose -f backend/docker/docker-compose.yml run --rm --no-deps --user "$(id -u):$(id -g)" app composer install --no-interaction --prefer-dist
+docker compose --project-name galotxas -f backend/docker/docker-compose.yml run --rm --no-deps --user "$(id -u):$(id -g)" app composer install --no-interaction --prefer-dist
 ~~~
 
 2. Levantar los servicios, generar la clave de una instalación nueva y ejecutar las migraciones:
 
 ~~~bash
-docker compose -f backend/docker/docker-compose.yml up -d --build
-docker compose -f backend/docker/docker-compose.yml exec app php artisan key:generate --force
-docker compose -f backend/docker/docker-compose.yml exec app php artisan migrate --force
+docker compose --project-name galotxas -f backend/docker/docker-compose.yml up -d --build
+docker compose --project-name galotxas -f backend/docker/docker-compose.yml exec app php artisan key:generate --force
+docker compose --project-name galotxas -f backend/docker/docker-compose.yml exec app php artisan migrate --force
 ~~~
 
 La aplicación queda disponible en http://localhost:8080 y MariaDB expone el puerto local 3307 para herramientas de administración.
@@ -44,8 +44,8 @@ No volver a ejecutar `key:generate --force` sobre un entorno existente. `backend
 Los datos base opcionales y no destructivos de desarrollo se crean de forma explícita:
 
 ~~~bash
-docker compose -f backend/docker/docker-compose.yml exec app php artisan db:seed --class=DefaultVenueSeeder
-docker compose -f backend/docker/docker-compose.yml exec app php artisan db:seed --class=InstitutionalCmsPageSeeder
+docker compose --project-name galotxas -f backend/docker/docker-compose.yml exec app php artisan db:seed --class=DefaultVenueSeeder
+docker compose --project-name galotxas -f backend/docker/docker-compose.yml exec app php artisan db:seed --class=InstitutionalCmsPageSeeder
 ~~~
 
 `DatabaseSeeder` contiene datos y credenciales de demostración y no debe ejecutarse en producción.
@@ -85,10 +85,10 @@ Las pruebas de integración usan una instancia MariaDB 11.4 independiente, con c
 Desde la raíz del repositorio:
 
 ~~~bash
-docker compose -f backend/docker/docker-compose.yml --profile test run --rm test
+backend/scripts/run-tests.sh
 ~~~
 
-El comando inicia test-db, espera a que esté disponible y ejecuta migraciones y PHPUnit sobre la base aislada galotxas_testing.
+El runner usa el proyecto explícito `galotxas-test` y el archivo exclusivo `docker-compose.test.yml`: inicia `test-db`, espera a que esté disponible, ejecuta migraciones y PHPUnit sobre `galotxas_testing`, y desmonta sólo sus recursos temporales. Desarrollo, tests backend y E2E no comparten proyecto, red, volumen ni base. El contrato completo y los comandos seguros se documentan en [docs/13-docker-environment-isolation.md](docs/13-docker-environment-isolation.md).
 
 Validaciones frontend:
 

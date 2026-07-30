@@ -89,7 +89,7 @@ La navegación pública de primer nivel queda contratada en cinco rutas:
 
 La identidad del usuario, Mi Panel y el cierre de sesión permanecerán en una zona autenticada separada.
 
-Estas áreas son la arquitectura objetivo. Tras 5C están registradas `/`, la landing dinámica `/competicion` y `/aprende-a-jugar`, y las tres forman el Navbar editorial actual. Competición utiliza datos públicos reales; Aprende consume la proyección compilada de Knowledge. Escuela y Club no se consideran implementadas por aparecer en documentación ni se muestran como enlaces deshabilitados.
+Estas áreas son la arquitectura objetivo. Tras 6C están registradas `/`, `/competicion`, `/aprende-a-jugar` y `/escuela`, y las cuatro forman el Navbar editorial actual. Competición utiliza datos públicos reales; Aprende consume la proyección compilada de Knowledge; Escuela consume el agregado y la escritura públicos de Laravel. Club no se considera implementado por aparecer en documentación ni se muestra como enlace deshabilitado.
 
 Los componentes de `frontend/src/components/PublicLanding/` son infraestructura de presentación, no una cuarta fuente de contenido. Pueden recibir datos ya autorizados del dominio Laravel, artefactos compilados desde `knowledge/` o contenido público del CMS, pero no conocen esas fuentes ni deciden visibilidad, publicación o reglas. Sus props admiten estructura, copy breve de interfaz y contenido procedente de la fuente canónica; no deben usarse para hardcodear contenido administrable como sustituto temporal del CMS o de `knowledge/`.
 
@@ -127,13 +127,13 @@ Su arquitectura es híbrida y se implementa por bloques:
 - centros educativos y sus actividades en un subdominio administrativo Laravel separado de las inscripciones individuales, implementado en 6B.3;
 - avisos o páginas simples desde el CMS genérico cuando no necesiten relaciones propias.
 
-La Escuela puede enlazar al Manual existente, pero no copiarlo ni anidarse dentro de Aprende a jugar. React sólo compondrá la proyección estable y los datos operativos ya autorizados. El CMS, `knowledge/` y JSX nunca almacenarán niveles, horarios, alumnos, solicitudes, centros o actividades como fuente alternativa, y la inscripción a campeonatos no se reutiliza como inscripción escolar.
+La Escuela enlaza al Manual existente, pero no lo copia ni se anida dentro de Aprende a jugar. React compone únicamente los datos operativos autorizados; no existe todavía una colección pedagógica escolar. El CMS, `knowledge/` y JSX nunca almacenan niveles, horarios, alumnos, solicitudes, centros o actividades como fuente alternativa, y la inscripción a campeonatos no se reutiliza como inscripción escolar.
 
 La lectura pública `GET /api/v1/school` expone mediante allowlists únicamente nombre del programa, apertura efectiva, contacto general nullable, ubicación habitual activa, niveles activos y públicos, horarios efectivos y sus ubicaciones activas. La ausencia de programa público se representa como `data: null`; niveles sin horarios y demás datos parciales siguen siendo válidos. Nombres, fechas de nacimiento, representante, teléfono, correo, estado individual y observaciones de solicitudes nunca son públicos. El POST de 6B.2 devuelve sólo una confirmación genérica y no permite consultar solicitudes. Los datos personales permanecen en MariaDB y Blade; no se copian a CMS, `knowledge/`, React, URLs, logs añadidos o métricas.
 
 Los centros y actividades de 6B.3 también permanecen en MariaDB y Blade y no se publican en el MVP. Contactos de centros y `admin_notes` son privados; no se duplican en CMS o Knowledge. Las actividades conservan únicamente un número previsto, nunca asistentes nominales, y no forman parte de `GET /api/v1/school`.
 
-La ruta canónica futura es `/escuela`. No se aprueba `/manual/academy`. Fases 6A y 6A.1 definen el contrato en `12-school-of-galotxas.md`; 6B.1–6B.4 implementan núcleo, inscripciones, centros/actividades y lectura pública. La ruta, el Navbar, la colección pedagógica y el formulario React continúan ausentes.
+La ruta canónica es `/escuela`. No se aprueba `/manual/academy`. Fases 6A y 6A.1 definen el contrato; 6B.1–6B.4 implementan núcleo, inscripciones, centros/actividades y lectura pública; 6C completa ruta, Navbar y formulario React. La colección pedagógica continúa ausente y no se sustituye con contenido hardcodeado.
 
 ### Club
 
@@ -327,7 +327,7 @@ La Fase 3A no elimina `/contenidos`, no crea redirects, no cambia su API ni borr
 - Resolución y compatibilidad de Nosotros entre página estática y CMS.
 - Contenido real de `academy` por entorno, clasificación de sus piezas, consumidores y momento futuro de migración, despublicación o redirect; clasificación de `documentos`.
 - Canal organizativo público de contacto de Escuela.
-- Textos aprobados de privacidad, aceptación y, si aplica, consentimiento antes de publicar el formulario.
+- Textos aprobados de privacidad, aceptación y, si aplica, consentimiento antes de abrir inscripciones en producción; React no incorpora textos legales inventados.
 - Política de conservación y borrado extraordinario de solicitudes.
 - Reglas futuras para reinscripciones complejas o varios programas públicos.
 - Existencia y responsable editorial de material pedagógico suficiente para una colección de Escuela.

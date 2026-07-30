@@ -372,7 +372,9 @@ Los borrados son conservadores: un centro o ubicación con actividades no se eli
 
 La lectura pública `GET /api/v1/school` resuelve el único programa público y proyecta mediante Resources cerrados su apertura efectiva, contacto general, ubicación habitual activa, niveles activos y públicos, horarios efectivos y ubicaciones activas. Un programa público puede carecer de contacto, ubicación, niveles u horarios; esos vacíos se representan de forma estable. Si no existe programa público, la ruta responde `200` con `data: null` sin revelar si falta, es privado o está incompleto.
 
-`POST /api/v1/school/enrollments` resuelve en backend el programa público abierto, admite nivel público y activo opcional, toma la cuenta exclusivamente de una sesión Sanctum opcional y crea una solicitud pendiente. No existe seguimiento por ID, API administrativa, ruta React o formulario frontend. Ninguna lectura expone inscripciones, alumnado, centros o actividades, y tampoco existen datos sembrados para Escuela.
+`POST /api/v1/school/enrollments` resuelve en backend el programa público abierto, admite nivel público y activo opcional, toma la cuenta exclusivamente de una sesión Sanctum opcional y crea una solicitud pendiente. Desde 6C, `/escuela` consume la lectura y escritura públicas: React presenta el agregado, calcula localmente la minoría sólo para adaptar el formulario y deja al backend la decisión definitiva. No existe seguimiento por ID ni API administrativa. Ninguna lectura expone inscripciones, alumnado, centros o actividades.
+
+Los únicos datos sembrados de Escuela se limitan al escenario aislado `E2ESmokeSeeder`, protegido por `APP_ENV=e2e` y la base desechable `galotxas_e2e`; no son datos de desarrollo o producción.
 
 ## Contenido institucional
 

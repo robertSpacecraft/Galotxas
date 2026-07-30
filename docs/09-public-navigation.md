@@ -2,7 +2,7 @@
 
 ## 1. Objetivo
 
-Este documento fija el contrato de arquitectura de información pública y registra su aplicación funcional. Parte de la auditoría de Fase 3A y refleja la navegación de Fase 3B, el sistema común de landings de Fase 3C, la Fase 4 de Competición y la experiencia de Aprende a jugar cerrada en Fase 5C.
+Este documento fija el contrato de arquitectura de información pública y registra su aplicación funcional. Parte de la auditoría de Fase 3A y refleja la navegación de Fase 3B, el sistema común de landings de Fase 3C, la Fase 4 de Competición, Aprende a jugar cerrada en Fase 5C y la Escuela pública cerrada en Fase 6C.
 
 Las fases 3B, 3C, 4A–4C y 5B–5C modifican únicamente compilación/frontend, sus pruebas y la documentación: no cambian backend, CMS, contenido canónico, despliegue ni redirects. Las rutas objetivo pendientes no se consideran implementadas hasta que existan con contenido real, fuente verificable y pruebas.
 
@@ -33,20 +33,21 @@ El contrato definitivo del primer nivel es el siguiente. La abreviatura móvil c
 
 El estado activo visual se acompaña de `aria-current="page"` cuando el enlace representa la URL exacta y de `aria-current="location"` cuando una ruta secundaria activa semánticamente su área. Sólo puede existir un elemento editorial activo.
 
-Las cinco rutas son canónicas como contrato. El Navbar actual enlaza, por este orden, Inicio, Competición y Aprende a jugar. Escuela y Club no existen todavía ni aparecen como enlaces deshabilitados. La cuenta continúa separada.
+Las cinco rutas son canónicas como contrato. El Navbar actual enlaza, por este orden, Inicio, Competición, Aprende a jugar y Escuela de Galotxas. Club no existe todavía ni aparece como enlace deshabilitado. La cuenta continúa separada.
 
 ## 4. Inventario de rutas actuales
 
-`frontend/src/App.jsx` utiliza `BrowserRouter`, `Routes` y `Route`. Registra 21 rutas explícitas planas y un wildcard final, sin nesting, loaders o acciones de router. Sólo las tres páginas que sirven las cuatro rutas de Aprende se importan mediante `React.lazy` y comparten un fallback `Suspense`; las demás rutas conservan su carga anterior. Navbar se renderiza fuera de `Routes` y aparece también ante una URL desconocida.
+`frontend/src/App.jsx` utiliza `BrowserRouter`, `Routes` y `Route`. Registra rutas explícitas planas y un wildcard final, sin nesting, loaders o acciones de router. Las tres páginas de Aprende y la landing de Escuela se importan mediante `React.lazy` con fallbacks `Suspense` propios; las demás rutas conservan su carga anterior. Navbar se renderiza fuera de `Routes` y aparece también ante una URL desconocida.
 
 | Ruta | Componente | Acceso | Fuente de datos | Enlaces entrantes verificados | Estado y comportamiento sin datos |
 |---|---|---|---|---|---|
-| `/` | `pages/Home/Home.jsx` | Público | Estructura y copy estáticos en React | Logo, Navbar | Canónica actual. `Hero` aporta el `h1`; sus tarjetas no son enlaces. |
+| `/` | `pages/Home/Home.jsx` | Público | Estructura y copy estáticos en React | Logo, Navbar | Canónica actual. `Hero` aporta el `h1`; la tarjeta de Escuela enlaza `/escuela`. |
 | `/competicion` | `pages/Competition/CompetitionPage.jsx` | Público | `GET /seasons` y `GET /rankings/all-time` mediante servicios y hooks | Navbar | Canónica y cerrada en 4C. Prioriza propósito, Torneos, temporadas/campeonatos y ranking histórico, sin duplicar el acceso a Rankings. |
 | `/aprende-a-jugar` | `pages/Learn/LearnPage.jsx` diferida | Público | Copy breve de interfaz y recuentos derivados del repositorio público | Navbar | Landing funcional con 40 documentos, cuatro colecciones y acceso al Manual, sin placeholders de Historia, Escuela, cursos o vídeos. |
 | `/aprende-a-jugar/manual` | `pages/Learn/ManualPage.jsx` diferida | Público | Repositorio local sobre `public-knowledge.json` | Landing y contexto de documentos | Agrupa cuatro colecciones, ofrece anchors locales y enlaza 40 documentos en orden canónico. |
 | `/aprende-a-jugar/manual/reglamento/:slug` | `pages/Learn/KnowledgeDocumentPage.jsx` diferida | Público | Repositorio Knowledge, headings y bloques seguros | Manual, vecinos y referencias | Detalle con contexto, tabla de contenidos, deep links y vecinos de Reglamento; slug ausente o no público conserva URL y muestra la 404. |
 | `/aprende-a-jugar/manual/conceptos/:group/:slug` | `pages/Learn/KnowledgeDocumentPage.jsx` diferida | Público | Repositorio Knowledge, headings y bloques seguros | Manual, vecinos y referencias | Admite sólo `elementos`, `personas` y `juego`; navegación y vecinos no cruzan grupos, y un grupo o slug inválido muestra la 404. |
+| `/escuela` | `features/school/SchoolPage.jsx` diferida | Público | `GET /school` y `POST /school/enrollments` mediante servicio y hook locales | Navbar, Home | Landing funcional. `data: null` y cierre son estados válidos; el formulario aparece sólo con apertura efectiva. |
 | `/nosotros` | `pages/Nosotros/Nosotros.jsx` | Público | Contenido estático en React | Ningún enlace interno actual localizado | Duplicada y heredada; conserva contenido único como material de migración. |
 | `/torneos` | `pages/Torneos/TournamentList.jsx` | Público | `GET /championships` y `GET /seasons` | Landing de Competición, CTA de Home, Mi Panel, detalles | Funcional secundaria. Distingue carga, error con retry y vacío filtrado; cada tarjeta tiene una única acción al detalle. |
 | `/torneos/:championshipId` | `pages/Torneos/TournamentDetail.jsx` | Público; acciones de inscripción autenticadas | Campeonato, ranking e inscripción desde API | Tarjetas de torneo, Mi Panel, regreso desde categoría | Funcional secundaria. Campeonato y ranking tienen disponibilidad independiente; las categorías enlazan sus tres vistas reales. |
@@ -75,6 +76,8 @@ Existe una ruta wildcard React final. Una URL no reconocida conserva Navbar y mu
 | Navbar, logo | Imagen “Galotxas” | `/` | Sí | Sí | Cierra el menú y conserva la marca como acceso a Inicio. |
 | Navbar editorial | Inicio | `/` | Sí | Sí | Activo sólo en `/`, con `aria-current="page"`. |
 | Navbar editorial | Competición | `/competicion` | Sí | Sí | Activo en la landing con `page` y en toda la rama deportiva con `location`. |
+| Navbar editorial | Aprende a jugar | `/aprende-a-jugar` | Sí | Sí | Activo en la landing, Manual y documentos. |
+| Navbar editorial | Escuela de Galotxas | `/escuela` | Sí | Sí | Activo con `page` en la landing y `location` en cualquier descendiente futuro, aunque una ruta no registrada muestre 404. |
 | Navbar, cuenta anónima | Iniciar sesión | `/login` | Sí | Sí | Pertenece al grupo accesible Cuenta, fuera de la lista editorial. |
 | Navbar, cuenta autenticada | Mi Panel | `/player` | Sí | Sí | Acompañado de saludo y botón Salir. |
 | Navbar, cuenta autenticada | Salir | Acción `logout` | Sí | Sí | Botón, no enlace. |
@@ -82,7 +85,8 @@ Existe una ruta wildcard React final. Una URL no reconocida conserva Navbar y mu
 | Landing Competición | Torneos | `/torneos` | Sí | Sí | Único acceso principal, situado antes de temporadas y campeonatos. |
 | Landing Competición | Ver ranking completo | `/rankings` | Sí | Sí | Acción propia del bloque histórico y único enlace de la landing a Rankings. |
 | Hero de Home | Ver Torneos | `/torneos` | Sí | Sí | CTA funcional cubierto por test y E2E. |
-| Tarjetas de Home | Prensa & Media, Federaciones, Academy | Sin destino | Sí | Sí | Son bloques informativos, no enlaces. |
+| Tarjetas de Home | Prensa & Media, Federaciones | Sin destino | Sí | Sí | Continúan como bloques informativos. |
+| Tarjeta de Home | Escuela de Galotxas | `/escuela` | Sí | Sí | Sustituye la referencia pública “Academy”; no modifica el CMS legado. |
 | Footer de Home | GALOTXAS y textos legales | Sin destino | Sí | Sí | No hay navegación de footer; el footer sólo se monta en Home. |
 | Tarjeta de torneo | Ver Torneo | `/torneos/{id}` | Sí | Sí | Mismo destino que “Inscribirme”. |
 | Tarjeta de torneo | Inscribirme | `/torneos/{id}` | Sí | Sí | La inscripción real se decide en el detalle. |
@@ -107,14 +111,14 @@ Existe una ruta wildcard React final. Una URL no reconocida conserva Navbar y mu
 | Mi Panel | Ver torneo | `/torneos/{championship_id}` | Autenticado | Autenticado | Desde inscripciones propias. |
 | Mi Panel | Ver Torneos Disponibles | `/torneos` | Autenticado | Autenticado | Estado vacío de inscripciones. |
 
-No hay desplegables editoriales, breadcrumbs globales ni enlaces de footer. La navegación contextual creada en 5C existe sólo dentro del Manual y no modifica el Navbar. Desktop y móvil consumen exactamente la misma configuración de tres destinos editoriales. Las rutas retiradas del Navbar siguen accesibles. La cabecera permanece en una fila entre 1025 y 1500 px y se convierte en menú colapsable a 1024 px; la matriz automatizada no detecta overflow ni solapamientos entre 320 y 1440 px.
+No hay desplegables editoriales, breadcrumbs globales ni enlaces de footer. La navegación contextual creada en 5C existe sólo dentro del Manual. Desktop y móvil consumen exactamente la misma configuración de cuatro destinos editoriales. Las rutas retiradas del Navbar siguen accesibles. La cabecera permanece en una fila entre 1025 y 1500 px y se convierte en menú colapsable a 1024 px; la matriz automatizada no detecta overflow ni solapamientos entre 320 y 1440 px.
 
 ## 5. Clasificación de rutas
 
-| Clasificación | Rutas | Estado tras Fase 5C |
+| Clasificación | Rutas | Estado tras Fase 6C |
 |---|---|---|
-| Canónicas implementadas | `/`, `/competicion`, `/aprende-a-jugar` | Inicio se conserva; Competición y Aprende enlazan sus ramas funcionales cerradas. |
-| Canónicas futuras | `/escuela`, `/club` | Reservadas como contrato; no se registran ni enlazan sin contenido mínimo. |
+| Canónicas implementadas | `/`, `/competicion`, `/aprende-a-jugar`, `/escuela` | Inicio se conserva; Competición, Aprende y Escuela enlazan sus experiencias funcionales. |
+| Canónicas futuras | `/club` | Reservada como contrato; no se registra ni enlaza sin contenido mínimo. |
 | Funcionales secundarias | `/torneos`, `/torneos/:championshipId`, `/categories/:categoryId`, sus rutas de standings/schedule, `/matches/:matchId`, `/rankings` | Conservar rutas y contratos. Relacionarlas semánticamente con Competición. |
 | Cuenta | `/login`, `/register`, `/forgot-password`, `/reset-password`, `/player` | Conservar separadas del menú editorial. |
 | Técnica heredada | `/contenidos`, `/contenidos/:slug` | Retirar del primer nivel cuando existan destinos canónicos, pero mantener acceso y CMS hasta completar la migración. |
@@ -133,22 +137,23 @@ También existen módulos React no montados: `pages/Home.jsx` y `CategoryCard`, 
 | `/` | Home pública y puerta de entrada actual | Estructura React más fuentes conectadas según cada bloque | `h1`, propuesta de valor y CTA deportivo existente | Navbar y `/torneos` | Implementada y sin rediseño; el Navbar aporta el acceso a Competición. |
 | `/competicion` | Landing funcional de actividad deportiva pública | API pública del dominio Laravel | `h1`, acceso principal, temporadas/campeonatos y preview histórico con estados independientes; sin recalcular reglas | Rama deportiva completa y `/rankings` | Fase 4 completada con 4A–4C. |
 | `/aprende-a-jugar` | Entrada divulgativa al Manual, Reglamento y Conceptos | Proyección pública compilada desde `knowledge/` | `h1`, resumen derivado, acceso al Manual y recorrido real; no copy editorial duplicado en JSX | `/manual`, `/manual/reglamento/:slug` y `/manual/conceptos/:group/:slug` | Completada en 5C con 40 documentos, contexto, índice, vecinos, fragmentos y carga diferida. |
-| `/escuela` | Escuela permanente, niveles, horarios e inscripción pública | Híbrida: `knowledge/` futuro para pedagogía estable y dominio Laravel específico para operación y solicitudes | `h1`, enlace al Manual, niveles, horarios, ubicaciones, apertura y formulario cuando esté abierto | El MVP no requiere subrutas | No. 6B.1–6B.4 aportan dominio, Blade, POST y lectura API; faltan ruta, consumidor, formulario React y Navbar. `academy` no satisface el requisito. |
+| `/escuela` | Escuela permanente, niveles, horarios e inscripción pública | Híbrida: `knowledge/` futuro para pedagogía estable y dominio Laravel específico para operación y solicitudes | `h1`, enlace al Manual, niveles, horarios, ubicaciones, apertura y formulario cuando esté abierto | El MVP no requiere subrutas | Implementada en 6C sobre los contratos 6B.1–6B.4; `academy` permanece independiente. |
 | `/club` | Landing institucional que agrupa páginas editables | CMS administrado en Blade y API pública | `h1` y enlaces a un conjunto publicado y clasificado de páginas institucionales; estado vacío controlado | Futuras páginas de Nosotros, Federarse, Federaciones, Prensa y medios, Contacto y, si se aprueba, Documentos | Parcial. El CMS y cuatro piezas existen, pero faltan el mapeo canónico, Contacto y resolver la duplicidad de Nosotros. |
 
 Los namespaces de Aprende a jugar quedan cerrados para el Manual inicial. La ruta única recomendada para el MVP de Escuela es `/escuela`; no necesita subrutas hasta que existan destinos reales con URLs estables. Club definirá las suyas cuando su contrato pueda garantizar esa estabilidad. Los ejemplos anteriores `/aprende` o `/manual` en raíz nunca se implementaron y no sustituyen este primer nivel.
 
 ### Gate específico de Escuela
 
-La etiqueta pública y el H1 serán “Escuela de Galotxas”. Ocupará la cuarta posición del Navbar, entre Aprende a jugar y Club, y su estado activo abarcará `/escuela` y las subrutas que se aprueben en el futuro. Actualmente el Navbar conserva sólo Inicio, Competición y Aprende a jugar y la 404 para `/escuela`; no se muestra un enlace deshabilitado.
+La etiqueta pública y el H1 son “Escuela de Galotxas”. Ocupa la cuarta posición del Navbar, tras Aprende a jugar, y su estado activo abarca `/escuela` y cualquier descendiente futuro. Sólo la landing exacta está registrada: `/escuela/alumno` y otras subrutas no aprobadas conservan la 404.
 
-Antes de registrar la ruta deben existir:
+Fase 6C verifica para la ruta:
 
 - contenido estable real o, como mínimo, un enlace útil al Manual sin duplicarlo;
 - consumo React de la API pública de lectura/escritura ya implementada para niveles, horarios, ubicaciones, apertura y solicitud;
 - estados de carga, error, parcial y vacío;
-- textos de aceptación y controles de privacidad aprobados antes de habilitar el formulario; el contacto público general sigue siendo opcional;
 - tests frontend, accesibilidad, responsive y regresión del Navbar.
+
+No se localizó una política de privacidad o texto de aceptación aprobado. Por tanto, React no inventa política, consentimiento o checkbox. Aprobar esos textos y su operación es deuda obligatoria antes de configurar inscripciones abiertas en producción; el default cerrado de `SchoolProgram` permite mantener el formulario ausente hasta entonces.
 
 Escuela se relaciona con Aprende mediante conocimiento y con Club mediante la organización responsable, pero no se anida bajo ninguno. El contrato funcional completo se mantiene en `12-school-of-galotxas.md`.
 
@@ -193,7 +198,7 @@ La ruta estática `/nosotros` es heredada y duplicada, pero no está vacía. Su 
 | Rutas de auth | Zona de cuenta | Separadas | Se conservan | Sólo cambios propios del flujo de cuenta. |
 | `/player` | Mi Panel | Separada | Se conserva | No se migra al árbol editorial. |
 
-No se ha localizado un enlace público activo cuyo destino carezca hoy de `Route`. La excepción es la rama inactiva hacia `/dashboard` ya descrita. Sí faltan enlaces entrantes para `/nosotros` y rutas para Escuela y Club, que todavía no deben enlazarse.
+No se ha localizado un enlace público activo cuyo destino carezca hoy de `Route`. La excepción es la rama inactiva hacia `/dashboard` ya descrita. Sí faltan enlaces entrantes para `/nosotros`; Club todavía no debe enlazarse.
 
 ## 10. Propuesta de redirects futuros
 
@@ -276,18 +281,17 @@ Los fragmentos conservan los IDs del artefacto y funcionan en navegación SPA, c
 
 ## 15. Escuela híbrida
 
-Escuela de Galotxas es una sección distinta del `academy` legado y del Manual. Su parte estable podrá incluir metodología, ejercicios y recursos pedagógicos desde una colección futura de `knowledge/`, únicamente cuando exista contenido aprobado. Fase 6B.1 implementa el dominio Laravel y Blade para programa permanente, niveles, horarios y ubicaciones; 6B.2 añade solicitudes anónimas, gestión privada y POST público; 6B.3 incorpora centros y actividades exclusivamente administrativos; 6B.4 añade `GET /api/v1/school` con visibilidad efectiva, orden estable y Resources cerrados. El futuro formulario no exigirá cuenta, creará una solicitud pendiente y sólo estará operativo cuando el backend confirme inscripciones abiertas. Centros, actividades, inscripciones y alumnado no se publican en la lectura. Un aviso simple podrá permanecer en el CMS si no necesita estructura.
+Escuela de Galotxas es una sección distinta del `academy` legado y del Manual. Su parte estable podrá incluir metodología, ejercicios y recursos pedagógicos desde una colección futura de `knowledge/`, únicamente cuando exista contenido aprobado. Fase 6B.1 implementa el dominio Laravel y Blade; 6B.2 añade solicitudes anónimas y POST público; 6B.3 incorpora centros y actividades exclusivamente administrativos; 6B.4 añade la lectura pública; 6C publica `/escuela` y su formulario React. El formulario no exige cuenta, crea una solicitud pendiente y sólo está operativo cuando el backend confirma inscripciones abiertas. Centros, actividades, inscripciones y alumnado no se publican en la lectura.
 
-Antes de publicar `/escuela` se requieren al menos:
+El cierre de `/escuela` acredita:
 
 1. propósito y audiencias aprobados;
 2. contenido real mínimo con propietario editorial;
 3. separación explícita entre material estable y actividad operativa;
-4. textos de aceptación y política de conservación aprobados para los datos personales del formulario;
-5. consumo React del modelo Laravel, administración, endpoint y Resources ya implementados;
-6. estados remotos, accesibilidad y pruebas.
+4. consumo React del modelo Laravel, administración, endpoint y Resources ya implementados;
+5. estados remotos, accesibilidad y pruebas.
 
-El CMS genérico demuestra una infraestructura, pero el slug `academy` y dos bloques sembrados no demuestran estas capacidades verticales.
+Los textos de aceptación y política de conservación permanecen sin aprobar y son un gate operativo para abrir producción, no contenido que React pueda inventar. El CMS genérico demuestra una infraestructura, pero el slug `academy` y dos bloques sembrados no demuestran estas capacidades verticales.
 
 ## 16. Competición funcional
 
@@ -408,7 +412,7 @@ Para los bloques posteriores de contenido y compatibilidad se requerirán:
 - comprobación de URLs directas sobre el hosting con fallback y respuestas/redirects HTTP esperados;
 - validación de artefactos de `knowledge/` antes de probar sus rutas.
 
-Los tests actuales de Navbar cubren la lista exacta de tres enlaces, cuenta anónima/autenticada, matchers de Competición y Aprende, estado visual, ARIA, Escape, foco y cierres. Las pruebas de App y páginas cubren `/competicion`, Aprende, Manual, documentos, wildcard, rutas dinámicas, regresiones, landmarks y fallback diferido. El repositorio y el índice cubren orden, límites, arrays, headings, IDs y fragmentos. El E2E cubre navegación desktop/móvil, carga diferida observable, deep links y recarga, vecinos primero/medio/último, referencias, tabla, separación de cuenta, estado activo, 404, matriz responsive, CMS, CTA, calendario, partidos, Mi Panel y resultados. Canonical, migración institucional, multibrowser, Escuela y Club siguen pendientes.
+Los tests actuales de Navbar cubren la lista exacta de cuatro enlaces, cuenta anónima/autenticada, matchers de Competición, Aprende y Escuela, estado visual, ARIA, Escape, foco y cierres. Las pruebas de App y páginas cubren `/competicion`, Aprende, Manual, Escuela, wildcard, rutas dinámicas, regresiones, landmarks y fallbacks diferidos. Los repositorios, servicios y hooks cubren orden, estados, contratos y desmontaje. El E2E cubre navegación desktop/móvil, carga diferida, Knowledge, Escuela, separación de cuenta, estado activo, 404, matriz responsive, CMS, competición, Mi Panel y resultados. Canonical, migración institucional, multibrowser y Club siguen pendientes.
 
 PUBLIC-LANDING-SYSTEM-1 añade en 3C tests de contenedor, cabecera, acciones, secciones, rejilla, tarjetas y metadatos; verifica IDs estables, `aria-labelledby`, un solo `h1`, ausencia de `<main>` anidado y controles anidados, restauración de description/robots, ausencia de llamadas API y de rutas placeholder. Playwright añade una matriz específica de la landing a 320–1440 px, comprueba legibilidad, overflow, foco por Tab y navegación con Enter.
 
@@ -460,7 +464,7 @@ Fase 3C está completada con:
 7. reutilización acotada de acciones y metadatos en 404, sin convertirla en landing editorial;
 8. Vitest, lint, build, 14 E2E y matriz 320–1440 px validados.
 
-En 3C no se creó un estado remoto común porque Torneos, Rankings, CMS y Mi Panel no ofrecían dos adopciones compatibles sin cambiar contratos. Tampoco se registraron entonces `/aprende-a-jugar`, `/escuela` o `/club`; 5B incorpora después la primera, mientras Escuela y Club continúan sujetas a sus gates. Fase 3C no sustituye el contrato y compilador de Knowledge, la vertical de Escuela ni el desarrollo completo de Competición previsto en Fase 4.
+En 3C no se creó un estado remoto común porque Torneos, Rankings, CMS y Mi Panel no ofrecían dos adopciones compatibles sin cambiar contratos. Tampoco se registraron entonces `/aprende-a-jugar`, `/escuela` o `/club`; 5B incorpora la primera y 6C la segunda, mientras Club continúa sujeto a sus gates. Fase 3C no sustituye el contrato y compilador de Knowledge, la vertical de Escuela ni el desarrollo completo de Competición previsto en Fase 4.
 
 Con 3A, 3B y 3C completadas, la Fase 3 queda cerrada.
 
@@ -616,6 +620,15 @@ Con 4A, 4B y 4C completadas, la Fase 4 queda cerrada. No se incorporan en la lan
 - Navbar, rutas, 404, tabla, referencias, responsive, teclado y contenido público conservan su contrato;
 - backend, API, CMS, base de datos, seeders, contenido canónico, artefactos, esquema y dependencias no cambian;
 - 271 tests Vitest, lint, build y 16 escenarios E2E completan correctamente y cierran la Fase 5.
+
+### Fase 6C
+
+- `/escuela` carga de forma diferida y consume `GET /api/v1/school` sin importar el corpus Knowledge;
+- programa, apertura, niveles, horarios, ubicaciones y contacto conservan orden y nulabilidad del backend;
+- el formulario anónimo cubre menores, adultos, representante condicional, nivel opcional y respuestas `201`, `409`, `422`, `429` o fallo general sin persistir datos personales;
+- `data: null`, cierre y datos parciales son estados válidos; el Manual permanece disponible y los descendientes no registrados muestran la 404;
+- Navbar expone cuatro destinos en desktop y móvil; Home enlaza Escuela y deja de presentar “Academy”, sin modificar `/contenidos/academy`;
+- 312 tests Vitest, lint, build y 21 escenarios E2E completan correctamente y cierran 6C y la Fase 6.
 
 ### Implementación posterior
 

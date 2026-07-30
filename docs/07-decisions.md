@@ -963,6 +963,72 @@ Seguimiento de Fase 6B.4, 2026-07-28:
 - Los horarios utilizan día ISO 1–7, horas `HH:MM` y orden por día, hora inicial, orden administrativo e ID. La cantidad de consultas permanece constante al crecer niveles, horarios y ubicaciones.
 - `POST /api/v1/school/enrollments`, su limiter y su respuesta permanecen intactos. No se crean migraciones, seeders, frontend, `/escuela`, Navbar o contenido pedagógico. Fase 6 continúa abierta con 6C pendiente.
 
+Seguimiento de Fase 6C, 2026-07-30:
+
+- Se publica `/escuela` mediante una feature React diferida que consume los contratos GET y POST existentes con la instancia Axios común, sin cambiar backend, modelos o API.
+- La landing presenta programa, apertura, niveles, horarios, ubicaciones y contacto en el orden autorizado. `data: null`, datos parciales, cierre y error de lectura conservan una página válida y el enlace al Manual.
+- El formulario admite menores y adultos sin cuenta obligatoria. El helper local controla sólo la interfaz del representante; Laravel conserva la decisión definitiva. `201`, `409`, `422`, `429` y fallos generales mantienen el contrato opaco y los datos personales no se persisten.
+- El Navbar incorpora “Escuela de Galotxas” en cuarta posición y Home sustituye su referencia pública “Academy” por un enlace a `/escuela`. El CMS `academy`, su URL y sus datos no cambian ni reciben redirect.
+- No se crea colección pedagógica, contenido hardcodeado, multimedia, nuevos endpoints, API administrativa o dependencia. `frontend/src/features/school/` no importa el artefacto Knowledge y sólo enlaza al Manual.
+- La falta de textos aprobados de privacidad y aceptación queda como deuda operativa antes de abrir inscripciones en producción; no se inventa consentimiento en React.
+- SCHOOL-PUBLIC-EXPERIENCE-1, 312 tests frontend, 21 E2E, la regresión School 80/557 y la suite backend 356/2708 cierran 6C y la Fase 6.
+
+Seguimiento de Fase 6C.1, 2026-07-30:
+
+- La aceptación de 6C se suspendió al detectar que la limpieza posterior compartía el proyecto Compose de desarrollo y había eliminado su volumen local.
+- 6C.1 separa desarrollo, tests backend y E2E, añade guardas previas a toda limpieza y revalida íntegramente 6C sin cambiar el dominio, los contratos GET/POST o Knowledge.
+- Tras completar backend, frontend, E2E, hashes y prueba de no destrucción, se restablece el cierre de 6C y la Fase 6.
+
+---
+
+# ADR-032 — Proyectos Compose y recursos de prueba obligatoriamente aislados
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-07
+
+Contexto:
+
+- El archivo `backend/docker/docker-compose.yml` reunía servicios de desarrollo y un perfil de tests backend.
+- Los contenedores locales usaban nombres fijos, mientras la red y el volumen pertenecían al proyecto Compose derivado del directorio `backend/docker`.
+- Un `down --volumes --remove-orphans` sin `--project-name` resolvió el proyecto `docker`, alcanzó los servicios de desarrollo y eliminó el volumen persistente local.
+- E2E ya usaba un archivo y nombre de proyecto propios, pero su cleanup no verificaba la configuración resuelta ni la propiedad de los recursos antes de ejecutar.
+- `APP_ENV`, el nombre de la base o el perfil activado no delimitan qué recursos considera Compose parte de un proyecto.
+
+Decisión:
+
+- mantener tres proyectos explícitos e incompatibles: `galotxas`, `galotxas-test` y `galotxas-e2e`;
+- utilizar archivos Compose separados para desarrollo, tests backend y E2E;
+- declarar `name:` en cada archivo y pasar además `--project-name` desde los comandos y runners oficiales;
+- reservar el único volumen persistente para desarrollo y usar `tmpfs` sin volumen Docker en los dos entornos de prueba;
+- asignar una red diferente a cada proyecto y prohibir referencias cruzadas a red, volumen o base;
+- eliminar `container_name` para que todos los nombres incluyan el prefijo de proyecto;
+- centralizar PHPUnit y E2E en runners que validan `docker compose config` antes de levantar o limpiar;
+- permitir cleanup automático únicamente mediante un helper que exige entorno, proyecto y archivo explícitos, vuelve a ejecutar las guardas y actúa sólo sobre ese proyecto;
+- mantener regresiones negativas para proyecto, archivo, entorno, base, volumen y nombres inseguros;
+- inventariar recursos antes, durante y después de una validación integral;
+- no reconstruir, migrar, sembrar o restaurar la base de desarrollo como parte de una prueba.
+
+Alternativas descartadas:
+
+- conservar un único archivo con perfiles: el perfil selecciona servicios, pero no crea una frontera de propiedad para `down`;
+- depender del nombre de la carpeta: cambia según la ubicación y produjo la colisión;
+- depender sólo de `APP_ENV` o `DB_DATABASE`: protegen comportamiento de aplicación, no recursos Docker;
+- mantener nombres fijos en desarrollo: impiden simultaneidad y ocultan el proyecto propietario;
+- compartir el volumen local como `external`: expondría datos de desarrollo a pruebas destructivas;
+- documentar un comando seguro sin guarda ejecutable: no evita regresiones o variables manipuladas;
+- usar limpieza global o por coincidencia de nombres: puede alcanzar proyectos ajenos.
+
+Consecuencias:
+
+- `docker-compose.yml` deja de ofrecer el perfil `test`; la entrada oficial pasa a `backend/scripts/run-tests.sh`.
+- PHPUnit y Playwright crean redes y contenedores con prefijos distinguibles y bases efímeras.
+- La limpieza falla de forma segura si el proyecto, el archivo o la configuración no son los esperados.
+- El volumen de desarrollo no aparece en configuraciones de test ni puede ser eliminado por sus runners.
+- Los comandos manuales de desarrollo deben incluir proyecto y archivo explícitos.
+- La recuperación de datos locales es una operación humana separada; 6C.1 no crea un volumen nuevo ni inventa datos perdidos.
+- La decisión es transversal y se documenta en `13-docker-environment-isolation.md`; no modifica ADR-031 ni los contratos de Escuela.
+
 ---
 
 ## Mantenimiento

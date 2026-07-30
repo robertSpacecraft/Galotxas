@@ -713,6 +713,8 @@ Continúan ausentes:
 
 Los centros y actividades implementados en 6B.3 son deliberadamente privados y administrativos. No forman parte de `GET /api/v1/school`, que se limita al programa permanente, niveles, horarios, ubicaciones efectivas, apertura y contacto. No existe API administrativa de Escuela: Blade utiliza rutas web con sesión, CSRF y administrador activo.
 
+Desde 6C, React consume ambos contratos exclusivamente en `/escuela`. La lectura conserva el orden y tolera datos parciales; el formulario sólo envía la allowlist documentada, no exige cuenta y no muestra identificador o estado interno tras `201`. La interfaz trata `409`, `422` y `429` sin ampliar ni modificar este contrato.
+
 ---
 
 ## Mantenimiento

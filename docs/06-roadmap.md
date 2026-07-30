@@ -40,16 +40,17 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 22. **Fase 6B.2 — Inscripciones de Escuela:** `SchoolEnrollment`, enum y ciclo de estados, solicitud pública anónima con cuenta opcional, menores y adultos, administración Blade, privacidad, rate limiting y cobertura MariaDB, sin lectura pública o frontend.
 23. **Fase 6B.3 — Centros y actividades educativas:** `EducationalCenter`, `EducationalActivity`, enum y transiciones definitivas, ubicación opcional, administración Blade, borrado conservador, permisos y cobertura MariaDB, sin API pública o frontend.
 24. **Fase 6B.4 — Lectura pública de Escuela:** `GET /api/v1/school`, consulta centralizada, Resources cerrados, visibilidad efectiva, orden estable, privacidad y cobertura MariaDB, sin frontend público.
+25. **Fase 6C — Experiencia pública de Escuela:** `/escuela` diferida, agregado público, niveles, horarios, ubicaciones, contacto, apertura, inscripción de menores y adultos, Navbar/Home, accesibilidad, responsive y E2E.
+26. **Fase 6C.1 — Remediación del aislamiento Docker:** proyectos, archivos, redes y bases separados para desarrollo, backend test y E2E; guardas de cleanup, prueba de no destrucción y revalidación completa de 6C sin reconstruir la base local.
 
-La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A, 3B y 3C completan la Fase 3. Los subbloques 4A, 4B y 4C completan la Fase 4. Los subbloques 5A, 5A.1, 5B y 5C completan la Fase 5. La Fase 6 permanece abierta: 6A, 6A.1 y 6B.1–6B.4 están completadas; 6C no se ha iniciado. Redirects y migraciones editoriales no se han iniciado.
+La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Redirects y migraciones editoriales no se han iniciado.
 
 ## Bloques posteriores aprobados y no iniciados
 
-1. **Fase 6C — Experiencia pública de Escuela:** consumir lectura y escritura, registrar `/escuela`, formulario, Navbar, accesibilidad, responsive y E2E. Pendiente.
-2. **Club y migración de Contenidos:** asignar una fuente canónica a cada página institucional y retirar gradualmente la arquitectura legada.
-3. **QA, accesibilidad y despliegue:** validar contratos, recorridos, responsive, teclado, multimedia, persistencia y operación.
+1. **Club y migración de Contenidos:** asignar una fuente canónica a cada página institucional y retirar gradualmente la arquitectura legada.
+2. **QA, accesibilidad y despliegue:** validar contratos, recorridos, responsive, teclado, multimedia, persistencia y operación.
 
-Las fases 4 y 5 están completadas. `/competicion` presenta su acceso principal, temporadas, campeonatos y preview real del ranking histórico; la rama conserva Torneos y Rankings como destinos secundarios y ofrece un recorrido coherente por campeonato, categoría, clasificación, calendario y partido. `/aprende-a-jugar` y el Manual presentan los 40 documentos desde la proyección segura de `knowledge/`, con navegación interna y carga diferida. Fases 6B.1–6B.4 aportan el núcleo administrativo de Escuela, la escritura pública de solicitudes, la gestión privada de centros y actividades y `GET /api/v1/school`; `/escuela`, su formulario React y `/club` no están implementados por aparecer en el roadmap.
+Las fases 4, 5 y 6 están completadas. `/competicion` ofrece el recorrido deportivo; `/aprende-a-jugar` y el Manual presentan los 40 documentos desde Knowledge; `/escuela` consume la configuración pública y admite solicitudes anónimas cuando el backend las abre. El cierre de Escuela queda revalidado sobre proyectos Docker aislados y guardados; `/club` continúa sin implementar y no aparece como placeholder.
 
 Después de 3C permanecen en bloques posteriores la consolidación institucional, la migración de Nosotros, aliases, redirects, canonical, indexación de `/contenidos`, SEO completo, sitemap y robots, limpieza de código huérfano y migración de `academy` y `documentos`. No forman parte de 3C ni del cierre de la Fase 4.
 
@@ -122,8 +123,8 @@ La ausencia de una interfaz React de reprogramación no bloquea este cierre. El 
 ## Frontend, despliegue y calidad
 
 - URL API por `VITE_API_BASE_URL`, fallback local de desarrollo y `/api/v1` en producción (DEPLOY-1);
-- Vitest, React Testing Library y 271 tests en 43 archivos, incluidos la proyección y consumo público seguro de Knowledge, navegación y fragmentos del Manual, carga diferida, composición de Competición, estados remotos recuperables, rutas contextuales, jerarquía, etiquetas, tablas y posiciones backend, metadatos, cuenta, foco, landmarks, 404 y regresiones previas (FE-TEST-1, QA-FIX-1, RC-HARDEN-1, PUBLIC-NAVIGATION-1, PUBLIC-LANDING-SYSTEM-1, COMPETITION-LANDING-DATA-1, COMPETITION-RANKING-NAVIGATION-1, COMPETITION-UX-CLOSURE-1, KNOWLEDGE-COMPILER-1, KNOWLEDGE-PUBLICATION-READINESS-1, KNOWLEDGE-PUBLIC-CONSUMER-1 y KNOWLEDGE-EXPERIENCE-CLOSURE-1);
-- smoke Playwright de 16 escenarios con Chromium y stack temporal aislado, incluido el recorrido público completo deportivo y de Aprende a jugar, referencias, tabla, 404, foco, zoom y matriz responsive 320–1440 px, además de los workflows anteriores;
+- Vitest, React Testing Library y 312 tests en 51 archivos, incluida Escuela pública, formularios, errores HTTP, edad, navegación, Knowledge, Competición, cuenta, foco, landmarks, 404 y regresiones previas (SCHOOL-PUBLIC-EXPERIENCE-1 y los bloques anteriores);
+- smoke Playwright de 21 escenarios con Chromium y stack temporal aislado, incluidos los recorridos públicos completos de Competición, Aprende a jugar y Escuela, solicitudes de menor y adulto, referencias, tabla, 404, foco, zoom y matriz responsive 320–1440 px, además de los workflows anteriores;
 - auditoría y actualización compatible de npm/Composer sin vulnerabilidades conocidas pendientes en la instantánea de cierre (DEPS-1);
 - documentación técnica 00–08 reconciliada con el código (DOC-1);
 - corrección de los bloqueantes QA del calendario público y de la navegación responsive, con revalidación dirigida en 1440 × 900, 1280 × 720 y 390 × 844 (QA-FIX-1).

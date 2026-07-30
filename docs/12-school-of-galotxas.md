@@ -2,9 +2,9 @@
 
 ## 1. Propósito
 
-Este documento registra la auditoría de Fase 6A, el cierre funcional aprobado en Fase 6A.1 y las implementaciones de Fase 6B.1–6B.4: núcleo operativo, inscripciones, centros/actividades y lectura pública. Define el estado real sin presentar la experiencia React pendiente de 6C como existente.
+Este documento registra la auditoría de Fase 6A, el cierre funcional aprobado en Fase 6A.1 y las implementaciones 6B.1–6C: núcleo operativo, inscripciones, centros/actividades, lectura pública y experiencia React. Fase 6C.1 remedia el aislamiento Docker y revalida ese cierre sin cambiar el dominio escolar.
 
-Fase 6A.1 fue exclusivamente documental. Fase 6B.1 crea programa, niveles, ubicaciones y horarios. Fase 6B.2 añade `SchoolEnrollment`, su ciclo de estados, servicio, Form Requests, administración Blade y el POST público. Fase 6B.3 añade `EducationalCenter`, `EducationalActivity`, su ciclo operativo y administración Blade. Fase 6B.4 añade consulta centralizada, controlador, Resources cerrados y `GET /api/v1/school`. Ningún bloque crea seeders, componentes React, formulario React ni contenido en `knowledge/`.
+Fase 6A.1 fue exclusivamente documental. Fase 6B.1 crea programa, niveles, ubicaciones y horarios. Fase 6B.2 añade `SchoolEnrollment`, administración Blade y el POST público. Fase 6B.3 añade centros y actividades. Fase 6B.4 añade `GET /api/v1/school`. Fase 6C añade componentes React, formulario, Navbar y un fixture exclusivo E2E; no crea contenido en `knowledge/` ni seeders de desarrollo o producción. La aceptación de 6C se suspendió tras el incidente de limpieza y se restableció sólo después de la revalidación aislada de 6C.1.
 
 ## 2. Estado actual
 
@@ -21,7 +21,7 @@ La Escuela de Galotxas dispone de núcleo operativo, inscripciones, centros y ac
 - el CMS genérico conserva el slug legado `academy`, que no equivale a este dominio;
 - las inscripciones deportivas exigen cuenta y perfil `Player`, por lo que no representan el flujo escolar.
 
-Fase 6B.4 tampoco publica la sección React: el backend permite leer la configuración y presentar solicitudes, pero la ruta `/escuela`, el consumidor, el formulario y el Navbar continúan pendientes.
+Fase 6C publica la sección React `/escuela`, el consumidor, el formulario y su acceso en Navbar/Home sobre los contratos existentes.
 
 ## 3. Auditoría de capacidades reutilizables
 
@@ -614,7 +614,7 @@ La respuesta `201` sólo contiene `message` y `data: null`; no incluye identific
 
 ## 27. Experiencia pública
 
-Fase 6C implementará `/escuela` con:
+Fase 6C implementa `/escuela` con:
 
 1. H1 “Escuela de Galotxas”;
 2. enlace al Manual;
@@ -625,7 +625,7 @@ Fase 6C implementará `/escuela` con:
 7. contacto general sólo si está configurado;
 8. estados remotos y confirmación opaca.
 
-La landing reutilizará `PublicLanding` y `PageMetadata`, y “Escuela de Galotxas” ocupará la cuarta posición del Navbar. No publicará centros, actividades o alumnos.
+La landing reutiliza `PublicLanding` y `PageMetadata`, y “Escuela de Galotxas” ocupa la cuarta posición del Navbar. No publica centros, actividades o alumnos.
 
 Estados:
 
@@ -640,7 +640,7 @@ Estados:
 | Éxito | Confirmación genérica sin ID o consulta de estado |
 | Sin contacto público | Omitir bloque sin afectar el resto |
 
-React no calculará mayoría de edad como decisión final, no confiará en ocultar el formulario y no persistirá contenido editorial.
+React calcula localmente la minoría sólo para adaptar la interfaz; Laravel conserva la decisión final. El cliente no confía en ocultar el formulario como control de seguridad y no persiste contenido editorial o datos personales.
 
 ## 28. Privacidad y seguridad
 
@@ -670,7 +670,7 @@ Controles:
 - sin exportaciones ni adjuntos;
 - conservación y textos de aceptación pendientes de aprobación antes de producción.
 
-No se redactan textos legales, política de privacidad, consentimiento o autorización de imagen. El formulario deberá incorporar las aceptaciones necesarias sólo cuando sus textos estén aprobados.
+No se redactan textos legales, política de privacidad, consentimiento o autorización de imagen. Al no existir textos aprobados, 6C no inventa checkbox o aceptación. Su aprobación y operación son deuda obligatoria antes de abrir inscripciones en producción; los programas nacen cerrados por defecto.
 
 ## 29. Contenido editorial y `academy`
 
@@ -694,7 +694,7 @@ La URL, los datos, la navegación y el SEO se migrarán como problemas separados
 
 ## 30. Plan 6B
 
-Fase 6B permanece abierta y se divide así:
+Fase 6B quedó completada en cuatro bloques:
 
 ### 6B.1 — Núcleo operativo — completada
 
@@ -717,7 +717,7 @@ El bloque implementa las cuatro tablas y modelos, enum de día, factories, valid
 - aprobación, rechazo, baja y reasignación;
 - rate limiting, administración Blade, tests y documentación.
 
-El bloque implementa migración, enum, modelo, factory, cálculo histórico de minoría de edad, coherencia programa–nivel en servicio y MariaDB, transiciones transaccionales, POST anónimo con sesión opcional, limitador, privacidad, administración Blade y tests. No añade seeders, lectura pública o frontend. React consumirá el POST en 6C.
+El bloque implementa migración, enum, modelo, factory, cálculo histórico de minoría de edad, coherencia programa–nivel en servicio y MariaDB, transiciones transaccionales, POST anónimo con sesión opcional, limitador, privacidad, administración Blade y tests. En aquel bloque no añadió seeders, lectura pública o frontend; 6C consume posteriormente el POST.
 
 ### 6B.3 — Centros y actividades — completada
 
@@ -739,20 +739,18 @@ El bloque implementa dos migraciones reversibles, modelos, enum, factories, Form
 
 El bloque implementa la ruta anónima, `SchoolPublicOverviewService`, controlador invocable, cuatro Resources allowlist y cobertura de contrato, visibilidad, orden, datos parciales, formato horario, privacidad y N+1. El POST, su limitador y su respuesta permanecen intactos. No añade migraciones, seeders, administración, frontend o contenido pedagógico.
 
-## 31. Plan 6C y testing
+## 31. Implementación 6C, incidente y revalidación
 
-6C permanece pendiente:
+6C queda completada con:
 
-- servicio y hook;
-- landing `/escuela`;
-- niveles, horarios y ubicación;
-- estado de inscripción;
-- formulario y validación básica;
-- estados de lectura y envío;
-- Navbar;
-- accesibilidad, responsive y E2E;
-- enlace al Manual;
-- revisión posterior de `academy`;
+- servicio Axios, normalización ligera y hook local;
+- landing diferida `/escuela`;
+- programa, niveles, horarios, ubicaciones, contacto y apertura;
+- formulario con validación básica, menores, adultos, representante condicional y nivel opcional;
+- estados de lectura y envío, foco y anuncios accesibles;
+- Navbar en cuarta posición, Home sin la referencia pública “Academy” y enlace al Manual;
+- responsive 320–1440 px, zoom 200 %, unitarios y E2E;
+- `academy` preservado sin migración, despublicación o redirect;
 - cierre de Fase 6.
 
 `SCHOOL-CORE-ADMIN-1` cubre el núcleo y `SCHOOL-ENROLLMENT-ADMIN-1` añade 38 tests y 283 aserciones para migración, modelo, factories, consistencia programa–nivel, edad histórica, representante, contacto, apertura, sesión opcional, transiciones, fechas, Blade, privacidad, limitador y ausencia de GET o borrado. `SCHOOL-EDUCATIONAL-ACTIVITIES-1` añade 27 tests y 213 aserciones para migraciones, modelos, factories, relaciones, validación, transiciones, borrados, Blade, permisos y ausencia de API. La regresión escolar finaliza con 93 tests y 678 aserciones; la suite backend completa, con 348 tests y 2654 aserciones.
@@ -770,11 +768,13 @@ El bloque implementa la ruta anónima, `SchoolPublicOverviewService`, controlado
 
 La regresión explícita de Escuela, centros, actividades, inscripciones, permisos y rate limiting completa 111 tests y 783 aserciones. La suite backend completa finaliza con 356 tests y 2708 aserciones sobre MariaDB.
 
-`SCHOOL-CONTRACT-AUDIT-1` conserva para 6C:
+`SCHOOL-PUBLIC-EXPERIENCE-1` añade 312 tests frontend totales en 51 archivos y 21 escenarios E2E totales. Cubre servicio, hook, contrato ligero, edad y 29 de febrero, landing completa/parcial/ausente/cerrada, formulario, errores `409`/`422`/`429`, foco, metadata, lazy loading, Navbar/Home, responsive y 404. El build genera un chunk School diferido de 15,37 kB (4,84 kB gzip), sin incorporar Knowledge ni emitir aviso de tamaño.
 
-- React, formulario, estados remotos, teclado, foco, responsive, Navbar y E2E.
+La aceptación inicial quedó suspendida al eliminar una limpieza Docker el volumen local de desarrollo compartido por el antiguo proyecto Compose. La auditoría no demostró cambios ni fallos en modelos, servicios, Resources o contratos School; los cambios funcionales de 6C permanecieron íntegros y sin commit durante la remediación.
 
-La cobertura backend de 6B.1–6B.4 no representa tests de la experiencia React pendiente.
+6C.1 separa desarrollo, backend test y E2E en proyectos, archivos, redes, almacenamiento y bases distintos. La prueba con red centinela acredita que el cleanup E2E no alcanza recursos ajenos. No se levantó, migró, sembró, restauró o reconstruyó la base local.
+
+La regresión final conserva 80 tests y 557 aserciones para `--filter=School`, y 356 tests y 2708 aserciones para la suite backend completa. Frontend mantiene 312 tests y Playwright completa los 21 escenarios. `knowledge:check`, ESLint, build, sintaxis y Pint también son correctos; los hashes de Knowledge permanecen intactos. `SCHOOL-CONTRACT-AUDIT-1` queda cerrado.
 
 ## 32. Deuda y criterios de cierre
 
@@ -808,4 +808,4 @@ Fase 6A.1 quedó cerrada documentalmente al cumplir:
 - Fase 6 permanece abierta;
 - `git diff --check` no devuelve errores.
 
-Fase 6B.4 actualiza ese estado: los cuatro modelos del núcleo, `SchoolEnrollment`, `EducationalCenter`, `EducationalActivity`, su administración, el POST y `GET /api/v1/school` con sus Resources existen. `/escuela`, Navbar, formulario React y contenido pedagógico continúan pendientes. Fase 6 permanece abierta.
+Fase 6C actualiza ese estado: los cuatro modelos del núcleo, `SchoolEnrollment`, `EducationalCenter`, `EducationalActivity`, su administración, el POST, el GET, `/escuela`, Navbar y formulario React existen. Su cierre quedó condicionado a 6C.1 después del incidente Docker. Completadas las guardas, la prueba de no destrucción y toda la regresión backend/frontend/E2E, 6C y la Fase 6 quedan completadas. El contenido pedagógico propio, privacidad operativa aprobada, SEO y migración de `academy` continúan como deuda posterior.
