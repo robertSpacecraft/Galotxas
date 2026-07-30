@@ -356,7 +356,7 @@ Prioridad de test alta:
 
 Los tests de integración deben ejecutarse con MariaDB aislado:
 
-`docker compose --profile test run --rm test`
+`backend/scripts/run-tests.sh`
 
 No ejecutar migraciones destructivas contra la base de desarrollo.
 

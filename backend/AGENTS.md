@@ -188,9 +188,9 @@ No asumir compatibilidad con SQLite.
 
 Las pruebas de integración se ejecutan exclusivamente mediante el entorno Docker de pruebas.
 
-Comando recomendado:
+Comando recomendado desde la raíz del monorepo:
 
-docker compose --profile test run --rm test
+backend/scripts/run-tests.sh
 
 Nunca ejecutar RefreshDatabase sobre la base de desarrollo.
 
@@ -240,8 +240,7 @@ Siempre que sea posible:
 - ejecutar la suite oficial:
 
 ```bash
-cd backend/docker
-docker compose --profile test run --rm test
+backend/scripts/run-tests.sh
 ```
 
 - php -l sobre los archivos modificados.

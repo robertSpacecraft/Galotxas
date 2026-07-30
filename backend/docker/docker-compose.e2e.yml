@@ -1,3 +1,5 @@
+name: galotxas-e2e
+
 services:
   app:
     build:
