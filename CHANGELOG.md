@@ -6,6 +6,7 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Se completa MVP-PARITY-AUDIT-1 de Fase 7A con inventarios de backend, Blade, API, React, CMS y autogestión, definición observable del MVP, priorización P0–P2, recomendación de navegación y plan 7B–7G, sin implementar funciones ni modificar datos.
 - Se incorpora la base administrativa `is_public` para temporadas, campeonatos y categorías, con nuevos registros privados, backfill compatible y validación jerárquica sin cascadas; la API pública todavía no filtra por este campo.
 - Se documenta el contrato de navegación pública de Fase 3A: cinco áreas canónicas, fuentes de verdad, rutas secundarias, compatibilidad heredada y gates de implementación, sin cambios visibles en Navbar ni nuevas landings.
 - Se incorpora la navegación pública progresiva de Fase 3B con configuración única para Inicio y Competición, cuenta separada y landing mínima `/competicion` enlazada a Torneos y Rankings.

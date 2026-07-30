@@ -155,7 +155,7 @@ Fase 6C verifica para la ruta:
 
 No se localizó una política de privacidad o texto de aceptación aprobado. Por tanto, React no inventa política, consentimiento o checkbox. Aprobar esos textos y su operación es deuda obligatoria antes de configurar inscripciones abiertas en producción; el default cerrado de `SchoolProgram` permite mantener el formulario ausente hasta entonces.
 
-Escuela se relaciona con Aprende mediante conocimiento y con Club mediante la organización responsable, pero no se anida bajo ninguno. El contrato funcional completo se mantiene en `12-school-of-galotxas.md`.
+Escuela se relaciona con Aprende mediante conocimiento y con Club mediante la organización responsable, pero no se integra editorial ni técnicamente en ninguno. El contrato funcional completo se mantiene en `12-school-of-galotxas.md`. La agrupación visual bajo Aprende que evalúa Fase 7A es una propuesta de navegación pendiente y no altera esta separación de fuentes, dominio o contrato.
 
 ## 7. Rutas secundarias
 
@@ -640,6 +640,71 @@ Con 4A, 4B y 4C completadas, la Fase 4 queda cerrada. No se incorporan en la lan
 - metadatos, canonical, 404, fallback y redirects son coherentes entre React y hosting;
 - pruebas frontend y E2E cubren navegación, permisos, compatibilidad y fuentes remotas;
 - no se duplica contenido editable entre React, CMS y `knowledge/`.
+
+## 25. Auditoría 7A: navegación actual y propuesta
+
+### Estado actual
+
+Tras 6C, la configuración única del Navbar contiene Inicio, Competición, Aprende
+a jugar y Escuela de Galotxas. La cuenta permanece separada. Torneos, Rankings,
+CMS y `/nosotros` conservan acceso por rutas secundarias o directas. Club no
+está registrado ni se muestra como placeholder.
+
+### Recomendación pendiente de aprobación
+
+Fase 7A recomienda dos grupos de revelación:
+
+```text
+Inicio
+Competición
+Aprende
+├── Aprende a jugar        /aprende-a-jugar
+├── Manual y reglas        /aprende-a-jugar/manual
+└── Escuela de Galotxas    /escuela
+Club
+├── Quiénes somos          /club
+├── Contacto               /club/contacto
+├── Federarse              /club/federarse
+└── Documentos             /club/documentos
+Cuenta
+```
+
+Aprende a jugar orienta y presenta colecciones; Manual cataloga documentos. No
+son duplicados. Escuela comparte contexto de descubrimiento, pero mantiene ruta,
+dominio Laravel y contrato independientes de Knowledge. Club reúne el contenido
+institucional administrable. Prensa/Media y Federaciones se reservan para el
+footer o una navegación secundaria si disponen de contenido real.
+
+La propuesta difiere del contrato plano de cinco áreas al agrupar Escuela bajo
+Aprende y convertir Club en grupo institucional. No está implementada, no
+modifica ADR-028 y requiere aprobación humana, contenido real y una decisión de
+compatibilidad antes de cambiar el Navbar.
+
+### Interacción requerida
+
+- botones de revelación, nunca interacción sólo por hover;
+- mismo árbol en desktop y móvil, con acordeón permitido en móvil;
+- `aria-expanded`, `aria-controls`, foco visible y orden lógico;
+- `aria-current="page"` en el enlace exacto y grupo visualmente activo en
+  descendientes;
+- Escape cierra el grupo abierto y devuelve el foco a su disparador;
+- navegación, click exterior y cierre móvil cierran los grupos;
+- cuenta separada y rutas deportivas actuales preservadas.
+
+### Home y footer
+
+Home debe aportar propuesta de valor aprobada y accesos prioritarios a
+Competición, Aprende/Manual y Escuela, con Club/Contacto como acceso secundario.
+No debe duplicar el menú ni mostrar tarjetas, noticias o afirmaciones sin fuente
+real.
+
+El footer debe ser global y enlazar contenido institucional y legal real:
+Quiénes somos, Contacto, Federarse, Documentos, privacidad y aviso aplicable.
+Prensa, Federaciones, redes, accesibilidad o copyright sólo se publicarán con
+destinos y responsables confirmados.
+
+El detalle de matrices, alternativas y fases está en
+`14-mvp-parity-audit.md`.
 
 ## Mantenimiento
 

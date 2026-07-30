@@ -42,13 +42,18 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 24. **Fase 6B.4 — Lectura pública de Escuela:** `GET /api/v1/school`, consulta centralizada, Resources cerrados, visibilidad efectiva, orden estable, privacidad y cobertura MariaDB, sin frontend público.
 25. **Fase 6C — Experiencia pública de Escuela:** `/escuela` diferida, agregado público, niveles, horarios, ubicaciones, contacto, apertura, inscripción de menores y adultos, Navbar/Home, accesibilidad, responsive y E2E.
 26. **Fase 6C.1 — Remediación del aislamiento Docker:** proyectos, archivos, redes y bases separados para desarrollo, backend test y E2E; guardas de cleanup, prueba de no destrucción y revalidación completa de 6C sin reconstruir la base local.
+27. **Fase 7A — Auditoría de paridad y plan del MVP completo:** backend, Blade, API, React, CMS, autogestión, contenido y despliegue inventariados; definición observable, prioridades, decisiones humanas y plan 7B–7G documentados sin implementar funciones.
 
-La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Redirects y migraciones editoriales no se han iniciado.
+La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fase 7A completa sólo la auditoría: Fase 7 sigue abierta. Redirects y migraciones editoriales no se han iniciado.
 
-## Bloques posteriores aprobados y no iniciados
+## Fase 7 abierta — bloques propuestos y no iniciados
 
-1. **Club y migración de Contenidos:** asignar una fuente canónica a cada página institucional y retirar gradualmente la arquitectura legada.
-2. **QA, accesibilidad y despliegue:** validar contratos, recorridos, responsive, teclado, multimedia, persistencia y operación.
+1. **Fase 7B — Decisiones y preparación editorial:** aprobar navegación, URLs, compatibilidad, responsables, contenido institucional, legal, privacidad, imágenes, identidad pública y datos operativos.
+2. **Fase 7C — Vertical institucional Club:** implementar Quiénes somos, Contacto, Federarse y Documentos desde CMS, conservando legados hasta acreditar paridad.
+3. **Fase 7D — Navegación, Home, footer y legal:** aplicar la arquitectura aprobada, cuenta separada, menús accesibles, portada veraz y footer global.
+4. **Fase 7E — Preparación operativa de Escuela:** cargar y validar configuración real, privacidad y procedimiento de solicitudes antes de abrir inscripciones.
+5. **Fase 7F — Preparación de despliegue:** cerrar Railway/Vercel, MariaDB, variables, CORS, correo, sesiones, logs, backups, migraciones, salud y rollback.
+6. **Fase 7G — Validación y cierre del MVP:** ejecutar regresión, recorridos críticos, QA, smoke y aceptación humana antes de tag/release.
 
 Las fases 4, 5 y 6 están completadas. `/competicion` ofrece el recorrido deportivo; `/aprende-a-jugar` y el Manual presentan los 40 documentos desde Knowledge; `/escuela` consume la configuración pública y admite solicitudes anónimas cuando el backend las abre. El cierre de Escuela queda revalidado sobre proyectos Docker aislados y guardados; `/club` continúa sin implementar y no aparece como placeholder.
 
@@ -58,13 +63,20 @@ Este programa no altera por sí solo el proceso operativo de revisión y publica
 
 ---
 
-# Estado del MVP
+# Estado del MVP completo
 
-El núcleo funcional previsto para el MVP está implementado. QA-MVP-1, QA-FIX-1 y RC-HARDEN-1 están completados. MVP-RC-1 ha preparado y validado la documentación del primer candidato como `v0.1.0-rc.1`, pero todavía no se ha creado el commit definitivo, el tag ni la GitHub Release.
+El núcleo técnico del candidato anterior está implementado y QA-MVP-1,
+QA-FIX-1, RC-HARDEN-1 y MVP-RC-1 conservan su valor histórico. Sin embargo, la
+auditoría 7A amplía el criterio desde “candidato técnico” a “aplicación pública
+y funcionalmente completa”: el MVP completo **todavía no está completado**.
 
-La clasificación actual es **RC preparado con limitaciones**: no se han detectado P0/P1 y la regresión está verde, pero el candidato requiere revisión humana y no equivale a un despliegue de producción. Las limitaciones aceptadas y los requisitos pendientes se detallan en `09-release-candidate.md`.
+Permanecen P0 de contenido institucional, Contacto, Home/footer/legal,
+configuración y privacidad de Escuela, despliegue Railway/Vercel/MariaDB y
+validación de recorridos críticos. La definición observable, priorización y
+criterios de cierre se encuentran en `14-mvp-parity-audit.md`.
 
-La ausencia de una interfaz React de reprogramación no bloquea este cierre. El backend conserva ese workflow y su interfaz queda expresamente pospuesta.
+La ausencia de edición avanzada de perfil, resumen directo de equipo e interfaz
+React de reprogramación continúa como P1 y no bloquea por sí misma el MVP.
 
 ---
 
@@ -142,18 +154,17 @@ La ausencia de una interfaz React de reprogramación no bloquea este cierre. El 
 
 ---
 
-# Siguiente paso del candidato
+# Siguiente paso del candidato y de Fase 7
 
-MVP-RC-1 está preparado, pero no publicado. El orden siguiente es:
+MVP-RC-1 queda como instantánea histórica preparada y no publicada. El orden de
+publicación anterior queda condicionado por los P0 descubiertos en 7A. No se
+debe crear el tag o la release hasta completar Fase 7G.
 
-1. revisión humana del alcance, `CHANGELOG.md`, limitaciones y runbook;
-2. commit único del bloque en `develop` y push;
-3. fast-forward de `main` y push;
-4. creación del tag anotado `v0.1.0-rc.1` desde el commit aprobado;
-5. publicación de GitHub Release como prerelease;
-6. validación del tag en un segundo entorno y apertura del periodo de prueba definido por el usuario.
-
-No debe intercalarse una fase funcional nueva antes de etiquetar salvo que aparezca un defecto P0/P1 o un impedimento de reproducibilidad.
+1. revisión humana y eventual merge documental de 7A;
+2. cierre de decisiones y contenido en 7B;
+3. implementación incremental 7C–7F, cada bloque validado y revisado;
+4. cierre de aceptación en 7G;
+5. sólo entonces, preparación del nuevo candidato, tag y publicación.
 
 ---
 
@@ -168,7 +179,7 @@ Estas capacidades son válidas, pero no bloquean el candidato actual:
 - sugerencia o asignación automática de categoría;
 - noticias como entidad editorial propia;
 - subida segura y gestión de documentos e imágenes;
-- formularios públicos de federación o Escuela de Galotxas con antispam;
+- formularios públicos institucionales o de federación con privacidad y antispam;
 - SEO y ordenación editorial avanzados del CMS;
 - métricas y filtros administrativos avanzados;
 - aplicación móvil y API administrativa consolidada.

@@ -339,6 +339,33 @@ La Fase 3A no elimina `/contenidos`, no crea redirects, no cambia su API ni borr
 - URLs de detalle, aliases, redirects, canonical, sitemap, 404 y SEO de la migración pública.
 - Roles, permisos, trazabilidad y vista previa requeridos por los editores.
 
+## 20. Gates editoriales y operativos del MVP completo
+
+La auditoría `MVP-PARITY-AUDIT-1` confirma que el código no acredita por sí solo
+contenido real ni preparación de producción. Antes de cerrar el MVP:
+
+| Área | Fuente única | Aportación humana | Gate de publicación |
+|---|---|---|---|
+| Quiénes somos e historia | CMS | Copy, vigencia, imágenes y responsables | Sin placeholders ni duplicidad JSX |
+| Contacto institucional | CMS | Canal oficial atendido | Sin formulario ni datos inventados por defecto |
+| Federarse | CMS | Proceso real y responsable | Destino vigente |
+| Documentos | CMS con URLs controladas | Piezas, vigencia, procedencia | Ciclo de vida y acceso verificados |
+| Prensa/Federaciones | CMS | Contenido real | Footer/secundaria, nunca tarjeta vacía |
+| Legal y privacidad | CMS o documento controlado | Revisión responsable/jurídica | Enlaces globales antes de recoger datos |
+| Escuela operativa | Dominio Laravel | Programa, contacto, niveles, horarios y ubicación | Configurar privada/cerrada; abrir tras privacidad y capacidad |
+| Reglas y modalidad | Knowledge | Revisión editorial existente | No copiar en CMS o React |
+| Mensajes de interfaz | React | Microcopy funcional | No convertirse en fuente editorial |
+
+`/nosotros` hardcodeado y `/contenidos/nosotros` no deben coexistir como fuentes
+editables definitivas. La migración a Club será conservadora y mantendrá las
+rutas legadas hasta acreditar paridad y compatibilidad. `academy` permanece
+fuera de esa migración.
+
+La recomendación 7A de agrupar Aprende y Club es una propuesta de arquitectura
+de información, no una decisión vigente ni una autorización para implementar
+rutas. El contrato final, los responsables y los materiales deben aprobarse en
+7B. El inventario completo está en `14-mvp-parity-audit.md`.
+
 ## Mantenimiento
 
 Toda nueva fuente o sección pública debe actualizar esta gobernanza antes o junto con su implementación. Si el comportamiento real difiere de la decisión aprobada, se debe registrar de forma explícita el estado, la deuda y el plan de reconciliación.

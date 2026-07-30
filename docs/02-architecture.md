@@ -452,6 +452,29 @@ El E2E cubre el recorrido crítico del MVP; no constituye una matriz multibrowse
 
 ---
 
+# Auditoría de paridad y arquitectura pendiente del MVP
+
+Fase 7A compara las capacidades reales de Laravel, Blade, API y React en
+`14-mvp-parity-audit.md`. La arquitectura funcional ya implementada cubre
+Competición, Knowledge, Escuela, autenticación y la administración interna,
+pero todavía no acredita una experiencia institucional canónica ni un
+despliegue productivo completo.
+
+La auditoría recomienda, pendiente de aprobación humana, agrupar los destinos
+formativos bajo **Aprende** sin fusionar sus fuentes: Aprende a jugar y Manual
+continúan en la proyección build-time de `knowledge/`, mientras Escuela conserva
+su dominio Laravel y su ruta independiente. También propone **Club** como
+agregador de Quiénes somos, Contacto, Federarse y Documentos, con CMS como fuente
+editorial única.
+
+Esta recomendación no modifica el router, el Navbar, las cinco áreas aprobadas
+ni ADR-028. Su eventual adopción requiere un bloque posterior, contenido real,
+compatibilidad de URLs, pruebas y una decisión documentada. La Fase 7 permanece
+abierta; el anterior candidato técnico no equivale a despliegue ni a MVP público
+completo.
+
+---
+
 # 12. Gestión de dependencias
 
 Las dependencias se auditan distinguiendo el árbol de producción del tooling de desarrollo. `npm audit --omit=dev` delimita la exposición del bundle frontend, mientras que la auditoría completa cubre también Vite, ESLint, Vitest y Playwright. Composer se ejecuta siempre dentro del contenedor oficial y su resultado se clasifica igualmente según el paquete pertenezca a `require` o `require-dev`.
@@ -483,6 +506,7 @@ Después de modificar un lock son obligatorias una nueva auditoría, la validaci
 - `08-resources.md`
 - `09-public-navigation.md`
 - `10-content-governance.md`
+- `14-mvp-parity-audit.md`
 
 ## Mantenimiento
 

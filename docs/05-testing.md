@@ -1055,6 +1055,26 @@ El análisis completo del incidente, la matriz de propiedad y los comandos segur
 
 ---
 
+## MVP-PARITY-AUDIT-1 — Auditoría documental de paridad
+
+Fase 7A inspecciona estáticamente modelos, rutas, administración Blade, API,
+router React, servicios, hooks y pruebas. `php artisan route:list
+--except-vendor --json` confirma 185 rutas de aplicación, 58 bajo `/api/v1`;
+la clasificación funcional separa lectura pública, autenticación, `/me`,
+workflows de participante y API administrativa.
+
+El bloque registra matrices de backend/frontend, rutas, CMS y autogestión en
+`14-mvp-parity-audit.md`. También identifica los gates de pruebas aún ausentes:
+Club/Contacto/footer, navegación agrupada, inscripción deportiva E2E, correo de
+reset y despliegue real. No atribuye cobertura a esas funciones.
+
+No se ejecutaron suites, migraciones, seeders ni Docker. La última instantánea
+validada sigue siendo DOCKER-ENVIRONMENT-ISOLATION-1: 356 tests backend y 2.708
+aserciones, 51 archivos y 312 tests frontend, y 21 escenarios Chromium. Fase 7A
+exige únicamente inspección de sólo lectura y `git diff --check`.
+
+---
+
 # 11. Evolución
 
 La cobertura de pruebas debe crecer junto con el proyecto.
