@@ -1075,6 +1075,30 @@ exige únicamente inspección de sólo lectura y `git diff --check`.
 
 ---
 
+## MVP-EDITORIAL-NAVIGATION-CONTRACT-1 — Contrato documental del MVP
+
+Fase 7B reaudita de forma estática router, navegación, Home, Nosotros, CMS,
+Escuela y Resources públicos deportivos. Registra en
+`15-mvp-editorial-and-navigation-contract.md`:
+
+- una única topología final con Inicio, Competición, Aprende, Club y Cuenta;
+- interacción desktop/móvil, foco, Escape, estado activo y atributos ARIA;
+- rutas canónicas, legado, aliases temporales y redirects futuros separados;
+- fuentes CMS, Knowledge, Laravel y React;
+- plantillas de Quiénes somos, Contacto, Federarse, Documentos, Escuela y Home;
+- matriz legal y alternativas de identidad pública sin seleccionar política;
+- gates humanos y criterios de prueba para 7C–7G.
+
+Este marcador acredita coherencia documental, no comportamiento implementado.
+No se atribuyen tests a submenús, rutas Club, footer, páginas legales, aliases,
+redirects, cambios de identidad, datos School o despliegue todavía ausentes.
+
+La validación de 7B se limita a revisión estática, búsquedas de coherencia,
+`git diff --check`, `git diff --stat`, `git diff --name-only` y estado Git. No
+ejecuta Docker, suites, migraciones, seeders, frontend, build o E2E.
+
+---
+
 # 11. Evolución
 
 La cobertura de pruebas debe crecer junto con el proyecto.

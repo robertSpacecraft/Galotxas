@@ -43,21 +43,31 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 25. **Fase 6C — Experiencia pública de Escuela:** `/escuela` diferida, agregado público, niveles, horarios, ubicaciones, contacto, apertura, inscripción de menores y adultos, Navbar/Home, accesibilidad, responsive y E2E.
 26. **Fase 6C.1 — Remediación del aislamiento Docker:** proyectos, archivos, redes y bases separados para desarrollo, backend test y E2E; guardas de cleanup, prueba de no destrucción y revalidación completa de 6C sin reconstruir la base local.
 27. **Fase 7A — Auditoría de paridad y plan del MVP completo:** backend, Blade, API, React, CMS, autogestión, contenido y despliegue inventariados; definición observable, prioridades, decisiones humanas y plan 7B–7G documentados sin implementar funciones.
+28. **Fase 7B — Decisiones y preparación editorial:** navegación final, grupos Aprende/Club, cuenta separada, rutas institucionales canónicas, compatibilidad, fuentes CMS, footer, plantillas, matriz legal, identidad pública pendiente y gates 7C–7G cerrados documentalmente sin implementar código ni contenido.
 
-La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fase 7A completa sólo la auditoría: Fase 7 sigue abierta. Redirects y migraciones editoriales no se han iniciado.
+La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fases 7A y 7B completan la auditoría y el contrato editorial, pero Fase 7 sigue abierta. Rutas Club, aliases, redirects, contenido real y migraciones editoriales no se han implementado.
 
-## Fase 7 abierta — bloques propuestos y no iniciados
+## Fase 7 abierta — bloques pendientes
 
-1. **Fase 7B — Decisiones y preparación editorial:** aprobar navegación, URLs, compatibilidad, responsables, contenido institucional, legal, privacidad, imágenes, identidad pública y datos operativos.
-2. **Fase 7C — Vertical institucional Club:** implementar Quiénes somos, Contacto, Federarse y Documentos desde CMS, conservando legados hasta acreditar paridad.
-3. **Fase 7D — Navegación, Home, footer y legal:** aplicar la arquitectura aprobada, cuenta separada, menús accesibles, portada veraz y footer global.
-4. **Fase 7E — Preparación operativa de Escuela:** cargar y validar configuración real, privacidad y procedimiento de solicitudes antes de abrir inscripciones.
-5. **Fase 7F — Preparación de despliegue:** cerrar Railway/Vercel, MariaDB, variables, CORS, correo, sesiones, logs, backups, migraciones, salud y rollback.
-6. **Fase 7G — Validación y cierre del MVP:** ejecutar regresión, recorridos críticos, QA, smoke y aceptación humana antes de tag/release.
+1. **Fase 7C — Vertical institucional Club:** implementar las cuatro rutas canónicas sobre CMS, aliases conservadores, paridad de Quiénes somos, Contacto sin formulario, Federarse y Documentos, preservando el legado hasta acreditar equivalencia.
+2. **Fase 7D — Navegación, Home, footer y legal:** aplicar los grupos Aprende/Club, cuenta separada, interacción accesible, portada veraz, footer global y destinos legales con contenido aprobado.
+3. **Fase 7E — Preparación operativa de Escuela:** cargar en privado y validar configuración, contenido, privacidad, conservación y capacidad de gestión antes de probar y abrir inscripciones.
+4. **Fase 7F — Preparación de despliegue:** cerrar Railway/Vercel, MariaDB, variables, CORS, correo, sesiones, logs, backups, migraciones, salud, staging y rollback.
+5. **Fase 7G — Validación y cierre del MVP:** ejecutar regresión, recorridos críticos, QA responsive/multibrowser priorizada, smoke y aceptación humana antes de tag/release.
 
-Las fases 4, 5 y 6 están completadas. `/competicion` ofrece el recorrido deportivo; `/aprende-a-jugar` y el Manual presentan los 40 documentos desde Knowledge; `/escuela` consume la configuración pública y admite solicitudes anónimas cuando el backend las abre. El cierre de Escuela queda revalidado sobre proyectos Docker aislados y guardados; `/club` continúa sin implementar y no aparece como placeholder.
+Las fases 4, 5, 6 y el bloque documental 7B están completados.
+`/competicion` ofrece el recorrido deportivo; `/aprende-a-jugar` y el Manual
+presentan los 40 documentos desde Knowledge; `/escuela` consume la configuración
+pública y admite solicitudes anónimas cuando el backend las abre. El cierre de
+Escuela queda revalidado sobre proyectos Docker aislados. `Club` queda
+contratado como disclosure, no como landing `/club`; sus cuatro rutas hijas
+continúan sin implementar y no aparecen como placeholders.
 
-Después de 3C permanecen en bloques posteriores la consolidación institucional, la migración de Nosotros, aliases, redirects, canonical, indexación de `/contenidos`, SEO completo, sitemap y robots, limpieza de código huérfano y migración de `academy` y `documentos`. No forman parte de 3C ni del cierre de la Fase 4.
+Fase 7C asume la consolidación institucional mínima, la paridad de Nosotros y
+los aliases temporales de sus cuatro destinos. Redirects permanentes,
+canonical, indexación de `/contenidos`, SEO completo, sitemap y robots,
+limpieza de código huérfano y migración de `academy`, Prensa y Federaciones
+permanecen en bloques posteriores.
 
 Este programa no altera por sí solo el proceso operativo de revisión y publicación del candidato descrito más abajo. Antes de iniciar un bloque funcional debe reconciliarse su calendario con el candidato y con cualquier corrección P0/P1.
 
@@ -71,9 +81,11 @@ auditoría 7A amplía el criterio desde “candidato técnico” a “aplicació
 y funcionalmente completa”: el MVP completo **todavía no está completado**.
 
 Permanecen P0 de contenido institucional, Contacto, Home/footer/legal,
-configuración y privacidad de Escuela, despliegue Railway/Vercel/MariaDB y
-validación de recorridos críticos. La definición observable, priorización y
-criterios de cierre se encuentran en `14-mvp-parity-audit.md`.
+política de identidad pública, configuración y privacidad de Escuela,
+despliegue Railway/Vercel/MariaDB y validación de recorridos críticos. La
+definición observable y priorización se encuentran en
+`14-mvp-parity-audit.md`; el contrato, las plantillas y gates de implementación
+están en `15-mvp-editorial-and-navigation-contract.md`.
 
 La ausencia de edición avanzada de perfil, resumen directo de equipo e interfaz
 React de reprogramación continúa como P1 y no bloquea por sí misma el MVP.

@@ -18,6 +18,7 @@ La documentación se organiza para separar claramente:
 - auditoría y contrato de Escuela de Galotxas.
 - aislamiento entre los entornos Docker.
 - auditoría de paridad y plan del MVP completo.
+- contrato editorial y de navegación final del MVP.
 
 ## Orden recomendado de lectura
 
@@ -37,8 +38,27 @@ La documentación se organiza para separar claramente:
 14. [Auditoría y contrato de Escuela de Galotxas](12-school-of-galotxas.md)
 15. [Aislamiento de entornos Docker](13-docker-environment-isolation.md)
 16. [Auditoría de paridad y plan del MVP completo](14-mvp-parity-audit.md)
+17. [Contrato editorial y de navegación del MVP](15-mvp-editorial-and-navigation-contract.md)
 
-El contrato de navegación inventaría el router y los enlaces actuales, fija las cinco áreas canónicas y define compatibilidad, accesibilidad, SEO y gates de implementación sin presentar las rutas futuras como existentes. El documento de gobernanza define qué información pertenece al dominio Laravel, al CMS administrable o al conocimiento canónico. El contrato de la canalización documenta cómo se valida y compila `knowledge/` sin convertir el artefacto en fuente editorial. El contrato de Escuela concreta su reparto híbrido: 6B.1 implementa programa, niveles, ubicaciones y horarios administrables, 6B.2 añade inscripciones, gestión privada y POST anónimo, 6B.3 incorpora centros y actividades sólo administrativos, 6B.4 añade la lectura pública cerrada y 6C completa la experiencia React. El documento de aislamiento registra la remediación 6C.1, los tres proyectos Compose y las guardas de limpieza. La auditoría 7A compara backend, Blade, API y React, define el MVP completo y prioriza los bloques aún pendientes sin presentar sus recomendaciones como implementadas. El conocimiento estable del deporte se mantiene por separado en [`knowledge/`](../knowledge/README.md); los documentos técnicos describen el software y no sustituyen esa fuente editorial.
+El contrato de navegación inventaría el router y los enlaces actuales y conserva
+el histórico de la arquitectura pública desde Fase 3. El contrato de Fase 7B
+cierra su evolución para el MVP: Inicio y Competición como enlaces, Aprende y
+Club como grupos de revelación, Cuenta separada y cuatro rutas institucionales
+canónicas todavía no implementadas. El documento de gobernanza define qué
+información pertenece al dominio Laravel, al CMS administrable o al
+conocimiento canónico. El contrato de la canalización documenta cómo se valida
+y compila `knowledge/` sin convertir el artefacto en fuente editorial. El
+contrato de Escuela concreta su reparto híbrido: 6B.1 implementa programa,
+niveles, ubicaciones y horarios administrables, 6B.2 añade inscripciones,
+gestión privada y POST anónimo, 6B.3 incorpora centros y actividades sólo
+administrativos, 6B.4 añade la lectura pública cerrada y 6C completa la
+experiencia React. El documento de aislamiento registra la remediación 6C.1,
+los tres proyectos Compose y las guardas de limpieza. La auditoría 7A compara
+backend, Blade, API y React y prioriza los bloques pendientes; Fase 7B añade
+plantillas, matriz legal, gates y el plan refinado sin aportar contenido real.
+El conocimiento estable del deporte se mantiene por separado en
+[`knowledge/`](../knowledge/README.md); los documentos técnicos describen el
+software y no sustituyen esa fuente editorial.
 
 Los dos documentos con prefijo `09-` conservan nombres históricos distintos: uno pertenece al contrato público de la Fase 3A y el otro al proceso del candidato MVP. No son versiones alternativas del mismo documento.
 

@@ -386,17 +386,35 @@ El cierre 4C ordena `/competicion` como propósito, acceso principal a Torneos, 
 
 ## Arquitectura pública objetivo
 
-El contrato de primer nivel fija estas cinco rutas canónicas:
+Fase 7B sustituye la topología plana inicial por cuatro controles editoriales:
 
-- **Inicio** (`/`) será una landing híbrida y conserva su función actual.
-- **Competición** (`/competicion`) agrupará Torneos, Rankings, Calendarios, Clasificaciones y Resultados sobre el dominio Laravel.
-- **Aprende a jugar** (`/aprende-a-jugar`) será la entrada al contenido divulgativo, Manual, Reglamento, Conceptos e Historia cuando exista.
-- **Escuela de Galotxas** (`/escuela`) combinará conocimiento pedagógico estable con actividad operativa administrable; no será una subsección del Manual.
-- **Club** (`/club`) agrupará contenido institucional administrable.
+- **Inicio** (`/`) es un enlace a la landing híbrida.
+- **Competición** (`/competicion`) es un enlace al dominio público deportivo y
+  agrupa semánticamente Torneos, Rankings, Calendarios, Clasificaciones y
+  Resultados sin mover sus rutas.
+- **Aprende** es un disclosure sin ruta propia. Agrupa Aprende a jugar
+  (`/aprende-a-jugar`), Manual y reglas (`/aprende-a-jugar/manual`) y Escuela
+  de Galotxas (`/escuela`).
+- **Club** es un disclosure sin landing propia. Agrupa
+  `/club/quienes-somos`, `/club/contacto`, `/club/federarse` y
+  `/club/documentos`, todas todavía pendientes de implementación.
 
 La zona de autenticación conservará identidad, acceso, Mi Panel y cierre de sesión como bloque separado del menú editorial. Las rutas actuales de Torneos, Rankings y detalles deportivos permanecen como destinos funcionales secundarios; no se trasladarán bajo `/competicion` sin una necesidad demostrable. `/contenidos` y `/contenidos/:slug` permanecen como compatibilidad técnica durante una migración incremental, pero no formarán parte del primer nivel final.
 
-En el estado actual están registradas `/`, `/competicion`, `/aprende-a-jugar` y `/escuela`. Competición presenta datos deportivos públicos reales; Aprende deriva sus 40 documentos y cuatro colecciones; Escuela presenta exclusivamente el agregado `GET /api/v1/school`, enlaza el Manual y envía solicitudes al POST existente. Club conserva dependencias editoriales explícitas, no aparece como enlace deshabilitado y no tiene ruta placeholder. El contrato detallado se define en `09-public-navigation.md`.
+La agrupación es sólo arquitectura de información. Escuela conserva su dominio
+Laravel, ruta y contrato; no se fusiona con Knowledge. Club utiliza CMS como
+fuente única, mientras React aporta fachadas de ruta y presentación. El padre
+Club no enlaza `/club`, porque no existe una función independiente que
+justifique otra landing.
+
+En el estado actual están registradas `/`, `/competicion`,
+`/aprende-a-jugar` y `/escuela`, y el Navbar continúa mostrando cuatro enlaces
+planos. Competición presenta datos públicos reales; Aprende a jugar deriva sus
+40 documentos y cuatro colecciones; Escuela presenta el agregado
+`GET /api/v1/school`, enlaza el Manual y envía solicitudes al POST existente.
+Los disclosures y rutas Club son contrato futuro, no funcionalidad disponible.
+El detalle operativo se mantiene en `09-public-navigation.md` y el cierre
+editorial de 7B en `15-mvp-editorial-and-navigation-contract.md`.
 
 La secuencia aprobada separa responsabilidades: 3B–3C establecieron navegación y landings; 4A–4C completaron Competición; 5A–5C consolidaron Knowledge y Aprende; 6A–6B.4 establecieron el dominio escolar, 6C publica su consumo y 6C.1 revalida el cierre de la Fase 6 con aislamiento Docker efectivo. Consolidación institucional, migraciones, aliases, redirects, canonical, indexación de `/contenidos` y SEO completo quedan en bloques independientes posteriores.
 
@@ -460,18 +478,19 @@ Competición, Knowledge, Escuela, autenticación y la administración interna,
 pero todavía no acredita una experiencia institucional canónica ni un
 despliegue productivo completo.
 
-La auditoría recomienda, pendiente de aprobación humana, agrupar los destinos
-formativos bajo **Aprende** sin fusionar sus fuentes: Aprende a jugar y Manual
-continúan en la proyección build-time de `knowledge/`, mientras Escuela conserva
-su dominio Laravel y su ruta independiente. También propone **Club** como
-agregador de Quiénes somos, Contacto, Federarse y Documentos, con CMS como fuente
-editorial única.
+Fase 7B aprueba documentalmente agrupar los destinos formativos bajo
+**Aprende** sin fusionar sus fuentes: Aprende a jugar y Manual continúan en la
+proyección build-time de `knowledge/`, mientras Escuela conserva su dominio
+Laravel y su ruta independiente. También aprueba **Club** como disclosure de
+Quiénes somos, Contacto, Federarse y Documentos, con CMS como fuente editorial
+única y sin landing `/club`.
 
-Esta recomendación no modifica el router, el Navbar, las cinco áreas aprobadas
-ni ADR-028. Su eventual adopción requiere un bloque posterior, contenido real,
-compatibilidad de URLs, pruebas y una decisión documentada. La Fase 7 permanece
-abierta; el anterior candidato técnico no equivale a despliegue ni a MVP público
-completo.
+ADR-033 registra navegación, rutas, CMS, footer y compatibilidad, sustituyendo
+parcialmente la topología plana de ADR-028. No cierra la política de identidad
+pública ni aporta contenido, legal, datos School o implementación. Esos gates,
+las plantillas y el plan 7C–7G se definen en
+`15-mvp-editorial-and-navigation-contract.md`. La Fase 7 permanece abierta; el
+anterior candidato técnico no equivale a despliegue ni a MVP público completo.
 
 ---
 
@@ -507,6 +526,7 @@ Después de modificar un lock son obligatorias una nueva auditoría, la validaci
 - `09-public-navigation.md`
 - `10-content-governance.md`
 - `14-mvp-parity-audit.md`
+- `15-mvp-editorial-and-navigation-contract.md`
 
 ## Mantenimiento
 

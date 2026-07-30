@@ -2,13 +2,19 @@
 
 ## 1. Objetivo
 
-Este documento fija el contrato de arquitectura de información pública y registra su aplicación funcional. Parte de la auditoría de Fase 3A y refleja la navegación de Fase 3B, el sistema común de landings de Fase 3C, la Fase 4 de Competición, Aprende a jugar cerrada en Fase 5C y la Escuela pública cerrada en Fase 6C.
+Este documento fija el contrato de arquitectura de información pública y
+registra su aplicación funcional. Parte de la auditoría de Fase 3A, refleja la
+navegación de Fase 3B, el sistema común de landings de Fase 3C, la Fase 4 de
+Competición, Aprende a jugar cerrada en Fase 5C y la Escuela pública cerrada en
+Fase 6C. Fase 7B sustituye la topología plana inicial por el contrato agrupado
+de ADR-033, todavía no implementado.
 
 Las fases 3B, 3C, 4A–4C y 5B–5C modifican únicamente compilación/frontend, sus pruebas y la documentación: no cambian backend, CMS, contenido canónico, despliegue ni redirects. Las rutas objetivo pendientes no se consideran implementadas hasta que existan con contenido real, fuente verificable y pruebas.
 
 ## 2. Principios de navegación
 
-1. El primer nivel público tendrá exactamente cinco áreas: Inicio, Competición, Aprende a jugar, Escuela de Galotxas y Club.
+1. El primer nivel editorial tendrá dos enlaces, Inicio y Competición, y dos
+   grupos de revelación, Aprende y Club; Cuenta permanece separada.
 2. Identidad, acceso, registro, Mi Panel y cierre de sesión forman una zona de cuenta separada del menú editorial.
 3. Una ruta no se publica para mostrar un placeholder vacío o un mensaje genérico de próxima disponibilidad.
 4. React puede definir nombres, labels, ayudas funcionales y estructura, pero no será fuente de contenido administrable o conocimiento canónico.
@@ -21,19 +27,39 @@ Las fases 3B, 3C, 4A–4C y 5B–5C modifican únicamente compilación/frontend,
 
 ## 3. Arquitectura de información de primer nivel
 
-El contrato definitivo del primer nivel es el siguiente. La abreviatura móvil coincide con la etiqueta completa: el diseño debe adaptarse al contenido y no recortar los nombres de área.
+El contrato definitivo de ADR-033 es:
 
-| Orden | Escritorio | Móvil | Nombre accesible | Título de página propuesto | Ruta | Estado activo esperado |
-|---:|---|---|---|---|---|---|
-| 1 | Inicio | Inicio | Inicio | Inicio \| Galotxas | `/` | Sólo en `/` |
-| 2 | Competición | Competición | Competición | Competición \| Galotxas | `/competicion` | En la landing y en las rutas funcionales de competición |
-| 3 | Aprende a jugar | Aprende a jugar | Aprende a jugar | Aprende a jugar \| Galotxas | `/aprende-a-jugar` | En la landing, Manual y documentos de Reglamento o Conceptos |
-| 4 | Escuela de Galotxas | Escuela de Galotxas | Escuela de Galotxas | Escuela de Galotxas \| Galotxas | `/escuela` | En la landing y en sus futuras rutas pedagógicas u operativas |
-| 5 | Club | Club | Club | Club \| Galotxas | `/club` | En la landing y, durante la migración, en las páginas institucionales asociadas |
+```text
+Inicio                                  /
+Competición                             /competicion
+Aprende                                 disclosure
+├── Aprende a jugar                     /aprende-a-jugar
+├── Manual y reglas                     /aprende-a-jugar/manual
+└── Escuela de Galotxas                 /escuela
+Club                                    disclosure
+├── Quiénes somos                       /club/quienes-somos
+├── Contacto                            /club/contacto
+├── Federarse                           /club/federarse
+└── Documentos                          /club/documentos
+Cuenta                                  grupo separado
+```
 
-El estado activo visual se acompaña de `aria-current="page"` cuando el enlace representa la URL exacta y de `aria-current="location"` cuando una ruta secundaria activa semánticamente su área. Sólo puede existir un elemento editorial activo.
+| Orden | Control | Tipo | Estado activo |
+|---:|---|---|---|
+| 1 | Inicio | Enlace | Sólo `/` |
+| 2 | Competición | Enlace | Landing y rutas deportivas funcionales |
+| 3 | Aprende | Disclosure | Cualquiera de sus tres ramas |
+| 4 | Club | Disclosure | Cualquiera de sus cuatro rutas canónicas |
+| Separado | Cuenta | Grupo de sesión | Nunca activa el menú editorial |
 
-Las cinco rutas son canónicas como contrato. El Navbar actual enlaza, por este orden, Inicio, Competición, Aprende a jugar y Escuela de Galotxas. Club no existe todavía ni aparece como enlace deshabilitado. La cuenta continúa separada.
+Los padres disclosure no tienen ruta. En particular, no se implementará una
+landing `/club` sin propósito independiente. El enlace exacto utiliza
+`aria-current="page"` y el hijo que representa una ruta descendiente utiliza
+`aria-current="location"`; el padre se marca sólo de forma visual.
+
+El Navbar actual sigue enlazando Inicio, Competición, Aprende a jugar y Escuela
+de Galotxas. Los grupos, rutas Club y footer son contrato pendiente de
+implementación, no enlaces disponibles.
 
 ## 4. Inventario de rutas actuales
 
@@ -117,8 +143,8 @@ No hay desplegables editoriales, breadcrumbs globales ni enlaces de footer. La n
 
 | Clasificación | Rutas | Estado tras Fase 6C |
 |---|---|---|
-| Canónicas implementadas | `/`, `/competicion`, `/aprende-a-jugar`, `/escuela` | Inicio se conserva; Competición, Aprende y Escuela enlazan sus experiencias funcionales. |
-| Canónicas futuras | `/club` | Reservada como contrato; no se registra ni enlaza sin contenido mínimo. |
+| Canónicas implementadas | `/`, `/competicion`, `/aprende-a-jugar`, `/aprende-a-jugar/manual`, `/escuela` | Inicio, Competición y las tres hijas futuras de Aprende ya tienen experiencias funcionales. |
+| Canónicas futuras | `/club/quienes-somos`, `/club/contacto`, `/club/federarse`, `/club/documentos` | Contratadas en 7B; no se registran ni enlazan sin contenido real. |
 | Funcionales secundarias | `/torneos`, `/torneos/:championshipId`, `/categories/:categoryId`, sus rutas de standings/schedule, `/matches/:matchId`, `/rankings` | Conservar rutas y contratos. Relacionarlas semánticamente con Competición. |
 | Cuenta | `/login`, `/register`, `/forgot-password`, `/reset-password`, `/player` | Conservar separadas del menú editorial. |
 | Técnica heredada | `/contenidos`, `/contenidos/:slug` | Retirar del primer nivel cuando existan destinos canónicos, pero mantener acceso y CMS hasta completar la migración. |
@@ -138,13 +164,24 @@ También existen módulos React no montados: `pages/Home.jsx` y `CategoryCard`, 
 | `/competicion` | Landing funcional de actividad deportiva pública | API pública del dominio Laravel | `h1`, acceso principal, temporadas/campeonatos y preview histórico con estados independientes; sin recalcular reglas | Rama deportiva completa y `/rankings` | Fase 4 completada con 4A–4C. |
 | `/aprende-a-jugar` | Entrada divulgativa al Manual, Reglamento y Conceptos | Proyección pública compilada desde `knowledge/` | `h1`, resumen derivado, acceso al Manual y recorrido real; no copy editorial duplicado en JSX | `/manual`, `/manual/reglamento/:slug` y `/manual/conceptos/:group/:slug` | Completada en 5C con 40 documentos, contexto, índice, vecinos, fragmentos y carga diferida. |
 | `/escuela` | Escuela permanente, niveles, horarios e inscripción pública | Híbrida: `knowledge/` futuro para pedagogía estable y dominio Laravel específico para operación y solicitudes | `h1`, enlace al Manual, niveles, horarios, ubicaciones, apertura y formulario cuando esté abierto | El MVP no requiere subrutas | Implementada en 6C sobre los contratos 6B.1–6B.4; `academy` permanece independiente. |
-| `/club` | Landing institucional que agrupa páginas editables | CMS administrado en Blade y API pública | `h1` y enlaces a un conjunto publicado y clasificado de páginas institucionales; estado vacío controlado | Futuras páginas de Nosotros, Federarse, Federaciones, Prensa y medios, Contacto y, si se aprueba, Documentos | Parcial. El CMS y cuatro piezas existen, pero faltan el mapeo canónico, Contacto y resolver la duplicidad de Nosotros. |
+| `/club/quienes-somos` | Presentación institucional | CMS `nosotros` | Identidad, propósito, actividad e imágenes aprobados | Alias temporal de `/nosotros` y `/contenidos/nosotros` | Contratada, no implementada. |
+| `/club/contacto` | Canales institucionales | CMS `contacto` futuro | Al menos un canal oficial y fecha de revisión; sin formulario | Footer y Club | Contratada; contenido y slug ausentes. |
+| `/club/federarse` | Proceso vigente para federarse | CMS `federarse` | Requisitos, organismo, enlaces, contacto y vigencia | Alias temporal de `/contenidos/federarse` | Contratada, no implementada. |
+| `/club/documentos` | Inventario de documentos vigentes | CMS `documentos` con enlaces | Nombre, propósito, versión, vigencia, formato y responsable | Alias temporal de `/contenidos/documentos` | Contratada, no implementada. |
 
-Los namespaces de Aprende a jugar quedan cerrados para el Manual inicial. La ruta única recomendada para el MVP de Escuela es `/escuela`; no necesita subrutas hasta que existan destinos reales con URLs estables. Club definirá las suyas cuando su contrato pueda garantizar esa estabilidad. Los ejemplos anteriores `/aprende` o `/manual` en raíz nunca se implementaron y no sustituyen este primer nivel.
+Los namespaces de Aprende a jugar quedan cerrados para el Manual inicial. La
+ruta única del MVP de Escuela es `/escuela`; no necesita subrutas hasta que
+existan destinos reales con URLs estables. Club es sólo el grupo que revela las
+cuatro rutas de la tabla y no registra `/club`. Los ejemplos `/aprende`,
+`/manual`, `/contacto`, `/federarse` o `/documentos` en raíz no se implementan
+ni se crean como aliases sin evidencia de consumidores.
 
 ### Gate específico de Escuela
 
-La etiqueta pública y el H1 son “Escuela de Galotxas”. Ocupa la cuarta posición del Navbar, tras Aprende a jugar, y su estado activo abarca `/escuela` y cualquier descendiente futuro. Sólo la landing exacta está registrada: `/escuela/alumno` y otras subrutas no aprobadas conservan la 404.
+La etiqueta pública y el H1 son “Escuela de Galotxas”. En la navegación
+contractual es la tercera hija de Aprende y su estado activo abarca `/escuela`
+y cualquier descendiente futuro. Sólo la landing exacta está registrada:
+`/escuela/alumno` y otras subrutas no aprobadas conservan la 404.
 
 Fase 6C verifica para la ruta:
 
@@ -155,7 +192,11 @@ Fase 6C verifica para la ruta:
 
 No se localizó una política de privacidad o texto de aceptación aprobado. Por tanto, React no inventa política, consentimiento o checkbox. Aprobar esos textos y su operación es deuda obligatoria antes de configurar inscripciones abiertas en producción; el default cerrado de `SchoolProgram` permite mantener el formulario ausente hasta entonces.
 
-Escuela se relaciona con Aprende mediante conocimiento y con Club mediante la organización responsable, pero no se integra editorial ni técnicamente en ninguno. El contrato funcional completo se mantiene en `12-school-of-galotxas.md`. La agrupación visual bajo Aprende que evalúa Fase 7A es una propuesta de navegación pendiente y no altera esta separación de fuentes, dominio o contrato.
+Escuela se relaciona con Aprende mediante descubrimiento y conocimiento, y con
+Club mediante la organización responsable, pero no se integra editorial ni
+técnicamente en ninguno. El contrato funcional completo se mantiene en
+`12-school-of-galotxas.md`. ADR-033 aprueba su agrupación visual bajo Aprende
+sin alterar fuentes, dominio, ruta o contrato.
 
 ## 7. Rutas secundarias
 
@@ -168,7 +209,7 @@ Escuela se relaciona con Aprende mediante conocimiento y con Club mediante la or
 | `/categories/:categoryId/schedule` | Competición | Mantener como URL compartible de calendario y resultados. |
 | `/matches/:matchId` | Competición | Mantener; combina consulta pública y workflow autorizado sin exponer datos privados a visitantes. |
 | `/rankings` | Competición | Mantener y enlazar desde la landing. “Rankings” deja de ser nombre de primer nivel, no deja de ser funcionalidad. |
-| Rutas de cuenta | Cuenta | Mantener fuera de las cinco áreas y conservar los retornos de autenticación. |
+| Rutas de cuenta | Cuenta | Mantener fuera de los cuatro controles editoriales y conservar los retornos de autenticación. |
 | `/player` | Cuenta | Mantener como Mi Panel, no como subruta editorial de Competición. |
 
 “Competición” será el único nombre de primer nivel para el dominio deportivo. “Torneos”, “Campeonatos”, “Calendarios”, “Clasificaciones” y “Rankings” son labels funcionales secundarios.
@@ -181,7 +222,14 @@ El contrato API refuerza hoy esa URL: `PublicCmsPageSummaryResource` genera `url
 
 La ruta estática `/nosotros` es heredada y duplicada, pero no está vacía. Su ausencia de enlaces internos no demuestra ausencia de tráfico externo ni autoriza su borrado.
 
-`academy` es un slug CMS sembrado y un nombre todavía presente en Home, además de haber formado parte del Navbar anterior a 3B. No es sinónimo contractual de Escuela de Galotxas ni de Aprende a jugar. Se conservará sin reinterpretación automática hasta inventariar su contenido real. Después se clasificarán y migrarán las piezas útiles, se comprobarán consumidores y paridad, y sólo entonces podrán decidirse despublicación, canonical o redirect hacia `/escuela`; datos, URL, navegación y SEO se tratan como problemas separados.
+`academy` es un slug CMS sembrado y formó parte del Navbar anterior a 3B. Home
+ya sustituyó esa etiqueta por un enlace funcional a Escuela, sin alterar la
+página CMS. No es sinónimo contractual de Escuela de Galotxas ni de Aprende a
+jugar. Se conservará sin reinterpretación automática hasta inventariar su
+contenido real. Después se clasificarán y migrarán las piezas útiles, se
+comprobarán consumidores y paridad, y sólo entonces podrán decidirse
+despublicación, canonical o redirect; datos, URL, navegación y SEO se tratan
+como problemas separados.
 
 ## 9. Matriz de compatibilidad
 
@@ -194,15 +242,18 @@ La ruta estática `/nosotros` es heredada y duplicada, pero no está vacía. Su 
 | Detalles de torneo, categoría y partido | Secundarias de Competición | No | Se conservan | Consumidores migrados y equivalencia completa. |
 | `/contenidos` | Índice técnico | No | Se conserva accesible temporalmente | Inventario CMS clasificado, landings completas, enlaces migrados y decisión SEO. |
 | `/contenidos/:slug` | Lectura CMS heredada | No como familia; destinos canónicos por contenido | Se conserva temporalmente | Página canónica equivalente, redirect probado y enlaces/Resource actualizados. |
-| `/nosotros` | Material de migración hacia Club/CMS | No | Se conserva temporalmente | CMS canónico con paridad, revisión editorial y redirect aprobado. |
+| `/nosotros` | Material de migración hacia `/club/quienes-somos` | No | Se conserva temporalmente | CMS canónico con paridad, revisión editorial y redirect aprobado. |
+| Cuatro rutas `/club/...` | Hijas canónicas de Club | Dentro del disclosure | Futuras, no implementadas | Contenido real, aliases, pruebas y aceptación 7C. |
 | Rutas de auth | Zona de cuenta | Separadas | Se conservan | Sólo cambios propios del flujo de cuenta. |
 | `/player` | Mi Panel | Separada | Se conserva | No se migra al árbol editorial. |
 
 No se ha localizado un enlace público activo cuyo destino carezca hoy de `Route`. La excepción es la rama inactiva hacia `/dashboard` ya descrita. Sí faltan enlaces entrantes para `/nosotros`; Club todavía no debe enlazarse.
 
-## 10. Propuesta de redirects futuros
+## 10. Propuesta de aliases y redirects futuros
 
-No se implementa ningún redirect en 3B.
+No se implementa ningún alias ni redirect en 7B. Fase 7C podrá introducir
+aliases React reversibles; los redirects HTTP quedan para después de acreditar
+paridad, migrar enlaces y coordinar canonical.
 
 | Origen | Destino propuesto | Tipo por ahora | Momento | Motivo y condición |
 |---|---|---|---|---|
@@ -210,12 +261,12 @@ No se implementa ningún redirect en 3B.
 | `/rankings` | Sin redirect | Sin redirect | Indefinido | Conserva una funcionalidad y enlaces directos. |
 | Rutas de detalle de competición | Sin redirect | Sin redirect | Indefinido | Los IDs, workflows y enlaces existentes son válidos. |
 | `/contenidos` | Por decidir | Decisión aplazada | Migración posterior | No existe todavía un índice canónico equivalente. |
-| `/contenidos/nosotros` | `/club/nosotros` | Alias temporal y posterior redirect por decidir | Tras crear Club y verificar paridad | La fuente será CMS; deben revisarse Resource, canonical y enlaces guardados. |
-| `/nosotros` | `/club/nosotros` | Redirect permanente candidato | Tras migración editorial y medición | Elimina la fuente React duplicada sin perder marcadores. |
+| `/contenidos/nosotros` | `/club/quienes-somos` | Alias temporal; redirect permanente posterior | En 7C tras verificar paridad; redirect después de aceptación | La fuente será CMS; deben revisarse canonical y enlaces guardados. |
+| `/nosotros` | `/club/quienes-somos` | Alias temporal; redirect permanente posterior | Alias tras paridad; redirect tras retirar JSX y medir | Elimina la fuente React duplicada sin perder marcadores. |
 | `/contenidos/federarse` | `/club/federarse` | Alias temporal candidato | Tras crear la página canónica | Preservar URLs y contenido CMS. |
-| `/contenidos/federaciones` | `/club/federaciones` | Alias temporal candidato | Tras crear la página canónica | Preservar URLs y contenido CMS. |
-| `/contenidos/prensa-media` | `/club/prensa-media` | Alias temporal candidato | Tras crear la página canónica | Mantener el slug actual reduce cambios innecesarios. |
-| `/contenidos/documentos` | `/club/documentos` u otra área aprobada | Decisión aplazada | Tras clasificar el contenido | “Documentos” puede servir a más de un área. |
+| `/contenidos/documentos` | `/club/documentos` | Alias temporal candidato | Tras inventariar enlaces y crear la página canónica | Preservar URLs y contenido CMS. |
+| `/contenidos/federaciones` | Sin destino canónico MVP | Sin alias | Revisión posterior | Sólo URL directa o footer condicional si existe contenido real. |
+| `/contenidos/prensa-media` | Sin destino canónico MVP | Sin alias | Revisión posterior | Sólo URL directa o footer condicional si existe contenido real. |
 | `/contenidos/academy` | Sin destino automático | Decisión aplazada | Tras auditoría editorial | No redirigir a `/escuela` ni a `/aprende-a-jugar` sólo por el nombre. |
 | `/aprende` o `/manual` | Ninguno | Sin redirect por ahora | Sólo si aparecen consumidores reales | No son rutas implementadas; no se crean aliases sin evidencia. |
 
@@ -239,9 +290,9 @@ En móvil puede compartirse la misma cabecera visual, pero deben mantenerse grup
 |---|---|---|---|
 | Inicio | Híbrida | Estructura y composición | Entrega sólo elementos dinámicos publicables; Knowledge aporta artefactos cuando existan. |
 | Competición | Dominio Laravel | Presentar y enlazar datos | Aplicar visibilidad, estados y reglas; serializar Resources públicos. |
-| Aprende a jugar | `knowledge/` | Presentar exclusivamente la proyección pública | Compilador build-time valida, filtra y genera; Laravel no sirve el Manual v1. |
-| Escuela de Galotxas | `knowledge/` futuro + dominio Laravel específico | Componer ambas fuentes y el formulario sin duplicar reglas | Compilador para pedagogía estable; Blade/API para programa, niveles, horarios, ubicaciones e inscripciones. |
-| Club | CMS | Landing y presentación de páginas públicas | Blade administra; API excluye borradores y publicaciones futuras. |
+| Aprende: Aprende a jugar y Manual | `knowledge/` | Presentar exclusivamente la proyección pública | Compilador build-time valida, filtra y genera; Laravel no sirve el Manual v1. |
+| Aprende: Escuela de Galotxas | `knowledge/` futuro + dominio Laravel específico | Componer fuentes autorizadas y el formulario sin duplicar reglas | Compilador para pedagogía futura; Blade/API para programa, niveles, horarios, ubicaciones e inscripciones. |
+| Club | CMS | Rutas canónicas y presentación de páginas públicas, sin landing padre | Blade administra; API excluye borradores y publicaciones futuras. |
 | Cuenta | Dominio Laravel autenticado | Formularios y Mi Panel | Autenticación, autorización y datos propios. |
 
 ## 13. CMS y páginas institucionales
@@ -250,12 +301,12 @@ El inventario se basa en código, seeders y tests, sin consultar la base de desa
 
 | Contenido | Ruta actual verificable | Fuente | Duplicado | Ruta futura propuesta |
 |---|---|---|---|---|
-| Prensa y medios | `/contenidos/prensa-media` | CMS; seeder y Navbar anterior a 3B | No localizado | `/club/prensa-media` después de migración |
-| Nosotros | `/nosotros` y `/contenidos/nosotros` | React estático + CMS | Sí | `/club/nosotros`, con CMS como fuente canónica |
-| Federaciones | `/contenidos/federaciones` | CMS; seeder y Navbar anterior a 3B | No localizado | `/club/federaciones` |
+| Prensa y medios | `/contenidos/prensa-media` | CMS; seeder y Navbar anterior a 3B | No localizado | Sin canónica MVP; URL directa o footer sólo con contenido real |
+| Nosotros | `/nosotros` y `/contenidos/nosotros` | React estático + CMS | Sí | `/club/quienes-somos`, con CMS como fuente canónica |
+| Federaciones | `/contenidos/federaciones` | CMS; seeder y Navbar anterior a 3B | No localizado | Sin canónica MVP; URL directa o footer sólo con contenido real |
 | Federarse | `/contenidos/federarse` | CMS; seeder, sin enlace actual de Navbar | No localizado | `/club/federarse` |
-| Documentos | `/contenidos/documentos` | CMS; seeder, sin enlace actual de Navbar | No localizado | `/club/documentos` sólo si la clasificación editorial lo confirma |
-| Academy | `/contenidos/academy` | CMS; seeder, Navbar anterior a 3B y copy estático de Home | Hay representación duplicada en la interfaz, no una segunda página completa | Decisión aplazada; no equivale a `/escuela` |
+| Documentos | `/contenidos/documentos` | CMS; seeder, sin enlace actual de Navbar | No localizado | `/club/documentos` |
+| Academy | `/contenidos/academy` | CMS; seeder y Navbar anterior a 3B | Home ya enlaza Escuela; el CMS legado permanece | Decisión aplazada; no equivale a `/escuela` |
 | Contacto | No existe slug sembrado, enlace ni ruta específica | Sin fuente actual verificada | No | `/club/contacto` cuando exista contenido y flujo real |
 | Índice CMS | `/contenidos` | API de páginas publicables | No aplica | No será área de primer nivel; destino final por decidir |
 | Página E2E | `/contenidos/e2e-publicada` sólo en E2E | Seeder temporal | No aplica | Nunca forma parte del catálogo de producción |
@@ -352,7 +403,7 @@ Fase 4C centraliza las raíces y generadores reutilizados en `competitionRoutes`
 
 Navbar muestra sus dos enlaces en una sola fila por encima de 1024 px y activa el menú colapsable a 1024 px. A 640 px oculta visualmente la palabra “Menú”, conservando el nombre accesible. La cuenta queda fuera de la lista colapsable. El logo mide 140 px en escritorio, 100 px en tablet y 80 px en móvil.
 
-Playwright cubre 320, 375, 768, 1024, 1280 y 1440 px con una identidad deliberadamente larga. No detecta desbordamiento horizontal ni solapamiento entre los grupos visibles del Navbar. La futura ampliación a cinco áreas deberá repetir esta matriz.
+Playwright cubre 320, 375, 768, 1024, 1280 y 1440 px con una identidad deliberadamente larga. No detecta desbordamiento horizontal ni solapamiento entre los grupos visibles del Navbar. La futura implementación de los disclosures Aprende/Club deberá repetir esta matriz.
 
 Fase 4C repite esa matriz en landing, listado de Torneos, campeonato, categoría, standings, schedule, partido y Rankings. Las tablas conservan su overflow dentro del contenedor sin provocar overflow documental; tarjetas, acciones y textos largos se adaptan hasta 320 px. El E2E comprueba además foco visible y una ampliación visual del 200 % en la navegación de categoría.
 
@@ -519,11 +570,15 @@ Con 4A, 4B y 4C completadas, la Fase 4 queda cerrada. No se incorporan en la lan
 - integrar la regeneración de los dos artefactos en CI/despliegue cuando la raíz del monorepo esté garantizada;
 - definir colecciones reales de Historia y Escuela;
 - crear contrato CMS operativo de Escuela, con privacidad de menores;
-- consolidar el contenido institucional y clasificar `documentos` y `academy` antes de migrarlos, sin equivalencias automáticas;
-- crear y administrar Contacto;
+- consolidar el contenido institucional, inventariar `documentos` ya asignado a
+  Club y clasificar `academy` sin equivalencias automáticas;
+- crear, cargar y administrar Contacto sin formulario;
 - migrar Nosotros y resolver su duplicidad;
-- decidir URLs de detalle bajo Escuela y Club; cualquier nueva colección de Aprende requiere un contrato posterior propio;
-- definir aliases, redirects, canonical e indexación de `/contenidos` tras verificar paridad;
+- decidir sólo futuras URLs de detalle bajo Escuela; las cuatro rutas Club ya
+  están contratadas y cualquier nueva colección de Aprende requiere un contrato
+  posterior propio;
+- implementar los aliases Club contratados tras verificar paridad; redirects,
+  canonical e indexación de `/contenidos` continúan posteriores;
 - corregir `/dashboard` latente y revisar componentes huérfanos;
 - decidir si se consolida el detalle agregado de categoría con standings/schedule;
 - completar SEO, sitemap, robots y respuesta 404 HTTP en hosting más allá de los metadatos básicos y fallback React;
@@ -641,7 +696,7 @@ Con 4A, 4B y 4C completadas, la Fase 4 queda cerrada. No se incorporan en la lan
 - pruebas frontend y E2E cubren navegación, permisos, compatibilidad y fuentes remotas;
 - no se duplica contenido editable entre React, CMS y `knowledge/`.
 
-## 25. Auditoría 7A: navegación actual y propuesta
+## 25. Auditoría 7A y contrato 7B
 
 ### Estado actual
 
@@ -650,7 +705,7 @@ a jugar y Escuela de Galotxas. La cuenta permanece separada. Torneos, Rankings,
 CMS y `/nosotros` conservan acceso por rutas secundarias o directas. Club no
 está registrado ni se muestra como placeholder.
 
-### Recomendación pendiente de aprobación
+### Navegación contractual aprobada
 
 Fase 7A recomienda dos grupos de revelación:
 
@@ -662,7 +717,7 @@ Aprende
 ├── Manual y reglas        /aprende-a-jugar/manual
 └── Escuela de Galotxas    /escuela
 Club
-├── Quiénes somos          /club
+├── Quiénes somos          /club/quienes-somos
 ├── Contacto               /club/contacto
 ├── Federarse              /club/federarse
 └── Documentos             /club/documentos
@@ -672,23 +727,25 @@ Cuenta
 Aprende a jugar orienta y presenta colecciones; Manual cataloga documentos. No
 son duplicados. Escuela comparte contexto de descubrimiento, pero mantiene ruta,
 dominio Laravel y contrato independientes de Knowledge. Club reúne el contenido
-institucional administrable. Prensa/Media y Federaciones se reservan para el
-footer o una navegación secundaria si disponen de contenido real.
+institucional administrable y es sólo disclosure: no enlaza una landing
+`/club`. Prensa/Media y Federaciones quedan fuera del Navbar y se omiten del
+footer mientras no dispongan de contenido real y responsable.
 
-La propuesta difiere del contrato plano de cinco áreas al agrupar Escuela bajo
-Aprende y convertir Club en grupo institucional. No está implementada, no
-modifica ADR-028 y requiere aprobación humana, contenido real y una decisión de
-compatibilidad antes de cambiar el Navbar.
+ADR-033 aprueba esta topología y sustituye parcialmente el contrato plano de
+ADR-028. Fase 7B no la implementa: requiere contenido real, aceptación del
+paquete editorial y los bloques 7C/7D.
 
 ### Interacción requerida
 
 - botones de revelación, nunca interacción sólo por hover;
 - mismo árbol en desktop y móvil, con acordeón permitido en móvil;
 - `aria-expanded`, `aria-controls`, foco visible y orden lógico;
-- `aria-current="page"` en el enlace exacto y grupo visualmente activo en
-  descendientes;
+- `aria-current="page"` en el enlace exacto, `location` en el hijo que
+  representa un descendiente y grupo padre activo sólo visualmente;
 - Escape cierra el grupo abierto y devuelve el foco a su disparador;
-- navegación, click exterior y cierre móvil cierran los grupos;
+- abrir un grupo cierra el otro;
+- navegación y cierre móvil cierran los grupos;
+- un segundo Escape cierra el menú móvil y devuelve foco a `Menú`;
 - cuenta separada y rutas deportivas actuales preservadas.
 
 ### Home y footer
@@ -699,12 +756,16 @@ No debe duplicar el menú ni mostrar tarjetas, noticias o afirmaciones sin fuent
 real.
 
 El footer debe ser global y enlazar contenido institucional y legal real:
-Quiénes somos, Contacto, Federarse, Documentos, privacidad y aviso aplicable.
-Prensa, Federaciones, redes, accesibilidad o copyright sólo se publicarán con
-destinos y responsables confirmados.
+Quiénes somos, Contacto, Federarse, Documentos, privacidad, aviso legal,
+identidad oficial y copyright aprobado. Prensa, Federaciones, redes y
+accesibilidad sólo se publicarán con destinos y responsables confirmados;
+cookies sólo cuando la revisión técnica/legal determine que aplica.
 
-El detalle de matrices, alternativas y fases está en
-`14-mvp-parity-audit.md`.
+Las rutas heredadas coexistirán mediante aliases temporales sólo después de
+acreditar paridad. Los redirects permanentes se aplazan hasta migrar enlaces,
+coordinar canonical y configurar servidor/CDN. El detalle de plantillas,
+matrices, alternativas, gates y fases está en
+`15-mvp-editorial-and-navigation-contract.md`.
 
 ## Mantenimiento
 

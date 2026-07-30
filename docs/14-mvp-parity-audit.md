@@ -191,7 +191,7 @@ de contacto, noticias o formulario institucional.
 | `/contenidos/:slug` | Pública | CMS API | Genérica legada | Sin aliases/canonical y no integrada en Club | P0 institucional |
 | `/nosotros` | Pública | JSX hardcodeado | Heredada | Copy, cargos placeholder, imágenes y duplicidad CMS | P0 |
 | `*` | Pública | React Router | Funcional | Hosting debe conservar fallback SPA | P0 despliegue |
-| `/club` y descendientes | Pública | Ausente | Ausente | Contrato y contenido institucional sin implementar | P0 |
+| `/club/quienes-somos`, `/club/contacto`, `/club/federarse`, `/club/documentos` | Pública | CMS futuro | Ausentes | Contrato cerrado en 7B; contenido e implementación pendientes | P0 |
 
 El router mantiene las rutas deportivas actuales y una 404 React. La carga
 diferida de Aprende y Escuela evita reincorporar Knowledge al chunk inicial.
@@ -272,7 +272,7 @@ debe:
 
 1. crear o verificar una ubicación escolar activa;
 2. crear un programa, mantenerlo privado y cerrado durante la preparación;
-3. completar únicamente nombre, introducción, contacto y ubicación aprobados;
+3. completar únicamente nombre, contacto y ubicación aprobados;
 4. crear niveles reales con edades y orden confirmados;
 5. crear horarios reales vinculados a niveles y ubicaciones activas;
 6. revisar el agregado público con el programa aún cerrado;
@@ -403,7 +403,7 @@ destinos secundarios o directos. Club no existe.
 - Agrupar Aprende y Club mediante menús de revelación: mantiene fuentes y rutas
   independientes, reduce longitud y ofrece una arquitectura extensible.
 
-### 13.3. Recomendación única para revisión humana
+### 13.3. Recomendación única de 7A, cerrada en 7B
 
 ```text
 Inicio
@@ -427,7 +427,7 @@ Rutas propuestas:
 | Aprende a jugar | `/aprende-a-jugar` |
 | Manual y reglas | `/aprende-a-jugar/manual` |
 | Escuela de Galotxas | `/escuela` |
-| Quiénes somos | `/club` |
+| Quiénes somos | `/club/quienes-somos` |
 | Contacto | `/club/contacto` |
 | Federarse | `/club/federarse` |
 | Documentos | `/club/documentos` |
@@ -437,9 +437,10 @@ presenta colecciones; la segunda cataloga el corpus. Escuela puede agruparse
 por el modelo mental del visitante, pero conserva ruta, dominio y fuente
 independientes.
 
-Esta recomendación no modifica todavía el contrato aprobado de cinco áreas ni
-cierra un ADR. Debe aceptarse humanamente junto con las URLs y el plan de
-compatibilidad antes de implementarse.
+En 7A esta recomendación no modificaba todavía el contrato de cinco áreas.
+Fase 7B la acepta mediante ADR-033, elige Club sólo como disclosure y fija
+`/club/quienes-somos`. La implementación, el contenido real y la
+compatibilidad continúan pendientes.
 
 ### 13.4. Comportamiento requerido
 
@@ -665,26 +666,29 @@ son P1 y no bloquean esta primera versión.
 - **Cierre:** matrices, P0–P2, fases y checklist revisables.
 - **Merge a `main`:** sí, tras revisión humana, como línea base documental.
 
-### Fase 7B — Decisiones y preparación editorial
+### Fase 7B — Decisiones y preparación editorial — completada
 
-- **Objetivo:** cerrar la navegación, URLs, responsables y materiales reales.
-- **Alcance:** aprobar IA, compatibilidad, inventario CMS por entorno, copy
-  institucional, contacto, legal, uso de imágenes, identidad pública de
-  participantes y datos School.
+- **Objetivo:** cerrar la navegación, URLs, responsabilidades, plantillas y
+  gates de los materiales reales.
+- **Alcance:** aprobar IA y compatibilidad; inventariar CMS, Home, Escuela e
+  identidad deportiva; definir plantillas de copy, contacto, legal, imágenes y
+  datos operativos sin aportarlos.
 - **Fuera:** implementar rutas o cargar producción.
 - **Backend/frontend:** sólo contratos afectados.
 - **Contenido:** aportación y revisión humana obligatorias.
 - **Tests:** criterios editoriales, de privacidad y trazabilidad.
-- **Documentación:** ADR sólo después de aprobar la decisión.
-- **Cierre:** paquete de decisiones y contenido listo para implementar.
+- **Documentación:** ADR-033 y
+  `15-mvp-editorial-and-navigation-contract.md`.
+- **Cierre:** arquitectura y paquete de preparación listos; contenido, legal,
+  identidad deportiva y datos reales continúan como gates humanos.
 - **Merge a `main`:** sí si genera documentación/contenido versionado aprobado;
   la configuración de base de datos se promociona por un procedimiento aparte.
 
 ### Fase 7C — Vertical institucional Club
 
 - **Objetivo:** ofrecer Club con fuente CMS única y contenido real.
-- **Alcance:** Quiénes somos, Contacto, Federarse y Documentos; URLs canónicas;
-  migración conservadora de Nosotros.
+- **Alcance:** Quiénes somos, Contacto, Federarse y Documentos; cuatro URLs
+  canónicas; aliases temporales y migración conservadora de Nosotros.
 - **Fuera:** `academy`, redirects definitivos, formulario de contacto y
   multimedia administrada.
 - **Backend:** ampliar contratos CMS sólo si la composición real lo exige.
@@ -700,7 +704,7 @@ son P1 y no bloquean esta primera versión.
 - **Objetivo:** convertir las áreas funcionales en una experiencia pública
   coherente.
 - **Alcance:** menús Aprende/Club, cuenta separada, Home veraz, footer global y
-  accesos legales reales.
+  accesos legales reales con contenido aprobado.
 - **Fuera:** SEO completo, redirects y noticias sin fuente.
 - **Backend:** ninguno salvo contrato CMS imprescindible.
 - **Frontend:** disclosure desktop/móvil, activo, foco, Escape, responsive,
@@ -714,8 +718,9 @@ son P1 y no bloquean esta primera versión.
 ### Fase 7E — Preparación operativa de Escuela
 
 - **Objetivo:** publicar Escuela con datos y privacidad reales.
-- **Alcance:** configuración por Blade, validación del agregado, información de
-  privacidad y procedimiento de solicitudes; apertura controlada.
+- **Alcance:** carga manual privada/cerrada por Blade, validación del agregado,
+  contenido, privacidad, conservación, capacidad de gestión, solicitud de
+  prueba y apertura controlada.
 - **Fuera:** nuevos modelos/endpoints, metodología inventada y contenido
   público de centros/actividades.
 - **Backend/frontend:** cambios mínimos sólo si la revisión humana detecta un
@@ -746,8 +751,9 @@ son P1 y no bloquean esta primera versión.
 ### Fase 7G — Validación y cierre del MVP
 
 - **Objetivo:** demostrar todos los criterios observables.
-- **Alcance:** suites completas, recorridos críticos, QA responsive/accesible,
-  aceptación editorial/privacidad y smoke productivo.
+- **Alcance:** suites completas, recorridos críticos deportivos,
+  institucionales, School, usuario y administración; QA responsive/accesible,
+  prioridad multibrowser, aceptación editorial/privacidad y smoke productivo.
 - **Fuera:** P1/P2 salvo defectos bloqueantes.
 - **Backend/frontend/contenido:** sólo correcciones surgidas de la validación.
 - **Tests:** Laravel sobre MariaDB, Vitest/RTL, lint/build/Knowledge, Playwright,
@@ -760,16 +766,17 @@ son P1 y no bloquean esta primera versión.
 
 - **Fase 8A:** edición de perfil y claridad de equipos/participación.
 - **Fase 8B:** reprogramación React y endurecimiento del contrato.
-- **Fase 8C:** `academy`, aliases/redirects, SEO, multimedia y limpieza heredada.
+- **Fase 8C:** `academy`, redirects permanentes, aliases aún no contratados,
+  SEO, multimedia y limpieza heredada.
 
 Cada bloque debe ser pequeño. Las decisiones humanas y la carga de contenido no
 se deben ocultar dentro de una fase de código.
 
 ## 21. Dependencias y decisiones humanas
 
-Antes de implementar 7C–7F se necesita:
+Antes de implementar o cerrar 7C–7F se necesita:
 
-- aprobar la recomendación Aprende/Club y sus URLs;
+- aceptar el contrato 7B de Aprende/Club, sus URLs y compatibilidad;
 - nombrar responsables de contenido, privacidad y operación;
 - proporcionar copy, contacto, documentos, datos School y enlaces oficiales;
 - revisar imágenes, licencias y consentimientos;
@@ -941,3 +948,37 @@ El aislamiento Docker está resuelto y la pérdida del volumen local permanece
 como incidente histórico documentado en `13-docker-environment-isolation.md`.
 Fase 7 sigue abierta y el MVP completo no debe declararse hasta cerrar 7G.
 
+## 26. Seguimiento de Fase 7B
+
+Fase 7B reaudita en lectura la navegación, Home, Nosotros, CMS, Escuela y la
+identidad expuesta por los Resources públicos. El resultado completo se
+encuentra en `15-mvp-editorial-and-navigation-contract.md` y se formaliza en
+ADR-033.
+
+Quedan cerrados documentalmente:
+
+- Inicio y Competición como enlaces directos;
+- Aprende como disclosure de Aprende a jugar, Manual y Escuela, sin fusionar
+  rutas o fuentes;
+- Club como disclosure de Quiénes somos, Contacto, Federarse y Documentos, sin
+  landing `/club`;
+- Cuenta separada;
+- rutas canónicas `/club/...`, aliases temporales conservadores y redirects
+  posteriores a paridad;
+- CMS institucional, Contacto sin formulario y Documentos mediante bloques de
+  enlaces;
+- Prensa y Federaciones fuera del Navbar y condicionales en footer;
+- footer obligatorio, plantillas editoriales, matriz legal, checklist School y
+  plan refinado 7C–7G.
+
+Continúan abiertos como gates humanos:
+
+- contenido real de Quiénes somos, Contacto, Federarse, Documentos y Home;
+- procedencia de imágenes, identidad oficial y copyright;
+- privacidad, aviso legal y aplicabilidad de cookies;
+- política de identidad pública y tratamiento de menores en Competición;
+- datos, contenido, conservación y capacidad operativa de Escuela;
+- infraestructura y aceptación de despliegue.
+
+7B no añade menús, rutas, CMS, aliases, redirects, contenido, datos o
+configuración. 7C–7G permanecen pendientes, Fase 7 abierta y el MVP incompleto.

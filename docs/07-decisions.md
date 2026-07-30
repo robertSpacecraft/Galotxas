@@ -687,7 +687,7 @@ Consecuencias:
 
 # ADR-028 — Cinco áreas canónicas y compatibilidad de la navegación pública
 
-Estado: Aceptada
+Estado: Sustituida parcialmente por ADR-033
 
 Fecha aproximada: 2026-07
 
@@ -1028,6 +1028,103 @@ Consecuencias:
 - Los comandos manuales de desarrollo deben incluir proyecto y archivo explícitos.
 - La recuperación de datos locales es una operación humana separada; 6C.1 no crea un volumen nuevo ni inventa datos perdidos.
 - La decisión es transversal y se documenta en `13-docker-environment-isolation.md`; no modifica ADR-031 ni los contratos de Escuela.
+
+---
+
+# ADR-033 — Navegación agrupada y contrato institucional del MVP
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-07
+
+Contexto:
+
+- ADR-028 definió cinco áreas planas cuando Aprende, Escuela y Club todavía no
+  estaban implementados.
+- Aprende a jugar, Manual y Escuela ya tienen rutas y funciones distintas, pero
+  comparten una intención de descubrimiento para quien quiere conocer o
+  aprender el juego.
+- Escuela mantiene un dominio Laravel independiente y no debe fusionarse con la
+  fuente Knowledge.
+- El contenido institucional continúa disperso entre `/nosotros`, páginas CMS
+  bajo `/contenidos` y afirmaciones de Home; Contacto y legal no existen.
+- Una landing `/club` no tiene contenido o tarea propia adicional a Quiénes
+  somos, Contacto, Federarse y Documentos.
+- El CMS puede administrar páginas y bloques estructurados, pero no resuelve
+  por sí solo rutas canónicas, aliases, redirects, footer o revisión humana.
+
+Decisión:
+
+- conservar `Inicio` y `Competición` como enlaces directos;
+- sustituir las áreas planas Aprende a jugar y Escuela por un disclosure
+  `Aprende`, con hijas ordenadas `Aprende a jugar`, `Manual y reglas` y
+  `Escuela de Galotxas`;
+- mantener las rutas y fuentes de las tres hijas: Knowledge para Aprende/Manual
+  y Laravel operativo para Escuela;
+- utilizar `Club` como disclosure, no como enlace o landing;
+- fijar como hijas `/club/quienes-somos`, `/club/contacto`,
+  `/club/federarse` y `/club/documentos`;
+- mantener Cuenta como grupo hermano separado;
+- utilizar una sola configuración y el mismo árbol en desktop y móvil, con
+  botones de revelación, `aria-expanded`, `aria-controls`, foco visible,
+  cierre al navegar y Escape con retorno de foco;
+- aplicar `aria-current="page"` al enlace exacto y `location` al enlace que
+  representa un descendiente, dejando el padre activo sólo de forma visual;
+- asignar el contenido institucional al CMS, React a presentación/navegación y
+  reservar Knowledge para conocimiento estable del juego;
+- elegir Contacto informativo mediante CMS, sin formulario ni almacenamiento
+  de solicitudes en el MVP;
+- mantener `/nosotros` y las URLs `/contenidos/...` durante una migración con
+  paridad y aliases temporales; aplazar redirects permanentes hasta coordinar
+  enlaces, canonical, servidor/CDN y rollback;
+- excluir `academy` de cualquier equivalencia automática con Escuela;
+- definir un footer global obligatorio para Quiénes somos, Contacto, Federarse,
+  Documentos, privacidad, aviso legal, identidad oficial y copyright;
+- mostrar Prensa, Federaciones, redes, accesibilidad y cookies sólo cuando
+  exista contenido, responsable o aplicabilidad confirmados;
+- registrar plantillas, matriz legal, checklist School y gates en
+  `15-mvp-editorial-and-navigation-contract.md`;
+- mantener abierta la política de identidad pública de participantes como gate
+  humano de publicación.
+
+Alternativas descartadas:
+
+- conservar cinco áreas planas: ocupa el primer nivel con destinos relacionados
+  y dificulta incorporar la vertical institucional;
+- hacer de `Aprende` un enlace a `/aprende-a-jugar`: convertiría el padre y una
+  hija en destinos indistinguibles;
+- integrar Escuela técnicamente en Aprende o Knowledge: rompería su contrato
+  Laravel y la separación de fuentes;
+- usar `La entidad`, `Sobre nosotros` o `Información` como padre: son
+  respectivamente burocrática, redundante o demasiado genérica;
+- crear `/club`: duplicaría las cuatro tareas sin propósito independiente;
+- usar rutas raíz `/contacto`, `/federarse` y `/documentos`: pierde agrupación y
+  no aporta compatibilidad existente;
+- enlazar directamente `/contenidos/:slug` como arquitectura final: expone una
+  estructura técnica y acopla URL pública a persistencia;
+- implementar un formulario de contacto por defecto: introduce datos,
+  privacidad, entrega y abuso sin necesidad operativa aprobada;
+- aplicar redirects en 7C: eliminaría la coexistencia reversible antes de
+  acreditar paridad;
+- cerrar una política de nombres deportivos sin revisión humana: afectaría
+  privacidad, menores y Resources públicos sin mandato suficiente.
+
+Consecuencias:
+
+- ADR-028 queda sustituida sólo en su topología plana y en la landing `/club`;
+  conserva cuenta separada, rutas deportivas, compatibilidad y fuentes.
+- El Navbar actual no cambia en 7B; disclosures, rutas Club y footer se
+  implementarán en 7C/7D con contenido real y pruebas.
+- Escuela aparece bajo Aprende por descubrimiento, pero sigue siendo una
+  vertical independiente.
+- Las cuatro páginas Club tienen URL canónica estable sin duplicar su cuerpo en
+  JSX.
+- CMS y URL canónica pueden evolucionar de forma independiente durante la
+  migración.
+- Contacto no exige backend adicional para el MVP.
+- Prensa y Federaciones pueden omitirse sin crear enlaces vacíos.
+- Legal, contenido, imágenes, datos School e identidad deportiva siguen siendo
+  gates humanos; Fase 7 y el MVP permanecen abiertos.
 
 ---
 

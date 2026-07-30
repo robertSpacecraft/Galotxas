@@ -6,6 +6,7 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Se completa documentalmente Fase 7B con `MVP-EDITORIAL-NAVIGATION-CONTRACT-1`: navegación final, rutas institucionales canónicas, plantillas editoriales, matriz legal, inventario de identidad pública, checklist School, gates humanos y plan refinado 7C–7G, sin implementar código, contenido ni datos.
 - Se completa MVP-PARITY-AUDIT-1 de Fase 7A con inventarios de backend, Blade, API, React, CMS y autogestión, definición observable del MVP, priorización P0–P2, recomendación de navegación y plan 7B–7G, sin implementar funciones ni modificar datos.
 - Se incorpora la base administrativa `is_public` para temporadas, campeonatos y categorías, con nuevos registros privados, backfill compatible y validación jerárquica sin cascadas; la API pública todavía no filtra por este campo.
 - Se documenta el contrato de navegación pública de Fase 3A: cinco áreas canónicas, fuentes de verdad, rutas secundarias, compatibilidad heredada y gates de implementación, sin cambios visibles en Navbar ni nuevas landings.
@@ -37,6 +38,7 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Changed
 
+- ADR-033 sustituye documentalmente la topología pública plana por Inicio y Competición como enlaces, Aprende y Club como disclosures y Cuenta separada; fija cuatro rutas Club, Contacto sin formulario y un footer contractual, todavía sin cambios visibles.
 - La API administrativa de temporadas, campeonatos y categorías utiliza Form Requests, persistencia explícita y Resources dedicados, con contratos y permisos de administrador activo verificados.
 - Se elimina la asignación no validada de esos CRUD; `is_public` respeta la jerarquía de Blade y los campos protegidos, incluidas imágenes y relaciones, no pueden manipularse mediante payload.
 - La API pública de competición excluye las ramas privadas en listados, detalles, relaciones, partidos, rankings, standings, schedules e inicio de inscripciones, manteniendo los contratos serializados.

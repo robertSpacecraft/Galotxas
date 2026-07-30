@@ -79,17 +79,23 @@ La normalización técnica sólo puede cambiar estructura expresamente autorizad
 
 ## 5. Arquitectura pública aprobada
 
-La navegación pública de primer nivel queda contratada en cinco rutas:
+Fase 7B contrata cuatro controles editoriales:
 
-- Inicio (`/`);
-- Competición (`/competicion`);
-- Aprende a jugar (`/aprende-a-jugar`);
-- Escuela de Galotxas (`/escuela`);
-- Club (`/club`).
+- Inicio (`/`), enlace;
+- Competición (`/competicion`), enlace;
+- Aprende, disclosure de Aprende a jugar (`/aprende-a-jugar`), Manual y reglas
+  (`/aprende-a-jugar/manual`) y Escuela de Galotxas (`/escuela`);
+- Club, disclosure de `/club/quienes-somos`, `/club/contacto`,
+  `/club/federarse` y `/club/documentos`.
 
 La identidad del usuario, Mi Panel y el cierre de sesión permanecerán en una zona autenticada separada.
 
-Estas áreas son la arquitectura objetivo. Tras 6C están registradas `/`, `/competicion`, `/aprende-a-jugar` y `/escuela`, y las cuatro forman el Navbar editorial actual. Competición utiliza datos públicos reales; Aprende consume la proyección compilada de Knowledge; Escuela consume el agregado y la escritura públicos de Laravel. Club no se considera implementado por aparecer en documentación ni se muestra como enlace deshabilitado.
+Esta es la arquitectura objetivo de ADR-033. Tras 6C están registradas `/`,
+`/competicion`, `/aprende-a-jugar`, su Manual y `/escuela`; el Navbar actual
+mantiene cuatro enlaces planos. Competición utiliza datos públicos reales;
+Aprende a jugar y Manual consumen la proyección compilada de Knowledge; Escuela
+consume el agregado y la escritura públicos de Laravel. Los disclosures y las
+cuatro rutas Club no se consideran implementados por aparecer en documentación.
 
 Los componentes de `frontend/src/components/PublicLanding/` son infraestructura de presentación, no una cuarta fuente de contenido. Pueden recibir datos ya autorizados del dominio Laravel, artefactos compilados desde `knowledge/` o contenido público del CMS, pero no conocen esas fuentes ni deciden visibilidad, publicación o reglas. Sus props admiten estructura, copy breve de interfaz y contenido procedente de la fuente canónica; no deben usarse para hardcodear contenido administrable como sustituto temporal del CMS o de `knowledge/`.
 
@@ -117,7 +123,11 @@ El cierre 5C mantiene esas rutas y fuentes. La landing presenta los recuentos ob
 
 ### Escuela de Galotxas
 
-Sección pública propia para una Escuela permanente orientada principalmente a menores y abierta también a solicitudes de adultos. No es una subsección del Manual y no debe denominarse públicamente “Academy”, salvo para explicar una referencia legada durante la migración.
+Sección pública propia para una Escuela permanente orientada principalmente a
+menores y abierta también a solicitudes de adultos. Se agrupa bajo Aprende
+exclusivamente para facilitar su descubrimiento: no es una subsección del
+Manual, no cambia de ruta o fuente y no debe denominarse públicamente
+“Academy”, salvo para explicar una referencia legada durante la migración.
 
 Su arquitectura es híbrida y se implementa por bloques:
 
@@ -137,7 +147,19 @@ La ruta canónica es `/escuela`. No se aprueba `/manual/academy`. Fases 6A y 6A.
 
 ### Club
 
-Agrupa Nosotros, Federarse, Federaciones, Prensa y medios y Contacto. Su contenido administrable tendrá como fuente el backend CMS. El código garantiza actualmente los slugs sembrados `nosotros`, `federarse`, `federaciones` y `prensa-media`; no existe un slug sembrado `contacto`. También existe `documentos`, cuya asignación definitiva requiere clasificación. La duplicidad entre `/nosotros` estático y `/contenidos/nosotros` se resolverá a favor del CMS sólo después de migrar el contenido y aprobar compatibilidad.
+Club es un disclosure, no una landing `/club`. Agrupa únicamente Quiénes somos,
+Contacto, Federarse y Documentos. Su contenido administrable tiene como fuente
+el backend CMS y se presentará mediante las cuatro rutas canónicas de Fase 7B.
+
+El código garantiza actualmente los slugs sembrados `nosotros`, `federarse` y
+`documentos`; no existe un slug sembrado `contacto`. La duplicidad entre
+`/nosotros` estático y `/contenidos/nosotros` se resolverá a favor del CMS sólo
+después de inventariar, aprobar, acreditar paridad y mantener aliases
+temporales. React no copiará ese cuerpo.
+
+`prensa-media` y `federaciones` siguen siendo páginas CMS legadas, pero quedan
+fuera del Navbar y de Club en el MVP. Sólo podrán aparecer en el footer como
+enlaces condicionales cuando exista contenido real y responsable.
 
 ### Contenidos legado
 
@@ -164,6 +186,8 @@ La tabla diferencia la fuente aprobada de las capacidades actuales que todavía 
 | Escuela: avisos simples | CMS genérico, si se aprueba | Administrador | Genérico actual | Genérica actual | Editorial |
 | Club | Backend CMS | Administrador | Sí | Sí | Institucional |
 | Prensa y medios | Backend CMS genérico auditado; contrato específico pendiente | Administrador | Genérico actual | Genérica actual | Editorial |
+| Federaciones | Backend CMS genérico auditado; publicación MVP condicional | Administrador | Genérico actual | Genérica actual | Institucional secundaria |
+| Legal y privacidad | CMS o documento controlado | Responsable editorial + revisión profesional/jurídica | Genérico actual si se usa CMS | Genérica actual si se usa CMS | Legal |
 | Contenidos legado | Backend CMS | Administrador | Existente y auditado | Existente y auditado | Legada |
 
 “Sí” expresa el flujo aprobado o el módulo deportivo actual según la fila; no garantiza que una sección editorial concreta ya esté implementada. La Fase 1 verificó las capacidades y límites del CMS genérico; cada vertical futura todavía debe definir y probar su contrato específico.
@@ -183,7 +207,10 @@ La tabla diferencia la fuente aprobada de las capacidades actuales que todavía 
 
 Debe utilizarse `knowledge/` cuando el contenido sea canónico, estable, revisable mediante Git, no necesite publicación inmediata por un administrador y forme parte del reglamento, vocabulario, historia o pedagogía estable.
 
-Debe utilizarse el backend CMS cuando el contenido cambie con frecuencia, necesite borradores, programación, permisos editoriales, archivos administrables, fechas, convocatorias, noticias o actualización sin despliegue.
+Debe utilizarse el backend CMS cuando el contenido cambie con frecuencia,
+necesite borradores, programación, permisos editoriales, enlaces controlados a
+documentos, fechas, convocatorias, noticias o actualización sin despliegue. El
+CMS actual no almacena archivos: una futura subida requiere un contrato propio.
 
 Una misma pieza no puede mantenerse de forma editable en ambos canales. Si un contenido combina partes estables y operativas, se divide por responsabilidad y se conectan ambas fuentes en la interfaz sin duplicarlas.
 
@@ -288,7 +315,8 @@ Una futura solicitud escolar recogerá únicamente los datos confirmados por su 
 - Los estados remotos comunes sólo se abstraen cuando al menos dos consumidores compartan semántica y comportamiento. Fases 4A–4C mantienen ciclos específicos por recurso; compartir composición o navegación contextual no los convierte en una abstracción remota global.
 - Los artefactos de `knowledge/` se validan y generan mediante los comandos build-time de 5A–5B; no se copian manualmente a JSX. El compilador exige un H1 inicial único, jerarquía coherente y referencias desde documentos vigentes exclusivamente hacia destinos vigentes. React no importa `knowledge.json`: consume sólo `public-knowledge.json`, ya filtrado y transformado a nodos seguros. `dev` y `build` no se acoplan todavía porque falta confirmar el contexto de CI/despliegue.
 - Las rutas públicas mantienen estabilidad, accesibilidad, navegación por teclado y comportamiento responsive.
-- Las cinco áreas, sus rutas y familias activas respetan `09-public-navigation.md`; la cuenta permanece fuera del árbol editorial.
+- Los enlaces y disclosures editoriales, sus rutas y familias activas respetan
+  `09-public-navigation.md`; la cuenta permanece fuera del árbol editorial.
 - Eliminar un enlace del primer nivel no elimina su URL. Aliases, canonical y redirects se aplican sólo tras paridad y pruebas.
 - Las features pesadas valoran lazy loading para proteger el bundle inicial.
 
@@ -325,18 +353,25 @@ La Fase 3A no elimina `/contenidos`, no crea redirects, no cambia su API ni borr
 
 - Inventario editorial de los datos reales de cada entorno antes de migrarlos; el catálogo del seeder no sustituye ese inventario.
 - Resolución y compatibilidad de Nosotros entre página estática y CMS.
-- Contenido real de `academy` por entorno, clasificación de sus piezas, consumidores y momento futuro de migración, despublicación o redirect; clasificación de `documentos`.
+- Contenido real de `academy` por entorno, clasificación de sus piezas,
+  consumidores y momento futuro de migración, despublicación o redirect.
 - Canal organizativo público de contacto de Escuela.
 - Textos aprobados de privacidad, aceptación y, si aplica, consentimiento antes de abrir inscripciones en producción; React no incorpora textos legales inventados.
 - Política de conservación y borrado extraordinario de solicitudes.
 - Reglas futuras para reinscripciones complejas o varios programas públicos.
 - Existencia y responsable editorial de material pedagógico suficiente para una colección de Escuela.
-- Creación de Contacto: no existe slug sembrado ni contenido verificable actual.
+- Creación y contenido real de Contacto: no existe slug sembrado ni contenido
+  verificable actual; su estrategia MVP queda cerrada como página CMS sin
+  formulario.
 - Necesidades editoriales de noticias, actividades, galerías, documentos y formularios.
 - Estrategia de almacenamiento persistente y ciclo de vida de archivos.
 - Modelo de consentimiento y privacidad para contenido de menores.
 - Consumo React, renderer, rutas públicas e integración automática de la canalización con CI/despliegue.
-- URLs de detalle, aliases, redirects, canonical, sitemap, 404 y SEO de la migración pública.
+- Implementación de las cuatro URLs Club y sus aliases ya contratados;
+  redirects permanentes, canonical, sitemap, 404 HTTP y SEO continúan
+  posteriores.
+- Política de identidad pública en clasificación, rankings, calendario,
+  equipos y partidos, con tratamiento específico de menores.
 - Roles, permisos, trazabilidad y vista previa requeridos por los editores.
 
 ## 20. Gates editoriales y operativos del MVP completo
@@ -361,10 +396,41 @@ editables definitivas. La migración a Club será conservadora y mantendrá las
 rutas legadas hasta acreditar paridad y compatibilidad. `academy` permanece
 fuera de esa migración.
 
-La recomendación 7A de agrupar Aprende y Club es una propuesta de arquitectura
-de información, no una decisión vigente ni una autorización para implementar
-rutas. El contrato final, los responsables y los materiales deben aprobarse en
-7B. El inventario completo está en `14-mvp-parity-audit.md`.
+ADR-033 y `15-mvp-editorial-and-navigation-contract.md` cierran la arquitectura
+de Aprende, Club, Cuenta, rutas canónicas, Contacto sin formulario y footer. No
+autorizan implementación sin superar los gates de contenido ni cierran la
+política de identidad pública.
+
+## 21. Plantillas, revisión y vigencia del MVP
+
+Cada pieza institucional debe registrar antes de publicarse:
+
+- responsable editorial;
+- fuente o persona que acredita el contenido;
+- fecha de revisión;
+- fecha de vigencia cuando describa un proceso, coste, documento o requisito;
+- próxima revisión o evento que obliga a revisarla;
+- imágenes con procedencia, licencia/consentimiento y texto alternativo;
+- enlaces con propietario y comprobación;
+- estado de aprobación legal cuando corresponda.
+
+Plantillas mínimas:
+
+- Quiénes somos: nombre oficial, presentación, propósito, actividad, historia,
+  organización, cargos opcionales e imágenes;
+- Contacto: correo, teléfono opcional, ubicación, horario, departamento y
+  enlaces oficiales;
+- Federarse: proceso, requisitos, organismo, enlaces, contacto, documentos,
+  costes confirmados y vigencia;
+- Documentos: nombre, tipo, propósito, URL, versión, fecha, vigencia,
+  responsable, accesibilidad, tamaño y formato;
+- Escuela: datos operativos Blade y contenido editorial separados;
+- Home: propuesta de valor, audiencia, CTAs, fuente de cada claim e imágenes.
+
+Privacidad, aviso legal, cookies cuando apliquen, registro, inscripción School
+e identidad deportiva requieren responsable de la entidad y revisión
+profesional o jurídica. Las plantillas completas, matriz legal, checklist
+School y gates están en `15-mvp-editorial-and-navigation-contract.md`.
 
 ## Mantenimiento
 
