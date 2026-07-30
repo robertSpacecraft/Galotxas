@@ -3,7 +3,8 @@ import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { championshipsService } from './api/championships';
 import { cmsService } from './api/cms';
-import App, { KnowledgeRoute } from './App';
+import { schoolService } from './features/school/schoolService';
+import App, { KnowledgeRoute, SchoolRoute } from './App';
 
 vi.mock('./api/championships', () => ({
   championshipsService: {
@@ -18,6 +19,13 @@ vi.mock('./api/cms', () => ({
   cmsService: {
     getPublishedPages: vi.fn(),
     getPageBySlug: vi.fn(),
+  },
+}));
+
+vi.mock('./features/school/schoolService', () => ({
+  schoolService: {
+    getOverview: vi.fn(),
+    createEnrollment: vi.fn(),
   },
 }));
 
@@ -38,6 +46,7 @@ describe('App public routes', () => {
       title: 'Nosotros',
       blocks: [],
     });
+    schoolService.getOverview.mockResolvedValue(null);
   });
 
   it('muestra un fallback accesible sin main, H1 ni 404 mientras carga una ruta diferida', () => {
@@ -51,6 +60,20 @@ describe('App public routes', () => {
 
     expect(screen.getByRole('status')).toHaveTextContent('Cargando Aprende a jugar');
     expect(screen.queryByRole('main')).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
+    expect(screen.queryByText('Página no encontrada')).not.toBeInTheDocument();
+  });
+
+  it('uses the accessible School fallback without a false H1 or 404', () => {
+    const PendingPage = lazy(() => new Promise(() => {}));
+
+    render(
+      <SchoolRoute>
+        <PendingPage />
+      </SchoolRoute>,
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando Escuela de Galotxas');
     expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
     expect(screen.queryByText('Página no encontrada')).not.toBeInTheDocument();
   });
@@ -86,8 +109,31 @@ describe('App public routes', () => {
     expect(screen.getAllByRole('main')).toHaveLength(1);
   });
 
-  it.each(['/escuela', '/club'])(
+  it.each(['/club'])(
     'does not publish the future route %s as a placeholder',
+    async (pathname) => {
+      openAppAt(pathname);
+
+      expect(await screen.findByRole('heading', { name: 'Página no encontrada', level: 1 }))
+        .toBeInTheDocument();
+      expect(window.location.pathname).toBe(pathname);
+    },
+  );
+
+  it('registers the lazy School landing and preserves data null as a valid page', async () => {
+    openAppAt('/escuela');
+
+    expect(await screen.findByRole('heading', { name: 'Escuela de Galotxas', level: 1 }))
+      .toBeInTheDocument();
+    expect(await screen.findByText('La información de la Escuela no está disponible actualmente.'))
+      .toBeInTheDocument();
+    expect(screen.queryByText('Página no encontrada')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('main')).toHaveLength(1);
+    expect(schoolService.getOverview).toHaveBeenCalledOnce();
+  });
+
+  it.each(['/escuela/alumno', '/school', '/academy'])(
+    'keeps the unapproved School-like route %s on the existing 404',
     async (pathname) => {
       openAppAt(pathname);
 

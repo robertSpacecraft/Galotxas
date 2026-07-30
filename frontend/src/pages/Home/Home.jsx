@@ -1,6 +1,8 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Layout } from '../../components/Layout/Layout';
 import { Hero } from '../../components/Hero/Hero';
+import { schoolPath } from '../../features/school/schoolRoutes';
 import styles from './Home.module.css';
 
 export const Home = () => {
@@ -23,10 +25,10 @@ export const Home = () => {
           <h3 className={styles.cardTitle}>Federaciones</h3>
           <p className={styles.cardText}>Consulta los clubes y federaciones inscritas en la plataforma.</p>
         </div>
-        <div className={styles.card}>
-          <h3 className={styles.cardTitle}>Academy</h3>
-          <p className={styles.cardText}>Aprende las técnicas y reglas oficiales de Galotxas con nuestros expertos.</p>
-        </div>
+        <Link to={schoolPath()} className={`${styles.card} ${styles.cardLink}`}>
+          <h3 className={styles.cardTitle}>Escuela de Galotxas</h3>
+          <p className={styles.cardText}>Consulta los niveles, horarios y la disponibilidad de inscripciones.</p>
+        </Link>
       </div>
     </Layout>
   );

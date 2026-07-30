@@ -9,6 +9,7 @@ use App\Enums\CmsBlockType;
 use App\Enums\CmsPageStatus;
 use App\Enums\GameMatchStatus;
 use App\Enums\PlayerGender;
+use App\Enums\SchoolDayOfWeek;
 use App\Enums\SeasonStatus;
 use App\Models\Category;
 use App\Models\CategoryEntry;
@@ -18,6 +19,10 @@ use App\Models\CmsPage;
 use App\Models\GameMatch;
 use App\Models\Player;
 use App\Models\Round;
+use App\Models\SchoolLevel;
+use App\Models\SchoolLocation;
+use App\Models\SchoolProgram;
+use App\Models\SchoolSchedule;
 use App\Models\Season;
 use App\Models\User;
 use App\Models\Venue;
@@ -180,6 +185,85 @@ class E2ESmokeSeeder extends Seeder
             $page->blocks()->updateOrCreate(
                 ['type' => CmsBlockType::TEXT->value, 'sort_order' => 20],
                 ['data' => ['text' => 'Este contenido procede exclusivamente de la base temporal E2E.']]
+            );
+
+            $schoolLocation = SchoolLocation::query()->updateOrCreate(
+                ['name' => 'Pista Escuela E2E'],
+                [
+                    'locality' => 'Monóvar',
+                    'address' => 'Calle Escuela, 1',
+                    'is_active' => true,
+                    'sort_order' => 10,
+                    'admin_notes' => 'Ubicación exclusiva del escenario E2E.',
+                ]
+            );
+
+            $schoolProgram = SchoolProgram::query()->updateOrCreate(
+                ['name' => 'Escuela de Galotxas E2E'],
+                [
+                    'is_public' => true,
+                    'enrollments_open' => true,
+                    'default_school_location_id' => $schoolLocation->id,
+                    'contact_phone' => '600 111 222',
+                    'contact_email' => 'escuela.e2e@example.test',
+                    'sort_order' => 10,
+                ]
+            );
+
+            $schoolMinorLevel = SchoolLevel::query()->updateOrCreate(
+                [
+                    'school_program_id' => $schoolProgram->id,
+                    'name' => 'Iniciación E2E',
+                ],
+                [
+                    'minimum_age' => 8,
+                    'maximum_age' => 17,
+                    'is_active' => true,
+                    'is_public' => true,
+                    'sort_order' => 10,
+                ]
+            );
+
+            $schoolAdultLevel = SchoolLevel::query()->updateOrCreate(
+                [
+                    'school_program_id' => $schoolProgram->id,
+                    'name' => 'Adultos E2E',
+                ],
+                [
+                    'minimum_age' => 18,
+                    'maximum_age' => null,
+                    'is_active' => true,
+                    'is_public' => true,
+                    'sort_order' => 20,
+                ]
+            );
+
+            SchoolSchedule::query()->updateOrCreate(
+                [
+                    'school_level_id' => $schoolMinorLevel->id,
+                    'school_location_id' => $schoolLocation->id,
+                    'day_of_week' => SchoolDayOfWeek::TUESDAY->value,
+                    'starts_at' => '17:00:00',
+                ],
+                [
+                    'ends_at' => '18:30:00',
+                    'is_active' => true,
+                    'sort_order' => 10,
+                ]
+            );
+
+            SchoolSchedule::query()->updateOrCreate(
+                [
+                    'school_level_id' => $schoolAdultLevel->id,
+                    'school_location_id' => $schoolLocation->id,
+                    'day_of_week' => SchoolDayOfWeek::THURSDAY->value,
+                    'starts_at' => '19:00:00',
+                ],
+                [
+                    'ends_at' => '20:30:00',
+                    'is_active' => true,
+                    'sort_order' => 10,
+                ]
             );
         });
     }

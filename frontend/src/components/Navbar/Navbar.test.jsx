@@ -30,12 +30,14 @@ describe('Navbar', () => {
     const accountArea = screen.getByRole('group', { name: 'Cuenta' });
 
     expect(screen.getByRole('link', { name: 'Galotxas' })).toHaveAttribute('href', '/');
-    expect(within(editorialNavigation).getAllByRole('link')).toHaveLength(3);
+    expect(within(editorialNavigation).getAllByRole('link')).toHaveLength(4);
     expect(within(editorialNavigation).getByRole('link', { name: 'Inicio' })).toHaveAttribute('href', '/');
     expect(within(editorialNavigation).getByRole('link', { name: 'Competición' }))
       .toHaveAttribute('href', '/competicion');
     expect(within(editorialNavigation).getByRole('link', { name: 'Aprende a jugar' }))
       .toHaveAttribute('href', '/aprende-a-jugar');
+    expect(within(editorialNavigation).getByRole('link', { name: 'Escuela de Galotxas' }))
+      .toHaveAttribute('href', '/escuela');
     expect(within(accountArea).getByRole('link', { name: 'Iniciar sesión' }))
       .toHaveAttribute('href', '/login');
 
@@ -47,7 +49,6 @@ describe('Navbar', () => {
       'Federaciones',
       'Contenidos',
       'Academy',
-      'Escuela de Galotxas',
       'Club',
     ]) {
       expect(screen.queryByRole('link', { name: excludedName, exact: true })).not.toBeInTheDocument();
@@ -145,6 +146,8 @@ describe('Navbar', () => {
     ['/aprende-a-jugar/manual', 'Aprende a jugar', 'location'],
     ['/aprende-a-jugar/manual/reglamento/el-saque', 'Aprende a jugar', 'location'],
     ['/aprende-a-jugar/manual/conceptos/juego/saque', 'Aprende a jugar', 'location'],
+    ['/escuela', 'Escuela de Galotxas', 'page'],
+    ['/escuela/alumno', 'Escuela de Galotxas', 'location'],
   ])('marks one active item at %s', (route, expectedName, expectedCurrent) => {
     renderWithProviders(<Navbar />, { route, authValue: anonymousAuth });
 
