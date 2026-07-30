@@ -22,14 +22,22 @@ import { CmsPage } from './pages/CmsPage/CmsPage';
 import { CompetitionPage } from './pages/Competition/CompetitionPage';
 import { NotFoundPage } from './pages/NotFound/NotFoundPage';
 import { RouteLoading } from './components/RouteLoading/RouteLoading';
+import { schoolPath } from './features/school/schoolRoutes';
 import './index.css';
 
 const LearnPage = lazy(() => import('./pages/Learn/LearnPage'));
 const ManualPage = lazy(() => import('./pages/Learn/ManualPage'));
 const KnowledgeDocumentPage = lazy(() => import('./pages/Learn/KnowledgeDocumentPage'));
+const SchoolPage = lazy(() => import('./features/school/SchoolPage'));
 
 export const KnowledgeRoute = ({ children }) => (
   <Suspense fallback={<RouteLoading label="Cargando Aprende a jugar" />}>
+    {children}
+  </Suspense>
+);
+
+export const SchoolRoute = ({ children }) => (
+  <Suspense fallback={<RouteLoading label="Cargando Escuela de Galotxas" />}>
     {children}
   </Suspense>
 );
@@ -68,6 +76,10 @@ function App() {
                     <KnowledgeDocumentPage type="concept" />
                   </KnowledgeRoute>
                 )}
+              />
+              <Route
+                path={schoolPath()}
+                element={<SchoolRoute><SchoolPage /></SchoolRoute>}
               />
               <Route path="/nosotros" element={<Nosotros />} />
               <Route path="/torneos" element={<TournamentList />} />

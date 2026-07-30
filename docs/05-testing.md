@@ -115,9 +115,13 @@ Prioridad baja:
 
 # 7. Comandos habituales
 
-Suite backend:
+Suite backend desde la raíz:
 
-`docker compose -f backend/docker/docker-compose.yml --profile test run --rm test`
+`backend/scripts/run-tests.sh`
+
+Suite backend dirigida:
+
+`backend/scripts/run-tests.sh --filter=School`
 
 Comprobación de sintaxis:
 
@@ -135,11 +139,11 @@ Auditoría frontend completa y de producción:
 
 Validación y auditoría backend dentro del contenedor oficial:
 
-`docker compose -f backend/docker/docker-compose.yml exec app composer validate --strict`
+`docker compose --project-name galotxas -f backend/docker/docker-compose.yml exec app composer validate --strict`
 
-`docker compose -f backend/docker/docker-compose.yml exec app composer audit`
+`docker compose --project-name galotxas -f backend/docker/docker-compose.yml exec app composer audit`
 
-`docker compose -f backend/docker/docker-compose.yml exec app composer audit --no-dev`
+`docker compose --project-name galotxas -f backend/docker/docker-compose.yml exec app composer audit --no-dev`
 
 Suite frontend no interactiva:
 
@@ -173,6 +177,8 @@ Los tests unitarios y de componentes frontend se ejecutan en jsdom y verifican f
 - ejecuta migraciones y el seeder explícito `E2ESmokeSeeder`;
 - lanza una suite serial Chromium desde el runner oficial de Playwright contra frontend, API y MariaDB reales;
 - desmonta contenedores, red y volúmenes al terminar, también cuando falla la suite.
+
+Antes de levantar y antes de desmontar, el runner valida con `docker compose config` el nombre exacto del proyecto y archivo, `APP_ENV=e2e`, la base E2E, el almacenamiento `tmpfs` y la ausencia de referencias o nombres de desarrollo. La limpieza sólo se ejecuta a través de `safe-compose-down.sh`, que vuelve a comprobar esas condiciones y exige proyecto y archivo explícitos. Los tests backend aplican la misma defensa mediante el proyecto separado `galotxas-test` y `docker-compose.test.yml`.
 
 Los puertos pueden cambiarse con `E2E_BACKEND_PORT` y `E2E_FRONTEND_PORT`. Playwright también admite `E2E_BASE_URL`, `E2E_BACKEND_URL` y `E2E_SKIP_WEBSERVER` para ejecuciones controladas contra un stack E2E ya levantado. Ninguna de estas variables debe apuntar a la base o al backend habitual de desarrollo.
 
@@ -360,7 +366,7 @@ La cobertura Feature del workflow incluye:
 - reversión transaccional del segundo reporte y de todos los cambios de estado si falla la resolución del resultado;
 - regresión de los Resources seguros para anónimos, usuarios ajenos y participantes.
 
-Las pruebas de integración se ejecutan exclusivamente sobre la instancia MariaDB aislada del perfil `test` de Docker.
+Las pruebas de integración se ejecutan exclusivamente sobre la instancia MariaDB aislada del proyecto `galotxas-test`.
 
 ## ADMIN-CONFLICT-1 — Resolución Blade de conflictos
 
@@ -731,7 +737,7 @@ La Fase 2A añade regresiones dirigidas para:
 - orden de bloques de una página pública válida;
 - continuidad de las pruebas de sesión para administradores activos e inactivos.
 
-Las fechas sensibles se fijan con Carbon y se restablecen en cada prueba. Toda la cobertura Feature usa factories y el MariaDB aislado del perfil Docker `test`; no depende de datos locales.
+Las fechas sensibles se fijan con Carbon y se restablecen en cada prueba. Toda la cobertura Feature usa factories y el MariaDB aislado de `galotxas-test`; no depende de datos locales.
 
 ## SEASON-ADMIN-1 — Integridad administrativa de temporadas
 
@@ -747,7 +753,7 @@ Las fechas sensibles se fijan con Carbon y se restablecen en cada prueba. Toda l
 - actualización completa e inmutabilidad de los datos previos ante una actualización inválida;
 - regresión de listado y borrado, y continuidad del envelope y los campos de `SeasonResource` en el endpoint público existente.
 
-La suite dirigida se ejecuta junto con `AdminActiveSessionTest` sobre el MariaDB aislado del perfil Docker `test`. Este bloque no modifica rutas, controladores o Resources de la API ni añade cobertura frontend o E2E.
+La suite dirigida se ejecuta junto con `AdminActiveSessionTest` sobre el MariaDB aislado de `galotxas-test`. Este bloque no modifica rutas, controladores o Resources de la API ni añade cobertura frontend o E2E.
 
 ## CHAMPIONSHIP-ADMIN-1 — Integridad administrativa de campeonatos
 
@@ -764,7 +770,7 @@ La suite dirigida se ejecuta junto con `AdminActiveSessionTest` sobre el MariaDB
 - continuidad de listado, detalle, categorías, solicitudes de inscripción, relaciones y borrado existente;
 - invariancia de campos, envelope y visibilidad por estado de los endpoints públicos actuales.
 
-La suite dirigida se ejecuta sobre el MariaDB aislado del perfil Docker `test` junto con `AdminActiveSessionTest`, las pruebas administrativas de solicitudes y categorías y `ChampionshipRegistrationTest`. No se añade cobertura frontend o E2E porque este bloque no modifica React ni la API pública.
+La suite dirigida se ejecuta sobre el MariaDB aislado de `galotxas-test` junto con `AdminActiveSessionTest`, las pruebas administrativas de solicitudes y categorías y `ChampionshipRegistrationTest`. No se añade cobertura frontend o E2E porque este bloque no modifica React ni la API pública.
 
 ## CATEGORY-ADMIN-1 — Integridad administrativa de categorías
 
@@ -784,7 +790,7 @@ La suite dirigida se ejecuta sobre el MariaDB aislado del perfil Docker `test` j
 - invariancia del contrato y la visibilidad pública actual de categorías, incluida la ausencia de descripción e imagen en `CategoryPublicResource`;
 - continuidad de standings, schedule, partidos, inscripciones, generación de liga y copa y rankings relacionados.
 
-La suite dirigida se ejecuta sobre el MariaDB aislado del perfil Docker `test` junto con las pruebas de sesión administrativa, inscripciones, rankings, calendario, copa y contrato público de partidos. No se añade cobertura frontend o E2E porque este bloque no modifica React ni la API pública.
+La suite dirigida se ejecuta sobre el MariaDB aislado de `galotxas-test` junto con las pruebas de sesión administrativa, inscripciones, rankings, calendario, copa y contrato público de partidos. No se añade cobertura frontend o E2E porque este bloque no modifica React ni la API pública.
 
 ## COMPETITION-VISIBILITY-FOUNDATION-1 — Base administrativa de visibilidad
 
@@ -915,6 +921,137 @@ El backend debe probar el filtro de publicación. Una prueba que solo comprueba 
 ## Validación de `knowledge/`
 
 KNOWLEDGE-COMPILER-1 cubre en 5A estructura, campos obligatorios, IDs, slugs, namespaces, rutas lógicas, referencias, seguridad y generación determinista. Los consumidores React del Manual deberán probar datos generados válidos, ausentes e inválidos en 5B; esa cobertura no se atribuye al compilador ni se considera publicada en 5A.
+
+## SCHOOL-CORE-ADMIN-1 — Núcleo operativo de Escuela
+
+Fase 6B.1 incorpora 28 tests Feature dirigidos sobre MariaDB para:
+
+- las cuatro migraciones, defaults seguros, casts, relaciones, factories y estados expresivos de `SchoolProgram`, `SchoolLevel`, `SchoolLocation` y `SchoolSchedule`;
+- un único programa público garantizado por servicio y restricción de MariaDB, con error administrativo comprensible;
+- `SchoolLevel` como clasificación formativa propia, sin slug y sin reutilizar `Category`;
+- `SchoolLocation` separada de `Venue`, con localidad obligatoria y notas exclusivamente administrativas;
+- día semanal ISO 1–7, hora inicial anterior a final, ubicación y nivel activos al activar, duplicado exacto rechazado y solapamientos parciales permitidos;
+- visibilidad efectiva de programa, nivel y horario, incluida la ubicación activa, sin cascadas de flags al ocultar un padre;
+- borrado restrictivo y feedback para programa, nivel y ubicación en uso;
+- persistencia explícita, filtros, recuperación de valores, estados vacíos y navegación de las cuatro áreas Blade;
+- permisos de administrador activo y rechazo de administrador inactivo, usuario normal y anónimo;
+- ausencia de rutas públicas web o API de Escuela.
+
+La ejecución dirigida `--filter=School` finaliza con 28 tests y 182 aserciones. La suite backend completa finaliza con 283 tests y 2158 aserciones. Estos tests no atribuyen cobertura a inscripciones, centros, actividades, API o React.
+
+## SCHOOL-ENROLLMENT-ADMIN-1 — Inscripciones de Escuela
+
+Fase 6B.2 incorpora 38 tests Feature dirigidos y 283 aserciones sobre MariaDB para:
+
+- tabla, defaults, enum casteado, fechas inmutables, relaciones, estados de factory, scopes y orden estable;
+- claves foráneas restrictivas, `user_id` con `nullOnDelete` y restricción compuesta programa–nivel;
+- edad en `requested_at`, cumpleaños exacto de 18 años, día anterior, fecha futura, consulta histórica y nacimiento en año bisiesto;
+- menores con representante obligatorio, adultos con representante normalizado a `null`, teléfono y correo siempre obligatorios;
+- solicitud anónima y vinculación opcional desde Sanctum, sin aceptar cuenta, estado, fechas o notas desde el payload;
+- programa público abierto resuelto en backend y respuesta `409` idéntica para ausencia, privacidad o cierre;
+- nivel público opcional y rechazo de nivel privado, inactivo, inexistente o de otro programa;
+- creación siempre pendiente, aprobación con nivel, rechazo, baja histórica, reasignación e imposibilidad de repetir o revertir transiciones;
+- `POST /api/v1/school/enrollments` con `201` genérico sin identificador ni datos personales, ausencia de GET y payload cerrado;
+- limitador `school-enrollments` de cinco intentos por minuto por IP y hash del correo, sin afectar rutas públicas ajenas;
+- listado, filtros, contadores, alta manual, detalle, edición limitada, acciones por estado, estados vacíos, `old()` y ausencia de `destroy`;
+- autorización para administrador activo y rechazo de administrador inactivo, usuario normal y anónimo;
+- ausencia de `Player`, seeders, colegios, actividades, API de lectura, Resources y frontend.
+
+La regresión dirigida del núcleo escolar, sesión administrativa y limitadores añade 38 tests y 233 aserciones. La suite backend completa finaliza con 321 tests y 2441 aserciones. `migrate:fresh` y el rollback de la migración más reciente se verifican en el entorno Docker aislado de test; no se utiliza SQLite ni la base de desarrollo.
+
+## SCHOOL-EDUCATIONAL-ACTIVITIES-1 — Centros y actividades
+
+Fase 6B.3 incorpora 27 tests Feature dirigidos y 213 aserciones sobre MariaDB para:
+
+- las dos migraciones, defaults, casts, relaciones, claves foráneas restrictivas y factories de `EducationalCenter` y `EducationalActivity`;
+- centros homónimos, orden estable por localidad/nombre/ID, contacto nullable, notas privadas y activación;
+- actividades de nombre libre, fecha obligatoria, horas ambas presentes o ausentes y hora inicial anterior a la final;
+- `expected_students` nullable al planificar, positivo cuando se informa y obligatorio al completar;
+- creación siempre `planned` aunque el payload intente asignar estado;
+- transiciones exclusivas `planned → completed` y `planned → cancelled`, sin repetición, reversión o reactivación;
+- conservación de centro y ubicación históricos al desactivarlos, con rechazo de asociaciones nuevas inactivas;
+- borrado permitido sólo para actividades planificadas y protección de centros y ubicaciones con histórico;
+- listados, filtros, detalle, formularios, `old()`, acciones contextuales, estados vacíos y navegación Blade;
+- autorización para administrador activo y rechazo de administrador inactivo, usuario normal y anónimo;
+- ausencia de alumnos nominales, campos extra persistidos, rutas web públicas, API pública y API administrativa.
+
+La regresión dirigida del conjunto escolar finaliza con 93 tests y 678 aserciones. La suite backend completa finaliza con 348 tests y 2654 aserciones. `migrate:fresh`, rollback de las dos migraciones de 6B.3 y reaplicación se verifican en el entorno Docker aislado de test; no se utiliza SQLite ni la base de desarrollo.
+
+## SCHOOL-PUBLIC-READ-API-1 — Lectura pública de Escuela
+
+Fase 6B.4 incorpora 8 tests Feature y 52 aserciones dirigidas sobre MariaDB para:
+
+- `GET /api/v1/school` anónimo, de sólo lectura y con envelope exacto;
+- respuesta `200` con `data: null` idéntica ante ausencia o privacidad del programa;
+- contrato mínimo, completo y parcial con contacto nullable, ubicación habitual activa y apertura efectiva;
+- niveles activos y públicos en orden `sort_order`, ID, incluidos niveles sin horarios;
+- horarios efectivos en orden día ISO, hora inicial, `sort_order`, ID y horas `HH:MM`;
+- exclusión de niveles privados o inactivos, horarios inactivos y ubicaciones inactivas;
+- allowlists recursivas sin flags, órdenes, claves foráneas, notas, timestamps, inscripciones, usuarios, centros o actividades;
+- ausencia de mutación y número de consultas constante y no superior a cinco al crecer niveles, horarios y ubicaciones.
+
+La regresión conjunta del nuevo GET y el POST existente completa 19 tests y 134 aserciones. `--filter=School` completa 80 tests y 557 aserciones. La regresión explícita de Escuela, centros, actividades, inscripciones, permisos y rate limiting completa 111 tests y 783 aserciones; la suite backend completa, 356 tests y 2708 aserciones. El limitador `school-enrollments`, payload, `201`, `409` y privacidad del POST permanecen intactos. No se atribuye cobertura a React, `/escuela`, Navbar o E2E.
+
+## SCHOOL-PUBLIC-EXPERIENCE-1 — Experiencia pública de Escuela
+
+Fase 6C completa la cobertura React de:
+
+- normalización y servicios `GET /school` y `POST /school/enrollments`;
+- hook de lectura con loading, contenido, `data: null`, error, retry y descarte tras desmontaje;
+- cálculo local de minoría, cumpleaños 18, fecha futura, fecha inválida y 29 de febrero sin desplazamiento UTC;
+- labels ISO de días y rangos de edad sin reordenar datos;
+- landing, datos completos y parciales, niveles sin horarios, contacto/ubicación opcionales, cierre y metadatos;
+- formulario de menor y adulto, representante condicional, nivel opcional numérico, validación local, foco, `aria-describedby`, envío único, `201`, `409`, `422`, `429` y error general;
+- ruta diferida, fallback, Navbar en cuarta posición, Home sin “Academy”, descendientes no registrados y 404.
+
+La suite frontend finaliza con 51 archivos y 312 tests. ESLint y build completan sin errores. El build genera School como chunk diferido de 15,37 kB (4,84 kB gzip); el inicial queda en 413,09 kB (122,54 kB gzip), Knowledge permanece separado y Vite no emite aviso de tamaño.
+
+Playwright completa 21 escenarios en Chromium sobre el stack desechable: los 16 previos y cinco de Escuela. El recorrido escolar usa backend y MariaDB reales para lectura y solicitudes de menor y adulto; también cubre carga diferida, Navbar/Home, tamaños 320–1440 px, zoom 200 %, validación/foco, cierre concurrente `409`, `data: null`, lectura cerrada, error recuperable y descendiente 404. `E2ESmokeSeeder` sólo puede ejecutarse con `APP_ENV=e2e` y `galotxas_e2e`; contenedores, red, volumen temporal e informes se eliminan al finalizar correctamente.
+
+La regresión backend no cambia: `--filter=School` completa 80 tests y 557 aserciones, y la suite completa 356 tests y 2708 aserciones sobre MariaDB. La cobertura de inscripciones deportivas no se usa como sustituto de `SchoolEnrollment`.
+
+`SCHOOL-CONTRACT-AUDIT-1` queda cerrado. La compatibilidad y eventual migración de `academy` continúan como deuda editorial independiente.
+
+## DOCKER-ENVIRONMENT-ISOLATION-1 — Separación y revalidación de entornos
+
+La validación inicial de 6C terminó con un incidente operativo: un `docker compose down --volumes --remove-orphans` sin proyecto explícito se ejecutó sobre el antiguo archivo que reunía desarrollo y tests. Compose resolvió el proyecto `docker` desde el directorio del archivo, incluyó los servicios fijos de desarrollo y eliminó `docker_galotxas_db_data`. `APP_ENV` no intervino en la propiedad de esos recursos.
+
+6C.1 separa:
+
+- desarrollo en `galotxas` y `docker-compose.yml`;
+- PHPUnit en `galotxas-test` y `docker-compose.test.yml`;
+- Playwright en `galotxas-e2e` y `docker-compose.e2e.yml`.
+
+Tests backend y E2E usan redes propias, base propia y `tmpfs`, sin volumen Docker. Ninguna configuración conserva `container_name`. `compose-isolation-guard.sh` valida la configuración resuelta y los recursos etiquetados; `safe-compose-down.sh` es la única ruta automática de limpieza; los runners pasan siempre proyecto y archivo explícitos.
+
+La regresión automática de guardas completa 11 comprobaciones:
+
+- acepta las configuraciones resueltas de backend test y E2E;
+- rechaza el proyecto `galotxas` durante E2E;
+- rechaza referencias al volumen de desarrollo;
+- rechaza base o `APP_ENV` incorrectos;
+- rechaza nombres fijos locales;
+- rechaza archivo Compose inesperado;
+- rechaza limpiar sin proyecto explícito;
+- verifica que los runners no llaman a `down` directamente.
+
+La prueba de no destrucción creó sólo una red centinela temporal, sin volumen ni base. Durante E2E coexistió con `galotxas-e2e`; después del cleanup seguía presente y se retiró de forma explícita. El stack E2E mostró cuatro contenedores prefijados, una red propia, cero volúmenes y `/var/lib/mysql` en `tmpfs`. Después de backend y E2E no quedó ningún contenedor, red o volumen de `galotxas-test` o `galotxas-e2e`.
+
+Instantánea verificada de DOCKER-ENVIRONMENT-ISOLATION-1, 2026-07-30:
+
+- guardas: 11 comprobaciones correctas y rechazo adicional de los runners reales al forzar el proyecto `galotxas`;
+- backend dirigido: 80 tests School y 557 aserciones;
+- backend completo: 356 tests y 2.708 aserciones;
+- rutas: GET `/api/v1/school` y POST `/api/v1/school/enrollments` presentes;
+- frontend: 51 archivos y 312 tests;
+- calidad: `knowledge:check`, ESLint, build, `php -l` y Pint correctos;
+- E2E: 21 escenarios Chromium correctos;
+- build: chunk School de 15,37 kB, inicial de 413,09 kB y Knowledge separado, sin advertencia de tamaño;
+- Knowledge: hashes canónico `66dfba8b620539b148539a8181e7f196b1abcc1a77e86efc737714983035d182` y público `4e5f28fd21d29291cddba2fede70ef7e057e45dbc5bb7583399186133911517e`;
+- residuos: ningún recurso Docker de test ni informe Playwright;
+- desarrollo: no se levantó, migró, sembró, restauró ni reconstruyó.
+
+El análisis completo del incidente, la matriz de propiedad y los comandos seguros están en `13-docker-environment-isolation.md`.
 
 ---
 

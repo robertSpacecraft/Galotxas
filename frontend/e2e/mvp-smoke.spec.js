@@ -68,10 +68,11 @@ test.describe.serial('smoke narrativo del MVP', () => {
     const editorialNavigation = page.getByRole('list', { name: 'Navegación editorial' });
     const accountArea = page.getByRole('group', { name: 'Cuenta' });
 
-    await expect(editorialNavigation.getByRole('link')).toHaveCount(3);
+    await expect(editorialNavigation.getByRole('link')).toHaveCount(4);
     await expect(editorialNavigation.getByRole('link', { name: 'Inicio' })).toBeVisible();
     await expect(editorialNavigation.getByRole('link', { name: 'Competición' })).toBeVisible();
     await expect(editorialNavigation.getByRole('link', { name: 'Aprende a jugar' })).toBeVisible();
+    await expect(editorialNavigation.getByRole('link', { name: 'Escuela de Galotxas' })).toBeVisible();
     await expect(editorialNavigation.getByRole('link', { name: 'Torneos' })).toHaveCount(0);
     await expect(editorialNavigation.getByRole('link', { name: 'Rankings' })).toHaveCount(0);
     await expect(accountArea.getByRole('link', { name: 'Iniciar sesión' })).toBeVisible();
@@ -528,6 +529,7 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await expect(page.getByRole('link', { name: 'Inicio', exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Competición', exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Aprende a jugar', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Escuela de Galotxas', exact: true })).toBeVisible();
 
     await page.getByRole('link', { name: 'Competición', exact: true }).click();
     await expect(page).toHaveURL(/\/competicion$/);

@@ -860,6 +860,177 @@ Seguimiento de Fase 5C, 2026-07-21:
 
 ---
 
+# ADR-031 — Escuela como vertical híbrida con dominio operativo propio
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-07
+
+Contexto:
+
+- “Escuela de Galotxas” es una de las cinco áreas públicas aprobadas, pero `/escuela` no existe todavía y no aparece en el Navbar.
+- `knowledge/` contiene Reglamento y Conceptos publicables, pero no una colección, metodología o programa pedagógico de Escuela.
+- el CMS incluye una página genérica sembrada con slug `academy`; sus bloques no representan grupos, horarios, ubicaciones, periodos o solicitudes y el seeder no acredita el contenido real de cada entorno;
+- Home y `/nosotros` contienen menciones React hardcodeadas que no son fuentes editoriales;
+- las solicitudes de inscripción a campeonatos presuponen usuario y jugador y responden a una finalidad deportiva distinta;
+- la futura Escuela puede involucrar menores, contacto y datos transaccionales con requisitos de minimización y autorización propios.
+
+Decisión:
+
+- tratar Escuela como una vertical híbrida independiente:
+  - `knowledge/` será la única fuente de metodología, iniciación y recursos pedagógicos estables cuando exista contenido real y una colección aprobada;
+  - Laravel/MariaDB será la fuente del programa permanente, niveles, horarios, ubicaciones, inscripciones, centros, actividades y datos personales;
+  - Blade será la interfaz administrativa oficial de los dos subdominios: Escuela permanente y centros/actividades educativas;
+  - una API pública específica filtrará la visibilidad y nunca expondrá alumnado, solicitudes, centros o actividades;
+  - React será consumidor y capa de presentación de `/escuela`, nunca fuente editorial;
+- permitir que la experiencia enlace al Manual existente sin copiar sus reglas;
+- conservar temporalmente `academy` como contenido CMS legado, sin equipararlo, renombrarlo, redirigirlo o eliminarlo hasta inventariar datos y consumidores y disponer de paridad;
+- representar la Escuela permanente mediante un `SchoolProgram` capaz de admitir varios registros, aunque el MVP administre uno y permita un único programa público;
+- utilizar `SchoolLevel`, no `Category`, para una oferta extensible cuyo nivel inicial será infantil/juvenil;
+- modelar horarios semanales con `SchoolSchedule` y día ISO 1–7, sin sesiones, excepciones o recurrencias complejas;
+- crear `SchoolLocation` compartida por horarios y actividades, sin reutilizar `Venue`: el generador competitivo consume todas las filas de `venues` como pistas;
+- recibir solicitudes públicas en `SchoolEnrollment` sin exigir cuenta; una sesión podrá asociarse opcionalmente sin sobrescribir datos ni crear `Player`;
+- exigir teléfono y correo en toda solicitud, y representante y relación sólo cuando el participante sea menor al comparar nacimiento con fecha de solicitud;
+- crear toda solicitud como pendiente y permitir únicamente los ciclos pendiente → activa → baja o pendiente → rechazada, conservando fechas e historial sin borrado normal;
+- abrir o cerrar inscripciones desde `SchoolProgram`; el backend aplicará la restricción aunque React o el programa oculten el formulario;
+- mantener fuera del MVP plazas, lista de espera, pagos, asistencia, perfiles académicos y adjuntos;
+- representar centros reutilizables con `EducationalCenter` y actividades de nombre libre con `EducationalActivity`, sin asistentes nominales, cuentas de centro o API pública;
+- implementar en el futuro `GET /api/v1/school` y `POST /api/v1/school/enrollments`; Blade seguirá sin API administrativa mientras sea su único consumidor;
+- usar `/escuela` y la etiqueta “Escuela de Galotxas” cuando 6C supere los gates de contenido, backend, API y pruebas;
+- tratar estas entidades como contrato de implementación de 6B, no como capacidades existentes;
+- mantener Fase 6 abierta: 6A y 6A.1 cierran el contrato; 6B.1–6B.4 y 6C continúan pendientes.
+
+Alternativas descartadas:
+
+- usar `academy` como solución final: sólo ofrece una página CMS genérica y una URL técnica, con nombre y capacidades distintos;
+- almacenar toda la Escuela en el CMS: forzaría bloques sin relaciones para información operativa y transaccional;
+- almacenar toda la Escuela en `knowledge/`: convertiría fechas y oferta cambiante en contenido que necesita despliegue y no podría gestionar solicitudes;
+- hardcodear la landing en React: duplicaría o inventaría contenido y eliminaría la edición administrativa;
+- incorporar Escuela dentro de Aprende a jugar: confundiría una oferta operativa con el Manual canónico;
+- reutilizar la inscripción deportiva o el perfil `Player`: impondría finalidad, estados, identidad y datos no justificados;
+- reutilizar `Venue`: incorporaría colegios u otras sedes al conjunto que el generador de liga interpreta como pistas de Competición;
+- exigir cuenta: excluiría el flujo público aprobado y confundiría identidad digital con admisión;
+- registrar nominalmente asistentes de actividades con centros: ampliaría datos personales sin necesidad operativa;
+- modelar desde 6A una plataforma educativa completa: introduciría pagos, asistencia, expedientes, calificaciones o perfiles sin necesidad real;
+- publicar una ruta o enlace vacío mientras se construye el backend: violaría el gate de navegación funcional.
+
+Consecuencias:
+
+- 6B se divide en núcleo operativo, inscripciones, centros/actividades y lectura pública; cada bloque incorporará administración, validación, tests y documentación.
+- 6C podrá ampliar `knowledge/` sólo si hay material aprobado; en caso contrario, enlazará el Manual y compondrá únicamente datos operativos reales.
+- el contrato funcional ya no depende de preguntas bloqueantes, pero los nombres de columnas y detalles técnicos deberán validarse al crear migraciones y Resources.
+- el CMS genérico conserva utilidad para piezas no estructuradas, pero no se convierte en una segunda fuente de niveles, horarios, solicitudes, centros o actividades.
+- el canal público de contacto, los textos de aceptación, la conservación, la reinscripción compleja y varios programas públicos son decisiones futuras no bloqueantes para iniciar 6B.1.
+- los textos de aceptación, la política de conservación extraordinaria, cualquier multimedia futura y la migración de `academy` se resolverán por bloques explícitos antes de ampliar la superficie pública.
+
+Seguimiento de Fase 6B.1, 2026-07-28:
+
+- Se implementan `SchoolProgram`, `SchoolLevel`, `SchoolLocation` y `SchoolSchedule` como núcleo operativo administrado exclusivamente mediante Blade.
+- `SchoolLocation` exige nombre y localidad y conserva dirección, orden y notas administrativas opcionales; continúa separada de `Venue`.
+- Los registros nacen privados o inactivos. La visibilidad efectiva se expresa mediante scopes de modelo y conjuga programa público, nivel activo y público, horario activo y ubicación activa sin modificar flags hijos.
+- `SchoolDayOfWeek` representa el día ISO 1–7 como enum entero; un índice compuesto rechaza horarios exactamente duplicados y permite solapamientos parciales.
+- MariaDB garantiza un único programa público mediante una columna generada nullable con índice único. `SchoolProgramService` añade transacción, bloqueo y un error de validación comprensible, sin despublicar otro programa.
+- Las claves foráneas y los flujos Blade aplican borrado conservador. No se crean datos sembrados, inscripciones, centros, actividades, API, Resources, ruta React, Navbar o contenido pedagógico.
+- Fase 6 continúa abierta con 6B.2–6B.4 y 6C pendientes.
+
+Seguimiento de Fase 6B.2, 2026-07-28:
+
+- Se implementan `SchoolEnrollment` y el enum string-backed `pending`, `active`, `rejected` y `withdrawn`. Toda alta pública o manual nace pendiente.
+- La minoría de edad se calcula de forma centralizada respecto de `requested_at`; el mismo día del 18.º cumpleaños ya es adulto. Los menores exigen representante y relación, mientras los adultos normalizan esos campos a `null`; teléfono y correo son siempre obligatorios.
+- `POST /api/v1/school/enrollments` es anónimo y admite una cuenta Sanctum opcional obtenida sólo de la sesión. Resuelve el único programa público abierto, acepta un nivel público y activo opcional y devuelve `201` sin identificador, estado o datos personales.
+- El limitador `school-enrollments` permite cinco intentos por minuto por IP y hash SHA-256 del correo normalizado. Cuando el programa no está disponible, un único `409` evita distinguir ausencia, privacidad o cierre.
+- `SchoolEnrollmentService` aplica en transacciones sólo `pending → active`, `pending → rejected` y `active → withdrawn`; activar exige nivel activo del programa, la reasignación sólo se admite en activas y la baja conserva `activated_at`.
+- MariaDB garantiza la coherencia programa–nivel mediante clave foránea compuesta. Programa y nivel usan borrado restrictivo; eliminar una cuenta conserva la inscripción con `user_id = null`.
+- Blade ofrece listado, filtros, contadores, alta manual pendiente, detalle, edición limitada y acciones explícitas, sin `destroy`, API administrativa, reactivación o edición directa de estados y fechas.
+- No se crean seeders, `Player`, centros, actividades, lectura pública, Resources, React, ruta `/escuela`, Navbar o contenido pedagógico. Fase 6 continúa abierta con 6B.3, 6B.4 y 6C pendientes.
+
+Seguimiento de Fase 6B.3, 2026-07-28:
+
+- Se implementan `EducationalCenter` y `EducationalActivity` como subdominio operativo separado de `SchoolEnrollment`, administrado exclusivamente mediante Blade.
+- Los centros admiten nombre libre no único, localidad, contacto opcional, activación y notas privadas. Nacen inactivos para exigir revisión antes de recibir actividades.
+- Las actividades usan nombre libre, fecha, horas opcionales emparejadas, alumnado previsto nullable, `SchoolLocation` opcional y el enum string-backed `planned`, `completed` y `cancelled`.
+- `EducationalActivityService` crea siempre en `planned` y aplica transaccionalmente sólo `planned → completed` o `planned → cancelled`. Completar exige alumnado previsto positivo; no existe reactivación ni edición arbitraria del estado.
+- `SchoolLocation` se comparte con actividades sin reutilizar `Venue`. Un centro o ubicación inactivos bloquean asociaciones nuevas, pero conservan las relaciones históricas si no se cambian.
+- El borrado es conservador: centros y ubicaciones con actividades quedan protegidos; sólo una actividad todavía planificada puede eliminarse. Completadas y canceladas permanecen como histórico.
+- No se registran alumnos nominales, cuentas de centro, asistencia, pagos o adjuntos. No se crean seeders, API pública o administrativa, Resources, React, ruta `/escuela`, Navbar o contenido pedagógico. Fase 6 continúa abierta con 6B.4 y 6C pendientes.
+
+Seguimiento de Fase 6B.4, 2026-07-28:
+
+- Se implementa `GET /api/v1/school` como lectura anónima del único agregado público. La ausencia de programa público responde `200` con `data: null` y no diferencia ausencia, privacidad o configuración incompleta.
+- `SchoolPublicOverviewService` concentra visibilidad efectiva, selección restringida de columnas, eager loading y orden de niveles y horarios. El controlador invocable no contiene consultas ni reglas de serialización.
+- Cuatro Resources públicos aplican allowlists para programa, nivel, horario y ubicación. El contacto conserva siempre `phone` y `email` nullable; la ubicación habitual sólo aparece activa y un nivel efectivo puede publicarse con `schedules: []`.
+- Se exponen únicamente los IDs mínimos de nivel, horario y ubicación. Programa, flags, órdenes, claves foráneas, notas, timestamps, inscripciones, alumnado, usuarios, centros y actividades permanecen fuera del contrato.
+- Los horarios utilizan día ISO 1–7, horas `HH:MM` y orden por día, hora inicial, orden administrativo e ID. La cantidad de consultas permanece constante al crecer niveles, horarios y ubicaciones.
+- `POST /api/v1/school/enrollments`, su limiter y su respuesta permanecen intactos. No se crean migraciones, seeders, frontend, `/escuela`, Navbar o contenido pedagógico. Fase 6 continúa abierta con 6C pendiente.
+
+Seguimiento de Fase 6C, 2026-07-30:
+
+- Se publica `/escuela` mediante una feature React diferida que consume los contratos GET y POST existentes con la instancia Axios común, sin cambiar backend, modelos o API.
+- La landing presenta programa, apertura, niveles, horarios, ubicaciones y contacto en el orden autorizado. `data: null`, datos parciales, cierre y error de lectura conservan una página válida y el enlace al Manual.
+- El formulario admite menores y adultos sin cuenta obligatoria. El helper local controla sólo la interfaz del representante; Laravel conserva la decisión definitiva. `201`, `409`, `422`, `429` y fallos generales mantienen el contrato opaco y los datos personales no se persisten.
+- El Navbar incorpora “Escuela de Galotxas” en cuarta posición y Home sustituye su referencia pública “Academy” por un enlace a `/escuela`. El CMS `academy`, su URL y sus datos no cambian ni reciben redirect.
+- No se crea colección pedagógica, contenido hardcodeado, multimedia, nuevos endpoints, API administrativa o dependencia. `frontend/src/features/school/` no importa el artefacto Knowledge y sólo enlaza al Manual.
+- La falta de textos aprobados de privacidad y aceptación queda como deuda operativa antes de abrir inscripciones en producción; no se inventa consentimiento en React.
+- SCHOOL-PUBLIC-EXPERIENCE-1, 312 tests frontend, 21 E2E, la regresión School 80/557 y la suite backend 356/2708 cierran 6C y la Fase 6.
+
+Seguimiento de Fase 6C.1, 2026-07-30:
+
+- La aceptación de 6C se suspendió al detectar que la limpieza posterior compartía el proyecto Compose de desarrollo y había eliminado su volumen local.
+- 6C.1 separa desarrollo, tests backend y E2E, añade guardas previas a toda limpieza y revalida íntegramente 6C sin cambiar el dominio, los contratos GET/POST o Knowledge.
+- Tras completar backend, frontend, E2E, hashes y prueba de no destrucción, se restablece el cierre de 6C y la Fase 6.
+
+---
+
+# ADR-032 — Proyectos Compose y recursos de prueba obligatoriamente aislados
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-07
+
+Contexto:
+
+- El archivo `backend/docker/docker-compose.yml` reunía servicios de desarrollo y un perfil de tests backend.
+- Los contenedores locales usaban nombres fijos, mientras la red y el volumen pertenecían al proyecto Compose derivado del directorio `backend/docker`.
+- Un `down --volumes --remove-orphans` sin `--project-name` resolvió el proyecto `docker`, alcanzó los servicios de desarrollo y eliminó el volumen persistente local.
+- E2E ya usaba un archivo y nombre de proyecto propios, pero su cleanup no verificaba la configuración resuelta ni la propiedad de los recursos antes de ejecutar.
+- `APP_ENV`, el nombre de la base o el perfil activado no delimitan qué recursos considera Compose parte de un proyecto.
+
+Decisión:
+
+- mantener tres proyectos explícitos e incompatibles: `galotxas`, `galotxas-test` y `galotxas-e2e`;
+- utilizar archivos Compose separados para desarrollo, tests backend y E2E;
+- declarar `name:` en cada archivo y pasar además `--project-name` desde los comandos y runners oficiales;
+- reservar el único volumen persistente para desarrollo y usar `tmpfs` sin volumen Docker en los dos entornos de prueba;
+- asignar una red diferente a cada proyecto y prohibir referencias cruzadas a red, volumen o base;
+- eliminar `container_name` para que todos los nombres incluyan el prefijo de proyecto;
+- centralizar PHPUnit y E2E en runners que validan `docker compose config` antes de levantar o limpiar;
+- permitir cleanup automático únicamente mediante un helper que exige entorno, proyecto y archivo explícitos, vuelve a ejecutar las guardas y actúa sólo sobre ese proyecto;
+- mantener regresiones negativas para proyecto, archivo, entorno, base, volumen y nombres inseguros;
+- inventariar recursos antes, durante y después de una validación integral;
+- no reconstruir, migrar, sembrar o restaurar la base de desarrollo como parte de una prueba.
+
+Alternativas descartadas:
+
+- conservar un único archivo con perfiles: el perfil selecciona servicios, pero no crea una frontera de propiedad para `down`;
+- depender del nombre de la carpeta: cambia según la ubicación y produjo la colisión;
+- depender sólo de `APP_ENV` o `DB_DATABASE`: protegen comportamiento de aplicación, no recursos Docker;
+- mantener nombres fijos en desarrollo: impiden simultaneidad y ocultan el proyecto propietario;
+- compartir el volumen local como `external`: expondría datos de desarrollo a pruebas destructivas;
+- documentar un comando seguro sin guarda ejecutable: no evita regresiones o variables manipuladas;
+- usar limpieza global o por coincidencia de nombres: puede alcanzar proyectos ajenos.
+
+Consecuencias:
+
+- `docker-compose.yml` deja de ofrecer el perfil `test`; la entrada oficial pasa a `backend/scripts/run-tests.sh`.
+- PHPUnit y Playwright crean redes y contenedores con prefijos distinguibles y bases efímeras.
+- La limpieza falla de forma segura si el proyecto, el archivo o la configuración no son los esperados.
+- El volumen de desarrollo no aparece en configuraciones de test ni puede ser eliminado por sus runners.
+- Los comandos manuales de desarrollo deben incluir proyecto y archivo explícitos.
+- La recuperación de datos locales es una operación humana separada; 6C.1 no crea un volumen nuevo ni inventa datos perdidos.
+- La decisión es transversal y se documenta en `13-docker-environment-isolation.md`; no modifica ADR-031 ni los contratos de Escuela.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

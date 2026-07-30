@@ -9,11 +9,18 @@ use App\Http\Controllers\Admin\ChampionshipRegistrationController as AdminChampi
 use App\Http\Controllers\Admin\CmsBlockController;
 use App\Http\Controllers\Admin\CmsPageController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\EducationalActivityController;
+use App\Http\Controllers\Admin\EducationalCenterController;
 use App\Http\Controllers\Admin\GameMatchController;
 use App\Http\Controllers\Admin\MatchConflictController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\RankingController as AdminRankingController;
 use App\Http\Controllers\Admin\RegistrationRequestController;
+use App\Http\Controllers\Admin\SchoolEnrollmentController;
+use App\Http\Controllers\Admin\SchoolLevelController;
+use App\Http\Controllers\Admin\SchoolLocationController;
+use App\Http\Controllers\Admin\SchoolProgramController;
+use App\Http\Controllers\Admin\SchoolScheduleController;
 use App\Http\Controllers\Admin\SeasonController as AdminSeasonController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\VenueController;
@@ -69,6 +76,48 @@ Route::prefix('admin')->group(function () {
         Route::get('/venues/{venue}/edit', [VenueController::class, 'edit'])->name('admin.venues.edit');
         Route::put('/venues/{venue}', [VenueController::class, 'update'])->name('admin.venues.update');
         Route::delete('/venues/{venue}', [VenueController::class, 'destroy'])->name('admin.venues.destroy');
+
+        // Escuela de Galotxas
+        Route::prefix('school')->name('admin.school.')->group(function () {
+            Route::resource('enrollments', SchoolEnrollmentController::class)
+                ->except('destroy');
+            Route::post(
+                'enrollments/{enrollment}/approve',
+                [SchoolEnrollmentController::class, 'approve']
+            )->name('enrollments.approve');
+            Route::post(
+                'enrollments/{enrollment}/reject',
+                [SchoolEnrollmentController::class, 'reject']
+            )->name('enrollments.reject');
+            Route::post(
+                'enrollments/{enrollment}/withdraw',
+                [SchoolEnrollmentController::class, 'withdraw']
+            )->name('enrollments.withdraw');
+            Route::post(
+                'enrollments/{enrollment}/reassign-level',
+                [SchoolEnrollmentController::class, 'reassignLevel']
+            )->name('enrollments.reassign-level');
+            Route::resource('programs', SchoolProgramController::class)->except('show');
+            Route::resource('levels', SchoolLevelController::class)->except('show');
+            Route::resource('locations', SchoolLocationController::class)->except('show');
+            Route::resource('schedules', SchoolScheduleController::class)->except('show');
+            Route::resource(
+                'educational-centers',
+                EducationalCenterController::class
+            );
+            Route::post(
+                'educational-activities/{educational_activity}/complete',
+                [EducationalActivityController::class, 'complete']
+            )->name('educational-activities.complete');
+            Route::post(
+                'educational-activities/{educational_activity}/cancel',
+                [EducationalActivityController::class, 'cancel']
+            )->name('educational-activities.cancel');
+            Route::resource(
+                'educational-activities',
+                EducationalActivityController::class
+            );
+        });
 
         // Temporadas
         Route::get('/seasons', [AdminSeasonController::class, 'index'])->name('admin.seasons.index');

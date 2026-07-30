@@ -1,3 +1,5 @@
+import { isSchoolPath, schoolPath } from '../features/school/schoolRoutes';
+
 const competitionRoutePatterns = [
   /^\/competicion\/?$/,
   /^\/torneos(?:\/[^/]+)?\/?$/,
@@ -24,6 +26,12 @@ export const publicNavigation = [
     label: 'Aprende a jugar',
     to: '/aprende-a-jugar',
     matches: (pathname) => /^\/aprende-a-jugar(?:\/.*)?$/.test(pathname),
+  },
+  {
+    id: 'school',
+    label: 'Escuela de Galotxas',
+    to: schoolPath(),
+    matches: isSchoolPath,
   },
 ];
 

@@ -340,7 +340,41 @@ Los Conceptos reúnen vocabulario y definiciones canónicas en `knowledge/concep
 
 El Manual será un consumidor público del conocimiento estable de `knowledge/`. Su función será organizar y explicar Reglamento y Conceptos, no duplicarlos. La landing Aprende a jugar será una puerta de entrada divulgativa y no debe confundirse con el Manual.
 
-La Escuela de Galotxas es una sección distinta del Manual. Su metodología, ejercicios y recursos docentes estables podrán proceder de una futura colección de `knowledge/`; sus actividades, fechas, convocatorias y demás información operativa pertenecerán al backend CMS. Esa colección y esos flujos todavía no están implementados.
+La Escuela de Galotxas es una sección distinta del Manual. Su metodología, ejercicios y recursos docentes estables podrán proceder de una futura colección de `knowledge/`; los datos operativos y personales pertenecen a Laravel y se administran desde Blade cuando su bloque está implementado. El CMS genérico sólo podrá conservar piezas simples no estructuradas. El contrato funcional y el estado de cada bloque se documentan en `12-school-of-galotxas.md`.
+
+Ese dominio tendrá dos subdominios independientes:
+
+1. **Escuela permanente:** `SchoolProgram`, niveles `SchoolLevel`, horarios semanales, ubicaciones escolares y `SchoolEnrollment`. Admite participantes menores y adultos; la solicitud pública no exige cuenta, comienza pendiente y requiere aprobación. Un menor necesita representante, mientras teléfono y correo son obligatorios en todos los casos.
+2. **Centros y actividades educativas:** `EducationalCenter` registra cada centro una sola vez y `EducationalActivity` sus actividades planificadas, completadas o canceladas. Sólo se conserva el número previsto de alumnos, nunca asistentes nominales.
+
+El participante individual de la Escuela no es un `Player`, un centro educativo no es un usuario o equipo y una actividad con un centro no genera inscripciones individuales. `SchoolLevel` tampoco reutiliza las categorías de campeonatos. La inscripción deportiva y la escolar comparten únicamente patrones técnicos.
+
+Desde 6B.1 existe el núcleo operativo de la Escuela permanente:
+
+- `SchoolProgram` conserva configuración, visibilidad, apertura declarada de inscripciones, contacto público opcional, ubicación habitual y orden. Los registros nacen privados y cerrados. MariaDB garantiza como máximo un programa público mediante una ranura generada nullable e índice único; el servicio de persistencia añade transacción, bloqueo y feedback administrativo.
+- `SchoolLevel` pertenece a un programa, admite edades mínima y máxima opcionales, distingue activación y visibilidad y no utiliza slug.
+- `SchoolLocation` pertenece exclusivamente al dominio escolar, exige nombre y localidad y admite dirección, activación, orden y notas administrativas privadas. No reutiliza `Venue`, que continúa reservado a pistas competitivas.
+- `SchoolSchedule` pertenece a un nivel y una ubicación, usa día ISO 1–7, exige hora inicial anterior a la final y bloquea únicamente duplicados exactos. Los solapamientos parciales continúan permitidos.
+
+La visibilidad efectiva está centralizada en backend: un programa exige `is_public`; un nivel exige programa público y sus propios flags activo y público; un horario exige además horario y ubicación activos. Ocultar o desactivar un padre no modifica flags hijos.
+
+Desde 6B.2, `SchoolEnrollment` registra solicitudes y participantes sin crear `Player`. Pertenece siempre a un programa, puede tener nivel y cuenta opcionales, y conserva nombre, nacimiento, teléfono, correo, representante condicional, estado, fechas del ciclo y notas privadas. El estado nace `pending` y sólo admite `pending → active`, `pending → rejected` y `active → withdrawn`; una baja conserva `activated_at` y una reinscripción futura crea otro registro.
+
+La minoría de edad se calcula de forma determinista con nacimiento y `requested_at`, nunca con la fecha de consulta ni mediante edad persistida. Quien cumple 18 años el día de la solicitud ya se considera adulto; para nacimientos del 29 de febrero se usa la fecha equivalente sin desbordamiento. Un menor exige nombre y relación del representante. En adultos esos campos se normalizan a `null`; teléfono y correo siguen siendo obligatorios.
+
+Las claves foráneas usan borrado restrictivo para programas y niveles. Una restricción compuesta garantiza que el nivel asignado pertenezca al programa; eliminar una cuenta deja `user_id = null` y conserva el histórico. El flujo administrativo no ofrece eliminación normal de inscripciones y los servicios transaccionales asignan estados y fechas.
+
+Desde 6B.3, el segundo subdominio dispone de persistencia y administración propias. `EducationalCenter` exige nombre y localidad, admite contacto opcional, nace inactivo y conserva múltiples `EducationalActivity`. Los centros homónimos son válidos y su orden administrativo es localidad, nombre e ID.
+
+`EducationalActivity` pertenece siempre a un centro y opcionalmente a `SchoolLocation`, usa nombre libre, fecha obligatoria, horas emparejadas, alumnado previsto positivo nullable y el enum `planned`, `completed` o `cancelled`. Toda alta nace planificada. Sólo se admite `planned → completed` o `planned → cancelled`; completar exige alumnado previsto positivo y no existe reactivación. Un centro o ubicación inactivos no admiten asociaciones nuevas, pero las relaciones históricas continúan editables si no se cambian.
+
+Los borrados son conservadores: un centro o ubicación con actividades no se elimina; sólo una actividad planificada creada por error puede borrarse. Una actividad completada o cancelada conserva su histórico. Este subdominio no registra alumnos nominales, no crea `SchoolEnrollment` y no tiene API pública o administrativa.
+
+La lectura pública `GET /api/v1/school` resuelve el único programa público y proyecta mediante Resources cerrados su apertura efectiva, contacto general, ubicación habitual activa, niveles activos y públicos, horarios efectivos y ubicaciones activas. Un programa público puede carecer de contacto, ubicación, niveles u horarios; esos vacíos se representan de forma estable. Si no existe programa público, la ruta responde `200` con `data: null` sin revelar si falta, es privado o está incompleto.
+
+`POST /api/v1/school/enrollments` resuelve en backend el programa público abierto, admite nivel público y activo opcional, toma la cuenta exclusivamente de una sesión Sanctum opcional y crea una solicitud pendiente. Desde 6C, `/escuela` consume la lectura y escritura públicas: React presenta el agregado, calcula localmente la minoría sólo para adaptar el formulario y deja al backend la decisión definitiva. No existe seguimiento por ID ni API administrativa. Ninguna lectura expone inscripciones, alumnado, centros o actividades.
+
+Los únicos datos sembrados de Escuela se limitan al escenario aislado `E2ESmokeSeeder`, protegido por `APP_ENV=e2e` y la base desechable `galotxas_e2e`; no son datos de desarrollo o producción.
 
 ## Contenido institucional
 

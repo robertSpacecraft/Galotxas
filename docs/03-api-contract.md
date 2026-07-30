@@ -80,6 +80,8 @@ El inventario siguiente corresponde a `backend/routes/api.php` y a la salida de 
 | `GET` | `/matches/{gameMatch}` | `PublicMatchResource` |
 | `GET` | `/cms/pages` | colección `PublicCmsPageSummaryResource` |
 | `GET` | `/cms/pages/{slug}` | `PublicCmsPageResource` o `404` |
+| `GET` | `/school` | `PublicSchoolResource` o `data: null` |
+| `POST` | `/school/enrollments` | confirmación genérica sin datos personales |
 | `GET` | `/seasons/{season}/ranking` | colección `ChampionshipRankingResource` |
 | `GET` | `/rankings/all-time` | colección `AllTimeRankingResource` |
 
@@ -594,6 +596,124 @@ React renderiza los bloques con componentes controlados por `type` y no interpre
 - `01-domain.md`
 - `02-architecture.md`
 - `08-resources.md`
+
+## Escuela de Galotxas
+
+### `GET /api/v1/school`
+
+Endpoint público de sólo lectura implementado en 6B.4. No exige autenticación, no usa el limitador específico de inscripciones y no modifica estado.
+
+Cuando no existe un programa con `is_public = true`, la ruta continúa existiendo y responde:
+
+```json
+{
+  "message": null,
+  "data": null
+}
+```
+
+Este contrato no diferencia públicamente entre ausencia, privacidad o una configuración todavía incompleta y nunca selecciona un programa privado como fallback.
+
+Cuando existe programa público, la forma es:
+
+```json
+{
+  "message": null,
+  "data": {
+    "name": "Escuela de Galotxas",
+    "enrollments_open": true,
+    "contact": {
+      "phone": null,
+      "email": null
+    },
+    "default_location": {
+      "id": 1,
+      "name": "Canchas de Monóvar",
+      "locality": "Monóvar",
+      "address": null
+    },
+    "levels": [
+      {
+        "id": 1,
+        "name": "Infantil/juvenil",
+        "minimum_age": null,
+        "maximum_age": null,
+        "schedules": [
+          {
+            "id": 1,
+            "day_of_week": 2,
+            "starts_at": "17:00",
+            "ends_at": "18:30",
+            "location": {
+              "id": 1,
+              "name": "Canchas de Monóvar",
+              "locality": "Monóvar",
+              "address": null
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+`enrollments_open` expresa la apertura efectiva del programa público. `contact` siempre contiene `phone` y `email`, ambos nullable. `default_location` es nullable y sólo aparece como objeto si la ubicación habitual está activa.
+
+Los niveles deben pertenecer al programa y ser activos y públicos; se ordenan por `sort_order` e `id`. Un nivel sin horario efectivo permanece en la colección con `schedules: []`. Los horarios exigen horario activo, nivel efectivo y ubicación activa; se ordenan por día ISO, hora inicial, `sort_order` e `id`. `day_of_week` utiliza ISO 1–7 y las horas usan `HH:MM`.
+
+Los cuatro Resources públicos usan allowlist. Sólo se exponen los IDs de nivel, horario y ubicación. No se exponen ID de programa, flags, órdenes, claves foráneas, notas, timestamps, inscripciones, alumnado, usuarios, centros o actividades educativas.
+
+### `POST /api/v1/school/enrollments`
+
+Endpoint público de escritura implementado en 6B.2. No exige autenticación; si se presenta una sesión Sanctum válida, el backend toma exclusivamente de ella el `user_id` opcional. No crea cuenta, `Player`, perfil deportivo o permisos.
+
+Payload admitido:
+
+```json
+{
+  "participant_name": "Nombre completo",
+  "participant_birth_date": "2012-08-01",
+  "contact_phone": "600 000 000",
+  "contact_email": "contacto@example.com",
+  "guardian_name": "Nombre del representante",
+  "guardian_relationship": "Madre",
+  "school_level_id": 1
+}
+```
+
+`school_level_id` es opcional. Si se informa, debe identificar un nivel activo y público del único programa público con `enrollments_open = true`. El programa nunca se acepta desde el payload. Nombre, nacimiento no futuro, teléfono y correo válido son obligatorios; un menor en la fecha de solicitud exige los dos campos de representante. Para adultos se normalizan a `null`.
+
+El payload es cerrado. Se rechazan campos desconocidos y, expresamente, `school_program_id`, `user_id`, `status`, fechas del ciclo, `admin_notes`, `is_public` y `enrollments_open`. El servidor normaliza espacios, correo a minúsculas y genera `requested_at`; toda solicitud se crea `pending`.
+
+Respuesta `201 Created`:
+
+```json
+{
+  "message": "La solicitud de inscripción se ha recibido correctamente.",
+  "data": null
+}
+```
+
+La respuesta no incluye identificador, estado, nombre, correo, teléfono, nivel, fechas ni notas. No existe código de seguimiento.
+
+Errores:
+
+- `409 Conflict` con `La inscripción no está disponible actualmente.` cuando no hay programa público abierto; no distingue programa inexistente, privado o cerrado;
+- `422 Unprocessable Entity` para validación de payload o nivel;
+- `429 Too Many Requests` al superar cinco intentos por minuto para la combinación de IP y hash del correo normalizado.
+
+El limitador se llama `school-enrollments`, no afecta al resto de la API y nunca conserva el correo en claro en su clave.
+
+Continúan ausentes:
+
+- `GET /api/v1/school/enrollments` y cualquier consulta por ID;
+- endpoints públicos de alumnos, centros o actividades;
+- endpoints administrativos de `EducationalCenter` o `EducationalActivity`.
+
+Los centros y actividades implementados en 6B.3 son deliberadamente privados y administrativos. No forman parte de `GET /api/v1/school`, que se limita al programa permanente, niveles, horarios, ubicaciones efectivas, apertura y contacto. No existe API administrativa de Escuela: Blade utiliza rutas web con sesión, CSRF y administrador activo.
+
+Desde 6C, React consume ambos contratos exclusivamente en `/escuela`. La lectura conserva el orden y tolera datos parciales; el formulario sólo envía la allowlist documentada, no exige cuenta y no muestra identificador o estado interno tras `201`. La interfaz trata `409`, `422` y `429` sin ampliar ni modificar este contrato.
 
 ---
 

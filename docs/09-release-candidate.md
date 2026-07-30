@@ -60,7 +60,7 @@ Las imágenes `php:8.2-fpm-alpine`, `composer:2`, `nginx:1.27-alpine` y `mariadb
   - `E2ESmokeSeeder`, protegido por `APP_ENV=e2e` y base `galotxas_e2e`.
 - `DatabaseSeeder` contiene datos de demostración y una cuenta administrativa predecible; no debe ejecutarse en producción.
 - Servicios Docker habituales: `app`, `web` y `db`.
-- Perfil Docker `test`: añade `test` y `test-db` con MariaDB temporal.
+- Proyecto Docker `galotxas-test`: archivo Compose exclusivo con `test` y `test-db`, MariaDB temporal y cleanup guardado.
 - Stack E2E: `app`, `web`, `db` y `runner`; el runner pertenece al perfil `runner`.
 
 ### Frontend
@@ -167,10 +167,10 @@ Desde la raíz:
 
 ```bash
 cp backend/.env.example backend/.env
-docker compose -f backend/docker/docker-compose.yml run --rm --no-deps --user "$(id -u):$(id -g)" app composer install --no-interaction --prefer-dist
-docker compose -f backend/docker/docker-compose.yml up -d --build
-docker compose -f backend/docker/docker-compose.yml exec app php artisan key:generate --force
-docker compose -f backend/docker/docker-compose.yml exec app php artisan migrate --force
+docker compose --project-name galotxas -f backend/docker/docker-compose.yml run --rm --no-deps --user "$(id -u):$(id -g)" app composer install --no-interaction --prefer-dist
+docker compose --project-name galotxas -f backend/docker/docker-compose.yml up -d --build
+docker compose --project-name galotxas -f backend/docker/docker-compose.yml exec app php artisan key:generate --force
+docker compose --project-name galotxas -f backend/docker/docker-compose.yml exec app php artisan migrate --force
 ```
 
 `key:generate --force` solo corresponde a una instalación nueva. No debe sustituirse la clave de un entorno existente.
@@ -178,8 +178,8 @@ docker compose -f backend/docker/docker-compose.yml exec app php artisan migrate
 Opcionalmente, para datos base no destructivos de desarrollo:
 
 ```bash
-docker compose -f backend/docker/docker-compose.yml exec app php artisan db:seed --class=DefaultVenueSeeder
-docker compose -f backend/docker/docker-compose.yml exec app php artisan db:seed --class=InstitutionalCmsPageSeeder
+docker compose --project-name galotxas -f backend/docker/docker-compose.yml exec app php artisan db:seed --class=DefaultVenueSeeder
+docker compose --project-name galotxas -f backend/docker/docker-compose.yml exec app php artisan db:seed --class=InstitutionalCmsPageSeeder
 ```
 
 No ejecutar `DatabaseSeeder` en producción. `storage` y `bootstrap/cache` deben ser escribibles por el usuario del proceso PHP. `storage:link` solo será necesario cuando se utilice el disco público; el MVP actual no sube archivos.
@@ -213,9 +213,9 @@ Si frontend y backend usan dominios distintos, la variable debe contener la URL 
 ## Comandos de validación
 
 ```bash
-docker compose -f backend/docker/docker-compose.yml --profile test run --rm test
-docker compose -f backend/docker/docker-compose.yml exec app composer validate --strict
-docker compose -f backend/docker/docker-compose.yml exec app composer audit
+backend/scripts/run-tests.sh
+docker compose --project-name galotxas -f backend/docker/docker-compose.yml exec app composer validate --strict
+docker compose --project-name galotxas -f backend/docker/docker-compose.yml exec app composer audit
 
 cd frontend
 npm ls --depth=0

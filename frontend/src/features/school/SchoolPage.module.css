@@ -1,0 +1,310 @@
+.sections {
+  display: grid;
+  gap: clamp(2.75rem, 7vw, 4.5rem);
+}
+
+.remoteState,
+.errorState {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 5px 16px rgba(0, 31, 63, 0.08);
+  color: #374151;
+  line-height: 1.6;
+}
+
+.errorState {
+  border-left: 4px solid #9f1239;
+}
+
+.errorState p,
+.remoteState p {
+  margin-top: 0;
+}
+
+.programName {
+  margin: 0 0 1rem;
+  color: #1f2937;
+  font-size: 1.35rem;
+}
+
+.enrollmentStatus {
+  display: inline-flex;
+  margin: 0;
+  padding: 0.65rem 0.9rem;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.enrollmentOpen {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.enrollmentClosed {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.defaultLocation {
+  margin-top: 1.5rem;
+}
+
+.defaultLocation h3 {
+  margin: 0 0 0.6rem;
+  color: #003366;
+  font-size: 1.15rem;
+}
+
+.location {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0;
+  color: #4b5563;
+  font-style: normal;
+  line-height: 1.5;
+}
+
+.levelGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: 1.25rem;
+}
+
+.levelCard {
+  min-width: 0;
+  padding: clamp(1.25rem, 4vw, 1.75rem);
+  border: 1px solid #dbe3eb;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 5px 16px rgba(0, 31, 63, 0.08);
+  overflow-wrap: anywhere;
+}
+
+.levelCard h3,
+.levelCard h4 {
+  color: #003366;
+}
+
+.levelCard h3 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.levelCard h4 {
+  margin: 1.35rem 0 0.65rem;
+  font-size: 1.05rem;
+}
+
+.ageRange {
+  margin: 0.5rem 0 0;
+  color: #4b5563;
+}
+
+.scheduleList,
+.contactList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.scheduleList {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.schedule {
+  display: grid;
+  gap: 0.45rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.scheduleTime {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  color: #1f2937;
+}
+
+.localEmpty {
+  margin: 0.8rem 0 0;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.contactList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+}
+
+.contactList a {
+  color: #005ea8;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  text-underline-offset: 0.2em;
+}
+
+.form {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 780px;
+}
+
+.form fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 1.25rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.form legend {
+  padding: 0 0.4rem;
+  color: #003366;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  gap: 1rem 1.25rem;
+}
+
+.field {
+  display: grid;
+  min-width: 0;
+  gap: 0.4rem;
+}
+
+.field label {
+  color: #1f2937;
+  font-weight: 700;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  border: 1px solid #94a3b8;
+  border-radius: 6px;
+  padding: 0.65rem 0.75rem;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+}
+
+.field input[aria-invalid='true'],
+.field select[aria-invalid='true'] {
+  border-color: #9f1239;
+}
+
+.fieldError {
+  color: #9f1239;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.formMessage,
+.successState {
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  background: #fff7ed;
+  color: #7c2d12;
+}
+
+.formMessage p,
+.successState p {
+  margin: 0;
+}
+
+.successState {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.successState h3 {
+  margin: 0 0 0.5rem;
+}
+
+.submitButton,
+.secondaryButton {
+  display: inline-flex;
+  min-height: 44px;
+  width: fit-content;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #003366;
+  border-radius: 8px;
+  padding: 0.7rem 1.15rem;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.submitButton {
+  background: #003366;
+  color: #ffffff;
+}
+
+.secondaryButton {
+  margin-top: 0.8rem;
+  background: #ffffff;
+  color: #003366;
+}
+
+.submitButton:disabled,
+.secondaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.contactList a:focus-visible,
+.field input:focus-visible,
+.field select:focus-visible,
+.submitButton:focus-visible,
+.secondaryButton:focus-visible {
+  outline: 3px solid #003366;
+  outline-offset: 3px;
+}
+
+.requiredHelp {
+  margin: 0;
+  color: #4b5563;
+  font-size: 0.92rem;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 480px) {
+  .contactList {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .form fieldset {
+    padding: 1rem;
+  }
+
+  .submitButton,
+  .secondaryButton {
+    width: 100%;
+  }
+}

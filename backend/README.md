@@ -7,6 +7,19 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Entorno Galotxas
+
+El backend se ejecuta con Compose en tres proyectos separados: `galotxas` para desarrollo, `galotxas-test` para PHPUnit y `galotxas-e2e` para Playwright. Los tests backend no forman parte del archivo Compose de desarrollo y nunca deben ejecutarse contra su base.
+
+Desde la raíz del monorepo:
+
+```bash
+backend/scripts/run-tests.sh
+backend/scripts/run-tests.sh --filter=School
+```
+
+El runner valida con `docker compose config` el proyecto, archivo, entorno, base, red, volúmenes y nombres de contenedor antes de limpiar. Su MariaDB usa `tmpfs` y el cleanup sólo puede actuar sobre `galotxas-test`. El diseño, los comandos de desarrollo y la recuperación tras el incidente de 6C se mantienen en [`docs/13-docker-environment-isolation.md`](../docs/13-docker-environment-isolation.md).
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
