@@ -6,6 +6,7 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Se completa documentalmente 7C.0 con `CLUB-VERTICAL-READINESS-AUDIT-1`: inspección de Knowledge, CMS, API, React, `/nosotros`, rutas y recursos; contraste de la información aportada, inventario de imágenes, readiness, preguntas y gates, sin implementar 7C ni cargar contenido.
 - Se completa documentalmente Fase 7B con `MVP-EDITORIAL-NAVIGATION-CONTRACT-1`: navegación final, rutas institucionales canónicas, plantillas editoriales, matriz legal, inventario de identidad pública, checklist School, gates humanos y plan refinado 7C–7G, sin implementar código, contenido ni datos.
 - Se completa MVP-PARITY-AUDIT-1 de Fase 7A con inventarios de backend, Blade, API, React, CMS y autogestión, definición observable del MVP, priorización P0–P2, recomendación de navegación y plan 7B–7G, sin implementar funciones ni modificar datos.
 - Se incorpora la base administrativa `is_public` para temporadas, campeonatos y categorías, con nuevos registros privados, backfill compatible y validación jerárquica sin cascadas; la API pública todavía no filtra por este campo.

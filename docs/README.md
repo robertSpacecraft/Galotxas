@@ -19,6 +19,7 @@ La documentación se organiza para separar claramente:
 - aislamiento entre los entornos Docker.
 - auditoría de paridad y plan del MVP completo.
 - contrato editorial y de navegación final del MVP.
+- auditoría de preparación de la vertical institucional Club.
 
 ## Orden recomendado de lectura
 
@@ -39,6 +40,7 @@ La documentación se organiza para separar claramente:
 15. [Aislamiento de entornos Docker](13-docker-environment-isolation.md)
 16. [Auditoría de paridad y plan del MVP completo](14-mvp-parity-audit.md)
 17. [Contrato editorial y de navegación del MVP](15-mvp-editorial-and-navigation-contract.md)
+18. [Auditoría de preparación de la vertical Club](16-club-vertical-readiness-audit.md)
 
 El contrato de navegación inventaría el router y los enlaces actuales y conserva
 el histórico de la arquitectura pública desde Fase 3. El contrato de Fase 7B
@@ -56,6 +58,9 @@ experiencia React. El documento de aislamiento registra la remediación 6C.1,
 los tres proyectos Compose y las guardas de limpieza. La auditoría 7A compara
 backend, Blade, API y React y prioriza los bloques pendientes; Fase 7B añade
 plantillas, matriz legal, gates y el plan refinado sin aportar contenido real.
+La auditoría 7C.0 contrasta ese contrato con el CMS, Knowledge, `/nosotros`, los
+recursos versionados y la información editorial aportada; recomienda preparar
+contenido privado antes de implementar las fachadas públicas de 7C.
 El conocimiento estable del deporte se mantiene por separado en
 [`knowledge/`](../knowledge/README.md); los documentos técnicos describen el
 software y no sustituyen esa fuente editorial.

@@ -1099,6 +1099,25 @@ ejecuta Docker, suites, migraciones, seeders, frontend, build o E2E.
 
 ---
 
+## CLUB-VERTICAL-READINESS-AUDIT-1 — Preparación documental de Club
+
+La subfase 7C.0 inspecciona estáticamente Knowledge, CMS, API, React,
+`/nosotros`, rutas, cobertura y recursos y contrasta cada dato editorial
+aportado. `16-club-vertical-readiness-audit.md` registra capacidades, límites,
+grafías, duplicidades, imágenes, readiness, preguntas y gates sin implementar
+la vertical.
+
+Este marcador no acredita rutas Club, contenido CMS, aliases, paridad ni
+publicación. La estrategia recomendada divide el trabajo futuro entre cierre y
+carga editorial privada (7C.1) e implementación/validación pública (7C.2).
+
+La validación de 7C.0 se limita a inspección estática, búsquedas con `rg`,
+`git diff --check`, `git diff --stat`, `git diff --name-only` y estado Git. No
+se ejecutan Docker, migraciones, seeders, suites, frontend, build ni E2E; las
+últimas instantáneas funcionales documentadas permanecen sin cambios.
+
+---
+
 # 11. Evolución
 
 La cobertura de pruebas debe crecer junto con el proyecto.

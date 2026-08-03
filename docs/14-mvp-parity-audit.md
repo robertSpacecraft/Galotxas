@@ -686,6 +686,14 @@ son P1 y no bloquean esta primera versión.
 
 ### Fase 7C — Vertical institucional Club
 
+La auditoría preparatoria 7C.0, registrada en
+`16-club-vertical-readiness-audit.md`, confirma que el soporte CMS mínimo existe
+pero la identidad, la historia, el proceso de Federarse y la procedencia de
+imágenes no están acreditados. Recomienda ejecutar 7C como dos pasos: cierre y
+carga editorial privada (7C.1), seguidos de implementación, paridad, tests y
+publicación controlada (7C.2). Esta recomendación queda pendiente de aceptación
+humana y no marca 7C como iniciada ni completada.
+
 - **Objetivo:** ofrecer Club con fuente CMS única y contenido real.
 - **Alcance:** Quiénes somos, Contacto, Federarse y Documentos; cuatro URLs
   canónicas; aliases temporales y migración conservadora de Nosotros.

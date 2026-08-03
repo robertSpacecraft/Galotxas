@@ -718,6 +718,21 @@ Escuela y privacidad.
 
 **Objetivo:** vertical institucional Club con fuente CMS única.
 
+Seguimiento 7C.0: la inspección de readiness en
+`16-club-vertical-readiness-audit.md` no cambia las rutas ni fuentes aprobadas,
+pero confirma que no deben implementarse aún destinos públicos. La estrategia
+única recomendada, pendiente de aceptación humana, divide la ejecución en:
+
+1. **7C.1:** resolver identidad, contenido, proceso, documentos y derechos;
+   crear o completar las cuatro páginas CMS en borrador y aprobar su paridad;
+2. **7C.2:** implementar fachadas, aliases, estados, metadatos, accesibilidad,
+   responsive y pruebas; publicar sólo después de la aceptación.
+
+Contacto y Documentos pueden alcanzar un mínimo con los datos y el Manual ya
+identificados, una vez confirmados. Quiénes somos y Federarse siguen bloqueados
+por datos. Las imágenes son omitibles, pero cualquier imagen utilizada exige
+procedencia, derechos y consentimientos.
+
 Alcance:
 
 - registrar `/club/quienes-somos`, `/club/contacto`, `/club/federarse` y
