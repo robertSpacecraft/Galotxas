@@ -1012,3 +1012,16 @@ Esto resuelve la ausencia técnica de las cuatro rutas inventariada en 7A, pero
 no acredita datos productivos, privacidad, correo, operación, publicación por
 entorno, Home/footer/legal, despliegue o aceptación. Fase 7, 7D–7G y el MVP
 siguen abiertos.
+
+## 28. Seguimiento de Fase 7D.1
+
+7D.1 resuelve la deuda estructural de descubrimiento inventariada por 7A:
+Navbar usa una configuración única con disclosures Aprende/Club y Cuenta
+separada; Home ofrece sólo recorridos reales; y Footer es global con las cuatro
+rutas Club y redes confirmadas. La aplicación conserva rutas deportivas,
+Knowledge, Escuela, CMS, `/nosotros`, `/contenidos` y carga diferida.
+
+Este cierre no acredita contenido productivo ni resuelve privacidad, legal,
+correo, operación de Contacto, datos School, identidad deportiva o despliegue.
+No crea aliases, redirects, canonical o SEO completo. 7D.2, 7E–7G, Fase 7 y el
+MVP permanecen abiertos; la definición observable de 7A no se reduce.

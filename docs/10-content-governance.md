@@ -90,12 +90,14 @@ Fase 7B contrata cuatro controles editoriales:
 
 La identidad del usuario, Mi Panel y el cierre de sesión permanecerán en una zona autenticada separada.
 
-Esta es la arquitectura objetivo de ADR-033. Tras 7C.2 están registradas `/`,
+Esta es la arquitectura de ADR-033. Tras 7D.1 están registradas `/`,
 `/competicion`, `/aprende-a-jugar`, su Manual, `/escuela` y las cuatro rutas
-Club; el Navbar actual mantiene cuatro enlaces planos. Competición utiliza datos
-públicos reales; Aprende a jugar y Manual consumen Knowledge; Escuela consume
-Laravel; y Club consume sólo páginas CMS publicadas mediante slugs cerrados.
-Los disclosures del Navbar permanecen pendientes de 7D.
+Club, y el Navbar las descubre mediante los disclosures Aprende/Club.
+Competición utiliza datos públicos reales; Aprende a jugar y Manual consumen
+Knowledge; Escuela consume Laravel; y Club consume sólo páginas CMS publicadas
+mediante slugs cerrados. Home y Footer contienen únicamente copy de interfaz,
+arquitectura de enlaces, identidad y redes confirmadas; no duplican CMS o
+Knowledge. Los destinos legales permanecen pendientes de 7D.2.
 
 Los componentes de `frontend/src/components/PublicLanding/` son infraestructura de presentación, no una cuarta fuente de contenido. Pueden recibir datos ya autorizados del dominio Laravel, artefactos compilados desde `knowledge/` o contenido público del CMS, pero no conocen esas fuentes ni deciden visibilidad, publicación o reglas. Sus props admiten estructura, copy breve de interfaz y contenido procedente de la fuente canónica; no deben usarse para hardcodear contenido administrable como sustituto temporal del CMS o de `knowledge/`.
 
@@ -385,9 +387,9 @@ La Fase 3A no elimina `/contenidos`, no crea redirects, no cambia su API ni borr
 - Estrategia de almacenamiento persistente y ciclo de vida de archivos.
 - Modelo de consentimiento y privacidad para contenido de menores.
 - Consumo React, renderer, rutas públicas e integración automática de la canalización con CI/despliegue.
-- Descubrimiento de las cuatro URLs Club desde el Navbar/footer en 7D, aliases
-  tras paridad y, posteriormente, redirects permanentes, canonical, sitemap,
-  404 HTTP y SEO completo.
+- Legal y gates productivos de Contacto en 7D.2; aliases tras paridad y,
+  posteriormente, redirects permanentes, canonical, sitemap, 404 HTTP y SEO
+  completo. Las cuatro URLs Club ya se descubren desde Navbar/footer en 7D.1.
 - Política de identidad pública en clasificación, rankings, calendario,
   equipos y partidos, con tratamiento específico de menores.
 - Roles, permisos, trazabilidad y vista previa requeridos por los editores.

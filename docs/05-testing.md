@@ -1153,6 +1153,32 @@ regresión backend mantiene publicación CMS y privacidad/configuración de
 Contacto. El build se dirige a un directorio temporal y debe conservar Club,
 School y Knowledge en chunks diferidos sin warnings.
 
+## PUBLIC-NAVIGATION-HOME-FOOTER-1 — Navegación y layout global
+
+7D.1 amplía Vitest/RTL sobre la configuración exacta del árbol, tipos,
+visibilidad, audiencia, padres sin ruta, prefijos y `aria-current` exacto. El
+Navbar cubre disclosure por click/Enter/Space, exclusión mutua, Escape y retorno
+de foco, click exterior, cierre al navegar, dos niveles de menú móvil, Cuenta
+anónima/autenticada y ramas activas. Home cubre copy, CTAs, cuatro bloques sin
+destinos vacíos y metadatos; Footer cubre montaje global, rutas Club, redes
+seguras, año calculado y ausencia deliberada de legal, Prensa y Federaciones.
+
+Playwright añade recorridos desktop a Manual y Quiénes somos, un único grupo
+abierto, Escape/foco, navegación móvil a Escuela con cierre total, Cuenta en
+ambos estados, CTAs, footer, redes y 320 px sin overflow. Las suites existentes
+continúan verificando las cargas diferidas de Club, School y Knowledge con
+fixtures del stack temporal. La validación usa `frontend/scripts/run-e2e.sh` y
+no toca la base de desarrollo.
+
+El cierre exige suite frontend completa, lint, build a `outDir` temporal sin
+warnings, `knowledge:check`, hashes canónicos, E2E completo y
+`git diff --check`. Backend y PHP no se ejecutan porque 7D.1 no los modifica.
+
+Validación de 7D.1, 2026-08-04: 371 tests Vitest en 57 archivos, lint,
+`knowledge:check` con 40 documentos y cuatro colecciones, build temporal sin
+warnings y 37/37 escenarios Chromium correctos. Los hashes de ambos artefactos
+Knowledge coinciden con `HEAD`; el runner E2E elimina sus recursos aislados.
+
 ---
 
 # 11. Evolución

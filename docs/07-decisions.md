@@ -1068,8 +1068,9 @@ Decisión:
 - utilizar una sola configuración y el mismo árbol en desktop y móvil, con
   botones de revelación, `aria-expanded`, `aria-controls`, foco visible,
   cierre al navegar y Escape con retorno de foco;
-- aplicar `aria-current="page"` al enlace exacto y `location` al enlace que
-  representa un descendiente, dejando el padre activo sólo de forma visual;
+- aplicar `aria-current="page"` sólo al enlace exacto y representar los
+  descendientes mediante el estado visual de su rama, sin anunciar como actual
+  una URL distinta;
 - asignar el contenido institucional al CMS, React a presentación/navegación y
   reservar Knowledge para conocimiento estable del juego;
 - elegir Contacto informativo mediante CMS, sin formulario ni almacenamiento
@@ -1113,7 +1114,7 @@ Consecuencias:
 
 - ADR-028 queda sustituida sólo en su topología plana y en la landing `/club`;
   conserva cuenta separada, rutas deportivas, compatibilidad y fuentes.
-- El Navbar actual no cambia en 7B; disclosures, rutas Club y footer se
+- Durante 7B el Navbar no cambia; disclosures, rutas Club y footer se
   implementarán en 7C/7D con contenido real y pruebas.
 - Escuela aparece bajo Aprende por descubrimiento, pero sigue siendo una
   vertical independiente.
@@ -1125,6 +1126,17 @@ Consecuencias:
 - Prensa y Federaciones pueden omitirse sin crear enlaces vacíos.
 - Legal, contenido, imágenes, datos School e identidad deportiva siguen siendo
   gates humanos; Fase 7 y el MVP permanecen abiertos.
+
+Aplicación en 7D.1:
+
+- la configuración única, los disclosures Aprende/Club, Cuenta separada, Home
+  y el footer global quedan implementados y validados;
+- el footer publica identidad, cuatro rutas Club y redes confirmadas, pero no
+  crea enlaces legales sin contenido;
+- privacidad, aviso legal y cookies si aplica se separan como 7D.2; Fase 7D,
+  Fase 7 y el MVP permanecen abiertos;
+- no se introducen `/aprende`, `/club`, aliases, redirects o cambios de fuente
+  editorial.
 
 ---
 

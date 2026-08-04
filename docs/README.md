@@ -22,6 +22,7 @@ La documentación se organiza para separar claramente:
 - auditoría de preparación de la vertical institucional Club.
 - preparación técnica de Club y del formulario de contacto.
 - fachadas públicas de Club y formulario condicionado.
+- navegación agrupada, Home y footer estructural.
 
 ## Orden recomendado de lectura
 
@@ -45,13 +46,16 @@ La documentación se organiza para separar claramente:
 18. [Auditoría de preparación de la vertical Club](16-club-vertical-readiness-audit.md)
 19. [Preparación técnica de Club y contacto](17-club-technical-preparation-and-contact.md)
 20. [Fachadas públicas de Club](18-club-public-facades.md)
+21. [Navegación agrupada, Home y footer](19-navigation-home-and-footer.md)
 
 El contrato de navegación inventaría el router y los enlaces actuales y conserva
 el histórico de la arquitectura pública desde Fase 3. El contrato de Fase 7B
 cierra su evolución para el MVP: Inicio y Competición como enlaces, Aprende y
 Club como grupos de revelación, Cuenta separada y cuatro rutas institucionales
-canónicas. Las rutas Club ya tienen fachadas CMS diferidas, aunque el grupo del
-Navbar permanece pendiente de 7D. El documento de gobernanza define qué
+canónicas. Las rutas Club ya tienen fachadas CMS diferidas y 7D.1 implementa el
+grupo del Navbar, Home veraz y footer global. Las rutas legales y la activación
+productiva de Contacto permanecen pendientes de 7D.2. El documento de
+gobernanza define qué
 información pertenece al dominio Laravel, al CMS administrable o al
 conocimiento canónico. El contrato de la canalización documenta cómo se valida
 y compila `knowledge/` sin convertir el artefacto en fuente editorial. El
@@ -72,6 +76,8 @@ guía manual y los gates de 7C.2 sin publicar páginas o rutas Club.
 7C.2 implementa las cuatro fachadas, sus estados remotos y el formulario
 condicionado, conserva el legado y registra los gates productivos y de 7D en el
 documento 18, sin convertir React o los fixtures E2E en fuente editorial.
+7D.1 aplica el árbol aprobado con disclosures accesibles, conserva Cuenta y
+rutas legadas, y registra Home/footer y sus gates en el documento 19.
 El conocimiento estable del deporte se mantiene por separado en
 [`knowledge/`](../knowledge/README.md); los documentos técnicos describen el
 software y no sustituyen esa fuente editorial.

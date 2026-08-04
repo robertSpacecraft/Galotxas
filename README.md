@@ -85,7 +85,9 @@ producción hasta cerrar privacidad, destinatario y operación. La carga de las
 páginas Club continúa siendo manual mediante el CMS Blade. React expone las
 fachadas diferidas `/club/quienes-somos`, `/club/contacto`, `/club/federarse` y
 `/club/documentos`; el formulario sólo se monta cuando la configuración pública
-devuelve `enabled: true`. El Navbar agrupado pertenece todavía a 7D.
+devuelve `enabled: true`. Fase 7D.1 incorpora el Navbar agrupado Aprende/Club,
+Home orientada a recorridos reales y footer global; las páginas legales y la
+activación productiva de Contacto siguen pendientes de 7D.2.
 
 ## Pruebas
 
@@ -125,5 +127,6 @@ El stack E2E es desechable y no utiliza la base de desarrollo.
 - [Conocimiento canónico del deporte](knowledge/README.md)
 - [Roadmap y estado del MVP](docs/06-roadmap.md)
 - [Preparación técnica de Club y contacto](docs/17-club-technical-preparation-and-contact.md)
+- [Navegación agrupada, Home y footer](docs/19-navigation-home-and-footer.md)
 - [Candidato MVP y publicación](docs/09-release-candidate.md)
 - [Historial de cambios](CHANGELOG.md)

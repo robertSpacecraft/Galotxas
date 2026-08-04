@@ -200,9 +200,9 @@ La primera base backend del CMS público sigue el mismo patrón general del proy
 - **React**: consumo de la API pública desde `/contenidos` y `/contenidos/:slug`
   y desde cuatro fachadas canónicas Club, con un único renderer de bloques
   estructurados y sin HTML libre.
-- **Navegación pública**: 7C.2 registra las fachadas Club, pero el disclosure
-  del Navbar permanece pendiente de 7D; las URLs `/contenidos/{slug}` continúan
-  como acceso legado.
+- **Navegación pública**: 7C.2 registra las fachadas Club y 7D.1 las incorpora
+  al disclosure y footer global; las URLs `/contenidos/{slug}` continúan como
+  acceso legado.
 
 La subida de documentos o imágenes, las noticias como entidad propia y los formularios públicos quedan fuera de esta base inicial.
 
@@ -390,11 +390,29 @@ El calendario y la clasificación independientes de categoría obtienen su conte
 
 `frontend/src/navigation/competitionRoutes.js` centraliza las raíces estáticas y la construcción defensiva de las URLs deportivas reutilizadas. No registra rutas ni aliases: refleja exclusivamente Competición, Torneos, Rankings y los detalles existentes de campeonato, categoría, standings, schedule y partido ya declarados en `App.jsx`. `CategoryNavigation` comparte las tres vistas de categoría y marca la actual con `aria-current="page"`; los retornos apuntan a un destino determinista de la jerarquía y no dependen del historial del navegador.
 
-`frontend/src/navigation/publicNavigation.js` es la fuente única del menú editorial. Tras 6C contiene, en orden, Inicio, Competición, Aprende a jugar y Escuela de Galotxas; Club continúa ausente. Torneos y Rankings siguen disponibles como destinos secundarios y las rutas CMS e institucionales conservan acceso directo sin ocupar el primer nivel. Los matchers compartidos activan cada rama; la ruta exacta utiliza `aria-current="page"` y las ubicaciones secundarias `aria-current="location"`.
+`frontend/src/navigation/publicNavigation.js` es la fuente única del menú
+editorial. Desde 7D.1 declara Inicio y Competición como enlaces y Aprende/Club
+como disclosures sin ruta, con hijos, match exacto y por prefijo, visibilidad y
+audiencia. Torneos, Rankings y detalles deportivos siguen como destinos
+secundarios de Competición; las cuatro fachadas Club ocupan sólo su grupo. La
+coincidencia exacta utiliza `aria-current="page"`; un descendiente conserva el
+estado visual de su rama sin anunciar otra URL como página actual.
 
-En móvil y tablet se reutiliza ese mismo array mediante estado React y un botón con `aria-expanded` y `aria-controls`; el menú se cierra al seleccionar una ruta, al cambiar la ubicación, mediante el propio botón o con Escape, que devuelve el foco al control. Los enlaces cerrados quedan fuera de la navegación por teclado mediante el estado visual responsive. La cuenta es un grupo accesible hermano: el visitante recibe Iniciar sesión y el usuario autenticado conserva saludo, Mi Panel y Salir.
+Desktop, móvil y tablet reutilizan el mismo árbol. Los disclosures son botones
+nativos con `aria-expanded` y `aria-controls`, exclusión mutua, cierre exterior
+y cierre al navegar. Escape cierra primero el grupo y devuelve foco a su
+disparador; después cierra el menú móvil y devuelve foco a Menú. Los paneles
+cerrados usan `hidden`. Cuenta continúa como grupo hermano: el visitante recibe
+Iniciar sesión y el usuario autenticado conserva saludo, Mi Panel y Salir.
 
-El router no define nesting, loaders ni acciones, pero sí una ruta wildcard final que muestra una experiencia 404 con enlaces de recuperación y sin redirección automática. El servidor SPA puede seguir entregando inicialmente `index.html` con HTTP 200; coordinar una respuesta HTTP 404 real pertenece al despliegue posterior. Home y el índice CMS ya no crean un segundo `<main>` dentro del landmark global. El footer continúa montándose sólo en Home y no contiene navegación; no forma parte del sistema común de landings. La rama no consumida de `ProtectedRoute` hacia `/dashboard` se mantiene documentada como deuda, sin crear esa ruta.
+El router no define nesting, loaders ni acciones, pero sí una ruta wildcard
+final que muestra una experiencia 404 con enlaces de recuperación y sin
+redirección automática. El servidor SPA puede seguir entregando inicialmente
+`index.html` con HTTP 200; coordinar una respuesta HTTP 404 real pertenece al
+despliegue posterior. `App` aporta `main#main-content`, destino del skip link, y
+monta un footer global tras él. El layout flex mantiene ese footer al final del
+viewport sin fijarlo. La rama no consumida de `ProtectedRoute` hacia
+`/dashboard` se mantiene documentada como deuda, sin crear esa ruta.
 
 ## Sistema común de landings públicas
 
@@ -408,7 +426,11 @@ El router no define nesting, loaders ni acciones, pero sí una ruta wildcard fin
 
 El módulo CSS común usa grids fluidos, corte a una columna cuando no hay espacio y texto no truncado, sin alturas rígidas ni estilos globales nuevos. La matriz Playwright valida 320, 375, 768, 1024, 1280 y 1440 px, además del acceso por Tab y activación con Enter.
 
-La adopción comenzó en `/competicion` y se extendió a Aprende a jugar y `/escuela`. Escuela reutiliza cabecera, secciones, acciones y metadatos, pero mantiene sus estados y componentes operativos dentro de la feature. Home no se ha refactorizado como landing común; en 6C sólo sustituye su referencia pública “Academy” por una tarjeta-enlace funcional a `/escuela`.
+La adopción comenzó en `/competicion` y se extendió a Aprende a jugar y
+`/escuela`. Escuela reutiliza cabecera, secciones, acciones y metadatos, pero
+mantiene sus estados y componentes operativos dentro de la feature. Home usa
+una composición propia y acotada: metadatos, hero y cuatro recorridos reales,
+sin peticiones nuevas, importación de Knowledge o contenido CMS duplicado.
 
 `championshipsService.getSeasons` mantiene la comunicación HTTP y extrae `data` del envelope; `useCompetitionOverview` coordina carga, éxito, error, vacío, reintento y descarte de respuestas posteriores al desmontaje; los componentes específicos `CompetitionOverview`, `CompetitionSeason` y `CompetitionChampionshipCard` se limitan a presentar el contrato deportivo, y `CompetitionPage` compone esos estados dentro de `PublicLanding`. No se consulta `/championships` ni detalles para construir el resumen, porque `/seasons` ya entrega los campeonatos públicos y su recuento de categorías en una sola respuesta.
 
@@ -442,13 +464,15 @@ Club no enlaza `/club`, porque no existe una función independiente que
 justifique otra landing.
 
 En el estado actual están registradas `/`, `/competicion`,
-`/aprende-a-jugar`, `/escuela` y las cuatro fachadas Club, mientras el Navbar
-continúa mostrando cuatro enlaces planos. Competición presenta datos públicos
-reales; Aprende a jugar deriva sus 40 documentos y cuatro colecciones; Escuela
-presenta el agregado `GET /api/v1/school`; y Club presenta sólo las páginas que
-Laravel considera publicadas. Los disclosures siguen pendientes de 7D.
+`/aprende-a-jugar`, `/escuela` y las cuatro fachadas Club. 7D.1 aplica en el
+Navbar los disclosures Aprende/Club y mantiene Cuenta separada. Competición
+presenta datos públicos reales; Aprende a jugar deriva sus 40 documentos y
+cuatro colecciones; Escuela presenta el agregado `GET /api/v1/school`; y Club
+presenta sólo las páginas que Laravel considera publicadas. Legal y activación
+productiva de Contacto se aplazan a 7D.2.
 El detalle operativo se mantiene en `09-public-navigation.md` y el cierre
-editorial de 7B en `15-mvp-editorial-and-navigation-contract.md`.
+editorial de 7B en `15-mvp-editorial-and-navigation-contract.md`; la aplicación
+de 7D.1 se registra en `19-navigation-home-and-footer.md`.
 
 La secuencia aprobada separa responsabilidades: 3B–3C establecieron navegación y landings; 4A–4C completaron Competición; 5A–5C consolidaron Knowledge y Aprende; 6A–6B.4 establecieron el dominio escolar, 6C publica su consumo y 6C.1 revalida el cierre de la Fase 6 con aislamiento Docker efectivo. Consolidación institucional, migraciones, aliases, redirects, canonical, indexación de `/contenidos` y SEO completo quedan en bloques independientes posteriores.
 

@@ -153,13 +153,13 @@ revisión. Si permanecen como borrador o programadas en el futuro, las fachadas
 devuelven la 404 pública prevista. 7C.2 no publicó ni modificó registros locales;
 carga, revisión y publicación productivas siguen siendo manuales por entorno.
 
-## 21. Gates de 7D
+## 21. Gates posteriores a 7C
 
-7D debe implementar el árbol único de navegación con disclosures Aprende y
-Club, paridad desktop/móvil, Home y footer veraces y destinos legales aprobados.
-Antes de activar Contacto en producción deben cerrarse privacidad y operación.
-También siguen pendientes paridad de `/nosotros`, aliases/redirects, canonical,
-indexación de `/contenidos`, contenido por entorno y aceptación humana.
+7D.1 implementa el árbol único con disclosures Aprende/Club, paridad
+desktop/móvil, Home y footer estructurales. Antes de activar Contacto en
+producción, 7D.2 debe cerrar privacidad, legal y operación. También siguen
+pendientes paridad de `/nosotros`, aliases/redirects, canonical, indexación de
+`/contenidos`, contenido por entorno y aceptación humana.
 
 ## 22. Criterios de cierre
 
@@ -167,4 +167,13 @@ indexación de `/contenidos`, contenido por entorno y aceptación humana.
 diferidas, fuente CMS única, estados completos, Contacto condicionado, pruebas
 unitarias/backend/E2E y documentación validadas, sin cambios en Navbar,
 `knowledge/`, `frontend/dist`, imágenes o datos locales. Fase 7 y el MVP siguen
-abiertos: 7D y los gates productivos no quedan autorizados por este cierre.
+abiertos: la implementación posterior de 7D.1 no autoriza 7D.2 ni los gates
+productivos.
+
+## 23. Seguimiento de 7D.1
+
+Las cuatro fachadas ya son descubribles desde el disclosure Club y el footer
+global mediante sus rutas canónicas. El Navbar y Home no importan `ClubPage`,
+no cargan contenido CMS y no alteran el mapa ruta/slug. Club sigue diferido;
+las rutas legadas y los estados de publicación permanecen intactos. La
+validación E2E usa exclusivamente las páginas ficticias del entorno protegido.

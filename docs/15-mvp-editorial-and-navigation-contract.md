@@ -40,9 +40,9 @@ No queda aprobada una política de identidad pública de participantes. Tampoco
 se aportan contenido real, textos legales, datos de Escuela, imágenes,
 documentos ni canales oficiales. Esos elementos siguen siendo gates humanos.
 
-El estado actual del código no cambia: el Navbar continúa plano, no existe
-`/club`, las rutas canónicas institucionales no están registradas y el footer
-global no está implementado.
+En el momento del cierre documental de 7B el código no cambió: el Navbar
+continuaba plano, no existía `/club`, las rutas canónicas institucionales no
+estaban registradas y el footer global no estaba implementado.
 
 ## 3. Decisiones heredadas
 
@@ -111,8 +111,7 @@ Reglas comunes:
 - el foco siempre es visible;
 - los botones declaran `aria-expanded` y `aria-controls`;
 - el enlace exacto usa `aria-current="page"`;
-- el enlace que representa una rama descendiente usa
-  `aria-current="location"`;
+- una rama descendiente conserva estado visual sin recibir `aria-current`;
 - el botón padre activo se diferencia visualmente, pero no recibe
   `aria-current` porque no representa una página.
 
@@ -880,3 +879,18 @@ No se implementan todavía los disclosures aprobados, Home, footer o legal. No
 se retiran `/nosotros` ni `/contenidos/:slug` porque la paridad no se ha
 acreditado, y no existen redirects o canonical. Por tanto el plan 7D–7G, los
 gates humanos y el estado abierto de Fase 7/MVP permanecen sin cambios.
+
+## 33. Seguimiento de Fase 7D.1
+
+7D se divide para no publicar destinos legales vacíos. 7D.1 implementa la
+parte estructural ya aprobada: configuración única, disclosures Aprende/Club,
+Cuenta separada, estados y teclado desktop/móvil, Home veraz y footer global con
+identidad, rutas institucionales y redes confirmadas. Los padres no reciben
+ruta y `aria-current="page"` se reserva a coincidencias exactas; las ramas
+descendientes mantienen sólo estado visual.
+
+7D.2 conserva la obligación contractual de privacidad, aviso legal y cookies si
+aplica, pero requiere contenido y responsables aprobados antes de crear sus
+rutas o enlaces. El formulario productivo de Contacto continúa desactivado.
+No cambian CMS, contenido, `/nosotros`, `/contenidos`, aliases, redirects,
+canonical o despliegue. Por tanto 7D, Fase 7 y el MVP siguen abiertos.

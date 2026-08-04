@@ -44,8 +44,28 @@ campos no se guardan en storage, URL o logs añadidos y se limpian tras 201.
 `/club/documentos`. Cada ruta consume únicamente su slug CMS, valida la
 identidad de la respuesta, reutiliza `CmsBlockRenderer` y cubre carga, error,
 reintento, 404, respuesta inválida y bloques vacíos. No existe `/club`, las
-rutas `/contenidos/:slug` y `/nosotros` se conservan, y Navbar no incorpora el
-grupo Club hasta 7D.
+rutas `/contenidos/:slug` y `/nosotros` se conservan. Fase 7D.1 incorpora estas
+fachadas al disclosure Club sin crear una landing `/club`.
+
+## Navegación, Home y footer
+
+`src/navigation/publicNavigation.js` es la configuración única del árbol
+público. Inicio y Competición son enlaces; Aprende y Club son disclosures sin
+ruta propia y Cuenta permanece separada. La configuración declara hijos,
+coincidencias exactas y por prefijo, visibilidad y audiencia, y centraliza los
+destinos institucionales y redes usados por el footer.
+
+Desktop y móvil reutilizan el mismo marcado. Los grupos no dependen de hover,
+son mutuamente excluyentes, cierran al navegar o hacer click fuera y devuelven
+el foco con Escape. `aria-current="page"` se reserva para rutas exactas; el
+grupo conserva estado visual en descendientes. `App.jsx` aporta el destino
+`main#main-content` del skip link y monta un footer global tras el contenido.
+
+Home contiene únicamente copy de interfaz y enlaces a Competición, Aprende,
+Manual, Escuela y las fachadas Club; no consume API, CMS o el JSON Knowledge.
+Club, School y Knowledge continúan cargándose de forma diferida. El contrato y
+los gates legales de 7D.2 se detallan en
+[`docs/19-navigation-home-and-footer.md`](../docs/19-navigation-home-and-footer.md).
 
 `dist/` es siempre salida generada ignorada. No debe editarse ni utilizarse como
 fuente de imágenes o módulos; para una comprobación que no altere el árbol se
