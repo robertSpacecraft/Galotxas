@@ -867,3 +867,16 @@ Fase 7B queda aceptable cuando:
 - no se ha modificado código, `knowledge/`, datos, Docker, dependencias o locks;
 - no se han ejecutado suites, migraciones, seeders, frontend, build o E2E;
 - `git diff --check` no produce salida.
+
+## 32. Seguimiento de Fase 7C
+
+7C queda cerrada técnicamente con las fachadas diferidas
+`/club/quienes-somos`, `/club/contacto`, `/club/federarse` y
+`/club/documentos`. El cuerpo y los metadatos continúan en CMS; React sólo
+aplica el mapa ruta/slug, estados y presentación. Contacto conserva el CMS y
+monta campos únicamente con `enabled: true`; el default productivo no cambia.
+
+No se implementan todavía los disclosures aprobados, Home, footer o legal. No
+se retiran `/nosotros` ni `/contenidos/:slug` porque la paridad no se ha
+acreditado, y no existen redirects o canonical. Por tanto el plan 7D–7G, los
+gates humanos y el estado abierto de Fase 7/MVP permanecen sin cambios.

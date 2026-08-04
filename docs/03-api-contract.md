@@ -770,8 +770,11 @@ cuando `CONTACT_FORM_ENABLED=false`. No devuelve ID, estado, consentimiento,
 IP/hash, destinatario o detalles de correo. La persistencia precede a la
 notificación opcional; un fallo de mail conserva el registro y el 201.
 
-En 7C.1 no existe ruta ni formulario React visible. Privacidad, activación y
-presentación pública permanecen como gates de 7C.2.
+Desde 7C.2, `/club/contacto` consulta la configuración y muestra el formulario
+sólo cuando `enabled` es exactamente `true`. La UI conserva el contenido CMS si
+falla esta consulta, gestiona 201/422/429/503/red sin ampliar el envelope y no
+expone ni persiste campos internos. El default productivo continúa desactivado;
+privacidad, destinatario, correo y operación siguen siendo gates de activación.
 
 ---
 

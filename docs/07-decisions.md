@@ -1198,6 +1198,12 @@ Consecuencias:
   al remitente;
 - Fase 7 y el MVP permanecen abiertos.
 
+Aplicación posterior: 7C.2 implementa la UI condicionada prevista por esta
+decisión sin cambiar sus defaults ni sus gates productivos. El cuerpo de
+Contacto continúa en CMS y el formulario sólo se monta con `enabled: true`.
+No se requiere un ADR nuevo porque la arquitectura y alternativas ya quedaron
+cubiertas por ADR-033 y ADR-034.
+
 ---
 
 ## Mantenimiento

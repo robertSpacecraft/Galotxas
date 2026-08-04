@@ -27,7 +27,11 @@ público protegido, configuración pública allowlisted, bandeja Blade y
 notificación opcional posterior al guardado. Se mantiene desactivada por
 defecto mediante `CONTACT_FORM_ENABLED=false`; el destinatario y el flag de
 notificación nunca se exponen en la API. Consulta el contrato y los gates en
-[`docs/17-club-technical-preparation-and-contact.md`](../docs/17-club-technical-preparation-and-contact.md).
+[`docs/17-club-technical-preparation-and-contact.md`](../docs/17-club-technical-preparation-and-contact.md)
+y su consumo público en
+[`docs/18-club-public-facades.md`](../docs/18-club-public-facades.md). El entorno
+E2E habilita el formulario sólo dentro de su base temporal protegida; el default
+de cualquier otro entorno continúa siendo `false`.
 
 ## About Laravel
 

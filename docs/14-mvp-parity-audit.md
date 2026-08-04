@@ -999,3 +999,16 @@ Continúan abiertos como gates humanos:
 
 7B no añade menús, rutas, CMS, aliases, redirects, contenido, datos o
 configuración. 7C–7G permanecen pendientes, Fase 7 abierta y el MVP incompleto.
+
+## 27. Seguimiento de Fase 7C
+
+7C.1 preparó el dominio de Contacto y 7C.2 implementa las cuatro fachadas Club
+con slugs CMS cerrados, estados completos, metadatos y formulario condicionado.
+La carga local fue manual y los fixtures ficticios sólo existen bajo guard E2E.
+`/nosotros`, `/contenidos/:slug`, `academy`, Prensa y Federaciones se conservan;
+no hay `/club`, aliases, redirects o cambio de Navbar.
+
+Esto resuelve la ausencia técnica de las cuatro rutas inventariada en 7A, pero
+no acredita datos productivos, privacidad, correo, operación, publicación por
+entorno, Home/footer/legal, despliegue o aceptación. Fase 7, 7D–7G y el MVP
+siguen abiertos.

@@ -6,6 +6,8 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Se completa 7C.2 y la Fase 7C con cuatro fachadas Club diferidas sobre slugs CMS cerrados, estados remotos completos, metadatos, formulario de Contacto condicionado, compatibilidad legada y cobertura frontend/backend/E2E sin cambiar Navbar ni contenido editorial.
+- Se amplía el escenario E2E protegido con páginas CMS institucionales ficticias y activación de Contacto exclusiva del entorno temporal, sin modificar `DatabaseSeeder` ni datos de desarrollo.
 - Se completa técnicamente 7C.1 con auditoría de assets y `dist`, guía de carga CMS manual y `ContactRequest`: persistencia local, API pública protegida, configuración allowlisted, honeypot, rate limit HMAC, administración Blade, notificación opcional y servicio React aislado, todo desactivado y sin rutas Club o contenido editorial.
 - Se completa documentalmente 7C.0 con `CLUB-VERTICAL-READINESS-AUDIT-1`: inspección de Knowledge, CMS, API, React, `/nosotros`, rutas y recursos; contraste de la información aportada, inventario de imágenes, readiness, preguntas y gates, sin implementar 7C ni cargar contenido.
 - Se completa documentalmente Fase 7B con `MVP-EDITORIAL-NAVIGATION-CONTRACT-1`: navegación final, rutas institucionales canónicas, plantillas editoriales, matriz legal, inventario de identidad pública, checklist School, gates humanos y plan refinado 7C–7G, sin implementar código, contenido ni datos.
@@ -40,6 +42,7 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Changed
 
+- La carga editorial local de Club se mantiene manual y fuera del repositorio; cada entorno debe revisar y publicar sus páginas, mientras `/nosotros` y `/contenidos/:slug` se conservan hasta acreditar paridad y 7D permanece pendiente.
 - ADR-034 sustituye únicamente la decisión inicial de Contacto sin formulario: el CMS conserva el contenido institucional, mientras el formulario usa dominio funcional separado, persiste antes de notificar y permanece bloqueado por privacidad y configuración productiva.
 - Los bloques CMS de enlace admiten `mailto:` con dirección válida; media continúa limitada a rutas internas y `http(s)`, y los protocolos peligrosos siguen rechazándose.
 - ADR-033 sustituye documentalmente la topología pública plana por Inicio y Competición como enlaces, Aprende y Club como disclosures y Cuenta separada; fija cuatro rutas Club y un footer contractual; su decisión inicial de Contacto sin formulario queda sustituida por ADR-034.

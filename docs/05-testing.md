@@ -1137,6 +1137,22 @@ lint, build a un directorio temporal, Pint, `knowledge:check`, hashes
 canónicos y `git diff --check`. No se ejecuta E2E porque no se crea una ruta o
 interfaz pública.
 
+## CLUB-PUBLIC-FACADES-1 — Fachadas públicas de Club
+
+7C.2 añade Vitest para el mapa ruta/slug cerrado, carga diferida, estados CMS,
+metadatos, respuestas inválidas y vacías, 404 y reintento. Contacto cubre
+configuración independiente false/error/true y el formulario cubre validación,
+consentimiento, honeypot, 201, 422, 429, 503, red, respuesta inesperada, foco,
+doble envío y ausencia de storage.
+
+Playwright utiliza sólo páginas CMS ficticias creadas por `E2ESmokeSeeder` bajo
+su guard `e2e`: recorre las cuatro fachadas y rutas legadas, simula página
+ausente y config false, valida el formulario real habilitado en E2E con 201 y
+422, teclado, matriz 320/768/1280, descendientes 404 y Navbar sin Club. La
+regresión backend mantiene publicación CMS y privacidad/configuración de
+Contacto. El build se dirige a un directorio temporal y debe conservar Club,
+School y Knowledge en chunks diferidos sin warnings.
+
 ---
 
 # 11. Evolución

@@ -90,12 +90,12 @@ Fase 7B contrata cuatro controles editoriales:
 
 La identidad del usuario, Mi Panel y el cierre de sesión permanecerán en una zona autenticada separada.
 
-Esta es la arquitectura objetivo de ADR-033. Tras 6C están registradas `/`,
-`/competicion`, `/aprende-a-jugar`, su Manual y `/escuela`; el Navbar actual
-mantiene cuatro enlaces planos. Competición utiliza datos públicos reales;
-Aprende a jugar y Manual consumen la proyección compilada de Knowledge; Escuela
-consume el agregado y la escritura públicos de Laravel. Los disclosures y las
-cuatro rutas Club no se consideran implementados por aparecer en documentación.
+Esta es la arquitectura objetivo de ADR-033. Tras 7C.2 están registradas `/`,
+`/competicion`, `/aprende-a-jugar`, su Manual, `/escuela` y las cuatro rutas
+Club; el Navbar actual mantiene cuatro enlaces planos. Competición utiliza datos
+públicos reales; Aprende a jugar y Manual consumen Knowledge; Escuela consume
+Laravel; y Club consume sólo páginas CMS publicadas mediante slugs cerrados.
+Los disclosures del Navbar permanecen pendientes de 7D.
 
 Los componentes de `frontend/src/components/PublicLanding/` son infraestructura de presentación, no una cuarta fuente de contenido. Pueden recibir datos ya autorizados del dominio Laravel, artefactos compilados desde `knowledge/` o contenido público del CMS, pero no conocen esas fuentes ni deciden visibilidad, publicación o reglas. Sus props admiten estructura, copy breve de interfaz y contenido procedente de la fuente canónica; no deben usarse para hardcodear contenido administrable como sustituto temporal del CMS o de `knowledge/`.
 
@@ -149,7 +149,7 @@ La ruta canónica es `/escuela`. No se aprueba `/manual/academy`. Fases 6A y 6A.
 
 Club es un disclosure, no una landing `/club`. Agrupa únicamente Quiénes somos,
 Contacto, Federarse y Documentos. Su contenido administrable tiene como fuente
-el backend CMS y se presentará mediante las cuatro rutas canónicas de Fase 7B.
+el backend CMS y se presenta mediante las cuatro rutas canónicas desde 7C.2.
 
 El código garantiza actualmente los slugs sembrados `nosotros`, `federarse` y
 `documentos`; no existe un slug sembrado `contacto`. La duplicidad entre
@@ -167,11 +167,17 @@ enlace admiten `mailto:` validado; no admiten `tel:`. Los assets de
 `public/media/club` son fuentes estables candidatas, no contenido aprobado, y
 requieren procedencia, derechos, alt y revisión de metadatos antes de usarse.
 
-El futuro formulario de Contacto no altera la fuente editorial: sus etiquetas,
-copy y canales pertenecen al CMS, mientras cada `ContactRequest` es un registro
-funcional privado en MariaDB. La API y la bandeja Blade ya existen, pero el
-formulario está desactivado por defecto y no tiene interfaz React. Privacidad,
-retención, operación y activación bloquean 7C.2.
+7C.2 añade fachadas React diferidas sin copy institucional: el título, bloques y
+metadatos proceden del CMS; sólo fallbacks neutros y etiquetas funcionales son
+interfaz. La carga local fue manual y cada entorno conserva su propio estado de
+publicación. Los fixtures CMS añadidos existen exclusivamente bajo la guarda
+E2E y no son fuente editorial o seeder productivo.
+
+El formulario de Contacto tampoco altera la fuente editorial: canales y cuerpo
+pertenecen al CMS, las etiquetas funcionales pertenecen a React y cada
+`ContactRequest` es privado en MariaDB. La interfaz existe, pero permanece
+oculta con el default productivo. Privacidad, retención, destinatario, operación
+y activación siguen bloqueando su uso real, no el cierre técnico de 7C.2.
 
 ### Contenidos legado
 
@@ -372,16 +378,16 @@ La Fase 3A no elimina `/contenidos`, no crea redirects, no cambia su API ni borr
 - Política de conservación y borrado extraordinario de solicitudes.
 - Reglas futuras para reinscripciones complejas o varios programas públicos.
 - Existencia y responsable editorial de material pedagógico suficiente para una colección de Escuela.
-- Creación y contenido real de Contacto: no existe slug sembrado ni contenido
-  verificable actual; la página se cargará manualmente en CMS y el formulario
-  técnico continuará desactivado hasta superar privacidad y operación.
+- Carga, revisión y publicación de los cuatro slugs Club en cada entorno; la
+  carga local manual y los fixtures E2E no acreditan producción. El formulario
+  continuará desactivado hasta superar privacidad y operación.
 - Necesidades editoriales de noticias, actividades, galerías, documentos y formularios.
 - Estrategia de almacenamiento persistente y ciclo de vida de archivos.
 - Modelo de consentimiento y privacidad para contenido de menores.
 - Consumo React, renderer, rutas públicas e integración automática de la canalización con CI/despliegue.
-- Implementación de las cuatro URLs Club y sus aliases ya contratados;
-  redirects permanentes, canonical, sitemap, 404 HTTP y SEO continúan
-  posteriores.
+- Descubrimiento de las cuatro URLs Club desde el Navbar/footer en 7D, aliases
+  tras paridad y, posteriormente, redirects permanentes, canonical, sitemap,
+  404 HTTP y SEO completo.
 - Política de identidad pública en clasificación, rankings, calendario,
   equipos y partidos, con tratamiento específico de menores.
 - Roles, permisos, trazabilidad y vista previa requeridos por los editores.
@@ -411,9 +417,10 @@ fuera de esa migración.
 ADR-033 y `15-mvp-editorial-and-navigation-contract.md` cierran la arquitectura
 de Aprende, Club, Cuenta, rutas canónicas y footer. ADR-034 sustituye únicamente
 su decisión inicial de Contacto sin formulario por persistencia local,
-notificación opcional y desactivación por defecto. Ninguna de ellas autoriza la
-interfaz o publicación sin superar contenido, privacidad y operación, ni cierra
-la política de identidad pública.
+notificación opcional y desactivación por defecto. 7C.2 implementa la interfaz
+condicionada sin autorizar activación productiva o publicación editorial.
+Ninguna decisión cierra privacidad, operación o la política de identidad
+pública.
 
 ## 21. Plantillas, revisión y vigencia del MVP
 

@@ -7,9 +7,10 @@ registra su aplicación funcional. Parte de la auditoría de Fase 3A, refleja la
 navegación de Fase 3B, el sistema común de landings de Fase 3C, la Fase 4 de
 Competición, Aprende a jugar cerrada en Fase 5C y la Escuela pública cerrada en
 Fase 6C. Fase 7B sustituye la topología plana inicial por el contrato agrupado
-de ADR-033, todavía no implementado.
+de ADR-033. 7C.2 implementa ya las cuatro rutas hijas de Club, pero el
+disclosure del Navbar, Home y footer permanecen pendientes de 7D.
 
-Las fases 3B, 3C, 4A–4C y 5B–5C modifican únicamente compilación/frontend, sus pruebas y la documentación: no cambian backend, CMS, contenido canónico, despliegue ni redirects. Las rutas objetivo pendientes no se consideran implementadas hasta que existan con contenido real, fuente verificable y pruebas.
+Las fases 3B, 3C, 4A–4C y 5B–5C modifican únicamente compilación/frontend, sus pruebas y la documentación: no cambian backend, CMS, contenido canónico, despliegue ni redirects. 7C.2 añade fachadas sobre el CMS y mantiene la publicación editorial separada por entorno; una ruta documental no se considera implementada hasta existir con fuente verificable y pruebas.
 
 ## 2. Principios de navegación
 
@@ -58,12 +59,13 @@ landing `/club` sin propósito independiente. El enlace exacto utiliza
 `aria-current="location"`; el padre se marca sólo de forma visual.
 
 El Navbar actual sigue enlazando Inicio, Competición, Aprende a jugar y Escuela
-de Galotxas. Los grupos, rutas Club y footer son contrato pendiente de
-implementación, no enlaces disponibles.
+de Galotxas. Los grupos y el footer son contrato pendiente de implementación;
+las rutas Club existen por acceso directo, pero todavía no son enlaces del
+Navbar.
 
 ## 4. Inventario de rutas actuales
 
-`frontend/src/App.jsx` utiliza `BrowserRouter`, `Routes` y `Route`. Registra rutas explícitas planas y un wildcard final, sin nesting, loaders o acciones de router. Las tres páginas de Aprende y la landing de Escuela se importan mediante `React.lazy` con fallbacks `Suspense` propios; las demás rutas conservan su carga anterior. Navbar se renderiza fuera de `Routes` y aparece también ante una URL desconocida.
+`frontend/src/App.jsx` utiliza `BrowserRouter`, `Routes` y `Route`. Registra rutas explícitas planas y un wildcard final, sin nesting, loaders o acciones de router. Las tres páginas de Aprende, la landing de Escuela y la feature Club se importan mediante `React.lazy` con fallbacks `Suspense` propios; las demás rutas conservan su carga anterior. Navbar se renderiza fuera de `Routes` y aparece también ante una URL desconocida.
 
 | Ruta | Componente | Acceso | Fuente de datos | Enlaces entrantes verificados | Estado y comportamiento sin datos |
 |---|---|---|---|---|---|
@@ -74,6 +76,7 @@ implementación, no enlaces disponibles.
 | `/aprende-a-jugar/manual/reglamento/:slug` | `pages/Learn/KnowledgeDocumentPage.jsx` diferida | Público | Repositorio Knowledge, headings y bloques seguros | Manual, vecinos y referencias | Detalle con contexto, tabla de contenidos, deep links y vecinos de Reglamento; slug ausente o no público conserva URL y muestra la 404. |
 | `/aprende-a-jugar/manual/conceptos/:group/:slug` | `pages/Learn/KnowledgeDocumentPage.jsx` diferida | Público | Repositorio Knowledge, headings y bloques seguros | Manual, vecinos y referencias | Admite sólo `elementos`, `personas` y `juego`; navegación y vecinos no cruzan grupos, y un grupo o slug inválido muestra la 404. |
 | `/escuela` | `features/school/SchoolPage.jsx` diferida | Público | `GET /school` y `POST /school/enrollments` mediante servicio y hook locales | Navbar, Home | Landing funcional. `data: null` y cierre son estados válidos; el formulario aparece sólo con apertura efectiva. |
+| `/club/quienes-somos`, `/club/contacto`, `/club/federarse`, `/club/documentos` | `features/club/ClubPage.jsx` diferida | Público | Página CMS publicada del slug cerrado; Contacto suma config y POST condicionados | Acceso directo; Navbar pendiente de 7D | Fachadas funcionales con carga, error/retry, 404, inválido y vacío. `/club` y descendientes desconocidos usan wildcard. |
 | `/nosotros` | `pages/Nosotros/Nosotros.jsx` | Público | Contenido estático en React | Ningún enlace interno actual localizado | Duplicada y heredada; conserva contenido único como material de migración. |
 | `/torneos` | `pages/Torneos/TournamentList.jsx` | Público | `GET /championships` y `GET /seasons` | Landing de Competición, CTA de Home, Mi Panel, detalles | Funcional secundaria. Distingue carga, error con retry y vacío filtrado; cada tarjeta tiene una única acción al detalle. |
 | `/torneos/:championshipId` | `pages/Torneos/TournamentDetail.jsx` | Público; acciones de inscripción autenticadas | Campeonato, ranking e inscripción desde API | Tarjetas de torneo, Mi Panel, regreso desde categoría | Funcional secundaria. Campeonato y ranking tienen disponibilidad independiente; las categorías enlazan sus tres vistas reales. |
@@ -144,7 +147,7 @@ No hay desplegables editoriales, breadcrumbs globales ni enlaces de footer. La n
 | Clasificación | Rutas | Estado tras Fase 6C |
 |---|---|---|
 | Canónicas implementadas | `/`, `/competicion`, `/aprende-a-jugar`, `/aprende-a-jugar/manual`, `/escuela` | Inicio, Competición y las tres hijas futuras de Aprende ya tienen experiencias funcionales. |
-| Canónicas futuras | `/club/quienes-somos`, `/club/contacto`, `/club/federarse`, `/club/documentos` | Contratadas en 7B; no se registran ni enlazan sin contenido real. |
+| Canónicas Club implementadas | `/club/quienes-somos`, `/club/contacto`, `/club/federarse`, `/club/documentos` | Registradas en 7C.2 sobre CMS publicado; el Navbar permanece pendiente de 7D. |
 | Funcionales secundarias | `/torneos`, `/torneos/:championshipId`, `/categories/:categoryId`, sus rutas de standings/schedule, `/matches/:matchId`, `/rankings` | Conservar rutas y contratos. Relacionarlas semánticamente con Competición. |
 | Cuenta | `/login`, `/register`, `/forgot-password`, `/reset-password`, `/player` | Conservar separadas del menú editorial. |
 | Técnica heredada | `/contenidos`, `/contenidos/:slug` | Retirar del primer nivel cuando existan destinos canónicos, pero mantener acceso y CMS hasta completar la migración. |
@@ -164,10 +167,10 @@ También existen módulos React no montados: `pages/Home.jsx` y `CategoryCard`, 
 | `/competicion` | Landing funcional de actividad deportiva pública | API pública del dominio Laravel | `h1`, acceso principal, temporadas/campeonatos y preview histórico con estados independientes; sin recalcular reglas | Rama deportiva completa y `/rankings` | Fase 4 completada con 4A–4C. |
 | `/aprende-a-jugar` | Entrada divulgativa al Manual, Reglamento y Conceptos | Proyección pública compilada desde `knowledge/` | `h1`, resumen derivado, acceso al Manual y recorrido real; no copy editorial duplicado en JSX | `/manual`, `/manual/reglamento/:slug` y `/manual/conceptos/:group/:slug` | Completada en 5C con 40 documentos, contexto, índice, vecinos, fragmentos y carga diferida. |
 | `/escuela` | Escuela permanente, niveles, horarios e inscripción pública | Híbrida: `knowledge/` futuro para pedagogía estable y dominio Laravel específico para operación y solicitudes | `h1`, enlace al Manual, niveles, horarios, ubicaciones, apertura y formulario cuando esté abierto | El MVP no requiere subrutas | Implementada en 6C sobre los contratos 6B.1–6B.4; `academy` permanece independiente. |
-| `/club/quienes-somos` | Presentación institucional | CMS `nosotros` | Identidad, propósito, actividad e imágenes aprobados | Alias temporal de `/nosotros` y `/contenidos/nosotros` | Contratada, no implementada. |
-| `/club/contacto` | Canales institucionales y formulario condicionado | CMS `contacto` + `ContactRequest` funcional | Canal oficial, fecha de revisión y formulario sólo tras privacidad/activación | Footer y Club | Contratada; base técnica aislada, contenido, slug y ruta ausentes. |
-| `/club/federarse` | Proceso vigente para federarse | CMS `federarse` | Requisitos, organismo, enlaces, contacto y vigencia | Alias temporal de `/contenidos/federarse` | Contratada, no implementada. |
-| `/club/documentos` | Inventario de documentos vigentes | CMS `documentos` con enlaces | Nombre, propósito, versión, vigencia, formato y responsable | Alias temporal de `/contenidos/documentos` | Contratada, no implementada. |
+| `/club/quienes-somos` | Presentación institucional | CMS `nosotros` | Identidad, propósito, actividad e imágenes aprobados | Alias futuro de `/nosotros`; `/contenidos/nosotros` se conserva | Fachada implementada; paridad y publicación dependen de cada entorno. |
+| `/club/contacto` | Canales institucionales y formulario condicionado | CMS `contacto` + `ContactRequest` funcional | Canal oficial, fecha de revisión y formulario sólo tras privacidad/activación | Footer y Club pendientes de 7D | Fachada implementada; formulario oculto por default productivo. |
+| `/club/federarse` | Proceso vigente para federarse | CMS `federarse` | Requisitos, organismo, enlaces, contacto y vigencia | `/contenidos/federarse` conservada | Fachada implementada; contenido/publicación dependen de cada entorno. |
+| `/club/documentos` | Inventario de documentos vigentes | CMS `documentos` con enlaces | Nombre, propósito, versión, vigencia, formato y responsable | `/contenidos/documentos` conservada | Fachada implementada; contenido/publicación dependen de cada entorno. |
 
 Los namespaces de Aprende a jugar quedan cerrados para el Manual inicial. La
 ruta única del MVP de Escuela es `/escuela`; no necesita subrutas hasta que
@@ -243,7 +246,7 @@ como problemas separados.
 | `/contenidos` | Índice técnico | No | Se conserva accesible temporalmente | Inventario CMS clasificado, landings completas, enlaces migrados y decisión SEO. |
 | `/contenidos/:slug` | Lectura CMS heredada | No como familia; destinos canónicos por contenido | Se conserva temporalmente | Página canónica equivalente, redirect probado y enlaces/Resource actualizados. |
 | `/nosotros` | Material de migración hacia `/club/quienes-somos` | No | Se conserva temporalmente | CMS canónico con paridad, revisión editorial y redirect aprobado. |
-| Cuatro rutas `/club/...` | Hijas canónicas de Club | Dentro del disclosure | Futuras, no implementadas | Contenido real, aliases, pruebas y aceptación 7C. |
+| Cuatro rutas `/club/...` | Hijas canónicas de Club | Dentro del disclosure futuro | Implementadas por acceso directo | Publicación por entorno; Navbar, aliases y aceptación en 7D. |
 | Rutas de auth | Zona de cuenta | Separadas | Se conservan | Sólo cambios propios del flujo de cuenta. |
 | `/player` | Mi Panel | Separada | Se conserva | No se migra al árbol editorial. |
 
@@ -463,7 +466,7 @@ Para los bloques posteriores de contenido y compatibilidad se requerirán:
 - comprobación de URLs directas sobre el hosting con fallback y respuestas/redirects HTTP esperados;
 - validación de artefactos de `knowledge/` antes de probar sus rutas.
 
-Los tests actuales de Navbar cubren la lista exacta de cuatro enlaces, cuenta anónima/autenticada, matchers de Competición, Aprende y Escuela, estado visual, ARIA, Escape, foco y cierres. Las pruebas de App y páginas cubren `/competicion`, Aprende, Manual, Escuela, wildcard, rutas dinámicas, regresiones, landmarks y fallbacks diferidos. Los repositorios, servicios y hooks cubren orden, estados, contratos y desmontaje. El E2E cubre navegación desktop/móvil, carga diferida, Knowledge, Escuela, separación de cuenta, estado activo, 404, matriz responsive, CMS, competición, Mi Panel y resultados. Canonical, migración institucional, multibrowser y Club siguen pendientes.
+Los tests actuales de Navbar cubren la lista exacta de cuatro enlaces, cuenta anónima/autenticada, matchers de Competición, Aprende y Escuela, estado visual, ARIA, Escape, foco y cierres. Las pruebas de App y páginas cubren `/competicion`, Aprende, Manual, Escuela, Club, wildcard, rutas dinámicas, regresiones, landmarks y fallbacks diferidos. Los repositorios, servicios y hooks cubren orden, estados, contratos y desmontaje. El E2E cubre navegación desktop/móvil, carga diferida, Knowledge, Escuela, Club/Contacto, separación de cuenta, estado activo, 404, matriz responsive, CMS, competición, Mi Panel y resultados. Canonical, disclosure Club, migración institucional y multibrowser siguen pendientes.
 
 PUBLIC-LANDING-SYSTEM-1 añade en 3C tests de contenedor, cabecera, acciones, secciones, rejilla, tarjetas y metadatos; verifica IDs estables, `aria-labelledby`, un solo `h1`, ausencia de `<main>` anidado y controles anidados, restauración de description/robots, ausencia de llamadas API y de rutas placeholder. Playwright añade una matriz específica de la landing a 320–1440 px, comprueba legibilidad, overflow, foco por Tab y navegación con Enter.
 
@@ -776,6 +779,15 @@ la infraestructura de contacto desactivada y un servicio React sin UI. ADR-034
 sustituye el punto de ADR-033 que descartaba el formulario: `/club/contacto`
 podrá incorporarlo en 7C.2 sólo tras privacidad, contenido y activación
 controlada. Las cuatro rutas futuras continúan resolviendo la 404 actual.
+
+### Seguimiento 7C.2
+
+7C.2 registra las cuatro rutas exactas mediante una única feature diferida y un
+mapeo ruta/slug inmutable. No registra `/club` ni patrones descendientes. El
+contenido procede sólo del CMS público y `/club/contacto` conserva ese contenido
+aunque falle la configuración; el formulario aparece sólo con `enabled: true`.
+`/nosotros` y `/contenidos/:slug` se mantienen porque no se acreditó paridad
+editorial para retirarlos. El Navbar continúa inalterado hasta 7D.
 
 ## Mantenimiento
 

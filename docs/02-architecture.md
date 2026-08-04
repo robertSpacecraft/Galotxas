@@ -197,8 +197,12 @@ La primera base backend del CMS público sigue el mismo patrón general del proy
 - **Panel Blade**: gestión administrativa básica de páginas CMS, estado de publicación, metadatos SEO y bloques estructurados.
 - **API pública**: endpoints de solo lectura para listar páginas publicadas y entregar una página publicada por `slug`.
 - **Resources públicos**: `PublicCmsPageSummaryResource`, `PublicCmsPageResource` y `PublicCmsBlockResource` controlan el contrato serializado.
-- **React**: consumo de la API pública desde `/contenidos` y `/contenidos/:slug`, con renderizado de bloques estructurados, sin HTML libre.
-- **Navegación pública**: los enlaces institucionales del navbar apuntan a slugs CMS bajo `/contenidos/{slug}`.
+- **React**: consumo de la API pública desde `/contenidos` y `/contenidos/:slug`
+  y desde cuatro fachadas canónicas Club, con un único renderer de bloques
+  estructurados y sin HTML libre.
+- **Navegación pública**: 7C.2 registra las fachadas Club, pero el disclosure
+  del Navbar permanece pendiente de 7D; las URLs `/contenidos/{slug}` continúan
+  como acceso legado.
 
 La subida de documentos o imágenes, las noticias como entidad propia y los formularios públicos quedan fuera de esta base inicial.
 
@@ -223,8 +227,9 @@ La infraestructura de contacto es una vertical funcional distinta del CMS:
   `received`;
 - Blade usa el middleware administrativo existente y permite listado, detalle
   y transiciones conservadoras;
-- un servicio React aislado conoce el contrato, pero no existe todavía UI o
-  ruta pública Club.
+- el servicio React alimenta el panel funcional de `/club/contacto`, que sólo
+  monta campos cuando la configuración pública devuelve `enabled: true` y no
+  bloquea el contenido CMS si falla.
 
 `CONTACT_FORM_ENABLED=false` y `CONTACT_NOTIFICATION_ENABLED=false` son los
 defaults. La activación productiva depende de privacidad y operación. El
@@ -367,6 +372,8 @@ Los servicios funcionales no deben duplicar esta resolución ni definir URLs bas
 - `/competicion`: landing dinámica de temporadas y campeonatos públicos, preview del ranking histórico global y acceso a los destinos deportivos, sobre el sistema común de landings públicas;
 - `/aprende-a-jugar` y sus rutas de Manual: conocimiento público compilado y carga diferida;
 - `/escuela`: landing diferida del programa público, niveles, horarios, ubicaciones, contacto e inscripción;
+- `/club/quienes-somos`, `/club/contacto`, `/club/federarse` y
+  `/club/documentos`: fachadas diferidas sobre un mapeo cerrado de slugs CMS;
 - `/nosotros`: página estática heredada;
 - `/torneos` y `/torneos/:championshipId`: listado y detalle de campeonatos;
 - `/categories/:categoryId`, `/categories/:categoryId/standings` y `/categories/:categoryId/schedule`: detalle, clasificación y calendario de categoría;
@@ -424,7 +431,7 @@ Fase 7B sustituye la topología plana inicial por cuatro controles editoriales:
   de Galotxas (`/escuela`).
 - **Club** es un disclosure sin landing propia. Agrupa
   `/club/quienes-somos`, `/club/contacto`, `/club/federarse` y
-  `/club/documentos`, todas todavía pendientes de implementación.
+  `/club/documentos`, implementadas como fachadas CMS diferidas en 7C.2.
 
 La zona de autenticación conservará identidad, acceso, Mi Panel y cierre de sesión como bloque separado del menú editorial. Las rutas actuales de Torneos, Rankings y detalles deportivos permanecen como destinos funcionales secundarios; no se trasladarán bajo `/competicion` sin una necesidad demostrable. `/contenidos` y `/contenidos/:slug` permanecen como compatibilidad técnica durante una migración incremental, pero no formarán parte del primer nivel final.
 
@@ -435,11 +442,11 @@ Club no enlaza `/club`, porque no existe una función independiente que
 justifique otra landing.
 
 En el estado actual están registradas `/`, `/competicion`,
-`/aprende-a-jugar` y `/escuela`, y el Navbar continúa mostrando cuatro enlaces
-planos. Competición presenta datos públicos reales; Aprende a jugar deriva sus
-40 documentos y cuatro colecciones; Escuela presenta el agregado
-`GET /api/v1/school`, enlaza el Manual y envía solicitudes al POST existente.
-Los disclosures y rutas Club son contrato futuro, no funcionalidad disponible.
+`/aprende-a-jugar`, `/escuela` y las cuatro fachadas Club, mientras el Navbar
+continúa mostrando cuatro enlaces planos. Competición presenta datos públicos
+reales; Aprende a jugar deriva sus 40 documentos y cuatro colecciones; Escuela
+presenta el agregado `GET /api/v1/school`; y Club presenta sólo las páginas que
+Laravel considera publicadas. Los disclosures siguen pendientes de 7D.
 El detalle operativo se mantiene en `09-public-navigation.md` y el cierre
 editorial de 7B en `15-mvp-editorial-and-navigation-contract.md`.
 
@@ -519,11 +526,13 @@ las plantillas y el plan 7C–7G se definen en
 `15-mvp-editorial-and-navigation-contract.md`. La Fase 7 permanece abierta; el
 anterior candidato técnico no equivale a despliegue ni a MVP público completo.
 
-7C.1 implementa únicamente la preparación privada de Club: audita assets y
-CMS, añade el backend de contacto desactivado y su cliente React aislado. La
-decisión posterior ADR-034 sustituye el punto de ADR-033 que descartaba el
-formulario, sin crear rutas `/club/*` ni convertir código en fuente editorial.
-La carga manual, privacidad, publicación y 7C.2 siguen pendientes.
+7C.1 implementa la preparación privada de Club: audita assets y CMS, añade el
+backend de contacto desactivado y su cliente React aislado. ADR-034 sustituye el
+punto de ADR-033 que descartaba el formulario. 7C.2 incorpora las cuatro rutas
+exactas y diferidas, valida el slug CMS esperado, reutiliza el renderer y monta
+el formulario sólo con configuración pública positiva, sin convertir código en
+fuente editorial. Privacidad, activación productiva, publicación por entorno,
+Navbar, aliases y redirects siguen pendientes.
 
 ---
 

@@ -33,8 +33,19 @@ La feature enlaza al Manual mediante su helper de ruta, pero no importa `public-
 `src/features/contact/contactService.js` prepara de forma aislada la consulta
 de `GET /api/v1/contact/config` y el envío a
 `POST /api/v1/contact-requests`. Normaliza 422, 429, 503, errores de red y
-respuestas inesperadas, pero no está integrado en ninguna ruta o componente
-público. Las rutas `/club/*` y el formulario visible pertenecen a 7C.2.
+respuestas inesperadas. La fachada `/club/contacto` conserva siempre el CMS y
+monta el formulario accesible sólo cuando la API devuelve `enabled: true`; los
+campos no se guardan en storage, URL o logs añadidos y se limpian tras 201.
+
+## Club
+
+`src/features/club/` define un mapa cerrado para las cuatro fachadas diferidas
+`/club/quienes-somos`, `/club/contacto`, `/club/federarse` y
+`/club/documentos`. Cada ruta consume únicamente su slug CMS, valida la
+identidad de la respuesta, reutiliza `CmsBlockRenderer` y cubre carga, error,
+reintento, 404, respuesta inválida y bloques vacíos. No existe `/club`, las
+rutas `/contenidos/:slug` y `/nosotros` se conservan, y Navbar no incorpora el
+grupo Club hasta 7D.
 
 `dist/` es siempre salida generada ignorada. No debe editarse ni utilizarse como
 fuente de imágenes o módulos; para una comprobación que no altere el árbol se

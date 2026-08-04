@@ -82,7 +82,10 @@ La base técnica del futuro formulario de contacto está desactivada por defecto
 `CONTACT_FORM_ENABLED`, `CONTACT_NOTIFICATION_ENABLED` y
 `CONTACT_NOTIFICATION_TO` se configuran en Laravel; no deben habilitarse en
 producción hasta cerrar privacidad, destinatario y operación. La carga de las
-páginas Club continúa siendo manual mediante el CMS Blade.
+páginas Club continúa siendo manual mediante el CMS Blade. React expone las
+fachadas diferidas `/club/quienes-somos`, `/club/contacto`, `/club/federarse` y
+`/club/documentos`; el formulario sólo se monta cuando la configuración pública
+devuelve `enabled: true`. El Navbar agrupado pertenece todavía a 7D.
 
 ## Pruebas
 

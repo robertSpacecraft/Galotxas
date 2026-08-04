@@ -316,3 +316,13 @@ build, Knowledge y hashes pasan; y Git confirma que no se alteraron
 
 Este cierre no completa 7C, Fase 7 ni el MVP. La carga editorial y 7C.2 siguen
 pendientes de revisión humana.
+
+## Seguimiento de 7C.2
+
+7C.2 consume la base aquí preparada mediante cuatro fachadas React diferidas y
+el formulario condicionado de Contacto. La carga local se mantiene fuera del
+repositorio; producción continúa requiriendo carga/publicación propia y el
+formulario sigue desactivado por defecto hasta superar privacidad y operación.
+El resultado, las pruebas y los gates restantes se documentan en
+`18-club-public-facades.md`. Este seguimiento no reescribe los criterios
+históricos con los que se cerró 7C.1.

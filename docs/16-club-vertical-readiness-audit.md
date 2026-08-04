@@ -752,3 +752,15 @@ abiertos la carga CMS manual, copy y SEO, procedencia/derechos/consentimientos,
 alt definitivo, privacidad y retención, configuración productiva, paridad de
 `/nosotros`, preview, 7C.2 y publicación. Esta actualización no reescribe los
 hallazgos históricos de 7C.0; registra su resolución o vigencia posterior.
+
+## 29. Seguimiento de 7C.2
+
+La carga local de los cuatro slugs fue realizada manualmente y 7C.2 implementa
+las fachadas públicas sin copiarla al repositorio. La validación automatizada
+usa contenido ficticio sólo en E2E. La infraestructura comprueba publicación,
+slug, estados, formulario condicionado, accesibilidad, responsive y legado.
+
+Se mantienen vigentes los riesgos editoriales por entorno, derechos y EXIF de
+imágenes, privacidad/retención/operación, paridad de `/nosotros`, preview y
+publicación productiva. El cierre técnico de 7C no convierte esos hallazgos en
+aprobaciones ni autoriza 7D.
