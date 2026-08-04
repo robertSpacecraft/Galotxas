@@ -1,79 +1,158 @@
-.welcomeSection {
-    padding: 5rem 10%;
-    background-color: #f9f9f9;
-    text-align: center;
+.hero {
+  display: grid;
+  min-height: clamp(28rem, 67vh, 42rem);
+  place-items: center;
+  padding: clamp(3.5rem, 9vw, 7rem) max(1rem, 6vw);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 85% 20%, rgba(88, 166, 255, 0.22), transparent 34%),
+    linear-gradient(135deg, #001f3f 0%, #003366 56%, #14213d 100%);
+  color: #fff;
 }
 
-.welcomeTitle {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: #003366;
-    margin-bottom: 1.5rem;
+.heroContent {
+  width: min(100%, 900px);
+  text-align: center;
 }
 
-.welcomeText {
-    font-size: 1.1rem;
-    color: #666;
-    line-height: 1.6;
-    max-width: 800px;
-    margin: 0 auto;
+.title {
+  margin: 0 0 1.25rem;
+  background: none;
+  color: #fff;
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  letter-spacing: -0.04em;
+  line-height: 1.02;
 }
 
-.contentGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    padding: 0 10% 5rem;
-    background-color: #f9f9f9;
+.introduction {
+  max-width: 760px;
+  margin: 0 auto;
+  color: #e3edf7;
+  font-size: clamp(1.1rem, 2.3vw, 1.4rem);
+  line-height: 1.65;
+}
+
+.heroActions,
+.cardActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.heroActions {
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.primaryAction,
+.secondaryAction,
+.cardActions a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.1rem;
+  font-weight: 750;
+  line-height: 1.25;
+  text-decoration: none;
+}
+
+.primaryAction {
+  background: #fff;
+  color: #003366;
+}
+
+.secondaryAction {
+  border: 2px solid #a8c7e6;
+  color: #fff;
+}
+
+.primaryAction:hover,
+.secondaryAction:hover {
+  transform: translateY(-2px);
+}
+
+.journeys {
+  display: grid;
+  padding: clamp(2.5rem, 6vw, 5rem) max(1rem, 6vw);
+  background: #f4f7fa;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1rem, 2.5vw, 1.75rem);
 }
 
 .card {
-    background: #fff;
-    padding: 2.5rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    text-align: left;
-    border: 1px solid #eee;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  min-width: 0;
+  min-height: 17rem;
+  flex-direction: column;
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  border: 1px solid #dce4ec;
+  border-radius: 0.75rem;
+  background: #fff;
+  box-shadow: 0 8px 28px rgba(0, 31, 63, 0.07);
 }
 
-.cardLink {
-    color: inherit;
-    text-decoration: none;
+.card h2 {
+  margin: 0 0 0.75rem;
+  color: #003366;
+  font-size: clamp(1.4rem, 3vw, 1.85rem);
+  line-height: 1.2;
 }
 
-.cardLink:focus-visible {
-    outline: 3px solid #003366;
-    outline-offset: 4px;
+.card p {
+  margin: 0 0 1.5rem;
+  color: #4c5968;
+  font-size: 1.05rem;
+  line-height: 1.6;
 }
 
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+.cardActions {
+  align-items: flex-end;
+  margin-top: auto;
 }
 
-.cardTitle {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #003366;
-    margin-bottom: 1rem;
+.cardActions a {
+  border: 1px solid #b9c7d5;
+  color: #003366;
 }
 
-.cardText {
-    color: #666;
-    line-height: 1.5;
+.cardActions a:hover {
+  border-color: #003366;
+  background: #edf4fb;
 }
 
-@media (max-width: 768px) {
-    .welcomeSection {
-        padding: 3rem 5%;
-    }
-    
-    .welcomeTitle {
-        font-size: 2rem;
-    }
-    
-    .contentGrid {
-        padding: 0 5% 3rem;
-    }
+.primaryAction:focus-visible,
+.secondaryAction:focus-visible,
+.cardActions a:focus-visible {
+  outline: 3px solid #f5b700;
+  outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+  .hero {
+    min-height: 27rem;
+  }
+
+  .journeys {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .card {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 375px) {
+  .heroActions,
+  .cardActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .primaryAction,
+  .secondaryAction,
+  .cardActions a {
+    width: 100%;
+  }
 }

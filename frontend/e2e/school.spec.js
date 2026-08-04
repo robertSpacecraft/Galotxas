@@ -35,11 +35,13 @@ test.describe.serial('experiencia pública de Escuela de Galotxas', () => {
 
     await page.goto('/');
     await expect(page.getByText('Academy', { exact: true })).toHaveCount(0);
-    const schoolHomeLink = page.getByRole('link', { name: /Escuela de Galotxas/ }).last();
+    const schoolHomeLink = page.getByRole('link', { name: 'Ver Escuela' });
     await expect(schoolHomeLink).toHaveAttribute('href', '/escuela');
 
     const editorialNavigation = page.getByRole('list', { name: 'Navegación editorial' });
-    await expect(editorialNavigation.getByRole('link')).toHaveCount(4);
+    await expect(editorialNavigation.getByRole('link')).toHaveCount(2);
+    const learnNavigationButton = editorialNavigation.getByRole('button', { name: 'Aprende' });
+    await learnNavigationButton.click();
     const schoolNavigationLink = editorialNavigation.getByRole('link', {
       name: 'Escuela de Galotxas',
     });
@@ -53,7 +55,11 @@ test.describe.serial('experiencia pública de Escuela de Galotxas', () => {
     await expect(page).toHaveURL(/\/escuela$/);
     await expect(page.getByRole('heading', { name: 'Escuela de Galotxas', level: 1 })).toBeVisible();
     await expect(page.locator('h1')).toHaveCount(1);
-    await expect(schoolNavigationLink).toHaveAttribute('aria-current', 'page');
+    await expect(learnNavigationButton).toHaveClass(/navItemActive/);
+    await expect(editorialNavigation.getByRole('link', {
+      name: 'Escuela de Galotxas',
+      includeHidden: true,
+    })).toHaveAttribute('aria-current', 'page');
     await expect(page).toHaveTitle('Escuela de Galotxas | Galotxas');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       'content',
@@ -215,7 +221,11 @@ test.describe.serial('experiencia pública de Escuela de Galotxas', () => {
     await expect(page.getByRole('heading', { name: 'Página no encontrada', level: 1 })).toBeVisible();
     await expect(
       page.getByRole('list', { name: 'Navegación editorial' })
-        .getByRole('link', { name: 'Escuela de Galotxas' }),
-    ).toHaveAttribute('aria-current', 'location');
+        .getByRole('button', { name: 'Aprende' }),
+    ).toHaveClass(/navItemActive/);
+    await expect(page.getByRole('list', { name: 'Navegación editorial' }).getByRole('link', {
+      name: 'Escuela de Galotxas',
+      includeHidden: true,
+    })).not.toHaveAttribute('aria-current');
   });
 });

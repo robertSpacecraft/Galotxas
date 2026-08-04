@@ -119,9 +119,11 @@ describe('App public routes', () => {
   it('keeps Home inside a single main landmark', async () => {
     openAppAt('/');
 
-    expect(await screen.findByRole('heading', { name: 'La emoción de las Galotxas' }))
+    expect(await screen.findByRole('heading', { name: 'Galotxas en Monóvar' }))
       .toBeInTheDocument();
     expect(screen.getAllByRole('main')).toHaveLength(1);
+    expect(screen.getByRole('main')).toHaveAttribute('id', 'main-content');
+    expect(screen.getByRole('contentinfo')).toHaveTextContent('Club Galotxes Monòver');
   });
 
   it('renders the wildcard page without automatically redirecting', async () => {

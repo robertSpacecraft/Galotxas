@@ -44,6 +44,15 @@ body {
   min-height: 100vh;
 }
 
+.main-content {
+  flex: 1 0 auto;
+  min-width: 0;
+}
+
+.main-content:focus {
+  outline: none;
+}
+
 /* Navbar with Glassmorphism */
 .navbar {
   position: sticky;

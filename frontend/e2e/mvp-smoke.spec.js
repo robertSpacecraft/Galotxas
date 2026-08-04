@@ -64,15 +64,15 @@ test.describe.serial('smoke narrativo del MVP', () => {
     const assertNoConsoleErrors = watchCriticalConsoleErrors(page);
 
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'La emoción de las Galotxas' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Galotxas en Monóvar' })).toBeVisible();
     const editorialNavigation = page.getByRole('list', { name: 'Navegación editorial' });
     const accountArea = page.getByRole('group', { name: 'Cuenta' });
 
-    await expect(editorialNavigation.getByRole('link')).toHaveCount(4);
+    await expect(editorialNavigation.getByRole('link')).toHaveCount(2);
     await expect(editorialNavigation.getByRole('link', { name: 'Inicio' })).toBeVisible();
     await expect(editorialNavigation.getByRole('link', { name: 'Competición' })).toBeVisible();
-    await expect(editorialNavigation.getByRole('link', { name: 'Aprende a jugar' })).toBeVisible();
-    await expect(editorialNavigation.getByRole('link', { name: 'Escuela de Galotxas' })).toBeVisible();
+    await expect(editorialNavigation.getByRole('button', { name: 'Aprende' })).toBeVisible();
+    await expect(editorialNavigation.getByRole('button', { name: 'Club' })).toBeVisible();
     await expect(editorialNavigation.getByRole('link', { name: 'Torneos' })).toHaveCount(0);
     await expect(editorialNavigation.getByRole('link', { name: 'Rankings' })).toHaveCount(0);
     await expect(accountArea.getByRole('link', { name: 'Iniciar sesión' })).toBeVisible();
@@ -162,15 +162,19 @@ test.describe.serial('smoke narrativo del MVP', () => {
 
     for (const [pathname, currentValue] of [
       ['/competicion', 'page'],
-      ['/torneos', 'location'],
-      ['/rankings', 'location'],
+      ['/torneos', null],
+      ['/rankings', null],
     ]) {
       await page.goto(pathname);
       const editorialNavigation = page.getByRole('list', { name: 'Navegación editorial' });
       const competitionLink = editorialNavigation.getByRole('link', { name: 'Competición' });
 
-      await expect(competitionLink).toHaveAttribute('aria-current', currentValue);
-      await expect(editorialNavigation.locator('[aria-current]')).toHaveCount(1);
+      await expect(competitionLink).toHaveClass(/navItemActive/);
+      if (currentValue) {
+        await expect(competitionLink).toHaveAttribute('aria-current', currentValue);
+      } else {
+        await expect(competitionLink).not.toHaveAttribute('aria-current');
+      }
     }
 
     assertNoConsoleErrors();
@@ -190,8 +194,10 @@ test.describe.serial('smoke narrativo del MVP', () => {
 
     await page.goto('/');
     const editorialNavigation = page.getByRole('list', { name: 'Navegación editorial' });
-    const learnNavigationLink = editorialNavigation.getByRole('link', { name: 'Aprende a jugar' });
+    const learnNavigationButton = editorialNavigation.getByRole('button', { name: 'Aprende' });
 
+    await learnNavigationButton.click();
+    const learnNavigationLink = editorialNavigation.getByRole('link', { name: 'Aprende a jugar' });
     await learnNavigationLink.click();
     const routeLoading = page.getByRole('status');
     await expect(routeLoading).toContainText('Cargando Aprende a jugar');
@@ -203,7 +209,11 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await expect(page).toHaveURL(/\/aprende-a-jugar$/);
     await expect(page.getByRole('heading', { name: 'Aprende a jugar', level: 1 })).toBeVisible();
     await expect(page.locator('h1')).toHaveCount(1);
-    await expect(learnNavigationLink).toHaveAttribute('aria-current', 'page');
+    await expect(learnNavigationButton).toHaveClass(/navItemActive/);
+    await expect(editorialNavigation.getByRole('link', {
+      name: 'Aprende a jugar',
+      includeHidden: true,
+    })).toHaveAttribute('aria-current', 'page');
     await expect(editorialNavigation.getByRole('link', { name: 'Competición' }))
       .not.toHaveAttribute('aria-current');
     await expect(page).toHaveTitle('Aprende a jugar | Galotxas');
@@ -218,7 +228,11 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await expect(page.locator('main ol a[href^="/aprende-a-jugar/manual/"]')).toHaveCount(40);
     await expect(page.getByRole('navigation', { name: 'Colecciones del Manual' }).getByRole('link'))
       .toHaveCount(4);
-    await expect(learnNavigationLink).toHaveAttribute('aria-current', 'location');
+    await expect(learnNavigationButton).toHaveClass(/navItemActive/);
+    await expect(editorialNavigation.getByRole('link', {
+      name: 'Manual y reglas',
+      includeHidden: true,
+    })).toHaveAttribute('aria-current', 'page');
 
     await page.getByRole('link', { name: 'Modelo de la cancha', exact: true }).click();
     await expect(page.getByText('Documento 1 de 8 en Reglamento')).toBeVisible();
@@ -410,19 +424,19 @@ test.describe.serial('smoke narrativo del MVP', () => {
     assertNoConsoleErrors();
   });
 
-  test('el CTA principal abre el listado real de torneos', async ({ page }) => {
+  test('los CTA principales de Home abren Competición y Aprende', async ({ page }) => {
     const assertNoConsoleErrors = watchCriticalConsoleErrors(page);
 
     await page.goto('/');
-    await page.getByRole('link', { name: 'Ver Torneos' }).click();
+    await page.getByRole('link', { name: 'Ver competición' }).first().click();
 
-    await expect(page).toHaveURL(/\/torneos$/);
-    await expect(page.getByRole('heading', { name: 'Torneos' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Campeonato Individual E2E' })).toBeVisible();
+    await expect(page).toHaveURL(/\/competicion$/);
+    await expect(page.getByRole('heading', { name: 'Competición' })).toBeVisible();
 
-    await page.getByLabel('Estado').selectOption('finished');
-    await expect(page.getByText('No hay campeonatos para los filtros seleccionados.')).toBeVisible();
-    await expect(page.getByRole('alert')).toHaveCount(0);
+    await page.goto('/');
+    await page.getByRole('link', { name: 'Aprender a jugar' }).click();
+    await expect(page).toHaveURL(/\/aprende-a-jugar$/);
+    await expect(page.getByRole('heading', { name: 'Aprende a jugar', level: 1 })).toBeVisible();
 
     assertNoConsoleErrors();
   });
@@ -528,8 +542,8 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await expect(closeMenu).toHaveAttribute('aria-expanded', 'true');
     await expect(page.getByRole('link', { name: 'Inicio', exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Competición', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Aprende a jugar', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Escuela de Galotxas', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Aprende', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Club', exact: true })).toBeVisible();
 
     await page.getByRole('link', { name: 'Competición', exact: true }).click();
     await expect(page).toHaveURL(/\/competicion$/);
@@ -612,7 +626,7 @@ test.describe.serial('smoke narrativo del MVP', () => {
 
     await page.getByRole('link', { name: 'Volver a Inicio' }).click();
     await expect(page).toHaveURL(/\/$/);
-    await expect(page.getByRole('heading', { name: 'La emoción de las Galotxas' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Galotxas en Monóvar' })).toBeVisible();
     await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
 
     assertNoConsoleErrors();

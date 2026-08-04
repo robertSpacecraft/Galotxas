@@ -8,6 +8,7 @@ import { TournamentList } from './pages/Torneos/TournamentList';
 import { TournamentDetail } from './pages/Torneos/TournamentDetail';
 import { CategoryDetail } from './pages/Torneos/CategoryDetail';
 import { Navbar } from './components/Navbar/Navbar';
+import { Footer } from './components/Footer/Footer';
 import StandingsPage from './pages/Standings';
 import SchedulePage from './pages/Schedule';
 import MatchDetails from './pages/MatchDetails';
@@ -57,7 +58,7 @@ function App() {
         <div className="app-layout">
           <Navbar />
 
-          <main className="main-content">
+          <main id="main-content" className="main-content" tabIndex="-1">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/competicion" element={<CompetitionPage />} />
@@ -125,6 +126,7 @@ function App() {
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </main>
+          <Footer />
         </div>
       </Router>
     </AuthProvider>

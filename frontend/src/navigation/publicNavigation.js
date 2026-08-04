@@ -1,48 +1,153 @@
-import { isSchoolPath, schoolPath } from '../features/school/schoolRoutes';
+import { clubPath } from '../features/club/clubRoutes';
+import { learnPath, manualPath } from '../features/knowledge/knowledgeRoutes';
+import { schoolPath } from '../features/school/schoolRoutes';
 
-const competitionRoutePatterns = [
-  /^\/competicion\/?$/,
-  /^\/torneos(?:\/[^/]+)?\/?$/,
-  /^\/categories\/[^/]+(?:\/(?:standings|schedule))?\/?$/,
-  /^\/matches\/[^/]+\/?$/,
-  /^\/rankings\/?$/,
+export const navigationItemTypes = Object.freeze({
+  link: 'link',
+  disclosure: 'disclosure',
+});
+
+export const navigationAudiences = Object.freeze({
+  public: 'public',
+  account: 'account',
+});
+
+const freezeMatch = ({ exact = [], prefixes = [] }) => Object.freeze({
+  exact: Object.freeze(exact),
+  prefixes: Object.freeze(prefixes),
+});
+
+const link = ({ id, label, to, exact = [to], prefixes = [] }) => Object.freeze({
+  id,
+  type: navigationItemTypes.link,
+  label,
+  to,
+  visible: true,
+  audience: navigationAudiences.public,
+  match: freezeMatch({ exact, prefixes }),
+});
+
+const disclosure = ({ id, label, panelId, exact = [], prefixes = [], children }) => Object.freeze({
+  id,
+  type: navigationItemTypes.disclosure,
+  label,
+  panelId,
+  visible: true,
+  audience: navigationAudiences.public,
+  match: freezeMatch({ exact, prefixes }),
+  children: Object.freeze(children),
+});
+
+const learnOverviewPath = learnPath();
+const publicManualPath = manualPath();
+const publicSchoolPath = schoolPath();
+
+const learnChildren = [
+  link({
+    id: 'learn-overview',
+    label: 'Aprende a jugar',
+    to: learnOverviewPath,
+  }),
+  link({
+    id: 'manual',
+    label: 'Manual y reglas',
+    to: publicManualPath,
+    prefixes: [`${publicManualPath}/`],
+  }),
+  link({
+    id: 'school',
+    label: 'Escuela de Galotxas',
+    to: publicSchoolPath,
+    prefixes: [`${publicSchoolPath}/`],
+  }),
 ];
 
-export const publicNavigation = [
-  {
-    id: 'home',
-    label: 'Inicio',
-    to: '/',
-    matches: (pathname) => pathname === '/',
-  },
-  {
+const clubChildren = [
+  link({ id: 'club-about', label: 'Quiénes somos', to: clubPath('about') }),
+  link({ id: 'club-contact', label: 'Contacto', to: clubPath('contact') }),
+  link({ id: 'club-membership', label: 'Federarse', to: clubPath('membership') }),
+  link({ id: 'club-documents', label: 'Documentos', to: clubPath('documents') }),
+];
+
+export const publicNavigation = Object.freeze([
+  link({ id: 'home', label: 'Inicio', to: '/' }),
+  link({
     id: 'competition',
     label: 'Competición',
     to: '/competicion',
-    matches: (pathname) => competitionRoutePatterns.some((pattern) => pattern.test(pathname)),
-  },
-  {
+    exact: ['/competicion', '/torneos', '/rankings'],
+    prefixes: ['/competicion/', '/torneos/', '/categories/', '/matches/'],
+  }),
+  disclosure({
     id: 'learn',
-    label: 'Aprende a jugar',
-    to: '/aprende-a-jugar',
-    matches: (pathname) => /^\/aprende-a-jugar(?:\/.*)?$/.test(pathname),
-  },
-  {
-    id: 'school',
-    label: 'Escuela de Galotxas',
-    to: schoolPath(),
-    matches: isSchoolPath,
-  },
-];
+    label: 'Aprende',
+    panelId: 'public-navigation-learn-panel',
+    exact: [learnOverviewPath, publicManualPath, publicSchoolPath],
+    prefixes: [`${learnOverviewPath}/`, `${publicSchoolPath}/`],
+    children: learnChildren,
+  }),
+  disclosure({
+    id: 'club',
+    label: 'Club',
+    panelId: 'public-navigation-club-panel',
+    exact: clubChildren.map((item) => item.to),
+    prefixes: ['/club/'],
+    children: clubChildren,
+  }),
+]);
 
-export const getActivePublicNavigationItem = (pathname) => (
-  publicNavigation.find((item) => item.matches(pathname)) ?? null
+export const publicSiteIdentity = Object.freeze({
+  name: 'Club Galotxes Monòver',
+});
+
+export const publicSocialLinks = Object.freeze([
+  Object.freeze({
+    id: 'facebook',
+    label: 'Facebook',
+    href: 'https://www.facebook.com/galotxes.monover?locale=es_ES',
+  }),
+  Object.freeze({
+    id: 'instagram',
+    label: 'Instagram',
+    href: 'https://www.instagram.com/clubgalotxes/',
+  }),
+]);
+
+export const publicFooterNavigation = Object.freeze(
+  clubChildren.map(({ id, label, to }) => Object.freeze({ id, label, to })),
 );
 
-export const getPublicNavigationAriaCurrent = (item, pathname) => {
-  if (!item.matches(pathname)) {
-    return undefined;
+const normalizePathname = (pathname) => {
+  if (typeof pathname !== 'string' || pathname.length === 0) {
+    return '/';
   }
 
-  return pathname === item.to ? 'page' : 'location';
+  return pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
 };
+
+export const matchesNavigationItem = (item, pathname) => {
+  const normalizedPathname = normalizePathname(pathname);
+
+  return item.match.exact.some((path) => normalizePathname(path) === normalizedPathname)
+    || item.match.prefixes.some((prefix) => normalizedPathname.startsWith(prefix));
+};
+
+export const getVisiblePublicNavigation = () => publicNavigation.filter((item) => (
+  item.visible && item.audience === navigationAudiences.public
+));
+
+export const getPublicNavigationItem = (itemId) => (
+  publicNavigation.find((item) => item.id === itemId) ?? null
+);
+
+export const getPublicNavigationChild = (parentId, childId) => (
+  getPublicNavigationItem(parentId)?.children?.find((item) => item.id === childId) ?? null
+);
+
+export const getActivePublicNavigationItem = (pathname) => (
+  getVisiblePublicNavigation().find((item) => matchesNavigationItem(item, pathname)) ?? null
+);
+
+export const getPublicNavigationAriaCurrent = (item, pathname) => (
+  item.to && normalizePathname(item.to) === normalizePathname(pathname) ? 'page' : undefined
+);

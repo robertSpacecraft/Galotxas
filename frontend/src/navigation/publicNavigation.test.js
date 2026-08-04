@@ -2,74 +2,138 @@ import { describe, expect, it } from 'vitest';
 import {
   getActivePublicNavigationItem,
   getPublicNavigationAriaCurrent,
+  getPublicNavigationChild,
+  getPublicNavigationItem,
+  getVisiblePublicNavigation,
+  matchesNavigationItem,
+  navigationAudiences,
+  navigationItemTypes,
+  publicFooterNavigation,
   publicNavigation,
+  publicSiteIdentity,
+  publicSocialLinks,
 } from './publicNavigation';
 
 describe('publicNavigation', () => {
-  it('contains only the functional first-level destinations in their intended order', () => {
-    expect(publicNavigation.map(({ id, label, to }) => ({ id, label, to }))).toEqual([
-      { id: 'home', label: 'Inicio', to: '/' },
-      { id: 'competition', label: 'Competición', to: '/competicion' },
-      { id: 'learn', label: 'Aprende a jugar', to: '/aprende-a-jugar' },
-      { id: 'school', label: 'Escuela de Galotxas', to: '/escuela' },
+  it('models the approved order, item types, visibility and audience', () => {
+    expect(publicNavigation.map(({ id, label, type, visible, audience }) => ({
+      id,
+      label,
+      type,
+      visible,
+      audience,
+    }))).toEqual([
+      {
+        id: 'home',
+        label: 'Inicio',
+        type: navigationItemTypes.link,
+        visible: true,
+        audience: navigationAudiences.public,
+      },
+      {
+        id: 'competition',
+        label: 'Competición',
+        type: navigationItemTypes.link,
+        visible: true,
+        audience: navigationAudiences.public,
+      },
+      {
+        id: 'learn',
+        label: 'Aprende',
+        type: navigationItemTypes.disclosure,
+        visible: true,
+        audience: navigationAudiences.public,
+      },
+      {
+        id: 'club',
+        label: 'Club',
+        type: navigationItemTypes.disclosure,
+        visible: true,
+        audience: navigationAudiences.public,
+      },
     ]);
 
-    const serializedNavigation = JSON.stringify(publicNavigation);
+    expect(getVisiblePublicNavigation()).toEqual(publicNavigation);
+  });
 
-    for (const excludedValue of [
-      'Torneos',
-      'Rankings',
-      'Club',
-      '/contenidos',
-    ]) {
-      expect(serializedNavigation).not.toContain(excludedValue);
-    }
+  it('keeps disclosure parents without routes and declares their canonical children', () => {
+    const learn = getPublicNavigationItem('learn');
+    const club = getPublicNavigationItem('club');
+
+    expect(learn).not.toHaveProperty('to');
+    expect(club).not.toHaveProperty('to');
+    expect(learn.children.map(({ label, to }) => ({ label, to }))).toEqual([
+      { label: 'Aprende a jugar', to: '/aprende-a-jugar' },
+      { label: 'Manual y reglas', to: '/aprende-a-jugar/manual' },
+      { label: 'Escuela de Galotxas', to: '/escuela' },
+    ]);
+    expect(club.children.map(({ label, to }) => ({ label, to }))).toEqual([
+      { label: 'Quiénes somos', to: '/club/quienes-somos' },
+      { label: 'Contacto', to: '/club/contacto' },
+      { label: 'Federarse', to: '/club/federarse' },
+      { label: 'Documentos', to: '/club/documentos' },
+    ]);
+    expect(JSON.stringify(publicNavigation)).not.toContain('"to":"/club"');
+    expect(JSON.stringify(publicNavigation)).not.toContain('"to":"/aprende"');
   });
 
   it.each([
     ['/', 'home'],
     ['/competicion', 'competition'],
+    ['/competicion/temporada', 'competition'],
     ['/torneos', 'competition'],
     ['/torneos/campeonato-1', 'competition'],
-    ['/categories/7', 'competition'],
     ['/categories/7/standings', 'competition'],
-    ['/categories/7/schedule', 'competition'],
     ['/matches/15', 'competition'],
     ['/rankings', 'competition'],
     ['/aprende-a-jugar', 'learn'],
     ['/aprende-a-jugar/manual', 'learn'],
     ['/aprende-a-jugar/manual/reglamento/el-saque', 'learn'],
-    ['/aprende-a-jugar/manual/conceptos/juego/saque', 'learn'],
-    ['/escuela', 'school'],
-    ['/escuela/alumno', 'school'],
+    ['/escuela', 'learn'],
+    ['/escuela/alumno', 'learn'],
+    ['/club/quienes-somos', 'club'],
+    ['/club/contacto', 'club'],
+    ['/club/desconocido', 'club'],
     ['/contenidos/nosotros', null],
+    ['/login', null],
+    ['/player', null],
     ['/nosotros', null],
-    ['/torneos/1/otra-ruta', null],
   ])('matches %s to the expected first-level item', (pathname, expectedId) => {
     expect(getActivePublicNavigationItem(pathname)?.id ?? null).toBe(expectedId);
   });
 
-  it('distinguishes the current page from a current competition location', () => {
-    const competition = publicNavigation[1];
+  it('uses exact and prefix matchers while reserving aria-current page for exact destinations', () => {
+    const competition = getPublicNavigationItem('competition');
+    const manual = getPublicNavigationChild('learn', 'manual');
 
+    expect(matchesNavigationItem(competition, '/torneos/12')).toBe(true);
+    expect(matchesNavigationItem(manual, '/aprende-a-jugar/manual/reglamento/saque')).toBe(true);
     expect(getPublicNavigationAriaCurrent(competition, '/competicion')).toBe('page');
-    expect(getPublicNavigationAriaCurrent(competition, '/torneos')).toBe('location');
-    expect(getPublicNavigationAriaCurrent(competition, '/contenidos/nosotros')).toBeUndefined();
+    expect(getPublicNavigationAriaCurrent(competition, '/torneos')).toBeUndefined();
+    expect(getPublicNavigationAriaCurrent(manual, '/aprende-a-jugar/manual')).toBe('page');
+    expect(getPublicNavigationAriaCurrent(
+      manual,
+      '/aprende-a-jugar/manual/reglamento/saque',
+    )).toBeUndefined();
   });
 
-  it('distinguishes the Aprende landing from all of its descendants', () => {
-    const learn = publicNavigation[2];
-
-    expect(getPublicNavigationAriaCurrent(learn, '/aprende-a-jugar')).toBe('page');
-    expect(getPublicNavigationAriaCurrent(learn, '/aprende-a-jugar/manual')).toBe('location');
-    expect(getPublicNavigationAriaCurrent(learn, '/competicion')).toBeUndefined();
-  });
-
-  it('distinguishes the School landing from a future descendant', () => {
-    const school = publicNavigation[3];
-
-    expect(getPublicNavigationAriaCurrent(school, '/escuela')).toBe('page');
-    expect(getPublicNavigationAriaCurrent(school, '/escuela/alumno')).toBe('location');
-    expect(getPublicNavigationAriaCurrent(school, '/academy')).toBeUndefined();
+  it('centralizes the footer identity, canonical Club links and confirmed social URLs', () => {
+    expect(publicSiteIdentity.name).toBe('Club Galotxes Monòver');
+    expect(publicFooterNavigation.map((item) => item.to)).toEqual([
+      '/club/quienes-somos',
+      '/club/contacto',
+      '/club/federarse',
+      '/club/documentos',
+    ]);
+    expect(publicSocialLinks).toEqual([
+      expect.objectContaining({
+        label: 'Facebook',
+        href: 'https://www.facebook.com/galotxes.monover?locale=es_ES',
+      }),
+      expect.objectContaining({
+        label: 'Instagram',
+        href: 'https://www.instagram.com/clubgalotxes/',
+      }),
+    ]);
   });
 });

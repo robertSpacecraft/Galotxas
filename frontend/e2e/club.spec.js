@@ -207,11 +207,21 @@ test.describe.serial('fachadas públicas de Club', () => {
     }
   });
 
-  test('no añade Club al Navbar editorial antes de 7D', async ({ page }) => {
+  test('expone las cuatro fachadas canónicas bajo el disclosure Club', async ({ page }) => {
     await page.goto('/club/quienes-somos');
     const navigation = page.getByRole('list', { name: 'Navegación editorial' });
+    const clubButton = navigation.getByRole('button', { name: 'Club' });
 
-    await expect(navigation.getByRole('link')).toHaveCount(4);
+    await expect(clubButton).toHaveClass(/navItemActive/);
+    await clubButton.click();
+    await expect(navigation.getByRole('link', { name: 'Quiénes somos' }))
+      .toHaveAttribute('href', '/club/quienes-somos');
+    await expect(navigation.getByRole('link', { name: 'Contacto' }))
+      .toHaveAttribute('href', '/club/contacto');
+    await expect(navigation.getByRole('link', { name: 'Federarse' }))
+      .toHaveAttribute('href', '/club/federarse');
+    await expect(navigation.getByRole('link', { name: 'Documentos' }))
+      .toHaveAttribute('href', '/club/documentos');
     await expect(navigation.getByRole('link', { name: 'Club' })).toHaveCount(0);
   });
 });

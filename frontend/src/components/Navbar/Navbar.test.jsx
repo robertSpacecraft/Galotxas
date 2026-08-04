@@ -22,76 +22,151 @@ const LocationChangeControl = () => {
   );
 };
 
+const openMainMenu = async (user) => {
+  await user.click(screen.getByRole('button', { name: 'Abrir menú de navegación' }));
+};
+
 describe('Navbar', () => {
-  it('renders only the functional editorial destinations and a separate anonymous account area', () => {
+  it('renders the grouped editorial tree, a skip link and a separate anonymous account area', () => {
     renderWithProviders(<Navbar />, { authValue: anonymousAuth });
 
+    const navigation = screen.getByRole('navigation', { name: 'Navegación principal' });
     const editorialNavigation = screen.getByRole('list', { name: 'Navegación editorial' });
     const accountArea = screen.getByRole('group', { name: 'Cuenta' });
 
+    expect(screen.getByRole('banner')).toContainElement(navigation);
+    expect(screen.getByRole('link', { name: 'Saltar al contenido principal' }))
+      .toHaveAttribute('href', '#main-content');
     expect(screen.getByRole('link', { name: 'Galotxas' })).toHaveAttribute('href', '/');
-    expect(within(editorialNavigation).getAllByRole('link')).toHaveLength(4);
-    expect(within(editorialNavigation).getByRole('link', { name: 'Inicio' })).toHaveAttribute('href', '/');
+    expect(within(editorialNavigation).getAllByRole('listitem', { hidden: true })).toHaveLength(11);
+    expect(within(editorialNavigation).getByRole('link', { name: 'Inicio' }))
+      .toHaveAttribute('href', '/');
     expect(within(editorialNavigation).getByRole('link', { name: 'Competición' }))
       .toHaveAttribute('href', '/competicion');
-    expect(within(editorialNavigation).getByRole('link', { name: 'Aprende a jugar' }))
-      .toHaveAttribute('href', '/aprende-a-jugar');
-    expect(within(editorialNavigation).getByRole('link', { name: 'Escuela de Galotxas' }))
-      .toHaveAttribute('href', '/escuela');
+    expect(within(editorialNavigation).getByRole('button', { name: 'Aprende' }))
+      .toHaveAttribute('aria-controls', 'public-navigation-learn-panel');
+    expect(within(editorialNavigation).getByRole('button', { name: 'Club' }))
+      .toHaveAttribute('aria-controls', 'public-navigation-club-panel');
     expect(within(accountArea).getByRole('link', { name: 'Iniciar sesión' }))
       .toHaveAttribute('href', '/login');
-
-    for (const excludedName of [
-      'Torneos',
-      'Rankings',
-      'Prensa & Media',
-      'Nosotros',
-      'Federaciones',
-      'Contenidos',
-      'Academy',
-      'Club',
-    ]) {
-      expect(screen.queryByRole('link', { name: excludedName, exact: true })).not.toBeInTheDocument();
-    }
+    expect(within(editorialNavigation).queryByRole('link', { name: 'Club' })).not.toBeInTheDocument();
+    expect(within(editorialNavigation).queryByRole('link', { name: 'Aprende' })).not.toBeInTheDocument();
   });
 
-  it('opens and closes the accessible menu with Escape and restores focus', async () => {
+  it('opens each disclosure with its canonical children and keeps only one open', async () => {
     const user = userEvent.setup();
     renderWithProviders(<Navbar />, { authValue: anonymousAuth });
-    const toggle = screen.getByRole('button', { name: 'Abrir menú de navegación' });
-    const editorialNavigation = screen.getByRole('list', { name: 'Navegación editorial' });
 
-    expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    expect(toggle).toHaveAttribute('aria-controls', 'public-navigation');
-    expect(editorialNavigation).not.toHaveClass(styles.navLinksOpen);
+    const learnButton = screen.getByRole('button', { name: 'Aprende' });
+    const clubButton = screen.getByRole('button', { name: 'Club' });
 
-    await user.click(toggle);
+    await user.click(learnButton);
+    expect(learnButton).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('link', { name: 'Aprende a jugar' }))
+      .toHaveAttribute('href', '/aprende-a-jugar');
+    expect(screen.getByRole('link', { name: 'Manual y reglas' }))
+      .toHaveAttribute('href', '/aprende-a-jugar/manual');
+    expect(screen.getByRole('link', { name: 'Escuela de Galotxas' }))
+      .toHaveAttribute('href', '/escuela');
 
-    expect(screen.getByRole('button', { name: 'Cerrar menú de navegación' }))
-      .toHaveAttribute('aria-expanded', 'true');
-    expect(editorialNavigation).toHaveClass(styles.navLinksOpen);
+    await user.click(clubButton);
+    expect(learnButton).toHaveAttribute('aria-expanded', 'false');
+    expect(clubButton).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('link', { name: 'Quiénes somos' }))
+      .toHaveAttribute('href', '/club/quienes-somos');
+    expect(screen.getByRole('link', { name: 'Contacto' }))
+      .toHaveAttribute('href', '/club/contacto');
+    expect(screen.getByRole('link', { name: 'Federarse' }))
+      .toHaveAttribute('href', '/club/federarse');
+    expect(screen.getByRole('link', { name: 'Documentos' }))
+      .toHaveAttribute('href', '/club/documentos');
+  });
 
-    screen.getByRole('link', { name: 'Competición' }).focus();
+  it('supports native keyboard activation for disclosure buttons', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<Navbar />, { authValue: anonymousAuth });
+    const learnButton = screen.getByRole('button', { name: 'Aprende' });
+
+    learnButton.focus();
+    await user.keyboard('{Enter}');
+    expect(learnButton).toHaveAttribute('aria-expanded', 'true');
+    await user.keyboard(' ');
+    expect(learnButton).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('closes a disclosure with Escape and restores focus to its trigger', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<Navbar />, { authValue: anonymousAuth });
+    const learnButton = screen.getByRole('button', { name: 'Aprende' });
+
+    await user.click(learnButton);
+    screen.getByRole('link', { name: 'Manual y reglas' }).focus();
     await user.keyboard('{Escape}');
 
-    const closedToggle = screen.getByRole('button', { name: 'Abrir menú de navegación' });
-    expect(closedToggle).toHaveAttribute('aria-expanded', 'false');
-    expect(editorialNavigation).not.toHaveClass(styles.navLinksOpen);
-    expect(closedToggle).toHaveFocus();
+    expect(learnButton).toHaveAttribute('aria-expanded', 'false');
+    expect(learnButton).toHaveFocus();
   });
 
-  it('closes the menu after selecting an editorial destination', async () => {
+  it('closes disclosures when clicking outside the header', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(
+      <>
+        <Navbar />
+        <button type="button">Fuera</button>
+      </>,
+      { authValue: anonymousAuth },
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Club' }));
+    await user.click(screen.getByRole('button', { name: 'Fuera' }));
+
+    expect(screen.getByRole('button', { name: 'Club' })).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('closes every menu after selecting a nested destination', async () => {
     const user = userEvent.setup();
     renderWithProviders(<Navbar />, { authValue: anonymousAuth });
 
-    await user.click(screen.getByRole('button', { name: 'Abrir menú de navegación' }));
-    await user.click(screen.getByRole('link', { name: 'Competición' }));
+    await openMainMenu(user);
+    await user.click(screen.getByRole('button', { name: 'Aprende' }));
+    await user.click(screen.getByRole('link', { name: 'Escuela de Galotxas' }));
 
     expect(screen.getByRole('button', { name: 'Abrir menú de navegación' }))
       .toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('button', { name: 'Aprende' }))
+      .toHaveAttribute('aria-expanded', 'false');
   });
 
-  it('closes the menu when the location changes outside the editorial list', async () => {
+  it('closing the main menu also closes its open disclosure', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<Navbar />, { authValue: anonymousAuth });
+
+    await openMainMenu(user);
+    await user.click(screen.getByRole('button', { name: 'Club' }));
+    await user.click(screen.getByRole('button', { name: 'Cerrar menú de navegación' }));
+    await openMainMenu(user);
+
+    expect(screen.getByRole('button', { name: 'Club' })).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('link', { name: 'Quiénes somos', hidden: true })).not.toBeVisible();
+  });
+
+  it('Escape closes a disclosure before the main menu and restores each trigger focus', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<Navbar />, { authValue: anonymousAuth });
+
+    await openMainMenu(user);
+    const learnButton = screen.getByRole('button', { name: 'Aprende' });
+    await user.click(learnButton);
+    await user.keyboard('{Escape}');
+    expect(learnButton).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'Cerrar menú de navegación' }))
+      .toHaveAttribute('aria-expanded', 'true');
+
+    await user.keyboard('{Escape}');
+    expect(screen.getByRole('button', { name: 'Abrir menú de navegación' })).toHaveFocus();
+  });
+
+  it('closes the menu when the location changes programmatically', async () => {
     const user = userEvent.setup();
     renderWithProviders(
       <>
@@ -101,11 +176,13 @@ describe('Navbar', () => {
       { authValue: anonymousAuth },
     );
 
-    await user.click(screen.getByRole('button', { name: 'Abrir menú de navegación' }));
+    await openMainMenu(user);
+    await user.click(screen.getByRole('button', { name: 'Aprende' }));
     await user.click(screen.getByRole('button', { name: 'Cambiar ubicación' }));
 
     expect(screen.getByRole('button', { name: 'Abrir menú de navegación' }))
       .toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('button', { name: 'Aprende' })).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('keeps identity, Mi Panel and logout in the authenticated account area', async () => {
@@ -123,58 +200,64 @@ describe('Navbar', () => {
     const editorialNavigation = screen.getByRole('list', { name: 'Navegación editorial' });
     const accountArea = screen.getByRole('group', { name: 'Cuenta' });
 
-    expect(within(editorialNavigation).queryByRole('link', { name: 'Mi Panel' })).not.toBeInTheDocument();
+    expect(within(editorialNavigation).queryByRole('link', { name: 'Mi Panel' }))
+      .not.toBeInTheDocument();
     expect(within(accountArea).getByText(/Hola,/)).toHaveTextContent('Robert');
-    expect(within(accountArea).getByRole('link', { name: 'Mi Panel' })).toHaveAttribute('href', '/player');
-    expect(within(accountArea).queryByRole('link', { name: 'Iniciar sesión' })).not.toBeInTheDocument();
+    expect(within(accountArea).getByRole('link', { name: 'Mi Panel' }))
+      .toHaveAttribute('href', '/player');
+    expect(within(accountArea).queryByRole('link', { name: 'Iniciar sesión' }))
+      .not.toBeInTheDocument();
 
     await user.click(within(accountArea).getByRole('button', { name: 'Salir' }));
     expect(logout).toHaveBeenCalledOnce();
   });
 
   it.each([
-    ['/', 'Inicio', 'page'],
-    ['/competicion', 'Competición', 'page'],
-    ['/torneos', 'Competición', 'location'],
-    ['/torneos/12', 'Competición', 'location'],
-    ['/categories/8', 'Competición', 'location'],
-    ['/categories/8/standings', 'Competición', 'location'],
-    ['/categories/8/schedule', 'Competición', 'location'],
-    ['/matches/20', 'Competición', 'location'],
-    ['/rankings', 'Competición', 'location'],
-    ['/aprende-a-jugar', 'Aprende a jugar', 'page'],
-    ['/aprende-a-jugar/manual', 'Aprende a jugar', 'location'],
-    ['/aprende-a-jugar/manual/reglamento/el-saque', 'Aprende a jugar', 'location'],
-    ['/aprende-a-jugar/manual/conceptos/juego/saque', 'Aprende a jugar', 'location'],
-    ['/escuela', 'Escuela de Galotxas', 'page'],
-    ['/escuela/alumno', 'Escuela de Galotxas', 'location'],
-  ])('marks one active item at %s', (route, expectedName, expectedCurrent) => {
+    ['/', 'Inicio', 'link', 'page'],
+    ['/competicion', 'Competición', 'link', 'page'],
+    ['/torneos/12', 'Competición', 'link', null],
+    ['/categories/8/standings', 'Competición', 'link', null],
+    ['/aprende-a-jugar', 'Aprende', 'button', null],
+    ['/aprende-a-jugar/manual/reglamento/el-saque', 'Aprende', 'button', null],
+    ['/escuela', 'Aprende', 'button', null],
+    ['/club/quienes-somos', 'Club', 'button', null],
+    ['/club/contacto', 'Club', 'button', null],
+  ])('marks the correct first-level branch at %s', (route, name, role, current) => {
     renderWithProviders(<Navbar />, { route, authValue: anonymousAuth });
+    const activeControl = screen.getByRole(role, { name });
 
-    const editorialLinks = within(
-      screen.getByRole('list', { name: 'Navegación editorial' }),
-    ).getAllByRole('link');
-    const currentLinks = editorialLinks.filter((link) => link.hasAttribute('aria-current'));
-
-    expect(currentLinks).toHaveLength(1);
-    expect(screen.getByRole('link', { name: expectedName })).toHaveAttribute(
-      'aria-current',
-      expectedCurrent,
-    );
-    expect(screen.getByRole('link', { name: expectedName })).toHaveClass(styles.navItemActive);
+    expect(activeControl).toHaveClass(styles.navItemActive);
+    if (current) {
+      expect(activeControl).toHaveAttribute('aria-current', current);
+    } else {
+      expect(activeControl).not.toHaveAttribute('aria-current');
+    }
   });
 
-  it('does not activate an editorial item on a legacy institutional route', () => {
+  it('sets aria-current page only on an exact child destination', () => {
     renderWithProviders(<Navbar />, {
-      route: '/contenidos/nosotros',
+      route: '/aprende-a-jugar/manual',
       authValue: anonymousAuth,
     });
 
-    const editorialLinks = within(
-      screen.getByRole('list', { name: 'Navegación editorial' }),
-    ).getAllByRole('link');
+    expect(screen.getByRole('link', { name: 'Manual y reglas', hidden: true }))
+      .toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('button', { name: 'Aprende' })).not.toHaveAttribute('aria-current');
+  });
 
-    expect(editorialLinks.every((link) => !link.hasAttribute('aria-current'))).toBe(true);
-    expect(editorialLinks.every((link) => !link.classList.contains(styles.navItemActive))).toBe(true);
+  it('does not activate public navigation on CMS legacy or account routes', () => {
+    const { rerender } = renderWithProviders(<Navbar />, {
+      route: '/contenidos/nosotros',
+      authValue: anonymousAuth,
+    });
+    const editorialNavigation = screen.getByRole('list', { name: 'Navegación editorial' });
+
+    expect(within(editorialNavigation).queryAllByRole('link', { current: true, hidden: true }))
+      .toHaveLength(0);
+    expect(within(editorialNavigation).getAllByRole('link', { hidden: true }).every(
+      (link) => !link.classList.contains(styles.navItemActive),
+    )).toBe(true);
+
+    rerender(<div />);
   });
 });
