@@ -1118,6 +1118,27 @@ se ejecutan Docker, migraciones, seeders, suites, frontend, build ni E2E; las
 
 ---
 
+## CLUB-CONTACT-TECHNICAL-FOUNDATION-1 — Base técnica de Club y contacto
+
+7C.1 añade cobertura Feature sobre MariaDB para migración, enum, casts,
+factory, scopes, validación y límites; consentimiento, honeypot, HMAC y
+ausencia de IP en claro; flags, 201/422/429/503, persistencia y notificación
+posterior no bloqueante; configuración pública allowlisted; y administración,
+filtros, transiciones y permisos. `AdminCmsBlockTest` cubre `mailto:` válido
+sólo en enlaces y el rechazo de variantes malformadas o peligrosas.
+
+Vitest cubre el servicio aislado de contacto para configuración, envío,
+errores 422/429/503, red y respuestas inesperadas. El renderer mantiene la
+allowlist separada de enlaces y media, y el router conserva `/club` y sus
+cuatro rutas futuras en el fallback 404.
+
+La validación de cierre exige runner backend aislado completo, suite frontend,
+lint, build a un directorio temporal, Pint, `knowledge:check`, hashes
+canónicos y `git diff --check`. No se ejecuta E2E porque no se crea una ruta o
+interfaz pública.
+
+---
+
 # 11. Evolución
 
 La cobertura de pruebas debe crecer junto con el proyecto.

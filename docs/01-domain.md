@@ -380,6 +380,18 @@ Los únicos datos sembrados de Escuela se limitan al escenario aislado `E2ESmoke
 
 El área Club agrupará Nosotros, Federarse, Federaciones, Prensa y medios y Contacto. El contenido que deba modificar un administrador tendrá como fuente el backend CMS. Debe resolverse previamente la duplicidad actual entre la página estática de Nosotros y su posible versión CMS.
 
+Desde 7C.1, el contenido de Contacto y la recepción de mensajes se mantienen en
+ámbitos separados. Títulos, dirección, canales, enlaces y copy pertenecen a
+`CmsPage`/`CmsBlock`; una solicitud enviada pertenece al dominio funcional
+`ContactRequest` y no es contenido editorial. Conserva nombre, correo, asunto,
+mensaje, estado `new|read|closed`, instante de consentimiento y un HMAC de la
+IP. No conserva IP en claro, teléfono, archivos, DNI, user agent o cookies.
+
+La solicitud se persiste antes de intentar una notificación opcional. El
+formulario nace desactivado y no se considera publicable hasta cerrar
+privacidad y operación. La bandeja Blade permite leer y cerrar sin editar o
+eliminar el original. Esta base técnica no crea una página o ruta pública Club.
+
 ## Contenido editorial temporal
 
 Noticias, actividades, talleres, jornadas, convocatorias, galerías y documentos administrables requieren persistencia, permisos y publicación segura. No deben hardcodearse en React ni mantenerse como copia paralela en `knowledge/`.
@@ -399,7 +411,7 @@ Las siguientes capacidades forman parte del roadmap y no deben considerarse impl
 - mejoras avanzadas de rankings;
 - noticias mediante bloques de contenido;
 - gestión de documentos públicos;
-- formularios públicos de interés.
+- activación y presentación pública del formulario institucional de contacto.
 
 ---
 

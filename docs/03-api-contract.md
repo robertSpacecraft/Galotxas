@@ -715,6 +715,64 @@ Los centros y actividades implementados en 6B.3 son deliberadamente privados y a
 
 Desde 6C, React consume ambos contratos exclusivamente en `/escuela`. La lectura conserva el orden y tolera datos parciales; el formulario sólo envía la allowlist documentada, no exige cuenta y no muestra identificador o estado interno tras `201`. La interfaz trata `409`, `422` y `429` sin ampliar ni modificar este contrato.
 
+## Contacto institucional
+
+### `GET /api/v1/contact/config`
+
+Endpoint público anónimo. Sólo expone si el formulario está habilitado:
+
+```json
+{
+  "message": null,
+  "data": {
+    "enabled": false
+  }
+}
+```
+
+No expone flag de notificación, destinatario, mailer, host, credenciales o
+secretos. El default es `false`.
+
+### `POST /api/v1/contact-requests`
+
+Endpoint anónimo protegido por feature flag y por un límite de cinco
+solicitudes cada diez minutos para la combinación HMAC de IP y correo
+normalizado. Payload allowlisted:
+
+```json
+{
+  "name": "Nombre",
+  "email": "persona@example.com",
+  "subject": "Asunto",
+  "message": "Mensaje con detalle suficiente.",
+  "privacy_accepted": true,
+  "website": ""
+}
+```
+
+Nombre, correo RFC válido, asunto, mensaje y aceptación son obligatorios.
+`website` es el honeypot: si llega relleno con un payload válido, la respuesta
+continúa siendo el mismo 201, pero no se guarda ni notifica nada.
+
+Respuesta `201 Created`:
+
+```json
+{
+  "message": "Tu mensaje se ha recibido correctamente.",
+  "data": {
+    "received": true
+  }
+}
+```
+
+La API devuelve 422 para validación, 429 para el límite y 503 con `data: null`
+cuando `CONTACT_FORM_ENABLED=false`. No devuelve ID, estado, consentimiento,
+IP/hash, destinatario o detalles de correo. La persistencia precede a la
+notificación opcional; un fallo de mail conserva el registro y el 201.
+
+En 7C.1 no existe ruta ni formulario React visible. Privacidad, activación y
+presentación pública permanecen como gates de 7C.2.
+
 ---
 
 ## Mantenimiento

@@ -369,7 +369,7 @@ pertenece a Escuela y no debe reutilizarse como contacto de todo el club.
 | Página CMS | Sin recogida de datos | Editable en Blade | Recomendada |
 | Formulario almacenado | Alto: retención, acceso, derechos y spam | Requiere gestión diaria | Posterior |
 | Formulario por correo | Alto: spam, entrega y privacidad | Requiere proveedor y buzón | Posterior |
-| Contacto visible sin formulario | Riesgo bajo y operación simple | Exige canal real atendido | Recomendado para MVP |
+| Contacto visible sin formulario | Riesgo bajo y operación simple | Exige canal real atendido | Recomendación histórica de 7A; sustituida por ADR-034 |
 
 Contrato propuesto: una página CMS “Contacto” con al menos un canal oficial,
 vigente y atendido, aportado por la organización. Si se requieren enlaces
@@ -694,13 +694,21 @@ carga editorial privada (7C.1), seguidos de implementación, paridad, tests y
 publicación controlada (7C.2). Esta recomendación queda pendiente de aceptación
 humana y no marca 7C como iniciada ni completada.
 
+Seguimiento 7C.1: la preparación técnica se implementa y documenta en
+`17-club-technical-preparation-and-contact.md`. Incluye auditoría de assets y
+CMS, dominio/API/Blade de contacto desactivados por defecto y servicio React
+aislado. La carga editorial manual no se ejecuta; 7C.2, privacidad, contenido,
+imágenes y publicación continúan pendientes. ADR-034 sustituye la exclusión
+inicial del formulario sin modificar las rutas canónicas.
+
 - **Objetivo:** ofrecer Club con fuente CMS única y contenido real.
 - **Alcance:** Quiénes somos, Contacto, Federarse y Documentos; cuatro URLs
   canónicas; aliases temporales y migración conservadora de Nosotros.
-- **Fuera:** `academy`, redirects definitivos, formulario de contacto y
-  multimedia administrada.
-- **Backend:** ampliar contratos CMS sólo si la composición real lo exige.
-- **Frontend:** rutas Club, consumo CMS y estados remotos.
+- **Fuera de 7C.1:** `academy`, redirects definitivos, interfaz pública de
+  contacto y multimedia administrada.
+- **Backend:** base de contacto ya preparada; ampliar contratos CMS sólo si la
+  composición real lo exige.
+- **Frontend:** rutas Club, consumo CMS, formulario y estados remotos en 7C.2.
 - **Contenido:** carga aprobada y revisión de publicación.
 - **Tests:** publicación/ocultación, renderer, rutas, 404, privacidad y E2E.
 - **Documentación:** navegación, gobernanza, API si cambia y compatibilidad.
@@ -792,7 +800,8 @@ Antes de implementar o cerrar 7C–7F se necesita:
 - elegir dominio, proveedor de correo y estrategia de secretos;
 - decidir MariaDB gestionada externamente o servicio MariaDB propio con volumen;
 - definir backup, restauración, retención, monitoring y rollback;
-- confirmar si Contacto sin formulario cubre la operativa MVP.
+- confirmar si Contacto sin formulario cubre la operativa MVP; resuelto después
+  a favor de un formulario local desactivado mediante ADR-034.
 
 ## 22. Auditoría de despliegue
 
@@ -973,8 +982,8 @@ Quedan cerrados documentalmente:
 - Cuenta separada;
 - rutas canónicas `/club/...`, aliases temporales conservadores y redirects
   posteriores a paridad;
-- CMS institucional, Contacto sin formulario y Documentos mediante bloques de
-  enlaces;
+- CMS institucional y Documentos mediante bloques de enlaces; la decisión
+  posterior ADR-034 prepara un formulario local desactivado para Contacto;
 - Prensa y Federaciones fuera del Navbar y condicionales en footer;
 - footer obligatorio, plantillas editoriales, matriz legal, checklist School y
   plan refinado 7C–7G.

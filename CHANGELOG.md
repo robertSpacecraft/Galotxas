@@ -6,6 +6,7 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Se completa técnicamente 7C.1 con auditoría de assets y `dist`, guía de carga CMS manual y `ContactRequest`: persistencia local, API pública protegida, configuración allowlisted, honeypot, rate limit HMAC, administración Blade, notificación opcional y servicio React aislado, todo desactivado y sin rutas Club o contenido editorial.
 - Se completa documentalmente 7C.0 con `CLUB-VERTICAL-READINESS-AUDIT-1`: inspección de Knowledge, CMS, API, React, `/nosotros`, rutas y recursos; contraste de la información aportada, inventario de imágenes, readiness, preguntas y gates, sin implementar 7C ni cargar contenido.
 - Se completa documentalmente Fase 7B con `MVP-EDITORIAL-NAVIGATION-CONTRACT-1`: navegación final, rutas institucionales canónicas, plantillas editoriales, matriz legal, inventario de identidad pública, checklist School, gates humanos y plan refinado 7C–7G, sin implementar código, contenido ni datos.
 - Se completa MVP-PARITY-AUDIT-1 de Fase 7A con inventarios de backend, Blade, API, React, CMS y autogestión, definición observable del MVP, priorización P0–P2, recomendación de navegación y plan 7B–7G, sin implementar funciones ni modificar datos.
@@ -39,7 +40,9 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Changed
 
-- ADR-033 sustituye documentalmente la topología pública plana por Inicio y Competición como enlaces, Aprende y Club como disclosures y Cuenta separada; fija cuatro rutas Club, Contacto sin formulario y un footer contractual, todavía sin cambios visibles.
+- ADR-034 sustituye únicamente la decisión inicial de Contacto sin formulario: el CMS conserva el contenido institucional, mientras el formulario usa dominio funcional separado, persiste antes de notificar y permanece bloqueado por privacidad y configuración productiva.
+- Los bloques CMS de enlace admiten `mailto:` con dirección válida; media continúa limitada a rutas internas y `http(s)`, y los protocolos peligrosos siguen rechazándose.
+- ADR-033 sustituye documentalmente la topología pública plana por Inicio y Competición como enlaces, Aprende y Club como disclosures y Cuenta separada; fija cuatro rutas Club y un footer contractual; su decisión inicial de Contacto sin formulario queda sustituida por ADR-034.
 - La API administrativa de temporadas, campeonatos y categorías utiliza Form Requests, persistencia explícita y Resources dedicados, con contratos y permisos de administrador activo verificados.
 - Se elimina la asignación no validada de esos CRUD; `is_public` respeta la jerarquía de Blade y los campos protegidos, incluidas imágenes y relaciones, no pueden manipularse mediante payload.
 - La API pública de competición excluye las ramas privadas en listados, detalles, relaciones, partidos, rankings, standings, schedules e inicio de inscripciones, manteniendo los contratos serializados.

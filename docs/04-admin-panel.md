@@ -446,8 +446,29 @@ Responsabilidades actuales:
 - mantener los slugs institucionales enlazados desde la navegación pública cuando se quiera editar su contenido.
 
 La subida real de imágenes y documentos se incorporará en una fase posterior.
+Los bloques de enlace aceptan rutas internas, `http(s)` y, desde 7C.1, un
+`mailto:` con una dirección válida. Imágenes y galerías no aceptan `mailto:`;
+`tel:` y los esquemas peligrosos continúan fuera de la allowlist.
 
-La gestión genérica ya ha sido auditada y endurecida, pero debe diseñarse el contrato específico antes de asignarle nuevas áreas públicas. La existencia del CRUD no confirma por sí sola que Prensa y medios, Club o la actividad de la Escuela dispongan de los campos, permisos, flujos y contratos que necesitan.
+La gestión genérica ya ha sido auditada y endurecida. En 7C.1 se confirma que
+puede preparar manualmente `nosotros`, `contacto`, `federarse` y `documentos`
+como páginas estructuradas, siempre primero en borrador. No existe preview
+público de borradores, upload o historial; la guía y los gates se documentan en
+`17-club-technical-preparation-and-contact.md`. La existencia del CRUD no
+autoriza por sí sola contenido, imágenes o publicación.
+
+## Solicitudes de contacto
+
+La sección `Contacto` lista 25 solicitudes por página, muestra conteos, filtra
+por `new`, `read` o `closed` y permite ver el mensaje original. Un administrador
+activo puede marcar una solicitud nueva como leída o cerrar una solicitud
+abierta. Las acciones usan sesión, middleware `IsAdmin`, CSRF y Requests
+validados.
+
+No se permite editar, borrar, reabrir, exportar, reenviar, adjuntar o responder
+desde Blade. El panel muestra `consent_at`, pero no la IP ni su hash. El
+formulario público está desactivado por defecto y la administración no puede
+activar flags de entorno.
 
 ---
 
@@ -464,7 +485,7 @@ La gestión genérica ya ha sido auditada y endurecida, pero debe diseñarse el 
 - coordinación de disponibilidad entre categorías;
 - administración avanzada de contenidos públicos (noticias);
 - gestión de documentos públicos (subida segura, visibilidad);
-- recepción y gestión de formularios públicos de interés.
+- activación y presentación pública del formulario institucional de contacto.
 
 ---
 

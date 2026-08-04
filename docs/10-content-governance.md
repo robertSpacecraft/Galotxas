@@ -161,6 +161,18 @@ temporales. React no copiará ese cuerpo.
 fuera del Navbar y de Club en el MVP. Sólo podrán aparecer en el footer como
 enlaces condicionales cuando exista contenido real y responsable.
 
+7C.1 confirma que los cuatro destinos pueden componerse con bloques CMS y
+documenta su carga manual, pero no crea ni publica páginas. Los bloques de
+enlace admiten `mailto:` validado; no admiten `tel:`. Los assets de
+`public/media/club` son fuentes estables candidatas, no contenido aprobado, y
+requieren procedencia, derechos, alt y revisión de metadatos antes de usarse.
+
+El futuro formulario de Contacto no altera la fuente editorial: sus etiquetas,
+copy y canales pertenecen al CMS, mientras cada `ContactRequest` es un registro
+funcional privado en MariaDB. La API y la bandeja Blade ya existen, pero el
+formulario está desactivado por defecto y no tiene interfaz React. Privacidad,
+retención, operación y activación bloquean 7C.2.
+
 ### Contenidos legado
 
 `/contenidos` y sus páginas constituyen una estructura actual y legada, no el destino final de la arquitectura de información. Permanecen accesibles tras retirarse del primer nivel en 3B; no se han eliminado, migrado ni redirigido. El backend excluye borradores y fechas futuras tanto del índice como del acceso por slug. El seeder institucional garantiza seis slugs sin sobrescribir páginas existentes: `prensa-media`, `nosotros`, `federaciones`, `academy`, `documentos` y `federarse`. Esta infraestructura verificada no convierte el índice técnico ni `academy` en áreas canónicas.
@@ -361,8 +373,8 @@ La Fase 3A no elimina `/contenidos`, no crea redirects, no cambia su API ni borr
 - Reglas futuras para reinscripciones complejas o varios programas públicos.
 - Existencia y responsable editorial de material pedagógico suficiente para una colección de Escuela.
 - Creación y contenido real de Contacto: no existe slug sembrado ni contenido
-  verificable actual; su estrategia MVP queda cerrada como página CMS sin
-  formulario.
+  verificable actual; la página se cargará manualmente en CMS y el formulario
+  técnico continuará desactivado hasta superar privacidad y operación.
 - Necesidades editoriales de noticias, actividades, galerías, documentos y formularios.
 - Estrategia de almacenamiento persistente y ciclo de vida de archivos.
 - Modelo de consentimiento y privacidad para contenido de menores.
@@ -382,7 +394,7 @@ contenido real ni preparación de producción. Antes de cerrar el MVP:
 | Área | Fuente única | Aportación humana | Gate de publicación |
 |---|---|---|---|
 | Quiénes somos e historia | CMS | Copy, vigencia, imágenes y responsables | Sin placeholders ni duplicidad JSX |
-| Contacto institucional | CMS | Canal oficial atendido | Sin formulario ni datos inventados por defecto |
+| Contacto institucional | CMS + `ContactRequest` funcional | Canal oficial atendido, privacidad, retención y operación | Contenido en CMS; formulario desactivado hasta aprobación |
 | Federarse | CMS | Proceso real y responsable | Destino vigente |
 | Documentos | CMS con URLs controladas | Piezas, vigencia, procedencia | Ciclo de vida y acceso verificados |
 | Prensa/Federaciones | CMS | Contenido real | Footer/secundaria, nunca tarjeta vacía |
@@ -397,9 +409,11 @@ rutas legadas hasta acreditar paridad y compatibilidad. `academy` permanece
 fuera de esa migración.
 
 ADR-033 y `15-mvp-editorial-and-navigation-contract.md` cierran la arquitectura
-de Aprende, Club, Cuenta, rutas canónicas, Contacto sin formulario y footer. No
-autorizan implementación sin superar los gates de contenido ni cierran la
-política de identidad pública.
+de Aprende, Club, Cuenta, rutas canónicas y footer. ADR-034 sustituye únicamente
+su decisión inicial de Contacto sin formulario por persistencia local,
+notificación opcional y desactivación por defecto. Ninguna de ellas autoriza la
+interfaz o publicación sin superar contenido, privacidad y operación, ni cierra
+la política de identidad pública.
 
 ## 21. Plantillas, revisión y vigencia del MVP
 

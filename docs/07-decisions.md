@@ -1128,6 +1128,78 @@ Consecuencias:
 
 ---
 
+# ADR-034 — Contacto institucional persistente, opcional y desactivado por defecto
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-08
+
+Contexto:
+
+- ADR-033 eligió inicialmente Contacto informativo mediante CMS y descartó un
+  formulario en el MVP por no existir necesidad operativa aprobada.
+- La decisión humana posterior exige un formulario público, pero todavía no
+  están aprobados el texto de privacidad, la retención, el responsable, el
+  destinatario ni la configuración productiva.
+- El correo directo no garantiza conservación, trazabilidad o recuperación
+  ante fallos de entrega, y un endpoint anónimo necesita límites y antispam.
+- El cuerpo institucional continúa siendo contenido administrable: introducir
+  copy en React, migraciones o seeders crearía una segunda fuente editorial.
+- La auditoría confirma que `frontend/dist` está ignorado y contiene únicamente
+  artefactos Vite derivados de fuentes versionadas.
+
+Decisión:
+
+- mantener `CmsPage`/`CmsBlock` como única fuente editorial de Quiénes somos,
+  Contacto, Federarse y Documentos, con carga manual primero en borrador;
+- incorporar `ContactRequest` como dominio funcional separado, con nombre,
+  correo, asunto, mensaje, estado, `consent_at`, HMAC de IP y timestamps;
+- no guardar IP en claro, teléfono, adjuntos, DNI, user agent o cookies;
+- exponer `GET /api/v1/contact/config` con sólo `enabled` y
+  `POST /api/v1/contact-requests` con un acuse mínimo;
+- validar una allowlist, aceptación, honeypot y un límite de cinco solicitudes
+  cada diez minutos mediante clave HMAC de IP y correo normalizado;
+- persistir antes de notificar; hacer la notificación opcional, sin proveedor ni
+  destinatario hardcodeados, y conservar un 201 si el correo falla;
+- ofrecer en Blade listado, filtro, detalle, lectura y cierre, sin editar,
+  borrar, responder, exportar o reabrir;
+- mantener `CONTACT_FORM_ENABLED=false` y
+  `CONTACT_NOTIFICATION_ENABLED=false` como defaults hasta superar privacidad
+  y operación;
+- preparar sólo un servicio React aislado en 7C.1, sin ruta o interfaz visible;
+- conservar los assets fuente en `public`/`src/assets` y tratar `dist` como
+  salida generada no editable.
+
+Alternativas descartadas:
+
+- conservar sólo el contacto informativo de ADR-033: ya no satisface la
+  decisión funcional aprobada;
+- enviar correo sin persistencia: perdería mensajes ante fallos y no permitiría
+  una bandeja administrativa;
+- hacer obligatoria la notificación o elegir ahora un proveedor: acoplaría el
+  dominio a infraestructura todavía no decidida;
+- activar el formulario por defecto: publicaría tratamiento de datos antes de
+  cerrar sus bases y operación;
+- almacenar IP en claro o telemetría adicional: excede la minimización necesaria
+  para el MVP;
+- crear contenido o páginas Club mediante código: duplicaría la fuente CMS;
+- usar o versionar `dist` como fuente de assets: acoplaría la aplicación a
+  nombres compilados inestables.
+
+Consecuencias:
+
+- esta decisión sustituye exclusivamente la elección “Contacto sin formulario”
+  de ADR-033; mantiene su navegación, rutas canónicas, CMS, compatibilidad y
+  resto de gates;
+- 7C.1 puede cerrar la infraestructura sin publicar una experiencia Club;
+- privacidad, retención, destinatario, operación, contenido, imágenes y
+  aceptación humana bloquean la activación y 7C.2;
+- un fallo de correo no pierde una solicitud ya persistida y no filtra detalles
+  al remitente;
+- Fase 7 y el MVP permanecen abiertos.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

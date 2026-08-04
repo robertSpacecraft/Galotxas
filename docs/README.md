@@ -20,6 +20,7 @@ La documentación se organiza para separar claramente:
 - auditoría de paridad y plan del MVP completo.
 - contrato editorial y de navegación final del MVP.
 - auditoría de preparación de la vertical institucional Club.
+- preparación técnica de Club y del formulario de contacto.
 
 ## Orden recomendado de lectura
 
@@ -41,6 +42,7 @@ La documentación se organiza para separar claramente:
 16. [Auditoría de paridad y plan del MVP completo](14-mvp-parity-audit.md)
 17. [Contrato editorial y de navegación del MVP](15-mvp-editorial-and-navigation-contract.md)
 18. [Auditoría de preparación de la vertical Club](16-club-vertical-readiness-audit.md)
+19. [Preparación técnica de Club y contacto](17-club-technical-preparation-and-contact.md)
 
 El contrato de navegación inventaría el router y los enlaces actuales y conserva
 el histórico de la arquitectura pública desde Fase 3. El contrato de Fase 7B
@@ -61,6 +63,9 @@ plantillas, matriz legal, gates y el plan refinado sin aportar contenido real.
 La auditoría 7C.0 contrasta ese contrato con el CMS, Knowledge, `/nosotros`, los
 recursos versionados y la información editorial aportada; recomienda preparar
 contenido privado antes de implementar las fachadas públicas de 7C.
+7C.1 audita los assets y `dist`, valida el flujo CMS, incorpora el dominio y la
+administración privada de contacto con flags desactivados por defecto y deja la
+guía manual y los gates de 7C.2 sin publicar páginas o rutas Club.
 El conocimiento estable del deporte se mantiene por separado en
 [`knowledge/`](../knowledge/README.md); los documentos técnicos describen el
 software y no sustituyen esa fuente editorial.

@@ -165,7 +165,7 @@ También existen módulos React no montados: `pages/Home.jsx` y `CategoryCard`, 
 | `/aprende-a-jugar` | Entrada divulgativa al Manual, Reglamento y Conceptos | Proyección pública compilada desde `knowledge/` | `h1`, resumen derivado, acceso al Manual y recorrido real; no copy editorial duplicado en JSX | `/manual`, `/manual/reglamento/:slug` y `/manual/conceptos/:group/:slug` | Completada en 5C con 40 documentos, contexto, índice, vecinos, fragmentos y carga diferida. |
 | `/escuela` | Escuela permanente, niveles, horarios e inscripción pública | Híbrida: `knowledge/` futuro para pedagogía estable y dominio Laravel específico para operación y solicitudes | `h1`, enlace al Manual, niveles, horarios, ubicaciones, apertura y formulario cuando esté abierto | El MVP no requiere subrutas | Implementada en 6C sobre los contratos 6B.1–6B.4; `academy` permanece independiente. |
 | `/club/quienes-somos` | Presentación institucional | CMS `nosotros` | Identidad, propósito, actividad e imágenes aprobados | Alias temporal de `/nosotros` y `/contenidos/nosotros` | Contratada, no implementada. |
-| `/club/contacto` | Canales institucionales | CMS `contacto` futuro | Al menos un canal oficial y fecha de revisión; sin formulario | Footer y Club | Contratada; contenido y slug ausentes. |
+| `/club/contacto` | Canales institucionales y formulario condicionado | CMS `contacto` + `ContactRequest` funcional | Canal oficial, fecha de revisión y formulario sólo tras privacidad/activación | Footer y Club | Contratada; base técnica aislada, contenido, slug y ruta ausentes. |
 | `/club/federarse` | Proceso vigente para federarse | CMS `federarse` | Requisitos, organismo, enlaces, contacto y vigencia | Alias temporal de `/contenidos/federarse` | Contratada, no implementada. |
 | `/club/documentos` | Inventario de documentos vigentes | CMS `documentos` con enlaces | Nombre, propósito, versión, vigencia, formato y responsable | Alias temporal de `/contenidos/documentos` | Contratada, no implementada. |
 
@@ -572,7 +572,8 @@ Con 4A, 4B y 4C completadas, la Fase 4 queda cerrada. No se incorporan en la lan
 - crear contrato CMS operativo de Escuela, con privacidad de menores;
 - consolidar el contenido institucional, inventariar `documentos` ya asignado a
   Club y clasificar `academy` sin equivalencias automáticas;
-- crear, cargar y administrar Contacto sin formulario;
+- crear y cargar manualmente Contacto; implementar su UI sólo después de los
+  gates de privacidad y activación;
 - migrar Nosotros y resolver su duplicidad;
 - decidir sólo futuras URLs de detalle bajo Escuela; las cuatro rutas Club ya
   están contratadas y cualquier nueva colección de Aprende requiere un contrato
@@ -766,6 +767,15 @@ acreditar paridad. Los redirects permanentes se aplazan hasta migrar enlaces,
 coordinar canonical y configurar servidor/CDN. El detalle de plantillas,
 matrices, alternativas, gates y fases está en
 `15-mvp-editorial-and-navigation-contract.md`.
+
+### Seguimiento 7C.1
+
+7C.1 no modifica este árbol ni registra rutas Club. Audita la fuente real de
+assets, confirma `dist` como salida generada, valida el CMS y añade únicamente
+la infraestructura de contacto desactivada y un servicio React sin UI. ADR-034
+sustituye el punto de ADR-033 que descartaba el formulario: `/club/contacto`
+podrá incorporarlo en 7C.2 sólo tras privacidad, contenido y activación
+controlada. Las cuatro rutas futuras continúan resolviendo la 404 actual.
 
 ## Mantenimiento
 

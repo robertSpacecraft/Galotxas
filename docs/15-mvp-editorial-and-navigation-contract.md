@@ -31,7 +31,8 @@ Quedan aprobadas como arquitectura objetivo:
 - cuenta separada;
 - cuatro rutas institucionales canónicas bajo `/club`;
 - CMS como fuente institucional;
-- Contacto informativo, sin formulario en el MVP;
+- Contacto CMS con formulario local opcional, desactivado hasta aprobar
+  privacidad y operación según ADR-034;
 - footer global con un núcleo obligatorio y enlaces condicionales;
 - migración conservadora mediante aliases temporales antes de redirects.
 
@@ -296,20 +297,21 @@ No se migran automáticamente los textos o imágenes actuales.
 
 ## 12. Contacto
 
-La estrategia MVP elegida es:
+ADR-034 sustituye la estrategia inicial de esta sección. La estrategia vigente
+es:
 
 - página institucional administrada mediante CMS;
 - uno o varios canales oficiales revisados;
-- sin formulario;
-- sin almacenamiento de solicitudes;
-- sin correo automatizado;
-- sin CAPTCHA;
-- sin antispam.
+- formulario con persistencia local separada del contenido;
+- honeypot y rate limiting HMAC, sin CAPTCHA en 7C.1;
+- bandeja Blade y notificación opcional posterior al guardado;
+- flags desactivados por defecto;
+- ninguna interfaz pública hasta aprobar privacidad, retención, responsable,
+  destinatario y capacidad de respuesta.
 
-Es la opción de menor riesgo y cubre la necesidad de contacto sin crear un
-workflow, una base jurídica o una capacidad de respuesta no acreditados. Si la
-operación futura exige formulario, será otro bloque vertical con modelo de
-datos, privacidad, retención, permisos, rate limiting, entrega y pruebas.
+La base técnica queda cubierta en 7C.1. El CMS no almacena solicitudes y
+`ContactRequest` no almacena copy institucional. La UI y activación pertenecen
+a 7C.2 y no deben publicarse como forma de completar los gates pendientes.
 
 La ruta será `/club/contacto`. No se publicará hasta aportar al menos un canal
 oficial y un responsable de revisión.
@@ -661,7 +663,7 @@ valor “Pendiente” se publicará como contenido.
 | 1 | Navegación final | Cerrada por este contrato; requiere aceptación de revisión | Antes de 7C/7D |
 | 2 | Etiqueta `Club` | Cerrada por este contrato | Antes de 7C |
 | 3 | Rutas canónicas | Cerradas por este contrato | Antes de 7C |
-| 4 | Contacto sin formulario | Cerrada por este contrato | Antes de 7C |
+| 4 | Formulario de Contacto local y desactivado | Modificada por ADR-034; base técnica completada | Privacidad y activación antes de 7C.2 |
 | 5 | Núcleo y enlaces condicionales del footer | Cerrados por este contrato | Antes de 7D |
 | 6 | Prensa y Federaciones condicionales, fuera del Navbar | Cerrada por este contrato | Antes de 7D |
 | 7 | Política de identidad pública | Abierta | Antes de publicar competición real/7G |
@@ -709,7 +711,6 @@ Escuela y privacidad.
 - redes sociales;
 - declaración de accesibilidad no disponible;
 - contenido pedagógico escolar futuro;
-- formulario institucional de contacto;
 - almacenamiento administrado de documentos;
 - landing `/club`;
 - aliases/redirects de Prensa, Federaciones y `academy`.
@@ -723,10 +724,16 @@ Seguimiento 7C.0: la inspección de readiness en
 pero confirma que no deben implementarse aún destinos públicos. La estrategia
 única recomendada, pendiente de aceptación humana, divide la ejecución en:
 
-1. **7C.1:** resolver identidad, contenido, proceso, documentos y derechos;
-   crear o completar las cuatro páginas CMS en borrador y aprobar su paridad;
+1. **7C.1:** preparar técnicamente assets, CMS y contacto, y documentar la
+   carga manual sin crear contenido o rutas; completada según
+   `17-club-technical-preparation-and-contact.md`;
 2. **7C.2:** implementar fachadas, aliases, estados, metadatos, accesibilidad,
-   responsive y pruebas; publicar sólo después de la aceptación.
+   responsive y el formulario React; publicar sólo después de la aceptación.
+
+La creación o actualización manual de las cuatro páginas en borrador queda
+entre 7C.1 y 7C.2 y no la realiza el código. ADR-034 modifica la decisión
+inicial de no incluir formulario: la persistencia, antispam, bandeja y
+notificación opcional están preparadas, pero desactivadas por defecto.
 
 Contacto y Documentos pueden alcanzar un mínimo con los datos y el Manual ya
 identificados, una vez confirmados. Quiénes somos y Federarse siguen bloqueados
@@ -746,10 +753,10 @@ Alcance:
   accesibilidad y E2E;
 - actualizar arquitectura, API sólo si cambia y gobernanza.
 
-Fuera:
+Fuera de 7C.2:
 
 - Navbar final, footer, Home, legal, redirects permanentes, SEO completo,
-  uploads, formulario de contacto y contenido inventado.
+  uploads y contenido inventado.
 
 Cierre:
 

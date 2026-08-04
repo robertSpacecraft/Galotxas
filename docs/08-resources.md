@@ -175,6 +175,17 @@ El seeder `InstitutionalCmsPageSeeder` puede crear estas páginas y sus bloques 
 
 No forman parte de estos contratos el ID del programa, flags, órdenes, claves foráneas, ranura generada, notas, timestamps, inscripciones, alumnado, usuarios, centros o actividades. No existen Resources públicos para `SchoolEnrollment`, `EducationalCenter` o `EducationalActivity`.
 
+## Resources públicos de contacto
+
+`PublicContactConfigResource` expone exclusivamente `enabled` como booleano.
+No serializa notificación, destinatario, mailer o flags adicionales.
+
+`PublicContactRequestResource` es un acuse mínimo: siempre proyecta
+`received: true` tras una persistencia válida o un descarte silencioso por
+honeypot. No expone modelo, ID, estado, datos personales, consentimiento,
+timestamps o hash. La bandeja Blade consume modelos directamente dentro del
+contexto administrativo y no reutiliza estos Resources públicos.
+
 ---
 
 ## Inventario de Resources implementados
@@ -201,6 +212,8 @@ Los Resources públicos de competición mantienen su forma, nombres, tipos y env
 | `PublicSchoolLevelResource` | niveles efectivos y sus horarios cargados |
 | `PublicSchoolScheduleResource` | horario efectivo, día ISO, horas y ubicación |
 | `PublicSchoolLocationResource` | ubicación pública reutilizada por programa y horarios |
+| `PublicContactConfigResource` | flag público allowlisted del formulario institucional |
+| `PublicContactRequestResource` | acuse mínimo de recepción sin datos internos o personales |
 | `UserResource` | cuenta del usuario autenticado dentro de `MeResource` |
 | `PlayerProfileResource` | perfil deportivo privado del propio usuario y respuestas de auth |
 | `MeResource` | composición privada de cuenta y perfil opcional |

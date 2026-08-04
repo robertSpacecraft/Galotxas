@@ -202,7 +202,34 @@ La primera base backend del CMS público sigue el mismo patrón general del proy
 
 La subida de documentos o imágenes, las noticias como entidad propia y los formularios públicos quedan fuera de esta base inicial.
 
+7C.1 amplía de forma acotada los enlaces del CMS: `button` y
+`document_link` aceptan una dirección `mailto:` válida, mientras imágenes y
+galerías conservan exclusivamente rutas internas y `http(s)`. Backend y
+renderer aplican la misma separación y continúan rechazando esquemas
+peligrosos.
+
 `/contenidos` representa la estructura pública actual del CMS, pero se considera legada respecto a la arquitectura de información aprobada. Su implementación, API y contenido permanecen sin cambios hasta que se complete el inventario y la migración por áreas.
+
+## Arquitectura técnica de contacto institucional
+
+La infraestructura de contacto es una vertical funcional distinta del CMS:
+
+- `ContactRequest` y MariaDB conservan el mensaje mínimo, consentimiento y HMAC
+  de IP;
+- un Form Request allowlisted normaliza y valida el payload anónimo;
+- middleware de feature flag, honeypot y rate limiter HMAC protegen el POST;
+- `ContactRequestService` persiste antes de delegar una notificación opcional;
+- Resources públicos cierran la configuración a `enabled` y el acuse a
+  `received`;
+- Blade usa el middleware administrativo existente y permite listado, detalle
+  y transiciones conservadoras;
+- un servicio React aislado conoce el contrato, pero no existe todavía UI o
+  ruta pública Club.
+
+`CONTACT_FORM_ENABLED=false` y `CONTACT_NOTIFICATION_ENABLED=false` son los
+defaults. La activación productiva depende de privacidad y operación. El
+destinatario nunca forma parte de respuestas públicas. `frontend/dist`
+continúa como artefacto Vite ignorado y no participa como fuente de este flujo.
 
 ## Gestión de pistas y generación de calendarios
 
@@ -492,6 +519,12 @@ las plantillas y el plan 7C–7G se definen en
 `15-mvp-editorial-and-navigation-contract.md`. La Fase 7 permanece abierta; el
 anterior candidato técnico no equivale a despliegue ni a MVP público completo.
 
+7C.1 implementa únicamente la preparación privada de Club: audita assets y
+CMS, añade el backend de contacto desactivado y su cliente React aislado. La
+decisión posterior ADR-034 sustituye el punto de ADR-033 que descartaba el
+formulario, sin crear rutas `/club/*` ni convertir código en fuente editorial.
+La carga manual, privacidad, publicación y 7C.2 siguen pendientes.
+
 ---
 
 # 12. Gestión de dependencias
@@ -527,6 +560,7 @@ Después de modificar un lock son obligatorias una nueva auditoría, la validaci
 - `10-content-governance.md`
 - `14-mvp-parity-audit.md`
 - `15-mvp-editorial-and-navigation-contract.md`
+- `17-club-technical-preparation-and-contact.md`
 
 ## Mantenimiento
 

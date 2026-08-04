@@ -78,6 +78,12 @@ npm run knowledge:build
 
 El servidor de producción deberá servir `frontend/dist` con fallback SPA a `index.html` y enrutar `/api/v1` y `/admin` hacia Laravel.
 
+La base técnica del futuro formulario de contacto está desactivada por defecto.
+`CONTACT_FORM_ENABLED`, `CONTACT_NOTIFICATION_ENABLED` y
+`CONTACT_NOTIFICATION_TO` se configuran en Laravel; no deben habilitarse en
+producción hasta cerrar privacidad, destinatario y operación. La carga de las
+páginas Club continúa siendo manual mediante el CMS Blade.
+
 ## Pruebas
 
 Las pruebas de integración usan una instancia MariaDB 11.4 independiente, con credenciales propias y almacenamiento temporal. Nunca deben ejecutarse contra la base de desarrollo galotxas.
@@ -115,5 +121,6 @@ El stack E2E es desechable y no utiliza la base de desarrollo.
 - [Canalización build-time de Knowledge](docs/11-knowledge-pipeline.md)
 - [Conocimiento canónico del deporte](knowledge/README.md)
 - [Roadmap y estado del MVP](docs/06-roadmap.md)
+- [Preparación técnica de Club y contacto](docs/17-club-technical-preparation-and-contact.md)
 - [Candidato MVP y publicación](docs/09-release-candidate.md)
 - [Historial de cambios](CHANGELOG.md)

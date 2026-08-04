@@ -728,3 +728,27 @@ sí exige todos sus derechos y consentimientos.
 7C sólo podrá cerrarse tras la implementación y validación de 7C.2. Esta
 auditoría completa 7C.0, mantiene 7C y el MVP pendientes y no acredita contenido
 ni comportamiento público nuevos.
+
+## 28. Seguimiento de 7C.1
+
+Las respuestas humanas posteriores cierran nombre oficial, junta, correo,
+dirección, redes, disponibilidad, enlace federativo y destino documental. La
+base técnica resultante se documenta en
+`17-club-technical-preparation-and-contact.md`:
+
+- los cuatro assets aportados quedan inventariados y versionados en
+  `public/media/club`, sin modificarse ni autorizarse automáticamente para uso;
+- `club-instalaciones.jpg` conserva EXIF sensible y exige limpieza autorizada
+  antes de publicación;
+- `dist` se confirma ignorado, no versionado y generado;
+- el CMS se confirma suficiente para carga manual en borrador y amplía sólo
+  enlaces con `mailto:` seguro; no existe preview público de borradores;
+- se implementa `ContactRequest`, API, antispam, bandeja Blade, notificación
+  opcional y configuración desactivada;
+- se prepara el servicio React sin ruta o UI.
+
+ADR-034 sustituye la recomendación inicial de Contacto sin formulario. Siguen
+abiertos la carga CMS manual, copy y SEO, procedencia/derechos/consentimientos,
+alt definitivo, privacidad y retención, configuración productiva, paridad de
+`/nosotros`, preview, 7C.2 y publicación. Esta actualización no reescribe los
+hallazgos históricos de 7C.0; registra su resolución o vigencia posterior.

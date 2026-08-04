@@ -45,18 +45,20 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 27. **Fase 7A — Auditoría de paridad y plan del MVP completo:** backend, Blade, API, React, CMS, autogestión, contenido y despliegue inventariados; definición observable, prioridades, decisiones humanas y plan 7B–7G documentados sin implementar funciones.
 28. **Fase 7B — Decisiones y preparación editorial:** navegación final, grupos Aprende/Club, cuenta separada, rutas institucionales canónicas, compatibilidad, fuentes CMS, footer, plantillas, matriz legal, identidad pública pendiente y gates 7C–7G cerrados documentalmente sin implementar código ni contenido.
 29. **Fase 7C.0 — Auditoría de preparación de Club:** Knowledge, CMS, API, React, `/nosotros`, rutas, recursos y datos aportados contrastados; readiness, preguntas y gates documentados sin implementar 7C ni cargar contenido.
+30. **Fase 7C.1 — Preparación técnica de Club y contacto:** assets y `dist` auditados; capacidad CMS y carga manual documentadas; dominio, API, antispam, administración y notificación opcional de contacto implementados con flags desactivados; servicio React aislado validado, sin contenido CMS ni rutas Club.
 
-La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fases 7A, 7B y 7C.0 completan la auditoría general, el contrato editorial y el readiness específico de Club, pero Fase 7 sigue abierta. Rutas Club, aliases, redirects, contenido real y migraciones editoriales no se han implementado.
+La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fases 7A, 7B, 7C.0 y la preparación técnica 7C.1 están completadas, pero Fase 7 sigue abierta. Rutas Club, aliases, redirects, contenido real y migraciones editoriales no se han implementado.
 
 ## Fase 7 abierta — bloques pendientes
 
-1. **Fase 7C — Vertical institucional Club:** pendiente de aceptación de la recomendación 7C.0; preparar primero contenido CMS privado y gates editoriales (7C.1) e implementar después las cuatro rutas canónicas, aliases conservadores, paridad y validación (7C.2), preservando el legado hasta acreditar equivalencia.
-2. **Fase 7D — Navegación, Home, footer y legal:** aplicar los grupos Aprende/Club, cuenta separada, interacción accesible, portada veraz, footer global y destinos legales con contenido aprobado.
-3. **Fase 7E — Preparación operativa de Escuela:** cargar en privado y validar configuración, contenido, privacidad, conservación y capacidad de gestión antes de probar y abrir inscripciones.
-4. **Fase 7F — Preparación de despliegue:** cerrar Railway/Vercel, MariaDB, variables, CORS, correo, sesiones, logs, backups, migraciones, salud, staging y rollback.
-5. **Fase 7G — Validación y cierre del MVP:** ejecutar regresión, recorridos críticos, QA responsive/multibrowser priorizada, smoke y aceptación humana antes de tag/release.
+1. **Carga editorial manual de Club:** crear o completar en Blade los cuatro slugs como borradores, cerrar copy, SEO, responsables, vigencia, imágenes, derechos y preview, sin publicar todavía.
+2. **Fase 7C.2 — Vertical pública Club:** implementar las cuatro fachadas canónicas y el formulario React sólo después de los gates de privacidad y contenido; validar paridad y conservar el legado hasta acreditar equivalencia.
+3. **Fase 7D — Navegación, Home, footer y legal:** aplicar los grupos Aprende/Club, cuenta separada, interacción accesible, portada veraz, footer global y destinos legales con contenido aprobado.
+4. **Fase 7E — Preparación operativa de Escuela:** cargar en privado y validar configuración, contenido, privacidad, conservación y capacidad de gestión antes de probar y abrir inscripciones.
+5. **Fase 7F — Preparación de despliegue:** cerrar Railway/Vercel, MariaDB, variables, CORS, correo, sesiones, logs, backups, migraciones, salud, staging y rollback.
+6. **Fase 7G — Validación y cierre del MVP:** ejecutar regresión, recorridos críticos, QA responsive/multibrowser priorizada, smoke y aceptación humana antes de tag/release.
 
-Las fases 4, 5, 6 y los bloques documentales 7B y 7C.0 están completados.
+Las fases 4, 5, 6 y los bloques 7B, 7C.0 y 7C.1 están completados.
 `/competicion` ofrece el recorrido deportivo; `/aprende-a-jugar` y el Manual
 presentan los 40 documentos desde Knowledge; `/escuela` consume la configuración
 pública y admite solicitudes anónimas cuando el backend las abre. El cierre de
@@ -64,10 +66,10 @@ Escuela queda revalidado sobre proyectos Docker aislados. `Club` queda
 contratado como disclosure, no como landing `/club`; sus cuatro rutas hijas
 continúan sin implementar y no aparecen como placeholders.
 
-Fase 7C sigue pendiente. La recomendación de 7C.0 la divide en preparación
-editorial privada y posterior implementación pública; asume la consolidación
-institucional mínima, la paridad de Nosotros y los aliases temporales de sus
-cuatro destinos. Redirects permanentes,
+La preparación técnica 7C.1 está completada, pero el formulario continúa
+desactivado y sin interfaz React. La carga CMS manual y 7C.2 siguen pendientes;
+requieren privacidad, contenido, derechos de imagen, paridad de Nosotros y
+aceptación humana. Redirects permanentes,
 canonical, indexación de `/contenidos`, SEO completo, sitemap y robots,
 limpieza de código huérfano y migración de `academy`, Prensa y Federaciones
 permanecen en bloques posteriores.
