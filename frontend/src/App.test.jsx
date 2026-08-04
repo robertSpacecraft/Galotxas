@@ -3,8 +3,9 @@ import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { championshipsService } from './api/championships';
 import { cmsService } from './api/cms';
+import { contactService } from './features/contact/contactService';
 import { schoolService } from './features/school/schoolService';
-import App, { KnowledgeRoute, SchoolRoute } from './App';
+import App, { ClubRoute, KnowledgeRoute, SchoolRoute } from './App';
 
 vi.mock('./api/championships', () => ({
   championshipsService: {
@@ -29,6 +30,13 @@ vi.mock('./features/school/schoolService', () => ({
   },
 }));
 
+vi.mock('./features/contact/contactService', () => ({
+  contactService: {
+    getConfig: vi.fn(),
+    submit: vi.fn(),
+  },
+}));
+
 const openAppAt = (pathname) => {
   window.history.replaceState({}, '', pathname);
   return render(<App />);
@@ -42,11 +50,13 @@ describe('App public routes', () => {
     championshipsService.getAllTimeRanking.mockResolvedValue([]);
     championshipsService.getSeasonRanking.mockResolvedValue([]);
     cmsService.getPublishedPages.mockResolvedValue([]);
-    cmsService.getPageBySlug.mockResolvedValue({
-      title: 'Nosotros',
+    cmsService.getPageBySlug.mockImplementation((slug) => Promise.resolve({
+      slug,
+      title: slug === 'nosotros' ? 'Nosotros' : `CMS ${slug}`,
       blocks: [],
-    });
+    }));
     schoolService.getOverview.mockResolvedValue(null);
+    contactService.getConfig.mockResolvedValue({ enabled: false });
   });
 
   it('muestra un fallback accesible sin main, H1 ni 404 mientras carga una ruta diferida', () => {
@@ -74,6 +84,20 @@ describe('App public routes', () => {
     );
 
     expect(screen.getByRole('status')).toHaveTextContent('Cargando Escuela de Galotxas');
+    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
+    expect(screen.queryByText('Página no encontrada')).not.toBeInTheDocument();
+  });
+
+  it('uses the accessible Club fallback without a false H1 or 404', () => {
+    const PendingPage = lazy(() => new Promise(() => {}));
+
+    render(
+      <ClubRoute>
+        <PendingPage />
+      </ClubRoute>,
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando Club');
     expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
     expect(screen.queryByText('Página no encontrada')).not.toBeInTheDocument();
   });
@@ -111,12 +135,12 @@ describe('App public routes', () => {
 
   it.each([
     '/club',
-    '/club/quienes-somos',
-    '/club/contacto',
-    '/club/federarse',
-    '/club/documentos',
+    '/club/quienes-somos/detalle',
+    '/club/contacto/otra-ruta',
+    '/club/federarse/otra-ruta',
+    '/club/documentos/otra-ruta',
   ])(
-    'does not publish the future route %s as a placeholder',
+    'keeps the unregistered Club route %s on the accessible 404',
     async (pathname) => {
       openAppAt(pathname);
 
@@ -125,6 +149,19 @@ describe('App public routes', () => {
       expect(window.location.pathname).toBe(pathname);
     },
   );
+
+  it.each([
+    ['/club/quienes-somos', 'nosotros', 'Nosotros'],
+    ['/club/contacto', 'contacto', 'CMS contacto'],
+    ['/club/federarse', 'federarse', 'CMS federarse'],
+    ['/club/documentos', 'documentos', 'CMS documentos'],
+  ])('registers the exact lazy Club facade %s', async (pathname, slug, heading) => {
+    openAppAt(pathname);
+
+    expect(await screen.findByRole('heading', { name: heading, level: 1 })).toBeInTheDocument();
+    expect(cmsService.getPageBySlug).toHaveBeenCalledWith(slug);
+    expect(window.location.pathname).toBe(pathname);
+  });
 
   it('registers the lazy School landing and preserves data null as a valid page', async () => {
     openAppAt('/escuela');

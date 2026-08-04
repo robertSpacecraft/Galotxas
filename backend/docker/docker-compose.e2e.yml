@@ -27,6 +27,7 @@ services:
       SESSION_DRIVER: cookie
       QUEUE_CONNECTION: sync
       MAIL_MAILER: array
+      CONTACT_FORM_ENABLED: "true"
     depends_on:
       db:
         condition: service_healthy

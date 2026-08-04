@@ -187,6 +187,27 @@ class E2ESmokeSeeder extends Seeder
                 ['data' => ['text' => 'Este contenido procede exclusivamente de la base temporal E2E.']]
             );
 
+            $this->createClubCmsPage(
+                'nosotros',
+                'Quiénes somos E2E',
+                'Identidad institucional ficticia E2E'
+            );
+            $this->createClubCmsPage(
+                'contacto',
+                'Contacto E2E',
+                'Canales de contacto ficticios E2E'
+            );
+            $this->createClubCmsPage(
+                'federarse',
+                'Federarse E2E',
+                'Información federativa ficticia E2E'
+            );
+            $this->createClubCmsPage(
+                'documentos',
+                'Documentos E2E',
+                'Documentación institucional ficticia E2E'
+            );
+
             $schoolLocation = SchoolLocation::query()->updateOrCreate(
                 ['name' => 'Pista Escuela E2E'],
                 [
@@ -306,6 +327,31 @@ class E2ESmokeSeeder extends Seeder
         );
 
         return $user->load('player');
+    }
+
+    private function createClubCmsPage(string $slug, string $title, string $heading): void
+    {
+        $page = CmsPage::query()->updateOrCreate(
+            ['slug' => $slug],
+            [
+                'title' => $title,
+                'status' => CmsPageStatus::PUBLISHED->value,
+                'published_at' => '2026-01-01 10:00:00',
+                'seo_title' => $title,
+                'seo_description' => "Escenario técnico aislado para {$slug}.",
+            ]
+        );
+
+        $page->blocks()->updateOrCreate(
+            ['type' => CmsBlockType::HEADING->value, 'sort_order' => 10],
+            ['data' => ['text' => $heading, 'level' => 2]]
+        );
+        $page->blocks()->updateOrCreate(
+            ['type' => CmsBlockType::TEXT->value, 'sort_order' => 20],
+            ['data' => [
+                'text' => "Contenido CMS de prueba exclusivo de la fachada {$slug}.",
+            ]]
+        );
     }
 
     private function createRound(Category $category, string $name, int $order): Round

@@ -22,6 +22,7 @@ import { CmsPage } from './pages/CmsPage/CmsPage';
 import { CompetitionPage } from './pages/Competition/CompetitionPage';
 import { NotFoundPage } from './pages/NotFound/NotFoundPage';
 import { RouteLoading } from './components/RouteLoading/RouteLoading';
+import { clubPages } from './features/club/clubRoutes';
 import { schoolPath } from './features/school/schoolRoutes';
 import './index.css';
 
@@ -29,6 +30,7 @@ const LearnPage = lazy(() => import('./pages/Learn/LearnPage'));
 const ManualPage = lazy(() => import('./pages/Learn/ManualPage'));
 const KnowledgeDocumentPage = lazy(() => import('./pages/Learn/KnowledgeDocumentPage'));
 const SchoolPage = lazy(() => import('./features/school/SchoolPage'));
+const ClubPage = lazy(() => import('./features/club/ClubPage'));
 
 export const KnowledgeRoute = ({ children }) => (
   <Suspense fallback={<RouteLoading label="Cargando Aprende a jugar" />}>
@@ -38,6 +40,12 @@ export const KnowledgeRoute = ({ children }) => (
 
 export const SchoolRoute = ({ children }) => (
   <Suspense fallback={<RouteLoading label="Cargando Escuela de Galotxas" />}>
+    {children}
+  </Suspense>
+);
+
+export const ClubRoute = ({ children }) => (
+  <Suspense fallback={<RouteLoading label="Cargando Club" />}>
     {children}
   </Suspense>
 );
@@ -81,6 +89,17 @@ function App() {
                 path={schoolPath()}
                 element={<SchoolRoute><SchoolPage /></SchoolRoute>}
               />
+              {Object.values(clubPages).map((clubPage) => (
+                <Route
+                  key={clubPage.id}
+                  path={clubPage.path}
+                  element={(
+                    <ClubRoute>
+                      <ClubPage pageId={clubPage.id} />
+                    </ClubRoute>
+                  )}
+                />
+              ))}
               <Route path="/nosotros" element={<Nosotros />} />
               <Route path="/torneos" element={<TournamentList />} />
               <Route path="/torneos/:championshipId" element={<TournamentDetail />} />
