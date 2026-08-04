@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\ChampionshipController as AdminChampionshipContro
 use App\Http\Controllers\Admin\ChampionshipRegistrationController as AdminChampionshipRegistrationController;
 use App\Http\Controllers\Admin\CmsBlockController;
 use App\Http\Controllers\Admin\CmsPageController;
+use App\Http\Controllers\Admin\ContactRequestController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EducationalActivityController;
 use App\Http\Controllers\Admin\EducationalCenterController;
@@ -68,6 +69,20 @@ Route::prefix('admin')->group(function () {
             ->name('admin.cms-pages.blocks.update');
         Route::delete('/cms/pages/{cmsPage}/blocks/{cmsBlock}', [CmsBlockController::class, 'destroy'])
             ->name('admin.cms-pages.blocks.destroy');
+
+        // Contacto
+        Route::get('/contact-requests', [ContactRequestController::class, 'index'])
+            ->name('admin.contact-requests.index');
+        Route::get('/contact-requests/{contactRequest}', [ContactRequestController::class, 'show'])
+            ->name('admin.contact-requests.show');
+        Route::post(
+            '/contact-requests/{contactRequest}/mark-as-read',
+            [ContactRequestController::class, 'markAsRead']
+        )->name('admin.contact-requests.mark-as-read');
+        Route::post(
+            '/contact-requests/{contactRequest}/close',
+            [ContactRequestController::class, 'close']
+        )->name('admin.contact-requests.close');
 
         // Pistas
         Route::get('/venues', [VenueController::class, 'index'])->name('admin.venues.index');

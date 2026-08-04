@@ -250,6 +250,67 @@ class AdminCmsBlockTest extends TestCase
         ], $block->data);
     }
 
+    public function test_valid_mailto_is_accepted_only_for_link_blocks(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $page = CmsPage::factory()->create();
+        $mailto = 'mailto:contacto@example.com';
+
+        $this->actingAs($admin)
+            ->post(route('admin.cms-pages.blocks.store', $page), [
+                'type' => CmsBlockType::BUTTON->value,
+                'sort_order' => 10,
+                'label' => 'Escribir al club',
+                'url' => $mailto,
+            ])
+            ->assertRedirect(route('admin.cms-pages.show', $page));
+
+        $this->assertDatabaseHas('cms_blocks', [
+            'cms_page_id' => $page->id,
+            'type' => CmsBlockType::BUTTON->value,
+        ]);
+        $this->assertSame(
+            $mailto,
+            $page->blocks()->firstOrFail()->data['url']
+        );
+
+        $this->actingAs($admin)
+            ->post(route('admin.cms-pages.blocks.store', $page), [
+                'type' => CmsBlockType::IMAGE->value,
+                'sort_order' => 20,
+                'url' => $mailto,
+                'alt' => 'No es una imagen',
+            ])
+            ->assertSessionHasErrors('url');
+    }
+
+    public function test_malformed_mailto_and_dangerous_protocols_are_rejected(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $page = CmsPage::factory()->create();
+
+        foreach ([
+            'mailto:not-an-email',
+            'mailto:club@example.com?subject=Injected',
+            'javascript:alert(1)',
+            'data:text/html;base64,PHNjcmlwdD4=',
+            'vbscript:msgbox(1)',
+            'custom:arbitrary',
+            ' javaScript:alert(1)',
+        ] as $url) {
+            $this->actingAs($admin)
+                ->post(route('admin.cms-pages.blocks.store', $page), [
+                    'type' => CmsBlockType::DOCUMENT_LINK->value,
+                    'sort_order' => 10,
+                    'label' => 'Enlace no permitido',
+                    'url' => $url,
+                ])
+                ->assertSessionHasErrors('url');
+        }
+
+        $this->assertDatabaseCount('cms_blocks', 0);
+    }
+
     public function test_non_admin_user_cannot_access_cms_blocks_admin(): void
     {
         $user = User::factory()->create(['role' => 'user']);

@@ -20,6 +20,15 @@ backend/scripts/run-tests.sh --filter=School
 
 El runner valida con `docker compose config` el proyecto, archivo, entorno, base, red, volúmenes y nombres de contenedor antes de limpiar. Su MariaDB usa `tmpfs` y el cleanup sólo puede actuar sobre `galotxas-test`. El diseño, los comandos de desarrollo y la recuperación tras el incidente de 6C se mantienen en [`docs/13-docker-environment-isolation.md`](../docs/13-docker-environment-isolation.md).
 
+## Contacto institucional
+
+Laravel incluye la base técnica de `ContactRequest`: persistencia local, POST
+público protegido, configuración pública allowlisted, bandeja Blade y
+notificación opcional posterior al guardado. Se mantiene desactivada por
+defecto mediante `CONTACT_FORM_ENABLED=false`; el destinatario y el flag de
+notificación nunca se exponen en la API. Consulta el contrato y los gates en
+[`docs/17-club-technical-preparation-and-contact.md`](../docs/17-club-technical-preparation-and-contact.md).
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

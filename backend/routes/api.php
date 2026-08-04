@@ -12,6 +12,8 @@ use App\Http\Controllers\Api\V1\ChampionshipController;
 use App\Http\Controllers\Api\V1\ChampionshipRankingController;
 use App\Http\Controllers\Api\V1\ChampionshipRegistrationController;
 use App\Http\Controllers\Api\V1\CmsPageController;
+use App\Http\Controllers\Api\V1\ContactConfigController;
+use App\Http\Controllers\Api\V1\ContactRequestController;
 use App\Http\Controllers\Api\V1\MatchController;
 use App\Http\Controllers\Api\V1\MyChampionshipRegistrationController;
 use App\Http\Controllers\Api\V1\MyDashboardController;
@@ -19,6 +21,7 @@ use App\Http\Controllers\Api\V1\SchoolController;
 use App\Http\Controllers\Api\V1\SchoolEnrollmentController;
 use App\Http\Controllers\Api\V1\SeasonController;
 use App\Http\Controllers\Api\V1\SeasonRankingController;
+use App\Http\Middleware\EnsureContactFormIsEnabled;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\IsAdmin;
 use Illuminate\Support\Facades\Route;
@@ -49,6 +52,13 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/cms/pages', [CmsPageController::class, 'index']);
     Route::get('/cms/pages/{slug}', [CmsPageController::class, 'show']);
+
+    Route::get('/contact/config', ContactConfigController::class);
+    Route::post('/contact-requests', [ContactRequestController::class, 'store'])
+        ->middleware([
+            EnsureContactFormIsEnabled::class,
+            'throttle:contact-requests',
+        ]);
 
     Route::get('/seasons/{season}/ranking', SeasonRankingController::class);
     Route::get('/rankings/all-time', AllTimeRankingController::class);

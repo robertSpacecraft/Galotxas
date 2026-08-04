@@ -4,8 +4,8 @@ namespace App\Http\Requests\Admin;
 
 use App\Enums\CmsBlockType;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Validator;
 use Illuminate\Validation\Rules\Enum;
+use Illuminate\Validation\Validator;
 
 class SaveCmsBlockRequest extends FormRequest
 {
@@ -114,7 +114,7 @@ class SaveCmsBlockRequest extends FormRequest
         }
 
         foreach ($urls as $url) {
-            if (!$this->isUrlOrPath($url)) {
+            if (! $this->isUrlOrPath($url)) {
                 $validator->errors()->add('gallery_urls_text', 'Cada URL de galería debe ser una URL http(s) o una ruta interna.');
                 break;
             }
@@ -125,7 +125,15 @@ class SaveCmsBlockRequest extends FormRequest
     {
         $this->requireFilled($validator, 'label', 'La etiqueta es obligatoria.');
         $this->requireFilled($validator, 'url', 'La URL es obligatoria.');
-        $this->validateUrlPath($validator, 'url');
+
+        $value = trim((string) $this->input('url'));
+
+        if ($value !== '' && ! $this->isLinkUrlOrPath($value)) {
+            $validator->errors()->add(
+                'url',
+                'Debe ser una URL http(s), una ruta interna o un correo mailto válido.'
+            );
+        }
     }
 
     private function requireFilled(Validator $validator, string $field, string $message): void
@@ -139,16 +147,32 @@ class SaveCmsBlockRequest extends FormRequest
     {
         $value = trim((string) $this->input($field));
 
-        if ($value !== '' && !$this->isUrlOrPath($value)) {
+        if ($value !== '' && ! $this->isUrlOrPath($value)) {
             $validator->errors()->add($field, 'Debe ser una URL http(s) o una ruta interna.');
         }
     }
 
     private function isUrlOrPath(string $value): bool
     {
-        return (str_starts_with($value, '/') && !str_starts_with($value, '//'))
+        return (str_starts_with($value, '/') && ! str_starts_with($value, '//'))
             || str_starts_with($value, 'https://')
             || str_starts_with($value, 'http://');
+    }
+
+    private function isLinkUrlOrPath(string $value): bool
+    {
+        if ($this->isUrlOrPath($value)) {
+            return true;
+        }
+
+        if (! str_starts_with($value, 'mailto:')) {
+            return false;
+        }
+
+        $email = substr($value, strlen('mailto:'));
+
+        return $email !== ''
+            && filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
     }
 
     /**

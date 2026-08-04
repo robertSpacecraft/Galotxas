@@ -28,6 +28,18 @@ React conserva el orden y los campos autorizados por Laravel, presenta programa,
 
 La feature enlaza al Manual mediante su helper de ruta, pero no importa `public-knowledge.json` ni duplica contenido pedagógico. `schoolRoutes.js` centraliza `/escuela` para Router, Navbar y Home. El slug CMS legado `academy` continúa independiente y no se redirige.
 
+## Contacto institucional
+
+`src/features/contact/contactService.js` prepara de forma aislada la consulta
+de `GET /api/v1/contact/config` y el envío a
+`POST /api/v1/contact-requests`. Normaliza 422, 429, 503, errores de red y
+respuestas inesperadas, pero no está integrado en ninguna ruta o componente
+público. Las rutas `/club/*` y el formulario visible pertenecen a 7C.2.
+
+`dist/` es siempre salida generada ignorada. No debe editarse ni utilizarse como
+fuente de imágenes o módulos; para una comprobación que no altere el árbol se
+debe construir hacia un `outDir` temporal.
+
 ## E2E aislado
 
 `npm run e2e` usa exclusivamente el proyecto `galotxas-e2e` y `backend/docker/docker-compose.e2e.yml`. Antes de levantar o limpiar, una guarda comprueba la configuración resuelta, `APP_ENV=e2e`, la base `galotxas_e2e`, el almacenamiento `tmpfs` y la ausencia de volúmenes, redes o nombres de contenedor de desarrollo. La limpieza siempre recibe proyecto y archivo explícitos.

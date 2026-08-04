@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\ContactRequestFingerprintService;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -54,6 +55,20 @@ class AppServiceProvider extends ServiceProvider
 
             return Limit::perMinute(5)
                 ->by($request->ip().'|'.$emailHash)
+                ->response(fn () => response()->json([
+                    'message' => 'Demasiadas solicitudes. Inténtalo de nuevo más tarde.',
+                    'data' => null,
+                ], 429));
+        });
+
+        RateLimiter::for('contact-requests', function (Request $request) {
+            $key = app(ContactRequestFingerprintService::class)->rateLimitKey(
+                $request->ip(),
+                $request->input('email')
+            );
+
+            return Limit::perMinutes(10, 5)
+                ->by($key)
                 ->response(fn () => response()->json([
                     'message' => 'Demasiadas solicitudes. Inténtalo de nuevo más tarde.',
                     'data' => null,

@@ -2,7 +2,9 @@ import styles from './CmsBlockRenderer.module.css';
 
 const isExternalUrl = (url = '') => /^https?:\/\//i.test(url);
 const isInternalPath = (url = '') => url.startsWith('/') && !url.startsWith('//');
-const isAllowedUrl = (url = '') => isExternalUrl(url) || isInternalPath(url);
+const isMailtoUrl = (url = '') => /^mailto:[^@\s/?#]+@[^@\s/?#]+(?:\.[^@\s/?#]+)+$/.test(url);
+const isAllowedMediaUrl = (url = '') => isExternalUrl(url) || isInternalPath(url);
+const isAllowedLinkUrl = (url = '') => isAllowedMediaUrl(url) || isMailtoUrl(url);
 
 const linkPropsFor = (url = '') => {
   if (!isExternalUrl(url)) {
@@ -53,7 +55,7 @@ const renderList = (data) => {
 };
 
 const renderImage = (data) => {
-  if (!data?.url || !isAllowedUrl(data.url)) {
+  if (!data?.url || !isAllowedMediaUrl(data.url)) {
     return null;
   }
 
@@ -66,7 +68,7 @@ const renderImage = (data) => {
 };
 
 const renderGallery = (data) => {
-  const urls = Array.isArray(data?.urls) ? data.urls.filter(isAllowedUrl) : [];
+  const urls = Array.isArray(data?.urls) ? data.urls.filter(isAllowedMediaUrl) : [];
 
   if (urls.length === 0) {
     return null;
@@ -87,7 +89,7 @@ const renderGallery = (data) => {
 };
 
 const renderButton = (data) => {
-  if (!data?.label || !data?.url || !isAllowedUrl(data.url)) {
+  if (!data?.label || !data?.url || !isAllowedLinkUrl(data.url)) {
     return null;
   }
 
@@ -99,7 +101,7 @@ const renderButton = (data) => {
 };
 
 const renderDocumentLink = (data) => {
-  if (!data?.label || !data?.url || !isAllowedUrl(data.url)) {
+  if (!data?.label || !data?.url || !isAllowedLinkUrl(data.url)) {
     return null;
   }
 

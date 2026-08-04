@@ -109,7 +109,13 @@ describe('App public routes', () => {
     expect(screen.getAllByRole('main')).toHaveLength(1);
   });
 
-  it.each(['/club'])(
+  it.each([
+    '/club',
+    '/club/quienes-somos',
+    '/club/contacto',
+    '/club/federarse',
+    '/club/documentos',
+  ])(
     'does not publish the future route %s as a placeholder',
     async (pathname) => {
       openAppAt(pathname);
