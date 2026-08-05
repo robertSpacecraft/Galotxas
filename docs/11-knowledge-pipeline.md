@@ -20,7 +20,12 @@ knowledge/
 
 ## 3. Auditoría del corpus
 
-La auditoría de 2026-07-20 localizó 44 archivos Markdown: 40 documentos compilables y cuatro exclusiones explícitas. `conceptos/instalaciones/` no existe; los elementos constructivos actuales permanecen en `conceptos/elementos/` y no se crea una colección vacía. Tras 5A.1 los 40 documentos están `Vigente`; REG-001–REG-008 corresponden al Reglamento inicial aprobado editorialmente.
+La auditoría inicial localizó 44 archivos Markdown. Tras incorporar
+`EST-REF-001` existen 45: 40 documentos compilables y cinco exclusiones
+explícitas. `conceptos/instalaciones/` no existe; los elementos constructivos
+actuales permanecen en `conceptos/elementos/` y no se crea una colección vacía.
+Tras 5A.1 los 40 documentos están `Vigente`; REG-001–REG-008 corresponden al
+Reglamento inicial aprobado editorialmente.
 
 Abreviaturas de la matriz:
 
@@ -68,6 +73,7 @@ Abreviaturas de la matriz:
 | `knowledge/conceptos/juego/saque.md` | `conceptos/juego` | 6/6 | H/P/UL, ID | Compilable |
 | `knowledge/conceptos/juego/sentaura.md` | `conceptos/juego` | 6/6 | H/P/UL | Compilable |
 | `knowledge/reglamento/00_metodologia.md` | Metodología documental | 5/6, sin slug | H/P/UL y código inline | Fuera del artefacto: declara no formar parte del reglamento |
+| `knowledge/referencias/institucionales/EST-REF-001_estatutos_club_galotxes_de_monover_1980.md` | Transcripción institucional histórica | Sin front matter canónico | Markdown histórico | Exclusión exacta; fuera del Manual y sin vigencia jurídica inferida |
 | `knowledge/reglamento/01_modelo_cancha.md` | `reglamento` | 6/6 | H/P/UL | Compilable; slug normalizado en 5A |
 | `knowledge/reglamento/02_reglamento.md` | `reglamento` | 6/6 | H/P/UL, ID | Compilable; slug normalizado en 5A |
 | `knowledge/reglamento/03_saque.md` | `reglamento` | 6/6 | H/P/UL, ID | Compilable; slug normalizado en 5A |
@@ -205,7 +211,7 @@ En `public-knowledge.json`, cada documento incluye `id`, `slug`, `title`, `versi
 
 Los bloques públicos son `heading`, `paragraph`, `unorderedList`, `orderedList`, `table` y `thematicBreak`. Los nodos inline son `text`, `strong`, `emphasis` y `reference`; los items de lista usan `listItem`. El H1 se valida en el canónico y se excluye de `blocks`; los H2–H6 conservan un ID determinista con sufijos estables ante colisiones.
 
-No contiene rutas absolutas, timestamp de generación, datos Git, usuario, HTML precompilado o contenido de los cuatro archivos excluidos.
+No contiene rutas absolutas, timestamp de generación, datos Git, usuario, HTML precompilado o contenido de los cinco archivos excluidos.
 
 El artefacto canónico conserva el estado de cada documento y puede representar `Borrador` o `Vigente`. La proyección incluye exclusivamente `Vigente`; una colección sin documentos públicos se omite y cero documentos públicos bloquea la generación. React no importa el corpus completo ni improvisa esa política.
 
@@ -242,7 +248,7 @@ KNOWLEDGE-COMPILER-1 cubre con fixtures temporales:
 - archivos, anchors e IDs válidos o rotos;
 - mismos bytes con distinto orden de creación;
 - ausencia de timestamp y rutas absolutas;
-- corpus real, colecciones, IDs y exclusión de README;
+- corpus real, colecciones, IDs y exclusión de README y `EST-REF-001`;
 - sincronía del artefacto versionado;
 - creación de directorio, escritura completa y preservación de una salida previa ante error.
 
@@ -286,7 +292,7 @@ Los enlaces de tabla de contenidos conservan los IDs ya compilados, incluida su 
 
 ## 20. Criterios de aceptación
 
-5A se considera completada cuando los 40 documentos pasan validación, dos compilaciones producen los mismos bytes, el artefacto versionado coincide con el corpus, los cuatro archivos técnicos quedan excluidos, referencias y seguridad fallan de forma explícita, y la suite frontend, lint y build continúan correctos sin nuevas rutas, backend o dependencias.
+5A se considera completada cuando los 40 documentos pasan validación, dos compilaciones producen los mismos bytes, el artefacto versionado coincide con el corpus, los archivos técnicos y referencias históricas allowlisted quedan excluidos, referencias y seguridad fallan de forma explícita, y la suite frontend, lint y build continúan correctos sin nuevas rutas, backend o dependencias.
 
 5A.1 se considera completada cuando REG-001–REG-008 y los 32 Conceptos están `Vigente`, cada documento tiene un único H1 coincidente con `titulo`, la jerarquía no contiene saltos, las 108 referencias documentales son `Vigente → Vigente`, REG-006 conserva su tabla y la regeneración continúa sincronizada y determinista. Esto habilita 5B, pero no crea su artefacto público, renderer, rutas o páginas.
 

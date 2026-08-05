@@ -23,15 +23,23 @@ knowledge/
 │   ├── elementos/
 │   ├── juego/
 │   └── personas/
+├── referencias/
+│   └── institucionales/
 └── reglamento/
 ```
 
 - `reglamento/` contiene la formulación normativa editorial.
 - `conceptos/` contiene vocabulario y definiciones, agrupados actualmente en elementos, juego y personas.
+- `referencias/institucionales/` conserva fuentes históricas de contexto que no
+  forman parte del conocimiento deportivo publicable. `EST-REF-001` es una
+  transcripción histórica, no acredita vigencia jurídica y no debe proyectarse
+  al Manual.
 
-No existen todavía colecciones de Instalaciones independiente, Historia, Escuela, multimedia o referencias. Se crearán únicamente cuando exista contenido real y se haya aprobado su contrato editorial.
+No existen todavía colecciones compilables de Instalaciones independiente,
+Historia, Escuela o multimedia. Se crearán únicamente cuando exista contenido
+real y se haya aprobado su contrato editorial.
 
-Las colecciones compilables actuales son `reglamento` (`REG-001`–`REG-008`), `conceptos/elementos`, `conceptos/personas` y `conceptos/juego`. `AGENTS.md`, los README y `reglamento/00_metodologia.md` no forman parte del artefacto canónico.
+Las colecciones compilables actuales son `reglamento` (`REG-001`–`REG-008`), `conceptos/elementos`, `conceptos/personas` y `conceptos/juego`. `AGENTS.md`, los README, `reglamento/00_metodologia.md` y la referencia histórica `EST-REF-001` no forman parte del artefacto canónico ni de su proyección pública. Cualquier Markdown futuro fuera de estas exclusiones exactas seguirá fallando de forma segura hasta que disponga de contrato.
 
 ## Contrato de front matter
 

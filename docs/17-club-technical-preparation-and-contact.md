@@ -225,6 +225,16 @@ información específica del tratamiento y una versión o referencia de la
 política. También debe definirse la retención y eliminación operativa de las
 solicitudes antes de 7C.2/7D.
 
+Seguimiento 7D.2A: el tratamiento real, su notificación por correo, el HMAC de
+IP, la ausencia de borrado y los terceros pendientes están inventariados en
+`20-legal-privacy-and-cookies-readiness.md`. Los textos de
+`docs/legal-drafts/` son internos y no satisfacen este gate. El canal público
+confirmado no acredita el destinatario interno del formulario. El club sí
+confirma CIF, domicilio social y a Jorge Sánchez Romero como presidente y
+responsable web; la representación legal general y las validaciones jurídicas
+del tratamiento permanecen pendientes. La activación continúa bloqueada hasta
+7D.2B y la preparación operativa.
+
 ## 18. Notificación
 
 La notificación usa el mailer ya configurado por Laravel y sólo se intenta si

@@ -236,6 +236,26 @@ defaults. La activación productiva depende de privacidad y operación. El
 destinatario nunca forma parte de respuestas públicas. `frontend/dist`
 continúa como artefacto Vite ignorado y no participa como fuente de este flujo.
 
+## Preparación legal y proyecciones de datos personales
+
+Fase 7D.2A añade una capa exclusivamente documental, descrita en
+`20-legal-privacy-and-cookies-readiness.md`. No es una fuente de contenido
+público ni una nueva capa runtime. Separa identidad jurídica y pública,
+inventaría tratamientos y terceros y mantiene borradores fuera de React,
+Laravel, CMS y Knowledge.
+
+La proyección pública de identidad deportiva debe centralizarse en backend. La
+política objetivo para adultos usa alias y, si falta, nombre más inicial del
+primer apellido. La regla específica de menores y su autorización permanecen
+pendientes. Los Resources deportivos actuales exponen una forma más amplia;
+corregirla y cubrirla con pruebas es un gate de 7D.2B/producción, no un cambio
+aplicado por esta auditoría.
+
+El inventario técnico observa sesión Laravel y CSRF en Blade, Bearer Sanctum y
+`localStorage` en React, además de recursos remotos de fuentes/CDN. La decisión
+de autocustodia o mecanismo jurídico se aplaza a 7D.2B. La selección real de
+hosting, base, correo, backups y región pertenece a 7F.
+
 ## Gestión de pistas y generación de calendarios
 
 La configuración de pistas se mantiene en el backend mediante el modelo `Venue` y un CRUD web protegido por el middleware administrativo. Los Form Requests validan los tres campos persistidos actualmente (`name`, `location` y `description`). No existe todavía un campo `active` en el esquema.
@@ -468,8 +488,9 @@ En el estado actual están registradas `/`, `/competicion`,
 Navbar los disclosures Aprende/Club y mantiene Cuenta separada. Competición
 presenta datos públicos reales; Aprende a jugar deriva sus 40 documentos y
 cuatro colecciones; Escuela presenta el agregado `GET /api/v1/school`; y Club
-presenta sólo las páginas que Laravel considera publicadas. Legal y activación
-productiva de Contacto se aplazan a 7D.2.
+presenta sólo las páginas que Laravel considera publicadas. 7D.2A deja la base
+legal interna auditada; publicación legal y activación productiva de Contacto
+se aplazan a 7D.2B.
 El detalle operativo se mantiene en `09-public-navigation.md` y el cierre
 editorial de 7B en `15-mvp-editorial-and-navigation-contract.md`; la aplicación
 de 7D.1 se registra en `19-navigation-home-and-footer.md`.

@@ -36,9 +36,13 @@ Quedan aprobadas como arquitectura objetivo:
 - footer global con un núcleo obligatorio y enlaces condicionales;
 - migración conservadora mediante aliases temporales antes de redirects.
 
-No queda aprobada una política de identidad pública de participantes. Tampoco
-se aportan contenido real, textos legales, datos de Escuela, imágenes,
-documentos ni canales oficiales. Esos elementos siguen siendo gates humanos.
+Seguimiento 7D.2A: para participantes adultos se aprueba alias deportivo y, en
+su ausencia, nombre más inicial del primer apellido. La regla de menores, la
+implementación backend y la revisión jurídica siguen abiertas. Los borradores
+legales internos no son textos aprobados ni publicables. El club confirma CIF,
+domicilio social, fecha de constitución, presidente/responsable web y Junta
+publicable; siguen abiertas la representación legal general, las acreditaciones
+registrales y el mandato de la Junta.
 
 En el momento del cierre documental de 7B el código no cambió: el Navbar
 continuaba plano, no existía `/club`, las rutas canónicas institucionales no
@@ -315,6 +319,12 @@ a 7C.2 y no deben publicarse como forma de completar los gates pendientes.
 La ruta será `/club/contacto`. No se publicará hasta aportar al menos un canal
 oficial y un responsable de revisión.
 
+Seguimiento 7D.2A: el correo público queda confirmado; el teléfono es privado y
+se excluye. Jorge Sánchez Romero está confirmado como responsable web; siguen
+pendientes el responsable de revisión jurídica, el destinatario interno del
+formulario, el proveedor de correo, la conservación y la validación jurídica.
+El formulario continúa desactivado.
+
 ## 13. Federarse
 
 El contenido mínimo aprobado como plantilla es:
@@ -399,7 +409,7 @@ Navbar ni dependerá del `Layout` exclusivo de Home.
 | Documentos | Obligatorio MVP | Inventario vigente |
 | Privacidad | Obligatorio MVP | Texto profesional/responsable aprobado |
 | Aviso legal | Obligatorio MVP | Texto e identidad legal aprobados |
-| Identidad del club | Obligatorio MVP | Denominación oficial confirmada |
+| Identidad del club | Obligatorio MVP | Denominaciones jurídica y pública confirmadas; acreditación legal pendiente |
 | Copyright | Obligatorio MVP | Titular y fórmula aprobados; no hardcodear año/entidad sin revisión |
 | Prensa y Media | Recomendable | Sólo con contenido mantenido |
 | Federaciones | Recomendable | Sólo con contenido mantenido |
@@ -422,10 +432,10 @@ acompañarlos. Este documento no redacta asesoramiento ni cláusulas.
 |---|---|---|---|---|
 | Privacidad general | No | Responsable de la entidad y revisión profesional/jurídica | Sí | `/privacidad` |
 | Aviso legal e identidad del titular | No | Representación legal/jurídica | Sí | `/aviso-legal` |
-| Cookies | No; aplicabilidad no auditada para producción | Jurídico + responsable técnico | Condicional: sí si se usan cookies no exentas o tecnologías sujetas a información/consentimiento | `/cookies` |
+| Cookies | Inventario técnico 7D.2A; mecanismo observado como necesario de forma provisional | Jurídico + responsable técnico | Sí hasta eliminar/autocustodiar terceros o aprobar el tratamiento aplicable | `/cookies` futura, sólo si se aprueba |
 | Privacidad de inscripción escolar | No hay texto aprobado | Jurídico/privacidad + responsable de Escuela | Sí para abrir inscripciones | `/privacidad` y aviso contextual en `/escuela` |
 | Privacidad de registro de usuarios | No hay texto aprobado | Jurídico/privacidad + responsable de cuentas | Sí para registro productivo | `/privacidad` y aviso contextual en `/register` |
-| Identidad pública en competición | No hay política aprobada | Dirección, responsable deportivo y privacidad | Sí para publicar datos reales | `/privacidad` y avisos deportivos que se aprueben |
+| Identidad pública en competición | Regla adulta aprobada; menores e implementación pendientes | Dirección, responsable deportivo y privacidad | Sí para publicar datos reales | `/privacidad` y avisos deportivos que se aprueben |
 
 Los textos legales deben identificar versión, fecha de vigencia, responsable y
 procedimiento de revisión. El CMS puede publicarlos, pero la validación humana
@@ -448,7 +458,7 @@ La interfaz no muestra todos los campos que viajan por API. La política debe
 aplicarse primero en backend mediante Resources o proyección pública, no sólo
 ocultarse en React.
 
-### Alternativas pendientes de aprobación
+### Alternativas auditadas en 7B y decisión posterior
 
 | Opción | Utilidad deportiva | Privacidad | Impacto frontend | Impacto backend y migración | Riesgos y decisión humana |
 |---|---|---|---|---|---|
@@ -458,10 +468,11 @@ ocultarse en React.
 | D. Iniciales | Baja o media | Minimiza, pero puede reidentificar en grupos pequeños | Pequeño | Formateador determinista; retirar nombre/apellidos y revisar colisiones | Clasificaciones ambiguas; exige aceptar menor utilidad |
 | E. Política diferenciada para menores | Conserva utilidad adulta y protege más a menores | Potencialmente la más proporcional | Medio | Regla backend basada en `birth_date`, tratamiento de valores nulos, cambio de edad y consentimientos; migración/auditoría de perfiles | Edad incompleta, inferencia de minoría y política desigual; exige revisión profesional y deportiva |
 
-No se selecciona ninguna opción en 7B. Antes de publicar competición con datos
-reales, la entidad debe:
+7D.2A cierra la combinación adulta: alias deportivo cuando exista y, si no,
+nombre más inicial del primer apellido. No cierra una política para menores.
+Antes de publicar competición con datos reales, la entidad debe:
 
-1. elegir política y tratamiento específico de menores;
+1. elegir y validar el tratamiento específico de menores;
 2. definir base, información y retirada;
 3. decidir fallbacks para apodo y fecha de nacimiento ausentes;
 4. reducir los Resources públicos a la allowlist aprobada;
@@ -479,7 +490,8 @@ Checklist exacto de configuración mediante Blade:
 2. Crear y revisar `SchoolProgram` sin publicarlo inicialmente.
 3. Crear `SchoolLevel` con edades orientativas, estado y orden.
 4. Crear `SchoolSchedule` con nivel, día, horas, ubicación, estado y orden.
-5. Configurar y verificar teléfono y/o correo públicos.
+5. Configurar y verificar el correo público; mantener teléfono nulo salvo que
+   se apruebe un número distinto expresamente publicable.
 6. Revisar visibilidad efectiva de programa, niveles, horarios y ubicaciones.
 7. Mantener inscripciones cerradas hasta superar todos los gates y probar el
    cierre efectivo.
@@ -625,7 +637,7 @@ Plantilla Home:
 ### Contacto
 
 - correo oficial:
-- teléfono publicable:
+- teléfono: privado; no publicar:
 - dirección o ubicación:
 - horario de atención:
 - responsable o departamento:
@@ -665,14 +677,14 @@ valor “Pendiente” se publicará como contenido.
 | 4 | Formulario de Contacto local y desactivado | Modificada por ADR-034; base técnica completada | Privacidad y activación antes de 7C.2 |
 | 5 | Núcleo y enlaces condicionales del footer | Cerrados por este contrato | Antes de 7D |
 | 6 | Prensa y Federaciones condicionales, fuera del Navbar | Cerrada por este contrato | Antes de 7D |
-| 7 | Política de identidad pública | Abierta | Antes de publicar competición real/7G |
+| 7 | Política de identidad pública | Adultos cerrada en 7D.2A; menores e implementación abiertas | Antes de publicar competición real/7G |
 | 8 | Datos reales de Escuela | Abiertos | Antes de 7E |
-| 9 | Contacto oficial | Abierto | Antes de cerrar 7C |
+| 9 | Contacto oficial | Correo/redes confirmados; destinatario y operación del formulario abiertos | Antes de activar Contacto/7D.2B |
 | 10 | Textos y responsables legales | Abiertos | Antes de cerrar 7D y desplegar |
 | 11 | Contenido de Quiénes somos e imágenes | Abierto | Antes de cerrar 7C |
 | 12 | Documentos vigentes | Abiertos | Antes de cerrar 7C |
 
-También faltan nombre legal, copyright, política de imágenes, responsable de
+También faltan acreditación documental de la identidad legal, copyright, política de imágenes, responsable de
 Federarse, datos sociales opcionales, responsables de contenido, operación de
 Escuela y privacidad.
 
@@ -889,8 +901,9 @@ identidad, rutas institucionales y redes confirmadas. Los padres no reciben
 ruta y `aria-current="page"` se reserva a coincidencias exactas; las ramas
 descendientes mantienen sólo estado visual.
 
-7D.2 conserva la obligación contractual de privacidad, aviso legal y cookies si
-aplica, pero requiere contenido y responsables aprobados antes de crear sus
-rutas o enlaces. El formulario productivo de Contacto continúa desactivado.
+7D.2A completa la auditoría y los borradores internos sin rutas ni enlaces.
+7D.2B conserva la obligación contractual de privacidad, aviso legal, identidad
+pública y cookies, y requiere validación, contenido y responsables aprobados
+antes de publicar. El formulario productivo de Contacto continúa desactivado.
 No cambian CMS, contenido, `/nosotros`, `/contenidos`, aliases, redirects,
 canonical o despliegue. Por tanto 7D, Fase 7 y el MVP siguen abiertos.

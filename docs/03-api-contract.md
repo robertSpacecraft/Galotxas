@@ -214,6 +214,12 @@ Estrategia actual:
 
 La estrategia forma parte del estado MVP actual. Una futura migración a cookies `HttpOnly`/`SameSite` con protección CSRF requerirá un bloque específico porque modifica el modelo de consumo del frontend y no debe mezclarse con cambios funcionales menores.
 
+La auditoría 7D.2A confirma que Sanctum no define expiración global y que React
+conserva tanto el token como el objeto de usuario sin caducidad propia hasta
+logout, limpieza por 401/403 o acción del navegador. Expiración, revocación,
+información de privacidad y eventual migración son gates productivos
+pendientes; el contrato no cambia en esta fase.
+
 ---
 
 # 7. Formato de las respuestas
@@ -775,6 +781,16 @@ sólo cuando `enabled` es exactamente `true`. La UI conserva el contenido CMS si
 falla esta consulta, gestiona 201/422/429/503/red sin ampliar el envelope y no
 expone ni persiste campos internos. El default productivo continúa desactivado;
 privacidad, destinatario, correo y operación siguen siendo gates de activación.
+
+### Gate de identidad pública tras 7D.2A
+
+Los endpoints públicos de ranking, clasificación, calendario y partido
+continúan exponiendo la forma histórica de identidad: pueden incluir IDs,
+alias, nombre y apellidos, aunque React no presente todos esos campos. La
+política aprobada para adultos —alias o, si falta, nombre más inicial del primer
+apellido— aún no está implementada; la de menores continúa pendiente. Reducir
+los Resources a una allowlist única es requisito previo a datos productivos y
+pertenece a un bloque posterior autorizado.
 
 ---
 

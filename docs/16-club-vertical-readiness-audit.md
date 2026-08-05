@@ -7,6 +7,19 @@ exclusivamente documental de la futura vertical institucional `Club`. Su fin es
 determinar qué soporte existe, qué contenido puede trasladarse sin inventarlo y
 qué decisiones o materiales siguen bloqueando la Fase 7C.
 
+> **Actualización 7D.2A:** este archivo conserva el contexto histórico de 7C.0.
+> Para decisiones vigentes prevalece
+> `20-legal-privacy-and-cookies-readiness.md`: denominación jurídica `Club
+> Galotxes de Monover`, denominación pública `Club Galotxes Monòver`, CIF y
+> domicilio social confirmados como datos legales y administrativos, fecha de
+> constitución apoyada por los estatutos históricos, presidente/responsable web
+> y Junta publicable confirmados, correo y redes confirmados, instalaciones
+> diferenciadas del domicilio social y teléfono privado. Inscripción y mandato
+> de la Junta, representación legal general, registro deportivo y relación
+> federativa administrativa siguen pendientes. Las filas posteriores que
+> califican los datos ya confirmados como pendientes describen la instantánea
+> anterior y no deben usarse como fuente actual.
+
 La auditoría no implementa rutas, componentes, menús, aliases, redirects,
 modelos, migraciones, endpoints, seeders, bloques, contenido, datos ni recursos.
 Las cuatro rutas canónicas continúan siendo objetivo futuro:
@@ -302,7 +315,7 @@ el nombre, la historia y la selección de recursos requieren decisión humana.
 | Dato | Estado | Riesgo o límite | Acción requerida |
 |---|---|---|---|
 | Correo | Aportado: `clubgalotxesmonover@hotmail.com` | No aparece en repo; `mailto:` no está admitido por el CMS | Confirmar que es oficial, atendido y publicable; decidir texto o enlace clicable |
-| Teléfono | Aportado: `687 524 083` | No aparece en repo; dato personal/organizativo y `tel:` no admitido | Confirmar titularidad, formato público y atención |
+| Teléfono | Privado; valor omitido | No aparece en runtime y `tel:` no está admitido por el CMS | No publicar ni cargar en CMS |
 | Ubicación | Aportada: Centro Polideportivo de Monóvar | Compatible de forma general con el JSX, no exacta | Confirmar nombre, dirección y si basta ubicación sin dirección postal |
 | Horario | “cualquier hora del día” | Promesa operativa amplia y no acreditada | El usuario debe elegir: no publicar horario, “atención según disponibilidad” o un horario real |
 | Mapa | No | No hay URL ni coordenadas | Opcional; aportar URL oficial si se desea |
@@ -424,7 +437,7 @@ el original hasta cerrar la paridad.
 | Fundación 31-03-1980 | No | Sí, como dato editorial posible | Ninguno probado | Acta, publicación o validación responsable | CMS Quiénes somos |
 | Presidente Jorge Sánchez Romero | No | Sí, como dato editorial posible | El JSX mantiene un placeholder, no otro presidente | Cargo vigente y consentimiento | CMS Quiénes somos, si se decide publicar |
 | `clubgalotxesmonover@hotmail.com` | No | Sí | Ninguno probado | Oficialidad, responsable y capacidad de atención | CMS Contacto |
-| `687 524 083` | No | Sí | Ninguno probado | Titularidad, consentimiento y horario | CMS Contacto |
+| Teléfono privado; valor omitido | No | No para publicación | La hipótesis pública de 7C.0 queda descartada | Ninguna evidencia adicional permite publicarlo | Mantener fuera de CMS y frontend |
 | Centro Polideportivo de Monóvar | Parcial: el JSX menciona el Polideportivo Municipal | Sí | Denominación no coincidente exactamente | Nombre y dirección exactos | CMS Quiénes somos/Contacto |
 | “Cualquier hora del día” | No | Técnicamente sí | Riesgo frente a capacidad operativa real | Compromiso de atención | CMS Contacto u omisión |
 | Instagram “Galotxes Monóvar” | No | Sí | Ninguno probado | URL HTTPS y oficialidad | CMS Contacto/footer futuro |

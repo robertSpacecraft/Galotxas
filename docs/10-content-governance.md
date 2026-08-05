@@ -97,7 +97,8 @@ Competición utiliza datos públicos reales; Aprende a jugar y Manual consumen
 Knowledge; Escuela consume Laravel; y Club consume sólo páginas CMS publicadas
 mediante slugs cerrados. Home y Footer contienen únicamente copy de interfaz,
 arquitectura de enlaces, identidad y redes confirmadas; no duplican CMS o
-Knowledge. Los destinos legales permanecen pendientes de 7D.2.
+Knowledge. Los destinos legales permanecen pendientes de 7D.2B; 7D.2A sólo
+prepara borradores internos y gates.
 
 Los componentes de `frontend/src/components/PublicLanding/` son infraestructura de presentación, no una cuarta fuente de contenido. Pueden recibir datos ya autorizados del dominio Laravel, artefactos compilados desde `knowledge/` o contenido público del CMS, pero no conocen esas fuentes ni deciden visibilidad, publicación o reglas. Sus props admiten estructura, copy breve de interfaz y contenido procedente de la fuente canónica; no deben usarse para hardcodear contenido administrable como sustituto temporal del CMS o de `knowledge/`.
 
@@ -387,11 +388,12 @@ La Fase 3A no elimina `/contenidos`, no crea redirects, no cambia su API ni borr
 - Estrategia de almacenamiento persistente y ciclo de vida de archivos.
 - Modelo de consentimiento y privacidad para contenido de menores.
 - Consumo React, renderer, rutas públicas e integración automática de la canalización con CI/despliegue.
-- Legal y gates productivos de Contacto en 7D.2; aliases tras paridad y,
+- Publicación legal y gates productivos de Contacto en 7D.2B, tras la auditoría
+  documental 7D.2A; aliases tras paridad y,
   posteriormente, redirects permanentes, canonical, sitemap, 404 HTTP y SEO
   completo. Las cuatro URLs Club ya se descubren desde Navbar/footer en 7D.1.
-- Política de identidad pública en clasificación, rankings, calendario,
-  equipos y partidos, con tratamiento específico de menores.
+- Implementación de la política adulta de identidad pública en clasificación,
+  rankings, calendario, equipos y partidos, y decisión específica de menores.
 - Roles, permisos, trazabilidad y vista previa requeridos por los editores.
 
 ## 20. Gates editoriales y operativos del MVP completo
@@ -454,6 +456,28 @@ Privacidad, aviso legal, cookies cuando apliquen, registro, inscripción School
 e identidad deportiva requieren responsable de la entidad y revisión
 profesional o jurídica. Las plantillas completas, matriz legal, checklist
 School y gates están en `15-mvp-editorial-and-navigation-contract.md`.
+
+## 22. Fuentes legales y privacidad tras 7D.2A
+
+La identidad institucional usa fuentes con precedencia explícita: documento
+jurídico original, dato legal confirmado por el club, acuerdo formal,
+documentación administrativa vigente, CMS, documentación técnica, tradición e
+inferencia. La matriz vigente se mantiene en
+`20-legal-privacy-and-cookies-readiness.md`.
+
+Los borradores de `docs/legal-drafts/` no son contenido editorial, no se cargan
+en CMS y no pueden publicarse desde React. `EST-REF-001` es una referencia
+histórica restringida bajo `knowledge/referencias/`, fuera del Manual y sin
+vigencia jurídica inferida. Reglamento/Manual y estatutos del club son fuentes
+distintas.
+
+El CMS institucional podrá ser destino de textos jurídicos sólo después de
+validación y autorización en 7D.2B. CIF y domicilio social están confirmados
+por el club como datos legales y administrativos; no constituyen por sí solos
+una certificación registral. Representación legal general, registro deportivo,
+inscripción y mandato de la Junta, bases, conservación, destinatarios,
+encargados y transferencias no se completan por inferencia. El teléfono
+confirmado es privado y no pertenece al CMS ni a la interfaz pública.
 
 ## Mantenimiento
 

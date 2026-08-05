@@ -87,7 +87,9 @@ fachadas diferidas `/club/quienes-somos`, `/club/contacto`, `/club/federarse` y
 `/club/documentos`; el formulario sólo se monta cuando la configuración pública
 devuelve `enabled: true`. Fase 7D.1 incorpora el Navbar agrupado Aprende/Club,
 Home orientada a recorridos reales y footer global; las páginas legales y la
-activación productiva de Contacto siguen pendientes de 7D.2.
+activación productiva de Contacto siguen pendientes de 7D.2B. La auditoría
+7D.2A consolida identidad, tratamientos, cookies, terceros y borradores
+internos sin crear rutas, enlaces legales ni activar recogidas productivas.
 
 ## Pruebas
 
@@ -128,5 +130,6 @@ El stack E2E es desechable y no utiliza la base de desarrollo.
 - [Roadmap y estado del MVP](docs/06-roadmap.md)
 - [Preparación técnica de Club y contacto](docs/17-club-technical-preparation-and-contact.md)
 - [Navegación agrupada, Home y footer](docs/19-navigation-home-and-footer.md)
+- [Preparación legal, privacidad y cookies](docs/20-legal-privacy-and-cookies-readiness.md)
 - [Candidato MVP y publicación](docs/09-release-candidate.md)
 - [Historial de cambios](CHANGELOG.md)

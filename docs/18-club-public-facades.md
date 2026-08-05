@@ -157,8 +157,9 @@ carga, revisión y publicación productivas siguen siendo manuales por entorno.
 
 7D.1 implementa el árbol único con disclosures Aprende/Club, paridad
 desktop/móvil, Home y footer estructurales. Antes de activar Contacto en
-producción, 7D.2 debe cerrar privacidad, legal y operación. También siguen
-pendientes paridad de `/nosotros`, aliases/redirects, canonical, indexación de
+producción, 7D.2B debe cerrar privacidad, legal y operación tras la auditoría
+7D.2A. También siguen pendientes paridad de `/nosotros`, aliases/redirects,
+canonical, indexación de
 `/contenidos`, contenido por entorno y aceptación humana.
 
 ## 22. Criterios de cierre
@@ -167,8 +168,8 @@ pendientes paridad de `/nosotros`, aliases/redirects, canonical, indexación de
 diferidas, fuente CMS única, estados completos, Contacto condicionado, pruebas
 unitarias/backend/E2E y documentación validadas, sin cambios en Navbar,
 `knowledge/`, `frontend/dist`, imágenes o datos locales. Fase 7 y el MVP siguen
-abiertos: la implementación posterior de 7D.1 no autoriza 7D.2 ni los gates
-productivos.
+abiertos: la implementación posterior de 7D.1 ni la auditoría 7D.2A autorizan
+7D.2B ni los gates productivos.
 
 ## 23. Seguimiento de 7D.1
 
@@ -177,3 +178,16 @@ global mediante sus rutas canónicas. El Navbar y Home no importan `ClubPage`,
 no cargan contenido CMS y no alteran el mapa ruta/slug. Club sigue diferido;
 las rutas legadas y los estados de publicación permanecen intactos. La
 validación E2E usa exclusivamente las páginas ficticias del entorno protegido.
+
+## 24. Seguimiento de 7D.2A
+
+La auditoría legal confirma la denominación pública usada por las fachadas y
+separa la denominación jurídica. También clasifica como confirmados por el club
+el CIF, el domicilio social, el presidente/responsable web y la Junta
+publicable, y apoya la fecha de constitución en los estatutos históricos. La
+inscripción y mandato de la Junta, la representación legal general y el
+registro deportivo siguen pendientes. El correo confirmado puede mantenerse
+como canal editorial; el teléfono es privado. Los borradores legales no se
+cargan en CMS ni habilitan el formulario. Assets, identidad deportiva,
+menores, proveedores, plazos y destinatario del formulario siguen siendo gates
+antes de producción.

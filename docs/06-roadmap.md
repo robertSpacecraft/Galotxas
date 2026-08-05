@@ -48,17 +48,18 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 30. **Fase 7C.1 — Preparación técnica de Club y contacto:** assets y `dist` auditados; capacidad CMS y carga manual documentadas; dominio, API, antispam, administración y notificación opcional de contacto implementados con flags desactivados; servicio React aislado validado, sin contenido CMS ni rutas Club.
 31. **Fase 7C.2 — Fachadas públicas de Club:** carga editorial local realizada manualmente; cuatro rutas canónicas diferidas sobre slugs CMS cerrados; estados completos, metadatos y formulario condicionado; legado, Navbar y datos locales conservados; cobertura frontend/backend/E2E y documentación cerradas.
 32. **Fase 7D.1 — Navegación, Home y footer estructural:** configuración única con Inicio/Competición, disclosures Aprende/Club y Cuenta separada; interacción desktop/móvil accesible; Home con destinos reales; footer global con identidad, rutas Club y redes confirmadas; legal y Contacto productivo aplazados.
+33. **Fase 7D.2A — Consolidación legal, privacidad y cookies:** identidad jurídica/pública y datos institucionales confirmados correctamente separados de acreditaciones registrales y validaciones pendientes; estatutos históricos, matriz institucional, tratamientos, identidad deportiva, menores, imágenes, almacenamientos, cookies y terceros auditados; cinco borradores internos creados sin rutas, enlaces legales, CMS ni activación de Contacto.
 
-La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fases 7A y 7B, los bloques 7C.0–7C.2 y 7D.1 están completados; 7C queda cerrada, pero 7D y Fase 7 siguen abiertas. Aliases, redirects, publicación productiva por entorno y migraciones editoriales no se han implementado.
+La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fases 7A y 7B, los bloques 7C.0–7C.2, 7D.1 y 7D.2A están completados; 7C queda cerrada, pero 7D y Fase 7 siguen abiertas. Aliases, redirects, publicación productiva por entorno y migraciones editoriales no se han implementado.
 
 ## Fase 7 abierta — bloques pendientes
 
-1. **Fase 7D.2 — Legal y gates productivos de Contacto:** incorporar únicamente destinos legales con contenido aprobado, resolver aplicabilidad de cookies y mantener desactivado Contacto hasta cerrar privacidad, destinatario, correo y operación. Fase 7D no está completa hasta cerrar este bloque.
+1. **Fase 7D.2B — Publicación legal y gates productivos:** validar profesionalmente y convertir los borradores en textos controlados; resolver recursos de terceros y el mecanismo de cookies; implementar la política pública de identidad adulta y la específica de menores; incorporar destinos/enlaces sólo con contenido aprobado; mantener desactivado Contacto hasta cerrar privacidad, destinatario, correo, conservación y operación. Fase 7D no está completa hasta cerrar este bloque.
 2. **Fase 7E — Preparación operativa de Escuela:** cargar en privado y validar configuración, contenido, privacidad, conservación y capacidad de gestión antes de probar y abrir inscripciones.
 3. **Fase 7F — Preparación de despliegue:** cerrar Railway/Vercel, MariaDB, variables, CORS, correo, sesiones, logs, backups, migraciones, salud, staging y rollback.
 4. **Fase 7G — Validación y cierre del MVP:** ejecutar regresión, recorridos críticos, QA responsive/multibrowser priorizada, smoke y aceptación humana antes de tag/release.
 
-Las fases 4, 5, 6 y los bloques 7B, 7C.0–7C.2 y 7D.1 están completados.
+Las fases 4, 5, 6 y los bloques 7B, 7C.0–7C.2, 7D.1 y 7D.2A están completados.
 `/competicion` ofrece el recorrido deportivo; `/aprende-a-jugar` y el Manual
 presentan los 40 documentos desde Knowledge; `/escuela` consume la configuración
 pública y admite solicitudes anónimas cuando el backend las abre. El cierre de
@@ -66,7 +67,8 @@ Escuela queda revalidado sobre proyectos Docker aislados. `Club` funciona como
 disclosure, no como landing `/club`; sus cuatro rutas hijas presentan la página
 CMS correspondiente cuando está publicada. Aprende agrupa Aprende a jugar,
 Manual y Escuela sin fusionar sus fuentes. Home y el footer global ofrecen
-destinos estructurales reales, sin publicar legal.
+destinos estructurales reales, sin publicar legal. 7D.2A aporta únicamente una
+base interna: los borradores no son rutas ni contenido vigente.
 
 La carga editorial local se realizó manualmente y 7C.2 incorpora la interfaz
 React condicionada, pero el formulario productivo continúa desactivado hasta
@@ -88,8 +90,8 @@ QA-FIX-1, RC-HARDEN-1 y MVP-RC-1 conservan su valor histórico. Sin embargo, la
 auditoría 7A amplía el criterio desde “candidato técnico” a “aplicación pública
 y funcionalmente completa”: el MVP completo **todavía no está completado**.
 
-Permanecen P0 de contenido institucional, Contacto productivo y legal,
-política de identidad pública, configuración y privacidad de Escuela,
+Permanecen P0 de Contacto productivo y legal, implementación de identidad
+pública adulta y decisión específica de menores, configuración y privacidad de Escuela,
 despliegue Railway/Vercel/MariaDB y validación de recorridos críticos. La
 definición observable y priorización se encuentran en
 `14-mvp-parity-audit.md`; el contrato, las plantillas y gates de implementación
@@ -182,7 +184,7 @@ debe crear el tag o la release hasta completar Fase 7G.
 
 1. revisión humana y eventual merge documental de 7A;
 2. cierre de decisiones y contenido en 7B;
-3. completar 7D.2 y continuar 7E–7F, cada bloque validado y revisado;
+3. completar 7D.2B y continuar 7E–7F, cada bloque validado y revisado;
 4. cierre de aceptación en 7G;
 5. sólo entonces, preparación del nuevo candidato, tag y publicación.
 

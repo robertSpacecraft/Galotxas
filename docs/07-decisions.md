@@ -1138,6 +1138,33 @@ Aplicación en 7D.1:
 - no se introducen `/aprende`, `/club`, aliases, redirects o cambios de fuente
   editorial.
 
+Seguimiento 7D.2A, sin ADR nuevo:
+
+- se confirma `Club Galotxes de Monover` como denominación jurídica y `Club
+  Galotxes Monòver` como denominación pública;
+- se confirman CIF y domicilio social como datos legales y administrativos del
+  club, sin elevarlos a certificación registral;
+- la referencia estatutaria histórica acredita la fecha de constitución y
+  apoya los fines, cuya adecuación normativa vigente sigue pendiente;
+- Jorge Sánchez Romero queda confirmado como presidente y responsable web, y
+  la Junta completa queda confirmada para publicación institucional; su
+  inscripción, mandato y la representación legal general siguen pendientes de
+  acreditación expresa;
+- el registro deportivo y la relación federativa administrativa vigente
+  permanecen pendientes; FedPiVal se registra sólo como organismo de referencia
+  comunicado;
+- para adultos se cierra alias deportivo o, si falta, nombre más inicial del
+  primer apellido; menores e implementación backend permanecen como gate;
+- `EST-REF-001` se conserva como referencia histórica fuera del Manual;
+- la auditoría de cookies observa recursos remotos previos y exige resolver en
+  7D.2B si se autocustodian/eliminan o qué mecanismo procede;
+- los borradores legales son internos, no publicables, y no crean rutas,
+  enlaces, CMS ni activación de Contacto.
+
+Estas precisiones desarrollan gates ya previstos por ADR-033 y ADR-034. No
+cambian la topología, las fuentes editoriales ni el diseño funcional, por lo que
+no requieren una decisión arquitectónica adicional.
+
 ---
 
 # ADR-034 — Contacto institucional persistente, opcional y desactivado por defecto

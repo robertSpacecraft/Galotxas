@@ -6,6 +6,15 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Fase 7D.2A documenta la matriz institucional, estatutos históricos,
+  tratamientos de datos, identidad deportiva, menores, imágenes, cookies,
+  almacenamientos y terceros, y añade cinco borradores internos expresamente
+  no publicables sin crear rutas o enlaces legales; el compilador excluye
+  `EST-REF-001` de forma exacta y mantiene inalterados ambos artefactos. El
+  ajuste de cierre conserva el renombrado histórico, clasifica CIF, domicilio,
+  constitución, presidencia y Junta según sus fuentes confirmadas, y mantiene
+  separadas las acreditaciones registrales y validaciones pendientes.
+
 - Se completa Fase 7D.1 con configuración única de navegación, disclosures accesibles Aprende/Club, Cuenta separada, Home con recorridos reales y footer global con rutas Club, identidad y redes confirmadas, conservando lazy loading y el legado.
 - Se completa 7C.2 y la Fase 7C con cuatro fachadas Club diferidas sobre slugs CMS cerrados, estados remotos completos, metadatos, formulario de Contacto condicionado, compatibilidad legada y cobertura frontend/backend/E2E sin cambiar Navbar ni contenido editorial.
 - Se amplía el escenario E2E protegido con páginas CMS institucionales ficticias y activación de Contacto exclusiva del entorno temporal, sin modificar `DatabaseSeeder` ni datos de desarrollo.

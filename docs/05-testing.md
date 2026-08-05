@@ -1179,6 +1179,28 @@ Validación de 7D.1, 2026-08-04: 371 tests Vitest en 57 archivos, lint,
 warnings y 37/37 escenarios Chromium correctos. Los hashes de ambos artefactos
 Knowledge coinciden con `HEAD`; el runner E2E elimina sus recursos aislados.
 
+## LEGAL-PRIVACY-READINESS-1 — Auditoría documental de 7D.2A
+
+7D.2A no modifica contratos runtime. Añade únicamente la exclusión exacta de la
+referencia histórica al compilador y amplía su test de descubrimiento. Su
+validación dirigida comprueba:
+
+- `knowledge:check` y estabilidad de los hashes canónico/público;
+- exclusión de `EST-REF-001` de ambos artefactos;
+- ausencia de imports runtime desde `docs/legal-drafts/`;
+- ausencia de rutas legales y enlaces nuevos;
+- `CONTACT_FORM_ENABLED=false` por defecto;
+- búsqueda controlada de denominaciones conflictivas y del teléfono privado
+  sin reproducir su valor;
+- `git diff --check` y ausencia de cambios en `frontend/dist`.
+
+7D.2B deberá añadir cobertura de rutas legales, primera capa, política de
+identidad pública y cualquier mecanismo de cookies que realmente se implemente.
+
+Validación de 7D.2A: 45/45 tests de `compiler.test.js`, ESLint dirigido sin
+salida y `knowledge:check` correcto con 40 documentos, cuatro colecciones y
+cinco exclusiones explícitas.
+
 ---
 
 # 11. Evolución

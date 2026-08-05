@@ -23,6 +23,7 @@ La documentación se organiza para separar claramente:
 - preparación técnica de Club y del formulario de contacto.
 - fachadas públicas de Club y formulario condicionado.
 - navegación agrupada, Home y footer estructural.
+- preparación legal, privacidad, identidad pública, cookies y terceros.
 
 ## Orden recomendado de lectura
 
@@ -47,6 +48,7 @@ La documentación se organiza para separar claramente:
 19. [Preparación técnica de Club y contacto](17-club-technical-preparation-and-contact.md)
 20. [Fachadas públicas de Club](18-club-public-facades.md)
 21. [Navegación agrupada, Home y footer](19-navigation-home-and-footer.md)
+22. [Preparación legal, privacidad y cookies](20-legal-privacy-and-cookies-readiness.md)
 
 El contrato de navegación inventaría el router y los enlaces actuales y conserva
 el histórico de la arquitectura pública desde Fase 3. El contrato de Fase 7B
@@ -54,7 +56,9 @@ cierra su evolución para el MVP: Inicio y Competición como enlaces, Aprende y
 Club como grupos de revelación, Cuenta separada y cuatro rutas institucionales
 canónicas. Las rutas Club ya tienen fachadas CMS diferidas y 7D.1 implementa el
 grupo del Navbar, Home veraz y footer global. Las rutas legales y la activación
-productiva de Contacto permanecen pendientes de 7D.2. El documento de
+productiva de Contacto permanecen pendientes de 7D.2B. La auditoría 7D.2A
+consolida las fuentes institucionales, identidad, tratamientos,
+almacenamientos y terceros y crea borradores internos no publicables. El documento de
 gobernanza define qué
 información pertenece al dominio Laravel, al CMS administrable o al
 conocimiento canónico. El contrato de la canalización documenta cómo se valida
@@ -78,6 +82,9 @@ condicionado, conserva el legado y registra los gates productivos y de 7D en el
 documento 18, sin convertir React o los fixtures E2E en fuente editorial.
 7D.1 aplica el árbol aprobado con disclosures accesibles, conserva Cuenta y
 rutas legadas, y registra Home/footer y sus gates en el documento 19.
+7D.2A registra la base técnica y los gates jurídicos en el documento 20, sin
+añadir rutas legales, enlaces de footer, contenido CMS ni activación de
+Contacto.
 El conocimiento estable del deporte se mantiene por separado en
 [`knowledge/`](../knowledge/README.md); los documentos técnicos describen el
 software y no sustituyen esa fuente editorial.
