@@ -53,6 +53,10 @@ export const EXCLUDED_MARKDOWN = new Map([
   ['README.md', 'README técnico de knowledge'],
   ['conceptos/README.md', 'índice documental de Conceptos'],
   [
+    'referencias/institucionales/EST-REF-001_estatutos_club_galotxes_de_monover_1980.md',
+    'transcripción institucional histórica fuera del Manual',
+  ],
+  [
     'reglamento/00_metodologia.md',
     'metodología documental que declara no formar parte del reglamento',
   ],

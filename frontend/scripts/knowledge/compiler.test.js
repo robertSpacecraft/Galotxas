@@ -82,6 +82,8 @@ describe('descubrimiento del corpus', () => {
       'README.md': '# README\n',
       'AGENTS.md': '# AGENTS\n',
       'conceptos/README.md': '# Índice\n',
+      'referencias/institucionales/EST-REF-001_estatutos_club_galotxes_de_monover_1980.md':
+        '# Estatutos históricos\n',
       'reglamento/00_metodologia.md': '# Metodología\n',
       'reglamento/02_segundo.md': documentSource({ id: 'REG-002', slug: 'segundo' }),
       'reglamento/01_primero.md': documentSource({ id: 'REG-001', slug: 'primero' }),
@@ -98,6 +100,7 @@ describe('descubrimiento del corpus', () => {
       'AGENTS.md',
       'README.md',
       'conceptos/README.md',
+      'referencias/institucionales/EST-REF-001_estatutos_club_galotxes_de_monover_1980.md',
       'reglamento/00_metodologia.md',
     ])
     expect(discovery.ignored).toEqual(['reglamento/notas.txt'])
@@ -543,7 +546,13 @@ describe('corpus real y artefacto', () => {
     )
     expect(artifact.documents.map(({ id }) => id)).not.toContain('REG-000')
     expect(artifact.documents.every(({ sourcePath }) => !sourcePath.endsWith('README.md'))).toBe(true)
-    expect(discovery.excluded).toHaveLength(4)
+    expect(discovery.excluded).toHaveLength(5)
+    expect(discovery.excluded.map(({ sourcePath }) => sourcePath)).toContain(
+      'referencias/institucionales/EST-REF-001_estatutos_club_galotxes_de_monover_1980.md',
+    )
+    expect(
+      artifact.documents.some(({ sourcePath }) => sourcePath.includes('EST-REF-001')),
+    ).toBe(false)
   })
 
   it('mantiene versionado el artefacto exactamente sincronizado con el corpus', async () => {
