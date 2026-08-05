@@ -37,6 +37,10 @@ const login = async (page, user) => {
 
   await expect(page).toHaveURL(/\/player$/);
   await expect(page.getByRole('heading', { name: 'Panel de Control' })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => ({
+    hasToken: Boolean(localStorage.getItem('token')),
+    storedUser: localStorage.getItem('user'),
+  }))).toEqual({ hasToken: true, storedUser: null });
 };
 
 const logout = async (page) => {
@@ -44,6 +48,10 @@ const logout = async (page) => {
   await expect(
     page.getByRole('group', { name: 'Cuenta' }).getByRole('link', { name: 'Iniciar sesión' }),
   ).toBeVisible();
+  await expect.poll(() => page.evaluate(() => ({
+    token: localStorage.getItem('token'),
+    user: localStorage.getItem('user'),
+  }))).toEqual({ token: null, user: null });
 };
 
 const fillScore = async (page, homeScore, awayScore) => {
@@ -459,12 +467,25 @@ test.describe.serial('smoke narrativo del MVP', () => {
     publicCategoryPath = new URL(page.url()).pathname;
     await expect(page.getByRole('link', { name: 'Resumen' })).toHaveAttribute('aria-current', 'page');
 
+    const standingsResponsePromise = page.waitForResponse(
+      (response) => /\/api\/v1\/categories\/\d+\/standings$/.test(response.url()),
+    );
     await page.getByRole('link', { name: 'Clasificación' }).click();
+    const standingsPayload = await (await standingsResponsePromise).json();
     await expect(page).toHaveURL(/\/categories\/\d+\/standings$/);
     publicStandingsPath = new URL(page.url()).pathname;
     await expect(page.getByRole('heading', { name: 'Clasificación de Individual E2E' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Clasificación' })).toHaveAttribute('aria-current', 'page');
+    expect(standingsPayload.data[0]).toHaveProperty('public_display_name', 'Pilotari E2E 1');
+    expect(standingsPayload.data[0]).not.toHaveProperty('entry_id');
+    expect(standingsPayload.data[0]).not.toHaveProperty('name');
+    expect(standingsPayload.data[0]).not.toHaveProperty('player');
+
+    const scheduleResponsePromise = page.waitForResponse(
+      (response) => /\/api\/v1\/categories\/\d+\/schedule$/.test(response.url()),
+    );
     await page.getByRole('link', { name: 'Calendario y resultados' }).click();
+    const schedulePayload = await (await scheduleResponsePromise).json();
 
     await expect(page).toHaveURL(/\/categories\/\d+\/schedule$/);
     publicSchedulePath = new URL(page.url()).pathname;
@@ -476,16 +497,71 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await expect(page.getByText('Pilotari E2E 2')).toHaveCount(2);
     await expect(page.getByText('Pista: Pista E2E')).toHaveCount(2);
     await expect(page.getByText('No hay jornadas configuradas todavía.')).toHaveCount(0);
+    expect(schedulePayload.data[0].matches[0].home_entry).toEqual({
+      entry_type: 'player',
+      public_display_name: 'Pilotari E2E 1',
+    });
+    expect(schedulePayload.data[0].matches[0].away_entry).toEqual({
+      entry_type: 'player',
+      public_display_name: 'Pilotari E2E 2',
+    });
 
+    const matchResponsePromise = page.waitForResponse(
+      (response) => /\/api\/v1\/matches\/\d+$/.test(response.url()),
+    );
     await page.getByRole('link', { name: 'Ver partido: Pilotari E2E 1 contra Pilotari E2E 2' }).first().click();
+    const matchPayload = await (await matchResponsePromise).json();
     await expect(page).toHaveURL(/\/matches\/\d+$/);
     publicMatchPath = new URL(page.url()).pathname;
     await expect(page.getByRole('heading', { name: 'Detalles de la partida' })).toBeVisible();
     await expect(page.getByLabel('Pilotari E2E 1 contra Pilotari E2E 2')).toBeVisible();
     await expect(page.getByRole('link', { name: '← Volver al calendario de la categoría' }))
       .toHaveAttribute('href', publicSchedulePath);
+    expect(matchPayload.data.home_entry).toEqual({
+      entry_type: 'player',
+      public_display_name: 'Pilotari E2E 1',
+    });
+    expect(matchPayload.data).not.toHaveProperty('home_entry_id');
+    expect(matchPayload.data).not.toHaveProperty('winner_entry_id');
+    expect(JSON.stringify(matchPayload)).not.toContain('player1.e2e@example.test');
 
     assertNoConsoleErrors();
+  });
+
+  test('el calendario público consume también la proyección cerrada de equipos', async ({ page }) => {
+    await page.route('**/api/v1/categories/*/schedule', (route) => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        message: null,
+        data: [{
+          id: 9901,
+          category_id: 1,
+          name: 'Jornada de dobles',
+          slug: 'jornada-dobles',
+          type: 'league',
+          order: 1,
+          status: null,
+          matches: [{
+            id: 9902,
+            scheduled_date: null,
+            status: 'scheduled',
+            home_score: null,
+            away_score: null,
+            home_entry: { entry_type: 'team', public_display_name: 'Equip Blau' },
+            away_entry: { entry_type: 'team', public_display_name: 'Equip Roig' },
+            venue: null,
+          }],
+        }],
+      }),
+    }));
+
+    await page.goto(publicSchedulePath);
+
+    await expect(page.getByText('Equip Blau')).toBeVisible();
+    await expect(page.getByText('Equip Roig')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Ver partido: Equip Blau contra Equip Roig' }))
+      .toBeVisible();
   });
 
   test('la rama deportiva completa evita overflow documental y conserva foco visible', async ({ page }) => {
@@ -570,14 +646,8 @@ test.describe.serial('smoke narrativo del MVP', () => {
   });
 
   test('el Navbar evita overflow y solapamientos en la matriz responsive', async ({ page }) => {
+    await login(page, credentials.player1);
     await page.goto('/');
-    await page.evaluate(() => {
-      localStorage.setItem('token', 'e2e-responsive-token');
-      localStorage.setItem('user', JSON.stringify({
-        name: 'Nombre de participante deliberadamente muy largo para responsive',
-      }));
-    });
-    await page.reload();
 
     for (const width of [320, 375, 768, 1024, 1280, 1440]) {
       await page.setViewportSize({ width, height: 900 });
@@ -615,6 +685,81 @@ test.describe.serial('smoke narrativo del MVP', () => {
     }
   });
 
+  test('un 401 durante el bootstrap elimina token y perfil legado', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => {
+      localStorage.setItem('token', 'e2e-invalid-token');
+      localStorage.setItem('user', JSON.stringify({ email: 'legacy@example.test' }));
+    });
+    await page.route('**/api/v1/me', (route) => route.fulfill({
+      status: 401,
+      contentType: 'application/json',
+      body: JSON.stringify({ message: 'Unauthenticated.', data: null }),
+    }));
+
+    await page.reload();
+
+    await expect(
+      page.getByRole('group', { name: 'Cuenta' }).getByRole('link', { name: 'Iniciar sesión' }),
+    ).toBeVisible();
+    await expect.poll(() => page.evaluate(() => ({
+      token: localStorage.getItem('token'),
+      user: localStorage.getItem('user'),
+    }))).toEqual({ token: null, user: null });
+  });
+
+  test('un 403 ordinario conserva Cuenta y el Bearer para peticiones posteriores', async ({ page }) => {
+    const consoleErrors = [];
+    page.on('console', (message) => {
+      if (message.type() === 'error') {
+        consoleErrors.push(message.text());
+      }
+    });
+
+    await login(page, credentials.player1);
+
+    let forbiddenAuthorization = null;
+    await page.route('**/api/v1/me/rankings', async (route) => {
+      forbiddenAuthorization = route.request().headers().authorization || null;
+      await route.fulfill({
+        status: 403,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          message: 'No tienes permiso para consultar este recurso.',
+          data: null,
+        }),
+      });
+    });
+
+    await page.getByRole('button', { name: 'Rankings' }).click();
+
+    await expect(page.getByText('No se pudieron cargar tus rankings en este momento.')).toBeVisible();
+    await expect(
+      page.getByRole('group', { name: 'Cuenta' }).getByRole('link', { name: 'Mi Panel' }),
+    ).toBeVisible();
+    await expect.poll(() => page.evaluate(() => ({
+      hasToken: Boolean(localStorage.getItem('token')),
+      storedUser: localStorage.getItem('user'),
+    }))).toEqual({ hasToken: true, storedUser: null });
+    expect(forbiddenAuthorization).toMatch(/^Bearer /);
+
+    await page.unroute('**/api/v1/me/rankings');
+    const nextAuthenticatedRequest = page.waitForRequest('**/api/v1/me/rankings');
+    await page.getByRole('button', { name: 'Resumen' }).click();
+    await page.getByRole('button', { name: 'Rankings' }).click();
+
+    const request = await nextAuthenticatedRequest;
+    expect(request.headers().authorization).toMatch(/^Bearer /);
+    await expect(
+      page.getByRole('group', { name: 'Cuenta' }).getByRole('link', { name: 'Mi Panel' }),
+    ).toBeVisible();
+
+    expect(consoleErrors).toEqual([
+      'Failed to load resource: the server responded with a status of 403 (Forbidden)',
+    ]);
+    expect(JSON.stringify(consoleErrors)).not.toMatch(/Bearer|@example\.test|Pilotari E2E/);
+  });
+
   test('una URL desconocida muestra la 404 y permite volver a Inicio', async ({ page }) => {
     const assertNoConsoleErrors = watchCriticalConsoleErrors(page);
 
@@ -640,6 +785,12 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await expect(page.getByRole('heading', { name: 'Perfil de Jugador' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Acciones pendientes' })).toBeVisible();
     await expect(page.getByLabel('2 acciones pendientes')).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByRole('heading', { name: 'Panel de Control' })).toBeVisible();
+    await expect(page.getByRole('group', { name: 'Cuenta' }).getByRole('link', { name: 'Mi Panel' }))
+      .toBeVisible();
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('user'))).toBeNull();
 
     await page.getByRole('link', { name: 'Enviar resultado' }).first().click();
     await expect(page).toHaveURL(/\/matches\/\d+$/);
@@ -710,6 +861,13 @@ test.describe.serial('smoke narrativo del MVP', () => {
   });
 
   test('el administrador resuelve la discrepancia desde el panel Blade', async ({ page }) => {
+    const remoteRequests = [];
+    page.on('request', (request) => {
+      if (/fonts\.(googleapis|gstatic)|fonts\.bunny|cdn\.jsdelivr/.test(request.url())) {
+        remoteRequests.push(request.url());
+      }
+    });
+
     await page.goto(`${adminBaseURL}/admin/login`);
     await page.getByLabel('Email').fill(credentials.admin.email);
     await page.getByLabel('Contraseña').fill(credentials.admin.password);
@@ -718,9 +876,11 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await expect(page).toHaveURL(/\/admin$/);
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
     await page.setViewportSize({ width: 390, height: 844 });
-    const adminMenuToggle = page.getByRole('button', { name: 'Abrir menú de administración' });
+    const adminMenuToggle = page.locator('[data-admin-menu-toggle]');
+    await expect(adminMenuToggle).toHaveAttribute('aria-label', 'Abrir menú de administración');
     await expect(adminMenuToggle).toHaveAttribute('aria-expanded', 'false');
     await adminMenuToggle.click();
+    await expect(adminMenuToggle).toHaveAttribute('aria-label', 'Cerrar menú de administración');
     await expect(adminMenuToggle).toHaveAttribute('aria-expanded', 'true');
     await page.getByRole('link', { name: 'Conflictos', exact: true }).click();
 
@@ -747,6 +907,7 @@ test.describe.serial('smoke narrativo del MVP', () => {
     const officialScore = page.getByLabel('Pilotari E2E 1 contra Pilotari E2E 2');
     await expect(officialScore).toContainText('10');
     await expect(officialScore).toContainText('8');
+    expect(remoteRequests).toEqual([]);
   });
 
   test('el ranking refleja el resultado validado sin escala incorrecta ni NaN', async ({ page }) => {

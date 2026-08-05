@@ -1,9 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   AUTH_SESSION_CLEARED_EVENT,
+  AUTH_TOKEN_STORAGE_KEY,
+  INACTIVE_USER_AUTH_MESSAGE,
+  LEGACY_AUTH_USER_STORAGE_KEY,
   clearAuthSession,
   clearStoredAuth,
+  discardLegacyStoredUser,
   getStoredAuthToken,
+  shouldInvalidateAuthSession,
+  storeAuthToken,
 } from './authSession';
 
 describe('authSession', () => {
@@ -12,9 +18,42 @@ describe('authSession', () => {
   });
 
   it('reads the stored bearer token', () => {
-    localStorage.setItem('token', 'test-token');
+    storeAuthToken('test-token');
 
     expect(getStoredAuthToken()).toBe('test-token');
+    expect(localStorage.getItem(LEGACY_AUTH_USER_STORAGE_KEY)).toBeNull();
+  });
+
+  it('stores only the bearer token and removes it for an empty value', () => {
+    storeAuthToken('test-token');
+
+    expect(localStorage).toHaveLength(1);
+    expect(localStorage.getItem(AUTH_TOKEN_STORAGE_KEY)).toBe('test-token');
+
+    storeAuthToken(null);
+
+    expect(localStorage).toHaveLength(0);
+  });
+
+  it('discards a legacy user without migrating its data', () => {
+    localStorage.setItem(LEGACY_AUTH_USER_STORAGE_KEY, JSON.stringify({ email: 'legacy@example.test' }));
+
+    discardLegacyStoredUser();
+
+    expect(localStorage.getItem(LEGACY_AUTH_USER_STORAGE_KEY)).toBeNull();
+  });
+
+  it.each([401, 419])('identifies HTTP %s as an invalid session', (status) => {
+    expect(shouldInvalidateAuthSession({ response: { status } })).toBe(true);
+  });
+
+  it('preserves ordinary forbidden responses and identifies the revoked inactive-user token', () => {
+    expect(shouldInvalidateAuthSession({
+      response: { status: 403, data: { message: 'No tienes permiso para realizar esta acción.' } },
+    })).toBe(false);
+    expect(shouldInvalidateAuthSession({
+      response: { status: 403, data: { message: INACTIVE_USER_AUTH_MESSAGE } },
+    })).toBe(true);
   });
 
   it('removes token and user from storage', () => {

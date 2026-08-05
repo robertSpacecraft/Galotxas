@@ -11,7 +11,7 @@
 .content h5,
 .content h6 {
   color: #003366;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-family);
   line-height: 1.3;
   scroll-margin-top: 2rem;
 }

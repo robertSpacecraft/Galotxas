@@ -110,6 +110,7 @@ export default function Schedule() {
                   match={match}
                   translateStatus={getMatchStatusLabel}
                   officialScoresOnly
+                  publicIdentityOnly
                   showDetailLabel
                   showVenue
                 />

@@ -4,11 +4,16 @@ namespace App\Services\Ranking;
 
 use App\Models\Category;
 use App\Models\GameMatch;
+use App\Services\PublicPlayerIdentityService;
 use Illuminate\Support\Collection;
 
 class BuildCategoryRankingService
 {
-    public function build(Category $category): Collection
+    public function __construct(
+        private readonly PublicPlayerIdentityService $publicIdentityService
+    ) {}
+
+    public function build(Category $category, bool $publicOnly = false): Collection
     {
         $category->loadMissing([
             'championship',
@@ -44,10 +49,15 @@ class BuildCategoryRankingService
         $table = collect();
 
         foreach ($entries as $entry) {
+            $name = $publicOnly
+                ? $this->publicIdentityService->entryDisplayName($entry)
+                : $this->resolveEntryName($entry);
+
             $table->put($entry->id, [
                 'entry_id' => $entry->id,
                 'entry' => $entry,
-                'name' => $this->resolveEntryName($entry),
+                'name' => $name,
+                'public_display_name' => $publicOnly ? $name : null,
                 'played' => 0,
                 'wins' => 0,
                 'losses' => 0,

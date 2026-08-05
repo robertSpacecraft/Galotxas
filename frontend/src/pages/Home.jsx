@@ -13,8 +13,8 @@ export default function Home() {
                 setSeasons(response.data);
                 setLoading(false);
             })
-            .catch(error => {
-                console.error("Error fetching seasons", error);
+            .catch(() => {
+                console.error('No se han podido cargar las temporadas.');
                 setLoading(false);
             });
     }, []);

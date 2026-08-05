@@ -146,7 +146,8 @@ class RankingServicesTest extends TestCase
         $this->assertSame(50.0, $serviceRow['win_rate']);
 
         $response = $this->getJson('/api/v1/rankings/all-time')->assertOk();
-        $resourceRow = collect($response->json('data'))->firstWhere('player_id', $players[0]->id);
+        $resourceRow = collect($response->json('data'))
+            ->firstWhere('public_display_name', 'Principal');
 
         $this->assertNotNull($resourceRow);
         $this->assertSame(50.0, (float) $resourceRow['win_rate']);
@@ -221,7 +222,10 @@ class RankingServicesTest extends TestCase
         $players = [];
 
         foreach ($nicknames as $nickname) {
-            $player = Player::factory()->create(['nickname' => $nickname]);
+            $player = Player::factory()->create([
+                'nickname' => $nickname,
+                'birth_date' => '1990-01-01',
+            ]);
             $entry = CategoryEntry::query()->create([
                 'category_id' => $category->id,
                 'entry_type' => 'player',

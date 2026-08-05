@@ -5,48 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Panel Admin - Galotxas</title>
 
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-        crossorigin="anonymous"
-    >
-
-    <style>
-        body {
-            background-color: #f4f6f9;
-        }
-
-        .admin-navbar {
-            background: linear-gradient(90deg, #1f2937 0%, #111827 100%);
-        }
-
-        .admin-navbar .navbar-brand,
-        .admin-navbar .nav-link,
-        .admin-navbar .navbar-text {
-            color: #f9fafb !important;
-        }
-
-        .page-card {
-            border: 0;
-            box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.08);
-        }
-
-        .section-title {
-            font-weight: 700;
-            margin-bottom: 1rem;
-        }
-
-        .table thead th {
-            vertical-align: middle;
-            white-space: nowrap;
-        }
-
-        .match-form-row input,
-        .match-form-row select {
-            min-width: 110px;
-        }
-    </style>
+    <link href="{{ asset('css/admin.css') }}" rel="stylesheet">
 
     @stack('styles')
 </head>
@@ -59,8 +18,7 @@
         <button
             class="navbar-toggler bg-light"
             type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#adminNavbar"
+            data-admin-menu-toggle="#adminNavbar"
             aria-controls="adminNavbar"
             aria-expanded="false"
             aria-label="Abrir menú de administración"
@@ -83,16 +41,15 @@
                     <a class="nav-link" href="{{ route('admin.venues.index') }}">Pistas</a>
                 </li>
                 <li class="nav-item dropdown">
-                    <a
+                    <button
                         class="nav-link dropdown-toggle"
-                        href="#"
+                        type="button"
                         id="schoolAdminDropdown"
-                        role="button"
-                        data-bs-toggle="dropdown"
+                        data-admin-dropdown
                         aria-expanded="false"
                     >
                         Escuela de Galotxas
-                    </a>
+                    </button>
                     <ul class="dropdown-menu" aria-labelledby="schoolAdminDropdown">
                         <li>
                             <a class="dropdown-item" href="{{ route('admin.school.enrollments.index') }}">
@@ -170,11 +127,7 @@
     @yield('content')
 </main>
 
-<script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-    crossorigin="anonymous"
-></script>
+<script src="{{ asset('js/admin.js') }}" defer></script>
 
 @stack('scripts')
 </body>

@@ -46,7 +46,7 @@
   text-transform: uppercase;
   letter-spacing: 2px;
   line-height: 1.1;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-family);
 }
 
 .subtitle {

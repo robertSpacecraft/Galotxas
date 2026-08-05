@@ -122,13 +122,13 @@ export const SeasonRanking = ({
               </tr>
             </thead>
             <tbody>
-              {ranking.map((row) => (
-                <tr key={row.player_id || `${row.position}-${row.name}`}>
+              {ranking.map((row, index) => (
+                <tr key={`${row.position ?? 'provisional'}-${index}`}>
                   <td className={styles.positionCell}>
                     <span className={styles.posNum}>{row.position ?? '—'}</span>
                   </td>
                   <th scope="row" className={styles.playerName}>
-                    {row.name || 'Jugador no disponible'}
+                    {row.public_display_name || 'Participante'}
                   </th>
                   <td className={styles.center}>{row.played ?? '—'}</td>
                   <td className={styles.center}>{row.wins ?? '—'}</td>

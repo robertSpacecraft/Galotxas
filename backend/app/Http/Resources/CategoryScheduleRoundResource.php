@@ -26,34 +26,14 @@ class CategoryScheduleRoundResource extends JsonResource
                         'home_score' => $match->home_score,
                         'away_score' => $match->away_score,
 
-                        'home_entry' => $match->homeEntry ? [
-                            'id' => $match->homeEntry->id,
-                            'entry_type' => $match->homeEntry->entry_type,
-                            'player' => $match->homeEntry->player ? [
-                                'id' => $match->homeEntry->player->id,
-                                'nickname' => $match->homeEntry->player->nickname,
-                            ] : null,
-                            'team' => $match->homeEntry->team ? [
-                                'id' => $match->homeEntry->team->id,
-                                'name' => $match->homeEntry->team->name,
-                            ] : null,
-                        ] : null,
-
-                        'away_entry' => $match->awayEntry ? [
-                            'id' => $match->awayEntry->id,
-                            'entry_type' => $match->awayEntry->entry_type,
-                            'player' => $match->awayEntry->player ? [
-                                'id' => $match->awayEntry->player->id,
-                                'nickname' => $match->awayEntry->player->nickname,
-                            ] : null,
-                            'team' => $match->awayEntry->team ? [
-                                'id' => $match->awayEntry->team->id,
-                                'name' => $match->awayEntry->team->name,
-                            ] : null,
-                        ] : null,
+                        'home_entry' => $match->homeEntry
+                            ? new PublicCompetitionEntryResource($match->homeEntry)
+                            : null,
+                        'away_entry' => $match->awayEntry
+                            ? new PublicCompetitionEntryResource($match->awayEntry)
+                            : null,
 
                         'venue' => $match->venue ? [
-                            'id' => $match->venue->id,
                             'name' => $match->venue->name,
                         ] : null,
                     ];

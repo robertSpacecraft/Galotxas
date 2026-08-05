@@ -39,10 +39,12 @@ export const TournamentRanking = ({ ranking }) => {
             </tr>
           </thead>
           <tbody>
-            {ranking.map((item) => (
-              <tr key={item.player_id || `${item.position}-${item.name}`}>
+            {ranking.map((item, index) => (
+              <tr key={`${item.position ?? 'provisional'}-${index}`}>
                 <td className={styles.position}>{item.position ?? '—'}</td>
-                <th scope="row" className={styles.name}>{item.name || 'Jugador no disponible'}</th>
+                <th scope="row" className={styles.name}>
+                  {item.public_display_name || 'Participante'}
+                </th>
                 <td className={styles.center}>{item.played ?? '—'}</td>
                 <td className={styles.center}>{item.wins ?? '—'}</td>
                 <td className={styles.center}>{item.losses ?? '—'}</td>

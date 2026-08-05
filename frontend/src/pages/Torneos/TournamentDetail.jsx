@@ -86,7 +86,7 @@ export const TournamentDetail = () => {
       setRegStatus(statusData?.request || null);
     } catch (error) {
       if (error.response?.status !== 404) {
-        console.error('Error checking registration status:', error);
+        console.error('No se ha podido comprobar la inscripción del campeonato.');
       }
       setRegStatus(null);
     }

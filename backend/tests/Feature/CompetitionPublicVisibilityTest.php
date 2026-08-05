@@ -351,25 +351,25 @@ class CompetitionPublicVisibilityTest extends TestCase
         $championshipResponse = $this->getJson(
             '/api/v1/championships/'.$publicChampionship->id.'/ranking'
         )->assertOk();
-        $championshipIds = collect($championshipResponse->json('data'))->pluck('player_id');
-        $this->assertTrue($championshipIds->contains($publicPlayer->id));
-        $this->assertFalse($championshipIds->contains($privateCategoryPlayer->id));
+        $championshipNames = collect($championshipResponse->json('data'))->pluck('public_display_name');
+        $this->assertTrue($championshipNames->contains('Ranking público'));
+        $this->assertFalse($championshipNames->contains('Ranking categoría privada'));
 
         $seasonResponse = $this->getJson('/api/v1/seasons/'.$publicSeason->id.'/ranking')->assertOk();
-        $seasonIds = collect($seasonResponse->json('data'))->pluck('player_id');
-        $this->assertTrue($seasonIds->contains($publicPlayer->id));
-        $this->assertFalse($seasonIds->contains($privateCategoryPlayer->id));
-        $this->assertFalse($seasonIds->contains($privateChampionshipPlayer->id));
+        $seasonNames = collect($seasonResponse->json('data'))->pluck('public_display_name');
+        $this->assertTrue($seasonNames->contains('Ranking público'));
+        $this->assertFalse($seasonNames->contains('Ranking categoría privada'));
+        $this->assertFalse($seasonNames->contains('Ranking campeonato privado'));
 
         $this->getJson('/api/v1/championships/'.$privateChampionship->id.'/ranking')->assertNotFound();
         $this->getJson('/api/v1/seasons/'.$privateSeason->id.'/ranking')->assertNotFound();
 
         $allTimeResponse = $this->getJson('/api/v1/rankings/all-time')->assertOk();
-        $allTimeIds = collect($allTimeResponse->json('data'))->pluck('player_id');
-        $this->assertTrue($allTimeIds->contains($publicPlayer->id));
-        $this->assertFalse($allTimeIds->contains($privateCategoryPlayer->id));
-        $this->assertFalse($allTimeIds->contains($privateChampionshipPlayer->id));
-        $this->assertFalse($allTimeIds->contains($privateSeasonPlayer->id));
+        $allTimeNames = collect($allTimeResponse->json('data'))->pluck('public_display_name');
+        $this->assertTrue($allTimeNames->contains('Ranking público'));
+        $this->assertFalse($allTimeNames->contains('Ranking categoría privada'));
+        $this->assertFalse($allTimeNames->contains('Ranking campeonato privado'));
+        $this->assertFalse($allTimeNames->contains('Ranking temporada privada'));
 
         $internalAllTimeIds = app(BuildAllTimeRankingService::class)->build()->pluck('player_id');
         $this->assertTrue($internalAllTimeIds->contains($privateCategoryPlayer->id));
@@ -595,8 +595,14 @@ class CompetitionPublicVisibilityTest extends TestCase
             'phase' => 'league',
             'stage' => 'matchday',
         ]);
-        $homePlayer = Player::factory()->create(['nickname' => $homeNickname]);
-        $awayPlayer = Player::factory()->create(['nickname' => $awayNickname]);
+        $homePlayer = Player::factory()->create([
+            'nickname' => $homeNickname,
+            'birth_date' => '1990-01-01',
+        ]);
+        $awayPlayer = Player::factory()->create([
+            'nickname' => $awayNickname,
+            'birth_date' => '1991-01-01',
+        ]);
         $homeEntry = CategoryEntry::factory()->playerEntry()->create([
             'category_id' => $category->id,
             'player_id' => $homePlayer->id,

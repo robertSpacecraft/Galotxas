@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { getMatchDetailPath } from '../navigation/competitionRoutes';
+import { getPublicCompetitionDisplayName } from '../utils/publicCompetitionIdentity';
 import styles from './MatchCard.module.css';
 
 export default function MatchCard({
@@ -9,8 +10,11 @@ export default function MatchCard({
     officialScoresOnly = false,
     showDetailLabel = false,
     showVenue = false,
+    publicIdentityOnly = false,
 }) {
     const getEntryName = (entry, directName, entryId) => {
+        if (publicIdentityOnly) return getPublicCompetitionDisplayName(entry);
+
         // Prioridad 1: Mapa de nombres enriquecido desde Standings
         if (entryId && entryNames[entryId]) return entryNames[entryId];
         

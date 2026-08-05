@@ -8,26 +8,9 @@ import {
     getCategorySchedulePath,
     TOURNAMENTS_PATH,
 } from '../navigation/competitionRoutes';
+import { getPublicCompetitionDisplayName } from '../utils/publicCompetitionIdentity';
 import { getMatchStatusLabel } from './Competition/competitionPresentation';
 import styles from './MatchDetails.module.css';
-
-const getEntryName = (entry) => {
-    if (!entry) {
-        return 'Por determinar';
-    }
-
-    if (entry.team) {
-        return entry.team.name || `Equipo #${entry.team.id}`;
-    }
-
-    if (entry.player) {
-        return entry.player.nickname
-            || `${entry.player.name || ''} ${entry.player.lastname || ''}`.trim()
-            || `Jugador #${entry.player.id}`;
-    }
-
-    return 'Participante';
-};
 
 const formatDateTime = (value) => {
     if (!value) {
@@ -120,8 +103,8 @@ export default function MatchDetails() {
     const championship = category?.championship;
     const backTarget = getCategorySchedulePath(category?.id) || TOURNAMENTS_PATH;
     const backLabel = category?.id ? 'Volver al calendario de la categoría' : 'Volver a Torneos';
-    const homeName = getEntryName(match.home_entry);
-    const awayName = getEntryName(match.away_entry);
+    const homeName = getPublicCompetitionDisplayName(match.home_entry);
+    const awayName = getPublicCompetitionDisplayName(match.away_entry);
 
     return (
         <div className={styles.container}>

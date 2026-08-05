@@ -31,9 +31,9 @@ class CategoryController extends Controller
         abort_unless($category->isEffectivelyPublic(), 404);
 
         $rounds = $category->rounds()->with([
-            'matches.homeEntry.player',
+            'matches.homeEntry.player.user',
             'matches.homeEntry.team',
-            'matches.awayEntry.player',
+            'matches.awayEntry.player.user',
             'matches.awayEntry.team',
             'matches.venue',
         ])->get();
@@ -49,7 +49,7 @@ class CategoryController extends Controller
     ): JsonResponse {
         abort_unless($category->isEffectivelyPublic(), 404);
 
-        $ranking = $rankingService->build($category);
+        $ranking = $rankingService->build($category, publicOnly: true);
 
         return $this->successResponse(
             CategoryRankingResource::collection($ranking)

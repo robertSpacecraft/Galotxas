@@ -9,9 +9,9 @@ export const CompetitionRankingPreview = ({ ranking }) => {
 
   return (
     <ol className={styles.rankingList} aria-label="Primeras posiciones del ranking histórico">
-      {entries.map((entry) => (
+      {entries.map((entry, index) => (
         <li
-          key={entry.player_id ?? `${entry.position}-${entry.name}`}
+          key={`${entry.position ?? 'provisional'}-${index}`}
           className={styles.rankingEntry}
         >
           <div className={styles.rankingIdentity}>
@@ -20,7 +20,9 @@ export const CompetitionRankingPreview = ({ ranking }) => {
             ) : (
               <span className={styles.rankingPosition}>Sin posición oficial</span>
             )}
-            {entry.name ? <h3 className={styles.rankingName}>{entry.name}</h3> : null}
+            {entry.public_display_name ? (
+              <h3 className={styles.rankingName}>{entry.public_display_name}</h3>
+            ) : null}
             {Array.isArray(entry.categories_played_list)
               && entry.categories_played_list.length > 0 ? (
                 <p className={styles.rankingContext}>

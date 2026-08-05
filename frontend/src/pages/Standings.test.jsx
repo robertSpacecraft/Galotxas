@@ -37,8 +37,7 @@ describe('Standings', () => {
     championshipsService.getCategoryStandings.mockResolvedValue([
       {
         position: 7,
-        entry_id: 4,
-        name: 'Pilotari E2E',
+        public_display_name: 'Pilotari E2E',
         played: 3,
         wins: 2,
         losses: 1,

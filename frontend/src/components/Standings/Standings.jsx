@@ -34,7 +34,7 @@ export const Standings = ({ categoryId }) => {
                 </td>
                 <td className={styles.td}>
                   <div className={styles.teamName}>
-                    {entry.team?.name || entry.name || 'Equipo'}
+                    {entry.public_display_name || 'Participante'}
                   </div>
                 </td>
                 <td className={styles.td}>{entry.matches_played || 0}</td>

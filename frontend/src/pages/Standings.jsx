@@ -134,10 +134,12 @@ export default function Standings() {
               </tr>
             </thead>
             <tbody>
-              {standings.map((row) => (
-                <tr key={row.entry_id} className={styles.row}>
+              {standings.map((row, index) => (
+                <tr key={`${row.position ?? 'provisional'}-${index}`} className={styles.row}>
                   <td className={styles.pos}>{displayValue(row.position)}</td>
-                  <th scope="row" className={styles.name}>{row.name || 'Participante no disponible'}</th>
+                  <th scope="row" className={styles.name}>
+                    {row.public_display_name || 'Participante'}
+                  </th>
                   <td className={styles.center}>{displayValue(row.played)}</td>
                   <td className={styles.center}>{displayValue(row.wins)}</td>
                   <td className={styles.center}>{displayValue(row.losses)}</td>

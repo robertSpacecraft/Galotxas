@@ -96,18 +96,18 @@ export const AllTimeRanking = () => {
             </tr>
           </thead>
           <tbody>
-            {visibleRanking.map((row) => {
+            {visibleRanking.map((row, index) => {
               const isOfficial = row.official_ranking;
 
               return (
-                <tr key={row.player_id || `${row.position}-${row.name}`}>
+                <tr key={`${row.position ?? 'provisional'}-${index}`}>
                   <td className={styles.positionCell}>
                     <span className={isOfficial ? styles.posNum : styles.noOfficial}>
                       {isOfficial ? row.position ?? '—' : '—'}
                     </span>
                   </td>
                   <th scope="row" className={styles.playerName}>
-                    {row.name || 'Jugador no disponible'}
+                    {row.public_display_name || 'Participante'}
                   </th>
                   <td className={styles.center}>{row.played ?? '—'}</td>
                   <td className={styles.center}>{row.wins ?? '—'}</td>

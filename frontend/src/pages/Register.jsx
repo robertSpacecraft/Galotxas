@@ -100,7 +100,7 @@ export default function Register() {
                     } else {
                         // If it's a 409, the profile exists. If it's something else, we log it but STILL redirect 
                         // because the core user account was already created successfully.
-                        console.error("Error creating player profile:", profError.response?.data || profError);
+                        console.error('No se ha podido crear el perfil de jugador tras el registro.');
                         alert("Aviso: El usuario se ha creado, pero hubo un problema al guardar los datos de jugador: " + 
                               (profError.response?.data?.message || "Error desconocido."));
                     }
@@ -108,11 +108,10 @@ export default function Register() {
                 }
             }
 
-            console.log('Registro y perfil completados. Forzando recarga hacia /player...');
             // Utilizamos window.location para forzar la recarga del estado de la app en este caso complejo
             window.location.href = '/player';
         } catch (err) {
-            console.error("Error general en el registro:", err);
+            console.error('No se ha podido completar el registro.');
             setError(err.response?.data?.message || 'Error en el registro. Revisa los datos.');
             setLoading(false);
         }

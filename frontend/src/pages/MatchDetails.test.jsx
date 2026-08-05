@@ -23,8 +23,8 @@ describe('MatchDetails', () => {
       scheduled_date: '2026-07-14T18:00:00Z',
       home_score: null,
       away_score: null,
-      home_entry: { player: { nickname: 'Local RC' } },
-      away_entry: { player: { nickname: 'Visitante RC' } },
+      home_entry: { entry_type: 'player', public_display_name: 'Local RC' },
+      away_entry: { entry_type: 'player', public_display_name: 'Visitante RC' },
       venue: { name: 'Pista RC' },
       round: {
         name: 'Jornada RC',
@@ -58,8 +58,8 @@ describe('MatchDetails', () => {
       .mockResolvedValueOnce({
         id: 18,
         status: 'scheduled',
-        home_entry: { player: { nickname: 'Local RC' } },
-        away_entry: { player: { nickname: 'Visitante RC' } },
+        home_entry: { entry_type: 'player', public_display_name: 'Local RC' },
+        away_entry: { entry_type: 'player', public_display_name: 'Visitante RC' },
       });
 
     renderWithProviders(<MatchDetails />, {

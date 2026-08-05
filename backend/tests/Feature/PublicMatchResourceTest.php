@@ -30,7 +30,16 @@ class PublicMatchResourceTest extends TestCase
             ->assertJsonPath('data.status', 'validated')
             ->assertJsonPath('data.home_score', 10)
             ->assertJsonPath('data.away_score', 7)
-            ->assertJsonPath('data.winner_entry_id', $match->home_entry_id)
+            ->assertJsonStructure([
+                'data' => [
+                    'home_entry' => ['entry_type', 'public_display_name'],
+                    'away_entry' => ['entry_type', 'public_display_name'],
+                    'winner_entry' => ['entry_type', 'public_display_name'],
+                ],
+            ])
+            ->assertJsonMissingPath('data.winner_entry_id')
+            ->assertJsonMissingPath('data.home_entry_id')
+            ->assertJsonMissingPath('data.away_entry_id')
             ->assertJsonMissingPath('data.submitted_by')
             ->assertJsonMissingPath('data.validated_by')
             ->assertJsonMissingPath('data.submitted_by_user')
@@ -54,7 +63,7 @@ class PublicMatchResourceTest extends TestCase
             ->assertJsonPath('data.status', 'submitted')
             ->assertJsonPath('data.home_score', null)
             ->assertJsonPath('data.away_score', null)
-            ->assertJsonPath('data.winner_entry_id', null)
+            ->assertJsonMissingPath('data.winner_entry_id')
             ->assertJsonPath('data.winner_entry', null);
     }
 
@@ -83,8 +92,8 @@ class PublicMatchResourceTest extends TestCase
             'championship_id' => $championship->id,
         ]);
         $round = Round::factory()->for($category)->create();
-        $homePlayer = Player::factory()->create();
-        $awayPlayer = Player::factory()->create();
+        $homePlayer = Player::factory()->create(['birth_date' => '1990-01-01']);
+        $awayPlayer = Player::factory()->create(['birth_date' => '1991-01-01']);
         $homeEntry = CategoryEntry::factory()->playerEntry()->create([
             'category_id' => $category->id,
             'player_id' => $homePlayer->id,

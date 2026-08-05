@@ -29,7 +29,8 @@ describe('championshipsService.getSeasons', () => {
 
     await expect(championshipsService.getSeasons()).rejects.toBe(error);
     expect(api.get).toHaveBeenCalledTimes(1);
-    expect(consoleError).toHaveBeenCalledWith('Error fetching seasons:', error);
+    expect(consoleError).toHaveBeenCalledWith('No se han podido cargar las temporadas.');
+    expect(JSON.stringify(consoleError.mock.calls)).not.toContain('private@example.test');
   });
 });
 
@@ -39,7 +40,7 @@ describe('championshipsService.getAllTimeRanking', () => {
   });
 
   it('reads the all-time ranking envelope with one request to the existing endpoint', async () => {
-    const ranking = [{ position: 1, player_id: 9, name: 'Pilotari', weighted_points: 12 }];
+    const ranking = [{ position: 1, public_display_name: 'Pilotari', weighted_points: 12 }];
     api.get.mockResolvedValue({ data: { message: null, data: ranking } });
 
     await expect(championshipsService.getAllTimeRanking()).resolves.toEqual(ranking);
@@ -54,6 +55,7 @@ describe('championshipsService.getAllTimeRanking', () => {
 
     await expect(championshipsService.getAllTimeRanking()).rejects.toBe(error);
     expect(api.get).toHaveBeenCalledTimes(1);
-    expect(consoleError).toHaveBeenCalledWith('Error fetching all-time ranking:', error);
+    expect(consoleError).toHaveBeenCalledWith('No se ha podido cargar el ranking histórico.');
+    expect(JSON.stringify(consoleError.mock.calls)).not.toContain('private@example.test');
   });
 });

@@ -16,33 +16,23 @@ class PublicMatchResource extends JsonResource
 
         return [
             'id' => $this->id,
-            'round_id' => $this->round_id,
-            'venue_id' => $this->venue_id,
-            'home_entry_id' => $this->home_entry_id,
-            'away_entry_id' => $this->away_entry_id,
-            'winner_entry_id' => $isValidated ? $this->winner_entry_id : null,
-
             'scheduled_date' => $this->scheduled_date?->toISOString(),
             'status' => $this->status?->value,
             'home_score' => $isValidated ? $this->home_score : null,
             'away_score' => $isValidated ? $this->away_score : null,
-
-
             'home_entry' => $this->whenLoaded('homeEntry', function () {
-                return $this->transformEntry($this->homeEntry);
+                return $this->homeEntry ? new PublicCompetitionEntryResource($this->homeEntry) : null;
             }),
-
             'away_entry' => $this->whenLoaded('awayEntry', function () {
-                return $this->transformEntry($this->awayEntry);
+                return $this->awayEntry ? new PublicCompetitionEntryResource($this->awayEntry) : null;
             }),
-
             'winner_entry' => $this->whenLoaded('winnerEntry', function () use ($isValidated) {
-                return $isValidated && $this->winnerEntry ? $this->transformEntry($this->winnerEntry) : null;
+                return $isValidated && $this->winnerEntry
+                    ? new PublicCompetitionEntryResource($this->winnerEntry)
+                    : null;
             }),
-
             'venue' => $this->whenLoaded('venue', function () {
                 return [
-                    'id' => $this->venue?->id,
                     'name' => $this->venue?->name,
                 ];
             }),
@@ -80,51 +70,6 @@ class PublicMatchResource extends JsonResource
                         : null,
                 ];
             }),
-        ];
-
-    }
-
-    /**
-     * @return array<string, mixed>|null
-     */
-    protected function transformEntry($entry): ?array
-    {
-        if (!$entry) {
-            return null;
-        }
-
-        return [
-            'id' => $entry->id,
-            'entry_type' => $entry->entry_type,
-            'player_id' => $entry->player_id,
-            'team_id' => $entry->team_id,
-
-            'player' => $entry->relationLoaded('player') && $entry->player
-                ? [
-                    'id' => $entry->player->id,
-                    'name' => $entry->player->user?->name,
-                    'lastname' => $entry->player->user?->lastname,
-                    'nickname' => $entry->player->nickname,
-                ]
-                : null,
-
-            'team' => $entry->relationLoaded('team') && $entry->team
-                ? [
-                    'id' => $entry->team->id,
-                    'name' => $entry->team->name,
-                    'players' => $entry->team->relationLoaded('players')
-                        ? $entry->team->players->map(function ($player) {
-                            return [
-                                'id' => $player->id,
-                                'name' => $player->user?->name,
-                                'lastname' => $player->user?->lastname,
-                                'nickname' => $player->nickname,
-                                'role_in_team' => $player->pivot?->role_in_team,
-                            ];
-                        })->values()
-                        : [],
-                ]
-                : null,
         ];
     }
 }

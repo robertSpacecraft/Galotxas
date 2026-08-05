@@ -1,5 +1,9 @@
 import axios from 'axios';
-import { clearAuthSession, getStoredAuthToken } from './authSession';
+import {
+    clearAuthSession,
+    getStoredAuthToken,
+    shouldInvalidateAuthSession,
+} from './authSession';
 import { resolveApiBaseUrl } from './apiBaseUrl';
 
 const api = axios.create({
@@ -26,7 +30,7 @@ api.interceptors.response.use(
     error => {
         const status = error.response?.status;
 
-        if ((status === 401 || status === 403) && getStoredAuthToken()) {
+        if (shouldInvalidateAuthSession(error) && getStoredAuthToken()) {
             clearAuthSession(`http-${status}`);
         }
 

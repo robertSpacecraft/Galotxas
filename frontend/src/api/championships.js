@@ -14,7 +14,7 @@ export const championshipsService = {
       // Championships now return response.data.data
       return response.data.data;
     } catch (error) {
-      console.error('Error fetching championships:', error);
+      console.error('No se han podido cargar los campeonatos.');
       throw error;
     }
   },
@@ -29,7 +29,7 @@ export const championshipsService = {
       // Detail now returns response.data.data
       return response.data.data;
     } catch (error) {
-      console.error(`Error fetching championship ${id}:`, error);
+      console.error(`No se ha podido cargar el campeonato ${id}.`);
       throw error;
     }
   },
@@ -44,7 +44,7 @@ export const championshipsService = {
       // Ranking now returns response.data.data
       return response.data.data;
     } catch (error) {
-      console.error(`Error fetching ranking for championship ${id}:`, error);
+      console.error(`No se ha podido cargar el ranking del campeonato ${id}.`);
       throw error;
     }
   },
@@ -58,7 +58,7 @@ export const championshipsService = {
       // Category now returns response.data.data
       return response.data.data;
     } catch (error) {
-      console.error(`Error fetching category ${id}:`, error);
+      console.error(`No se ha podido cargar la categoría ${id}.`);
       throw error;
     }
   },
@@ -72,7 +72,7 @@ export const championshipsService = {
       // Standings now return response.data.data
       return response.data.data;
     } catch (error) {
-      console.error(`Error fetching standings for category ${id}:`, error);
+      console.error(`No se ha podido cargar la clasificación de la categoría ${id}.`);
       throw error;
     }
   },
@@ -86,7 +86,7 @@ export const championshipsService = {
       // Schedule now returns response.data.data
       return response.data.data;
     } catch (error) {
-      console.error(`Error fetching schedule for category ${id}:`, error);
+      console.error(`No se ha podido cargar el calendario de la categoría ${id}.`);
       throw error;
     }
   },
@@ -100,7 +100,7 @@ export const championshipsService = {
       // Seasons now return response.data.data
       return response.data.data;
     } catch (error) {
-      console.error('Error fetching seasons:', error);
+      console.error('No se han podido cargar las temporadas.');
       throw error;
     }
   },
@@ -114,7 +114,7 @@ export const championshipsService = {
       const response = await api.get(`/seasons/${seasonId}/ranking`);
       return response.data.data;
     } catch (error) {
-      console.error(`Error fetching ranking for season ${seasonId}:`, error);
+      console.error(`No se ha podido cargar el ranking de la temporada ${seasonId}.`);
       throw error;
     }
   },
@@ -124,7 +124,7 @@ export const championshipsService = {
       const response = await api.get('/rankings/all-time');
       return response.data.data;
     } catch (error) {
-      console.error('Error fetching all-time ranking:', error);
+      console.error('No se ha podido cargar el ranking histórico.');
       throw error;
     }
   },
@@ -138,7 +138,7 @@ export const championshipsService = {
       const response = await api.get(`/championships/${id}/registration`);
       return response.data.data;
     } catch (error) {
-      console.error(`Error fetching registration status for championship ${id}:`, error);
+      console.error(`No se ha podido cargar la inscripción del campeonato ${id}.`);
       throw error;
     }
   },
@@ -152,7 +152,7 @@ export const championshipsService = {
       const response = await api.post(`/championships/${id}/register`);
       return response.data.data;
     } catch (error) {
-      console.error(`Error registering for championship ${id}:`, error);
+      console.error(`No se ha podido enviar la inscripción al campeonato ${id}.`);
       throw error;
     }
   },
@@ -165,7 +165,7 @@ export const championshipsService = {
       const response = await api.get('/me/championship-registrations');
       return response.data.data;
     } catch (error) {
-      console.error('Error fetching my registrations:', error);
+      console.error('No se han podido cargar las inscripciones de la cuenta.');
       throw error;
     }
   }

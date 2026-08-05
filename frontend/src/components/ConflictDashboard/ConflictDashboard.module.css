@@ -4,7 +4,7 @@
   max-width: 1200px;
   margin: 2rem auto;
   padding: 0 1rem;
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: var(--font-family);
   min-height: 80vh;
 }
 

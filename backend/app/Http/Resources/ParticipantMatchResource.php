@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\PublicPlayerIdentityService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -84,6 +85,7 @@ class ParticipantMatchResource extends JsonResource
         return [
             'id' => $entry->id,
             'entry_type' => $entry->entry_type,
+            'public_display_name' => app(PublicPlayerIdentityService::class)->entryDisplayName($entry),
             'player' => $entry->relationLoaded('player') && $entry->player
                 ? [
                     'id' => $entry->player->id,

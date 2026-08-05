@@ -4,9 +4,24 @@ import {
     AUTH_SESSION_CLEARED_EVENT,
     clearAuthSession,
     clearStoredAuth,
+    discardLegacyStoredUser,
     getStoredAuthToken,
+    shouldInvalidateAuthSession,
+    storeAuthToken,
 } from '../api/authSession';
 import { AuthContext } from './authContext';
+
+const normalizeAuthUser = (rawData) => {
+    const userData = rawData.user ? { ...rawData.user } : { ...rawData };
+
+    if (rawData.player) {
+        userData.player = rawData.player;
+    }
+
+    delete userData.token;
+
+    return userData;
+};
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
@@ -14,22 +29,50 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        try {
+        let active = true;
+
+        const bootstrapSession = async () => {
+            discardLegacyStoredUser();
             const storedToken = getStoredAuthToken();
-            const storedUser = localStorage.getItem('user');
-            
-            if (storedToken && storedUser) {
-                setToken(storedToken);
-                setUser(JSON.parse(storedUser));
-            } else if (storedToken || storedUser) {
-                clearStoredAuth();
+
+            if (!storedToken) {
+                if (active) {
+                    setLoading(false);
+                }
+
+                return;
             }
-        } catch (error) {
-            console.error("Error loading auth from localStorage", error);
-            clearStoredAuth();
-        } finally {
-            setLoading(false);
-        }
+
+            setToken(storedToken);
+
+            try {
+                const response = await api.get('/me');
+
+                if (active) {
+                    setUser(normalizeAuthUser(response.data.data));
+                }
+            } catch (error) {
+                const status = error.response?.status;
+
+                if (shouldInvalidateAuthSession(error)) {
+                    if (getStoredAuthToken()) {
+                        clearAuthSession(`bootstrap-http-${status}`);
+                    }
+                } else {
+                    console.error('No se ha podido restaurar la sesión autenticada.');
+                }
+            } finally {
+                if (active) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        void bootstrapSession();
+
+        return () => {
+            active = false;
+        };
     }, []);
 
     useEffect(() => {
@@ -48,15 +91,11 @@ export const AuthProvider = ({ children }) => {
     const login = async (email, password) => {
         const response = await api.post('/auth/login', { email, password });
         const rawData = response.data.data;
-        
-        let userData = rawData.user ? { ...rawData.user } : { ...rawData };
-        if (rawData.player) {
-            userData.player = rawData.player;
-        }
-        
-        localStorage.setItem('token', rawData.token);
-        localStorage.setItem('user', JSON.stringify(userData));
-        
+        const userData = normalizeAuthUser(rawData);
+
+        discardLegacyStoredUser();
+        storeAuthToken(rawData.token);
+
         setToken(rawData.token);
         setUser(userData);
         return userData;
@@ -65,15 +104,11 @@ export const AuthProvider = ({ children }) => {
     const register = async (userDataInput) => {
         const response = await api.post('/auth/register', userDataInput);
         const rawData = response.data.data;
-        
-        let userData = rawData.user ? { ...rawData.user } : { ...rawData };
-        if (rawData.player) {
-            userData.player = rawData.player;
-        }
-        
-        localStorage.setItem('token', rawData.token);
-        localStorage.setItem('user', JSON.stringify(userData));
-        
+        const userData = normalizeAuthUser(rawData);
+
+        discardLegacyStoredUser();
+        storeAuthToken(rawData.token);
+
         setToken(rawData.token);
         setUser(userData);
         return userData;
@@ -82,13 +117,7 @@ export const AuthProvider = ({ children }) => {
     const createPlayerProfile = async (playerData) => {
         const response = await api.post('/me/player-profile', playerData);
         const newPlayer = response.data.data;
-        setUser(prev => {
-            // Merge with prev or fallback to localStorage if state is lost
-            const currentBase = prev || JSON.parse(localStorage.getItem('user')) || {};
-            const updatedUser = { ...currentBase, player: newPlayer };
-            localStorage.setItem('user', JSON.stringify(updatedUser));
-            return updatedUser;
-        });
+        setUser((currentUser) => ({ ...currentUser, player: newPlayer }));
         return newPlayer;
     };
 
@@ -101,8 +130,8 @@ export const AuthProvider = ({ children }) => {
             }
         } catch (error) {
             const status = error.response?.status;
-            if (status !== 401 && status !== 403) {
-                console.error("Error revoking current access token:", error);
+            if (status !== 401 && status !== 403 && status !== 419) {
+                console.error('No se ha podido revocar el token remoto durante el cierre de sesión.');
             }
         } finally {
             clearStoredAuth();
@@ -115,24 +144,19 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await api.get('/me');
             const rawData = response.data.data;
-            
-            let userData = rawData.user ? { ...rawData.user } : { ...rawData };
-            if (rawData.player) {
-                userData.player = rawData.player;
-            }
-            
-            localStorage.setItem('user', JSON.stringify(userData));
+            const userData = normalizeAuthUser(rawData);
+
             setUser(userData);
             return userData;
         } catch (error) {
             const status = error.response?.status;
 
-            if (status === 401 || status === 403) {
+            if (shouldInvalidateAuthSession(error)) {
                 if (getStoredAuthToken()) {
                     clearAuthSession(`refresh-http-${status}`);
                 }
             } else {
-                console.error("Error refreshing user data:", error);
+                console.error('No se han podido actualizar los datos de la cuenta.');
             }
 
             throw error;

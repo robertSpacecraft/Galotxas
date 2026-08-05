@@ -1,5 +1,10 @@
 import { expect, test } from '@playwright/test';
 
+const playerCredentials = {
+  email: 'player1.e2e@example.test',
+  password: 'E2E-password-123!',
+};
+
 test.describe('navegación agrupada, Home y footer', () => {
   test('desktop opera ambos disclosures, mantiene uno abierto y restaura el foco con Escape', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
@@ -116,15 +121,39 @@ test.describe('navegación agrupada, Home y footer', () => {
     await expect(account.getByRole('link', { name: 'Iniciar sesión' })).toBeVisible();
     await expect(editorialNavigation.getByRole('link', { name: 'Iniciar sesión' })).toHaveCount(0);
 
-    await page.evaluate(() => {
-      localStorage.setItem('token', 'e2e-navigation-token');
-      localStorage.setItem('user', JSON.stringify({ name: 'Persona E2E' }));
-    });
-    await page.reload();
+    await page.goto('/login');
+    await page.getByLabel('Correo Electrónico').fill(playerCredentials.email);
+    await page.getByLabel('Contraseña').fill(playerCredentials.password);
+    await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
+    await expect(page).toHaveURL(/\/player$/);
 
     await expect(account.getByRole('link', { name: 'Mi Panel' })).toBeVisible();
     await expect(account.getByRole('button', { name: 'Salir' })).toBeVisible();
     await expect(editorialNavigation.getByRole('link', { name: 'Mi Panel' })).toHaveCount(0);
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('user'))).toBeNull();
+  });
+
+  test('no carga recursos remotos conocidos y mantiene las rutas legales sin publicar', async ({ page }) => {
+    const remoteRequests = [];
+    page.on('request', (request) => {
+      if (/fonts\.(googleapis|gstatic)|fonts\.bunny|cdn\.jsdelivr/.test(request.url())) {
+        remoteRequests.push(request.url());
+      }
+    });
+
+    for (const pathname of ['/', '/competicion', '/club/quienes-somos', '/login']) {
+      await page.goto(pathname);
+      await expect(page.locator('main')).toBeVisible();
+      await expect(page.locator('iframe')).toHaveCount(0);
+    }
+
+    expect(remoteRequests).toEqual([]);
+
+    for (const pathname of ['/aviso-legal', '/privacidad', '/cookies']) {
+      await page.goto(pathname);
+      await expect(page.getByRole('heading', { name: 'Página no encontrada', level: 1 }))
+        .toBeVisible();
+    }
   });
 
   test('Navbar, Home y footer no provocan overflow crítico a 320 px', async ({ page }) => {

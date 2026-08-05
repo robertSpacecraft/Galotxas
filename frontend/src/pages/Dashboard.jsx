@@ -216,7 +216,6 @@ export default function Dashboard() {
                 Object.entries(preparedPlayerData).filter(([, value]) => value !== '' && value !== null)
             );
             
-            console.log('Enviando actualización de perfil de jugador:', filteredPlayerProfile);
             await createPlayerProfile(filteredPlayerProfile);
             
             // Redirect back to tournament if we came from there
@@ -226,7 +225,7 @@ export default function Dashboard() {
                 setIsRegistering(false);
             }
         } catch (err) {
-            console.error(err);
+            console.error('No se ha podido guardar el perfil de jugador.');
             setError(err.response?.data?.message || 'Error al guardar el perfil de jugador. Verifica los datos introducidos.');
         } finally {
             setLoading(false);

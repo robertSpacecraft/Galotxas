@@ -13,8 +13,7 @@ vi.mock('../../api/championships', () => ({
 
 const buildRow = (position) => ({
   position,
-  player_id: position,
-  name: `Pilotari ${position}`,
+  public_display_name: `Pilotari ${position}`,
   played: 12,
   wins: 8,
   losses: 4,

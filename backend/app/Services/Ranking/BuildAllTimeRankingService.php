@@ -5,6 +5,7 @@ namespace App\Services\Ranking;
 use App\Enums\ChampionshipType;
 use App\Models\GameMatch;
 use App\Models\Player;
+use App\Services\PublicPlayerIdentityService;
 use Illuminate\Support\Collection;
 
 class BuildAllTimeRankingService
@@ -12,7 +13,8 @@ class BuildAllTimeRankingService
     private const MIN_MATCHES_FOR_OFFICIAL_RANKING = 10;
 
     public function __construct(
-        private readonly ResolveEntryPlayerContributionsService $contributionsService
+        private readonly ResolveEntryPlayerContributionsService $contributionsService,
+        private readonly PublicPlayerIdentityService $publicIdentityService
     ) {}
 
     public function build(bool $publicOnly = false): Collection
@@ -70,7 +72,7 @@ class BuildAllTimeRankingService
                 $player = $contribution['player'];
                 $weight = (float) $contribution['weight'];
 
-                $row = $this->getOrCreateRow($table, $player);
+                $row = $this->getOrCreateRow($table, $player, $publicOnly);
 
                 $row['played']++;
                 $row['wins'] += $homeWon ? 1 : 0;
@@ -101,7 +103,7 @@ class BuildAllTimeRankingService
                 $player = $contribution['player'];
                 $weight = (float) $contribution['weight'];
 
-                $row = $this->getOrCreateRow($table, $player);
+                $row = $this->getOrCreateRow($table, $player, $publicOnly);
 
                 $row['played']++;
                 $row['wins'] += $homeWon ? 0 : 1;
@@ -201,12 +203,17 @@ class BuildAllTimeRankingService
         return $official->concat($nonOfficial)->values();
     }
 
-    private function getOrCreateRow(Collection $table, Player $player): array
+    private function getOrCreateRow(Collection $table, Player $player, bool $publicOnly): array
     {
+        $name = $publicOnly
+            ? $this->publicIdentityService->displayName($player)
+            : ($player->nickname ?: trim(($player->user->name ?? '').' '.($player->user->lastname ?? '')));
+
         return $table->get($player->id, [
             'player_id' => $player->id,
             'player' => $player,
-            'name' => $player->nickname ?: trim(($player->user->name ?? '').' '.($player->user->lastname ?? '')),
+            'name' => $name,
+            'public_display_name' => $publicOnly ? $name : null,
             'played' => 0,
             'wins' => 0,
             'losses' => 0,

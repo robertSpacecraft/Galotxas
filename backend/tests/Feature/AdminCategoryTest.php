@@ -522,14 +522,21 @@ class AdminCategoryTest extends TestCase
         $this->getJson('/api/v1/categories/'.$category->id.'/standings')
             ->assertOk()
             ->assertJsonCount(2, 'data')
-            ->assertJsonFragment(['entry_id' => $homeEntry->id])
-            ->assertJsonFragment(['entry_id' => $awayEntry->id]);
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => ['position', 'public_display_name'],
+                ],
+            ])
+            ->assertJsonMissingPath('data.0.entry_id');
 
         $this->getJson('/api/v1/categories/'.$category->id.'/schedule')
             ->assertOk()
             ->assertJsonPath('data.0.id', $round->id)
             ->assertJsonPath('data.0.matches.0.id', $match->id)
-            ->assertJsonPath('data.0.matches.0.venue.id', $venue->id);
+            ->assertJsonPath('data.0.matches.0.venue.name', 'Pista compatible')
+            ->assertJsonPath('data.0.matches.0.home_entry.entry_type', 'player')
+            ->assertJsonMissingPath('data.0.matches.0.venue.id')
+            ->assertJsonMissingPath('data.0.matches.0.home_entry.id');
     }
 
     public function test_admin_can_delete_an_empty_category(): void

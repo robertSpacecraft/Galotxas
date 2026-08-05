@@ -191,12 +191,12 @@ describe('CompetitionPage', () => {
   it('shows the historical preview in backend order without exposing more than five rows', async () => {
     championshipsService.getSeasons.mockResolvedValue(publicSeasons);
     championshipsService.getAllTimeRanking.mockResolvedValue([
-      { position: 2, player_id: 2, name: 'Segunda en respuesta', weighted_points: 20 },
-      { position: 1, player_id: 1, name: 'Primera en respuesta', weighted_points: 30 },
-      { position: null, player_id: 7, name: 'Provisional', weighted_points: 5 },
-      { position: 4, player_id: 4, name: 'Cuarta', weighted_points: 15 },
-      { position: 5, player_id: 5, name: 'Quinta', weighted_points: 10 },
-      { position: 6, player_id: 6, name: 'Sexta', weighted_points: 8 },
+      { position: 2, public_display_name: 'Segunda en respuesta', weighted_points: 20 },
+      { position: 1, public_display_name: 'Primera en respuesta', weighted_points: 30 },
+      { position: null, public_display_name: 'Provisional', weighted_points: 5 },
+      { position: 4, public_display_name: 'Cuarta', weighted_points: 15 },
+      { position: 5, public_display_name: 'Quinta', weighted_points: 10 },
+      { position: 6, public_display_name: 'Sexta', weighted_points: 8 },
     ]);
 
     renderPage();
@@ -220,7 +220,7 @@ describe('CompetitionPage', () => {
   it('keeps the ranking content usable when the season overview fails', async () => {
     championshipsService.getSeasons.mockRejectedValue(new Error('Seasons unavailable'));
     championshipsService.getAllTimeRanking.mockResolvedValue([
-      { position: 1, player_id: 1, name: 'Ranking disponible', weighted_points: 25 },
+      { position: 1, public_display_name: 'Ranking disponible', weighted_points: 25 },
     ]);
 
     renderPage();
@@ -250,7 +250,7 @@ describe('CompetitionPage', () => {
     championshipsService.getAllTimeRanking
       .mockRejectedValueOnce(new Error('Ranking unavailable'))
       .mockResolvedValueOnce([
-        { position: 1, player_id: 1, name: 'Ranking recuperado', weighted_points: 25 },
+        { position: 1, public_display_name: 'Ranking recuperado', weighted_points: 25 },
       ]);
 
     renderPage();

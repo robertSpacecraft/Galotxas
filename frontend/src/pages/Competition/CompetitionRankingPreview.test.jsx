@@ -5,16 +5,15 @@ import { CompetitionRankingPreview } from './CompetitionRankingPreview';
 const ranking = [
   {
     position: 3,
-    player_id: 3,
-    name: 'Tercera respuesta',
+    public_display_name: 'Tercera respuesta',
     weighted_points: 30,
     categories_played_list: ['Individual absoluta'],
   },
-  { position: 1, player_id: 1, name: 'Primera respuesta', weighted_points: 50 },
-  { position: null, player_id: 9, name: 'Provisional', weighted_points: 7 },
-  { position: 4, player_id: 4, name: 'Cuarta respuesta', weighted_points: 20 },
-  { position: 2, player_id: 2, name: 'Segunda respuesta', weighted_points: 40 },
-  { position: 6, player_id: 6, name: 'Sexta respuesta', weighted_points: 10 },
+  { position: 1, public_display_name: 'Primera respuesta', weighted_points: 50 },
+  { position: null, public_display_name: 'Provisional', weighted_points: 7 },
+  { position: 4, public_display_name: 'Cuarta respuesta', weighted_points: 20 },
+  { position: 2, public_display_name: 'Segunda respuesta', weighted_points: 40 },
+  { position: 6, public_display_name: 'Sexta respuesta', weighted_points: 10 },
 ];
 
 describe('CompetitionRankingPreview', () => {
@@ -39,7 +38,7 @@ describe('CompetitionRankingPreview', () => {
   });
 
   it('omits optional values that the response does not provide', () => {
-    render(<CompetitionRankingPreview ranking={[{ player_id: 10, name: 'Sin métricas' }]} />);
+    render(<CompetitionRankingPreview ranking={[{ public_display_name: 'Sin métricas' }]} />);
 
     expect(screen.getByText('Sin métricas')).toBeInTheDocument();
     expect(screen.getByText('Sin posición oficial')).toBeInTheDocument();

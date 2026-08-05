@@ -39,7 +39,7 @@ describe('useAllTimeRanking', () => {
   });
 
   it('exposes content and an explicit empty state from valid responses', async () => {
-    const ranking = [{ position: 1, player_id: 1, name: 'Aina' }];
+    const ranking = [{ position: 1, public_display_name: 'Aina' }];
     championshipsService.getAllTimeRanking.mockResolvedValue(ranking);
 
     const { result, unmount } = renderHook(() => useAllTimeRanking());
@@ -55,7 +55,7 @@ describe('useAllTimeRanking', () => {
   });
 
   it('exposes a safe error and retries without reloading the document', async () => {
-    const ranking = [{ position: null, player_id: 2, name: 'Biel' }];
+    const ranking = [{ position: null, public_display_name: 'Biel' }];
     championshipsService.getAllTimeRanking
       .mockRejectedValueOnce(new Error('Internal details'))
       .mockResolvedValueOnce(ranking);
@@ -89,16 +89,16 @@ describe('useAllTimeRanking', () => {
     });
 
     await act(async () => {
-      secondRequest.resolve([{ position: 1, player_id: 2, name: 'Respuesta vigente' }]);
+      secondRequest.resolve([{ position: 1, public_display_name: 'Respuesta vigente' }]);
       await retryPromise;
     });
-    expect(result.current.data[0].name).toBe('Respuesta vigente');
+    expect(result.current.data[0].public_display_name).toBe('Respuesta vigente');
 
     await act(async () => {
-      firstRequest.resolve([{ position: 1, player_id: 1, name: 'Respuesta obsoleta' }]);
+      firstRequest.resolve([{ position: 1, public_display_name: 'Respuesta obsoleta' }]);
       await firstRequest.promise;
     });
-    expect(result.current.data[0].name).toBe('Respuesta vigente');
+    expect(result.current.data[0].public_display_name).toBe('Respuesta vigente');
   });
 
   it('ignores a response that resolves after unmounting', async () => {
@@ -109,7 +109,7 @@ describe('useAllTimeRanking', () => {
     unmount();
 
     await act(async () => {
-      request.resolve([{ position: 1, player_id: 3, name: 'Respuesta tardía' }]);
+      request.resolve([{ position: 1, public_display_name: 'Respuesta tardía' }]);
       await request.promise;
     });
 

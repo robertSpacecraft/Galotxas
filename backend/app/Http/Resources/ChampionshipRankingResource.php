@@ -9,12 +9,9 @@ class ChampionshipRankingResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $player = $this['player'] ?? null;
-
         return [
             'position' => $this['position'],
-            'player_id' => $this['player_id'],
-            'name' => $this['name'],
+            'public_display_name' => $this['public_display_name'],
             'played' => $this['played'],
             'wins' => $this['wins'],
             'losses' => $this['losses'],
@@ -25,16 +22,6 @@ class ChampionshipRankingResource extends JsonResource
             'games_diff' => round((float) $this['games_diff'], 2),
             'categories_played_count' => $this['categories_played_count'],
             'categories_played_list' => $this['categories_played_list'],
-
-            'player' => $player ? [
-                'id' => $player->id,
-                'nickname' => $player->nickname,
-                'user' => $player->user ? [
-                    'id' => $player->user->id,
-                    'name' => $player->user->name,
-                    'lastname' => $player->user->lastname,
-                ] : null,
-            ] : null,
         ];
     }
 }
