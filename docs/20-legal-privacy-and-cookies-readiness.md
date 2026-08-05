@@ -2,14 +2,16 @@
 
 ## 1. Propósito y estado
 
-Este documento registra **LEGAL-PRIVACY-READINESS-1**, la Fase 7D.2A. Es una
-auditoría técnica y documental interna para preparar 7D.2B. No constituye
+Este documento registra **LEGAL-PRIVACY-READINESS-1**, la Fase 7D.2A, y su
+reauditoría técnica tras 7D.2B. Es una base documental interna para preparar
+7D.2C. No constituye
 asesoramiento jurídico, no publica textos legales y no autoriza por sí misma
 Contacto, Escuela, registro de cuentas, identidad deportiva, imágenes o
 despliegue productivo.
 
 7D.2A queda limitada a inventario, consolidación de fuentes, borradores y
-gates. 7D.2B, 7D, Fase 7 y el MVP permanecen abiertos. No existen rutas React
+gates. 7D.2B aplica minimización y retirada de terceros sin publicar legal.
+7D.2C, 7D, Fase 7 y el MVP permanecen abiertos. No existen rutas React
 de Aviso legal, Privacidad o Cookies; el footer no las enlaza y
 `CONTACT_FORM_ENABLED=false` continúa siendo el valor por defecto.
 
@@ -90,7 +92,7 @@ domicilio actual, composición vigente o aprobación administrativa actual.
 
 La denominación pública ya aparece en Home, footer, metadatos de Club y
 navegación. La denominación jurídica no debe sustituirla en interfaz salvo en
-el contexto legal que apruebe 7D.2B. Las variantes observadas en auditorías
+el contexto legal que apruebe 7D.2C. Las variantes observadas en auditorías
 históricas, el JSX legado y el estatuto no prevalecen sobre estas dos
 denominaciones confirmadas.
 
@@ -111,7 +113,7 @@ referencia histórica.
 
 | Dato | Valor | Fuente y precedencia | Confianza | Ámbito | Publicidad | Vigencia | Conflicto | Acción |
 |---|---|---|---|---|---|---|---|---|
-| Denominación jurídica | `Club Galotxes de Monover` | Dato legal confirmado por el club (2) | Alta para preparar borrador | Legal | Publicable sólo tras validación jurídica | Actual confirmada por el club | Grafías históricas y de auditorías previas | Acreditar documento original en 7D.2B |
+| Denominación jurídica | `Club Galotxes de Monover` | Dato legal confirmado por el club (2) | Alta para preparar borrador | Legal | Publicable sólo tras validación jurídica | Actual confirmada por el club | Grafías históricas y de auditorías previas | Acreditar documento original en 7D.2C |
 | Denominación pública | `Club Galotxes Monòver` | Dato confirmado por el club (2) y configuración frontend | Alta | Identidad pública | Pública | Actual | No coincide literalmente con la jurídica, por diseño | Mantener separación explícita |
 | CIF | `G03912193` | Dato legal y administrativo confirmado por el club (2) | Alta | Legal/fiscal | Publicable en texto legal validado | Actual confirmada por el club | Ninguno observado | Conservar evidencia administrativa; no presentarlo como certificación registral |
 | Domicilio social | C/ Pierrot, 1, 1.º, 03640 Monóvar, Alicante | Dato legal y administrativo confirmado por el club (2) | Alta | Legal | Publicable en texto legal validado | Actual confirmada por el club | Difiere del domicilio histórico y de las instalaciones | Mantenerlo separado de ambos; conservar evidencia administrativa |
@@ -130,8 +132,8 @@ referencia histórica.
 | Historia | `PENDIENTE DE CONFIRMACIÓN` | CMS/JSX y tradición previa sin fuente suficiente | Baja | Institucional | No publicar como hecho acreditado | Desconocida | Relatos y fechas previas no verificados | Crear ficha de fuentes y aprobación |
 | Federación | FedPiVal como organismo de referencia comunicado; relación administrativa actual `PENDIENTE DE CONFIRMACIÓN` | Comunicación del club (2), sin documento administrativo vigente | Media para identificar el organismo; insuficiente para afirmar afiliación | Institucional/deportivo | Puede nombrarse sólo como referencia tras revisión; no afirmar afiliación actual | Relación pendiente | Claims federativos legados diferentes | Confirmar denominación, vínculo administrativo y URL oficial |
 | Imágenes y menores | Assets existentes sin registro completo | Repositorio y auditorías técnicas (6) | Alta sobre existencia; baja sobre derechos | Institucional | No publicables hasta gate | Desconocida | Algunos archivos contienen personas y metadatos | Completar registro, permisos y sanitización |
-| Identidad pública de jugadores adultos | Alias; sin alias, nombre + inicial del primer apellido | Decisión cerrada de 7D.2A (3) | Alta como política objetivo | Competición | Pública tras implementación | Pendiente de código | API actual expone más datos | Implementar allowlist backend antes de producción |
-| Identidad pública de jugadores menores | `PENDIENTE DE CONFIRMACIÓN` | Revisión jurídica/deportiva pendiente | Nula | Competición/minores | No autorizar por defecto | Pendiente | API aplica hoy la misma proyección que a adultos | Definir minimización y autorización específica |
+| Identidad pública de jugadores adultos | Alias; sin alias, nombre + inicial del primer apellido | Decisión cerrada de 7D.2A e implementación 7D.2B (3) | Alta como política técnica | Competición | Pública mediante allowlist | Implementada | Sin fallback a nombre completo | Auditar datos reales y política de retirada antes de producción |
+| Identidad pública de jugadores menores | Etiqueta neutra `Participante` mientras no exista autorización explícita | Implementación fail-closed 7D.2B; revisión jurídica/deportiva pendiente | Alta sobre minimización técnica; nula sobre autorización futura | Competición/minores | No identificable por defecto | Fail-closed implementado | El dominio tiene nacimiento opcional, pero no autorización de identidad | Definir autorización/exclusión y retirada antes de cualquier identidad distinta |
 
 ## 6. Inventario de tratamientos reales
 
@@ -140,7 +142,7 @@ un plazo legal aprobado.
 
 | Flujo | Interesados y datos | Finalidad técnica/origen | Almacenamiento y accesos | Salidas | Borrado/retención técnica | Riesgos | Gate productivo |
 |---|---|---|---|---|---|---|---|
-| Cuentas y autenticación | Usuarios: nombre, apellidos, correo, hash de contraseña, rol, activo, foto opcional; tokens y restablecimiento | Registro/login React y administración | MariaDB; usuario autenticado ve su perfil; administradores activos gestionan usuarios | Correo de restablecimiento mediante mailer configurado | Usuario hasta borrado administrativo; reset token 60 min; Sanctum sin expiración global y revocación del token actual en logout | Token y objeto usuario en `localStorage`; el objeto puede incorporar el perfil deportivo completo; tokens antiguos no se revocan al nuevo login; base jurídica y derechos ausentes | Información de privacidad, política de cuenta, expiración/revocación y proveedor de correo |
+| Cuentas y autenticación | Usuarios: nombre, apellidos, correo, hash de contraseña, rol, activo, foto opcional; tokens y restablecimiento | Registro/login React y administración | MariaDB; perfil React sólo en memoria tras bootstrap `/me`; administradores activos gestionan usuarios | Correo de restablecimiento mediante mailer configurado | Usuario hasta borrado administrativo; reset token 60 min; Sanctum sin expiración global y revocación del token actual en logout | Sólo Bearer en `localStorage`; persiste riesgo XSS y tokens antiguos no se revocan al nuevo login; base jurídica y derechos ausentes | Información de privacidad, política de cuenta, expiración/revocación y proveedor de correo |
 | Sesión Blade | Administradores: identificador, IP, user-agent y payload de sesión | Autenticación administrativa | Tabla `sessions`; cookie de primera parte; acceso técnico a DB | Ninguna salida funcional explícita | Inactividad configurable, 120 min por defecto; limpieza probabilística | Sesión no cifrada en DB por defecto; producción debe exigir HTTPS/cookie segura | Configuración productiva, acceso, retención y seguridad aprobados |
 | Perfil deportivo | Jugadores: vínculo a cuenta, alias, slug, DNI opcional, nacimiento, género, nivel, licencia, mano, notas, estado | Gestión deportiva y autoperfil parcial | MariaDB; usuario ve su perfil; administradores ven datos completos | Proyecciones autenticadas y, parcialmente, API pública deportiva | Cascada al borrar usuario; sin purga automática separada | Datos identificativos y fecha de nacimiento; DNI/licencia/notas de mayor impacto | Minimización, bases, plazos, derechos e identidad pública implementada |
 | Contacto | Remitente: nombre, correo, asunto, mensaje, aceptación e IP con HMAC | Solicitud anónima; formulario condicionado | MariaDB y bandeja Blade para administradores | Mail opcional con contenido completo al destinatario configurado | No hay borrado ni purga; estados `new/read/closed` conservan el registro | Texto libre, destinatario/proveedor/retención no definidos | Mantener desactivado; aprobar primera capa, política, destinatario, mailer y borrado |
@@ -148,10 +150,10 @@ un plazo legal aprobado.
 | Centros y actividades | Personas de contacto de centros, teléfono/correo; fechas, alumnado esperado y notas | Coordinación interna de Escuela | MariaDB y Blade administrativo | Sin API pública | Borrado conservador; sin purga automática documentada | Contactos profesionales y texto libre; posible información de menores en notas | Instrucciones internas, minimización, acceso y conservación |
 | Inscripciones competitivas | Usuario/jugador, campeonato, categoría sugerida, estado de pago y comentario | Solicitud y gestión deportiva | MariaDB; usuario y administradores | API autenticada para el interesado y administrativa para admin | Cascada con usuario/jugador/campeonato; sin plazo autónomo | Comentarios y estado de pago; IDs y correo en contexto administrativo | Información, necesidad de campos, conservación y accesos |
 | Resultados y reprogramaciones | Usuario/jugador, lado, marcadores, comentarios, fechas y pista | Workflow deportivo autenticado y trazabilidad | MariaDB; participantes y administradores | APIs autenticadas; resultados validados e identidad deportiva llegan a API pública | Cascadas ligadas a partido/usuario/jugador; sin purga autónoma | Comentarios libres, trazabilidad y exposición de identidad | Política deportiva, rectificación y allowlists públicas |
-| Rankings, calendarios y partidos públicos | Jugadores/equipos: IDs, alias, nombre y apellidos; resultados y métricas | Visualización pública de competición | Derivados de MariaDB; sin copia frontend persistente | Cualquier visitante; potencial indexación y cachés intermedias | Mientras exista el dato fuente; no hay retirada pública específica | API expone más que la política adulta y no diferencia menores | Gate P0: proyección única de identidad, regla de menores, pruebas y revisión de datos reales |
+| Rankings, calendarios y partidos públicos | `public_display_name`, tipo de entrada, resultados y métricas; sin IDs personales ni objetos de jugador | Visualización pública de competición | Derivados de MariaDB; sin copia frontend persistente | Cualquier visitante; potencial indexación y cachés intermedias | Mientras exista el dato fuente; no hay retirada pública específica | Adultos minimizados; menores/edad ausente neutrales; retirada y datos reales pendientes | Revisar datos reales, autorización de menores y procedimiento de retirada |
 | Junta directiva | Personas y cargos actuales confirmados por el club | Contenido institucional | Confirmación directa del club; futuro CMS | Visitantes cuando se publique | Sin política técnica definida | Exposición estable e indexable; inscripción y mandato pendientes | Nombre completo + cargo, sin alias; registrar revisión, periodo de mandato e inscripción cuando se acrediten |
 | Imágenes | Personas identificables, posibles menores, ubicación y metadatos | Contenido institucional | Assets versionados y directorio `frontend/public`; posible CMS por URL | Una URL bajo `public` puede servirse directamente; GitHub conserva historial | No hay retirada coordinada, caducidad ni sanitización implementadas | Derechos, menores, GPS/EXIF y copias en Git/build | Registro y autorización completos; retirar metadatos y definir proceso de retirada |
-| Administración | Usuarios, jugadores, solicitudes, contacto, Escuela y contenido | Operación interna | Blade protegido por sesión, admin activo y CSRF | CDN externo en layout; ninguna exportación implementada | Según cada tabla; no hay política global | Acceso amplio por rol único, sin permisos granulares ni auditoría de lecturas | Censo de administradores, mínimo privilegio, formación y registro operativo |
+| Administración | Usuarios, jugadores, solicitudes, contacto, Escuela y contenido | Operación interna | Blade protegido por sesión, admin activo y CSRF | Recursos CSS/JS locales; ninguna exportación implementada | Según cada tabla; no hay política global | Acceso amplio por rol único, sin permisos granulares ni auditoría de lecturas | Censo de administradores, mínimo privilegio, formación y registro operativo |
 | Logs, rate limit y caché | IP, correo o hashes, ID de usuario, excepciones | Seguridad, límites y diagnóstico | Caché configurada; logs locales/`stderr` según entorno | Canal externo sólo si se configura; no hay proveedor acreditado | Canal `single` por defecto sin rotación observable; `daily` conservaría 14 días por defecto | Claves de rate limit de auth incluyen correo e IP en claro lógico; excepciones pueden incorporar contexto no controlado | Elegir canal, minimizar, fijar retención técnica y revisar datos registrados |
 | Base, copias, correo y hosting | Todos los datos persistidos o transmitidos | Infraestructura | MariaDB; copias no implementadas; mailer `log` por defecto; hosting pendiente | Proveedores `PENDIENTE DE CONFIRMACIÓN` | Sin política de backup/restauración/borrado productiva | Pérdida, acceso, transferencias o retención desconocidas | Cerrar 7F y contratos/ubicaciones/medidas antes de producción |
 
@@ -161,24 +163,26 @@ deducen del modelo de datos ni de la finalidad técnica.
 
 ## 7. Identidad deportiva, menores y Junta
 
-La política objetivo para adultos es una sola proyección backend:
+La política adulta se aplica mediante una sola proyección backend:
 
 1. alias deportivo cuando exista;
 2. en su ausencia, nombre y la inicial del primer apellido.
 
-La API actual no cumple aún esa allowlist. `PublicMatchResource`, los Resources
-de ranking y clasificación y los servicios que construyen `name` pueden enviar
-IDs, nombre, apellidos, alias y miembros de equipo. React suele mostrar sólo
-`name` o priorizar el alias, pero ocultar campos en UI no elimina la exposición
-API. Fixtures y tests usan identidades ficticias; no validan proporcionalidad
-con datos reales. Slugs de jugador pueden derivarse de alias o nombre completo,
-aunque no existe hoy una ruta pública de perfil por slug.
+`PublicPlayerIdentityService` exige nacimiento conocido y mayoría de edad,
+normaliza espacios y nunca usa el nombre completo como fallback. Los Resources
+de partido, calendario, standings y rankings envían `public_display_name`; no
+envían IDs personales, nombre, apellidos, alias, correo, nacimiento ni miembros
+de equipo. React consume esa cadena mediante un helper fail-closed y no
+reconstruye identidad. Fixtures y tests usan identidades ficticias; no validan
+la proporcionalidad de datos reales. El slug de jugador puede derivarse de
+alias o nombre completo, pero no existe ruta pública de perfil ni se expone en
+estos Resources.
 
 | Superficie auditada | Resultado |
 |---|---|
 | Modelos | `Player` conserva alias, slug, DNI, nacimiento, género, licencia y notas, relacionado con nombre/apellidos/correo de `User` |
-| API/Resources | Rankings, standings y partidos públicos envían campos redundantes de identidad e IDs; los Resources autenticados exponen el perfil propio completo |
-| Frontend | Clasificaciones/rankings muestran `name`; partido prioriza alias y después nombre completo; calendario depende del alias disponible |
+| API/Resources | Rankings, standings, calendarios y partidos usan allowlists y `public_display_name`; los Resources autenticados conservan el perfil propio completo |
+| Frontend | Superficies públicas muestran sólo `public_display_name` y el fallback neutro; no combinan nombre, apellido, email o usuario |
 | Fixtures/tests | Identidades sintéticas; documentan la forma contractual, no consentimiento ni edad de datos reales |
 | Blade | Administradores activos ven nombre, correo, DNI, nacimiento, licencia, solicitudes y notas según sección |
 | Búsqueda | No se localiza buscador público de personas |
@@ -186,11 +190,13 @@ aunque no existe hoy una ruta pública de perfil por slug.
 | URLs | Partidos usan ID y categorías/championships usan slugs; el slug de jugador no tiene ruta pública actual, pero puede derivar del nombre civil |
 | Logs | No se localiza logging deliberado de identidad deportiva; excepciones y canales de infraestructura requieren revisión productiva |
 
-Para menores no se aplicará automáticamente la regla adulta. El criterio
-público definitivo, el tratamiento de nacimiento ausente, el cambio de edad,
-la autorización específica y la retirada están `PENDIENTE DE CONFIRMACIÓN`.
-Hasta implementarlos y revisar los datos reales, la publicación de identidad
-deportiva constituye un gate de producción.
+Para menores no se aplica automáticamente la regla adulta. El dominio dispone
+de nacimiento opcional, pero no de autorización, alias autorizado o exclusión
+pública. 7D.2B devuelve `Participante` tanto para menores como para nacimiento
+ausente, sin exponer el motivo. La autorización específica, el cambio de edad,
+la retirada y cualquier migración futura están `PENDIENTE DE CONFIRMACIÓN`.
+Esta minimización permite cerrar el bloqueo técnico sin autorizar identidad de
+menores; datos reales y operación siguen siendo gates de producción.
 
 La Junta confirmada por el club para publicación institucional utiliza nombre
 y apellidos completos más cargo, sin alias deportivo: Jorge Sánchez Romero —
@@ -240,25 +246,26 @@ Registro operativo mínimo obligatorio por archivo:
 |---|---|---|---|---|---|
 | Cookie de sesión Laravel (`SESSION_COOKIE` o nombre derivado) | Laravel; sesión Blade/admin | 120 min de inactividad por defecto; no expira al cerrar navegador por defecto | Primera parte; esencial para administración autenticada | Backend web; se crea al usar sesión, sin banner | Confirmar nombre, dominio, HTTPS, duración e información aplicable |
 | CSRF de Blade | Laravel; token oculto ligado a la sesión, sin cookie CSRF propia observada en el cliente React | Asociado a la sesión/formulario | Primera parte; esencial de seguridad | Login y panel Blade, sin banner | Verificar cookies efectivas en el despliegue |
-| Sanctum Bearer | Laravel/React; autenticar API | Token servidor sin expiración global; navegador hasta logout/borrado/401/403 | Primera parte; esencial para cuenta, pero almacenado en web storage, no cookie | Sólo tras registro/login | Revisar expiración, revocación y migración a HttpOnly/SameSite |
+| Sanctum Bearer | Laravel/React; autenticar API | Token servidor sin expiración global; navegador hasta logout, borrado, `401`, `419` o `403` explícito de usuario inactivo; el `403` ordinario lo conserva | Primera parte; esencial para cuenta, pero almacenado en web storage, no cookie | Sólo tras registro/login | Revisar expiración, revocación y migración a HttpOnly/SameSite |
 | `localStorage.token` | React; conservar Bearer | Sin caducidad propia | Primera parte; esencial para sesión elegida | Tras login/registro | Seguridad y transparencia; no es cookie pero sí almacenamiento |
-| `localStorage.user` | React; hidratar nombre, correo, rol y perfil; tras crear/refrescar perfil puede incluir DNI, nacimiento, licencia y notas devueltos por `PlayerProfileResource` | Sin caducidad propia; se actualiza o borra con sesión | Primera parte; funcional de cuenta, con datos de impacto elevado | Tras login/registro y actualizaciones de perfil | Minimización, riesgo XSS y coherencia con revocación |
+| `localStorage.user` | Sin uso runtime desde 7D.2B; el bootstrap elimina cualquier valor legado sin migrarlo | No aplica | Almacenamiento eliminado | No se escribe; se borra al iniciar y al limpiar sesión | Verificar regresión en despliegue final |
 | `sessionStorage`, IndexedDB, Cache Storage | Ningún uso runtime localizado | No aplica | No observado | No se activan | Revalidar en build/despliegue final |
 | Service worker | Ninguno localizado | No aplica | No observado | No se registra | Revalidar en build final |
 | Analítica, píxeles, publicidad, vídeo, mapas e iframes | Ninguno localizado | No aplica | No observado | No se activan | Revalidar si se incorporan |
-| Google Fonts (`fonts.googleapis.com`) | Google; fuente Inter del frontend | Caché/telemetría del tercero no determinada por el repo | Tercera parte; no imprescindible, existe fallback | Petición al cargar CSS público, previa a cualquier consentimiento | Evaluar autocustodia, necesidad, información y transferencias |
-| jsDelivr Bootstrap | jsDelivr; CSS/JS del panel Blade | Caché HTTP no determinada por el repo | Tercera parte; técnicamente sustituible | Petición al cargar panel administrativo | Inventariar proveedor y valorar autocustodia |
-| Bunny Fonts | Bunny Fonts; fuente de la vista Laravel raíz | Caché/telemetría no determinada | Tercera parte; no imprescindible | Petición al cargar `/` backend | Retirar vista de producción o evaluar/autocustodiar |
+| Google Fonts (`fonts.googleapis.com`) | Eliminado en 7D.2B; frontend con pila de sistema | No aplica al código actual | Sin petición automática observada | No se activa | Reauditar build y despliegue final |
+| jsDelivr Bootstrap | Eliminado en 7D.2B; panel con CSS/JS locales | No aplica al código actual | Sin petición automática observada | No se activa | Reauditar panel desplegado |
+| Bunny Fonts | Eliminado en 7D.2B de la vista raíz Laravel | No aplica al código actual | Sin petición automática observada | No se activa | Reauditar backend desplegado |
 | Enlaces Facebook/Instagram | Meta; navegación voluntaria | Sólo al activar el enlace según código propio | Mero enlace a tercero | No hay iframe/pixel ni petición al cargar atribuible a esos enlaces | Informar destino externo cuando corresponda |
 
 No se observa `remember-me` activo: existe la columna estándar
 `remember_token`, pero el login Blade no presenta ni procesa esa opción.
 
-**Conclusión provisional:** se observa necesidad de mecanismo. La razón es la
-carga previa de recursos de terceros no esenciales; 7D.2B debe decidir con
-revisión jurídica si se eliminan/autocustodian antes de publicar o se requiere
-un mecanismo de información/consentimiento. No se implementa banner en esta
-fase.
+**Conclusión técnica provisional tras 7D.2B:** no se observan recursos no
+esenciales de terceros que se activen antes de una acción del usuario en el
+código y las superficies verificadas. Permanecen mecanismos técnicos de sesión
+y autenticación pendientes de reflejar en la política definitiva. Esta
+conclusión no es un dictamen legal; no se implementa banner y el despliegue real
+debe reauditarse.
 
 ## 10. Terceros y encargados potenciales
 
@@ -269,13 +276,13 @@ fase.
 | GitHub | Repositorio y posible herramienta de desarrollo | Proveedor de desarrollo; no se observa pipeline de despliegue en el repo | Visibilidad del repo, accesos, historial y política sobre datos reales |
 | Vercel | Candidato documental para frontend | Sin configuración versionada ni despliegue acreditado | Cuenta, región, contrato, logs, dominio y rol |
 | Railway | Candidato documental para backend/DB | Sin configuración versionada ni despliegue acreditado | Cuenta, región, contrato, logs, backups, mail y rol |
-| Google Fonts | Recurso remoto cargado por frontend | Tercero en carga de página | Condiciones, datos técnicos, transferencias y alternativa local |
-| jsDelivr | CDN del panel Blade | Tercero en carga administrativa | Condiciones, logs y alternativa local |
-| Bunny Fonts | Fuente remota en la vista raíz de Laravel | Tercero en carga de página | Condiciones, datos técnicos y alternativa local |
+| Google Fonts | Retirado del frontend en 7D.2B | Sin carga automática en el código actual | Reauditar despliegue antes de publicar |
+| jsDelivr | Retirado del panel Blade en 7D.2B | Sustituido por CSS/JS locales | Reauditar despliegue antes de publicar |
+| Bunny Fonts | Retirado de la vista raíz Laravel en 7D.2B | Sin carga automática en el código actual | Reauditar despliegue antes de publicar |
 | Facebook/Instagram | Destinos externos | Meros enlaces; no SDK/pixel observado | Información al usuario y titularidad de perfiles |
 | Imágenes | Archivos locales versionados | No hay CDN/gestor externo acreditado | Autoría, licencias, consentimientos, metadatos y retirada |
 | Analítica/APIs externas | Ninguna integración observada | No configurada | Auditar de nuevo antes de añadirla |
-| Panel Blade | Herramienta administrativa propia | No tercero; usa CDN externo para Bootstrap | Usuarios autorizados, trazabilidad, formación y mínimo privilegio |
+| Panel Blade | Herramienta administrativa propia | No tercero; usa recursos de presentación locales | Usuarios autorizados, trazabilidad, formación y mínimo privilegio |
 
 No se atribuye a ninguno la condición jurídica de encargado, región, DPA,
 contrato o transferencia: todo ello queda `PENDIENTE DE CONFIRMACIÓN`.
@@ -288,7 +295,7 @@ compilador Knowledge. Incorporan los datos confirmados y conservan marcadores
 explícitos en lugar de inventar registro, representación legal general, bases,
 plazos, destinatarios, proveedores o transferencias.
 
-## 12. Riesgos, bloqueos y gates de 7D.2B
+## 12. Riesgos, bloqueos y gates de 7D.2C
 
 Antes de publicar páginas legales o activar recogidas productivas se debe:
 
@@ -301,18 +308,18 @@ Antes de publicar páginas legales o activar recogidas productivas se debe:
    encargados, transferencias y plazos legales por tratamiento;
 4. definir borrado técnico para cuentas, contacto, Escuela, competición,
    tokens, sesiones, logs, correo y backups;
-5. corregir la proyección pública deportiva conforme a la regla adulta y
-   aprobar una regla específica para menores;
+5. aprobar el modelo futuro de autorización/exclusión para identidad de
+   menores si se pretende sustituir la etiqueta neutra aplicada en 7D.2B;
 6. auditar datos deportivos reales antes de exposición;
 7. completar el registro de imágenes, retirar metadatos sensibles y resolver
    menores/retirada antes de servirlas;
-8. decidir autocustodia o tratamiento jurídico de Google Fonts, Bunny Fonts y
-   jsDelivr, y reauditar el despliegue real;
+8. reauditar el despliegue real para confirmar que no reintroduce Google
+   Fonts, Bunny Fonts, jsDelivr u otros recursos automáticos;
 9. elegir y contratar infraestructura, base, correo y backups, documentando
    región, accesos, seguridad y transferencias sin inferencias;
 10. validar profesionalmente los cinco borradores y fijar versión/fecha sólo
     entonces;
-11. implementar después, en 7D.2B, rutas, primera capa, enlaces y pruebas sin
+11. implementar después, en 7D.2C, rutas, primera capa, enlaces y pruebas sin
     activar Contacto hasta superar además sus gates operativos;
 12. ejecutar 7F y 7G antes de declarar el MVP productivo.
 

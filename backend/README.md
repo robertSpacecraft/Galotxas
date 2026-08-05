@@ -33,6 +33,20 @@ y su consumo público en
 E2E habilita el formulario sólo dentro de su base temporal protegida; el default
 de cualquier otro entorno continúa siendo `false`.
 
+## Privacidad técnica
+
+Las respuestas anónimas de competición usan Resources con listas cerradas y
+`PublicPlayerIdentityService`: un adulto aparece mediante alias o nombre e
+inicial del primer apellido; un menor, una fecha de nacimiento ausente o datos
+insuficientes producen la etiqueta neutra `Participante`. La fecha de
+nacimiento y los demás campos privados no forman parte de esa proyección. Los
+contratos autenticados y la administración Blade conservan su información.
+
+El layout administrativo carga únicamente `public/css/admin.css` y
+`public/js/admin.js`. No depende de Google Fonts, Bunny Fonts, jsDelivr ni otro
+CDN al renderizarse. El alcance y los riesgos residuales se documentan en
+[`docs/21-privacy-hardening-and-public-identity.md`](../docs/21-privacy-hardening-and-public-identity.md).
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

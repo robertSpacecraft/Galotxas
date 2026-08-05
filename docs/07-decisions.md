@@ -123,7 +123,7 @@ Consecuencias:
 
 # ADR-008 — Estrategia auth/token del frontend MVP
 
-Estado: Aceptada
+Estado: Sustituida parcialmente por ADR-035
 
 Fecha aproximada: 2026-06
 
@@ -302,7 +302,7 @@ Contexto:
 - El detalle público de partido ya utilizaba `PublicMatchResource` y ocultaba tanteos no validados y trazabilidad.
 - El endpoint autenticado de workflow reutilizaba `MatchResource`, que podía incluir reportes, comentarios, responsables y emails aunque el usuario no participara.
 - React ya distingue visualmente entre participante y usuario ajeno mediante `workflow.participates`.
-- El cliente frontend limpia la sesión ante respuestas `403`, por lo que devolver `403` a un usuario autenticado que solo consulta un detalle público produciría una consecuencia lateral no deseada.
+- Al adoptarse esta decisión, el cliente frontend limpiaba globalmente la sesión ante respuestas `403`; ADR-035 sustituyó después ese criterio, pero se conserva la respuesta pública limitada para usuarios ajenos.
 
 Decisión:
 - Mantener respuesta `200` limitada para usuarios autenticados sin perfil de jugador o no participantes.
@@ -1242,6 +1242,85 @@ decisión sin cambiar sus defaults ni sus gates productivos. El cuerpo de
 Contacto continúa en CMS y el formulario sólo se monta con `enabled: true`.
 No se requiere un ADR nuevo porque la arquitectura y alternativas ya quedaron
 cubiertas por ADR-033 y ADR-034.
+
+---
+
+# ADR-035 — Proyección pública fail-closed, sesión mínima y recursos locales
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-08
+
+Contexto:
+
+- las respuestas anónimas de competición exponían identificadores y objetos de
+  participante desde los que React podía reconstruir nombres civiles;
+- el dominio conoce `birth_date`, pero no modela una autorización específica
+  para publicar la identidad de un menor;
+- React persistía tanto el Bearer como el perfil autenticado en
+  `localStorage`, aunque `/me` ya permite restaurar la sesión;
+- frontend, bienvenida Laravel y panel Blade iniciaban cargas no esenciales a
+  Google Fonts, Bunny Fonts y jsDelivr antes de una acción del usuario.
+
+Decisión:
+
+- centralizar en Laravel `public_display_name` y exponerlo mediante Resources
+  públicos con listas cerradas, sin serialización implícita de modelos;
+- proyectar adultos mediante alias normalizado o nombres de pila más inicial
+  del primer apellido; nunca usar el nombre completo como fallback;
+- devolver `Participante` para menores, nacimiento ausente o datos
+  insuficientes. Otra identidad de menores requiere autorización explícita y
+  una decisión de dominio posterior; no se añade una migración por inferencia;
+- retirar de las respuestas anónimas los IDs de jugador, equipo y entrada que
+  no sostienen navegación o contexto, conservando los contratos autenticados y
+  administrativos;
+- hacer que React consuma la proyección sin reconstruir nombres;
+- conservar sólo el Bearer en `localStorage`, mantener el perfil en memoria y
+  restaurarlo con `/me`; login y registro eliminan cualquier perfil legado, y
+  logout, `401` y `419` limpian la sesión; un `403` ordinario conserva la
+  autenticación y sólo el mensaje contractual de usuario inactivo la invalida,
+  porque el middleware ya ha revocado ese token en servidor;
+- mantener `expiration = null` y la revocación exclusiva del token actual en
+  logout hasta una decisión operativa; el riesgo XSS del Bearer continúa;
+- sustituir fuentes remotas por la pila del sistema y Bootstrap/jsDelivr del
+  panel por CSS y JavaScript locales mínimos, sin descargar fuentes ni añadir
+  dependencias o CDN;
+- no crear banner, rutas o enlaces legales ni activar Contacto como consecuencia
+  de este endurecimiento técnico.
+
+Alternativas descartadas:
+
+- aplicar la abreviación sólo en React: mantendría datos privados en la API y
+  duplicaría la política;
+- publicar alias de menores por defecto o inferir autorización por categoría:
+  el dominio no acredita consentimiento ni finalidad;
+- conservar IDs y modelos completos por compatibilidad: los consumidores
+  públicos no los necesitan;
+- persistir una versión reducida del perfil: `/me` elimina esa necesidad y el
+  dato seguiría expuesto al almacenamiento del navegador;
+- migrar en este bloque a cookies Sanctum SPA: requiere contrato de despliegue,
+  CSRF, CORS y operación propios;
+- autocustodiar fuentes o sustituir un CDN por otro: añade activos y peticiones
+  innecesarios;
+- publicar legal o un banner a partir de la auditoría técnica: confundiría
+  evidencia observada con validación jurídica.
+
+Consecuencias:
+
+- la superficie pública de competición queda minimizada y falla de forma
+  neutra cuando no puede acreditar la regla adulta;
+- Junta y demás contenido institucional siguen en CMS y no usan esta
+  proyección deportiva;
+- las respuestas privadas conservan datos necesarios para sus workflows;
+- una recarga autenticada depende de `/me`, y un fallo de autenticación elimina
+  estado persistido y memoria local;
+- el criterio anterior de cierre global ante cualquier `403`, recogido en
+  ADR-008, queda sustituido por la distinción entre credencial revocada y falta
+  de autorización; las denegaciones ordinarias se propagan sin redirigir a login;
+- no se observan cargas automáticas a los tres proveedores retirados en el
+  código versionado, aunque el despliegue debe reauditarse;
+- 7D.2C conserva los gates jurídicos, de Contacto, imágenes, proveedores y
+  operación. Fase 7D, Fase 7 y el MVP permanecen abiertos.
 
 ---
 

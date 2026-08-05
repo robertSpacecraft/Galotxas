@@ -122,7 +122,8 @@ Build verificado:
 ### Deuda de seguridad futura
 
 - El token Bearer se almacena en `localStorage`.
-- Cualquier 403 autenticado provoca el cierre global vigente.
+- Un `403` de autorización conserva la sesión; sólo el `403` contractual de
+  usuario inactivo limpia el token que el backend revoca en esa respuesta.
 - Los endpoints de reprogramación no tienen limiter específico.
 - `DatabaseSeeder` crea datos de demostración con una credencial predecible y debe quedar fuera de producción; conviene protegerlo por entorno antes del MVP estable.
 - La configuración CORS efectiva permite cualquier origen para API con `supports_credentials=false`; un despliegue entre dominios debe restringir orígenes explícitamente.

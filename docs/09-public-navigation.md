@@ -9,7 +9,7 @@ Competición, Aprende a jugar cerrada en Fase 5C y la Escuela pública cerrada e
 Fase 6C. Fase 7B sustituye la topología plana inicial por el contrato agrupado
 de ADR-033. 7C.2 implementa las cuatro rutas hijas de Club y 7D.1 aplica el
 disclosure del Navbar, Home y footer estructural. Legal y la activación
-productiva de Contacto permanecen pendientes de 7D.2B; 7D.2A aporta sólo
+productiva de Contacto permanecen pendientes de 7D.2C; 7D.2A aporta sólo
 auditoría y borradores internos.
 
 Las fases 3B, 3C, 4A–4C y 5B–5C modifican únicamente compilación/frontend, sus pruebas y la documentación: no cambian backend, CMS, contenido canónico, despliegue ni redirects. 7C.2 añade fachadas sobre el CMS y mantiene la publicación editorial separada por entorno; una ruta documental no se considera implementada hasta existir con fuente verificable y pruebas.
@@ -794,7 +794,8 @@ a Competición, Aprende, Manual, Escuela, Quiénes somos y Contacto. No carga
 datos remotos ni Knowledge. El footer pasa a ser global y enlaza las cuatro
 rutas Club y las redes confirmadas con apertura externa segura. Privacidad,
 aviso legal y cookies no se publican como enlaces vacíos: tras la auditoría
-7D.2A, su eventual publicación pertenece a 7D.2B.
+7D.2A y el endurecimiento técnico 7D.2B, su eventual publicación pertenece a
+7D.2C.
 No se añaden `/aprende`, `/club`, aliases, redirects o cambios de CMS.
 
 El contrato de implementación, bundle, pruebas y gates se encuentra en
@@ -806,8 +807,17 @@ El contrato de implementación, bundle, pruebas y gates se encuentra en
 `20-legal-privacy-and-cookies-readiness.md` la identidad jurídica y pública,
 los tratamientos, la auditoría de cookies/almacenamientos y los borradores
 internos. Privacidad, Aviso legal y Cookies siguen sin ruta o enlace. Su
-validación jurídica, eventual publicación y pruebas corresponden a 7D.2B;
+validación jurídica, eventual publicación y pruebas corresponden a 7D.2C;
 Contacto permanece desactivado.
+
+### Seguimiento 7D.2B
+
+7D.2B no altera el árbol, el router, las rutas Club ni los enlaces del footer.
+Endurece la identidad que ya presentan las rutas públicas de Competición,
+restaura Cuenta mediante `/me` sin persistir el perfil y elimina cargas
+automáticas a proveedores de fuentes y jsDelivr. Las rutas legales siguen
+resolviendo la 404 de React y Contacto continúa oculto con su configuración por
+defecto. Publicación legal y activación operativa pertenecen a 7D.2C.
 
 ## Mantenimiento
 

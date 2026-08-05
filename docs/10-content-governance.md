@@ -97,7 +97,7 @@ Competición utiliza datos públicos reales; Aprende a jugar y Manual consumen
 Knowledge; Escuela consume Laravel; y Club consume sólo páginas CMS publicadas
 mediante slugs cerrados. Home y Footer contienen únicamente copy de interfaz,
 arquitectura de enlaces, identidad y redes confirmadas; no duplican CMS o
-Knowledge. Los destinos legales permanecen pendientes de 7D.2B; 7D.2A sólo
+Knowledge. Los destinos legales permanecen pendientes de 7D.2C; 7D.2A sólo
 prepara borradores internos y gates.
 
 Los componentes de `frontend/src/components/PublicLanding/` son infraestructura de presentación, no una cuarta fuente de contenido. Pueden recibir datos ya autorizados del dominio Laravel, artefactos compilados desde `knowledge/` o contenido público del CMS, pero no conocen esas fuentes ni deciden visibilidad, publicación o reglas. Sus props admiten estructura, copy breve de interfaz y contenido procedente de la fuente canónica; no deben usarse para hardcodear contenido administrable como sustituto temporal del CMS o de `knowledge/`.
@@ -388,12 +388,13 @@ La Fase 3A no elimina `/contenidos`, no crea redirects, no cambia su API ni borr
 - Estrategia de almacenamiento persistente y ciclo de vida de archivos.
 - Modelo de consentimiento y privacidad para contenido de menores.
 - Consumo React, renderer, rutas públicas e integración automática de la canalización con CI/despliegue.
-- Publicación legal y gates productivos de Contacto en 7D.2B, tras la auditoría
+- Publicación legal y gates productivos de Contacto en 7D.2C, tras la auditoría
   documental 7D.2A; aliases tras paridad y,
   posteriormente, redirects permanentes, canonical, sitemap, 404 HTTP y SEO
   completo. Las cuatro URLs Club ya se descubren desde Navbar/footer en 7D.1.
-- Implementación de la política adulta de identidad pública en clasificación,
-  rankings, calendario, equipos y partidos, y decisión específica de menores.
+- Autorización explícita de identidad de menores, si el producto decide mostrar
+  algo distinto de la etiqueta neutra aplicada por 7D.2B, en clasificación,
+  rankings, calendario, equipos y partidos.
 - Roles, permisos, trazabilidad y vista previa requeridos por los editores.
 
 ## 20. Gates editoriales y operativos del MVP completo
@@ -472,12 +473,26 @@ vigencia jurídica inferida. Reglamento/Manual y estatutos del club son fuentes
 distintas.
 
 El CMS institucional podrá ser destino de textos jurídicos sólo después de
-validación y autorización en 7D.2B. CIF y domicilio social están confirmados
+validación y autorización en 7D.2C. CIF y domicilio social están confirmados
 por el club como datos legales y administrativos; no constituyen por sí solos
 una certificación registral. Representación legal general, registro deportivo,
 inscripción y mandato de la Junta, bases, conservación, destinatarios,
 encargados y transferencias no se completan por inferencia. El teléfono
 confirmado es privado y no pertenece al CMS ni a la interfaz pública.
+
+## 23. Identidad deportiva pública tras 7D.2B
+
+La identidad en datos funcionales de Competición es una proyección de dominio,
+no contenido editorial. Laravel decide `public_display_name` y los Resources
+anónimos exponen únicamente campos deportivos allowlisted; React sólo presenta
+esa cadena. Adultos usan alias o nombres de pila más inicial del primer
+apellido. Menores, nacimiento ausente o datos insuficientes quedan en
+`Participante` porque el dominio no acredita una autorización pública.
+
+Esta política no se aplica a la Junta: nombres y cargos institucionales siguen
+perteneciendo al CMS y requieren su propio control editorial. 7D.2B no publica
+los borradores legales, imágenes, estatutos ni datos institucionales, y no
+habilita Contacto.
 
 ## Mantenimiento
 

@@ -233,7 +233,7 @@ confirmado no acredita el destinatario interno del formulario. El club sí
 confirma CIF, domicilio social y a Jorge Sánchez Romero como presidente y
 responsable web; la representación legal general y las validaciones jurídicas
 del tratamiento permanecen pendientes. La activación continúa bloqueada hasta
-7D.2B y la preparación operativa.
+7D.2C y la preparación operativa.
 
 ## 18. Notificación
 
@@ -336,3 +336,11 @@ formulario sigue desactivado por defecto hasta superar privacidad y operación.
 El resultado, las pruebas y los gates restantes se documentan en
 `18-club-public-facades.md`. Este seguimiento no reescribe los criterios
 históricos con los que se cerró 7C.1.
+
+## Seguimiento de 7D.2B
+
+El endurecimiento de privacidad no modifica `ContactRequest`, sus endpoints ni
+su administración. `CONTACT_FORM_ENABLED=false` sigue siendo el default y los
+campos del formulario no se almacenan en el navegador. No se configura correo,
+destinatario, conservación, primera capa o texto legal; esos gates productivos
+pertenecen a 7D.2C.

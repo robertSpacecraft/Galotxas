@@ -6,6 +6,16 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Fase 7D.2B incorpora una proyección pública de identidad deportiva
+  centralizada y fail-closed, Resources deportivos con allowlists, consumo
+  React de `public_display_name`, bootstrap autenticado mediante `/me` sin
+  persistir el perfil, y recursos locales para frontend y Blade sin Google
+  Fonts, Bunny Fonts o jsDelivr. Contacto, páginas legales, CMS, imágenes y
+  Knowledge permanecen sin publicar o modificar.
+- La invalidación React distingue credencial o sesión inválida (`401`, `419` y
+  el `403` explícito de usuario inactivo) de un `403` de autorización ordinario,
+  que conserva Cuenta y el Bearer para peticiones posteriores.
+
 - Fase 7D.2A documenta la matriz institucional, estatutos históricos,
   tratamientos de datos, identidad deportiva, menores, imágenes, cookies,
   almacenamientos y terceros, y añade cinco borradores internos expresamente
@@ -119,7 +129,8 @@ El primer candidato MVP continúa pendiente de revisión humana, commit de prepa
 - Calendario público alineado con el contrato real de jornadas y partidos.
 - Navegación pública responsive, semántica de formularios y control móvil del panel administrativo.
 - Fechas ausentes de campeonatos sin valores de 1970.
-- Invalidación de sesión sin logs de aplicación duplicados para respuestas esperadas 401/403.
+- Invalidación de sesión sin logs de aplicación duplicados para respuestas
+  esperadas `401`/`419` y el `403` explícito de usuario inactivo.
 - Ruta pública `/torneos` sin placeholder duplicado.
 - Limpieza de artefactos Playwright tras ejecuciones satisfactorias y exclusión de `Zone.Identifier`.
 
@@ -134,7 +145,8 @@ El primer candidato MVP continúa pendiente de revisión humana, commit de prepa
 
 ### Known limitations
 
-- El token Bearer permanece en `localStorage` y cualquier 403 autenticado conserva el cierre global vigente.
+- El token Bearer permanece en `localStorage`; un `403` ordinario conserva la
+  sesión y el `403` de usuario inactivo limpia el token revocado en servidor.
 - La reprogramación no tiene interfaz React ni limiter específico.
 - La edición del perfil React, los contratos API heredados y varios componentes amplios siguen pendientes de evolución.
 - Solo Chromium forma parte del smoke E2E; correo real, TLS, proxy, backups y monitorización no están validados.

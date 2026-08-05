@@ -205,20 +205,29 @@ El frontend React consume la API autenticada mediante tokens Bearer emitidos por
 Estrategia actual:
 
 - el token se conserva en `localStorage` bajo la clave `token`;
-- los datos mínimos del usuario autenticado se conservan en `localStorage` bajo la clave `user`;
+- el perfil autenticado se conserva sólo en memoria y se restaura mediante `GET /me`;
+- cualquier `localStorage.user` legado se elimina sin migrar su contenido;
 - el cliente Axios obtiene su URL base de `VITE_API_BASE_URL`; sin variable usa el backend local durante desarrollo y `/api/v1` en producción;
 - el cliente Axios añade `Authorization: Bearer <token>` cuando existe token local;
 - `GET /api/v1/me` se utiliza para refrescar los datos de la cuenta y su perfil de jugador;
 - `POST /api/v1/auth/logout` revoca el token actual en backend;
-- ante respuestas `401` o `403` en peticiones autenticadas, React elimina `token` y `user` para evitar sesiones locales desincronizadas.
+- ante `401` o `419`, React elimina el token, cualquier dato legado y el estado en memoria;
+- un `403` de autorización ordinario conserva la sesión y propaga el error, sin redirigir a login;
+- el `403` contractual `El usuario está inactivo.` sí limpia la autenticación porque `EnsureUserIsActive` revoca ese token en servidor.
+
+En este contrato, `401` identifica credencial ausente, inválida o revocada;
+`403`, una identidad válida sin autorización, salvo la excepción explícita de
+usuario inactivo; y `419`, expiración de sesión/CSRF cuando aplique. Las rutas
+API Bearer actuales no generan `419` de forma ordinaria.
 
 La estrategia forma parte del estado MVP actual. Una futura migración a cookies `HttpOnly`/`SameSite` con protección CSRF requerirá un bloque específico porque modifica el modelo de consumo del frontend y no debe mezclarse con cambios funcionales menores.
 
-La auditoría 7D.2A confirma que Sanctum no define expiración global y que React
-conserva tanto el token como el objeto de usuario sin caducidad propia hasta
-logout, limpieza por 401/403 o acción del navegador. Expiración, revocación,
-información de privacidad y eventual migración son gates productivos
-pendientes; el contrato no cambia en esta fase.
+Sanctum no define expiración global. 7D.2B conserva únicamente el token sin
+caducidad propia hasta logout, limpieza por `401`, `419`, el `403` explícito de
+usuario inactivo o acción del navegador;
+`/me` hidrata cada recarga válida. Expiración, revocación global, información
+de privacidad y una eventual migración a cookies HttpOnly son gates
+productivos pendientes.
 
 ---
 
@@ -782,15 +791,20 @@ falla esta consulta, gestiona 201/422/429/503/red sin ampliar el envelope y no
 expone ni persiste campos internos. El default productivo continúa desactivado;
 privacidad, destinatario, correo y operación siguen siendo gates de activación.
 
-### Gate de identidad pública tras 7D.2A
+### Identidad pública desde 7D.2B
 
-Los endpoints públicos de ranking, clasificación, calendario y partido
-continúan exponiendo la forma histórica de identidad: pueden incluir IDs,
-alias, nombre y apellidos, aunque React no presente todos esos campos. La
-política aprobada para adultos —alias o, si falta, nombre más inicial del primer
-apellido— aún no está implementada; la de menores continúa pendiente. Reducir
-los Resources a una allowlist única es requisito previo a datos productivos y
-pertenece a un bloque posterior autorizado.
+Los endpoints públicos de ranking, clasificación, calendario y partido usan
+la proyección `public_display_name`. Para adultos es alias o, si falta, nombres
+de pila más inicial del primer apellido. Menores, nacimiento ausente o datos
+incompletos devuelven `Participante`; no exponen edad ni motivo.
+
+Una entrada pública contiene sólo `entry_type` y `public_display_name`. Las
+clasificaciones eliminan `entry_id`, `entry` y el antiguo `name`; los rankings
+agregados eliminan `player_id`, `player` y `name`. Partido y calendario no
+incluyen objetos/IDs de jugador, equipo o entrada, aunque conservan IDs de
+entidades deportivas necesarios para rutas y contexto. Los contratos
+autenticados y administrativos siguen separados y no pierden sus datos
+operativos. No existe buscador ni perfil público de jugador.
 
 ---
 

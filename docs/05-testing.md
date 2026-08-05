@@ -1194,12 +1194,45 @@ validación dirigida comprueba:
   sin reproducir su valor;
 - `git diff --check` y ausencia de cambios en `frontend/dist`.
 
-7D.2B deberá añadir cobertura de rutas legales, primera capa, política de
-identidad pública y cualquier mecanismo de cookies que realmente se implemente.
+El cierre posterior de 7D.2B añade cobertura de identidad pública,
+almacenamiento de sesión y recursos externos. Las rutas legales, primera capa
+y cualquier mecanismo jurídico que finalmente corresponda quedan para 7D.2C.
 
 Validación de 7D.2A: 45/45 tests de `compiler.test.js`, ESLint dirigido sin
 salida y `knowledge:check` correcto con 40 documentos, cuatro colecciones y
 cinco exclusiones explícitas.
+
+## PRIVACY-HARDENING-PUBLIC-IDENTITY-1 — Privacidad técnica e identidad pública
+
+7D.2B añade Feature tests sobre MariaDB para la proyección adulta con alias o
+inicial, normalización de espacios, nombres y apellidos compuestos, menores,
+fecha ausente y datos incompletos fail-closed; allowlists de clasificación,
+calendario, partido y rankings; equipos; prevención de lazy loading; y
+conservación de `/me` y Blade. También verifica que bienvenida y layout admin
+no cargan fuentes, scripts, hojas o iframes remotos conocidos. La ejecución
+dirigida completa 29 tests y 360 aserciones; la suite backend completa, 386
+tests y 2.966 aserciones.
+
+Vitest cubre el helper que sólo acepta `public_display_name`, consumidores de
+Competición, login, recarga mediante `/me`, `401`/`419`, dato legado, logout y
+ausencia de perfil persistido. El ajuste final distingue además el `403`
+ordinario del `403` de usuario inactivo, conserva Cuenta, comprueba el Bearer
+en la petición posterior y evita registrar payloads privados. Sus pruebas
+focalizadas completan 26 casos; la suite completa finaliza con 389 tests en 59
+archivos y ESLint sin errores.
+
+Playwright completa 41 escenarios sobre el stack aislado. Además de la
+regresión anterior, comprueba clasificación, partido y equipo con identidad
+minimizada y respuestas sin campos privados; login real, recarga, ausencia de
+`localStorage.user`, logout, `401`, `403` ordinario con Cuenta y Bearer
+conservados; Club y Contacto oculto; 404 legal; y ausencia de peticiones a
+Google Fonts, Bunny Fonts o jsDelivr. El runner elimina red, contenedores e
+informes al terminar.
+
+El build temporal transforma 207 módulos sin warnings, mantiene Club en 11,39
+kB, School en 15,33 kB y Knowledge en 282,13 kB como chunks separados; el
+inicial queda en torno a 420,3 kB. No modifica `frontend/dist`. Pint, `php -l`,
+`knowledge:check`, hashes y `git diff --check` forman parte del cierre.
 
 ---
 

@@ -238,23 +238,27 @@ continúa como artefacto Vite ignorado y no participa como fuente de este flujo.
 
 ## Preparación legal y proyecciones de datos personales
 
-Fase 7D.2A añade una capa exclusivamente documental, descrita en
-`20-legal-privacy-and-cookies-readiness.md`. No es una fuente de contenido
-público ni una nueva capa runtime. Separa identidad jurídica y pública,
-inventaría tratamientos y terceros y mantiene borradores fuera de React,
-Laravel, CMS y Knowledge.
+Fase 7D.2A añade la base documental descrita en
+`20-legal-privacy-and-cookies-readiness.md`; 7D.2B aplica el endurecimiento
+técnico detallado en `21-privacy-hardening-and-public-identity.md`. Ninguno es
+fuente editorial pública: los borradores siguen fuera de React, Laravel, CMS y
+Knowledge.
 
-La proyección pública de identidad deportiva debe centralizarse en backend. La
-política objetivo para adultos usa alias y, si falta, nombre más inicial del
-primer apellido. La regla específica de menores y su autorización permanecen
-pendientes. Los Resources deportivos actuales exponen una forma más amplia;
-corregirla y cubrirla con pruebas es un gate de 7D.2B/producción, no un cambio
-aplicado por esta auditoría.
+`PublicPlayerIdentityService` centraliza la identidad deportiva anónima. Los
+adultos usan alias o nombres de pila más inicial del primer apellido. Menores
+y nacimiento ausente fallan a `Participante` porque el dominio no modela
+autorización explícita. `PublicCompetitionEntryResource` y los Resources de
+rankings usan allowlists con `public_display_name`; React consume esa cadena y
+no reconstruye nombres. Junta y contratos privados permanecen separados.
 
-El inventario técnico observa sesión Laravel y CSRF en Blade, Bearer Sanctum y
-`localStorage` en React, además de recursos remotos de fuentes/CDN. La decisión
-de autocustodia o mecanismo jurídico se aplaza a 7D.2B. La selección real de
-hosting, base, correo, backups y región pertenece a 7F.
+React persiste sólo el Bearer en `localStorage.token`, elimina el antiguo
+`localStorage.user` y restaura el perfil en memoria mediante `/me`. Logout y
+`401`/`419` limpian la sesión; un `403` ordinario conserva Cuenta, mientras el
+`403` explícito de usuario inactivo limpia el token ya revocado en servidor.
+Sanctum continúa sin expiración global y el riesgo XSS del Bearer sigue abierto.
+Google Fonts, Bunny Fonts y jsDelivr se
+retiran en favor de fuentes de sistema y recursos locales del panel. La
+selección real de hosting, base, correo, backups y región pertenece a 7F.
 
 ## Gestión de pistas y generación de calendarios
 
@@ -454,7 +458,7 @@ sin peticiones nuevas, importación de Knowledge o contenido CMS duplicado.
 
 `championshipsService.getSeasons` mantiene la comunicación HTTP y extrae `data` del envelope; `useCompetitionOverview` coordina carga, éxito, error, vacío, reintento y descarte de respuestas posteriores al desmontaje; los componentes específicos `CompetitionOverview`, `CompetitionSeason` y `CompetitionChampionshipCard` se limitan a presentar el contrato deportivo, y `CompetitionPage` compone esos estados dentro de `PublicLanding`. No se consulta `/championships` ni detalles para construir el resumen, porque `/seasons` ya entrega los campeonatos públicos y su recuento de categorías en una sola respuesta.
 
-`championshipsService.getAllTimeRanking` sigue siendo el único consumidor HTTP del ranking histórico tanto para `/rankings` como para la landing. `useAllTimeRanking` aporta a 4B un ciclo remoto propio con reintento y descarte de respuestas obsoletas, mientras `CompetitionRankingPreview` limita visualmente la colección con `slice(0, 5)`. No ordena, puntúa, posiciona ni completa filas: muestra el nombre público, `position` sólo cuando existe, `weighted_points` sólo cuando es numérico y `categories_played_list` sólo cuando contiene contexto real; `player_id` se usa únicamente como clave técnica. `/rankings` conserva su tabla completa y su paginación visual previa.
+`championshipsService.getAllTimeRanking` sigue siendo el único consumidor HTTP del ranking histórico tanto para `/rankings` como para la landing. `useAllTimeRanking` aporta a 4B un ciclo remoto propio con reintento y descarte de respuestas obsoletas, mientras `CompetitionRankingPreview` limita visualmente la colección con `slice(0, 5)`. No ordena, puntúa, posiciona ni completa filas: muestra `public_display_name`, `position` sólo cuando existe, `weighted_points` sólo cuando es numérico y `categories_played_list` sólo cuando contiene contexto real. Los IDs personales ya no forman parte del contrato público; React usa posición e índice sólo como clave de render. `/rankings` conserva su tabla completa y su paginación visual previa.
 
 Las cargas de temporadas y ranking son independientes: el error, retry, loading o vacío de una no bloquea ni borra la otra. Fase 4C aplica el mismo principio por recurso en Torneos, campeonato, clasificación, calendario y Rankings, sin crear un estado remoto global para contratos distintos. React conserva el orden de la API, no interpreta ni vuelve a filtrar `is_public` y no deriva posiciones, oficialidad o reglas; Laravel continúa siendo la fuente de verdad. Los datos nulos se omiten cuando no aportan información, los desconocidos usan fallbacks neutrales y cada bloque conserva un reintento acotado cuando es recuperable.
 
@@ -489,8 +493,8 @@ Navbar los disclosures Aprende/Club y mantiene Cuenta separada. Competición
 presenta datos públicos reales; Aprende a jugar deriva sus 40 documentos y
 cuatro colecciones; Escuela presenta el agregado `GET /api/v1/school`; y Club
 presenta sólo las páginas que Laravel considera publicadas. 7D.2A deja la base
-legal interna auditada; publicación legal y activación productiva de Contacto
-se aplazan a 7D.2B.
+legal interna auditada y 7D.2B aplica el endurecimiento técnico; publicación
+legal y activación productiva de Contacto se aplazan a 7D.2C.
 El detalle operativo se mantiene en `09-public-navigation.md` y el cierre
 editorial de 7B en `15-mvp-editorial-and-navigation-contract.md`; la aplicación
 de 7D.1 se registra en `19-navigation-home-and-footer.md`.

@@ -87,9 +87,12 @@ fachadas diferidas `/club/quienes-somos`, `/club/contacto`, `/club/federarse` y
 `/club/documentos`; el formulario sólo se monta cuando la configuración pública
 devuelve `enabled: true`. Fase 7D.1 incorpora el Navbar agrupado Aprende/Club,
 Home orientada a recorridos reales y footer global; las páginas legales y la
-activación productiva de Contacto siguen pendientes de 7D.2B. La auditoría
+activación productiva de Contacto siguen pendientes de 7D.2C. La auditoría
 7D.2A consolida identidad, tratamientos, cookies, terceros y borradores
-internos sin crear rutas, enlaces legales ni activar recogidas productivas.
+internos. 7D.2B minimiza la identidad deportiva pública, conserva en el
+navegador sólo el token Bearer, restaura el perfil mediante `/me` y elimina las
+cargas automáticas de fuentes y recursos externos, sin crear rutas o enlaces
+legales ni activar recogidas productivas.
 
 ## Pruebas
 

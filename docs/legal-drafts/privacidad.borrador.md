@@ -25,7 +25,7 @@ Pendiente de validación jurídica y operativa.
 | Contacto | Nombre, correo, asunto, mensaje, aceptación e IP con HMAC; gestión y notificación opcional | `PENDIENTE DE VALIDACIÓN JURÍDICA` |
 | Escuela | Participante, nacimiento, teléfono, correo, representante de menor, nivel, estados y notas | `PENDIENTE DE VALIDACIÓN JURÍDICA`; requiere tratamiento específico de menores |
 | Competición | Inscripciones, comentarios, pago manual, equipos, partidos, resultados, reprogramaciones y rankings | `PENDIENTE DE VALIDACIÓN JURÍDICA` |
-| Identidad pública | Alias adulto o nombre + inicial si no existe; regla de menores pendiente; Junta por nombre completo y cargo | `PENDIENTE DE VALIDACIÓN JURÍDICA` |
+| Identidad pública | Alias adulto o nombre + inicial si no existe; menores y nacimiento ausente con etiqueta neutra mientras no exista autorización; Junta por nombre completo y cargo | `PENDIENTE DE VALIDACIÓN JURÍDICA` |
 | Centros/actividades | Contactos profesionales, calendario, alumnado esperado y notas internas | `PENDIENTE DE VALIDACIÓN JURÍDICA` |
 | Imágenes | Imagen, contexto, metadatos y posibles menores | `PENDIENTE DE VALIDACIÓN JURÍDICA` y registro de autorizaciones |
 | Seguridad/operación | IP, user-agent, sesiones, rate limit, logs, correo, backups y hosting | `PENDIENTE DE VALIDACIÓN JURÍDICA` |
@@ -55,9 +55,10 @@ una lista normativa hasta su revisión profesional.
 ## Menores, Escuela e imágenes
 
 La Escuela recoge nacimiento y datos de representante cuando el participante
-es menor. La API deportiva actual no dispone de proyección pública específica
-para menores. No se autoriza publicación automática de identidad o imagen de
-menores. Información, autorización específica, minimización, retirada y
+es menor. La API deportiva aplica una proyección fail-closed `Participante` a
+menores y nacimientos ausentes porque no existe autorización explícita de
+identidad. No se autoriza publicación automática de otra identidad o imagen de
+menores. Información, autorización específica, retirada y
 gestión del cambio de edad: `PENDIENTE DE VALIDACIÓN JURÍDICA Y OPERATIVA`.
 
 ## Versionado

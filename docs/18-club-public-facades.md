@@ -156,9 +156,10 @@ carga, revisión y publicación productivas siguen siendo manuales por entorno.
 ## 21. Gates posteriores a 7C
 
 7D.1 implementa el árbol único con disclosures Aprende/Club, paridad
-desktop/móvil, Home y footer estructurales. Antes de activar Contacto en
-producción, 7D.2B debe cerrar privacidad, legal y operación tras la auditoría
-7D.2A. También siguen pendientes paridad de `/nosotros`, aliases/redirects,
+desktop/móvil, Home y footer estructurales. 7D.2B endurece almacenamiento,
+identidad deportiva y recursos externos sin activar Contacto. Antes de
+activarlo en producción, 7D.2C debe cerrar privacidad, legal y operación tras
+la auditoría 7D.2A. También siguen pendientes paridad de `/nosotros`, aliases/redirects,
 canonical, indexación de
 `/contenidos`, contenido por entorno y aceptación humana.
 
@@ -169,7 +170,7 @@ diferidas, fuente CMS única, estados completos, Contacto condicionado, pruebas
 unitarias/backend/E2E y documentación validadas, sin cambios en Navbar,
 `knowledge/`, `frontend/dist`, imágenes o datos locales. Fase 7 y el MVP siguen
 abiertos: la implementación posterior de 7D.1 ni la auditoría 7D.2A autorizan
-7D.2B ni los gates productivos.
+los gates productivos de 7D.2C.
 
 ## 23. Seguimiento de 7D.1
 
@@ -191,3 +192,11 @@ como canal editorial; el teléfono es privado. Los borradores legales no se
 cargan en CMS ni habilitan el formulario. Assets, identidad deportiva,
 menores, proveedores, plazos y destinatario del formulario siguen siendo gates
 antes de producción.
+
+## 25. Seguimiento de 7D.2B
+
+Las fachadas, slugs, contenido CMS y formulario condicionado no cambian. Las
+pruebas de privacidad confirman que, con la configuración por defecto,
+Contacto permanece oculto y no persiste datos en web storage. Las rutas
+legales continúan ausentes y las imágenes no se modifican ni se autorizan para
+producción.

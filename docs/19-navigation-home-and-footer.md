@@ -139,7 +139,7 @@ accesible de ese comportamiento. No se publican teléfono ni dirección.
 
 Privacidad, aviso legal y cookies no aparecen como enlaces vacíos. 7D.2A audita
 su base técnica y crea sólo borradores internos no publicables. Validación,
-texto final, responsabilidad, aplicabilidad y rutas pertenecen a 7D.2B. El formulario de
+texto final, responsabilidad, aplicabilidad y rutas pertenecen a 7D.2C. El formulario de
 Contacto continúa desactivado por defecto en producción hasta cerrar privacidad
 y operación.
 
@@ -188,10 +188,11 @@ genera ni modifica.
 ## 23. Gates de 7D.2
 
 7D.2A consolida fuentes, inventario técnico, terceros, identidad e imágenes y
-deja borradores internos. 7D.2B debe resolver y aprobar privacidad, aviso legal
-y cookies; definir sus rutas; implementar la proyección deportiva aprobada;
-confirmar operación, destinatario y correo de Contacto; y mantener bloqueada la
-recogida productiva de datos hasta entonces.
+deja borradores internos. 7D.2B implementa la proyección deportiva, minimiza la
+sesión persistida y elimina recursos remotos prescindibles sin cambiar esta
+navegación. 7D.2C debe resolver y aprobar privacidad, aviso legal y cookies;
+definir sus rutas; confirmar operación, destinatario y correo de Contacto; y
+mantener bloqueada la recogida productiva de datos hasta entonces.
 No se deducen aliases, redirects, canonical, indexación o despliegue de este
 cierre estructural.
 
@@ -201,5 +202,13 @@ cierre estructural.
 única en desktop y móvil; los padres no crean rutas; Cuenta sigue separada;
 Home sólo enlaza funciones reales; el footer es global y seguro; accesibilidad,
 responsive, suites, build, Knowledge y E2E pasan; no cambian backend, CMS,
-Knowledge, dist, imágenes, logo, datos ni dependencias. 7D.2B, Fase 7, MVP y
+Knowledge, dist, imágenes, logo, datos ni dependencias. 7D.2C, Fase 7, MVP y
 despliegue permanecen abiertos.
+
+## 25. Seguimiento de 7D.2B
+
+Navbar, Home, footer, rutas y destinos no cambian. La cuenta restaura su estado
+consultando `/me` y no conserva el perfil en `localStorage`; la tipografía usa
+la pila del sistema. Las pruebas E2E mantienen los recorridos de Cuenta y Club,
+confirman Contacto oculto y la 404 de las rutas legales, y vigilan los hosts
+remotos retirados. La publicación visible sigue reservada a 7D.2C.

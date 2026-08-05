@@ -3,7 +3,7 @@ Pendiente de validación jurídica y operativa.
 
 # Borradores legales internos
 
-Esta carpeta prepara material de trabajo para 7D.2B. Ningún archivo es una
+Esta carpeta prepara material de trabajo para 7D.2C. Ningún archivo es una
 política vigente, una página pública, asesoramiento jurídico ni autorización
 para activar formularios o tratamientos.
 

@@ -67,6 +67,22 @@ Club, School y Knowledge continúan cargándose de forma diferida. El contrato y
 los gates legales de 7D.2 se detallan en
 [`docs/19-navigation-home-and-footer.md`](../docs/19-navigation-home-and-footer.md).
 
+## Sesión e identidad pública
+
+`src/api/authSession.js` es la única abstracción de persistencia de sesión.
+Conserva sólo el token Bearer en `localStorage`; el perfil vive en memoria y se
+restaura con `GET /me` al recargar. Login y registro no persisten el usuario, y
+logout, `401` o `419` eliminan token, dato legado y estado de sesión. Un `403`
+de autorización conserva Cuenta; sólo el `403` explícito de usuario inactivo
+limpia el token que Laravel ya ha revocado. Mantener el Bearer accesible a
+JavaScript conserva un riesgo XSS que no se resuelve sin una migración de
+autenticación específica.
+
+Las vistas públicas de competición consumen exclusivamente
+`public_display_name`; no reconstruyen nombres desde alias, apellidos, correo o
+identificadores. La interfaz usa la pila tipográfica del sistema y no solicita
+Google Fonts, Bunny Fonts ni recursos de jsDelivr.
+
 `dist/` es siempre salida generada ignorada. No debe editarse ni utilizarse como
 fuente de imágenes o módulos; para una comprobación que no altere el árbol se
 debe construir hacia un `outDir` temporal.

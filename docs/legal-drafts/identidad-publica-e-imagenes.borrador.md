@@ -10,17 +10,18 @@ Proyección objetivo:
 1. usar el alias deportivo cuando exista;
 2. si no existe, mostrar el nombre y la inicial del primer apellido.
 
-La regla debe implementarse una sola vez en backend y aplicarse a rankings,
+La regla se implementa una sola vez en backend y se aplica a rankings,
 clasificaciones, calendarios, partidos, equipos y cualquier metadato o búsqueda
-pública. Los Resources actuales todavía exponen campos adicionales; este
-borrador no autoriza datos reales hasta cerrar la allowlist y las pruebas.
+pública. Los Resources públicos usan allowlists y `public_display_name`; este
+borrador no autoriza datos reales sin revisión operativa y jurídica.
 
 ## Menores
 
 No aplicar automáticamente la regla adulta. Criterio público, minimización,
 autorización específica, casos sin nacimiento, cambio de edad, retirada y
 tratamiento de históricos: `PENDIENTE DE VALIDACIÓN JURÍDICA, DEPORTIVA Y
-OPERATIVA`. En ausencia de decisión aprobada, la identidad no es publicable.
+OPERATIVA`. En ausencia de esa decisión, backend devuelve la etiqueta neutra
+`Participante`, también cuando falta nacimiento, y no expone el motivo.
 
 ## Junta directiva
 
@@ -50,6 +51,6 @@ definir qué copias no pueden eliminarse inmediatamente. Canal y plazos:
 
 ## Gate
 
-Antes de producción: auditar datos reales, completar alias y nacimiento donde
-sea necesario, aprobar la regla de menores, reducir Resources, revisar URLs y
-metadatos, registrar autorizaciones de imagen y cubrir backend/frontend/E2E.
+Antes de producción: auditar datos reales, decidir autorización/exclusión y
+retirada para menores, revisar URLs y metadatos, registrar autorizaciones de
+imagen y revalidar backend/frontend/E2E en el despliegue.
