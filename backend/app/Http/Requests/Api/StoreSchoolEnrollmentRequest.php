@@ -5,8 +5,10 @@ namespace App\Http\Requests\Api;
 use App\Http\Requests\SchoolEnrollmentDataRequest;
 use App\Models\SchoolLevel;
 use App\Models\SchoolProgram;
+use App\Services\PublicIdentityNoticeService;
 use App\Services\SchoolEnrollmentService;
 use Carbon\CarbonImmutable;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class StoreSchoolEnrollmentRequest extends SchoolEnrollmentDataRequest
@@ -34,6 +36,37 @@ class StoreSchoolEnrollmentRequest extends SchoolEnrollmentDataRequest
         return [
             ...$this->participantRules(),
             'school_level_id' => ['nullable', 'integer'],
+            'privacy_acknowledged' => ['required', 'accepted'],
+            'privacy_notice_version' => [
+                'required',
+                'string',
+                Rule::in([(string) config('public_identity.privacy_notice_version')]),
+            ],
+            'public_identity_authorization' => [
+                Rule::prohibitedIf(! config('public_identity.authorization_enabled')),
+                'nullable',
+                'array:mode,notice_version,guardian_authority_declared',
+            ],
+            'public_identity_authorization.mode' => [
+                'required_with:public_identity_authorization',
+                Rule::in(['alias', 'name_initial', 'anonymous']),
+            ],
+            'public_identity_authorization.notice_version' => [
+                'required_with:public_identity_authorization',
+                'string',
+                'max:20',
+            ],
+            'public_identity_authorization.guardian_authority_declared' => [
+                Rule::excludeIf(fn (): bool => ! is_array($this->input(
+                    'public_identity_authorization'
+                )) || $this->input('public_identity_authorization.mode') === 'anonymous'),
+                Rule::requiredIf(fn (): bool => in_array(
+                    $this->input('public_identity_authorization.mode'),
+                    ['alias', 'name_initial'],
+                    true
+                )),
+                'accepted',
+            ],
             'school_program_id' => ['prohibited'],
             'user_id' => ['prohibited'],
             'status' => ['prohibited'],
@@ -58,6 +91,9 @@ class StoreSchoolEnrollmentRequest extends SchoolEnrollmentDataRequest
                 'guardian_name',
                 'guardian_relationship',
                 'school_level_id',
+                'privacy_acknowledged',
+                'privacy_notice_version',
+                'public_identity_authorization',
             ];
             $unexpectedFields = array_diff(array_keys($this->all()), $allowedFields);
 
@@ -68,6 +104,24 @@ class StoreSchoolEnrollmentRequest extends SchoolEnrollmentDataRequest
                 );
 
                 return;
+            }
+
+            $authorization = $this->input('public_identity_authorization');
+            if (is_array($authorization)) {
+                if ($this->participantWasMinor() !== true) {
+                    $validator->errors()->add(
+                        'public_identity_authorization',
+                        'La autorización de representante sólo está disponible para participantes menores.'
+                    );
+                } else {
+                    $notice = app(PublicIdentityNoticeService::class)->current();
+                    if (($authorization['notice_version'] ?? null) !== $notice['version']) {
+                        $validator->errors()->add(
+                            'public_identity_authorization.notice_version',
+                            'La versión del aviso de autorización no está vigente.'
+                        );
+                    }
+                }
             }
 
             if (

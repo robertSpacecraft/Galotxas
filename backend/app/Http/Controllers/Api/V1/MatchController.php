@@ -34,10 +34,13 @@ class MatchController extends Controller
 
         $gameMatch->load([
             'homeEntry.player.user',
+            'homeEntry.player.publicIdentityAuthorizations',
             'homeEntry.team.players.user',
             'awayEntry.player.user',
+            'awayEntry.player.publicIdentityAuthorizations',
             'awayEntry.team.players.user',
             'winnerEntry.player.user',
+            'winnerEntry.player.publicIdentityAuthorizations',
             'winnerEntry.team.players.user',
             'venue',
             'round.category.championship.season',

@@ -2,7 +2,7 @@
 id: LEG-002
 title: Política de privacidad
 slug: privacidad
-version: 1.0.0
+version: 1.1.0
 status: vigente
 published_at: 2026-08-06
 reviewed_at: 2026-08-06
@@ -58,26 +58,25 @@ La gestión deportiva trata inscripciones, equipos, partidos, resultados, clasif
 
 Para personas adultas, el sistema puede mostrar el alias deportivo y, si no existe, el nombre con la inicial del primer apellido. Para menores o personas cuya fecha de nacimiento no consta, la regla actual es cerrada: **sin autorización verificable y vigente se muestra “Participante”**. React representa esa cadena y no reconstruye una identidad con otros campos.
 
-## Menores y autorización futura
+## Menores y autorización de identidad pública
 
-La inscripción deportiva y la autorización para mostrar una identidad pública son independientes. La autorización pública será opcional, no condicionará la participación, no estará premarcada, será específica y revocable, y registrará su versión y alcance.
+La inscripción deportiva y la autorización para mostrar una identidad pública son independientes. La autorización pública es opcional, no condiciona la participación, no está premarcada, es específica y revocable, y registra su versión y alcance.
 
-Los modos que podrán autorizarse en el futuro son:
+Los modos disponibles para menores son:
 
 - alias;
 - nombre e inicial del primer apellido;
 - identidad anónima.
 
-Las iniciales también pueden permitir identificar a una persona y no se usarán sin autorización. El diseño futuro distinguirá:
+Las iniciales también pueden permitir identificar a una persona y no se usan sin autorización. La autorización se limita a la identidad en las superficies públicas de competición descritas en el aviso y no autoriza:
 
-- identidad en resultados;
 - imágenes en la web;
 - imágenes en redes sociales;
 - conservación en archivo histórico.
 
-Ese flujo todavía no está implementado. Su diseño prevé confirmación del representante para menores de 14 años; aceptación del menor y confirmación del representante entre 14 y 17 años; y consentimiento propio desde los 18 años. La confirmación se realizará mediante un enlace de correo de un solo uso, declaración de patria potestad o tutela, revisión administrativa y un mecanismo de revocación. No se solicitará un documento de identidad de forma general; cualquier comprobación adicional requerirá una duda justificada y una medida proporcionada.
+El flujo exige confirmación del representante para menores de 14 años; conformidad informada del menor y confirmación del representante entre 14 y 17 años; y aplica la política propia de personas adultas desde los 18 años. La confirmación se realiza mediante un enlace de correo de un solo uso, declaración de patria potestad o tutela, vinculación inequívoca con el jugador, revisión administrativa y un mecanismo de revocación. No se solicita un documento de identidad de forma general; cualquier comprobación adicional requiere una duda justificada y una medida proporcionada.
 
-Hasta que exista ese registro verificable, cualquier menor o edad desconocida mantiene la etiqueta “Participante”.
+Si la función está desactivada o falta cualquiera de esos requisitos, cualquier menor o edad desconocida mantiene la etiqueta “Participante”. La versión y el alcance concretos se muestran en la primera capa del formulario y en el correo de confirmación.
 
 ## Imágenes
 
@@ -102,6 +101,8 @@ Los logs pueden contener datos técnicos como dirección IP, agente de usuario, 
 | Logs de seguridad | 90 días |
 | Copias de seguridad | Rotación de 30 días |
 | Autorizaciones de imágenes | Mientras se publique la imagen y 3 años después |
+| Autorizaciones de identidad de menores | Mientras se utilice la identidad y 3 años tras denegación, retirada o finalización |
+| Tokens técnicos de autorización | Hasta 30 días después de dejar de ser útiles |
 | Datos completos de competición | Mientras sean necesarios para gestión activa |
 | Resultados históricos | Conservación histórica con identidad minimizada |
 | Junta directiva | Durante el cargo y después sólo en contexto histórico justificado |

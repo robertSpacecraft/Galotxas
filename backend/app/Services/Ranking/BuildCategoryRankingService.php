@@ -18,14 +18,18 @@ class BuildCategoryRankingService
         $category->loadMissing([
             'championship',
             'entries.player.user',
+            'entries.player.publicIdentityAuthorizations',
             'entries.team.players.user',
+            'entries.team.players.publicIdentityAuthorizations',
         ]);
 
         $entries = $category->entries()
             ->where('status', 'approved')
             ->with([
                 'player.user',
+                'player.publicIdentityAuthorizations',
                 'team.players.user',
+                'team.players.publicIdentityAuthorizations',
             ])
             ->get()
             ->keyBy('id');
@@ -40,9 +44,13 @@ class BuildCategoryRankingService
             ->whereNotNull('away_score')
             ->with([
                 'homeEntry.player.user',
+                'homeEntry.player.publicIdentityAuthorizations',
                 'homeEntry.team.players.user',
+                'homeEntry.team.players.publicIdentityAuthorizations',
                 'awayEntry.player.user',
+                'awayEntry.player.publicIdentityAuthorizations',
                 'awayEntry.team.players.user',
+                'awayEntry.team.players.publicIdentityAuthorizations',
             ])
             ->get();
 

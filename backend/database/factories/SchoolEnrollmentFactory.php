@@ -33,6 +33,8 @@ class SchoolEnrollmentFactory extends Factory
             'rejected_at' => null,
             'withdrawn_at' => null,
             'admin_notes' => null,
+            'privacy_notice_version' => '1.1.0',
+            'privacy_acknowledged_at' => CarbonImmutable::now(),
         ];
     }
 

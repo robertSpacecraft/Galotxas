@@ -79,7 +79,11 @@ const SchoolContent = ({ school, reload }) => (
         title="Solicitud de inscripción"
         introduction="Envía una solicitud sin necesidad de crear una cuenta. Su recepción no implica que haya sido aceptada."
       >
-        <SchoolEnrollmentForm levels={school.levels} reloadOverview={reload} />
+        <SchoolEnrollmentForm
+          levels={school.levels}
+          reloadOverview={reload}
+          identityAuthorization={school.public_identity_authorization}
+        />
       </LandingSection>
     ) : null}
   </div>

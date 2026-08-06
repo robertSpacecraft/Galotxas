@@ -9,7 +9,11 @@ use App\Enums\CmsBlockType;
 use App\Enums\CmsPageStatus;
 use App\Enums\GameMatchStatus;
 use App\Enums\PlayerGender;
+use App\Enums\PublicIdentityAuthorizationEventType;
+use App\Enums\PublicIdentityAuthorizationMode;
+use App\Enums\PublicIdentityAuthorizationState;
 use App\Enums\SchoolDayOfWeek;
+use App\Enums\SchoolEnrollmentStatus;
 use App\Enums\SeasonStatus;
 use App\Models\Category;
 use App\Models\CategoryEntry;
@@ -18,7 +22,10 @@ use App\Models\Championship;
 use App\Models\CmsPage;
 use App\Models\GameMatch;
 use App\Models\Player;
+use App\Models\PublicIdentityAuthorization;
+use App\Models\PublicIdentityAuthorizationEvent;
 use App\Models\Round;
+use App\Models\SchoolEnrollment;
 use App\Models\SchoolLevel;
 use App\Models\SchoolLocation;
 use App\Models\SchoolProgram;
@@ -26,6 +33,7 @@ use App\Models\SchoolSchedule;
 use App\Models\Season;
 use App\Models\User;
 use App\Models\Venue;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -34,6 +42,14 @@ use RuntimeException;
 class E2ESmokeSeeder extends Seeder
 {
     public const PASSWORD = 'E2E-password-123!';
+
+    public const UNDER_14_IDENTITY_TOKEN = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+
+    public const TEEN_IDENTITY_TOKEN = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+
+    public const EXPIRED_IDENTITY_TOKEN = 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc';
+
+    public const DENIED_IDENTITY_TOKEN = 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd';
 
     public function run(): void
     {
@@ -286,7 +302,226 @@ class E2ESmokeSeeder extends Seeder
                     'sort_order' => 10,
                 ]
             );
+
+            $this->seedPublicIdentityScenario($schoolProgram, $venue);
         });
+    }
+
+    private function seedPublicIdentityScenario(
+        SchoolProgram $schoolProgram,
+        Venue $venue
+    ): void {
+        $underFourteenUser = $this->createPlayerUser(
+            'minor-under14.e2e@example.test',
+            'Lia',
+            'Ñíguez E2E',
+            'Alias Menor E2E',
+            'alias-menor-e2e',
+            'E2E00003C',
+            'E2E-LIC-003',
+            'right',
+            '2014-08-07'
+        );
+        $teenUser = $this->createPlayerUser(
+            'minor-teen.e2e@example.test',
+            'Noa',
+            'Écija E2E',
+            '',
+            'nombre-inicial-menor-e2e',
+            'E2E00004D',
+            'E2E-LIC-004',
+            'left',
+            '2010-08-07'
+        );
+        $adultUser = $this->createPlayerUser(
+            'identity-adult.e2e@example.test',
+            'Adulto',
+            'Identidad E2E',
+            'Rival Identidad E2E',
+            'rival-identidad-e2e',
+            'E2E00005E',
+            'E2E-LIC-005',
+            'right'
+        );
+
+        $season = Season::query()->create([
+            'name' => 'Temporada Identidad E2E 2025',
+            'start_date' => '2025-01-01',
+            'end_date' => '2025-12-31',
+            'status' => SeasonStatus::FINISHED->value,
+        ]);
+        $season->forceFill(['is_public' => true])->save();
+        $championship = Championship::query()->create([
+            'season_id' => $season->id,
+            'name' => 'Campeonato Identidad Menores E2E',
+            'slug' => 'identidad-menores-e2e',
+            'description' => 'Fixture aislada de identidad pública verificable.',
+            'type' => ChampionshipType::SINGLES->value,
+            'start_date' => '2025-07-01',
+            'end_date' => '2025-08-31',
+            'status' => 'finished',
+            'registration_status' => ChampionshipRegistrationStatus::CLOSED->value,
+        ]);
+        $championship->forceFill(['is_public' => true])->save();
+        $category = Category::query()->create([
+            'championship_id' => $championship->id,
+            'name' => 'Identidad Menores E2E',
+            'slug' => 'identidad-menores-e2e',
+            'level' => 5,
+            'gender' => CategoryGender::MIXED->value,
+            'description' => 'Categoría aislada para verificar proyecciones de menores.',
+            'status' => 'active',
+        ]);
+        $category->forceFill(['is_public' => true])->save();
+
+        $entries = collect([$underFourteenUser->player, $teenUser->player, $adultUser->player])
+            ->mapWithKeys(function (Player $player) use ($category): array {
+                CategoryRegistration::query()->create([
+                    'category_id' => $category->id,
+                    'player_id' => $player->id,
+                    'status' => 'approved',
+                ]);
+
+                $entry = CategoryEntry::query()->create([
+                    'category_id' => $category->id,
+                    'player_id' => $player->id,
+                    'entry_type' => 'player',
+                    'team_id' => null,
+                    'status' => 'approved',
+                ]);
+
+                return [$player->slug => $entry];
+            });
+
+        $underFourteenRound = $this->createRound($category, 'Identidad menor de 14 E2E', 1);
+        $teenRound = $this->createRound($category, 'Identidad 14 a 17 E2E', 2);
+        $this->createMatch(
+            $underFourteenRound,
+            $venue,
+            $entries['alias-menor-e2e'],
+            $entries['rival-identidad-e2e'],
+            '2025-08-01 18:00:00'
+        );
+        $this->createMatch(
+            $teenRound,
+            $venue,
+            $entries['nombre-inicial-menor-e2e'],
+            $entries['rival-identidad-e2e'],
+            '2025-08-02 18:00:00'
+        );
+
+        $underFourteenEnrollment = $this->createIdentityEnrollment(
+            $schoolProgram,
+            'Menor Alias E2E',
+            '2014-08-07',
+            'guardian-under14.e2e@example.test'
+        );
+        $teenEnrollment = $this->createIdentityEnrollment(
+            $schoolProgram,
+            'Menor Inicial E2E',
+            '2010-08-07',
+            'guardian-teen.e2e@example.test'
+        );
+        $expiredEnrollment = $this->createIdentityEnrollment(
+            $schoolProgram,
+            'Menor Expirado E2E',
+            '2014-08-07',
+            'guardian-expired.e2e@example.test'
+        );
+        $deniedEnrollment = $this->createIdentityEnrollment(
+            $schoolProgram,
+            'Menor Denegación E2E',
+            '2014-08-07',
+            'guardian-denied.e2e@example.test'
+        );
+
+        $this->createPendingIdentityAuthorization(
+            $underFourteenEnrollment,
+            $underFourteenUser->player,
+            PublicIdentityAuthorizationMode::ALIAS,
+            self::UNDER_14_IDENTITY_TOKEN
+        );
+        $this->createPendingIdentityAuthorization(
+            $teenEnrollment,
+            $teenUser->player,
+            PublicIdentityAuthorizationMode::NAME_INITIAL,
+            self::TEEN_IDENTITY_TOKEN
+        );
+        $this->createPendingIdentityAuthorization(
+            $expiredEnrollment,
+            null,
+            PublicIdentityAuthorizationMode::ALIAS,
+            self::EXPIRED_IDENTITY_TOKEN,
+            CarbonImmutable::now()->subDay()
+        );
+        $this->createPendingIdentityAuthorization(
+            $deniedEnrollment,
+            null,
+            PublicIdentityAuthorizationMode::ALIAS,
+            self::DENIED_IDENTITY_TOKEN
+        );
+
+    }
+
+    private function createIdentityEnrollment(
+        SchoolProgram $program,
+        string $participantName,
+        string $birthDate,
+        string $guardianEmail
+    ): SchoolEnrollment {
+        $enrollment = new SchoolEnrollment;
+        $enrollment->forceFill([
+            'school_program_id' => $program->id,
+            'school_level_id' => null,
+            'user_id' => null,
+            'participant_name' => $participantName,
+            'participant_birth_date' => $birthDate,
+            'contact_phone' => '600 000 000',
+            'contact_email' => $guardianEmail,
+            'guardian_name' => 'Representante E2E',
+            'guardian_relationship' => 'Tutor legal',
+            'status' => SchoolEnrollmentStatus::PENDING->value,
+            'requested_at' => CarbonImmutable::now(),
+            'privacy_notice_version' => '1.1.0',
+            'privacy_acknowledged_at' => CarbonImmutable::now(),
+        ]);
+        $enrollment->save();
+
+        return $enrollment->refresh();
+    }
+
+    private function createPendingIdentityAuthorization(
+        SchoolEnrollment $enrollment,
+        ?Player $player,
+        PublicIdentityAuthorizationMode $mode,
+        string $plainToken,
+        ?CarbonImmutable $tokenExpiresAt = null
+    ): PublicIdentityAuthorization {
+        $authorization = PublicIdentityAuthorization::query()->create([
+            'school_enrollment_id' => $enrollment->id,
+            'player_id' => $player?->id,
+            'scope' => PublicIdentityAuthorization::SCOPE,
+            'mode' => $mode->value,
+            'state' => PublicIdentityAuthorizationState::PENDING->value,
+            'guardian_email' => $enrollment->contact_email,
+            'guardian_name' => $enrollment->guardian_name,
+            'guardian_relationship' => $enrollment->guardian_relationship,
+            'guardian_authority_declared_at' => CarbonImmutable::now(),
+            'notice_id' => 'NOTICE-PUBLIC-IDENTITY-MINORS',
+            'notice_version' => '1.0.0',
+            'requested_at' => CarbonImmutable::now(),
+            'confirmation_token_hash' => hash('sha256', $plainToken),
+            'confirmation_token_expires_at' => $tokenExpiresAt ?? CarbonImmutable::now()->addDays(2),
+        ]);
+
+        PublicIdentityAuthorizationEvent::query()->create([
+            'public_identity_authorization_id' => $authorization->id,
+            'type' => PublicIdentityAuthorizationEventType::REQUESTED->value,
+            'occurred_at' => CarbonImmutable::now(),
+            'metadata' => ['fixture' => 'e2e'],
+        ]);
+
+        return $authorization;
     }
 
     private function createPlayerUser(
@@ -297,7 +532,8 @@ class E2ESmokeSeeder extends Seeder
         string $slug,
         string $dni,
         string $licenseNumber,
-        string $dominantHand
+        string $dominantHand,
+        string $birthDate = '1990-01-01'
     ): User {
         $user = User::query()->updateOrCreate(
             ['email' => $email],
@@ -316,7 +552,7 @@ class E2ESmokeSeeder extends Seeder
                 'nickname' => $nickname,
                 'slug' => $slug,
                 'dni' => $dni,
-                'birth_date' => '1990-01-01',
+                'birth_date' => $birthDate,
                 'gender' => PlayerGender::MALE->value,
                 'level' => 5,
                 'license_number' => $licenseNumber,

@@ -18,6 +18,7 @@ const fillAdultEnrollment = async (page, suffix) => {
   await page.getByLabel('Nivel solicitado (opcional)').selectOption({ label: 'Adultos E2E' });
   await page.getByLabel('Teléfono de contacto').fill('611 000 000');
   await page.getByLabel('Correo electrónico de contacto').fill(`adulto.${suffix}@example.test`);
+  await page.getByLabel('He leído la información de privacidad de la inscripción').check();
 };
 
 test.describe.serial('experiencia pública de Escuela de Galotxas', () => {
@@ -117,6 +118,7 @@ test.describe.serial('experiencia pública de Escuela de Galotxas', () => {
     await page.getByLabel('Correo electrónico de contacto').fill('familia.e2e@example.test');
     await page.getByLabel('Nombre completo del representante').fill('Persona Tutora E2E');
     await page.getByLabel('Relación con el participante').fill('Madre');
+    await page.getByLabel('He leído la información de privacidad de la inscripción').check();
     await page.getByRole('button', { name: 'Enviar solicitud' }).click();
 
     await expect(page.getByRole('heading', { name: 'Solicitud recibida', level: 3 })).toBeVisible();

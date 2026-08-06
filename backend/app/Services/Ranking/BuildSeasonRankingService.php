@@ -33,9 +33,13 @@ class BuildSeasonRankingService
             ->with([
                 'round.category.championship',
                 'homeEntry.player.user',
+                'homeEntry.player.publicIdentityAuthorizations',
                 'homeEntry.team.players.user',
+                'homeEntry.team.players.publicIdentityAuthorizations',
                 'awayEntry.player.user',
+                'awayEntry.player.publicIdentityAuthorizations',
                 'awayEntry.team.players.user',
+                'awayEntry.team.players.publicIdentityAuthorizations',
             ])
             ->get();
 

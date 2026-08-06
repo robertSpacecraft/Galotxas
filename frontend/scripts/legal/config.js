@@ -15,6 +15,18 @@ export const REQUIRED_METADATA_FIELDS = Object.freeze([
   'summary',
 ])
 
+export const REQUIRED_NOTICE_METADATA_FIELDS = Object.freeze([
+  'id',
+  'title',
+  'version',
+  'status',
+  'published_at',
+  'reviewed_at',
+  'owner',
+  'scope',
+  'summary',
+])
+
 export const ALLOWED_LEGAL_STATUSES = new Set(['vigente'])
 
 export const LEGAL_DOCUMENTS = Object.freeze([
@@ -47,10 +59,28 @@ export const LEGAL_DOCUMENTS = Object.freeze([
   }),
 ])
 
+export const FORM_NOTICES = Object.freeze([
+  Object.freeze({
+    id: 'NOTICE-PUBLIC-IDENTITY-MINORS',
+    filename: 'public-identity-minors.md',
+    title: 'Autorización de identidad pública de menores',
+    scope: 'public_competition_identity',
+    order: 1,
+  }),
+])
+
 export const DEFAULT_LEGAL_ROOT = fileURLToPath(
   new URL('../../../legal/', import.meta.url),
 )
 
 export const DEFAULT_LEGAL_OUTPUT_PATH = fileURLToPath(
   new URL('../../src/generated/legal/public-legal.json', import.meta.url),
+)
+
+export const DEFAULT_FORM_NOTICE_OUTPUT_PATH = fileURLToPath(
+  new URL('../../src/generated/legal/form-notices.json', import.meta.url),
+)
+
+export const DEFAULT_BACKEND_FORM_NOTICE_OUTPUT_PATH = fileURLToPath(
+  new URL('../../../backend/resources/generated/legal/form-notices.json', import.meta.url),
 )

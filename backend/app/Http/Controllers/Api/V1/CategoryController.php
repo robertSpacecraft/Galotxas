@@ -32,8 +32,10 @@ class CategoryController extends Controller
 
         $rounds = $category->rounds()->with([
             'matches.homeEntry.player.user',
+            'matches.homeEntry.player.publicIdentityAuthorizations',
             'matches.homeEntry.team',
             'matches.awayEntry.player.user',
+            'matches.awayEntry.player.publicIdentityAuthorizations',
             'matches.awayEntry.team',
             'matches.venue',
         ])->get();

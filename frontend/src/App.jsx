@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { Home } from './pages/Home/Home';
@@ -34,6 +34,9 @@ const KnowledgeDocumentPage = lazy(() => import('./pages/Learn/KnowledgeDocument
 const SchoolPage = lazy(() => import('./features/school/SchoolPage'));
 const ClubPage = lazy(() => import('./features/club/ClubPage'));
 const LegalPage = lazy(() => import('./features/legal/LegalPage'));
+const PublicIdentityConfirmationPage = lazy(
+  () => import('./features/publicIdentity/PublicIdentityConfirmationPage'),
+);
 
 export const KnowledgeRoute = ({ children }) => (
   <Suspense fallback={<RouteLoading label="Cargando Aprende a jugar" />}>
@@ -59,94 +62,111 @@ export const LegalRoute = ({ children }) => (
   </Suspense>
 );
 
+const AppContent = () => {
+  const location = useLocation();
+  const isPublicIdentityConfirmation = location.pathname === '/public-identity/confirm';
+
+  return (
+    <div className="app-layout">
+      {!isPublicIdentityConfirmation ? <Navbar /> : null}
+
+      <main id="main-content" className="main-content" tabIndex="-1">
+        <Routes>
+          <Route
+            path="/public-identity/confirm"
+            element={(
+              <Suspense fallback={<RouteLoading label="Comprobando autorización" />}>
+                <PublicIdentityConfirmationPage />
+              </Suspense>
+            )}
+          />
+          <Route path="/" element={<Home />} />
+          <Route path="/competicion" element={<CompetitionPage />} />
+          <Route
+            path="/aprende-a-jugar"
+            element={<KnowledgeRoute><LearnPage /></KnowledgeRoute>}
+          />
+          <Route
+            path="/aprende-a-jugar/manual"
+            element={<KnowledgeRoute><ManualPage /></KnowledgeRoute>}
+          />
+          <Route
+            path="/aprende-a-jugar/manual/reglamento/:slug"
+            element={(
+              <KnowledgeRoute>
+                <KnowledgeDocumentPage type="regulation" />
+              </KnowledgeRoute>
+            )}
+          />
+          <Route
+            path="/aprende-a-jugar/manual/conceptos/:group/:slug"
+            element={(
+              <KnowledgeRoute>
+                <KnowledgeDocumentPage type="concept" />
+              </KnowledgeRoute>
+            )}
+          />
+          <Route
+            path={schoolPath()}
+            element={<SchoolRoute><SchoolPage /></SchoolRoute>}
+          />
+          {Object.values(clubPages).map((clubPage) => (
+            <Route
+              key={clubPage.id}
+              path={clubPage.path}
+              element={(
+                <ClubRoute>
+                  <ClubPage pageId={clubPage.id} />
+                </ClubRoute>
+              )}
+            />
+          ))}
+          {Object.values(legalPages).map((legalPage) => (
+            <Route
+              key={legalPage.id}
+              path={legalPage.path}
+              element={(
+                <LegalRoute>
+                  <LegalPage pageId={legalPage.id} />
+                </LegalRoute>
+              )}
+            />
+          ))}
+          <Route path="/nosotros" element={<Nosotros />} />
+          <Route path="/torneos" element={<TournamentList />} />
+          <Route path="/torneos/:championshipId" element={<TournamentDetail />} />
+          <Route path="/categories/:categoryId" element={<CategoryDetail />} />
+          <Route path="/categories/:categoryId/standings" element={<StandingsPage />} />
+          <Route path="/categories/:categoryId/schedule" element={<SchedulePage />} />
+          <Route path="/matches/:matchId" element={<MatchDetails />} />
+          <Route path="/contenidos" element={<CmsPageIndex />} />
+          <Route path="/contenidos/:slug" element={<CmsPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route
+            path="/player"
+            element={(
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            )}
+          />
+          <Route path="/rankings" element={<Rankings />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </main>
+      {!isPublicIdentityConfirmation ? <Footer /> : null}
+    </div>
+  );
+};
+
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="app-layout">
-          <Navbar />
-
-          <main id="main-content" className="main-content" tabIndex="-1">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/competicion" element={<CompetitionPage />} />
-              <Route
-                path="/aprende-a-jugar"
-                element={<KnowledgeRoute><LearnPage /></KnowledgeRoute>}
-              />
-              <Route
-                path="/aprende-a-jugar/manual"
-                element={<KnowledgeRoute><ManualPage /></KnowledgeRoute>}
-              />
-              <Route
-                path="/aprende-a-jugar/manual/reglamento/:slug"
-                element={(
-                  <KnowledgeRoute>
-                    <KnowledgeDocumentPage type="regulation" />
-                  </KnowledgeRoute>
-                )}
-              />
-              <Route
-                path="/aprende-a-jugar/manual/conceptos/:group/:slug"
-                element={(
-                  <KnowledgeRoute>
-                    <KnowledgeDocumentPage type="concept" />
-                  </KnowledgeRoute>
-                )}
-              />
-              <Route
-                path={schoolPath()}
-                element={<SchoolRoute><SchoolPage /></SchoolRoute>}
-              />
-              {Object.values(clubPages).map((clubPage) => (
-                <Route
-                  key={clubPage.id}
-                  path={clubPage.path}
-                  element={(
-                    <ClubRoute>
-                      <ClubPage pageId={clubPage.id} />
-                    </ClubRoute>
-                  )}
-                />
-              ))}
-              {Object.values(legalPages).map((legalPage) => (
-                <Route
-                  key={legalPage.id}
-                  path={legalPage.path}
-                  element={(
-                    <LegalRoute>
-                      <LegalPage pageId={legalPage.id} />
-                    </LegalRoute>
-                  )}
-                />
-              ))}
-              <Route path="/nosotros" element={<Nosotros />} />
-              <Route path="/torneos" element={<TournamentList />} />
-              <Route path="/torneos/:championshipId" element={<TournamentDetail />} />
-              <Route path="/categories/:categoryId" element={<CategoryDetail />} />
-              <Route path="/categories/:categoryId/standings" element={<StandingsPage />} />
-              <Route path="/categories/:categoryId/schedule" element={<SchedulePage />} />
-              <Route path="/matches/:matchId" element={<MatchDetails />} />
-              <Route path="/contenidos" element={<CmsPageIndex />} />
-              <Route path="/contenidos/:slug" element={<CmsPage />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route
-                path="/player"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/rankings" element={<Rankings />} />
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
+        <AppContent />
       </Router>
     </AuthProvider>
   );

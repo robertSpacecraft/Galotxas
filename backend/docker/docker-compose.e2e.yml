@@ -26,8 +26,12 @@ services:
       CACHE_STORE: array
       SESSION_DRIVER: cookie
       QUEUE_CONNECTION: sync
-      MAIL_MAILER: array
+      # Fuerza un fallo controlado para verificar que la autorización persiste sin proveedor real.
+      MAIL_MAILER: public-identity-e2e-failure
       CONTACT_FORM_ENABLED: "true"
+      PUBLIC_IDENTITY_AUTHORIZATION_ENABLED: "true"
+      PUBLIC_IDENTITY_NOTIFICATION_ENABLED: "true"
+      PUBLIC_IDENTITY_CONFIRMATION_TTL_HOURS: "48"
     depends_on:
       db:
         condition: service_healthy

@@ -1,5 +1,6 @@
 import {
   ALLOWED_LEGAL_STATUSES,
+  REQUIRED_NOTICE_METADATA_FIELDS,
   REQUIRED_METADATA_FIELDS,
 } from './config.js'
 import { LegalValidationError } from './errors.js'
@@ -25,6 +26,20 @@ const isValidIsoDate = (value) => {
 }
 
 export const parseLegalFrontMatter = (source, sourcePath) => {
+  return parseFrontMatter(source, sourcePath, {
+    requiredFields: REQUIRED_METADATA_FIELDS,
+    requireSlug: true,
+  })
+}
+
+export const parseNoticeFrontMatter = (source, sourcePath) => {
+  return parseFrontMatter(source, sourcePath, {
+    requiredFields: REQUIRED_NOTICE_METADATA_FIELDS,
+    requireSlug: false,
+  })
+}
+
+const parseFrontMatter = (source, sourcePath, { requiredFields, requireSlug }) => {
   const lines = source.split('\n')
 
   if (lines[0] !== '---') {
@@ -48,7 +63,7 @@ export const parseLegalFrontMatter = (source, sourcePath) => {
     const key = line.slice(0, separatorIndex).trim()
     const value = line.slice(separatorIndex + 1).trim()
 
-    if (!REQUIRED_METADATA_FIELDS.includes(key)) {
+    if (!requiredFields.includes(key)) {
       fail(`campo de metadatos no admitido: "${key}".`, sourcePath, 'METADATA_UNKNOWN')
     }
 
@@ -63,7 +78,7 @@ export const parseLegalFrontMatter = (source, sourcePath) => {
     metadata[key] = value
   }
 
-  for (const field of REQUIRED_METADATA_FIELDS) {
+  for (const field of requiredFields) {
     if (!Object.hasOwn(metadata, field)) {
       fail(`falta el campo obligatorio "${field}".`, sourcePath, 'METADATA_REQUIRED')
     }
@@ -91,7 +106,7 @@ export const parseLegalFrontMatter = (source, sourcePath) => {
     fail('"reviewed_at" no puede ser anterior a "published_at".', sourcePath, 'DATE_ORDER_INVALID')
   }
 
-  if (!SLUG_PATTERN.test(metadata.slug)) {
+  if (requireSlug && !SLUG_PATTERN.test(metadata.slug)) {
     fail('"slug" debe usar kebab-case ASCII.', sourcePath, 'SLUG_INVALID')
   }
 

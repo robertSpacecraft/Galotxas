@@ -1,0 +1,93 @@
+.page {
+  display: grid;
+  min-height: 100vh;
+  box-sizing: border-box;
+  place-items: center;
+  padding: clamp(1rem, 4vw, 3rem);
+  background: #f4f7fa;
+}
+
+.card {
+  width: min(100%, 42rem);
+  box-sizing: border-box;
+  padding: clamp(1.25rem, 5vw, 2.5rem);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(0, 31, 63, 0.12);
+  color: #1f2937;
+  line-height: 1.65;
+}
+
+.brand {
+  margin: 0;
+  color: #005ea8;
+  font-weight: 800;
+}
+
+.card h1 {
+  margin: 0.35rem 0 1.25rem;
+  color: #003366;
+  font-size: clamp(1.8rem, 6vw, 2.6rem);
+}
+
+.card h2 {
+  color: #003366;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin: 1.5rem 0;
+}
+
+.primaryButton,
+.secondaryButton {
+  min-height: 44px;
+  border: 2px solid #003366;
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.primaryButton {
+  background: #003366;
+  color: #fff;
+}
+
+.secondaryButton {
+  background: #fff;
+  color: #003366;
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible,
+.privacyLink a:focus-visible {
+  outline: 3px solid #005ea8;
+  outline-offset: 3px;
+}
+
+.privacyLink {
+  margin: 1.5rem 0 0;
+}
+
+.privacyLink a {
+  color: #005ea8;
+  font-weight: 700;
+}
+
+@media (max-width: 480px) {
+  .actions,
+  .primaryButton,
+  .secondaryButton {
+    width: 100%;
+  }
+}

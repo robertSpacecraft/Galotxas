@@ -57,6 +57,14 @@
                             </a>
                         </li>
                         <li>
+                            <a
+                                class="dropdown-item"
+                                href="{{ route('admin.public-identity-authorizations.index') }}"
+                            >
+                                Identidad pública de menores
+                            </a>
+                        </li>
+                        <li>
                             <a class="dropdown-item" href="{{ route('admin.school.programs.index') }}">
                                 Programa
                             </a>

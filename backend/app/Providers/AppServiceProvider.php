@@ -75,10 +75,44 @@ class AppServiceProvider extends ServiceProvider
                 ], 429));
         });
 
+        RateLimiter::for('public-identity-token-lookup', function (Request $request) {
+            return Limit::perMinutes(10, 10)
+                ->by($this->publicIdentityRateLimitKey($request))
+                ->response(fn () => response()->json([
+                    'message' => 'Demasiados intentos. Inténtalo de nuevo más tarde.',
+                    'data' => null,
+                ], 429));
+        });
+
+        RateLimiter::for('public-identity-token-decision', function (Request $request) {
+            return Limit::perMinutes(10, 5)
+                ->by($this->publicIdentityRateLimitKey($request))
+                ->response(fn () => response()->json([
+                    'message' => 'Demasiados intentos. Inténtalo de nuevo más tarde.',
+                    'data' => null,
+                ], 429));
+        });
+
+        RateLimiter::for('public-identity-admin-resend', function (Request $request) {
+            return Limit::perMinutes(10, 5)
+                ->by((string) $request->user()?->getAuthIdentifier());
+        });
+
         ResetPassword::createUrlUsing(function (object $user, string $token) {
             $frontendUrl = rtrim(config('app.frontend_url'), '/');
 
             return $frontendUrl.'/reset-password?token='.$token.'&email='.urlencode($user->email);
         });
+    }
+
+    private function publicIdentityRateLimitKey(Request $request): string
+    {
+        $key = (string) config('app.key');
+
+        return hash_hmac(
+            'sha256',
+            $request->ip().'|'.(string) $request->input('token'),
+            $key
+        );
     }
 }

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getParticipantAgeStatus } from './schoolDate';
 import { schoolService } from './schoolService';
+import { minorPublicIdentityNotice } from '../legal/formNoticeRepository';
+import publicLegalArtifact from '../../generated/legal/public-legal.json';
 import styles from './SchoolPage.module.css';
 
 const emptyFields = {
@@ -11,6 +13,9 @@ const emptyFields = {
   contact_email: '',
   guardian_name: '',
   guardian_relationship: '',
+  privacy_acknowledged: false,
+  public_identity_mode: 'anonymous',
+  guardian_authority_declared: false,
 };
 
 const fieldOrder = [
@@ -21,6 +26,8 @@ const fieldOrder = [
   'contact_email',
   'guardian_name',
   'guardian_relationship',
+  'privacy_acknowledged',
+  'guardian_authority_declared',
 ];
 
 const fieldLabels = {
@@ -31,13 +38,22 @@ const fieldLabels = {
   contact_email: 'Correo electrónico de contacto',
   guardian_name: 'Nombre completo del representante',
   guardian_relationship: 'Relación con el participante',
+  privacy_acknowledged: 'Información de privacidad de la inscripción',
+  guardian_authority_declared: 'Declaración de patria potestad o tutela',
 };
+
+const privacyDocument = publicLegalArtifact.documents.find(({ id }) => id === 'LEG-002');
 
 const firstMessage = (value) => (
   Array.isArray(value) ? value.find((message) => typeof message === 'string') : null
 );
 
-const validateSchoolEnrollment = (fields, levels, referenceDate = new Date()) => {
+const validateSchoolEnrollment = (
+  fields,
+  levels,
+  identityAuthorization,
+  referenceDate = new Date(),
+) => {
   const errors = {};
   const ageStatus = getParticipantAgeStatus(fields.participant_birth_date, referenceDate);
 
@@ -75,6 +91,17 @@ const validateSchoolEnrollment = (fields, levels, referenceDate = new Date()) =>
     if (!fields.guardian_relationship.trim()) {
       errors.guardian_relationship = 'Indica la relación con el participante.';
     }
+    if (
+      identityAuthorization?.enabled
+      && fields.public_identity_mode !== 'anonymous'
+      && !fields.guardian_authority_declared
+    ) {
+      errors.guardian_authority_declared = 'Debes confirmar que ejerces la patria potestad o tutela.';
+    }
+  }
+
+  if (!fields.privacy_acknowledged) {
+    errors.privacy_acknowledged = 'Debes confirmar que has leído la información de privacidad de la inscripción.';
   }
 
   return { errors, ageStatus };
@@ -88,7 +115,7 @@ const FieldError = ({ field, errors }) => (
   ) : null
 );
 
-export const SchoolEnrollmentForm = ({ levels, reloadOverview }) => {
+export const SchoolEnrollmentForm = ({ levels, reloadOverview, identityAuthorization }) => {
   const [fields, setFields] = useState(emptyFields);
   const [errors, setErrors] = useState({});
   const [submitState, setSubmitState] = useState('idle');
@@ -114,10 +141,10 @@ export const SchoolEnrollmentForm = ({ levels, reloadOverview }) => {
   }, [errors]);
 
   const handleChange = (event) => {
-    const { name, value } = event.target;
+    const { checked, name, type, value } = event.target;
 
     setFields((current) => {
-      const next = { ...current, [name]: value };
+      const next = { ...current, [name]: type === 'checkbox' ? checked : value };
 
       if (
         name === 'participant_birth_date'
@@ -125,6 +152,8 @@ export const SchoolEnrollmentForm = ({ levels, reloadOverview }) => {
       ) {
         next.guardian_name = '';
         next.guardian_relationship = '';
+        next.public_identity_mode = 'anonymous';
+        next.guardian_authority_declared = false;
       }
 
       return next;
@@ -134,7 +163,9 @@ export const SchoolEnrollmentForm = ({ levels, reloadOverview }) => {
   const fieldProps = (name) => ({
     name,
     id: name,
-    value: fields[name],
+    ...(typeof fields[name] === 'boolean'
+      ? { checked: fields[name] }
+      : { value: fields[name] }),
     onChange: handleChange,
     ref: (element) => {
       fieldRefs.current[name] = element;
@@ -150,7 +181,12 @@ export const SchoolEnrollmentForm = ({ levels, reloadOverview }) => {
       return;
     }
 
-    const validation = validateSchoolEnrollment(fields, levels, new Date());
+    const validation = validateSchoolEnrollment(
+      fields,
+      levels,
+      identityAuthorization,
+      new Date(),
+    );
     setErrors(validation.errors);
     setGeneralMessage(null);
 
@@ -165,6 +201,8 @@ export const SchoolEnrollmentForm = ({ levels, reloadOverview }) => {
       participant_birth_date: fields.participant_birth_date,
       contact_phone: fields.contact_phone.trim(),
       contact_email: fields.contact_email.trim(),
+      privacy_acknowledged: true,
+      privacy_notice_version: privacyDocument.version,
       ...(fields.school_level_id
         ? { school_level_id: Number(fields.school_level_id) }
         : {}),
@@ -172,6 +210,20 @@ export const SchoolEnrollmentForm = ({ levels, reloadOverview }) => {
         ? {
             guardian_name: fields.guardian_name.trim(),
             guardian_relationship: fields.guardian_relationship.trim(),
+          }
+        : {}),
+      ...(validation.ageStatus === 'minor'
+        && identityAuthorization?.enabled
+        && minorPublicIdentityNotice
+        && identityAuthorization.notice_version === minorPublicIdentityNotice.version
+        ? {
+            public_identity_authorization: {
+              mode: fields.public_identity_mode,
+              notice_version: minorPublicIdentityNotice.version,
+              ...(fields.public_identity_mode !== 'anonymous'
+                ? { guardian_authority_declared: true }
+                : {}),
+            },
           }
         : {}),
     };
@@ -189,9 +241,14 @@ export const SchoolEnrollmentForm = ({ levels, reloadOverview }) => {
 
       if (status === 422) {
         const backendErrors = error.response?.data?.errors ?? {};
+        const mappedErrors = {
+          ...backendErrors,
+          guardian_authority_declared:
+            backendErrors['public_identity_authorization.guardian_authority_declared'],
+        };
         const nextErrors = Object.fromEntries(
           fieldOrder
-            .map((field) => [field, firstMessage(backendErrors[field])])
+            .map((field) => [field, firstMessage(mappedErrors[field])])
             .filter(([, message]) => message),
         );
         const payloadMessage = firstMessage(backendErrors.payload);
@@ -339,6 +396,96 @@ export const SchoolEnrollmentForm = ({ levels, reloadOverview }) => {
           </div>
         </fieldset>
       ) : null}
+
+      <fieldset disabled={isSubmitting || isUnavailable}>
+        <legend>Privacidad de la inscripción</legend>
+        <p className={styles.noticeText}>
+          Club Galotxes de Monover utilizará los datos para tramitar y gestionar la
+          inscripción en la Escuela. La inscripción no autoriza a publicar la identidad
+          ni imágenes. Consulta la <a href="/legal/privacidad">Política de privacidad</a>
+          {' '}versión {privacyDocument.version}.
+        </p>
+        <div className={styles.checkField}>
+          <input {...fieldProps('privacy_acknowledged')} type="checkbox" required />
+          <label htmlFor="privacy_acknowledged">
+            He leído la información de privacidad de la inscripción
+            {' '}<span aria-hidden="true">*</span>
+          </label>
+        </div>
+        <FieldError field="privacy_acknowledged" errors={errors} />
+      </fieldset>
+
+      {ageStatus === 'minor'
+        && identityAuthorization?.enabled
+        && minorPublicIdentityNotice
+        && identityAuthorization.notice_version === minorPublicIdentityNotice.version ? (
+          <fieldset disabled={isSubmitting || isUnavailable}>
+            <legend>Identidad pública en competición (opcional)</legend>
+            <p className={styles.noticeText}>
+              {minorPublicIdentityNotice.owner} es responsable. Esta decisión es
+              independiente de la inscripción. Se aplica sólo a
+              calendarios, partidos, resultados, clasificaciones, rankings e histórico
+              deportivo. Requiere confirmación por correo y revisión del club. Aviso
+              {' '}{minorPublicIdentityNotice.id}, versión {minorPublicIdentityNotice.version}.
+            </p>
+            <div className={styles.radioGroup} role="radiogroup" aria-label="Modo de identidad pública">
+              <label>
+                <input
+                  type="radio"
+                  name="public_identity_mode"
+                  value="anonymous"
+                  checked={fields.public_identity_mode === 'anonymous'}
+                  onChange={handleChange}
+                />
+                No autorizar identidad individual: mostrar “Participante”
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="public_identity_mode"
+                  value="alias"
+                  checked={fields.public_identity_mode === 'alias'}
+                  onChange={handleChange}
+                />
+                Autorizar sólo el alias deportivo; sin alias se mostrará “Participante”
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="public_identity_mode"
+                  value="name_initial"
+                  checked={fields.public_identity_mode === 'name_initial'}
+                  onChange={handleChange}
+                />
+                Autorizar nombres de pila e inicial del primer apellido; la inicial puede
+                permitir identificar al menor
+              </label>
+            </div>
+            {fields.public_identity_mode !== 'anonymous' ? (
+              <>
+                <div className={styles.checkField}>
+                  <input
+                    {...fieldProps('guardian_authority_declared')}
+                    type="checkbox"
+                    required
+                  />
+                  <label htmlFor="guardian_authority_declared">
+                    Declaro que ejerzo la patria potestad o tutela y que he leído el aviso
+                    {' '}<span aria-hidden="true">*</span>
+                  </label>
+                </div>
+                <FieldError field="guardian_authority_declared" errors={errors} />
+              </>
+            ) : null}
+            <p className={styles.noticeText}>
+              No se publicarán correo, teléfono, nacimiento, datos del representante ni
+              perfil privado. Puedes retirar la autorización a través del correo indicado
+              en la <a href="/legal/privacidad">Política de privacidad</a>. Si no autorizas,
+              la identidad se mostrará como “Participante” sin afectar a la inscripción o
+              participación deportiva.
+            </p>
+          </fieldset>
+        ) : null}
 
       <p className={styles.requiredHelp}>
         Los campos marcados con <span aria-hidden="true">*</span> son obligatorios.

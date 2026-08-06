@@ -12,16 +12,16 @@ afterEach(() => {
 
 describe('LegalPage', () => {
   it.each([
-    ['LEG-001', '/legal/aviso-legal', 'Aviso legal', 'Objeto del sitio'],
-    ['LEG-002', '/legal/privacidad', 'Política de privacidad', 'Conservación'],
-    ['LEG-003', '/legal/cookies', 'Política de cookies y almacenamiento local', 'Web pública'],
-  ])('renders the approved projection for %s', (pageId, route, title, section) => {
+    ['LEG-001', '/legal/aviso-legal', 'Aviso legal', 'Objeto del sitio', '1.0.0'],
+    ['LEG-002', '/legal/privacidad', 'Política de privacidad', 'Conservación', '1.1.0'],
+    ['LEG-003', '/legal/cookies', 'Política de cookies y almacenamiento local', 'Web pública', '1.0.0'],
+  ])('renders the approved projection for %s', (pageId, route, title, section, version) => {
     renderWithProviders(<LegalPage pageId={pageId} />, { route });
 
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
     expect(screen.getByRole('heading', { name: title, level: 1 })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: section })).toBeInTheDocument();
-    expect(screen.getByText('1.0.0')).toBeInTheDocument();
+    expect(screen.getByText(version)).toBeInTheDocument();
     expect(screen.getByText('06/08/2026')).toHaveAttribute('datetime', '2026-08-06');
 
     const navigation = screen.getByRole('navigation', { name: 'Información legal' });

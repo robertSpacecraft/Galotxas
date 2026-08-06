@@ -88,7 +88,7 @@ class SchoolEnrollmentController extends Controller
 
     public function show(SchoolEnrollment $enrollment)
     {
-        $enrollment->load(['program', 'level', 'user']);
+        $enrollment->load(['program', 'level', 'user', 'publicIdentityAuthorizations']);
 
         return view('admin.school.enrollments.show', [
             'enrollment' => $enrollment,

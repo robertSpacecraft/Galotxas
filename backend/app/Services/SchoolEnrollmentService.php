@@ -19,6 +19,11 @@ class SchoolEnrollmentService
     public const ADMIN_LEVEL_ERROR =
         'El nivel debe estar activo y pertenecer al programa de la inscripción.';
 
+    public function __construct(
+        private readonly PublicIdentityAuthorizationService $authorizationService,
+        private readonly PublicIdentityAuthorizationNotificationService $notificationService
+    ) {}
+
     /**
      * @param  array<string, mixed>  $attributes
      */
@@ -26,7 +31,7 @@ class SchoolEnrollmentService
         array $attributes,
         ?User $user = null
     ): SchoolEnrollment {
-        return DB::transaction(function () use ($attributes, $user): SchoolEnrollment {
+        $result = DB::transaction(function () use ($attributes, $user): array {
             $program = SchoolProgram::query()
                 ->effectivelyPublic()
                 ->where('enrollments_open', true)
@@ -44,7 +49,7 @@ class SchoolEnrollmentService
                 requirePublic: true
             );
 
-            return $this->createPending(
+            $enrollment = $this->createPending(
                 $program,
                 $level,
                 $attributes,
@@ -52,7 +57,26 @@ class SchoolEnrollmentService
                 CarbonImmutable::now(),
                 includeAdminNotes: false
             );
+
+            $authorization = null;
+            if (isset($attributes['public_identity_authorization'])) {
+                $authorization = $this->authorizationService->createForEnrollment(
+                    $enrollment,
+                    $attributes['public_identity_authorization']
+                );
+            }
+
+            return ['enrollment' => $enrollment, 'authorization' => $authorization];
         });
+
+        if ($result['authorization'] !== null && $result['authorization']['token'] !== null) {
+            $this->notificationService->send(
+                $result['authorization']['authorization'],
+                $result['authorization']['token']
+            );
+        }
+
+        return $result['enrollment'];
     }
 
     /**
@@ -225,6 +249,12 @@ class SchoolEnrollmentService
             'admin_notes' => $includeAdminNotes
                 ? ($attributes['admin_notes'] ?? null)
                 : null,
+            'privacy_notice_version' => $includeAdminNotes
+                ? ($attributes['privacy_notice_version'] ?? null)
+                : $attributes['privacy_notice_version'],
+            'privacy_acknowledged_at' => $includeAdminNotes
+                ? null
+                : $requestedAt,
         ]);
         $enrollment->save();
 

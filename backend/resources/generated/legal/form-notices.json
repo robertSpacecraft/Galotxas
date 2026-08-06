@@ -1,0 +1,255 @@
+{
+  "schemaVersion": 1,
+  "notices": [
+    {
+      "id": "NOTICE-PUBLIC-IDENTITY-MINORS",
+      "title": "Autorización de identidad pública de menores",
+      "version": "1.0.0",
+      "status": "vigente",
+      "publishedAt": "2026-08-06",
+      "reviewedAt": "2026-08-06",
+      "owner": "Club Galotxes de Monover",
+      "scope": "public_competition_identity",
+      "summary": "Información específica para decidir cómo se muestra la identidad de una persona menor en la competición pública.",
+      "order": 1,
+      "headings": [
+        {
+          "level": 2,
+          "text": "Responsable y finalidad",
+          "id": "responsable-y-finalidad"
+        },
+        {
+          "level": 2,
+          "text": "Modos disponibles",
+          "id": "modos-disponibles"
+        },
+        {
+          "level": 2,
+          "text": "Confirmación y revisión",
+          "id": "confirmacion-y-revision"
+        },
+        {
+          "level": 2,
+          "text": "Retirada y efectos",
+          "id": "retirada-y-efectos"
+        },
+        {
+          "level": 2,
+          "text": "Conservación y derechos",
+          "id": "conservacion-y-derechos"
+        }
+      ],
+      "blocks": [
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "responsable-y-finalidad",
+          "children": [
+            {
+              "type": "text",
+              "value": "Responsable y finalidad"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "strong",
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Club Galotxes de Monover"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "value": " es responsable de este tratamiento. La autorización sirve únicamente para mostrar una identidad deportiva de la persona menor en calendarios, partidos, resultados, clasificaciones, rankings y su contexto histórico de competición."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "La inscripción en la Escuela, la participación deportiva y esta autorización son independientes. No autorizar una identidad individual no impide inscribirse ni participar."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "modos-disponibles",
+          "children": [
+            {
+              "type": "text",
+              "value": "Modos disponibles"
+            }
+          ]
+        },
+        {
+          "type": "unorderedList",
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "strong",
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "Alias deportivo:"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "value": " se mostrará exclusivamente el alias registrado. Si no existe uno válido, se mostrará “Participante”."
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "strong",
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "Nombre e inicial:"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "value": " se mostrarán los nombres de pila y la inicial Unicode del primer apellido. Una inicial también puede permitir identificar a la persona."
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "strong",
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "Identidad anónima:"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "value": " se mostrará “Participante”. Esta opción registra expresamente que no se autoriza una identidad individual."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "No se publicarán mediante esta autorización el correo, el teléfono, la fecha de nacimiento, el nombre del representante, documentos de identidad ni otros datos del perfil privado."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "confirmacion-y-revision",
+          "children": [
+            {
+              "type": "text",
+              "value": "Confirmación y revisión"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Para menores de 14 años se requiere la confirmación de quien declare ejercer la patria potestad o tutela y una revisión administrativa. Entre 14 y 17 años se requiere además que un administrador registre que la persona menor ha recibido la información y ha manifestado su conformidad."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "La confirmación se realiza mediante un enlace de correo de un solo uso y con caducidad. Confirmar el correo no publica automáticamente la identidad: el club debe vincular de forma inequívoca la solicitud con el jugador correcto y aprobarla después de revisar todos los requisitos."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "retirada-y-efectos",
+          "children": [
+            {
+              "type": "text",
+              "value": "Retirada y efectos"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "La autorización es opcional, específica y revocable. Puede retirarse escribiendo a clubgalotxesmonover@hotmail.com o solicitándolo al club. La retirada cambia inmediatamente la proyección pública a “Participante”, sin borrar resultados deportivos ni afectar a la inscripción."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Si falta una fecha de nacimiento fiable, una vinculación inequívoca, una confirmación, la conformidad exigible, una revisión, una versión reconocida o cualquier otro requisito, se mostrará “Participante”. Al alcanzar la mayoría de edad esta autorización del representante deja de utilizarse y se aplica la política de identidad de personas adultas."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "conservacion-y-derechos",
+          "children": [
+            {
+              "type": "text",
+              "value": "Conservación y derechos"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "La evidencia se conserva mientras se use la identidad autorizada y, tras la denegación, retirada o finalización, durante tres años para acreditar la decisión y atender posibles reclamaciones. Los tokens técnicos pueden eliminarse a los 30 días de dejar de ser útiles. Una obligación o reclamación puede suspender la eliminación de lo estrictamente necesario."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Puede consultar la política pública en "
+            },
+            {
+              "type": "inlineCode",
+              "value": "/legal/privacidad"
+            },
+            {
+              "type": "text",
+              "value": " y ejercer los derechos aplicables mediante el correo indicado."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

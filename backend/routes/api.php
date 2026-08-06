@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\V1\ContactRequestController;
 use App\Http\Controllers\Api\V1\MatchController;
 use App\Http\Controllers\Api\V1\MyChampionshipRegistrationController;
 use App\Http\Controllers\Api\V1\MyDashboardController;
+use App\Http\Controllers\Api\V1\PublicIdentityConfirmationController;
 use App\Http\Controllers\Api\V1\SchoolController;
 use App\Http\Controllers\Api\V1\SchoolEnrollmentController;
 use App\Http\Controllers\Api\V1\SeasonController;
@@ -66,6 +67,15 @@ Route::prefix('v1')->group(function () {
     Route::get('/school', SchoolController::class);
     Route::post('/school/enrollments', [SchoolEnrollmentController::class, 'store'])
         ->middleware('throttle:school-enrollments');
+
+    Route::prefix('public-identity/confirmation')->group(function () {
+        Route::post('/lookup', [PublicIdentityConfirmationController::class, 'lookup'])
+            ->middleware('throttle:public-identity-token-lookup');
+        Route::post('/confirm', [PublicIdentityConfirmationController::class, 'confirm'])
+            ->middleware('throttle:public-identity-token-decision');
+        Route::post('/deny', [PublicIdentityConfirmationController::class, 'deny'])
+            ->middleware('throttle:public-identity-token-decision');
+    });
 
     // Authenticated API
     Route::post('/auth/logout', [AuthController::class, 'logout'])

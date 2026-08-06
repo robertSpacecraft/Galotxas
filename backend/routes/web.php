@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\EducationalCenterController;
 use App\Http\Controllers\Admin\GameMatchController;
 use App\Http\Controllers\Admin\MatchConflictController;
 use App\Http\Controllers\Admin\PlayerController;
+use App\Http\Controllers\Admin\PublicIdentityAuthorizationController;
 use App\Http\Controllers\Admin\RankingController as AdminRankingController;
 use App\Http\Controllers\Admin\RegistrationRequestController;
 use App\Http\Controllers\Admin\SchoolEnrollmentController;
@@ -83,6 +84,42 @@ Route::prefix('admin')->group(function () {
             '/contact-requests/{contactRequest}/close',
             [ContactRequestController::class, 'close']
         )->name('admin.contact-requests.close');
+
+        // Autorizaciones de identidad pública de menores
+        Route::get(
+            '/public-identity-authorizations',
+            [PublicIdentityAuthorizationController::class, 'index']
+        )->name('admin.public-identity-authorizations.index');
+        Route::get(
+            '/public-identity-authorizations/{publicIdentityAuthorization}',
+            [PublicIdentityAuthorizationController::class, 'show']
+        )->name('admin.public-identity-authorizations.show');
+        Route::post(
+            '/public-identity-authorizations/{publicIdentityAuthorization}/link-player',
+            [PublicIdentityAuthorizationController::class, 'linkPlayer']
+        )->name('admin.public-identity-authorizations.link-player');
+        Route::post(
+            '/public-identity-authorizations/{publicIdentityAuthorization}/record-assent',
+            [PublicIdentityAuthorizationController::class, 'recordAssent']
+        )->name('admin.public-identity-authorizations.record-assent');
+        Route::post(
+            '/public-identity-authorizations/{publicIdentityAuthorization}/approve',
+            [PublicIdentityAuthorizationController::class, 'approve']
+        )->name('admin.public-identity-authorizations.approve');
+        Route::post(
+            '/public-identity-authorizations/{publicIdentityAuthorization}/deny',
+            [PublicIdentityAuthorizationController::class, 'deny']
+        )->name('admin.public-identity-authorizations.deny');
+        Route::post(
+            '/public-identity-authorizations/{publicIdentityAuthorization}/revoke',
+            [PublicIdentityAuthorizationController::class, 'revoke']
+        )->name('admin.public-identity-authorizations.revoke');
+        Route::post(
+            '/public-identity-authorizations/{publicIdentityAuthorization}/resend',
+            [PublicIdentityAuthorizationController::class, 'resend']
+        )
+            ->middleware('throttle:public-identity-admin-resend')
+            ->name('admin.public-identity-authorizations.resend');
 
         // Pistas
         Route::get('/venues', [VenueController::class, 'index'])->name('admin.venues.index');

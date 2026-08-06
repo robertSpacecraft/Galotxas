@@ -54,6 +54,23 @@ export const normalizeSchoolOverview = (data) => {
     throw new Error('Invalid school overview response');
   }
 
+  const identityAuthorization = data.public_identity_authorization;
+  const normalizedIdentityAuthorization = identityAuthorization?.enabled === true
+    && identityAuthorization.notice_id === 'NOTICE-PUBLIC-IDENTITY-MINORS'
+    && identityAuthorization.scope === 'public_competition_identity'
+    && typeof identityAuthorization.notice_version === 'string'
+    && Array.isArray(identityAuthorization.modes)
+    ? {
+        enabled: true,
+        notice_id: identityAuthorization.notice_id,
+        notice_version: identityAuthorization.notice_version,
+        scope: identityAuthorization.scope,
+        modes: identityAuthorization.modes.filter(
+          (mode) => ['alias', 'name_initial', 'anonymous'].includes(mode),
+        ),
+      }
+    : { enabled: false };
+
   return {
     name: nullableString(data.name),
     enrollments_open: data.enrollments_open === true,
@@ -65,5 +82,6 @@ export const normalizeSchoolOverview = (data) => {
     levels: Array.isArray(data.levels)
       ? data.levels.map(normalizeLevel).filter(Boolean)
       : [],
+    public_identity_authorization: normalizedIdentityAuthorization,
   };
 };

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SchoolEnrollment extends Model
 {
@@ -20,6 +21,7 @@ class SchoolEnrollment extends Model
         'contact_email',
         'guardian_name',
         'guardian_relationship',
+        'privacy_notice_version',
     ];
 
     protected $casts = [
@@ -29,6 +31,7 @@ class SchoolEnrollment extends Model
         'activated_at' => 'immutable_datetime',
         'rejected_at' => 'immutable_datetime',
         'withdrawn_at' => 'immutable_datetime',
+        'privacy_acknowledged_at' => 'immutable_datetime',
     ];
 
     public function scopeWithStatus(
@@ -81,6 +84,11 @@ class SchoolEnrollment extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function publicIdentityAuthorizations(): HasMany
+    {
+        return $this->hasMany(PublicIdentityAuthorization::class);
     }
 
     public function wasMinorAtRequest(): bool

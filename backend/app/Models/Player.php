@@ -60,4 +60,9 @@ class Player extends Model
     {
         return $this->hasMany(MatchResultReport::class);
     }
+
+    public function publicIdentityAuthorizations(): HasMany
+    {
+        return $this->hasMany(PublicIdentityAuthorization::class);
+    }
 }

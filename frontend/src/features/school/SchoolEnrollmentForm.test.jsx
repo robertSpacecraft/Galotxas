@@ -22,6 +22,7 @@ const fillAdult = async (user) => {
   await user.type(screen.getByLabelText(/Fecha de nacimiento/), '1990-01-01');
   await user.type(screen.getByLabelText(/Teléfono de contacto/), '611 000 000');
   await user.type(screen.getByLabelText(/Correo electrónico de contacto/), 'adulto@example.test');
+  await user.click(screen.getByLabelText(/He leído la información de privacidad/));
 };
 
 describe('SchoolEnrollmentForm', () => {
@@ -80,6 +81,8 @@ describe('SchoolEnrollmentForm', () => {
       contact_phone: '611 000 000',
       contact_email: 'adulto@example.test',
       school_level_id: 12,
+      privacy_acknowledged: true,
+      privacy_notice_version: '1.1.0',
     });
 
     resolveRequest({ message: 'Recibida', data: null });
@@ -101,6 +104,7 @@ describe('SchoolEnrollmentForm', () => {
     await user.type(screen.getByLabelText(/Correo electrónico de contacto/), 'familia@example.test');
     await user.type(screen.getByLabelText(/Nombre completo del representante/), 'Persona Tutora');
     await user.type(screen.getByLabelText(/Relación con el participante/), 'Madre');
+    await user.click(screen.getByLabelText(/He leído la información de privacidad/));
     await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
 
     await waitFor(() => expect(schoolService.createEnrollment).toHaveBeenCalledOnce());
@@ -111,7 +115,124 @@ describe('SchoolEnrollmentForm', () => {
       contact_email: 'familia@example.test',
       guardian_name: 'Persona Tutora',
       guardian_relationship: 'Madre',
+      privacy_acknowledged: true,
+      privacy_notice_version: '1.1.0',
     });
+  });
+
+  it('keeps public identity optional and sends a separate versioned request when selected', async () => {
+    const user = userEvent.setup();
+    schoolService.createEnrollment.mockResolvedValue({ message: 'Recibida', data: null });
+    render(
+      <SchoolEnrollmentForm
+        levels={levels}
+        reloadOverview={reloadOverview}
+        identityAuthorization={{
+          enabled: true,
+          notice_id: 'NOTICE-PUBLIC-IDENTITY-MINORS',
+          notice_version: '1.0.0',
+          scope: 'public_competition_identity',
+          modes: ['alias', 'name_initial', 'anonymous'],
+        }}
+      />,
+    );
+
+    await user.type(screen.getByLabelText(/Nombre completo del participante/), 'Menor Autorizable');
+    await user.type(screen.getByLabelText(/Fecha de nacimiento/), '2015-01-01');
+    await user.type(screen.getByLabelText(/Teléfono de contacto/), '600 000 000');
+    await user.type(screen.getByLabelText(/Correo electrónico de contacto/), 'tutora@example.test');
+    await user.type(screen.getByLabelText(/Nombre completo del representante/), 'Persona Tutora');
+    await user.type(screen.getByLabelText(/Relación con el participante/), 'Tutora');
+    expect(screen.getByLabelText(/No autorizar identidad individual/)).toBeChecked();
+    await user.click(screen.getByLabelText(/Autorizar sólo el alias deportivo/));
+    await user.click(screen.getByLabelText(/Declaro que ejerzo la patria potestad/));
+    await user.click(screen.getByLabelText(/He leído la información de privacidad/));
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+
+    await waitFor(() => expect(schoolService.createEnrollment).toHaveBeenCalledOnce());
+    expect(schoolService.createEnrollment).toHaveBeenCalledWith(expect.objectContaining({
+      public_identity_authorization: {
+        mode: 'alias',
+        notice_version: '1.0.0',
+        guardian_authority_declared: true,
+      },
+      privacy_acknowledged: true,
+      privacy_notice_version: '1.1.0',
+    }));
+  });
+
+  it.each([
+    ['anonymous', /No autorizar identidad individual/, false],
+    ['name_initial', /Autorizar nombres de pila e inicial/, true],
+  ])('submits the %s minor identity mode without mixing privacy', async (
+    mode,
+    optionName,
+    requiresAuthority,
+  ) => {
+    const user = userEvent.setup();
+    schoolService.createEnrollment.mockResolvedValue({ message: 'Recibida', data: null });
+    render(
+      <SchoolEnrollmentForm
+        levels={levels}
+        reloadOverview={reloadOverview}
+        identityAuthorization={{ enabled: true, notice_version: '1.0.0' }}
+      />,
+    );
+
+    await user.type(screen.getByLabelText(/Nombre completo del participante/), 'Menor Modalidad');
+    await user.type(screen.getByLabelText(/Fecha de nacimiento/), '2015-01-01');
+    await user.type(screen.getByLabelText(/Teléfono de contacto/), '600 000 001');
+    await user.type(screen.getByLabelText(/Correo electrónico de contacto/), 'familia@example.test');
+    await user.type(screen.getByLabelText(/Nombre completo del representante/), 'Persona Tutora');
+    await user.type(screen.getByLabelText(/Relación con el participante/), 'Tutora');
+    await user.click(screen.getByLabelText(optionName));
+    if (requiresAuthority) {
+      await user.click(screen.getByLabelText(/Declaro que ejerzo la patria potestad/));
+    }
+    await user.click(screen.getByLabelText(/He leído la información de privacidad/));
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+
+    await waitFor(() => expect(schoolService.createEnrollment).toHaveBeenCalledOnce());
+    expect(schoolService.createEnrollment).toHaveBeenCalledWith(expect.objectContaining({
+      privacy_acknowledged: true,
+      privacy_notice_version: '1.1.0',
+      public_identity_authorization: {
+        mode,
+        notice_version: '1.0.0',
+        ...(requiresAuthority ? { guardian_authority_declared: true } : {}),
+      },
+    }));
+  });
+
+  it('associates and focuses the authority error without blocking anonymous enrollment', async () => {
+    const user = userEvent.setup();
+    schoolService.createEnrollment.mockResolvedValue({ message: 'Recibida', data: null });
+    render(
+      <SchoolEnrollmentForm
+        levels={levels}
+        reloadOverview={reloadOverview}
+        identityAuthorization={{ enabled: true, notice_version: '1.0.0' }}
+      />,
+    );
+
+    await user.type(screen.getByLabelText(/Nombre completo del participante/), 'Menor Validación');
+    await user.type(screen.getByLabelText(/Fecha de nacimiento/), '2015-01-01');
+    await user.type(screen.getByLabelText(/Teléfono de contacto/), '600 000 002');
+    await user.type(screen.getByLabelText(/Correo electrónico de contacto/), 'validacion@example.test');
+    await user.type(screen.getByLabelText(/Nombre completo del representante/), 'Persona Tutora');
+    await user.type(screen.getByLabelText(/Relación con el participante/), 'Tutora');
+    await user.click(screen.getByLabelText(/Autorizar sólo el alias deportivo/));
+    await user.click(screen.getByLabelText(/He leído la información de privacidad/));
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+
+    const authority = screen.getByLabelText(/Declaro que ejerzo la patria potestad/);
+    expect(authority).toHaveFocus();
+    expect(authority).toHaveAttribute('aria-describedby', 'guardian_authority_declared-error');
+    expect(schoolService.createEnrollment).not.toHaveBeenCalled();
+
+    await user.click(screen.getByLabelText(/No autorizar identidad individual/));
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+    await waitFor(() => expect(schoolService.createEnrollment).toHaveBeenCalledOnce());
   });
 
   it('maps backend 422 errors, preserves fields and focuses the first invalid field', async () => {

@@ -191,6 +191,16 @@ describe('App public routes', () => {
     expect(schoolService.getOverview).toHaveBeenCalledOnce();
   });
 
+  it('isolates the public identity decision route from global navigation and footer', async () => {
+    openAppAt('/public-identity/confirm');
+
+    expect(await screen.findByRole('heading', { name: 'Identidad pública en competición' }))
+      .toBeInTheDocument();
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+    expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('main')).toHaveLength(1);
+  });
+
   it.each(['/escuela/alumno', '/school', '/academy'])(
     'keeps the unapproved School-like route %s on the existing 404',
     async (pathname) => {

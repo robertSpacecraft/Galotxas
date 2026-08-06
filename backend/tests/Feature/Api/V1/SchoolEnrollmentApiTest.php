@@ -357,6 +357,8 @@ class SchoolEnrollmentApiTest extends TestCase
             'contact_email' => '  FAMILIA@EXAMPLE.TEST  ',
             'guardian_name' => '  Persona Tutora  ',
             'guardian_relationship' => '  Madre  ',
+            'privacy_acknowledged' => true,
+            'privacy_notice_version' => '1.1.0',
         ], $overrides);
     }
 
@@ -373,6 +375,8 @@ class SchoolEnrollmentApiTest extends TestCase
             'contact_email' => 'adulto@example.test',
             'guardian_name' => '',
             'guardian_relationship' => '',
+            'privacy_acknowledged' => true,
+            'privacy_notice_version' => '1.1.0',
         ], $overrides);
     }
 

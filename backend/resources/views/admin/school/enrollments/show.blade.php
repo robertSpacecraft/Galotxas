@@ -98,6 +98,29 @@
                         @endif
                     </div>
                 </div>
+
+                <div class="card page-card mt-4">
+                    <div class="card-header fw-bold">Identidad pública de competición</div>
+                    <div class="card-body">
+                        @forelse ($enrollment->publicIdentityAuthorizations as $authorization)
+                            <p class="mb-2">
+                                {{ $authorization->mode->label() }} —
+                                {{ $authorization->state->label() }} —
+                                aviso {{ $authorization->notice_version }}
+                                <a
+                                    href="{{ route('admin.public-identity-authorizations.show', $authorization) }}"
+                                    class="ms-2"
+                                >
+                                    Revisar autorización
+                                </a>
+                            </p>
+                        @empty
+                            <p class="text-secondary mb-0">
+                                La inscripción no incluye una decisión de identidad pública.
+                            </p>
+                        @endforelse
+                    </div>
+                </div>
             </div>
 
             <div class="col-lg-4">

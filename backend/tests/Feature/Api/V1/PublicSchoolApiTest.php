@@ -78,6 +78,9 @@ class PublicSchoolApiTest extends TestCase
                     ],
                     'default_location' => null,
                     'levels' => [],
+                    'public_identity_authorization' => [
+                        'enabled' => false,
+                    ],
                 ],
             ]);
     }
@@ -154,6 +157,9 @@ class PublicSchoolApiTest extends TestCase
                                 ],
                             ],
                         ],
+                    ],
+                    'public_identity_authorization' => [
+                        'enabled' => false,
                     ],
                 ],
             ]);

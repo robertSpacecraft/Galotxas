@@ -13,10 +13,12 @@ import { afterEach, describe, expect, it } from 'vitest'
 import {
   DEFAULT_LEGAL_OUTPUT_PATH,
   DEFAULT_LEGAL_ROOT,
+  FORM_NOTICES,
   LEGAL_DOCUMENTS,
 } from './config.js'
 import {
   assertLegalArtifactCurrent,
+  compileFormNoticeArtifact,
   compileLegalArtifact,
   serializeLegalArtifact,
 } from './compiler.js'
@@ -61,9 +63,51 @@ describe('legal compiler', () => {
       { id: 'LEG-003', slug: 'cookies', route: '/legal/cookies' },
     ])
     expect(discovery.excluded).toEqual([
+      { sourcePath: 'notices', reason: 'avisos de formulario separados' },
       { sourcePath: 'README.md', reason: 'documentación técnica' },
     ])
     expect(JSON.stringify(artifact)).not.toMatch(/legal-drafts|knowledge\//i)
+  })
+
+  it('projects the single allowlisted form notice separately from public legal pages', async () => {
+    const { artifact } = await compileFormNoticeArtifact(DEFAULT_LEGAL_ROOT)
+
+    expect(artifact.notices).toHaveLength(1)
+    expect(artifact.notices[0]).toMatchObject({
+      id: 'NOTICE-PUBLIC-IDENTITY-MINORS',
+      version: '1.0.0',
+      status: 'vigente',
+      scope: 'public_competition_identity',
+      owner: 'Club Galotxes de Monover',
+    })
+    expect(JSON.stringify(artifact)).not.toMatch(/knowledge\/|legal-drafts|guardian@example/i)
+  })
+
+  it('rejects unknown form notices and a mismatched scope', async () => {
+    const parent = await mkdtemp(path.join(tmpdir(), 'galotxas-notices-'))
+    temporaryRoots.push(parent)
+    const legalRoot = path.join(parent, 'legal')
+    const noticesRoot = path.join(legalRoot, 'notices')
+    await mkdir(noticesRoot, { recursive: true })
+    const contract = FORM_NOTICES[0]
+    const canonical = await readFile(
+      path.join(DEFAULT_LEGAL_ROOT, 'notices', contract.filename),
+      'utf8',
+    )
+    await writeFile(
+      path.join(noticesRoot, contract.filename),
+      canonical.replace('scope: public_competition_identity', 'scope: public_images'),
+      'utf8',
+    )
+    await expect(compileFormNoticeArtifact(legalRoot)).rejects.toMatchObject({
+      code: 'NOTICE_METADATA_CONTRACT_INVALID',
+    })
+
+    await writeFile(path.join(noticesRoot, contract.filename), canonical, 'utf8')
+    await writeFile(path.join(noticesRoot, 'unknown.md'), '# Unknown\n', 'utf8')
+    await expect(compileFormNoticeArtifact(legalRoot)).rejects.toMatchObject({
+      code: 'NOTICE_SOURCE_UNKNOWN',
+    })
   })
 
   it('validates versions, dates, publication metadata and deterministic output', async () => {

@@ -1,11 +1,12 @@
 import { mkdir, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import {
+  FORM_NOTICES,
   LEGAL_DOCUMENTS,
   LEGAL_SCHEMA_VERSION,
 } from './config.js'
 import { LegalValidationError } from './errors.js'
-import { parseLegalFrontMatter } from './frontMatter.js'
+import { parseLegalFrontMatter, parseNoticeFrontMatter } from './frontMatter.js'
 import { parseLegalMarkdown } from './markdown.js'
 
 const LEGAL_OWNER = 'Club Galotxes de Monover'
@@ -56,6 +57,10 @@ export const discoverLegalDocuments = async (legalRoot) => {
       excluded.push({ sourcePath: entry.name, reason: 'documentación técnica' })
       continue
     }
+    if (entry.name === 'notices' && entry.isDirectory()) {
+      excluded.push({ sourcePath: entry.name, reason: 'avisos de formulario separados' })
+      continue
+    }
     if (!entry.isFile() || !allowed.has(entry.name)) {
       fail('elemento fuera de la allowlist legal cerrada.', entry.name, 'SOURCE_UNKNOWN')
     }
@@ -71,6 +76,38 @@ export const discoverLegalDocuments = async (legalRoot) => {
   }
 
   return { included, excluded }
+}
+
+export const discoverFormNotices = async (legalRoot) => {
+  const noticesRoot = path.join(legalRoot, 'notices')
+  let entries
+  try {
+    entries = await readdir(noticesRoot, { withFileTypes: true })
+  } catch (error) {
+    fail(`no se puede leer legal/notices/: ${error.message}`, 'notices', 'NOTICE_SOURCE_READ')
+  }
+
+  const allowed = new Set(FORM_NOTICES.map(({ filename }) => filename))
+  const included = []
+
+  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+    const sourcePath = `notices/${entry.name}`
+    if (entry.isSymbolicLink()) fail('no se admiten enlaces simbólicos.', sourcePath, 'SOURCE_SYMLINK')
+    if (!entry.isFile() || !allowed.has(entry.name)) {
+      fail('aviso fuera de la allowlist cerrada.', sourcePath, 'NOTICE_SOURCE_UNKNOWN')
+    }
+    included.push({ sourcePath, absolutePath: path.join(noticesRoot, entry.name) })
+  }
+
+  if (included.length !== FORM_NOTICES.length) {
+    fail(
+      `se requieren exactamente ${FORM_NOTICES.length} avisos de formulario.`,
+      'notices',
+      'NOTICE_SOURCE_COUNT_INVALID',
+    )
+  }
+
+  return { included }
 }
 
 const compileDocument = async (entry) => {
@@ -92,6 +129,31 @@ const compileDocument = async (entry) => {
 
   const parsed = parseLegalMarkdown(markdown, entry.sourcePath)
 
+  if (parsed.titleHeading.text !== metadata.title) {
+    fail('el H1 debe coincidir exactamente con "title".', entry.sourcePath, 'TITLE_HEADING_MISMATCH')
+  }
+  if (metadata.owner !== LEGAL_OWNER) {
+    fail('"owner" no coincide con la denominación jurídica confirmada.', entry.sourcePath, 'OWNER_INVALID')
+  }
+
+  return { entry, metadata, parsed }
+}
+
+const compileNotice = async (entry) => {
+  const source = await readUtf8(entry.absolutePath, entry.sourcePath)
+  const { metadata, markdown } = parseNoticeFrontMatter(source, entry.sourcePath)
+  const publicSource = `${Object.values(metadata).join('\n')}\n${markdown}`
+
+  for (const marker of FORBIDDEN_PUBLIC_MARKERS) {
+    if (marker.test(publicSource)) {
+      fail('se ha detectado un marcador interno no publicable.', entry.sourcePath, 'PUBLIC_MARKER_FORBIDDEN')
+    }
+  }
+  if (PRIVATE_PHONE_PATTERN.test(publicSource)) {
+    fail('se ha detectado un número de teléfono no admitido.', entry.sourcePath, 'PRIVATE_PHONE_FORBIDDEN')
+  }
+
+  const parsed = parseLegalMarkdown(markdown, entry.sourcePath)
   if (parsed.titleHeading.text !== metadata.title) {
     fail('el H1 debe coincidir exactamente con "title".', entry.sourcePath, 'TITLE_HEADING_MISMATCH')
   }
@@ -189,6 +251,69 @@ export const compileLegalArtifact = async (legalRoot) => {
   return { artifact: validateLegalArtifact({ schemaVersion: LEGAL_SCHEMA_VERSION, documents }), discovery }
 }
 
+export const validateFormNoticeArtifact = (artifact) => {
+  if (artifact?.schemaVersion !== LEGAL_SCHEMA_VERSION) {
+    fail('schemaVersion de avisos no soportado.', null, 'NOTICE_ARTIFACT_SCHEMA_INVALID')
+  }
+  if (!Array.isArray(artifact.notices) || artifact.notices.length !== FORM_NOTICES.length) {
+    fail('el artefacto de avisos no coincide con la allowlist.', null, 'NOTICE_ARTIFACT_COUNT_INVALID')
+  }
+  for (const [index, contract] of FORM_NOTICES.entries()) {
+    const notice = artifact.notices[index]
+    if (
+      notice?.id !== contract.id
+      || notice.title !== contract.title
+      || notice.scope !== contract.scope
+      || notice.order !== contract.order
+      || !Array.isArray(notice.blocks)
+      || !Array.isArray(notice.headings)
+    ) {
+      fail(`proyección inválida para "${contract.id}".`, null, 'NOTICE_ARTIFACT_INVALID')
+    }
+  }
+  return artifact
+}
+
+export const compileFormNoticeArtifact = async (legalRoot) => {
+  const discovery = await discoverFormNotices(legalRoot)
+  const compiled = await Promise.all(discovery.included.map(compileNotice))
+  ensureUnique(compiled)
+  const byFilename = new Map(compiled.map((notice) => [path.basename(notice.entry.sourcePath), notice]))
+
+  const notices = FORM_NOTICES.map((contract) => {
+    const source = byFilename.get(contract.filename)
+    if (!source) fail('aviso permitido ausente.', contract.filename, 'NOTICE_SOURCE_MISSING')
+    const { metadata, parsed } = source
+    if (
+      metadata.id !== contract.id
+      || metadata.title !== contract.title
+      || metadata.scope !== contract.scope
+    ) {
+      fail('los metadatos no coinciden con el contrato cerrado.', contract.filename, 'NOTICE_METADATA_CONTRACT_INVALID')
+    }
+
+    return {
+      id: metadata.id,
+      title: metadata.title,
+      version: metadata.version,
+      status: metadata.status,
+      publishedAt: metadata.published_at,
+      reviewedAt: metadata.reviewed_at,
+      owner: metadata.owner,
+      scope: metadata.scope,
+      summary: metadata.summary,
+      order: contract.order,
+      headings: parsed.headings,
+      blocks: parsed.blocks,
+    }
+  })
+
+  return {
+    artifact: validateFormNoticeArtifact({ schemaVersion: LEGAL_SCHEMA_VERSION, notices }),
+    discovery,
+  }
+}
+
 export const serializeLegalArtifact = (artifact) => `${JSON.stringify(artifact, null, 2)}\n`
 
 export const assertLegalArtifactCurrent = async (legalRoot, outputPath) => {
@@ -206,6 +331,23 @@ export const assertLegalArtifactCurrent = async (legalRoot, outputPath) => {
   return { artifact, bytes: expected }
 }
 
+export const assertFormNoticeArtifactCurrent = async (legalRoot, outputPaths) => {
+  const { artifact } = await compileFormNoticeArtifact(legalRoot)
+  const expected = serializeLegalArtifact(artifact)
+  for (const outputPath of outputPaths) {
+    let actual
+    try {
+      actual = await readFile(outputPath, 'utf8')
+    } catch (error) {
+      fail(`no se puede leer el artefacto de avisos: ${error.message}`, null, 'NOTICE_OUTPUT_READ')
+    }
+    if (actual !== expected) {
+      fail('el artefacto de avisos no coincide con la fuente; ejecuta legal:build.', null, 'NOTICE_OUTPUT_STALE')
+    }
+  }
+  return { artifact, bytes: expected }
+}
+
 export const buildLegalArtifact = async (legalRoot, outputPath) => {
   const { artifact, discovery } = await compileLegalArtifact(legalRoot)
   const bytes = serializeLegalArtifact(artifact)
@@ -218,4 +360,20 @@ export const buildLegalArtifact = async (legalRoot, outputPath) => {
     await rm(temporaryPath, { force: true })
   }
   return { artifact, discovery, bytes, outputPath }
+}
+
+export const buildFormNoticeArtifacts = async (legalRoot, outputPaths) => {
+  const { artifact, discovery } = await compileFormNoticeArtifact(legalRoot)
+  const bytes = serializeLegalArtifact(artifact)
+  for (const outputPath of outputPaths) {
+    const temporaryPath = `${outputPath}.${process.pid}.tmp`
+    await mkdir(path.dirname(outputPath), { recursive: true })
+    try {
+      await writeFile(temporaryPath, bytes, 'utf8')
+      await rename(temporaryPath, outputPath)
+    } finally {
+      await rm(temporaryPath, { force: true })
+    }
+  }
+  return { artifact, discovery, bytes, outputPaths }
 }
