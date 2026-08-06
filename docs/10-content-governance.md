@@ -97,8 +97,10 @@ Competición utiliza datos públicos reales; Aprende a jugar y Manual consumen
 Knowledge; Escuela consume Laravel; y Club consume sólo páginas CMS publicadas
 mediante slugs cerrados. Home y Footer contienen únicamente copy de interfaz,
 arquitectura de enlaces, identidad y redes confirmadas; no duplican CMS o
-Knowledge. Los destinos legales permanecen pendientes de 7D.2C; 7D.2A sólo
-prepara borradores internos y gates.
+Knowledge. 7D.2A preparó borradores internos y gates. Desde 7D.2C1, `legal/` es una cuarta
+fuente explícita y acotada: contiene exactamente tres textos públicos
+versionados, compilados a una proyección propia y enlazados sólo desde el
+footer. No es CMS, Knowledge ni copy JSX.
 
 Los componentes de `frontend/src/components/PublicLanding/` son infraestructura de presentación, no una cuarta fuente de contenido. Pueden recibir datos ya autorizados del dominio Laravel, artefactos compilados desde `knowledge/` o contenido público del CMS, pero no conocen esas fuentes ni deciden visibilidad, publicación o reglas. Sus props admiten estructura, copy breve de interfaz y contenido procedente de la fuente canónica; no deben usarse para hardcodear contenido administrable como sustituto temporal del CMS o de `knowledge/`.
 
@@ -208,7 +210,7 @@ La tabla diferencia la fuente aprobada de las capacidades actuales que todavía 
 | Club | Backend CMS | Administrador | Sí | Sí | Institucional |
 | Prensa y medios | Backend CMS genérico auditado; contrato específico pendiente | Administrador | Genérico actual | Genérica actual | Editorial |
 | Federaciones | Backend CMS genérico auditado; publicación MVP condicional | Administrador | Genérico actual | Genérica actual | Institucional secundaria |
-| Legal y privacidad | CMS o documento controlado | Responsable editorial + revisión profesional/jurídica | Genérico actual si se usa CMS | Genérica actual si se usa CMS | Legal |
+| Legal y privacidad | `legal/` | Git + revisión responsable/profesional | No | No | Legal versionada |
 | Contenidos legado | Backend CMS | Administrador | Existente y auditado | Existente y auditado | Legada |
 
 “Sí” expresa el flujo aprobado o el módulo deportivo actual según la fila; no garantiza que una sección editorial concreta ya esté implementada. La Fase 1 verificó las capacidades y límites del CMS genérico; cada vertical futura todavía debe definir y probar su contrato específico.
@@ -218,6 +220,9 @@ La tabla diferencia la fuente aprobada de las capacidades actuales que todavía 
 - El equipo de dominio y administración deportiva modifica reglas ejecutables y datos competitivos en backend o mediante los flujos Blade autorizados.
 - Los administradores editoriales modifican contenido CMS desde Blade, dentro de sus permisos.
 - Las personas responsables del conocimiento editan `knowledge/` mediante Git, revisión y validación editorial.
+- Las personas responsables de legal editan `legal/`, actualizan versión y
+  fechas, ejecutan `legal:check`/`legal:build` y revisan fuente y proyección en
+  el mismo cambio; no usan Blade ni editan el JSON generado a mano.
 - Esas personas ejecutan `knowledge:check`, regeneran los artefactos con `knowledge:build` y entregan fuente y JSON juntos; nunca editan archivos de `generated/` a mano.
 - Un cambio de estado requiere aprobación editorial. La autorización de 5A.1 se limita a REG-001–REG-008 y no constituye permiso general para publicar futuros borradores.
 - Las normalizaciones estructurales preservan texto, reglas, terminología, títulos, IDs, slugs y referencias; cualquier cambio semántico se tramita como revisión editorial versionada.
@@ -377,7 +382,9 @@ La Fase 3A no elimina `/contenidos`, no crea redirects, no cambia su API ni borr
 - Contenido real de `academy` por entorno, clasificación de sus piezas,
   consumidores y momento futuro de migración, despublicación o redirect.
 - Canal organizativo público de contacto de Escuela.
-- Textos aprobados de privacidad, aceptación y, si aplica, consentimiento antes de abrir inscripciones en producción; React no incorpora textos legales inventados.
+- Primera capa y consentimiento operativo de los formularios antes de activar
+  recogidas productivas; las políticas generales publicadas no sustituyen esa
+  implementación ni autorizan por sí solas nuevos tratamientos.
 - Política de conservación y borrado extraordinario de solicitudes.
 - Reglas futuras para reinscripciones complejas o varios programas públicos.
 - Existencia y responsable editorial de material pedagógico suficiente para una colección de Escuela.
@@ -387,9 +394,9 @@ La Fase 3A no elimina `/contenidos`, no crea redirects, no cambia su API ni borr
 - Necesidades editoriales de noticias, actividades, galerías, documentos y formularios.
 - Estrategia de almacenamiento persistente y ciclo de vida de archivos.
 - Modelo de consentimiento y privacidad para contenido de menores.
-- Consumo React, renderer, rutas públicas e integración automática de la canalización con CI/despliegue.
-- Publicación legal y gates productivos de Contacto en 7D.2C, tras la auditoría
-  documental 7D.2A; aliases tras paridad y,
+- Integración automática de las canalizaciones de Knowledge en CI/despliegue;
+  Legal ya bloquea el build cuando su proyección no está sincronizada.
+- Gates productivos de Contacto en 7D.2C2; aliases tras paridad y,
   posteriormente, redirects permanentes, canonical, sitemap, 404 HTTP y SEO
   completo. Las cuatro URLs Club ya se descubren desde Navbar/footer en 7D.1.
 - Autorización explícita de identidad de menores, si el producto decide mostrar
@@ -409,7 +416,7 @@ contenido real ni preparación de producción. Antes de cerrar el MVP:
 | Federarse | CMS | Proceso real y responsable | Destino vigente |
 | Documentos | CMS con URLs controladas | Piezas, vigencia, procedencia | Ciclo de vida y acceso verificados |
 | Prensa/Federaciones | CMS | Contenido real | Footer/secundaria, nunca tarjeta vacía |
-| Legal y privacidad | CMS o documento controlado | Revisión responsable/jurídica | Enlaces globales antes de recoger datos |
+| Legal y privacidad | `legal/` | Revisión responsable/jurídica y versionado | Tres rutas y footer implementados; toda nueva versión debe pasar compilador y revisión |
 | Escuela operativa | Dominio Laravel | Programa, contacto, niveles, horarios y ubicación | Configurar privada/cerrada; abrir tras privacidad y capacidad |
 | Reglas y modalidad | Knowledge | Revisión editorial existente | No copiar en CMS o React |
 | Mensajes de interfaz | React | Microcopy funcional | No convertirse en fuente editorial |
@@ -458,7 +465,7 @@ e identidad deportiva requieren responsable de la entidad y revisión
 profesional o jurídica. Las plantillas completas, matriz legal, checklist
 School y gates están en `15-mvp-editorial-and-navigation-contract.md`.
 
-## 22. Fuentes legales y privacidad tras 7D.2A
+## 22. Fuentes legales y privacidad tras 7D.2C1
 
 La identidad institucional usa fuentes con precedencia explícita: documento
 jurídico original, dato legal confirmado por el club, acuerdo formal,
@@ -466,18 +473,18 @@ documentación administrativa vigente, CMS, documentación técnica, tradición 
 inferencia. La matriz vigente se mantiene en
 `20-legal-privacy-and-cookies-readiness.md`.
 
-Los borradores de `docs/legal-drafts/` no son contenido editorial, no se cargan
-en CMS y no pueden publicarse desde React. `EST-REF-001` es una referencia
+Los borradores de `docs/legal-drafts/` son historia interna no vigente y no se
+cargan en CMS ni runtime. La fuente pública es `legal/`, validada y compilada a
+un artefacto React sin Markdown crudo. `EST-REF-001` es una referencia
 histórica restringida bajo `knowledge/referencias/`, fuera del Manual y sin
 vigencia jurídica inferida. Reglamento/Manual y estatutos del club son fuentes
 distintas.
 
-El CMS institucional podrá ser destino de textos jurídicos sólo después de
-validación y autorización en 7D.2C. CIF y domicilio social están confirmados
+El CMS institucional no es destino de estos textos jurídicos. CIF y domicilio social están confirmados
 por el club como datos legales y administrativos; no constituyen por sí solos
 una certificación registral. Representación legal general, registro deportivo,
 inscripción y mandato de la Junta, bases, conservación, destinatarios,
-encargados y transferencias no se completan por inferencia. El teléfono
+encargados y transferencias productivas no se completan por inferencia. El teléfono
 confirmado es privado y no pertenece al CMS ni a la interfaz pública.
 
 ## 23. Identidad deportiva pública tras 7D.2B

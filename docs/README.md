@@ -25,6 +25,7 @@ La documentación se organiza para separar claramente:
 - navegación agrupada, Home y footer estructural.
 - preparación legal, privacidad, identidad pública, cookies y terceros.
 - endurecimiento técnico de privacidad, identidad pública y recursos externos.
+- fuente legal pública versionada, páginas legales y footer.
 
 ## Orden recomendado de lectura
 
@@ -51,14 +52,16 @@ La documentación se organiza para separar claramente:
 21. [Navegación agrupada, Home y footer](19-navigation-home-and-footer.md)
 22. [Preparación legal, privacidad y cookies](20-legal-privacy-and-cookies-readiness.md)
 23. [Endurecimiento de privacidad e identidad pública](21-privacy-hardening-and-public-identity.md)
+24. [Páginas legales públicas versionadas](22-versioned-legal-pages.md)
 
 El contrato de navegación inventaría el router y los enlaces actuales y conserva
 el histórico de la arquitectura pública desde Fase 3. El contrato de Fase 7B
 cierra su evolución para el MVP: Inicio y Competición como enlaces, Aprende y
 Club como grupos de revelación, Cuenta separada y cuatro rutas institucionales
 canónicas. Las rutas Club ya tienen fachadas CMS diferidas y 7D.1 implementa el
-grupo del Navbar, Home veraz y footer global. Las rutas legales y la activación
-productiva de Contacto permanecen pendientes de 7D.2C. La auditoría 7D.2A
+grupo del Navbar, Home veraz y footer global. Las rutas legales y los enlaces
+de footer se implementan en 7D.2C1; la activación productiva de Contacto
+permanece pendiente de 7D.2C2. La auditoría 7D.2A
 consolida las fuentes institucionales, identidad, tratamientos,
 almacenamientos y terceros y crea borradores internos no publicables. El documento de
 gobernanza define qué
@@ -91,6 +94,10 @@ Contacto.
 almacenamiento del navegador y retira recursos externos automáticos; el
 documento 21 registra los contratos, pruebas y riesgos residuales sin publicar
 legal ni habilitar Contacto.
+7D.2C1 promueve los tres borradores aprobados a la fuente Git `legal/`, genera
+una proyección build-time independiente y publica las rutas y el grupo legal
+del footer; el documento 22 registra el contrato y mantiene 7D.2C2, Contacto y
+producción abiertos.
 El conocimiento estable del deporte se mantiene por separado en
 [`knowledge/`](../knowledge/README.md); los documentos técnicos describen el
 software y no sustituyen esa fuente editorial.

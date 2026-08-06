@@ -53,6 +53,12 @@ fuentes y jsDelivr se eliminan. La publicación legal, la activación de Contact
 y una eventual identidad autorizada de menores permanecen como gates de
 7D.2C; Fase 7 y el MVP siguen abiertos.
 
+Seguimiento 7D.2C1: los tres textos aprobados se publican desde la fuente Git
+`legal/` mediante una proyección build-time propia y rutas exactas enlazadas en
+el footer. Los borradores quedan como historia interna. Contacto continúa
+desactivado y 7D.2C2, correo, consentimiento verificable de menores, imágenes,
+despliegue, Fase 7 y MVP permanecen abiertos.
+
 En el momento del cierre documental de 7B el código no cambió: el Navbar
 continuaba plano, no existía `/club`, las rutas canónicas institucionales no
 estaban registradas y el footer global no estaba implementado.
@@ -688,8 +694,8 @@ valor “Pendiente” se publicará como contenido.
 | 6 | Prensa y Federaciones condicionales, fuera del Navbar | Cerrada por este contrato | Antes de 7D |
 | 7 | Política de identidad pública | Adultos cerrada en 7D.2A; menores e implementación abiertas | Antes de publicar competición real/7G |
 | 8 | Datos reales de Escuela | Abiertos | Antes de 7E |
-| 9 | Contacto oficial | Correo/redes confirmados; destinatario y operación del formulario abiertos | Antes de activar Contacto/7D.2C |
-| 10 | Textos y responsables legales | Abiertos | Antes de cerrar 7D y desplegar |
+| 9 | Contacto oficial | Correo público confirmado; destinatario, envío y operación del formulario abiertos | Antes de activar Contacto/7D.2C2 |
+| 10 | Textos y responsables legales | Versión pública 1.0.0 cerrada en 7D.2C1; revisión futura versionada | Antes de cada nueva versión y del despliegue |
 | 11 | Contenido de Quiénes somos e imágenes | Abierto | Antes de cerrar 7C |
 | 12 | Documentos vigentes | Abiertos | Antes de cerrar 7C |
 
@@ -912,8 +918,9 @@ descendientes mantienen sólo estado visual.
 
 7D.2A completa la auditoría y los borradores internos sin rutas ni enlaces.
 7D.2B completa el endurecimiento técnico de identidad pública, sesión y
-recursos externos. 7D.2C conserva la obligación contractual de privacidad,
-aviso legal y cookies, y requiere validación, contenido y responsables
-aprobados antes de publicar. El formulario productivo de Contacto continúa desactivado.
+recursos externos. 7D.2C1 publica privacidad, aviso legal y cookies desde una
+fuente versionada propia. 7D.2C2 conserva los gates de primera capa, correo,
+operación y consentimiento verificable. El formulario productivo de Contacto
+continúa desactivado.
 No cambian CMS, contenido, `/nosotros`, `/contenidos`, aliases, redirects,
 canonical o despliegue. Por tanto 7D, Fase 7 y el MVP siguen abiertos.

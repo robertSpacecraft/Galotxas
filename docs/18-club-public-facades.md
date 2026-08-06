@@ -1,5 +1,13 @@
 # Fachadas públicas de Club
 
+## Seguimiento tras 7D.2C1
+
+El footer añade un grupo legal real sin cambiar las cuatro fachadas, el
+disclosure Club o sus fuentes CMS. La política general de privacidad ya es
+pública, pero Contacto permanece condicionado y desactivado por defecto; no se
+añade primera capa ni correo en este bloque. Los fixtures E2E no acreditan una
+activación productiva.
+
 ## 1. Propósito
 
 Este documento registra `CLUB-PUBLIC-FACADES-1`, cierre técnico de 7C.2. React
@@ -157,9 +165,9 @@ carga, revisión y publicación productivas siguen siendo manuales por entorno.
 
 7D.1 implementa el árbol único con disclosures Aprende/Club, paridad
 desktop/móvil, Home y footer estructurales. 7D.2B endurece almacenamiento,
-identidad deportiva y recursos externos sin activar Contacto. Antes de
-activarlo en producción, 7D.2C debe cerrar privacidad, legal y operación tras
-la auditoría 7D.2A. También siguen pendientes paridad de `/nosotros`, aliases/redirects,
+identidad deportiva y recursos externos sin activar Contacto. 7D.2C1 publica
+los textos legales sin activar el formulario. Antes de activarlo en producción,
+7D.2C2 debe cerrar primera capa, correo y operación. También siguen pendientes paridad de `/nosotros`, aliases/redirects,
 canonical, indexación de
 `/contenidos`, contenido por entorno y aceptación humana.
 
@@ -169,8 +177,8 @@ canonical, indexación de
 diferidas, fuente CMS única, estados completos, Contacto condicionado, pruebas
 unitarias/backend/E2E y documentación validadas, sin cambios en Navbar,
 `knowledge/`, `frontend/dist`, imágenes o datos locales. Fase 7 y el MVP siguen
-abiertos: la implementación posterior de 7D.1 ni la auditoría 7D.2A autorizan
-los gates productivos de 7D.2C.
+abiertos: la implementación posterior de 7D.1 y la publicación legal 7D.2C1 no
+autorizan los gates productivos de 7D.2C2.
 
 ## 23. Seguimiento de 7D.1
 

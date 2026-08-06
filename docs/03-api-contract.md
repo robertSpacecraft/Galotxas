@@ -38,6 +38,12 @@ La API se expone actualmente bajo:
 
 Los cambios incompatibles deberán introducirse mediante una nueva versión cuando resulte necesario.
 
+Las páginas `/legal/aviso-legal`, `/legal/privacidad` y `/legal/cookies` no son
+endpoints API. React las obtiene de una proyección build-time de `legal/`; no se
+crean rutas Laravel, Resources ni páginas CMS para estos textos. El formulario
+de Contacto continúa condicionado por `GET /contact/config` y desactivado por
+defecto.
+
 ---
 
 # 4. Estado actual del contrato

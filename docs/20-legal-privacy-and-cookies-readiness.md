@@ -9,11 +9,16 @@ asesoramiento jurídico, no publica textos legales y no autoriza por sí misma
 Contacto, Escuela, registro de cuentas, identidad deportiva, imágenes o
 despliegue productivo.
 
-7D.2A queda limitada a inventario, consolidación de fuentes, borradores y
-gates. 7D.2B aplica minimización y retirada de terceros sin publicar legal.
-7D.2C, 7D, Fase 7 y el MVP permanecen abiertos. No existen rutas React
-de Aviso legal, Privacidad o Cookies; el footer no las enlaza y
+7D.2A queda limitada históricamente a inventario, consolidación de fuentes,
+borradores y gates. 7D.2B aplica minimización y retirada de terceros. 7D.2C1
+promueve después tres textos a `legal/`, publica sus rutas y los enlaza en el
+footer. 7D.2C2, 7D.2, 7D, Fase 7 y el MVP permanecen abiertos, y
 `CONTACT_FORM_ENABLED=false` continúa siendo el valor por defecto.
+
+Los datos y riesgos de esta auditoría conservan su valor como evidencia de
+preparación. La política pública, su compilador y los gates actualizados se
+documentan en `22-versioned-legal-pages.md`; los borradores de esta fase no se
+han convertido en fuente runtime.
 
 ## 2. Alcance y fuentes revisadas
 

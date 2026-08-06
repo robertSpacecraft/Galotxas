@@ -15,6 +15,7 @@ El candidato no equivale a un despliegue de producción. HTTPS, proxy inverso, b
 - `backend/docker/`: PHP-FPM, Nginx y MariaDB 11.4.
 - `docs/`: documentación técnica y funcional.
 - `knowledge/`: fuente canónica del reglamento, los conceptos y el conocimiento estable del deporte.
+- `legal/`: fuente canónica versionada de los tres textos legales públicos.
 
 MariaDB es el único motor de base de datos soportado. Laravel utiliza la conexión mariadb y PHP accede al servidor mediante la extensión pdo_mysql.
 
@@ -76,6 +77,20 @@ npm run knowledge:check
 npm run knowledge:build
 ~~~
 
+Los textos legales disponen de un pipeline independiente. El build exige que
+su proyección pública versionada esté sincronizada:
+
+~~~bash
+cd frontend
+npm run legal:check
+npm run legal:build
+~~~
+
+La fuente vive en `legal/`, la salida en
+`frontend/src/generated/legal/public-legal.json` y las rutas públicas son
+`/legal/aviso-legal`, `/legal/privacidad` y `/legal/cookies`. No usan CMS, API
+ni Knowledge.
+
 El servidor de producción deberá servir `frontend/dist` con fallback SPA a `index.html` y enrutar `/api/v1` y `/admin` hacia Laravel.
 
 La base técnica del futuro formulario de contacto está desactivada por defecto.
@@ -86,13 +101,14 @@ páginas Club continúa siendo manual mediante el CMS Blade. React expone las
 fachadas diferidas `/club/quienes-somos`, `/club/contacto`, `/club/federarse` y
 `/club/documentos`; el formulario sólo se monta cuando la configuración pública
 devuelve `enabled: true`. Fase 7D.1 incorpora el Navbar agrupado Aprende/Club,
-Home orientada a recorridos reales y footer global; las páginas legales y la
-activación productiva de Contacto siguen pendientes de 7D.2C. La auditoría
-7D.2A consolida identidad, tratamientos, cookies, terceros y borradores
-internos. 7D.2B minimiza la identidad deportiva pública, conserva en el
-navegador sólo el token Bearer, restaura el perfil mediante `/me` y elimina las
-cargas automáticas de fuentes y recursos externos, sin crear rutas o enlaces
-legales ni activar recogidas productivas.
+Home orientada a recorridos reales y footer global. 7D.2A consolida identidad,
+tratamientos, cookies, terceros y borradores internos; 7D.2B minimiza la
+identidad deportiva pública, conserva en el navegador sólo el token Bearer,
+restaura el perfil mediante `/me` y elimina las cargas automáticas de fuentes
+y recursos externos. 7D.2C1 publica los tres textos legales desde Git mediante
+compilación build-time y los enlaza en el footer. La activación productiva de
+Contacto, correo saliente, consentimientos verificables de menores, imágenes y
+despliegue continúan pendientes.
 
 ## Pruebas
 
@@ -134,5 +150,6 @@ El stack E2E es desechable y no utiliza la base de desarrollo.
 - [Preparación técnica de Club y contacto](docs/17-club-technical-preparation-and-contact.md)
 - [Navegación agrupada, Home y footer](docs/19-navigation-home-and-footer.md)
 - [Preparación legal, privacidad y cookies](docs/20-legal-privacy-and-cookies-readiness.md)
+- [Páginas legales públicas versionadas](docs/22-versioned-legal-pages.md)
 - [Candidato MVP y publicación](docs/09-release-candidate.md)
 - [Historial de cambios](CHANGELOG.md)

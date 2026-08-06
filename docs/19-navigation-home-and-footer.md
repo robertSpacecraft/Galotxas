@@ -1,5 +1,13 @@
 # Navegación agrupada, Home y footer
 
+## Seguimiento tras 7D.2C1
+
+El footer global incorpora un tercer grupo de navegación con Aviso legal,
+Privacidad y Cookies. Los tres destinos tienen contenido versionado real y no
+son enlaces condicionales vacíos. El Navbar, sus cuatro controles editoriales,
+Cuenta, Home, redes y rutas Club permanecen intactos. No se añade banner y
+Contacto continúa desactivado.
+
 ## 1. Propósito
 
 Este documento registra `PUBLIC-NAVIGATION-HOME-FOOTER-1`, la implementación
@@ -135,13 +143,16 @@ Facebook e Instagram usan las URLs confirmadas. Ambos enlaces abren en nueva
 pestaña con `target="_blank"`, `rel="noopener noreferrer"` y una indicación
 accesible de ese comportamiento. No se publican teléfono ni dirección.
 
-## 17. Legal pendiente
+## 17. Legal, estado histórico de 7D.1
 
 Privacidad, aviso legal y cookies no aparecen como enlaces vacíos. 7D.2A audita
 su base técnica y crea sólo borradores internos no publicables. Validación,
 texto final, responsabilidad, aplicabilidad y rutas pertenecen a 7D.2C. El formulario de
 Contacto continúa desactivado por defecto en producción hasta cerrar privacidad
 y operación.
+
+7D.2C1 implementa posteriormente los tres textos, rutas y enlaces de footer
+sin alterar el Navbar ni activar Contacto.
 
 ## 18. Accesibilidad
 
@@ -190,9 +201,9 @@ genera ni modifica.
 7D.2A consolida fuentes, inventario técnico, terceros, identidad e imágenes y
 deja borradores internos. 7D.2B implementa la proyección deportiva, minimiza la
 sesión persistida y elimina recursos remotos prescindibles sin cambiar esta
-navegación. 7D.2C debe resolver y aprobar privacidad, aviso legal y cookies;
-definir sus rutas; confirmar operación, destinatario y correo de Contacto; y
-mantener bloqueada la recogida productiva de datos hasta entonces.
+navegación. 7D.2C1 resuelve privacidad, aviso legal, cookies y sus rutas.
+7D.2C2 debe confirmar primera capa, operación, destinatario y correo de
+Contacto, y mantener bloqueada la recogida productiva de datos hasta entonces.
 No se deducen aliases, redirects, canonical, indexación o despliegue de este
 cierre estructural.
 
@@ -202,7 +213,7 @@ cierre estructural.
 única en desktop y móvil; los padres no crean rutas; Cuenta sigue separada;
 Home sólo enlaza funciones reales; el footer es global y seguro; accesibilidad,
 responsive, suites, build, Knowledge y E2E pasan; no cambian backend, CMS,
-Knowledge, dist, imágenes, logo, datos ni dependencias. 7D.2C, Fase 7, MVP y
+Knowledge, dist, imágenes, logo, datos ni dependencias. 7D.2C2, Fase 7, MVP y
 despliegue permanecen abiertos.
 
 ## 25. Seguimiento de 7D.2B
@@ -211,4 +222,5 @@ Navbar, Home, footer, rutas y destinos no cambian. La cuenta restaura su estado
 consultando `/me` y no conserva el perfil en `localStorage`; la tipografía usa
 la pila del sistema. Las pruebas E2E mantienen los recorridos de Cuenta y Club,
 confirman Contacto oculto y la 404 de las rutas legales, y vigilan los hosts
-remotos retirados. La publicación visible sigue reservada a 7D.2C.
+remotos retirados. 7D.2C1 realiza posteriormente la publicación visible desde
+una fuente versionada; Contacto sigue reservado a 7D.2C2.

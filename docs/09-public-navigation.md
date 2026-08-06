@@ -8,9 +8,9 @@ navegación de Fase 3B, el sistema común de landings de Fase 3C, la Fase 4 de
 Competición, Aprende a jugar cerrada en Fase 5C y la Escuela pública cerrada en
 Fase 6C. Fase 7B sustituye la topología plana inicial por el contrato agrupado
 de ADR-033. 7C.2 implementa las cuatro rutas hijas de Club y 7D.1 aplica el
-disclosure del Navbar, Home y footer estructural. Legal y la activación
-productiva de Contacto permanecen pendientes de 7D.2C; 7D.2A aporta sólo
-auditoría y borradores internos.
+disclosure del Navbar, Home y footer estructural. 7D.2C1 añade al footer y al
+router los tres destinos legales versionados; la activación productiva de
+Contacto permanece pendiente de 7D.2C2.
 
 Las fases 3B, 3C, 4A–4C y 5B–5C modifican únicamente compilación/frontend, sus pruebas y la documentación: no cambian backend, CMS, contenido canónico, despliegue ni redirects. 7C.2 añade fachadas sobre el CMS y mantiene la publicación editorial separada por entorno; una ruta documental no se considera implementada hasta existir con fuente verificable y pruebas.
 
@@ -62,8 +62,8 @@ anunciar otra URL como página actual.
 
 El Navbar actual enlaza Inicio y Competición y revela los hijos de Aprende y
 Club mediante botones. El footer es global y usa las cuatro rutas Club
-canónicas. Cuenta permanece separada; Prensa, Federaciones y legal no se
-publican como enlaces vacíos.
+canónicas y un grupo legal con tres documentos reales. Cuenta permanece
+separada; Prensa y Federaciones no se publican como enlaces vacíos.
 
 ## 4. Inventario de rutas actuales
 
@@ -79,6 +79,7 @@ publican como enlaces vacíos.
 | `/aprende-a-jugar/manual/conceptos/:group/:slug` | `pages/Learn/KnowledgeDocumentPage.jsx` diferida | Público | Repositorio Knowledge, headings y bloques seguros | Manual, vecinos y referencias | Admite sólo `elementos`, `personas` y `juego`; navegación y vecinos no cruzan grupos, y un grupo o slug inválido muestra la 404. |
 | `/escuela` | `features/school/SchoolPage.jsx` diferida | Público | `GET /school` y `POST /school/enrollments` mediante servicio y hook locales | Disclosure Aprende, Home | Landing funcional. `data: null` y cierre son estados válidos; el formulario aparece sólo con apertura efectiva. |
 | `/club/quienes-somos`, `/club/contacto`, `/club/federarse`, `/club/documentos` | `features/club/ClubPage.jsx` diferida | Público | Página CMS publicada del slug cerrado; Contacto suma config y POST condicionados | Disclosure Club, Home y footer | Fachadas funcionales con carga, error/retry, 404, inválido y vacío. `/club` y descendientes desconocidos usan wildcard. |
+| `/legal/aviso-legal`, `/legal/privacidad`, `/legal/cookies` | `features/legal/LegalPage.jsx` diferida | Público | `public-legal.json`, generado desde `legal/` | Footer y navegación legal interna | Tres rutas exactas; versión, fecha y metadatos. `/legal` y descendientes desconocidos usan wildcard. Sin API, CMS o Knowledge. |
 | `/nosotros` | `pages/Nosotros/Nosotros.jsx` | Público | Contenido estático en React | Ningún enlace interno actual localizado | Duplicada y heredada; conserva contenido único como material de migración. |
 | `/torneos` | `pages/Torneos/TournamentList.jsx` | Público | `GET /championships` y `GET /seasons` | Landing de Competición, Mi Panel, detalles | Funcional secundaria. Distingue carga, error con retry y vacío filtrado; cada tarjeta tiene una única acción al detalle. |
 | `/torneos/:championshipId` | `pages/Torneos/TournamentDetail.jsx` | Público; acciones de inscripción autenticadas | Campeonato, ranking e inscripción desde API | Tarjetas de torneo, Mi Panel, regreso desde categoría | Funcional secundaria. Campeonato y ranking tienen disponibilidad independiente; las categorías enlazan sus tres vistas reales. |
@@ -818,6 +819,14 @@ restaura Cuenta mediante `/me` sin persistir el perfil y elimina cargas
 automáticas a proveedores de fuentes y jsDelivr. Las rutas legales siguen
 resolviendo la 404 de React y Contacto continúa oculto con su configuración por
 defecto. Publicación legal y activación operativa pertenecen a 7D.2C.
+
+### Seguimiento 7D.2C1
+
+El router registra exactamente `/legal/aviso-legal`, `/legal/privacidad` y
+`/legal/cookies` con una frontera lazy propia. El footer añade sus enlaces en
+un grupo separado; Navbar, Home y Cuenta no cambian. `/legal`, descendientes y
+aliases continúan en 404. Contacto permanece oculto y su activación pertenece a
+7D.2C2.
 
 ## Mantenimiento
 

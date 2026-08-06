@@ -20,6 +20,27 @@ React consume la proyección únicamente mediante `src/features/knowledge/knowle
 
 El repositorio conserva el orden canónico y resuelve el contexto y los vecinos dentro de cada colección. La tabla de contenidos usa exclusivamente `headings` H2–H6 del artefacto; no analiza bloques o Markdown en runtime. `App.jsx` carga con `React.lazy` sólo las tres páginas de Aprende, por lo que el repositorio, el renderer y `public-knowledge.json` permanecen fuera del chunk inicial. El fallback `Suspense` es un estado anunciado dentro del `<main>` existente y no representa una 404.
 
+## Legal
+
+Los tres textos públicos proceden de la carpeta hermana `legal/` y utilizan un
+compilador independiente del pipeline de Knowledge:
+
+```bash
+npm run legal:check
+npm run legal:build
+```
+
+La salida versionada `src/generated/legal/public-legal.json` contiene bloques
+seguros, nunca Markdown crudo ni paths de borradores. `legal:check` valida la
+fuente, el determinismo y la sincronía byte a byte; `npm run build` lo ejecuta
+antes de Vite y falla si el artefacto está desactualizado.
+
+`src/features/legal/` sólo admite `LEG-001`–`LEG-003` y registra mediante lazy
+loading `/legal/aviso-legal`, `/legal/privacidad` y `/legal/cookies`. `/legal`,
+descendientes desconocidos e IDs manipulados usan la 404. El renderer no
+consulta API, CMS o Knowledge. El Navbar permanece intacto y el footer añade un
+grupo de Información legal con esos tres destinos.
+
 ## Escuela de Galotxas
 
 La ruta pública `/escuela` se carga de forma diferida desde `src/features/school/`. Su servicio usa la instancia Axios común para consumir `GET /api/v1/school` y `POST /api/v1/school/enrollments`; el hook local gestiona carga, ausencia válida, error y reintento sin estado global o persistencia.

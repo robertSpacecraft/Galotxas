@@ -19,7 +19,7 @@ Componentes principales:
 - MariaDB.
 - Docker como entorno de desarrollo y pruebas.
 
-El backend constituye la fuente de verdad del dominio ejecutable y de la publicación de contenido administrable. `knowledge/` es la fuente editorial del conocimiento canónico y estable.
+El backend constituye la fuente de verdad del dominio ejecutable y de la publicación de contenido administrable. `knowledge/` es la fuente editorial del conocimiento canónico y estable. `legal/` es la fuente versionada de los textos legales públicos y no forma parte del CMS ni de Knowledge.
 
 ---
 
@@ -93,6 +93,18 @@ MariaDB es el único motor soportado por el proyecto.
 No existe compatibilidad con SQLite.
 
 Las pruebas utilizan una instancia MariaDB completamente aislada.
+
+## Fuente legal build-time
+
+`legal/` contiene exactamente Aviso legal, Privacidad y Cookies con metadatos
+versionados. `frontend/scripts/legal/` aplica una allowlist y genera
+`frontend/src/generated/legal/public-legal.json`; React consume sólo esa
+proyección mediante una feature diferida. El build comprueba su sincronía y no
+consulta Laravel, MariaDB, CMS o `knowledge/` para renderizar esas páginas.
+
+Los borradores históricos permanecen en `docs/legal-drafts/` fuera del
+compilador. La publicación en Git no activa Contacto, correo, consentimientos,
+imágenes o despliegue.
 
 ## Aislamiento de entornos Docker
 
@@ -493,8 +505,9 @@ Navbar los disclosures Aprende/Club y mantiene Cuenta separada. Competición
 presenta datos públicos reales; Aprende a jugar deriva sus 40 documentos y
 cuatro colecciones; Escuela presenta el agregado `GET /api/v1/school`; y Club
 presenta sólo las páginas que Laravel considera publicadas. 7D.2A deja la base
-legal interna auditada y 7D.2B aplica el endurecimiento técnico; publicación
-legal y activación productiva de Contacto se aplazan a 7D.2C.
+legal interna auditada y 7D.2B aplica el endurecimiento técnico. 7D.2C1 publica
+las tres rutas desde `legal/`; activación productiva de Contacto, correo,
+consentimientos e imágenes se aplazan a 7D.2C2.
 El detalle operativo se mantiene en `09-public-navigation.md` y el cierre
 editorial de 7B en `15-mvp-editorial-and-navigation-contract.md`; la aplicación
 de 7D.1 se registra en `19-navigation-home-and-footer.md`.

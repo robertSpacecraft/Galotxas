@@ -78,6 +78,28 @@ Validan flujos completos desde el punto de vista del usuario.
 
 Incluyen tanto pruebas automáticas como verificaciones manuales.
 
+## Fuente y páginas legales
+
+`VERSIONED-LEGAL-PAGES-1` cubre el pipeline independiente de `legal/`, su
+artefacto y el consumidor React. Las pruebas rechazan documentos fuera de la
+allowlist, metadatos incompletos, slug duplicado, estado no válido, cuerpo o H1
+ausentes, marcadores internos, datos con forma telefónica y salida no
+sincronizada. También comprueban la exclusión de README, borradores y
+Knowledge.
+
+Vitest/RTL cubre repositorio fail-closed, tres rutas exactas, lazy loading,
+metadatos, versión, fecha, navegación, footer, enlaces seguros, tablas y 404.
+Playwright recorre los tres textos, Contacto desactivado, ausencia de banner y
+recursos remotos y viewport de 320 px. `npm run build` ejecuta
+`legal:check` antes de Vite y la validación construye en un directorio temporal
+para no escribir `frontend/dist`.
+
+Validación de 7D.2C1, 2026-08-06: 418 tests Vitest en 63 archivos, ESLint sin
+salida, proyección legal de tres documentos sincronizada, build temporal de
+214 módulos sin warnings y 47/47 escenarios Playwright. Knowledge conserva 40
+documentos y cuatro colecciones, sus dos hashes no cambian y `EST-REF-001`
+mantiene su hash histórico.
+
 ---
 
 # 5. Prioridades
@@ -1195,8 +1217,9 @@ validación dirigida comprueba:
 - `git diff --check` y ausencia de cambios en `frontend/dist`.
 
 El cierre posterior de 7D.2B añade cobertura de identidad pública,
-almacenamiento de sesión y recursos externos. Las rutas legales, primera capa
-y cualquier mecanismo jurídico que finalmente corresponda quedan para 7D.2C.
+almacenamiento de sesión y recursos externos. Las rutas legales se implementan
+después en 7D.2C1; primera capa, activación y mecanismos verificables quedan
+para 7D.2C2.
 
 Validación de 7D.2A: 45/45 tests de `compiler.test.js`, ESLint dirigido sin
 salida y `knowledge:check` correcto con 40 documentos, cuatro colecciones y

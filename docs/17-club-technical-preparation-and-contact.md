@@ -1,5 +1,14 @@
 # Preparación técnica de Club y contacto
 
+## Seguimiento tras 7D.2C1
+
+Las páginas legales ya existen desde `legal/` y el footer las enlaza, pero no
+cambian el contrato seguro de esta fase: `CONTACT_FORM_ENABLED=false` sigue
+siendo el default y `/club/contacto` no muestra campos con esa configuración.
+Primera capa, destinatario, correo saliente, atención, conservación técnica y
+borrado continúan como gates de 7D.2C2. El CMS conserva el cuerpo institucional
+y no almacena los textos legales.
+
 ## 1. Propósito
 
 Este documento registra el cierre técnico de 7C.1. Prepara la futura vertical
@@ -233,7 +242,7 @@ confirmado no acredita el destinatario interno del formulario. El club sí
 confirma CIF, domicilio social y a Jorge Sánchez Romero como presidente y
 responsable web; la representación legal general y las validaciones jurídicas
 del tratamiento permanecen pendientes. La activación continúa bloqueada hasta
-7D.2C y la preparación operativa.
+7D.2C2 y la preparación operativa.
 
 ## 18. Notificación
 
@@ -342,5 +351,5 @@ históricos con los que se cerró 7C.1.
 El endurecimiento de privacidad no modifica `ContactRequest`, sus endpoints ni
 su administración. `CONTACT_FORM_ENABLED=false` sigue siendo el default y los
 campos del formulario no se almacenan en el navegador. No se configura correo,
-destinatario, conservación, primera capa o texto legal; esos gates productivos
-pertenecen a 7D.2C.
+destinatario, conservación o primera capa; esos gates productivos pertenecen a
+7D.2C2. El texto legal general se publica por separado en 7D.2C1.

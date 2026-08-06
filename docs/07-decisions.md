@@ -1324,6 +1324,69 @@ Consecuencias:
 
 ---
 
+# ADR-036 — Textos legales públicos versionados y compilados en build-time
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-08
+
+Contexto:
+
+- 7D.2A creó borradores internos expresamente no publicables y 7D.2B cerró
+  minimización y recursos externos, pero no existían páginas legales públicas;
+- el CMS vive en MariaDB por entorno y está orientado a edición administrativa,
+  mientras estos textos requieren revisión, versión, fecha e historial Git;
+- escribir el cuerpo en JSX convertiría React en fuente editorial y mezclarlo
+  con Knowledge confundiría contenido legal con conocimiento deportivo;
+- el MVP necesita sólo tres destinos cerrados y no una colección dinámica.
+
+Decisión:
+
+- establecer `legal/` como fuente canónica de Aviso legal, Privacidad y
+  Cookies, con metadatos obligatorios y cuerpo Markdown limitado;
+- admitir exactamente tres documentos mediante filename, ID, slug y ruta
+  allowlisted; `README.md` y `docs/legal-drafts/` quedan excluidos;
+- conservar los borradores como historia interna no vigente y validar su
+  referencia sin proyectarla al navegador;
+- compilar en build-time con un pipeline propio, determinista y fail-closed,
+  separado de los scripts, hashes y artefactos de Knowledge;
+- versionar `frontend/src/generated/legal/public-legal.json` y hacer que el
+  build falle si no coincide con la fuente;
+- consumir sólo nodos seguros desde un repositorio React cerrado, con carga
+  diferida, metadatos y 404 para `/legal`, descendientes o IDs desconocidos;
+- enlazar las tres rutas desde un grupo del footer sin alterar el Navbar;
+- mantener `CONTACT_FORM_ENABLED=false` y aplazar correo, primera capa,
+  consentimientos verificables, imágenes y despliegue.
+
+Alternativas descartadas:
+
+- páginas CMS: perderían paridad Git por entorno y mezclarían publicación legal
+  controlada con edición administrativa ordinaria;
+- cuerpos completos en JSX: duplicarían contenido y harían de React una fuente
+  editorial;
+- reutilizar `knowledge/` o su artefacto: mezclaría autoridades, hashes y
+  contratos de publicación distintos;
+- servir Markdown directamente en runtime: trasladaría parsing y seguridad al
+  navegador;
+- ruta o endpoint dinámico por slug: ampliaría innecesariamente la superficie y
+  permitiría destinos fuera del contrato;
+- activar Contacto al publicar la política: el texto no acredita destinatario,
+  proveedor, entrega, capacidad de atención o borrado técnico.
+
+Consecuencias:
+
+- una modificación legal exige fuente, versión, fechas, regeneración, revisión
+  y pruebas en el mismo cambio;
+- el artefacto público no contiene Markdown crudo, borradores o Knowledge y
+  `frontend/dist` sigue siendo sólo salida descartable;
+- el CMS permanece intacto y sus páginas siguen necesitando carga/importación
+  en cada base de datos;
+- 7D.2C1 puede cerrarse con páginas accesibles sin afirmar que Contacto,
+  consentimientos, imágenes o infraestructura estén preparados;
+- 7D.2C2, 7D.2, 7D, Fase 7, 7F y el MVP permanecen abiertos.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

@@ -18,6 +18,12 @@ No se crean rutas ni enlaces legales, banner, consentimiento, proveedor de
 correo, despliegue, contenido CMS, imágenes, cambios en Knowledge o activación
 de Contacto. La migración de Bearer a cookies queda fuera de este bloque.
 
+Seguimiento 7D.2C1: esa fase posterior crea la fuente `legal/`, tres rutas y
+los enlaces de footer sin modificar el endurecimiento aquí descrito. No
+reactiva terceros, no persiste `localStorage.user`, no cambia Resources y no
+habilita Contacto. Consentimientos verificables, imágenes, correo y despliegue
+siguen pendientes.
+
 ## 4. Hallazgos de 7D.2A
 
 Las APIs deportivas públicas serializaban IDs y objetos de jugador con alias,
@@ -208,7 +214,7 @@ políticas de retirada/retención pendientes y proveedores productivos sin
 definir. La revisión del repositorio no sustituye auditoría de red del
 despliegue final ni validación jurídica.
 
-## 27. Gates de 7D.2C
+## 27. Gates transferidos a 7D.2C
 
 Antes de publicar legal o activar Contacto se requieren aprobación profesional
 de textos y primera capa; responsables, bases, derechos, conservación,
@@ -217,10 +223,15 @@ menores; registro de imágenes; configuración real de cookies/HTTPS; proveedor
 de correo y destinatario; pruebas de entrega, borrado y atención; auditoría del
 despliegue y aceptación humana.
 
+7D.2C1 resuelve la publicación de los tres textos y su conservación versionada.
+Los requisitos de primera capa, Contacto, consentimientos verificables,
+imágenes y producción continúan en 7D.2C2 y 7F.
+
 ## 28. Criterios de cierre
 
 7D.2B queda técnicamente cerrada cuando pasan backend, frontend, lint, build,
 Pint, PHP lint, Knowledge, hashes y E2E; no hay recursos remotos conocidos,
-`localStorage.user` ni campos privados en respuestas anónimas; Contacto y legal
-siguen sin publicarse; CMS, imágenes, estatutos, Knowledge y `frontend/dist`
-permanecen intactos. 7D.2C, 7D, Fase 7, despliegue y MVP continúan pendientes.
+`localStorage.user` ni campos privados en respuestas anónimas; en el cierre
+histórico de ese bloque Contacto y legal no se publicaron. CMS, imágenes,
+estatutos, Knowledge y `frontend/dist` permanecen intactos. Tras 7D.2C1,
+Contacto, 7D.2C2, 7D, Fase 7, despliegue y MVP continúan pendientes.

@@ -6,6 +6,14 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Fase 7D.2C1 crea `legal/` como fuente pública versionada, un compilador
+  build-time fail-closed independiente de Knowledge, la proyección legal
+  determinista, tres rutas React diferidas y los enlaces del footer. Publica
+  versión, fecha, política de menores y conservación sin activar Contacto,
+  correo, consentimientos verificables, imágenes o despliegue.
+- ADR-036 fija que los textos legales no pertenecen al CMS ni a JSX; las
+  pruebas de pipeline, frontend y E2E cubren allowlist, metadatos, 404,
+  accesibilidad, responsive y ausencia de recursos automáticos de terceros.
 - Fase 7D.2B incorpora una proyección pública de identidad deportiva
   centralizada y fail-closed, Resources deportivos con allowlists, consumo
   React de `public_display_name`, bootstrap autenticado mediante `/me` sin
