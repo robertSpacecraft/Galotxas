@@ -257,11 +257,21 @@ fuente editorial pública: los borradores siguen fuera de React, Laravel, CMS y
 Knowledge.
 
 `PublicPlayerIdentityService` centraliza la identidad deportiva anónima. Los
-adultos usan alias o nombres de pila más inicial del primer apellido. Menores
-y nacimiento ausente fallan a `Participante` porque el dominio no modela
-autorización explícita. `PublicCompetitionEntryResource` y los Resources de
-rankings usan allowlists con `public_display_name`; React consume esa cadena y
-no reconstruye nombres. Junta y contratos privados permanecen separados.
+adultos usan alias o nombres de pila más inicial del primer apellido. Desde
+7D.2C2A, un menor sólo puede usar `alias` o `name_initial` cuando Laravel
+encuentra una autorización efectiva, versionada, confirmada, revisada,
+vinculada y vigente; cualquier ausencia falla a `Participante`.
+`PublicCompetitionEntryResource` y los Resources de rankings mantienen
+allowlists con `public_display_name`; React consume esa cadena y no reconstruye
+nombres. Junta y contratos privados permanecen separados.
+
+La autorización vive en `PublicIdentityAuthorization` y su historial explícito,
+no en `SchoolEnrollment`, `Player`, CMS o Knowledge. Escuela puede iniciar una
+solicitud, pero no acredita por sí sola la relación con el jugador. El aviso
+canónico está en `legal/notices/`, se compila a proyecciones específicas para
+React y Laravel y no crea una cuarta página legal pública. Los tokens sólo se
+guardan como hash y viajan al frontend en el fragmento de una ruta aislada;
+confirmación y decisiones los envían en el cuerpo de POST.
 
 React persiste sólo el Bearer en `localStorage.token`, elimina el antiguo
 `localStorage.user` y restaura el perfil en memoria mediante `/me`. Logout y
@@ -506,8 +516,9 @@ presenta datos públicos reales; Aprende a jugar deriva sus 40 documentos y
 cuatro colecciones; Escuela presenta el agregado `GET /api/v1/school`; y Club
 presenta sólo las páginas que Laravel considera publicadas. 7D.2A deja la base
 legal interna auditada y 7D.2B aplica el endurecimiento técnico. 7D.2C1 publica
-las tres rutas desde `legal/`; activación productiva de Contacto, correo,
-consentimientos e imágenes se aplazan a 7D.2C2.
+las tres rutas desde `legal/`. 7D.2C2A añade la autorización verificable de
+identidad de menores sin alterar ese árbol; activación productiva de Contacto,
+correo e imágenes continúa pendiente.
 El detalle operativo se mantiene en `09-public-navigation.md` y el cierre
 editorial de 7B en `15-mvp-editorial-and-navigation-contract.md`; la aplicación
 de 7D.1 se registra en `19-navigation-home-and-footer.md`.

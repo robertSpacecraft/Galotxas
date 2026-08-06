@@ -1387,6 +1387,87 @@ Consecuencias:
 
 ---
 
+# ADR-037 — Identidad pública de menores con autorización verificable y fail-closed
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-08
+
+Contexto:
+
+- 7D.2B minimiza la identidad deportiva y presenta todo menor como
+  `Participante`, porque participación o categoría no acreditan autorización;
+- Escuela recoge datos de participante y representante, pero una inscripción
+  no está vinculada de forma fiable a `Player` ni debe condicionar el acceso al
+  deporte;
+- publicar alias o inicial necesita alcance, texto, versión, confirmación,
+  revisión, retirada e historial verificables;
+- fotografías y redes sociales tienen finalidades distintas y no deben
+  mezclarse con la identidad mostrada en competición.
+
+Decisión:
+
+- modelar `PublicIdentityAuthorization` con estados `pending`, `approved`,
+  `denied`, `revoked` y `expired`, y el único alcance
+  `public_competition_identity`;
+- permitir `alias`, `name_initial` y `anonymous`, sin fallback entre modos y
+  con `Participante` como resultado ante cualquier duda;
+- mantener la solicitud separada de Escuela; usar la fecha de nacimiento sólo
+  para filtrar compatibilidad y exigir selección y confirmación administrativa
+  explícitas antes de considerar inequívoco el vínculo y permitir aprobar;
+- no preseleccionar candidatos ni cambiar de sujeto después de confirmar
+  evidencia; las correcciones previas quedan en el historial y una corrección
+  posterior exige cerrar o revocar cuando corresponda y registrar otra
+  autorización;
+- exigir confirmación de representante y revisión para todo menor y, entre 14
+  y 17 años, conformidad informada registrada por un administrador;
+- conservar un único slot aprobado por jugador y alcance, historial explícito
+  y revocación inmediata sin alterar inscripción o resultados;
+- guardar sólo hashes de tokens aleatorios de un uso, con caducidad y reenvío
+  invalidante; enviar el token en fragmento y después sólo en cuerpos POST;
+- versionar el aviso en `legal/notices/` y generar proyecciones cerradas
+  separadas de las tres páginas legales, CMS y Knowledge;
+- desactivar autorización y notificación por defecto y no configurar correo
+  productivo en este bloque;
+- resolver exclusivamente en backend la eficacia y exponer sólo
+  `public_display_name`.
+
+Alternativas descartadas:
+
+- inferir autorización por inscripción, competición o categoría: no acredita
+  sujeto, finalidad o decisión;
+- guardar un booleano en `Player`: perdería estados, versión, evidencia,
+  revocación e historial;
+- confiar sólo en una casilla de React: permitiría payloads manipulados y
+  duplicaría reglas de dominio;
+- publicar alias de todo menor por defecto: incumple la regla fail-closed;
+- usar nombre completo o fallback de alias a nombre: amplía datos más allá de
+  la modalidad elegida;
+- incluir fotos, vídeo y redes en el mismo alcance: mezcla finalidades que
+  requieren decisiones independientes;
+- guardar token en claro o usarlo como revocación permanente: aumenta el
+  impacto de exposición y reutilización;
+- vincular automáticamente por nombre o fecha de nacimiento: ninguno demuestra
+  por sí solo la identidad.
+
+Consecuencias:
+
+- Escuela puede registrar una decisión opcional sin bloquear la inscripción;
+- confirmar por correo nunca publica por sí solo y Blade no puede aprobar una
+  evidencia incompleta;
+- calendarios, partidos, resultados, standings y rankings cambian a la
+  modalidad aprobada o a `Participante` de forma centralizada e inmediata;
+- al alcanzar 18 años deja de aplicarse la autorización del representante y se
+  aplica de forma independiente la política adulta vigente, aunque la
+  autorización anterior esté revocada;
+- entrega productiva, atención de retirada y purga necesitan operación
+  posterior; 7D.2C2B queda reservado a la primera capa y operación de Contacto;
+- las imágenes continúan como frente independiente posterior, sin numeración
+  aprobada y sin reutilizar este alcance;
+- Contacto, 7D.2, 7D, Fase 7 y MVP permanecen abiertos.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

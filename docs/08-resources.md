@@ -192,6 +192,13 @@ contexto administrativo y no reutiliza estos Resources públicos.
 
 Los Resources públicos de competición mantienen su forma, nombres, tipos y envelopes. Reciben las entidades y relaciones ya restringidas por las consultas de sus controladores: el Resource serializa, pero no decide por sí mismo si una entidad es pública. Las relaciones anidadas de temporadas y campeonatos llegan filtradas para impedir lazy loading de descendientes privados. `is_public` permanece como detalle interno y no se expone en ninguno de estos Resources ni en los de partidos o rankings.
 
+Desde 7D.2B, las entradas de partido/calendario contienen sólo `entry_type` y
+`public_display_name`; standings y rankings usan la misma proyección y omiten
+IDs y modelos personales. 7D.2C2A no añade campos: los Services cargan las
+autorizaciones necesarias y `PublicPlayerIdentityService` decide si un menor
+puede usar `alias` o `name_initial`. Resource y frontend nunca reciben estado,
+correo, nacimiento, alcance, versión, motivo o ID de autorización.
+
 | Resource | Contexto y uso actual |
 |---|---|
 | `SeasonResource` | listado público de temporadas y campeonatos cargados |

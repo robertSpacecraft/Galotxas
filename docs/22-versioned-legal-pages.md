@@ -8,7 +8,7 @@ activar Contacto, correo saliente, consentimientos de menores, imágenes o
 despliegue.
 
 7D.2C1 queda cerrada cuando la fuente, el artefacto, React, footer, pruebas y
-documentación pasan su validación. 7D.2C2, 7D.2, 7D, Fase 7 y el MVP continúan
+documentación pasan su validación. Tras 7D.2C2A, 7D.2C2B, 7D.2, 7D, Fase 7 y el MVP continúan
 abiertos.
 
 ## 2. Fuente de verdad
@@ -21,12 +21,16 @@ legal/
 ├── README.md
 ├── aviso-legal.md
 ├── privacidad.md
-└── cookies.md
+├── cookies.md
+└── notices/
+    └── public-identity-minors.md
 ```
 
-`README.md` describe el proceso y no se publica. Sólo los otros tres nombres
-están permitidos. Un fichero adicional, subdirectorio o enlace simbólico hace
-fallar la compilación.
+`README.md` describe el proceso y no se publica. Las páginas siguen limitadas a
+los tres nombres. Desde 7D.2C2A, `notices/` admite exactamente el aviso de
+identidad de menores; es una fuente de formulario y no una cuarta página
+pública. Cualquier otro fichero, subdirectorio o enlace simbólico hace fallar
+la compilación.
 
 Los administradores no crean ni editan estos textos desde Blade. React tampoco
 es su fuente editorial: importa exclusivamente la proyección generada.
@@ -64,8 +68,11 @@ npm run legal:build
 ```
 
 `legal:build` valida y genera
-`frontend/src/generated/legal/public-legal.json`. `legal:check` compila dos
-veces, exige bytes deterministas y compara la fuente con el JSON versionado.
+`frontend/src/generated/legal/public-legal.json` y, desde 7D.2C2A, las copias
+cerradas `frontend/src/generated/legal/form-notices.json` y
+`backend/resources/generated/legal/form-notices.json`. `legal:check` compila
+dos veces, exige bytes deterministas y compara todas las fuentes con los JSON
+versionados.
 `npm run build` ejecuta primero esa comprobación, por lo que un artefacto
 ausente o desactualizado bloquea el build.
 
@@ -199,7 +206,7 @@ backups y transferencias es gate de producción.
 devuelve el default. No se añade primera capa al runtime, proveedor, correo
 saliente ni consentimiento.
 
-7D.2C2 deberá completar, antes de cualquier activación, responsable operativo,
+7D.2C2B deberá completar, antes de cualquier activación, responsable operativo,
 destinatario, proveedor de envío, primera capa versionada, aceptación,
 capacidad de atención, pruebas de entrega y procedimientos de conservación y
 borrado.
@@ -237,12 +244,20 @@ La validación conserva los hashes de ambos artefactos Knowledge y de
 `EST-REF-001`, construye hacia un directorio temporal y no modifica
 `frontend/dist`.
 
-## 16. Riesgos y gates pendientes
+## 16. Seguimiento de 7D.2C2A
+
+El aviso `NOTICE-PUBLIC-IDENTITY-MINORS` versión `1.0.0` queda separado de las
+tres páginas. El compilador valida ID, propietario, alcance, estado, fechas,
+versión y contenido, y rechaza avisos desconocidos. React usa su proyección en
+Escuela; Laravel valida la versión al solicitar y aprobar. La Política de
+privacidad sube de `1.0.0` a `1.1.0` porque incorpora el tratamiento real y su
+retención. No se añade una ruta `/legal/*` ni un enlace de footer para el aviso.
+
+## 17. Riesgos y gates pendientes
 
 Permanecen abiertos:
 
 - revisión humana y jurídica de cualquier futura versión legal;
-- implementación verificable y revocable de consentimientos de menores;
 - registro, autorización, sanitización y retirada de imágenes;
 - automatización proporcionada de conservación y borrado;
 - proveedor y operación de Contacto;
@@ -252,6 +267,8 @@ Permanecen abiertos:
 - canonical, sitemap, robots, redirects y SEO completo;
 - QA de despliegue y aceptación humana.
 
-7D.2C2 y 7F resolverán sus gates propios. Publicar estas páginas no acredita
-por sí solo que Contacto, imágenes, consentimientos o infraestructura estén
-preparados. Fase 7 y el MVP siguen pendientes.
+7D.2C2B resolverá los gates propios de Contacto y 7F los de producción. Las
+imágenes continúan en un frente independiente posterior, sin numeración
+aprobada. Publicar estas páginas no acredita por sí solo que Contacto, imágenes,
+consentimientos o infraestructura estén preparados. Fase 7 y el MVP siguen
+pendientes.

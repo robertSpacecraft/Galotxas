@@ -26,6 +26,7 @@ La documentación se organiza para separar claramente:
 - preparación legal, privacidad, identidad pública, cookies y terceros.
 - endurecimiento técnico de privacidad, identidad pública y recursos externos.
 - fuente legal pública versionada, páginas legales y footer.
+- autorización verificable y revocable de identidad pública de menores.
 
 ## Orden recomendado de lectura
 
@@ -53,6 +54,7 @@ La documentación se organiza para separar claramente:
 22. [Preparación legal, privacidad y cookies](20-legal-privacy-and-cookies-readiness.md)
 23. [Endurecimiento de privacidad e identidad pública](21-privacy-hardening-and-public-identity.md)
 24. [Páginas legales públicas versionadas](22-versioned-legal-pages.md)
+25. [Identidad pública verificable de menores](23-verifiable-minor-public-identity.md)
 
 El contrato de navegación inventaría el router y los enlaces actuales y conserva
 el histórico de la arquitectura pública desde Fase 3. El contrato de Fase 7B
@@ -61,7 +63,7 @@ Club como grupos de revelación, Cuenta separada y cuatro rutas institucionales
 canónicas. Las rutas Club ya tienen fachadas CMS diferidas y 7D.1 implementa el
 grupo del Navbar, Home veraz y footer global. Las rutas legales y los enlaces
 de footer se implementan en 7D.2C1; la activación productiva de Contacto
-permanece pendiente de 7D.2C2. La auditoría 7D.2A
+permanece pendiente de 7D.2C2B. La auditoría 7D.2A
 consolida las fuentes institucionales, identidad, tratamientos,
 almacenamientos y terceros y crea borradores internos no publicables. El documento de
 gobernanza define qué
@@ -96,8 +98,12 @@ documento 21 registra los contratos, pruebas y riesgos residuales sin publicar
 legal ni habilitar Contacto.
 7D.2C1 promueve los tres borradores aprobados a la fuente Git `legal/`, genera
 una proyección build-time independiente y publica las rutas y el grupo legal
-del footer; el documento 22 registra el contrato y mantiene 7D.2C2, Contacto y
+del footer; el documento 22 registra el contrato y mantiene 7D.2C2B, Contacto y
 producción abiertos.
+7D.2C2A incorpora dentro de `legal/` un aviso de formulario separado, modela la
+autorización de identidad de menores, integra Escuela, confirmación y Blade y
+aplica la proyección fail-closed en Competición; el documento 23 conserva
+7D.2C2B, Contacto, imágenes y producción abiertos.
 El conocimiento estable del deporte se mantiene por separado en
 [`knowledge/`](../knowledge/README.md); los documentos técnicos describen el
 software y no sustituyen esa fuente editorial.

@@ -59,6 +59,13 @@ el footer. Los borradores quedan como historia interna. Contacto continúa
 desactivado y 7D.2C2, correo, consentimiento verificable de menores, imágenes,
 despliegue, Fase 7 y MVP permanecen abiertos.
 
+Seguimiento 7D.2C2A: el consentimiento verificable de identidad de menores se
+implementa como autorización específica `public_competition_identity`,
+independiente de Escuela, con aviso versionado, confirmación, revisión,
+conformidad 14–17 y revocación. Laravel mantiene `Participante` ante cualquier
+duda y React sólo presenta `public_display_name`. Correo productivo, Contacto,
+imágenes, 7D.2C2B, despliegue, Fase 7 y MVP siguen abiertos.
+
 En el momento del cierre documental de 7B el código no cambió: el Navbar
 continuaba plano, no existía `/club`, las rutas canónicas institucionales no
 estaban registradas y el footer global no estaba implementado.
@@ -450,7 +457,7 @@ acompañarlos. Este documento no redacta asesoramiento ni cláusulas.
 | Cookies | Inventario técnico 7D.2A; mecanismo observado como necesario de forma provisional | Jurídico + responsable técnico | Sí hasta eliminar/autocustodiar terceros o aprobar el tratamiento aplicable | `/cookies` futura, sólo si se aprueba |
 | Privacidad de inscripción escolar | No hay texto aprobado | Jurídico/privacidad + responsable de Escuela | Sí para abrir inscripciones | `/privacidad` y aviso contextual en `/escuela` |
 | Privacidad de registro de usuarios | No hay texto aprobado | Jurídico/privacidad + responsable de cuentas | Sí para registro productivo | `/privacidad` y aviso contextual en `/register` |
-| Identidad pública en competición | Regla adulta aprobada; menores e implementación pendientes | Dirección, responsable deportivo y privacidad | Sí para publicar datos reales | `/privacidad` y avisos deportivos que se aprueben |
+| Identidad pública en competición | Regla adulta y autorización verificable de menores implementadas; activación productiva pendiente | Dirección, responsable deportivo y privacidad | Sí para publicar datos reales | `/legal/privacidad` y aviso `NOTICE-PUBLIC-IDENTITY-MINORS` |
 
 Los textos legales deben identificar versión, fecha de vigencia, responsable y
 procedimiento de revisión. El CMS puede publicarlos, pero la validación humana
@@ -496,6 +503,12 @@ Antes de publicar competición con datos reales, la entidad debe:
 
 Este es un **gate de publicación del MVP**, no un bloqueo para documentar o
 implementar la vertical institucional 7C.
+
+7D.2C2A cierra técnicamente esos seis puntos: el backend usa allowlists y una
+autorización versionada con vínculo explícito, modos sin fallback, confirmación,
+conformidad 14–17, revisión y revocación. La operación productiva y la revisión
+de datos reales continúan siendo gates; fotos y redes no forman parte de este
+alcance.
 
 ## 20. Escuela operativa
 
@@ -692,9 +705,9 @@ valor “Pendiente” se publicará como contenido.
 | 4 | Formulario de Contacto local y desactivado | Modificada por ADR-034; base técnica completada | Privacidad y activación antes de 7C.2 |
 | 5 | Núcleo y enlaces condicionales del footer | Cerrados por este contrato | Antes de 7D |
 | 6 | Prensa y Federaciones condicionales, fuera del Navbar | Cerrada por este contrato | Antes de 7D |
-| 7 | Política de identidad pública | Adultos cerrada en 7D.2A; menores e implementación abiertas | Antes de publicar competición real/7G |
+| 7 | Política de identidad pública | Adultos y dominio verificable de menores implementados; operación productiva abierta | Antes de publicar competición real/7G |
 | 8 | Datos reales de Escuela | Abiertos | Antes de 7E |
-| 9 | Contacto oficial | Correo público confirmado; destinatario, envío y operación del formulario abiertos | Antes de activar Contacto/7D.2C2 |
+| 9 | Contacto oficial | Correo público confirmado; destinatario, envío y operación del formulario abiertos | Antes de activar Contacto/7D.2C2B |
 | 10 | Textos y responsables legales | Versión pública 1.0.0 cerrada en 7D.2C1; revisión futura versionada | Antes de cada nueva versión y del despliegue |
 | 11 | Contenido de Quiénes somos e imágenes | Abierto | Antes de cerrar 7C |
 | 12 | Documentos vigentes | Abiertos | Antes de cerrar 7C |
@@ -919,8 +932,9 @@ descendientes mantienen sólo estado visual.
 7D.2A completa la auditoría y los borradores internos sin rutas ni enlaces.
 7D.2B completa el endurecimiento técnico de identidad pública, sesión y
 recursos externos. 7D.2C1 publica privacidad, aviso legal y cookies desde una
-fuente versionada propia. 7D.2C2 conserva los gates de primera capa, correo,
-operación y consentimiento verificable. El formulario productivo de Contacto
+fuente versionada propia. 7D.2C2A implementa la identidad verificable de
+menores; 7D.2C2B conserva los gates de imágenes y operación restante. El
+formulario productivo de Contacto
 continúa desactivado.
 No cambian CMS, contenido, `/nosotros`, `/contenidos`, aliases, redirects,
 canonical o despliegue. Por tanto 7D, Fase 7 y el MVP siguen abiertos.

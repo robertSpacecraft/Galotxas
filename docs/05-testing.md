@@ -1259,6 +1259,60 @@ inicial queda en torno a 420,3 kB. No modifica `frontend/dist`. Pint, `php -l`,
 
 ---
 
+## VERIFIABLE-MINOR-PUBLIC-IDENTITY-1 — Autorización verificable de menores
+
+7D.2C2A añade cobertura Feature sobre MariaDB para constraints, máquina de
+estados, unicidad efectiva, hash y uso único del token, expiración, reenvío y
+rate limits. Verifica por separado confirmación o rechazo del representante,
+revisión administrativa, conformidad de 14–17 años, vínculo inequívoco con
+`Player`, fallo de correo no bloqueante, historial sanitizado y revocación
+inmediata. La proyección pública se comprueba en partidos, calendarios,
+clasificaciones y rankings con `alias`, `name_initial`, ausencia de alias,
+datos insuficientes y transición a mayoría de edad, sin ampliar las allowlists.
+
+Vitest cubre la separación entre privacidad, inscripción e identidad, opción
+anónima inicial, modos, versión del aviso, validación accesible, confirmación y
+rechazo, token inválido, error remoto, foco, doble envío y ausencia de
+persistencia local. El pipeline legal prueba por separado las tres páginas
+públicas y el único aviso de formulario permitido, con descubrimiento cerrado,
+validación de metadatos y artefactos deterministas.
+
+Playwright usa únicamente datos ficticios de `E2ESmokeSeeder` bajo su guard
+`e2e`: cubre inscripción independiente, fallo controlado de correo,
+confirmación de representante, revisión de menor de 14, conformidad de 14–17,
+alias, inicial, denegación, caducidad, uso único y revocación. También comprueba
+privacidad recursiva de la API, Contacto oculto con configuración desactivada,
+Legal y Manual, `noindex`, 320 px y ausencia de recursos remotos. La fixture de
+identidad usa participantes deportivos propios para no alterar `Mi Panel` ni
+los rankings del smoke histórico.
+
+Validación final de 7D.2C2A, 2026-08-06:
+
+- backend focalizado: 39 tests y 376 aserciones;
+- backend completo: 401 tests y 3.126 aserciones;
+- frontend focalizado: 60 tests en tres archivos;
+- frontend completo: 429 tests en 64 archivos;
+- E2E completo: 52 escenarios Chromium;
+- calidad: ESLint, Pint y `php -l` correctos;
+- legal: tres páginas, un aviso, 49.772 bytes públicos y 8.482 bytes de avisos;
+- Knowledge: 40 documentos, cuatro colecciones y hashes sin cambios
+  (`66dfba8b620539b148539a8181e7f196b1abcc1a77e86efc737714983035d182`
+  canónico y
+  `4e5f28fd21d29291cddba2fede70ef7e057e45dbc5bb7583399186133911517e`
+  público);
+- estatutos históricos: hash sin cambios
+  `17314902d717fa94a3b4016dcd5d6bed7ee6a94a233a314b58fb7ce83d56eadc`;
+- build temporal: 221 módulos, chunk de confirmación de 4,78 kB, School de
+  25,39 kB, Knowledge de 282,13 kB e inicial de 413,63 kB, sin warnings;
+- residuos: el `outDir` temporal y la pila Docker aislada se eliminan; no se
+  modifica `frontend/dist` ni se ejecuta contra la base de desarrollo.
+
+La retención de tres años para evidencia y la purga técnica a treinta días se
+documentan y no se automatizan en este bloque. Los jobs productivos permanecen
+como gate posterior.
+
+---
+
 # 11. Evolución
 
 La cobertura de pruebas debe crecer junto con el proyecto.

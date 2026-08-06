@@ -24,6 +24,13 @@ reactiva terceros, no persiste `localStorage.user`, no cambia Resources y no
 habilita Contacto. Consentimientos verificables, imágenes, correo y despliegue
 siguen pendientes.
 
+Seguimiento 7D.2C2A: la regla fail-closed se amplía con una autorización
+explícita de menores para el único alcance competitivo. Sin evidencia efectiva
+se conserva `Participante`; con ella, backend aplica exactamente `alias` o
+`name_initial`. La API mantiene las mismas allowlists y React no reconstruye la
+decisión. El dominio, seguridad y pruebas se detallan en
+`23-verifiable-minor-public-identity.md`.
+
 ## 4. Hallazgos de 7D.2A
 
 Las APIs deportivas públicas serializaban IDs y objetos de jugador con alias,
@@ -209,8 +216,8 @@ grandes nuevos. `frontend/dist` permanece ignorado e inalterado.
 
 Permanecen el Bearer accesible a JavaScript, Sanctum sin expiración global,
 tokens anteriores no revocados automáticamente al iniciar otra sesión,
-ausencia de CSP versionada, identidad autorizada de menores sin modelar,
-políticas de retirada/retención pendientes y proveedores productivos sin
+ausencia de CSP versionada, operación productiva y purga de autorizaciones de
+menores pendientes, y proveedores productivos sin
 definir. La revisión del repositorio no sustituye auditoría de red del
 despliegue final ni validación jurídica.
 
@@ -224,8 +231,10 @@ de correo y destinatario; pruebas de entrega, borrado y atención; auditoría de
 despliegue y aceptación humana.
 
 7D.2C1 resuelve la publicación de los tres textos y su conservación versionada.
-Los requisitos de primera capa, Contacto, consentimientos verificables,
-imágenes y producción continúan en 7D.2C2 y 7F.
+7D.2C2A resuelve la autorización verificable de identidad de menores. La
+primera capa y operación de Contacto continúan en 7D.2C2B y los gates de
+producción en 7F. Las imágenes permanecen como frente independiente posterior,
+todavía sin numeración aprobada.
 
 ## 28. Criterios de cierre
 
@@ -234,4 +243,5 @@ Pint, PHP lint, Knowledge, hashes y E2E; no hay recursos remotos conocidos,
 `localStorage.user` ni campos privados en respuestas anónimas; en el cierre
 histórico de ese bloque Contacto y legal no se publicaron. CMS, imágenes,
 estatutos, Knowledge y `frontend/dist` permanecen intactos. Tras 7D.2C1,
-Contacto, 7D.2C2, 7D, Fase 7, despliegue y MVP continúan pendientes.
+Tras 7D.2C2A, Contacto, 7D.2C2B, 7D, Fase 7, despliegue y MVP continúan
+pendientes.

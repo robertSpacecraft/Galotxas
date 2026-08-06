@@ -16,7 +16,7 @@ La Escuela de Galotxas dispone de núcleo operativo, inscripciones, centros y ac
 - existe `GET /api/v1/school`, anónimo y de sólo lectura, con visibilidad efectiva y allowlist;
 - existe `POST /api/v1/school/enrollments`, anónimo y con cuenta opcional, limitado y sin respuesta enumerable;
 - existen `EducationalCenter` y `EducationalActivity`, exclusivamente administrativos;
-- React no registra `/escuela` y el Navbar no la enlaza;
+- React registra `/escuela` y el disclosure Aprende la enlaza;
 - `knowledge/` no contiene una colección pedagógica de Escuela;
 - el CMS genérico conserva el slug legado `academy`, que no equivale a este dominio;
 - las inscripciones deportivas exigen cuenta y perfil `Player`, por lo que no representan el flujo escolar.
@@ -809,3 +809,19 @@ Fase 6A.1 quedó cerrada documentalmente al cumplir:
 - `git diff --check` no devuelve errores.
 
 Fase 6C actualiza ese estado: los cuatro modelos del núcleo, `SchoolEnrollment`, `EducationalCenter`, `EducationalActivity`, su administración, el POST, el GET, `/escuela`, Navbar y formulario React existen. Su cierre quedó condicionado a 6C.1 después del incidente Docker. Completadas las guardas, la prueba de no destrucción y toda la regresión backend/frontend/E2E, 6C y la Fase 6 quedan completadas. El contenido pedagógico propio, privacidad operativa aprobada, SEO y migración de `academy` continúan como deuda posterior.
+
+## 33. Seguimiento 7D.2C2A
+
+La privacidad de la inscripción se acepta ahora mediante campos versionados
+propios. Para menores, y sólo con flag backend, el mismo POST admite una
+solicitud opcional y separada de identidad pública. Elegir `anonymous` u omitir
+el objeto no bloquea Escuela. `alias` y `name_initial` requieren declaración de
+autoridad y confirmación posterior; ninguna solicitud escolar queda vinculada
+automáticamente a `Player`.
+
+Blade enlaza desde el detalle escolar a la cola específica, donde un
+administrador verifica nacimiento y jugador. La aprobación escolar sigue
+siendo independiente. La lectura pública de Escuela sólo añade configuración
+allowlisted del aviso cuando el flag está activo; no expone solicitudes,
+estados, personas o evidencia. El contrato completo se encuentra en
+`23-verifiable-minor-public-identity.md`.

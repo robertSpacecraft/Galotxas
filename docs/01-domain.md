@@ -374,6 +374,18 @@ La lectura pública `GET /api/v1/school` resuelve el único programa público y 
 
 `POST /api/v1/school/enrollments` resuelve en backend el programa público abierto, admite nivel público y activo opcional, toma la cuenta exclusivamente de una sesión Sanctum opcional y crea una solicitud pendiente. Desde 6C, `/escuela` consume la lectura y escritura públicas: React presenta el agregado, calcula localmente la minoría sólo para adaptar el formulario y deja al backend la decisión definitiva. No existe seguimiento por ID ni API administrativa. Ninguna lectura expone inscripciones, alumnado, centros o actividades.
 
+Desde 7D.2C2A, la inscripción conserva por separado la versión de Privacidad
+aceptada y puede originar una `PublicIdentityAuthorization` opcional para el
+único alcance `public_competition_identity`. La autorización usa los estados
+`pending`, `approved`, `denied`, `revoked` y `expired`, y los modos `alias`,
+`name_initial` y `anonymous`. Nace ligada a la inscripción, no al jugador: la
+vinculación sólo se completa administrativamente cuando `Player.birth_date`
+coincide exactamente. Confirmación del representante, revisión y, entre 14 y
+17 años, conformidad registrada son requisitos acumulativos. Sin cualquiera de
+ellos, con flag desactivado o tras revocación, la proyección es `Participante`.
+Al alcanzar 18 años deja de aplicarse la autorización del representante y rige
+la política adulta vigente.
+
 Los únicos datos sembrados de Escuela se limitan al escenario aislado `E2ESmokeSeeder`, protegido por `APP_ENV=e2e` y la base desechable `galotxas_e2e`; no son datos de desarrollo o producción.
 
 ## Contenido institucional

@@ -51,17 +51,23 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 33. **Fase 7D.2A — Consolidación legal, privacidad y cookies:** identidad jurídica/pública y datos institucionales confirmados correctamente separados de acreditaciones registrales y validaciones pendientes; estatutos históricos, matriz institucional, tratamientos, identidad deportiva, menores, imágenes, almacenamientos, cookies y terceros auditados; cinco borradores internos creados sin rutas, enlaces legales, CMS ni activación de Contacto.
 34. **Fase 7D.2B — Endurecimiento técnico de privacidad:** identidad deportiva anónima proyectada mediante allowlists y criterio fail-closed; perfil retirado de `localStorage` y restaurado con `/me`; recursos automáticos de Google Fonts, Bunny Fonts y jsDelivr eliminados; contratos privados, CMS, imágenes, legal y Contacto conservados.
 35. **Fase 7D.2C1 — Fuente y páginas legales versionadas:** fuente canónica `legal/`, metadatos y compilador fail-closed independientes de Knowledge, proyección build-time, tres rutas lazy y enlaces de footer; política de menores y conservación publicada, con Contacto, correo, consentimientos e imágenes todavía desactivados.
+36. **Fase 7D.2C2A — Identidad pública verificable de menores:** aviso de formulario versionado, estados y modos explícitos, tokens hash de un solo uso, confirmación de representante, conformidad 14–17, revisión y revocación Blade, integración opcional con Escuela y proyección fail-closed en toda Competición; flags y correo productivo desactivados.
 
-La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fases 7A y 7B, los bloques 7C.0–7C.2 y 7D.1–7D.2C1 están completados; 7C queda cerrada, pero 7D.2, 7D y Fase 7 siguen abiertas. Aliases, redirects, publicación productiva por entorno y migraciones editoriales no se han implementado.
+La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fases 7A y 7B, los bloques 7C.0–7C.2 y 7D.1–7D.2C2A están completados; 7C queda cerrada, pero 7D.2, 7D y Fase 7 siguen abiertas. Aliases, redirects, publicación productiva por entorno y migraciones editoriales no se han implementado.
 
 ## Fase 7 abierta — bloques pendientes
 
-1. **Fase 7D.2C2 — Activación condicionada y gates operativos:** mantener Contacto desactivado hasta cerrar primera capa, destinatario, proveedor de correo, capacidad de atención, entrega, conservación y borrado; implementar sólo mediante una decisión posterior el consentimiento verificable de identidad de menores y sus revocaciones. Fase 7D.2 no está completa hasta cerrar este bloque.
+1. **Fase 7D.2C2B — Contacto y correo operativo:** completar la primera capa y la operación del formulario de Contacto; confirmar destinatario, proveedor y remitente; probar envío y tratamiento de errores; aplicar conservación y borrado; y definir una activación controlada. Fase 7D.2 no está completa.
 2. **Fase 7E — Preparación operativa de Escuela:** cargar en privado y validar configuración, contenido, privacidad, conservación y capacidad de gestión antes de probar y abrir inscripciones.
 3. **Fase 7F — Preparación de despliegue:** cerrar Railway/Vercel, MariaDB, variables, CORS, correo, sesiones, logs, backups, migraciones, salud, staging y rollback.
 4. **Fase 7G — Validación y cierre del MVP:** ejecutar regresión, recorridos críticos, QA responsive/multibrowser priorizada, smoke y aceptación humana antes de tag/release.
 
-Las fases 4, 5, 6 y los bloques 7B, 7C.0–7C.2 y 7D.1–7D.2C1 están completados.
+Las autorizaciones de imágenes para web, redes sociales y archivo histórico
+permanecen como un frente independiente posterior, todavía sin numeración
+aprobada. No forman parte de 7D.2C2B ni reutilizan la autorización de identidad
+deportiva.
+
+Las fases 4, 5, 6 y los bloques 7B, 7C.0–7C.2 y 7D.1–7D.2C2A están completados.
 `/competicion` ofrece el recorrido deportivo; `/aprende-a-jugar` y el Manual
 presentan los 40 documentos desde Knowledge; `/escuela` consume la configuración
 pública y admite solicitudes anónimas cuando el backend las abre. El cierre de
@@ -71,7 +77,9 @@ CMS correspondiente cuando está publicada. Aprende agrupa Aprende a jugar,
 Manual y Escuela sin fusionar sus fuentes. Home y el footer global ofrecen
 destinos estructurales reales. 7D.2A aporta la base interna, 7D.2B resuelve el
 endurecimiento técnico y 7D.2C1 publica tres textos controlados desde `legal/`
-con rutas y footer. Los borradores permanecen como historia interna no vigente.
+con rutas y footer. 7D.2C2A añade un aviso de formulario y autorización
+verificable de identidad de menores; no activa correo productivo ni Contacto.
+Los borradores permanecen como historia interna no vigente.
 
 La carga editorial local se realizó manualmente y 7C.2 incorpora la interfaz
 React condicionada, pero el formulario productivo continúa desactivado hasta
@@ -93,9 +101,9 @@ QA-FIX-1, RC-HARDEN-1 y MVP-RC-1 conservan su valor histórico. Sin embargo, la
 auditoría 7A amplía el criterio desde “candidato técnico” a “aplicación pública
 y funcionalmente completa”: el MVP completo **todavía no está completado**.
 
-Permanecen P0 la activación productiva de Contacto, el correo saliente, la
-decisión y autorización expresa si se desea identificar públicamente a menores,
-las imágenes, configuración y privacidad de Escuela,
+Permanecen P0 la activación productiva de Contacto y correo saliente, los gates
+operativos de la autorización de menores, las imágenes, configuración y
+privacidad productiva de Escuela,
 despliegue Railway/Vercel/MariaDB y validación de recorridos críticos. La
 definición observable y priorización se encuentran en
 `14-mvp-parity-audit.md`; el contrato, las plantillas y gates de implementación
@@ -162,7 +170,7 @@ React de reprogramación continúa como P1 y no bloquea por sí misma el MVP.
 
 - URL API por `VITE_API_BASE_URL`, fallback local de desarrollo y `/api/v1` en producción (DEPLOY-1);
 - Vitest, React Testing Library y 418 tests en 63 archivos, incluidos pipeline y páginas legales, identidad pública, sesión mínima, Escuela, formularios, navegación agrupada, Home/footer, Knowledge, Competición, cuenta, foco, landmarks, 404 y regresiones previas;
-- smoke Playwright de 47 escenarios con Chromium y stack temporal aislado, incluidos Legal, identidad minimizada, recarga autenticada sin perfil persistido, recursos externos, Competición, Aprende, Escuela, Club/Contacto, Navbar agrupado, Home/footer, resultados, 404, foco, zoom y matriz responsive 320–1440 px;
+- smoke Playwright de 52 escenarios con Chromium y stack temporal aislado, incluidos Legal, autorización verificable de menores, identidad minimizada, recarga autenticada sin perfil persistido, recursos externos, Competición, Aprende, Escuela, Club/Contacto, Navbar agrupado, Home/footer, resultados, 404, foco, zoom y matriz responsive 320–1440 px;
 - auditoría y actualización compatible de npm/Composer sin vulnerabilidades conocidas pendientes en la instantánea de cierre (DEPS-1);
 - documentación técnica 00–08 reconciliada con el código (DOC-1);
 - corrección de los bloqueantes QA del calendario público y de la navegación responsive, con revalidación dirigida en 1440 × 900, 1280 × 720 y 390 × 844 (QA-FIX-1).
@@ -189,7 +197,7 @@ debe crear el tag o la release hasta completar Fase 7G.
 
 1. revisión humana y eventual merge documental de 7A;
 2. cierre de decisiones y contenido en 7B;
-3. completar 7D.2C2 y continuar 7E–7F, cada bloque validado y revisado;
+3. completar 7D.2C2B y continuar 7E–7F, cada bloque validado y revisado;
 4. cierre de aceptación en 7G;
 5. sólo entonces, preparación del nuevo candidato, tag y publicación.
 

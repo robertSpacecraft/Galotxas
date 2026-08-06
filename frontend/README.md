@@ -104,6 +104,14 @@ Las vistas públicas de competición consumen exclusivamente
 identificadores. La interfaz usa la pila tipográfica del sistema y no solicita
 Google Fonts, Bunny Fonts ni recursos de jsDelivr.
 
+Escuela presenta, sólo cuando Laravel habilita el contrato, una sección
+separada para solicitar `anonymous`, `alias` o `name_initial` de un menor. El
+aviso procede del artefacto legal versionado y la privacidad de inscripción se
+acepta aparte. `/public-identity/confirm` es una ruta lazy aislada, sin
+Navbar/footer, con `noindex`; toma el token del fragmento, lo elimina y lo envía
+exclusivamente en cuerpos POST. No usa almacenamiento del navegador ni calcula
+si una autorización es efectiva.
+
 `dist/` es siempre salida generada ignorada. No debe editarse ni utilizarse como
 fuente de imágenes o módulos; para una comprobación que no altere el árbol se
 debe construir hacia un `outDir` temporal.

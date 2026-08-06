@@ -22,7 +22,7 @@ pública:
 
 `contacto-primera-capa.borrador.md` e
 `identidad-publica-e-imagenes.borrador.md` no se han promovido a componentes o
-flujos: conservan decisiones futuras de 7D.2C2. La política general publicada
+flujos: conservan decisiones futuras de 7D.2C2B. La política general publicada
 no activa Contacto ni constituye una autorización verificable de identidad o
 imágenes de menores.
 

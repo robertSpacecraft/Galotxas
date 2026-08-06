@@ -31,6 +31,10 @@ Las pantallas descritas a continuación son capacidades actuales documentadas. L
 
 El núcleo operativo de Escuela dispone desde 6B.1 de administración específica para programa, niveles, ubicaciones y horarios. 6B.2 incorpora inscripciones y participantes, 6B.3 añade centros educativos y actividades y 6B.4 aporta su lectura pública sin cambiar Blade. La carga persistente de archivos y el formulario React siguen siendo capacidades futuras.
 
+7D.2C2A añade una cola independiente de autorizaciones de identidad pública de
+menores. No convierte la aprobación de Escuela en autorización ni expone un
+token desde Blade.
+
 ## Vistas Principales
 
 ### Dashboard
@@ -118,6 +122,22 @@ El listado de inscripciones permite filtrar por programa, nivel y estado, usa `r
 Las acciones de inscripción son explícitas: una pendiente puede aprobarse con un nivel activo del mismo programa o rechazarse; una activa puede reasignarse a otro nivel activo del programa o darse de baja. Rechazadas y bajas sólo admiten consulta y corrección limitada. El panel confirma rechazo y baja, conserva `old()`, muestra errores junto a campos y no define `destroy`.
 
 Los centros nuevos nacen inactivos. El listado muestra contacto, estado, número de actividades y última fecha; el detalle conserva notas privadas, histórico y acceso a una actividad preseleccionada. Un centro con actividades no puede borrarse.
+
+### Identidad pública de menores
+
+La ruta `/admin/public-identity-authorizations` permite filtrar por estado,
+modo, grupo de edad y fechas. El detalle muestra alcance, modo, versión,
+evidencia, sujeto, estado técnico del token e historial, nunca el token o su
+hash.
+
+Una solicitud pendiente permite vincular de forma explícita un jugador menor
+con la misma fecha de nacimiento, registrar conformidad informada entre 14 y 17
+años, aprobar, denegar o reenviar. El reenvío está limitado e invalida el token
+anterior. La aprobación valida vínculo, confirmación del representante,
+versión, modo, revisión y conformidad aplicable. Una aprobada sólo puede
+revocarse; estados históricos no se reabren y no existen borrado, exportación o
+edición retroactiva. Revocar cambia la API pública a `Participante` sin tocar la
+inscripción ni los resultados.
 
 Las actividades nuevas nacen `planned` y el formulario general no acepta `status`. Centro y ubicación deben estar activos al crear o cambiar la relación; si se desactivan después, el registro histórico sigue visible y editable mientras no se cambie esa asociación. Las horas son ambas nullable o ambas obligatorias y la inicial debe preceder a la final. `expected_students` es positivo si se informa y obligatorio al completar.
 

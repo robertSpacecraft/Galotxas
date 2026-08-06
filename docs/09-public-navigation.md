@@ -10,7 +10,7 @@ Fase 6C. Fase 7B sustituye la topología plana inicial por el contrato agrupado
 de ADR-033. 7C.2 implementa las cuatro rutas hijas de Club y 7D.1 aplica el
 disclosure del Navbar, Home y footer estructural. 7D.2C1 añade al footer y al
 router los tres destinos legales versionados; la activación productiva de
-Contacto permanece pendiente de 7D.2C2.
+Contacto permanece pendiente de 7D.2C2B.
 
 Las fases 3B, 3C, 4A–4C y 5B–5C modifican únicamente compilación/frontend, sus pruebas y la documentación: no cambian backend, CMS, contenido canónico, despliegue ni redirects. 7C.2 añade fachadas sobre el CMS y mantiene la publicación editorial separada por entorno; una ruta documental no se considera implementada hasta existir con fuente verificable y pruebas.
 
@@ -826,7 +826,16 @@ El router registra exactamente `/legal/aviso-legal`, `/legal/privacidad` y
 `/legal/cookies` con una frontera lazy propia. El footer añade sus enlaces en
 un grupo separado; Navbar, Home y Cuenta no cambian. `/legal`, descendientes y
 aliases continúan en 404. Contacto permanece oculto y su activación pertenece a
-7D.2C2.
+7D.2C2B.
+
+### Seguimiento 7D.2C2A
+
+La ruta exacta `/public-identity/confirm` se registra como frontera lazy
+aislada: no aparece en Navbar, Home o footer, no admite descendientes y oculta
+la navegación y el pie globales. El token llega por fragmento, se retira al
+montar y la página usa `noindex`. Escuela incorpora una sección opcional sin
+cambiar `/escuela`; Competición conserva sus rutas y sólo recibe de Laravel el
+`public_display_name` ya resuelto. Contacto y el árbol editorial no cambian.
 
 ## Mantenimiento
 

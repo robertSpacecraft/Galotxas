@@ -17,11 +17,13 @@ borrador no autoriza datos reales sin revisión operativa y jurídica.
 
 ## Menores
 
-No aplicar automáticamente la regla adulta. Criterio público, minimización,
-autorización específica, casos sin nacimiento, cambio de edad, retirada y
-tratamiento de históricos: `PENDIENTE DE VALIDACIÓN JURÍDICA, DEPORTIVA Y
-OPERATIVA`. En ausencia de esa decisión, backend devuelve la etiqueta neutra
-`Participante`, también cuando falta nacimiento, y no expone el motivo.
+Seguimiento técnico 7D.2C2A: la identidad deportiva dispone ya de una
+autorización específica y versionada para `public_competition_identity`, con
+modos `alias`, `name_initial` y `anonymous`, confirmación del representante,
+conformidad 14–17, revisión, revocación y fallback `Participante`. La fuente
+vigente del aviso es `legal/notices/public-identity-minors.md`; este borrador no
+la sustituye. Activación productiva, procedimiento operativo y validación
+jurídica continuada permanecen pendientes.
 
 ## Junta directiva
 
@@ -52,5 +54,6 @@ definir qué copias no pueden eliminarse inmediatamente. Canal y plazos:
 ## Gate
 
 Antes de producción: auditar datos reales, decidir autorización/exclusión y
-retirada para menores, revisar URLs y metadatos, registrar autorizaciones de
-imagen y revalidar backend/frontend/E2E en el despliegue.
+retirada operativa para menores, revisar URLs y metadatos, registrar por
+separado las autorizaciones de imagen y revalidar backend/frontend/E2E en el
+despliegue.

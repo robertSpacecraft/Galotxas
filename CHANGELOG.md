@@ -6,6 +6,23 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Fase 7D.2C2A incorpora autorización versionada, verificable y revocable de
+  identidad pública de menores para `public_competition_identity`, con estados
+  explícitos, modos `alias|name_initial|anonymous`, tokens hash de un uso,
+  confirmación de representante, conformidad 14–17, revisión e historial Blade.
+- Escuela integra la decisión opcional sin condicionar la inscripción; la
+  vinculación con `Player` usa nacimiento sólo como compatibilidad, exige
+  selección y confirmación administrativa explícitas, conserva correcciones en
+  el historial y bloquea cambios de sujeto tras confirmar evidencia; toda la
+  superficie pública de Competición conserva `Participante` salvo autorización
+  efectiva. El correo y los flags productivos continúan desactivados.
+- React retira el token del fragmento durante su captura y antes de cualquier
+  petición remota, sin almacenamiento, logs, repetición tras recarga ni
+  reexposición al volver atrás. 7D.2C2B mantiene su alcance aprobado de Contacto
+  y correo operativo; las imágenes quedan en un frente posterior independiente.
+- `legal/notices/public-identity-minors.md` y sus proyecciones de formulario
+  amplían el pipeline sin crear una cuarta página legal; ADR-037 y el documento
+  23 registran dominio, privacidad, retención, E2E y gates restantes.
 - Fase 7D.2C1 crea `legal/` como fuente pública versionada, un compilador
   build-time fail-closed independiente de Knowledge, la proyección legal
   determinista, tres rutas React diferidas y los enlaces del footer. Publica

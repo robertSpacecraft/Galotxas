@@ -37,10 +37,19 @@ de cualquier otro entorno continúa siendo `false`.
 
 Las respuestas anónimas de competición usan Resources con listas cerradas y
 `PublicPlayerIdentityService`: un adulto aparece mediante alias o nombre e
-inicial del primer apellido; un menor, una fecha de nacimiento ausente o datos
-insuficientes producen la etiqueta neutra `Participante`. La fecha de
-nacimiento y los demás campos privados no forman parte de esa proyección. Los
+inicial del primer apellido. Un menor sólo usa el modo de una
+`PublicIdentityAuthorization` efectiva; sin vínculo, confirmación, revisión,
+conformidad 14–17, versión o vigencia produce `Participante`. La fecha de
+nacimiento y la evidencia privada no forman parte de esa proyección. Los
 contratos autenticados y la administración Blade conservan su información.
+
+Los flags `PUBLIC_IDENTITY_AUTHORIZATION_ENABLED` y
+`PUBLIC_IDENTITY_NOTIFICATION_ENABLED` son `false` por defecto. La solicitud
+opcional nace desde Escuela, se vincula manualmente con un jugador, usa tokens
+hash de un solo uso y se revisa en
+`/admin/public-identity-authorizations`. No existe proveedor productivo de
+correo configurado. El contrato completo está en
+[`docs/23-verifiable-minor-public-identity.md`](../docs/23-verifiable-minor-public-identity.md).
 
 El layout administrativo carga únicamente `public/css/admin.css` y
 `public/js/admin.js`. No depende de Google Fonts, Bunny Fonts, jsDelivr ni otro

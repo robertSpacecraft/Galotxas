@@ -15,7 +15,8 @@ El candidato no equivale a un despliegue de producción. HTTPS, proxy inverso, b
 - `backend/docker/`: PHP-FPM, Nginx y MariaDB 11.4.
 - `docs/`: documentación técnica y funcional.
 - `knowledge/`: fuente canónica del reglamento, los conceptos y el conocimiento estable del deporte.
-- `legal/`: fuente canónica versionada de los tres textos legales públicos.
+- `legal/`: fuente canónica versionada de los tres textos legales públicos y
+  de los avisos de formulario allowlisted.
 
 MariaDB es el único motor de base de datos soportado. Laravel utiliza la conexión mariadb y PHP accede al servidor mediante la extensión pdo_mysql.
 
@@ -86,10 +87,12 @@ npm run legal:check
 npm run legal:build
 ~~~
 
-La fuente vive en `legal/`, la salida en
-`frontend/src/generated/legal/public-legal.json` y las rutas públicas son
+La fuente vive en `legal/`; las salidas son
+`frontend/src/generated/legal/public-legal.json`,
+`frontend/src/generated/legal/form-notices.json` y la copia backend del aviso.
+Las rutas públicas son
 `/legal/aviso-legal`, `/legal/privacidad` y `/legal/cookies`. No usan CMS, API
-ni Knowledge.
+ni Knowledge. El aviso de identidad de menores no crea una ruta legal nueva.
 
 El servidor de producción deberá servir `frontend/dist` con fallback SPA a `index.html` y enrutar `/api/v1` y `/admin` hacia Laravel.
 
@@ -106,9 +109,12 @@ tratamientos, cookies, terceros y borradores internos; 7D.2B minimiza la
 identidad deportiva pública, conserva en el navegador sólo el token Bearer,
 restaura el perfil mediante `/me` y elimina las cargas automáticas de fuentes
 y recursos externos. 7D.2C1 publica los tres textos legales desde Git mediante
-compilación build-time y los enlaza en el footer. La activación productiva de
-Contacto, correo saliente, consentimientos verificables de menores, imágenes y
-despliegue continúan pendientes.
+compilación build-time y los enlaza en el footer. 7D.2C2A añade la autorización
+verificable y revocable de identidad deportiva de menores, integrada con
+Escuela, revisión Blade y proyección fail-closed de Competición; sus flags y el
+correo saliente continúan desactivados por defecto. 7D.2C2B queda reservado a
+la primera capa y operación de Contacto y correo; las imágenes permanecen como
+un frente independiente posterior y el despliegue continúa pendiente.
 
 ## Pruebas
 

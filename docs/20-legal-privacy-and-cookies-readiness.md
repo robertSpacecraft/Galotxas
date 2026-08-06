@@ -12,7 +12,7 @@ despliegue productivo.
 7D.2A queda limitada históricamente a inventario, consolidación de fuentes,
 borradores y gates. 7D.2B aplica minimización y retirada de terceros. 7D.2C1
 promueve después tres textos a `legal/`, publica sus rutas y los enlaza en el
-footer. 7D.2C2, 7D.2, 7D, Fase 7 y el MVP permanecen abiertos, y
+footer. Tras 7D.2C2A, 7D.2C2B, 7D.2, 7D, Fase 7 y el MVP permanecen abiertos, y
 `CONTACT_FORM_ENABLED=false` continúa siendo el valor por defecto.
 
 Los datos y riesgos de esta auditoría conservan su valor como evidencia de
@@ -335,3 +335,16 @@ histórica apoya la fecha de constitución y los fines; ninguna de esas fuentes
 acredita la inscripción y mandato actuales de la Junta, el registro deportivo,
 la relación federativa administrativa vigente o la adecuación normativa actual
 de los fines.
+
+## Seguimiento de 7D.2C2A
+
+El gate de identidad de menores del punto 5 queda implementado exclusivamente
+para `public_competition_identity`: aviso versionado, decisión opcional,
+confirmación, vínculo con jugador, conformidad 14–17, revisión, revocación e
+identidad fail-closed. La Política de privacidad vigente refleja este
+tratamiento en su versión `1.1.0`.
+
+Esto no resuelve imágenes, proveedores, Contacto, representación dudosa,
+operación productiva o purga programada. La primera capa y operación de
+Contacto pasan a 7D.2C2B y los gates productivos a 7F. Las imágenes conservan
+su valor como frente independiente posterior, todavía sin numeración aprobada.

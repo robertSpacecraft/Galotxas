@@ -100,7 +100,9 @@ arquitectura de enlaces, identidad y redes confirmadas; no duplican CMS o
 Knowledge. 7D.2A preparó borradores internos y gates. Desde 7D.2C1, `legal/` es una cuarta
 fuente explícita y acotada: contiene exactamente tres textos públicos
 versionados, compilados a una proyección propia y enlazados sólo desde el
-footer. No es CMS, Knowledge ni copy JSX.
+footer. 7D.2C2A incorpora además un aviso de formulario allowlisted bajo
+`legal/notices/`; se compila por separado y no crea una página pública. Legal
+no es CMS, Knowledge ni copy JSX.
 
 Los componentes de `frontend/src/components/PublicLanding/` son infraestructura de presentación, no una cuarta fuente de contenido. Pueden recibir datos ya autorizados del dominio Laravel, artefactos compilados desde `knowledge/` o contenido público del CMS, pero no conocen esas fuentes ni deciden visibilidad, publicación o reglas. Sus props admiten estructura, copy breve de interfaz y contenido procedente de la fuente canónica; no deben usarse para hardcodear contenido administrable como sustituto temporal del CMS o de `knowledge/`.
 
@@ -145,6 +147,13 @@ Su arquitectura es híbrida y se implementa por bloques:
 La Escuela enlaza al Manual existente, pero no lo copia ni se anida dentro de Aprende a jugar. React compone únicamente los datos operativos autorizados; no existe todavía una colección pedagógica escolar. El CMS, `knowledge/` y JSX nunca almacenan niveles, horarios, alumnos, solicitudes, centros o actividades como fuente alternativa, y la inscripción a campeonatos no se reutiliza como inscripción escolar.
 
 La lectura pública `GET /api/v1/school` expone mediante allowlists únicamente nombre del programa, apertura efectiva, contacto general nullable, ubicación habitual activa, niveles activos y públicos, horarios efectivos y sus ubicaciones activas. La ausencia de programa público se representa como `data: null`; niveles sin horarios y demás datos parciales siguen siendo válidos. Nombres, fechas de nacimiento, representante, teléfono, correo, estado individual y observaciones de solicitudes nunca son públicos. El POST de 6B.2 devuelve sólo una confirmación genérica y no permite consultar solicitudes. Los datos personales permanecen en MariaDB y Blade; no se copian a CMS, `knowledge/`, React, URLs, logs añadidos o métricas.
+
+Desde 7D.2C2A, ese POST puede registrar por separado una autorización opcional
+de identidad deportiva. El texto procede de `legal/notices/`, la evidencia y
+el vínculo con `Player` pertenecen a Laravel y la revisión pertenece a Blade.
+La inscripción no se convierte en autorización y React no recibe estados,
+correos, nacimientos o motivos: Competición conserva exclusivamente
+`public_display_name`.
 
 Los centros y actividades de 6B.3 también permanecen en MariaDB y Blade y no se publican en el MVP. Contactos de centros y `admin_notes` son privados; no se duplican en CMS o Knowledge. Las actividades conservan únicamente un número previsto, nunca asistentes nominales, y no forman parte de `GET /api/v1/school`.
 
@@ -325,7 +334,13 @@ Para Escuela, una imagen o galería debe registrar además el responsable editor
 
 ## 15. Contenido relacionado con menores
 
-La Escuela puede tratar imágenes o información de menores. Antes de publicar se deben definir autorización verificable, finalidad, alcance, vigencia, responsables, privacidad, retirada y canales de respuesta. La ausencia de consentimiento o procedencia clara impide incorporar el material.
+La Escuela puede tratar imágenes o información de menores. La identidad
+deportiva dispone desde 7D.2C2A de autorización verificable únicamente para
+`public_competition_identity`, con versión, confirmación, revisión y retirada.
+No autoriza imágenes, vídeos, redes o publicidad. Antes de publicar cualquiera
+de esos medios se deben definir su propia finalidad, alcance, vigencia,
+responsables, privacidad, retirada y canal. La ausencia de autorización o
+procedencia clara impide incorporarlos.
 
 Las vistas públicas, metadatos, galerías y documentos deben minimizar datos personales y evitar información que permita localizar o perfilar innecesariamente a un menor.
 
@@ -396,12 +411,11 @@ La Fase 3A no elimina `/contenidos`, no crea redirects, no cambia su API ni borr
 - Modelo de consentimiento y privacidad para contenido de menores.
 - Integración automática de las canalizaciones de Knowledge en CI/despliegue;
   Legal ya bloquea el build cuando su proyección no está sincronizada.
-- Gates productivos de Contacto en 7D.2C2; aliases tras paridad y,
+- Gates productivos de Contacto y de imágenes en 7D.2C2B; aliases tras paridad y,
   posteriormente, redirects permanentes, canonical, sitemap, 404 HTTP y SEO
   completo. Las cuatro URLs Club ya se descubren desde Navbar/footer en 7D.1.
-- Autorización explícita de identidad de menores, si el producto decide mostrar
-  algo distinto de la etiqueta neutra aplicada por 7D.2B, en clasificación,
-  rankings, calendario, equipos y partidos.
+- Operación productiva, renovación y retirada de las autorizaciones de identidad
+  de menores implementadas en 7D.2C2A.
 - Roles, permisos, trazabilidad y vista previa requeridos por los editores.
 
 ## 20. Gates editoriales y operativos del MVP completo
@@ -487,19 +501,23 @@ inscripción y mandato de la Junta, bases, conservación, destinatarios,
 encargados y transferencias productivas no se completan por inferencia. El teléfono
 confirmado es privado y no pertenece al CMS ni a la interfaz pública.
 
-## 23. Identidad deportiva pública tras 7D.2B
+## 23. Identidad deportiva pública tras 7D.2B y 7D.2C2A
 
 La identidad en datos funcionales de Competición es una proyección de dominio,
 no contenido editorial. Laravel decide `public_display_name` y los Resources
 anónimos exponen únicamente campos deportivos allowlisted; React sólo presenta
 esa cadena. Adultos usan alias o nombres de pila más inicial del primer
 apellido. Menores, nacimiento ausente o datos insuficientes quedan en
-`Participante` porque el dominio no acredita una autorización pública.
+`Participante`, salvo que Laravel acredite una autorización efectiva de
+`alias` o `name_initial`. La evidencia nace opcionalmente desde Escuela, se
+vincula de forma manual e inequívoca, se confirma, revisa y puede revocarse. La
+fuente del aviso es `legal/notices/public-identity-minors.md`; ni el aviso ni la
+evidencia pertenecen a CMS, Knowledge o JSX.
 
 Esta política no se aplica a la Junta: nombres y cargos institucionales siguen
 perteneciendo al CMS y requieren su propio control editorial. 7D.2B no publica
 los borradores legales, imágenes, estatutos ni datos institucionales, y no
-habilita Contacto.
+habilita Contacto. 7D.2C2A tampoco autoriza ni publica imágenes.
 
 ## Mantenimiento
 

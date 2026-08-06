@@ -9,6 +9,11 @@ Documentos admitidos:
 - `privacidad.md` → `/legal/privacidad`;
 - `cookies.md` → `/legal/cookies`.
 
+Los avisos específicos para formularios viven bajo `legal/notices/` y no crean
+una cuarta página pública. La allowlist actual contiene únicamente
+`notices/public-identity-minors.md`, cuya proyección se consume en Escuela, el
+correo de confirmación y la revisión administrativa.
+
 No se admite un cuarto documento sin cambiar previamente el contrato cerrado y
 su documentación. `README.md` queda fuera de la proyección pública. Los
 borradores históricos continúan en `docs/legal-drafts/` y nunca se importan en
@@ -25,9 +30,13 @@ npm run legal:check
 npm run legal:build
 ```
 
-`legal:check` falla si la fuente no cumple el contrato o si el artefacto
-versionado no coincide con ella. La salida se genera en
-`frontend/src/generated/legal/public-legal.json`; nunca en `frontend/dist`.
+`legal:check` falla si la fuente no cumple el contrato o si los artefactos
+versionados no coinciden con ella. Las salidas se generan en
+`frontend/src/generated/legal/public-legal.json`,
+`frontend/src/generated/legal/form-notices.json` y
+`backend/resources/generated/legal/form-notices.json`; nunca en
+`frontend/dist`. Las dos últimas son proyecciones derivadas idénticas para los
+formularios React y Laravel.
 
 Los cambios requieren revisión editorial y jurídica, incremento de versión,
 fechas de publicación y revisión coherentes, regeneración del artefacto y

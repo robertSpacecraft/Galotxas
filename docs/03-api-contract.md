@@ -699,11 +699,31 @@ Payload admitido:
   "contact_email": "contacto@example.com",
   "guardian_name": "Nombre del representante",
   "guardian_relationship": "Madre",
-  "school_level_id": 1
+  "school_level_id": 1,
+  "privacy_acknowledged": true,
+  "privacy_notice_version": "1.1.0",
+  "public_identity_authorization": {
+    "mode": "alias",
+    "notice_version": "1.0.0",
+    "guardian_authority_declared": true
+  }
 }
 ```
 
-`school_level_id` es opcional. Si se informa, debe identificar un nivel activo y público del único programa público con `enrollments_open = true`. El programa nunca se acepta desde el payload. Nombre, nacimiento no futuro, teléfono y correo válido son obligatorios; un menor en la fecha de solicitud exige los dos campos de representante. Para adultos se normalizan a `null`.
+`school_level_id` y `public_identity_authorization` son opcionales; la
+confirmación y versión de Privacidad de la inscripción son obligatorias y
+separadas. Si se informa el nivel, debe identificar un nivel activo y público
+del único programa público con `enrollments_open = true`. El programa nunca se
+acepta desde el payload. Nombre, nacimiento no futuro, teléfono y correo válido
+son obligatorios; un menor en la fecha de solicitud exige los dos campos de
+representante. Para adultos se normalizan a `null`.
+
+La autorización opcional sólo se admite para menores cuando
+`PUBLIC_IDENTITY_AUTHORIZATION_ENABLED=true`. `mode` admite `alias`,
+`name_initial` o `anonymous`; los dos primeros exigen la declaración de
+autoridad del representante. El objeto no altera el `201` ni bloquea la
+inscripción si se omite o se elige `anonymous`. Su persistencia precede al
+correo y un fallo de envío no revierte la solicitud.
 
 El payload es cerrado. Se rechazan campos desconocidos y, expresamente, `school_program_id`, `user_id`, `status`, fechas del ciclo, `admin_notes`, `is_public` y `enrollments_open`. El servidor normaliza espacios, correo a minúsculas y genera `requested_at`; toda solicitud se crea `pending`.
 
@@ -725,6 +745,21 @@ Errores:
 - `429 Too Many Requests` al superar cinco intentos por minuto para la combinación de IP y hash del correo normalizado.
 
 El limitador se llama `school-enrollments`, no afecta al resto de la API y nunca conserva el correo en claro en su clave.
+
+### Confirmación de identidad pública de menores
+
+7D.2C2A añade tres POST anónimos y cerrados:
+
+- `/api/v1/public-identity/confirmation/lookup`;
+- `/api/v1/public-identity/confirmation/confirm`;
+- `/api/v1/public-identity/confirmation/deny`.
+
+Todos aceptan exclusivamente `{ "token": "…" }`. `lookup` devuelve sólo
+`scope`, `mode`, `notice_version` y `expires_at`; nunca devuelve participante,
+representante, correo o IDs. Confirmar y rechazar devuelven
+`data.received = true`. Un token desconocido, usado, denegado o caducado
+comparte `404` y el mismo mensaje genérico. Consulta y decisiones tienen rate
+limits separados con claves HMAC que no conservan el token en claro.
 
 Continúan ausentes:
 
@@ -797,12 +832,17 @@ falla esta consulta, gestiona 201/422/429/503/red sin ampliar el envelope y no
 expone ni persiste campos internos. El default productivo continúa desactivado;
 privacidad, destinatario, correo y operación siguen siendo gates de activación.
 
-### Identidad pública desde 7D.2B
+### Identidad pública desde 7D.2B y 7D.2C2A
 
 Los endpoints públicos de ranking, clasificación, calendario y partido usan
 la proyección `public_display_name`. Para adultos es alias o, si falta, nombres
 de pila más inicial del primer apellido. Menores, nacimiento ausente o datos
-incompletos devuelven `Participante`; no exponen edad ni motivo.
+incompletos devuelven `Participante`. Desde 7D.2C2A, un menor puede proyectar
+únicamente el modo de una autorización efectiva para
+`public_competition_identity`; ausencia de vínculo, confirmación, conformidad
+14–17, revisión, versión reconocida o vigencia vuelve a `Participante`. La
+revocación se refleja inmediatamente. No se exponen edad, motivo, autorización,
+correo, versión o estado.
 
 Una entrada pública contiene sólo `entry_type` y `public_display_name`. Las
 clasificaciones eliminan `entry_id`, `entry` y el antiguo `name`; los rankings
