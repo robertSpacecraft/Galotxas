@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { PageMetadata } from '../../components/PublicLanding/PageMetadata';
+import { PublicContentSurface } from '../../components/PublicContentSurface/PublicContentSurface';
 import { KnowledgeContextNavigation } from '../../features/knowledge/KnowledgeContextNavigation';
 import { KnowledgeDocumentNavigation } from '../../features/knowledge/KnowledgeDocumentNavigation';
 import { KnowledgeRenderer } from '../../features/knowledge/KnowledgeRenderer';
@@ -28,33 +29,35 @@ export const KnowledgeDocumentPage = ({ type }) => {
   }
 
   return (
-    <article className={styles.document}>
-      <PageMetadata
-        title={`${document.title} | Manual | Galotxas`}
-        description={`Consulta ${document.title} en el Manual público de Galotxas.`}
-      />
-      <KnowledgeContextNavigation collection={context.collection} />
-      <header className={styles.documentHeader}>
-        <h1>{document.title}</h1>
-        <dl className={styles.metadata}>
-          <div>
-            <dt>Identificador</dt>
-            <dd>{document.id}</dd>
-          </div>
-          <div>
-            <dt>Versión</dt>
-            <dd>{document.version}</dd>
-          </div>
-          <div>
-            <dt>Última revisión</dt>
-            <dd><time dateTime={document.lastRevision}>{formatRevision(document.lastRevision)}</time></dd>
-          </div>
-        </dl>
-      </header>
-      <KnowledgeTableOfContents document={document} />
-      <KnowledgeRenderer blocks={document.blocks} />
-      <KnowledgeDocumentNavigation context={context} />
-    </article>
+    <PublicContentSurface>
+      <article className={styles.document}>
+        <PageMetadata
+          title={`${document.title} | Manual | Galotxas`}
+          description={`Consulta ${document.title} en el Manual público de Galotxas.`}
+        />
+        <KnowledgeContextNavigation collection={context.collection} />
+        <header className={styles.documentHeader}>
+          <h1>{document.title}</h1>
+          <dl className={styles.metadata}>
+            <div>
+              <dt>Identificador</dt>
+              <dd>{document.id}</dd>
+            </div>
+            <div>
+              <dt>Versión</dt>
+              <dd>{document.version}</dd>
+            </div>
+            <div>
+              <dt>Última revisión</dt>
+              <dd><time dateTime={document.lastRevision}>{formatRevision(document.lastRevision)}</time></dd>
+            </div>
+          </dl>
+        </header>
+        <KnowledgeTableOfContents document={document} />
+        <KnowledgeRenderer blocks={document.blocks} />
+        <KnowledgeDocumentNavigation context={context} />
+      </article>
+    </PublicContentSurface>
   );
 };
 

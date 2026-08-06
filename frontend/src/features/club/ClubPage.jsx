@@ -1,4 +1,5 @@
 import { CmsBlockRenderer } from '../../components/CmsBlocks/CmsBlockRenderer';
+import { PublicContentSurface } from '../../components/PublicContentSurface/PublicContentSurface';
 import { PageMetadata } from '../../components/PublicLanding/PageMetadata';
 import { NotFoundPage } from '../../pages/NotFound/NotFoundPage';
 import { ContactPanel } from './ContactPanel';
@@ -12,30 +13,32 @@ const ClubContent = ({ config, page }) => {
   const blocks = page.blocks;
 
   return (
-    <article className={styles.page}>
-      <PageMetadata
-        title={pageTitle(page.seo_title || page.title)}
-        description={page.seo_description || config.description}
-      />
-      <header className={styles.header}>
-        <h1>{page.title}</h1>
-      </header>
+    <PublicContentSurface>
+      <article className={styles.page}>
+        <PageMetadata
+          title={pageTitle(page.seo_title || page.title)}
+          description={page.seo_description || config.description}
+        />
+        <header className={styles.header}>
+          <h1>{page.title}</h1>
+        </header>
 
-      {blocks.length > 0 ? (
-        <div className={styles.blocks}>
-          {blocks.map((block, index) => (
-            <CmsBlockRenderer
-              key={`${block?.type ?? 'unknown'}-${block?.order ?? index}-${index}`}
-              block={block}
-            />
-          ))}
-        </div>
-      ) : (
-        <p className={styles.emptyState}>Esta página no tiene contenido publicado.</p>
-      )}
+        {blocks.length > 0 ? (
+          <div className={styles.blocks}>
+            {blocks.map((block, index) => (
+              <CmsBlockRenderer
+                key={`${block?.type ?? 'unknown'}-${block?.order ?? index}-${index}`}
+                block={block}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className={styles.emptyState}>Esta página no tiene contenido publicado.</p>
+        )}
 
-      {config.id === 'contact' ? <ContactPanel /> : null}
-    </article>
+        {config.id === 'contact' ? <ContactPanel /> : null}
+      </article>
+    </PublicContentSurface>
   );
 };
 
@@ -66,23 +69,25 @@ const ConfiguredClubPage = ({ config }) => {
   }
 
   return (
-    <section className={styles.page}>
-      <PageMetadata title={pageTitle(config.title)} description={config.description} />
-      {status === 'loading' ? (
-        <p className={styles.remoteState} role="status" aria-live="polite">
-          Cargando contenido…
-        </p>
-      ) : null}
-      {status === 'error' ? (
-        <div className={styles.errorState} role="alert">
-          <h1>{config.title}</h1>
-          <p>{error}</p>
-          <button type="button" className={styles.secondaryButton} onClick={reload}>
-            Reintentar
-          </button>
-        </div>
-      ) : null}
-    </section>
+    <PublicContentSurface>
+      <section className={styles.page}>
+        <PageMetadata title={pageTitle(config.title)} description={config.description} />
+        {status === 'loading' ? (
+          <p className={styles.remoteState} role="status" aria-live="polite">
+            Cargando contenido…
+          </p>
+        ) : null}
+        {status === 'error' ? (
+          <div className={styles.errorState} role="alert">
+            <h1>{config.title}</h1>
+            <p>{error}</p>
+            <button type="button" className={styles.secondaryButton} onClick={reload}>
+              Reintentar
+            </button>
+          </div>
+        ) : null}
+      </section>
+    </PublicContentSurface>
   );
 };
 

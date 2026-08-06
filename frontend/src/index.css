@@ -11,6 +11,15 @@
   --success: #2ea043;
   --danger: #f85149;
   
+  /* Public Content Tokens */
+  --public-bg: #f8f9fa;
+  --public-text: #1f2937;
+  --public-title: #003366;
+  --public-muted: #4b5563;
+  --public-border: #dbe3eb;
+  --public-link: #005ea8;
+  --public-panel: #eef5fb;
+
   --glass-bg: rgba(22, 27, 34, 0.7);
   --glass-blur: blur(12px);
   --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1);

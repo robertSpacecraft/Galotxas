@@ -1,5 +1,5 @@
 .content {
-  color: #263549;
+  color: var(--public-text);
   font-size: 1.05rem;
   line-height: 1.75;
   overflow-wrap: anywhere;
@@ -10,7 +10,7 @@
 .content h4,
 .content h5,
 .content h6 {
-  color: #003366;
+  color: var(--public-title);
   font-family: var(--font-family);
   line-height: 1.3;
   scroll-margin-top: 2rem;
@@ -21,7 +21,7 @@
 .content h4:focus,
 .content h5:focus,
 .content h6:focus {
-  outline: 3px solid #003366;
+  outline: 3px solid var(--public-title);
   outline-offset: 4px;
 }
 
@@ -58,21 +58,21 @@
 }
 
 .content a {
-  color: #005ea8;
+  color: var(--public-link);
   font-weight: 700;
   text-underline-offset: 0.2em;
 }
 
 .content a:focus-visible,
 .tableContainer:focus-visible {
-  outline: 3px solid #003366;
+  outline: 3px solid var(--public-title);
   outline-offset: 3px;
 }
 
 .content hr {
   margin: 2rem 0;
   border: 0;
-  border-top: 1px solid #cbd5e1;
+  border-top: 1px solid var(--public-border);
 }
 
 .tableContainer {
@@ -91,12 +91,12 @@
 .tableContainer th,
 .tableContainer td {
   padding: 0.8rem 1rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--public-border);
   text-align: left;
   vertical-align: top;
 }
 
 .tableContainer th {
-  background: #e8f0f7;
-  color: #003366;
+  background: var(--public-panel);
+  color: var(--public-title);
 }

@@ -1,24 +1,22 @@
 .container {
-  background: #f8f9fa;
-  color: #1f2937;
-  min-height: 80vh;
+  max-width: 920px;
+  margin: 0 auto;
   padding: 3rem 1.5rem 4rem;
 }
 
 .header {
   margin: 0 auto 3rem;
-  max-width: 920px;
 }
 
 .title {
-  color: #2c3e50;
+  color: var(--public-title);
   font-size: 2.5rem;
   line-height: 1.15;
   margin: 0 0 1rem;
 }
 
 .description {
-  color: #4b5563;
+  color: var(--public-muted);
   font-size: 1.15rem;
   line-height: 1.7;
   margin: 0;
@@ -26,22 +24,13 @@
 }
 
 .blocks {
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   margin: 0 auto;
-  max-width: 920px;
-  padding: 2.5rem;
 }
 
 .stateMessage {
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  color: #4b5563;
+  color: var(--public-muted);
   margin: 0 auto;
-  max-width: 760px;
-  padding: 3rem 2rem;
+  padding: 3rem 0;
   text-align: center;
 }
 

@@ -1,14 +1,14 @@
 .container {
   margin: 0 0 2.5rem;
   padding: clamp(1rem, 3vw, 1.5rem);
-  border-left: 4px solid #005ea8;
+  border-left: 4px solid var(--public-link);
   border-radius: 0 10px 10px 0;
-  background: #eef5fb;
+  background: var(--public-panel);
 }
 
 .title {
   margin: 0 0 0.8rem;
-  color: #003366;
+  color: var(--public-title);
   font-family: var(--font-family);
   font-size: 1.2rem;
   font-weight: 800;
@@ -27,14 +27,14 @@
 }
 
 .list a {
-  color: #005ea8;
+  color: var(--public-link);
   line-height: 1.45;
   overflow-wrap: anywhere;
   text-underline-offset: 0.2em;
 }
 
 .list a:focus-visible {
-  outline: 3px solid #003366;
+  outline: 3px solid var(--public-title);
   outline-offset: 3px;
 }
 

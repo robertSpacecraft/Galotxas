@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { cmsService } from '../../api/cms';
 import { CmsBlockRenderer } from '../../components/CmsBlocks/CmsBlockRenderer';
+import { PublicContentSurface } from '../../components/PublicContentSurface/PublicContentSurface';
 import styles from './CmsPage.module.css';
 
 export const CmsPage = () => {
@@ -50,57 +51,65 @@ export const CmsPage = () => {
 
   if (status === 'loading') {
     return (
-      <div className={styles.container}>
-        <div className={styles.stateMessage}>Cargando contenido...</div>
-      </div>
+      <PublicContentSurface>
+        <div className={styles.container}>
+          <div className={styles.stateMessage}>Cargando contenido...</div>
+        </div>
+      </PublicContentSurface>
     );
   }
 
   if (status === 'notFound') {
     return (
-      <div className={styles.container}>
-        <div className={styles.stateMessage}>
-          <h1>Página no encontrada</h1>
-          <p>El contenido solicitado no está disponible.</p>
+      <PublicContentSurface>
+        <div className={styles.container}>
+          <div className={styles.stateMessage}>
+            <h1>Página no encontrada</h1>
+            <p>El contenido solicitado no está disponible.</p>
+          </div>
         </div>
-      </div>
+      </PublicContentSurface>
     );
   }
 
   if (status === 'error') {
     return (
-      <div className={styles.container}>
-        <div className={styles.stateMessage}>
-          <h1>Error de carga</h1>
-          <p>{errorMessage}</p>
+      <PublicContentSurface>
+        <div className={styles.container}>
+          <div className={styles.stateMessage}>
+            <h1>Error de carga</h1>
+            <p>{errorMessage}</p>
+          </div>
         </div>
-      </div>
+      </PublicContentSurface>
     );
   }
 
   const blocks = Array.isArray(page?.blocks) ? page.blocks : [];
 
   return (
-    <article className={styles.container}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>{page.title}</h1>
-        {page.seo_description ? (
-          <p className={styles.description}>{page.seo_description}</p>
-        ) : null}
-      </header>
+    <PublicContentSurface>
+      <article className={styles.container}>
+        <header className={styles.header}>
+          <h1 className={styles.title}>{page.title}</h1>
+          {page.seo_description ? (
+            <p className={styles.description}>{page.seo_description}</p>
+          ) : null}
+        </header>
 
-      {blocks.length > 0 ? (
-        <div className={styles.blocks}>
-          {blocks.map((block, index) => (
-            <CmsBlockRenderer
-              key={`${block.type}-${block.order ?? index}-${index}`}
-              block={block}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className={styles.stateMessage}>Esta página no tiene contenido publicado.</div>
-      )}
-    </article>
+        {blocks.length > 0 ? (
+          <div className={styles.blocks}>
+            {blocks.map((block, index) => (
+              <CmsBlockRenderer
+                key={`${block.type}-${block.order ?? index}-${index}`}
+                block={block}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className={styles.stateMessage}>Esta página no tiene contenido publicado.</div>
+        )}
+      </article>
+    </PublicContentSurface>
   );
 };

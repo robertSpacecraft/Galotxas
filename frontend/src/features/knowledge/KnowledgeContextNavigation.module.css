@@ -1,5 +1,5 @@
 .navigation {
-  color: #4b5563;
+  color: var(--public-muted);
   font-size: 0.95rem;
 }
 
@@ -20,18 +20,18 @@
 
 .navigation li + li {
   padding-left: 0.9rem;
-  border-left: 1px solid #94a3b8;
+  border-left: 1px solid var(--public-border);
 }
 
 .navigation a {
-  color: #005ea8;
+  color: var(--public-link);
   font-weight: 700;
   overflow-wrap: anywhere;
   text-underline-offset: 0.2em;
 }
 
 .navigation a:focus-visible {
-  outline: 3px solid #003366;
+  outline: 3px solid var(--public-title);
   outline-offset: 3px;
 }
 

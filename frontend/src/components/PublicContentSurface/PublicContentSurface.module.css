@@ -1,0 +1,7 @@
+.surface {
+  min-width: 0;
+  background: var(--public-bg);
+  color: var(--public-text);
+  display: flow-root;
+  flex: 1 0 auto;
+}
