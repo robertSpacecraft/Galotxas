@@ -51,6 +51,8 @@ describe('Navbar', () => {
       .toHaveAttribute('href', '/login');
     expect(within(editorialNavigation).queryByRole('link', { name: 'Club' })).not.toBeInTheDocument();
     expect(within(editorialNavigation).queryByRole('link', { name: 'Aprende' })).not.toBeInTheDocument();
+    expect(within(editorialNavigation).queryByText(/Aviso legal|Privacidad|Cookies/))
+      .not.toBeInTheDocument();
   });
 
   it('opens each disclosure with its canonical children and keeps only one open', async () => {

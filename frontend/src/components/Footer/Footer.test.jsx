@@ -48,13 +48,22 @@ describe('Footer', () => {
     }
   });
 
-  it('does not publish legal, Press, Federations or unconfirmed contact data', () => {
+  it('publishes the three exact legal destinations in their own footer group', () => {
+    renderWithProviders(<Footer />);
+
+    const legalNavigation = screen.getByRole('navigation', { name: 'Información legal' });
+    expect(within(legalNavigation).getByRole('link', { name: 'Aviso legal' }))
+      .toHaveAttribute('href', '/legal/aviso-legal');
+    expect(within(legalNavigation).getByRole('link', { name: 'Privacidad' }))
+      .toHaveAttribute('href', '/legal/privacidad');
+    expect(within(legalNavigation).getByRole('link', { name: 'Cookies' }))
+      .toHaveAttribute('href', '/legal/cookies');
+  });
+
+  it('does not publish Press, Federations or unconfirmed contact data', () => {
     renderWithProviders(<Footer />);
 
     for (const excludedText of [
-      'Privacidad',
-      'Aviso legal',
-      'Cookies',
       'Prensa',
       'Federaciones',
       'Accesibilidad',

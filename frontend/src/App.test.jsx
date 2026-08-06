@@ -5,7 +5,7 @@ import { championshipsService } from './api/championships';
 import { cmsService } from './api/cms';
 import { contactService } from './features/contact/contactService';
 import { schoolService } from './features/school/schoolService';
-import App, { ClubRoute, KnowledgeRoute, SchoolRoute } from './App';
+import App, { ClubRoute, KnowledgeRoute, LegalRoute, SchoolRoute } from './App';
 
 vi.mock('./api/championships', () => ({
   championshipsService: {
@@ -98,6 +98,20 @@ describe('App public routes', () => {
     );
 
     expect(screen.getByRole('status')).toHaveTextContent('Cargando Club');
+    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
+    expect(screen.queryByText('Página no encontrada')).not.toBeInTheDocument();
+  });
+
+  it('uses the accessible Legal fallback without a false H1 or 404', () => {
+    const PendingPage = lazy(() => new Promise(() => {}));
+
+    render(
+      <LegalRoute>
+        <PendingPage />
+      </LegalRoute>,
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando información legal');
     expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
     expect(screen.queryByText('Página no encontrada')).not.toBeInTheDocument();
   });
@@ -212,6 +226,27 @@ describe('App public routes', () => {
       .toBeInTheDocument();
     expect(window.location.pathname).toBe(pathname);
   });
+
+  it.each([
+    ['/legal/aviso-legal', 'Aviso legal'],
+    ['/legal/privacidad', 'Política de privacidad'],
+    ['/legal/cookies', 'Política de cookies y almacenamiento local'],
+  ])('registers the exact lazy legal route %s', async (pathname, heading) => {
+    openAppAt(pathname);
+
+    expect(await screen.findByRole('heading', { name: heading, level: 1 })).toBeInTheDocument();
+    expect(screen.getAllByRole('main')).toHaveLength(1);
+  });
+
+  it.each(['/legal', '/legal/desconocido', '/legal/privacidad/otra-ruta'])(
+    'keeps the unregistered legal route %s on the accessible 404',
+    async (pathname) => {
+      openAppAt(pathname);
+      expect(await screen.findByRole('heading', { name: 'Página no encontrada', level: 1 }))
+        .toBeInTheDocument();
+      expect(window.location.pathname).toBe(pathname);
+    },
+  );
 
   it('does not intercept a valid dynamic CMS route with the wildcard', async () => {
     openAppAt('/contenidos/nosotros');

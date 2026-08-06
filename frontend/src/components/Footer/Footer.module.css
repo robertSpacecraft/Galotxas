@@ -9,7 +9,7 @@
   display: grid;
   width: min(100%, 1200px);
   margin: 0 auto;
-  grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(10rem, 1fr));
+  grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
   gap: clamp(1.75rem, 4vw, 4rem);
 }
 

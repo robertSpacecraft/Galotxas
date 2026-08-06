@@ -64,9 +64,11 @@ describe('ClubPage', () => {
       .toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Bloque CMS', level: 2 })).toBeInTheDocument();
     expect(screen.getByText('Contenido exclusivo del CMS.')).toBeInTheDocument();
-    expect(document.title).toBe('Club técnico | Galotxas');
-    expect(document.head.querySelector('meta[name="description"]'))
-      .toHaveAttribute('content', 'Descripción técnica desde CMS.');
+    await waitFor(() => {
+      expect(document.title).toBe('Club técnico | Galotxas');
+      expect(document.head.querySelector('meta[name="description"]'))
+        .toHaveAttribute('content', 'Descripción técnica desde CMS.');
+    });
   });
 
   it('uses the closed route metadata only as a fallback', async () => {
@@ -75,9 +77,11 @@ describe('ClubPage', () => {
     renderPage();
 
     await screen.findByRole('heading', { name: 'Club de prueba', level: 1 });
-    expect(document.title).toBe('Club de prueba | Galotxas');
-    expect(document.head.querySelector('meta[name="description"]'))
-      .toHaveAttribute('content', 'Información institucional del Club Galotxes Monòver.');
+    await waitFor(() => {
+      expect(document.title).toBe('Club de prueba | Galotxas');
+      expect(document.head.querySelector('meta[name="description"]'))
+        .toHaveAttribute('content', 'Información institucional del Club Galotxes Monòver.');
+    });
   });
 
   it('uses the accessible application 404 for a missing or unpublished CMS page', async () => {

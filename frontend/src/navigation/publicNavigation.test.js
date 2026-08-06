@@ -9,6 +9,7 @@ import {
   navigationAudiences,
   navigationItemTypes,
   publicFooterNavigation,
+  publicLegalNavigation,
   publicNavigation,
   publicSiteIdentity,
   publicSocialLinks,
@@ -134,6 +135,11 @@ describe('publicNavigation', () => {
         label: 'Instagram',
         href: 'https://www.instagram.com/clubgalotxes/',
       }),
+    ]);
+    expect(publicLegalNavigation).toEqual([
+      { id: 'LEG-001', label: 'Aviso legal', to: '/legal/aviso-legal' },
+      { id: 'LEG-002', label: 'Privacidad', to: '/legal/privacidad' },
+      { id: 'LEG-003', label: 'Cookies', to: '/legal/cookies' },
     ]);
   });
 });

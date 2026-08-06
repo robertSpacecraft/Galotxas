@@ -106,8 +106,14 @@ test.describe('navegación agrupada, Home y footer', () => {
 
     await expect(footer.getByText(/Club Galotxes Monòver/).first()).toBeVisible();
     await expect(footer.getByText(new RegExp(`© ${new Date().getFullYear()}`))).toBeVisible();
-    await expect(footer.getByText(/Privacidad|Aviso legal|Cookies|Prensa|Federaciones/))
-      .toHaveCount(0);
+    const legalLinks = footer.getByRole('navigation', { name: 'Información legal' });
+    await expect(legalLinks.getByRole('link', { name: 'Aviso legal' }))
+      .toHaveAttribute('href', '/legal/aviso-legal');
+    await expect(legalLinks.getByRole('link', { name: 'Privacidad' }))
+      .toHaveAttribute('href', '/legal/privacidad');
+    await expect(legalLinks.getByRole('link', { name: 'Cookies' }))
+      .toHaveAttribute('href', '/legal/cookies');
+    await expect(footer.getByText(/Prensa|Federaciones/)).toHaveCount(0);
 
     await page.goto('/login');
     await expect(page.getByRole('contentinfo')).toBeVisible();
@@ -133,7 +139,7 @@ test.describe('navegación agrupada, Home y footer', () => {
     await expect.poll(() => page.evaluate(() => localStorage.getItem('user'))).toBeNull();
   });
 
-  test('no carga recursos remotos conocidos y mantiene las rutas legales sin publicar', async ({ page }) => {
+  test('no carga recursos remotos conocidos y mantiene aliases legales no aprobados en 404', async ({ page }) => {
     const remoteRequests = [];
     page.on('request', (request) => {
       if (/fonts\.(googleapis|gstatic)|fonts\.bunny|cdn\.jsdelivr/.test(request.url())) {

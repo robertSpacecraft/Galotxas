@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run legal:check && vite build",
+    "legal:check": "node scripts/legal/cli.js check",
+    "legal:build": "node scripts/legal/cli.js build",
     "knowledge:check": "node scripts/knowledge/cli.js check",
     "knowledge:build": "node scripts/knowledge/cli.js build",
     "lint": "eslint .",

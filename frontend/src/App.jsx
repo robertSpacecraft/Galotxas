@@ -24,6 +24,7 @@ import { CompetitionPage } from './pages/Competition/CompetitionPage';
 import { NotFoundPage } from './pages/NotFound/NotFoundPage';
 import { RouteLoading } from './components/RouteLoading/RouteLoading';
 import { clubPages } from './features/club/clubRoutes';
+import { legalPages } from './features/legal/legalRoutes';
 import { schoolPath } from './features/school/schoolRoutes';
 import './index.css';
 
@@ -32,6 +33,7 @@ const ManualPage = lazy(() => import('./pages/Learn/ManualPage'));
 const KnowledgeDocumentPage = lazy(() => import('./pages/Learn/KnowledgeDocumentPage'));
 const SchoolPage = lazy(() => import('./features/school/SchoolPage'));
 const ClubPage = lazy(() => import('./features/club/ClubPage'));
+const LegalPage = lazy(() => import('./features/legal/LegalPage'));
 
 export const KnowledgeRoute = ({ children }) => (
   <Suspense fallback={<RouteLoading label="Cargando Aprende a jugar" />}>
@@ -47,6 +49,12 @@ export const SchoolRoute = ({ children }) => (
 
 export const ClubRoute = ({ children }) => (
   <Suspense fallback={<RouteLoading label="Cargando Club" />}>
+    {children}
+  </Suspense>
+);
+
+export const LegalRoute = ({ children }) => (
+  <Suspense fallback={<RouteLoading label="Cargando información legal" />}>
     {children}
   </Suspense>
 );
@@ -98,6 +106,17 @@ function App() {
                     <ClubRoute>
                       <ClubPage pageId={clubPage.id} />
                     </ClubRoute>
+                  )}
+                />
+              ))}
+              {Object.values(legalPages).map((legalPage) => (
+                <Route
+                  key={legalPage.id}
+                  path={legalPage.path}
+                  element={(
+                    <LegalRoute>
+                      <LegalPage pageId={legalPage.id} />
+                    </LegalRoute>
                   )}
                 />
               ))}

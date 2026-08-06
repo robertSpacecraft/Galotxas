@@ -1,0 +1,1553 @@
+{
+  "schemaVersion": 1,
+  "documents": [
+    {
+      "id": "LEG-001",
+      "title": "Aviso legal",
+      "slug": "aviso-legal",
+      "version": "1.0.0",
+      "status": "vigente",
+      "publishedAt": "2026-08-06",
+      "reviewedAt": "2026-08-06",
+      "owner": "Club Galotxes de Monover",
+      "summary": "Identificación del titular, condiciones de uso y responsabilidades del sitio web de Galotxas.",
+      "route": "/legal/aviso-legal",
+      "order": 1,
+      "headings": [
+        {
+          "level": 2,
+          "text": "Titular del sitio",
+          "id": "titular-del-sitio"
+        },
+        {
+          "level": 2,
+          "text": "Objeto del sitio",
+          "id": "objeto-del-sitio"
+        },
+        {
+          "level": 2,
+          "text": "Acceso y uso",
+          "id": "acceso-y-uso"
+        },
+        {
+          "level": 2,
+          "text": "Contenidos y disponibilidad",
+          "id": "contenidos-y-disponibilidad"
+        },
+        {
+          "level": 2,
+          "text": "Enlaces externos",
+          "id": "enlaces-externos"
+        },
+        {
+          "level": 2,
+          "text": "Propiedad intelectual y derechos de terceros",
+          "id": "propiedad-intelectual-y-derechos-de-terceros"
+        },
+        {
+          "level": 2,
+          "text": "Comunicación de incidencias",
+          "id": "comunicacion-de-incidencias"
+        },
+        {
+          "level": 2,
+          "text": "Legislación y jurisdicción",
+          "id": "legislacion-y-jurisdiccion"
+        },
+        {
+          "level": 2,
+          "text": "Vigencia",
+          "id": "vigencia"
+        }
+      ],
+      "blocks": [
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "titular-del-sitio",
+          "children": [
+            {
+              "type": "text",
+              "value": "Titular del sitio"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Este sitio web pertenece a "
+            },
+            {
+              "type": "strong",
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Club Galotxes de Monover"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "value": ", que utiliza públicamente la denominación "
+            },
+            {
+              "type": "strong",
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Club Galotxes Monòver"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "value": "."
+            }
+          ]
+        },
+        {
+          "type": "unorderedList",
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "CIF: G03912193."
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Domicilio social: C/ Pierrot, 1, 1.º, 03640 Monóvar, Alicante."
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Correo público: clubgalotxesmonover@hotmail.com."
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Presidente y responsable web: Jorge Sánchez Romero."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "La presidencia y la responsabilidad web indicadas no se presentan como acreditación de una representación legal general distinta de esas funciones. Las instalaciones deportivas habituales están en el "
+            },
+            {
+              "type": "strong",
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Centro Polideportivo de Monóvar"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "value": ", Av. Novelda, s/n, 03640 Monòver, Alicante, y no constituyen el domicilio social."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "objeto-del-sitio",
+          "children": [
+            {
+              "type": "text",
+              "value": "Objeto del sitio"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Galotxas ofrece información institucional del club, conocimiento sobre el deporte, datos de competiciones, información de la Escuela de Galotxas y acceso a servicios para personas usuarias registradas. Los contenidos y servicios disponibles pueden cambiar para mantener su exactitud, seguridad y utilidad."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "acceso-y-uso",
+          "children": [
+            {
+              "type": "text",
+              "value": "Acceso y uso"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "El acceso a las áreas públicas es libre. Algunas funciones requieren una cuenta o permisos administrativos. La persona usuaria debe utilizar el sitio de forma lícita, respetar a otras personas y no intentar acceder a información, cuentas o sistemas para los que no esté autorizada."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "No se permite interferir en el funcionamiento del servicio, introducir código malicioso, suplantar identidades ni reutilizar datos personales obtenidos del sitio para finalidades incompatibles con su publicación."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "contenidos-y-disponibilidad",
+          "children": [
+            {
+              "type": "text",
+              "value": "Contenidos y disponibilidad"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "El club procura que la información sea comprensible y esté actualizada, pero no puede garantizar la disponibilidad ininterrumpida ni la ausencia absoluta de errores. Los calendarios, resultados, clasificaciones y avisos operativos pueden corregirse cuando se detecte una incidencia o cambie la información de origen."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "El acceso puede limitarse temporalmente por mantenimiento, seguridad, fallos de terceros o causas ajenas al control razonable del club. La información del sitio no sustituye las comunicaciones oficiales que resulten exigibles en cada caso."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "enlaces-externos",
+          "children": [
+            {
+              "type": "text",
+              "value": "Enlaces externos"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "El sitio puede incluir enlaces a páginas de terceros, como los perfiles sociales del club. Esos destinos se abren únicamente tras una acción de la persona usuaria. El club no controla sus contenidos, disponibilidad o políticas y la inclusión del enlace no implica aprobación de todo lo publicado por el tercero."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "propiedad-intelectual-y-derechos-de-terceros",
+          "children": [
+            {
+              "type": "text",
+              "value": "Propiedad intelectual y derechos de terceros"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Los textos, diseño, software, identidad gráfica y demás materiales propios están protegidos conforme a la normativa aplicable. Su presencia en el sitio no concede una licencia general de explotación. Se permiten la consulta y los usos legalmente autorizados, respetando siempre la autoría y la integridad del contenido."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Los materiales de terceros conservan sus derechos y condiciones de uso. Si una persona considera que un contenido vulnera sus derechos, puede comunicarlo al correo público del club aportando la información necesaria para localizarlo y revisar la solicitud."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "comunicacion-de-incidencias",
+          "children": [
+            {
+              "type": "text",
+              "value": "Comunicación de incidencias"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Las incidencias técnicas, errores de contenido y solicitudes relacionadas con el sitio pueden comunicarse a clubgalotxesmonover@hotmail.com. No deben enviarse por ese canal contraseñas ni información personal innecesaria."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "legislacion-y-jurisdiccion",
+          "children": [
+            {
+              "type": "text",
+              "value": "Legislación y jurisdicción"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Este aviso se interpreta conforme a la normativa española que resulte aplicable. Cualquier controversia se someterá a los órganos competentes determinados por la normativa vigente, respetando las reglas imperativas de protección de consumidores y personas usuarias cuando correspondan."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "vigencia",
+          "children": [
+            {
+              "type": "text",
+              "value": "Vigencia"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "La versión y la fecha de publicación mostradas en la cabecera identifican el texto vigente. El club podrá revisarlo cuando cambien el servicio, la normativa o las circunstancias relevantes."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LEG-002",
+      "title": "Política de privacidad",
+      "slug": "privacidad",
+      "version": "1.0.0",
+      "status": "vigente",
+      "publishedAt": "2026-08-06",
+      "reviewedAt": "2026-08-06",
+      "owner": "Club Galotxes de Monover",
+      "summary": "Información sobre los tratamientos de datos personales, sus finalidades, conservación y derechos.",
+      "route": "/legal/privacidad",
+      "order": 2,
+      "headings": [
+        {
+          "level": 2,
+          "text": "Responsable y contacto",
+          "id": "responsable-y-contacto"
+        },
+        {
+          "level": 2,
+          "text": "Finalidades y bases",
+          "id": "finalidades-y-bases"
+        },
+        {
+          "level": 2,
+          "text": "Cuentas, perfiles y autenticación",
+          "id": "cuentas-perfiles-y-autenticacion"
+        },
+        {
+          "level": 2,
+          "text": "Contacto",
+          "id": "contacto"
+        },
+        {
+          "level": 2,
+          "text": "Escuela de Galotxas",
+          "id": "escuela-de-galotxas"
+        },
+        {
+          "level": 2,
+          "text": "Competición e identidad deportiva pública",
+          "id": "competicion-e-identidad-deportiva-publica"
+        },
+        {
+          "level": 2,
+          "text": "Menores y autorización futura",
+          "id": "menores-y-autorizacion-futura"
+        },
+        {
+          "level": 2,
+          "text": "Imágenes",
+          "id": "imagenes"
+        },
+        {
+          "level": 2,
+          "text": "Administración, seguridad, logs y copias",
+          "id": "administracion-seguridad-logs-y-copias"
+        },
+        {
+          "level": 2,
+          "text": "Conservación",
+          "id": "conservacion"
+        },
+        {
+          "level": 2,
+          "text": "Proveedores y transferencias",
+          "id": "proveedores-y-transferencias"
+        },
+        {
+          "level": 2,
+          "text": "Derechos y reclamación",
+          "id": "derechos-y-reclamacion"
+        },
+        {
+          "level": 2,
+          "text": "Seguridad y cambios",
+          "id": "seguridad-y-cambios"
+        }
+      ],
+      "blocks": [
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "responsable-y-contacto",
+          "children": [
+            {
+              "type": "text",
+              "value": "Responsable y contacto"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "El responsable de los tratamientos descritos es "
+            },
+            {
+              "type": "strong",
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Club Galotxes de Monover"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "value": ", con denominación pública "
+            },
+            {
+              "type": "strong",
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Club Galotxes Monòver"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "value": ", CIF G03912193 y domicilio social en C/ Pierrot, 1, 1.º, 03640 Monóvar, Alicante. Jorge Sánchez Romero es el presidente y responsable web confirmado."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Para consultas sobre privacidad o para ejercer derechos puede escribirse a clubgalotxesmonover@hotmail.com. Las instalaciones deportivas habituales, Centro Polideportivo de Monóvar, Av. Novelda, s/n, 03640 Monòver, Alicante, son distintas del domicilio social."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "finalidades-y-bases",
+          "children": [
+            {
+              "type": "text",
+              "value": "Finalidades y bases"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Los datos se tratan sólo para finalidades determinadas y con la información necesaria en cada contexto."
+            }
+          ]
+        },
+        {
+          "type": "table",
+          "headers": [
+            [
+              {
+                "type": "text",
+                "value": "Contexto"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "value": "Finalidad"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "value": "Fundamento previsto"
+              }
+            ]
+          ],
+          "rows": [
+            [
+              [
+                {
+                  "type": "text",
+                  "value": "Cuentas y autenticación"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "Crear y proteger la cuenta, permitir el acceso y recuperar credenciales"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "Ejecución de la relación solicitada, medidas precontractuales cuando correspondan y obligaciones aplicables"
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "type": "text",
+                  "value": "Relación deportiva e inscripciones"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "Gestionar participantes, Escuela, competiciones, equipos, partidos, resultados y comunicaciones operativas"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "Gestión de la relación deportiva o de la inscripción y obligaciones aplicables"
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "type": "text",
+                  "value": "Contacto"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "Recibir, organizar y responder una consulta cuando el formulario llegue a activarse"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "Consentimiento asociado al envío voluntario de la consulta"
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "type": "text",
+                  "value": "Seguridad y administración"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "Prevenir abusos, limitar peticiones, diagnosticar incidencias y proteger cuentas y sistemas"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "Interés legítimo sujeto a validación y ponderación, además de las obligaciones aplicables"
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "type": "text",
+                  "value": "Identidad deportiva pública"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "Mostrar una identidad opcional en resultados y otras superficies públicas"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "Consentimiento específico, verificable y revocable"
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "type": "text",
+                  "value": "Imágenes y redes sociales"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "Publicar una imagen en cada canal autorizado"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "Consentimiento separado por finalidad y canal u otra base acreditada para el caso concreto"
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "type": "text",
+                  "value": "Junta directiva"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "Informar de la composición y cargos del órgano del club"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "Función institucional y fundamento aplicable, con publicación limitada a nombre y cargo"
+                }
+              ]
+            ]
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Una aceptación necesaria para participar o inscribirse no autoriza por sí sola la publicación de la identidad o de imágenes. Esos usos requieren decisiones independientes."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "cuentas-perfiles-y-autenticacion",
+          "children": [
+            {
+              "type": "text",
+              "value": "Cuentas, perfiles y autenticación"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "El registro y el área de cuenta pueden tratar nombre, apellidos, correo, credenciales protegidas, rol, estado de cuenta y tokens de acceso. El perfil deportivo puede incluir alias, fecha de nacimiento, nivel y otros datos necesarios para la gestión. Los identificadores de mayor impacto y las notas internas quedan restringidos a los contextos autorizados y no forman parte de las proyecciones públicas."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "React conserva el token Bearer de autenticación en "
+            },
+            {
+              "type": "inlineCode",
+              "value": "localStorage.token"
+            },
+            {
+              "type": "text",
+              "value": ". El perfil se restaura desde el servidor y no se almacena en "
+            },
+            {
+              "type": "inlineCode",
+              "value": "localStorage.user"
+            },
+            {
+              "type": "text",
+              "value": ". El cierre de sesión elimina el token local correspondiente."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "contacto",
+          "children": [
+            {
+              "type": "text",
+              "value": "Contacto"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "El formulario de Contacto permanece desactivado. La página pública no recoge ni conserva campos de consulta. Antes de activarlo se informará de la finalidad, el plazo, el destinatario operativo y el proveedor de correo; la persona usuaria deberá realizar una acción afirmativa no premarcada."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Cuando se active, la consulta podrá incluir nombre, correo, asunto y mensaje, además de datos técnicos minimizados para prevenir abuso. No debe incorporarse información innecesaria en el texto libre."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "escuela-de-galotxas",
+          "children": [
+            {
+              "type": "text",
+              "value": "Escuela de Galotxas"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "La solicitud de Escuela puede incluir datos del participante, fecha de nacimiento, teléfono y correo de contacto, nivel opcional y, cuando sea menor, datos de su representante y relación con el menor. Esta información se utiliza para tramitar y gestionar la inscripción, no para publicar al alumno."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Los centros educativos y las actividades coordinadas con ellos son información interna y no se exponen mediante la API pública de Escuela."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "competicion-e-identidad-deportiva-publica",
+          "children": [
+            {
+              "type": "text",
+              "value": "Competición e identidad deportiva pública"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "La gestión deportiva trata inscripciones, equipos, partidos, resultados, clasificaciones, calendarios y reprogramaciones. La API pública utiliza una proyección minimizada y no publica identificadores personales, correo, fecha de nacimiento ni el perfil privado completo."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Para personas adultas, el sistema puede mostrar el alias deportivo y, si no existe, el nombre con la inicial del primer apellido. Para menores o personas cuya fecha de nacimiento no consta, la regla actual es cerrada: "
+            },
+            {
+              "type": "strong",
+              "children": [
+                {
+                  "type": "text",
+                  "value": "sin autorización verificable y vigente se muestra “Participante”"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "value": ". React representa esa cadena y no reconstruye una identidad con otros campos."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "menores-y-autorizacion-futura",
+          "children": [
+            {
+              "type": "text",
+              "value": "Menores y autorización futura"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "La inscripción deportiva y la autorización para mostrar una identidad pública son independientes. La autorización pública será opcional, no condicionará la participación, no estará premarcada, será específica y revocable, y registrará su versión y alcance."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Los modos que podrán autorizarse en el futuro son:"
+            }
+          ]
+        },
+        {
+          "type": "unorderedList",
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "alias;"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "nombre e inicial del primer apellido;"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "identidad anónima."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Las iniciales también pueden permitir identificar a una persona y no se usarán sin autorización. El diseño futuro distinguirá:"
+            }
+          ]
+        },
+        {
+          "type": "unorderedList",
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "identidad en resultados;"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "imágenes en la web;"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "imágenes en redes sociales;"
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "text",
+                  "value": "conservación en archivo histórico."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Ese flujo todavía no está implementado. Su diseño prevé confirmación del representante para menores de 14 años; aceptación del menor y confirmación del representante entre 14 y 17 años; y consentimiento propio desde los 18 años. La confirmación se realizará mediante un enlace de correo de un solo uso, declaración de patria potestad o tutela, revisión administrativa y un mecanismo de revocación. No se solicitará un documento de identidad de forma general; cualquier comprobación adicional requerirá una duda justificada y una medida proporcionada."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Hasta que exista ese registro verificable, cualquier menor o edad desconocida mantiene la etiqueta “Participante”."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "imagenes",
+          "children": [
+            {
+              "type": "text",
+              "value": "Imágenes"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "La publicación de imágenes exige acreditar procedencia, autoría o cesión, personas identificables, presencia de menores, finalidad, canales, vigencia y procedimiento de retirada. La autorización para la web no se extiende automáticamente a redes sociales ni al archivo histórico. Los archivos existentes no se consideran autorizados por el mero hecho de estar en el repositorio."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "administracion-seguridad-logs-y-copias",
+          "children": [
+            {
+              "type": "text",
+              "value": "Administración, seguridad, logs y copias"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Los administradores activos acceden a la información necesaria para sus funciones mediante el panel protegido. Se aplican controles de autenticación, autorización, CSRF, limitación de peticiones y registro técnico de incidencias. Los accesos y permisos deben revisarse conforme al principio de mínimo privilegio."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Los logs pueden contener datos técnicos como dirección IP, agente de usuario, identificador de cuenta o contexto de un error. Deben minimizarse y limitarse a diagnóstico y seguridad. Las copias de seguridad son una medida operativa de recuperación y no una fuente para conservar datos indefinidamente."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "conservacion",
+          "children": [
+            {
+              "type": "text",
+              "value": "Conservación"
+            }
+          ]
+        },
+        {
+          "type": "table",
+          "headers": [
+            [
+              {
+                "type": "text",
+                "value": "Tratamiento"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "value": "Plazo o criterio"
+              }
+            ]
+          ],
+          "rows": [
+            [
+              [
+                {
+                  "type": "text",
+                  "value": "Consultas de Contacto"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "12 meses desde el cierre"
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "type": "text",
+                  "value": "Hash de IP contra abuso"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "30 días como máximo, salvo incidente"
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "type": "text",
+                  "value": "Solicitud de Escuela retirada, rechazada o no formalizada"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "6 meses desde el cierre"
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "type": "text",
+                  "value": "Alumnos de Escuela"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "Durante la inscripción y 2 años después"
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "type": "text",
+                  "value": "Cuentas inactivas"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "Revisión a 24 meses; aviso y eliminación tras 30 días"
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "type": "text",
+                  "value": "Logs ordinarios"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "30 días"
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "type": "text",
+                  "value": "Logs de seguridad"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "90 días"
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "type": "text",
+                  "value": "Copias de seguridad"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "Rotación de 30 días"
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "type": "text",
+                  "value": "Autorizaciones de imágenes"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "Mientras se publique la imagen y 3 años después"
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "type": "text",
+                  "value": "Datos completos de competición"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "Mientras sean necesarios para gestión activa"
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "type": "text",
+                  "value": "Resultados históricos"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "Conservación histórica con identidad minimizada"
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "type": "text",
+                  "value": "Junta directiva"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "value": "Durante el cargo y después sólo en contexto histórico justificado"
+                }
+              ]
+            ]
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Una reclamación, una obligación aplicable o un incidente de seguridad puede suspender el borrado de los datos estrictamente necesarios mientras subsista esa causa. Al vencer cada plazo, los datos se eliminarán o anonimizarán. No se conservarán indefinidamente por mera conveniencia y se distinguirán los datos privados operativos de los resultados históricos con identidad minimizada."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Estos criterios requieren procedimientos técnicos antes del despliegue productivo; esta versión no incorpora tareas automáticas de borrado."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "proveedores-y-transferencias",
+          "children": [
+            {
+              "type": "text",
+              "value": "Proveedores y transferencias"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "El despliegue previsto contempla Vercel para el frontend, Railway para backend y base de datos, GitHub para el repositorio y el servicio asociado a la dirección pública de Hotmail para ese buzón. El proveedor de correo saliente del futuro formulario todavía no se ha seleccionado."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Antes de producción se revisarán la configuración efectiva, accesos, contratos, encargos, ubicación del tratamiento, copias, eliminación y, si existieran, transferencias internacionales y sus garantías. Esta política no atribuye una región, contrato o transferencia concreta sin verificarla."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "derechos-y-reclamacion",
+          "children": [
+            {
+              "type": "text",
+              "value": "Derechos y reclamación"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Las personas pueden solicitar acceso, rectificación, supresión, oposición, limitación y portabilidad cuando resulten aplicables, así como retirar un consentimiento sin afectar a la licitud del tratamiento previo. La solicitud puede enviarse al correo indicado, describiendo el derecho y aportando sólo la información necesaria para verificar la identidad y responder."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Si una persona considera que su solicitud no ha sido atendida adecuadamente, puede reclamar ante la "
+            },
+            {
+              "type": "externalLink",
+              "label": "Agencia Española de Protección de Datos",
+              "href": "https://www.aepd.es/"
+            },
+            {
+              "type": "text",
+              "value": "."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "seguridad-y-cambios",
+          "children": [
+            {
+              "type": "text",
+              "value": "Seguridad y cambios"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "El club aplica medidas técnicas y organizativas proporcionadas al contexto y revisa sus riesgos. Ningún sistema es completamente inmune a incidentes; si se detecta uno, se evaluará y gestionará conforme a las obligaciones aplicables."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "La política puede actualizarse por cambios normativos, operativos o técnicos. La cabecera muestra la versión y la fecha de publicación vigentes."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LEG-003",
+      "title": "Política de cookies y almacenamiento local",
+      "slug": "cookies",
+      "version": "1.0.0",
+      "status": "vigente",
+      "publishedAt": "2026-08-06",
+      "reviewedAt": "2026-08-06",
+      "owner": "Club Galotxes de Monover",
+      "summary": "Estado actual de cookies, almacenamiento local y recursos externos utilizados por Galotxas.",
+      "route": "/legal/cookies",
+      "order": 3,
+      "headings": [
+        {
+          "level": 2,
+          "text": "Alcance",
+          "id": "alcance"
+        },
+        {
+          "level": 2,
+          "text": "Web pública",
+          "id": "web-publica"
+        },
+        {
+          "level": 2,
+          "text": "Cuenta React y almacenamiento local",
+          "id": "cuenta-react-y-almacenamiento-local"
+        },
+        {
+          "level": 2,
+          "text": "Administración Laravel",
+          "id": "administracion-laravel"
+        },
+        {
+          "level": 2,
+          "text": "Contacto",
+          "id": "contacto"
+        },
+        {
+          "level": 2,
+          "text": "Consentimiento y revisión",
+          "id": "consentimiento-y-revision"
+        },
+        {
+          "level": 2,
+          "text": "Vigencia",
+          "id": "vigencia"
+        }
+      ],
+      "blocks": [
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "alcance",
+          "children": [
+            {
+              "type": "text",
+              "value": "Alcance"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Esta política describe el estado técnico auditado de Galotxas. Distingue las cookies del almacenamiento local del navegador y de los recursos que podrían solicitarse a terceros."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "web-publica",
+          "children": [
+            {
+              "type": "text",
+              "value": "Web pública"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "La web pública no utiliza actualmente cookies no esenciales según la configuración auditada. No incorpora analítica, publicidad, píxeles, mapas o vídeos embebidos, widgets sociales ni service workers."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Tampoco carga automáticamente Google Fonts, Bunny Fonts o recursos desde jsDelivr. Los enlaces a Facebook e Instagram son enlaces normales y sólo trasladan a la persona usuaria al servicio externo cuando decide activarlos."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "cuenta-react-y-almacenamiento-local",
+          "children": [
+            {
+              "type": "text",
+              "value": "Cuenta React y almacenamiento local"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Cuando una persona inicia sesión, React conserva el token Bearer de acceso en "
+            },
+            {
+              "type": "inlineCode",
+              "value": "localStorage.token"
+            },
+            {
+              "type": "text",
+              "value": " para autenticar las peticiones a la API. Es almacenamiento local de primera parte, no una cookie. Se elimina al cerrar sesión y también ante las respuestas de sesión inválida previstas por la aplicación."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "El perfil no se conserva en "
+            },
+            {
+              "type": "inlineCode",
+              "value": "localStorage.user"
+            },
+            {
+              "type": "text",
+              "value": ". Cualquier valor legado con esa clave se elimina y el perfil actual se obtiene del servidor para mantenerlo sólo en memoria durante la sesión de la interfaz."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "administracion-laravel",
+          "children": [
+            {
+              "type": "text",
+              "value": "Administración Laravel"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "El panel administrativo Blade puede usar una cookie de sesión Laravel y un token CSRF asociado para autenticar a administradores y proteger formularios. Son mecanismos técnicos de primera parte necesarios para el acceso administrativo. Su nombre y atributos efectivos dependen de la configuración segura del entorno desplegado."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "contacto",
+          "children": [
+            {
+              "type": "text",
+              "value": "Contacto"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "El formulario de Contacto está desactivado. La ruta pública no presenta el formulario ni persiste campos de una consulta. Su futura activación exigirá revisar de nuevo esta política y la configuración de correo y seguridad."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "consentimiento-y-revision",
+          "children": [
+            {
+              "type": "text",
+              "value": "Consentimiento y revisión"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "No se muestra un banner porque, en el estado técnico descrito, la web pública no instala cookies o recursos automáticos no esenciales que requieran esa elección. Los mecanismos de sesión y autenticación se explican por transparencia."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Esta conclusión debe revisarse antes de incorporar analítica, publicidad, contenido embebido, fuentes remotas, widgets, preferencias persistentes u otro almacenamiento no esencial. Si cambia el inventario, se actualizarán la información, la versión y, cuando corresponda, el mecanismo de consentimiento antes de activar el nuevo recurso."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "vigencia",
+          "children": [
+            {
+              "type": "text",
+              "value": "Vigencia"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "La versión y la fecha de publicación mostradas en la cabecera identifican el estado auditado al que se refiere esta política."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

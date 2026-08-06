@@ -1,5 +1,6 @@
 import { clubPath } from '../features/club/clubRoutes';
 import { learnPath, manualPath } from '../features/knowledge/knowledgeRoutes';
+import { legalPages } from '../features/legal/legalRoutes';
 import { schoolPath } from '../features/school/schoolRoutes';
 
 export const navigationItemTypes = Object.freeze({
@@ -115,6 +116,10 @@ export const publicSocialLinks = Object.freeze([
 
 export const publicFooterNavigation = Object.freeze(
   clubChildren.map(({ id, label, to }) => Object.freeze({ id, label, to })),
+);
+
+export const publicLegalNavigation = Object.freeze(
+  Object.values(legalPages).map(({ id, label, path }) => Object.freeze({ id, label, to: path })),
 );
 
 const normalizePathname = (pathname) => {

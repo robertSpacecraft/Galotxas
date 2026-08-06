@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import {
   publicFooterNavigation,
+  publicLegalNavigation,
   publicSiteIdentity,
   publicSocialLinks,
 } from '../../navigation/publicNavigation';
@@ -46,6 +47,17 @@ export const Footer = () => {
                     {' '}(se abre en una pestaña nueva)
                   </span>
                 </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <nav className={styles.linkGroup} aria-label="Información legal">
+          <p className={styles.groupTitle}>Legal</p>
+          <ul className={styles.linkList}>
+            {publicLegalNavigation.map((item) => (
+              <li key={item.id}>
+                <Link to={item.to}>{item.label}</Link>
               </li>
             ))}
           </ul>
