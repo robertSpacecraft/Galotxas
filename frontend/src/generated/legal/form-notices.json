@@ -250,6 +250,155 @@
           ]
         }
       ]
+    },
+    {
+      "id": "NOTICE-CONTACT-FORM",
+      "title": "Información de privacidad del formulario de Contacto",
+      "version": "1.0.0",
+      "status": "vigente",
+      "publishedAt": "2026-08-07",
+      "reviewedAt": "2026-08-07",
+      "owner": "Club Galotxes de Monover",
+      "scope": "contact_request",
+      "summary": "Información esencial sobre el tratamiento necesario para atender una consulta enviada voluntariamente al club.",
+      "order": 2,
+      "headings": [
+        {
+          "level": 2,
+          "text": "Responsable y finalidad",
+          "id": "responsable-y-finalidad"
+        },
+        {
+          "level": 2,
+          "text": "Base, destinatarios y conservación",
+          "id": "base-destinatarios-y-conservacion"
+        },
+        {
+          "level": 2,
+          "text": "Derechos e información adicional",
+          "id": "derechos-e-informacion-adicional"
+        }
+      ],
+      "blocks": [
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "responsable-y-finalidad",
+          "children": [
+            {
+              "type": "text",
+              "value": "Responsable y finalidad"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "strong",
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Club Galotxes de Monover"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "value": " es responsable del tratamiento. Los datos se utilizan exclusivamente para recibir, organizar, atender y gestionar la consulta que la persona decide enviar."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "El envío es opcional. Para tramitarlo son necesarios el nombre, el correo electrónico, el asunto, el mensaje y la aceptación expresa de esta información. No deben incluirse datos innecesarios en el mensaje."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "base-destinatarios-y-conservacion",
+          "children": [
+            {
+              "type": "text",
+              "value": "Base, destinatarios y conservación"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "La base del tratamiento es el consentimiento asociado al envío voluntario de la consulta. Los datos sólo serán accesibles para las personas autorizadas del club y, cuando se configure, para las categorías de proveedores técnicos necesarias para prestar y proteger el servicio, sin atribuir aquí un proveedor no verificado."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "La consulta se conserva durante 12 meses desde su cierre. Una reclamación, un incidente o una obligación aplicable puede suspender temporalmente la eliminación de los datos estrictamente necesarios."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "derechos-e-informacion-adicional",
+          "children": [
+            {
+              "type": "text",
+              "value": "Derechos e información adicional"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Puede solicitar el ejercicio de los derechos aplicables escribiendo a clubgalotxesmonover@hotmail.com. La información ampliada está disponible en la Política de privacidad, en "
+            },
+            {
+              "type": "inlineCode",
+              "value": "/legal/privacidad"
+            },
+            {
+              "type": "text",
+              "value": "."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "No se toman decisiones automatizadas sobre la consulta. Este aviso corresponde a la versión "
+            },
+            {
+              "type": "strong",
+              "children": [
+                {
+                  "type": "text",
+                  "value": "1.0.0"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "value": "."
+            }
+          ]
+        }
+      ],
+      "privacyUrl": "/legal/privacidad"
     }
   ]
 }

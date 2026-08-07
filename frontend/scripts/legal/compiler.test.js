@@ -69,16 +69,24 @@ describe('legal compiler', () => {
     expect(JSON.stringify(artifact)).not.toMatch(/legal-drafts|knowledge\//i)
   })
 
-  it('projects the single allowlisted form notice separately from public legal pages', async () => {
+  it('projects the two allowlisted form notices separately from public legal pages', async () => {
     const { artifact } = await compileFormNoticeArtifact(DEFAULT_LEGAL_ROOT)
 
-    expect(artifact.notices).toHaveLength(1)
+    expect(artifact.notices).toHaveLength(2)
     expect(artifact.notices[0]).toMatchObject({
       id: 'NOTICE-PUBLIC-IDENTITY-MINORS',
       version: '1.0.0',
       status: 'vigente',
       scope: 'public_competition_identity',
       owner: 'Club Galotxes de Monover',
+    })
+    expect(artifact.notices[0]).not.toHaveProperty('privacyUrl')
+    expect(artifact.notices[1]).toMatchObject({
+      id: 'NOTICE-CONTACT-FORM',
+      version: '1.0.0',
+      status: 'vigente',
+      scope: 'contact_request',
+      privacyUrl: '/legal/privacidad',
     })
     expect(JSON.stringify(artifact)).not.toMatch(/knowledge\/|legal-drafts|guardian@example/i)
   })
@@ -89,11 +97,15 @@ describe('legal compiler', () => {
     const legalRoot = path.join(parent, 'legal')
     const noticesRoot = path.join(legalRoot, 'notices')
     await mkdir(noticesRoot, { recursive: true })
+    for (const notice of FORM_NOTICES) {
+      const source = await readFile(
+        path.join(DEFAULT_LEGAL_ROOT, 'notices', notice.filename),
+        'utf8',
+      )
+      await writeFile(path.join(noticesRoot, notice.filename), source, 'utf8')
+    }
     const contract = FORM_NOTICES[0]
-    const canonical = await readFile(
-      path.join(DEFAULT_LEGAL_ROOT, 'notices', contract.filename),
-      'utf8',
-    )
+    const canonical = await readFile(path.join(noticesRoot, contract.filename), 'utf8')
     await writeFile(
       path.join(noticesRoot, contract.filename),
       canonical.replace('scope: public_competition_identity', 'scope: public_images'),

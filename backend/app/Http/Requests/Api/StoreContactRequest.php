@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Services\ContactNoticeService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Validator;
@@ -41,6 +42,8 @@ class StoreContactRequest extends FormRequest
             'subject' => ['required', 'string', 'min:3', 'max:200'],
             'message' => ['required', 'string', 'min:10', 'max:5000'],
             'privacy_accepted' => ['required', 'accepted'],
+            'privacy_notice_id' => ['required', 'string', 'max:80'],
+            'privacy_notice_version' => ['required', 'string', 'max:20'],
             'website' => ['nullable', 'string', 'max:255'],
             'id' => ['prohibited'],
             'status' => ['prohibited'],
@@ -60,6 +63,8 @@ class StoreContactRequest extends FormRequest
                 'subject',
                 'message',
                 'privacy_accepted',
+                'privacy_notice_id',
+                'privacy_notice_version',
                 'website',
             ];
             $unexpectedFields = array_diff(
@@ -71,6 +76,21 @@ class StoreContactRequest extends FormRequest
                 $validator->errors()->add(
                     'payload',
                     'La solicitud contiene campos no permitidos.'
+                );
+            }
+
+            if ($validator->errors()->isNotEmpty()) {
+                return;
+            }
+
+            $notices = app(ContactNoticeService::class);
+            if (! $notices->recognizes(
+                (string) $this->input('privacy_notice_id'),
+                (string) $this->input('privacy_notice_version')
+            )) {
+                $validator->errors()->add(
+                    'privacy_notice_version',
+                    'La versión de la información de privacidad ya no está vigente.'
                 );
             }
         });

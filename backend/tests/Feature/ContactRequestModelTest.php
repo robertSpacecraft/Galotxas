@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ContactNotificationStatus;
 use App\Enums\ContactRequestStatus;
 use App\Models\ContactRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -22,7 +23,21 @@ class ContactRequestModelTest extends TestCase
             'message',
             'status',
             'consent_at',
+            'privacy_notice_id',
+            'privacy_notice_version',
+            'closed_at',
+            'retention_until',
+            'notification_status',
+            'notification_attempt_count',
+            'notification_attempted_at',
+            'notification_sent_at',
+            'notification_failed_at',
+            'notification_failure_code',
             'ip_hash',
+            'ip_hash_expires_at',
+            'retention_hold',
+            'retention_hold_reason',
+            'anonymized_at',
             'created_at',
             'updated_at',
         ]));
@@ -32,11 +47,14 @@ class ContactRequestModelTest extends TestCase
         }
     }
 
-    public function test_model_casts_status_and_consent_timestamp(): void
+    public function test_model_casts_operational_statuses_booleans_and_timestamps(): void
     {
         $contactRequest = ContactRequest::factory()->create([
             'status' => ContactRequestStatus::READ->value,
             'consent_at' => '2026-08-04 10:30:00',
+            'notification_status' => 'failed',
+            'retention_hold' => 1,
+            'retention_until' => '2027-08-04 10:30:00',
         ]);
 
         $this->assertSame(ContactRequestStatus::READ, $contactRequest->status);
@@ -44,6 +62,9 @@ class ContactRequestModelTest extends TestCase
             '2026-08-04T10:30:00+00:00',
             $contactRequest->consent_at->toIso8601String()
         );
+        $this->assertSame(ContactNotificationStatus::FAILED, $contactRequest->notification_status);
+        $this->assertTrue($contactRequest->retention_hold);
+        $this->assertSame('2027-08-04', $contactRequest->retention_until->format('Y-m-d'));
     }
 
     public function test_factory_exposes_all_statuses_and_scopes_order_stably(): void
@@ -69,5 +90,15 @@ class ContactRequestModelTest extends TestCase
                 ->pluck('id')
                 ->all()
         );
+    }
+
+    public function test_legacy_factory_does_not_invent_a_versioned_consent(): void
+    {
+        $contactRequest = ContactRequest::factory()->legacy()->create();
+
+        $this->assertTrue($contactRequest->isLegacy());
+        $this->assertNull($contactRequest->privacy_notice_id);
+        $this->assertNull($contactRequest->privacy_notice_version);
+        $this->assertNotNull($contactRequest->consent_at);
     }
 }

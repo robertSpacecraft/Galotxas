@@ -1,5 +1,11 @@
 import { expect, test } from '@playwright/test';
 
+const backendBaseURL = process.env.E2E_BACKEND_URL || 'http://127.0.0.1:8081';
+const adminCredentials = {
+  email: 'admin.e2e@example.test',
+  password: 'E2E-password-123!',
+};
+
 const clubPages = [
   {
     path: '/club/quienes-somos',
@@ -39,6 +45,14 @@ const fillContactForm = async (page) => {
   await page.getByLabel('Mensaje', { exact: false })
     .fill('Este mensaje se genera sólo en la base temporal de las pruebas E2E.');
   await page.getByRole('checkbox').check();
+};
+
+const loginAdmin = async (page) => {
+  await page.goto(`${backendBaseURL}/admin/login`);
+  await page.getByLabel('Email').fill(adminCredentials.email);
+  await page.getByLabel('Contraseña').fill(adminCredentials.password);
+  await page.getByRole('button', { name: 'Entrar' }).click();
+  await expect(page).toHaveURL(/\/admin$/);
 };
 
 test.describe.serial('fachadas públicas de Club', () => {
@@ -134,6 +148,12 @@ test.describe.serial('fachadas públicas de Club', () => {
 
     const name = page.getByLabel('Nombre', { exact: false });
     const email = page.getByLabel('Correo electrónico', { exact: false });
+    const consent = page.getByRole('checkbox');
+    await expect(page.getByText('Club Galotxes de Monover', { exact: false }).first()).toBeVisible();
+    await expect(page.getByText(/Aviso NOTICE-CONTACT-FORM, versión 1.0.0/)).toBeVisible();
+    await expect(page.getByRole('link', { name: /Política de privacidad/ }))
+      .toHaveAttribute('target', '_blank');
+    await expect(consent).not.toBeChecked();
     await expect(name).toBeVisible();
     await name.focus();
     await expect(name).toBeFocused();
@@ -175,6 +195,28 @@ test.describe.serial('fachadas públicas de Club', () => {
     await expect(page.getByLabel('Nombre', { exact: false })).toHaveCount(0);
   });
 
+  test('acredita versión, consentimiento, correo fake y cierre desde Blade', async ({ page }) => {
+    await loginAdmin(page);
+    await page.goto(`${backendBaseURL}/admin/contact-requests`);
+
+    const row = page.getByRole('row').filter({ hasText: 'Consulta desde Playwright' });
+    await expect(row).toBeVisible();
+    await expect(row.getByText('Enviada')).toBeVisible();
+    await row.getByRole('link', { name: 'Ver detalle' }).click();
+
+    await expect(page.getByText('NOTICE-CONTACT-FORM')).toBeVisible();
+    await expect(page.getByText('Versión 1.0.0')).toBeVisible();
+    await expect(page.getByText('Consentimiento registrado')).toBeVisible();
+    await expect(page.getByText('1 intento(s)')).toBeVisible();
+
+    page.once('dialog', (dialog) => dialog.accept());
+    await page.getByRole('button', { name: 'Cerrar', exact: true }).click();
+
+    await expect(page.getByText('La solicitud se ha cerrado conservando su contenido original.'))
+      .toBeVisible();
+    await expect(page.getByText('No iniciado')).toHaveCount(0);
+  });
+
   test('mantiene 404 para /club y todos los descendientes desconocidos', async ({ page }) => {
     for (const pathname of [
       '/club',
@@ -205,6 +247,18 @@ test.describe.serial('fachadas públicas de Club', () => {
           .toBe(true);
       }
     }
+
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto('/club/contacto');
+    await page.evaluate(() => {
+      document.body.style.zoom = '200%';
+    });
+    await expect.poll(() => page.evaluate(
+      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+    )).toBe(true);
+    await page.evaluate(() => {
+      document.body.style.zoom = '';
+    });
   });
 
   test('expone las cuatro fachadas canónicas bajo el disclosure Club', async ({ page }) => {

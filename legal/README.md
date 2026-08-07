@@ -10,9 +10,10 @@ Documentos admitidos:
 - `cookies.md` → `/legal/cookies`.
 
 Los avisos específicos para formularios viven bajo `legal/notices/` y no crean
-una cuarta página pública. La allowlist actual contiene únicamente
-`notices/public-identity-minors.md`, cuya proyección se consume en Escuela, el
-correo de confirmación y la revisión administrativa.
+una cuarta página pública. La allowlist contiene
+`notices/public-identity-minors.md` y `notices/contact-form.md`; sus
+proyecciones se consumen respectivamente en la autorización de identidad de
+menores y en la primera capa de Contacto.
 
 No se admite un cuarto documento sin cambiar previamente el contrato cerrado y
 su documentación. `README.md` queda fuera de la proyección pública. Los
@@ -22,6 +23,8 @@ runtime.
 Cada documento utiliza front matter con los campos `id`, `title`, `slug`,
 `version`, `status`, `published_at`, `reviewed_at`, `owner`, `source_draft` y
 `summary`. El cuerpo debe comenzar por un único H1 idéntico al título.
+Los avisos omiten `slug` y `source_draft`, añaden `scope` y `privacy_url`, y no
+crean rutas públicas propias.
 
 La validación y generación se ejecutan desde `frontend/`:
 

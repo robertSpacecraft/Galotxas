@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { contactService } from '../contact/contactService';
+import { LegalRenderer } from '../legal/LegalRenderer';
 import styles from './ClubPage.module.css';
 
 const emptyFields = {
@@ -65,7 +66,7 @@ const FieldError = ({ field, errors }) => (
   ) : null
 );
 
-export const ContactForm = () => {
+export const ContactForm = ({ notice }) => {
   const [fields, setFields] = useState(emptyFields);
   const [errors, setErrors] = useState({});
   const [submitState, setSubmitState] = useState('idle');
@@ -143,6 +144,8 @@ export const ContactForm = () => {
       subject: fields.subject.trim(),
       message: fields.message.trim(),
       privacy_accepted: fields.privacy_accepted,
+      privacy_notice_id: notice.id,
+      privacy_notice_version: notice.version,
       website: fields.website,
     };
 
@@ -204,6 +207,22 @@ export const ContactForm = () => {
         Los campos marcados con <span aria-hidden="true">*</span> son obligatorios.
       </p>
 
+      <aside
+        id="club-contact-privacy-notice"
+        className={styles.privacyNotice}
+        aria-labelledby="club-contact-privacy-notice-title"
+      >
+        <h3 id="club-contact-privacy-notice-title">Información sobre protección de datos</h3>
+        <LegalRenderer blocks={notice.blocks} />
+        <p className={styles.noticeMeta}>
+          Aviso {notice.id}, versión {notice.version}. Consulta la{' '}
+          <a href={notice.privacyUrl} target="_blank" rel="noopener noreferrer">
+            Política de privacidad
+            <span className={styles.srOnly}> (se abre en una pestaña nueva)</span>
+          </a>.
+        </p>
+      </aside>
+
       <div className={styles.field}>
         <label htmlFor="club-contact-name">
           Nombre <span aria-hidden="true">*</span>
@@ -254,13 +273,17 @@ export const ContactForm = () => {
           }}
           aria-invalid={Boolean(errors.privacy_accepted)}
           aria-describedby={
-            errors.privacy_accepted ? 'club-contact-privacy_accepted-error' : undefined
+            [
+              'club-contact-privacy-notice',
+              errors.privacy_accepted ? 'club-contact-privacy_accepted-error' : null,
+            ].filter(Boolean).join(' ')
           }
           required
         />
         <div>
           <label htmlFor="club-contact-privacy_accepted">
-            Confirmo que deseo enviar los datos introducidos para gestionar esta consulta.
+            He leído la información sobre protección de datos y acepto que el club trate
+            mis datos para atender esta consulta.
             {' '}<span aria-hidden="true">*</span>
           </label>
           <FieldError field="privacy_accepted" errors={errors} />

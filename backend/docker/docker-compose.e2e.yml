@@ -29,6 +29,13 @@ services:
       # Fuerza un fallo controlado para verificar que la autorización persiste sin proveedor real.
       MAIL_MAILER: public-identity-e2e-failure
       CONTACT_FORM_ENABLED: "true"
+      CONTACT_NOTIFICATION_ENABLED: "true"
+      CONTACT_NOTIFICATION_TO: contact-recipient@example.test
+      CONTACT_NOTIFICATION_FROM: no-reply@example.test
+      CONTACT_NOTIFICATION_REPLY_TO_MODE: requester
+      CONTACT_NOTIFICATION_MAILER: array
+      CONTACT_RETENTION_MONTHS: "12"
+      CONTACT_ABUSE_HASH_RETENTION_DAYS: "30"
       PUBLIC_IDENTITY_AUTHORIZATION_ENABLED: "true"
       PUBLIC_IDENTITY_NOTIFICATION_ENABLED: "true"
       PUBLIC_IDENTITY_CONFIRMATION_TTL_HOURS: "48"

@@ -35,7 +35,7 @@
                     action="{{ route('admin.contact-requests.index') }}"
                     class="row g-3 align-items-end"
                 >
-                    <div class="col-md-5">
+                    <div class="col-md-4">
                         <label for="status_filter" class="form-label">Estado</label>
                         <select id="status_filter" name="status" class="form-select">
                             <option value="">Todos</option>
@@ -50,7 +50,29 @@
                         </select>
                     </div>
 
-                    <div class="col-md-7 d-flex gap-2">
+                    <div class="col-md-4">
+                        <label for="notification_status_filter" class="form-label">Notificación</label>
+                        <select
+                            id="notification_status_filter"
+                            name="notification_status"
+                            class="form-select"
+                        >
+                            <option value="">Todas</option>
+                            @foreach ($notificationStatuses as $notificationStatus)
+                                <option
+                                    value="{{ $notificationStatus->value }}"
+                                    @selected(
+                                        ($filters['notification_status'] ?? '')
+                                            === $notificationStatus->value
+                                    )
+                                >
+                                    {{ $notificationStatus->label() }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="col-md-4 d-flex gap-2">
                         <button type="submit" class="btn btn-outline-primary">Filtrar</button>
                         <a
                             href="{{ route('admin.contact-requests.index') }}"
@@ -79,6 +101,7 @@
                                 <th>Correo</th>
                                 <th>Asunto</th>
                                 <th>Estado</th>
+                                <th>Notificación</th>
                                 <th class="text-center">Acción</th>
                             </tr>
                             </thead>
@@ -90,12 +113,17 @@
                                             {{ $contactRequest->created_at->format('d/m/Y H:i') }}
                                         </time>
                                     </td>
-                                    <td>{{ $contactRequest->name }}</td>
-                                    <td>{{ $contactRequest->email }}</td>
-                                    <td>{{ $contactRequest->subject }}</td>
+                                    <td>{{ $contactRequest->name ?? 'Datos anonimizados' }}</td>
+                                    <td>{{ $contactRequest->email ?? '—' }}</td>
+                                    <td>{{ $contactRequest->subject ?? '—' }}</td>
                                     <td>
                                         <span class="badge {{ $contactRequest->status->badgeClass() }}">
                                             {{ $contactRequest->status->label() }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {{ $contactRequest->notification_status->badgeClass() }}">
+                                            {{ $contactRequest->notification_status->label() }}
                                         </span>
                                     </td>
                                     <td class="text-center">

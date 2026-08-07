@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ContactServiceError, contactService } from '../contact/contactService';
+import { contactFormNotice } from '../legal/formNoticeRepository';
 import { ContactForm } from './ContactForm';
 
 vi.mock('../contact/contactService', async (importOriginal) => {
@@ -24,6 +25,8 @@ const fillValidForm = async (user) => {
   await user.click(screen.getByRole('checkbox'));
 };
 
+const renderForm = () => render(<ContactForm notice={contactFormNotice} />);
+
 describe('ContactForm', () => {
   beforeEach(() => {
     contactService.submit.mockReset();
@@ -31,7 +34,7 @@ describe('ContactForm', () => {
 
   it('validates required fields and focuses the first invalid control', async () => {
     const user = userEvent.setup();
-    render(<ContactForm />);
+    renderForm();
 
     await user.click(screen.getByRole('button', { name: 'Enviar mensaje' }));
 
@@ -43,7 +46,7 @@ describe('ContactForm', () => {
 
   it('requires consent and associates its error with the checkbox', async () => {
     const user = userEvent.setup();
-    render(<ContactForm />);
+    renderForm();
     await user.type(screen.getByLabelText(/^Nombre/), 'Persona interesada');
     await user.type(screen.getByLabelText(/^Correo electrónico/), 'persona@example.test');
     await user.type(screen.getByLabelText(/^Asunto/), 'Consulta');
@@ -53,14 +56,14 @@ describe('ContactForm', () => {
 
     expect(screen.getByRole('checkbox')).toHaveFocus();
     expect(screen.getByRole('checkbox')).toHaveAccessibleDescription(
-      'Debes confirmar el envío de los datos introducidos.',
+      /Debes confirmar el envío de los datos introducidos\.$/,
     );
   });
 
   it('submits the closed payload, clears fields and focuses the 201 result', async () => {
     const user = userEvent.setup();
     contactService.submit.mockResolvedValue({ data: { received: true } });
-    render(<ContactForm />);
+    renderForm();
     await fillValidForm(user);
 
     await user.click(screen.getByRole('button', { name: 'Enviar mensaje' }));
@@ -73,6 +76,8 @@ describe('ContactForm', () => {
       subject: 'Consulta técnica',
       message: 'Este es un mensaje suficientemente largo.',
       privacy_accepted: true,
+      privacy_notice_id: 'NOTICE-CONTACT-FORM',
+      privacy_notice_version: '1.0.0',
       website: '',
     });
     expect(screen.queryByLabelText('Nombre')).not.toBeInTheDocument();
@@ -85,7 +90,7 @@ describe('ContactForm', () => {
       kind: 'api',
       errors: { email: ['El correo ya no es válido.'] },
     }));
-    render(<ContactForm />);
+    renderForm();
     await fillValidForm(user);
 
     await user.click(screen.getByRole('button', { name: 'Enviar mensaje' }));
@@ -109,7 +114,7 @@ describe('ContactForm', () => {
       status,
       kind: status === null ? 'network' : 'api',
     }));
-    render(<ContactForm />);
+    renderForm();
     await fillValidForm(user);
 
     await user.click(screen.getByRole('button', { name: 'Enviar mensaje' }));
@@ -126,7 +131,7 @@ describe('ContactForm', () => {
     contactService.submit.mockReturnValue(new Promise((resolve) => {
       resolveRequest = resolve;
     }));
-    render(<ContactForm />);
+    renderForm();
     await fillValidForm(user);
 
     const button = screen.getByRole('button', { name: 'Enviar mensaje' });
@@ -143,7 +148,7 @@ describe('ContactForm', () => {
     const user = userEvent.setup();
     localStorage.clear();
     sessionStorage.clear();
-    const { container } = render(<ContactForm />);
+    const { container } = renderForm();
 
     const honeypot = container.querySelector('input[name="website"]');
     expect(honeypot).toHaveAttribute('tabindex', '-1');
@@ -154,7 +159,7 @@ describe('ContactForm', () => {
   });
 
   it('exposes semantic autocomplete and visible labels for keyboard use', () => {
-    render(<ContactForm />);
+    renderForm();
 
     expect(screen.getByLabelText(/^Nombre/)).toHaveAttribute('autocomplete', 'name');
     expect(screen.getByLabelText(/^Correo electrónico/)).toHaveAttribute('autocomplete', 'email');

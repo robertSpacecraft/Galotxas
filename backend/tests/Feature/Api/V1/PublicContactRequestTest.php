@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Api\V1;
 
+use App\Enums\ContactNotificationStatus;
 use App\Mail\ContactRequestReceived;
 use App\Models\ContactRequest;
 use App\Services\ContactRequestNotificationService;
@@ -18,6 +19,16 @@ class PublicContactRequestTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config([
+            'contact.notification.to' => 'contact-recipient@example.test',
+            'contact.notification.from' => 'no-reply@example.test',
+        ]);
+    }
+
     protected function tearDown(): void
     {
         CarbonImmutable::setTestNow();
@@ -31,6 +42,7 @@ class PublicContactRequestTest extends TestCase
             'contact.form_enabled' => false,
             'contact.notification.enabled' => true,
             'contact.notification.to' => 'private@example.test',
+            'contact.notification.from' => 'no-reply@example.test',
             'mail.default' => 'smtp',
         ]);
 
@@ -51,6 +63,7 @@ class PublicContactRequestTest extends TestCase
         config([
             'contact.form_enabled' => true,
             'contact.notification.enabled' => true,
+            'contact.notification.to' => 'contact-recipient@example.test',
         ]);
 
         $this->getJson('/api/v1/contact/config')
@@ -59,6 +72,9 @@ class PublicContactRequestTest extends TestCase
                 'message' => null,
                 'data' => [
                     'enabled' => true,
+                    'notice_id' => 'NOTICE-CONTACT-FORM',
+                    'notice_version' => '1.0.0',
+                    'privacy_url' => '/legal/privacidad',
                 ],
             ]);
     }
@@ -104,6 +120,9 @@ class PublicContactRequestTest extends TestCase
         $this->assertSame('Consulta general', $contactRequest->subject);
         $this->assertSame("Primera línea.\nSegunda línea.", $contactRequest->message);
         $this->assertSame('2026-08-04 12:00:00', $contactRequest->consent_at->format('Y-m-d H:i:s'));
+        $this->assertSame('NOTICE-CONTACT-FORM', $contactRequest->privacy_notice_id);
+        $this->assertSame('1.0.0', $contactRequest->privacy_notice_version);
+        $this->assertSame(ContactNotificationStatus::DISABLED, $contactRequest->notification_status);
         $this->assertSame(64, strlen($contactRequest->ip_hash));
         $this->assertNotSame('203.0.113.42', $contactRequest->ip_hash);
     }
@@ -203,7 +222,7 @@ class PublicContactRequestTest extends TestCase
         $this->assertDatabaseCount('contact_requests', 5);
     }
 
-    public function test_notification_is_not_sent_when_disabled_or_recipient_is_missing(): void
+    public function test_notification_is_not_sent_when_disabled(): void
     {
         Mail::fake();
         config([
@@ -216,17 +235,43 @@ class PublicContactRequestTest extends TestCase
             'email' => 'disabled-notification@example.test',
         ]))->assertCreated();
 
+        Mail::assertNothingSent();
+        $this->assertDatabaseCount('contact_requests', 1);
+        $this->assertSame(
+            ContactNotificationStatus::DISABLED,
+            ContactRequest::query()->sole()->notification_status
+        );
+    }
+
+    public function test_missing_recipient_fails_closed_before_validation_or_persistence(): void
+    {
         config([
-            'contact.notification.enabled' => true,
+            'contact.form_enabled' => true,
             'contact.notification.to' => '',
         ]);
 
-        $this->postJson('/api/v1/contact-requests', $this->validPayload([
-            'email' => 'missing-recipient@example.test',
-        ]))->assertCreated();
+        $this->postJson('/api/v1/contact-requests', $this->validPayload())
+            ->assertStatus(503);
+        $this->assertDatabaseCount('contact_requests', 0);
+    }
 
+    public function test_missing_controlled_from_keeps_persistence_and_marks_notification_disabled(): void
+    {
+        Mail::fake();
+        config([
+            'contact.form_enabled' => true,
+            'contact.notification.enabled' => true,
+            'contact.notification.from' => '',
+        ]);
+
+        $this->postJson('/api/v1/contact-requests', $this->validPayload())
+            ->assertCreated();
+
+        $this->assertSame(
+            ContactNotificationStatus::DISABLED,
+            ContactRequest::query()->sole()->notification_status
+        );
         Mail::assertNothingSent();
-        $this->assertDatabaseCount('contact_requests', 2);
     }
 
     public function test_notification_is_sent_only_after_the_request_is_persisted(): void
@@ -236,6 +281,7 @@ class PublicContactRequestTest extends TestCase
             'contact.form_enabled' => true,
             'contact.notification.enabled' => true,
             'contact.notification.to' => 'admin@example.test',
+            'contact.notification.from' => 'no-reply@example.test',
         ]);
 
         $this->postJson('/api/v1/contact-requests', $this->validPayload([
@@ -243,23 +289,33 @@ class PublicContactRequestTest extends TestCase
         ]))->assertCreated();
 
         $contactRequest = ContactRequest::query()->sole();
+        $this->assertSame(ContactNotificationStatus::SENT, $contactRequest->notification_status);
+        $this->assertSame(1, $contactRequest->notification_attempt_count);
 
         Mail::assertSent(
             ContactRequestReceived::class,
             fn (ContactRequestReceived $mail): bool => $mail->hasTo('admin@example.test')
                 && $mail->contactRequest->is($contactRequest)
                 && $mail->contactRequest->exists
+                && $mail->hasFrom('no-reply@example.test')
+                && $mail->hasReplyTo('notified@example.test')
         );
     }
 
     public function test_notification_failure_keeps_the_request_and_returns_201_without_logging_message_body(): void
     {
-        config(['contact.form_enabled' => true]);
+        config([
+            'contact.form_enabled' => true,
+            'contact.notification.enabled' => true,
+        ]);
         Log::spy();
         $this->mock(
             ContactRequestNotificationService::class,
             function (MockInterface $mock): void {
-                $mock->shouldReceive('notify')
+                $mock->shouldReceive('isReady')
+                    ->once()
+                    ->andReturn(true);
+                $mock->shouldReceive('send')
                     ->once()
                     ->andThrow(new RuntimeException('SMTP unavailable'));
             }
@@ -274,6 +330,8 @@ class PublicContactRequestTest extends TestCase
 
         $contactRequest = ContactRequest::query()->sole();
         $this->assertSame($body, $contactRequest->message);
+        $this->assertSame(ContactNotificationStatus::FAILED, $contactRequest->notification_status);
+        $this->assertSame('RuntimeException', $contactRequest->notification_failure_code);
 
         Log::shouldHaveReceived('error')
             ->once()
@@ -282,7 +340,7 @@ class PublicContactRequestTest extends TestCase
                 Mockery::on(function (array $context) use ($contactRequest, $body): bool {
                     return $context === [
                         'contact_request_id' => $contactRequest->id,
-                        'exception' => RuntimeException::class,
+                        'failure_code' => 'RuntimeException',
                     ] && ! in_array($body, $context, true);
                 })
             );
@@ -300,6 +358,8 @@ class PublicContactRequestTest extends TestCase
             'subject' => 'Consulta general',
             'message' => 'Este es un mensaje de contacto válido.',
             'privacy_accepted' => true,
+            'privacy_notice_id' => 'NOTICE-CONTACT-FORM',
+            'privacy_notice_version' => '1.0.0',
             'website' => '',
         ], $overrides);
     }

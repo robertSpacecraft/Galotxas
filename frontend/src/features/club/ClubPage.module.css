@@ -163,6 +163,36 @@
   font-size: 0.92rem;
 }
 
+.privacyNotice {
+  max-width: 760px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: clamp(1rem, 4vw, 1.5rem);
+  background: #f8fafc;
+}
+
+.privacyNotice h3 {
+  margin: 0 0 1rem;
+  color: #003366;
+  font-size: 1.25rem;
+}
+
+.privacyNotice h2 {
+  font-size: 1.1rem;
+}
+
+.noticeMeta {
+  margin: 1rem 0 0;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.privacyNotice a {
+  color: #005ea8;
+  font-weight: 700;
+  text-underline-offset: 0.2em;
+}
+
 .primaryButton,
 .secondaryButton {
   display: inline-flex;
@@ -198,6 +228,7 @@
 .consentField input:focus-visible,
 .primaryButton:focus-visible,
 .secondaryButton:focus-visible,
+.privacyNotice a:focus-visible,
 .formMessage:focus-visible,
 .successState:focus-visible {
   outline: 3px solid #003366;

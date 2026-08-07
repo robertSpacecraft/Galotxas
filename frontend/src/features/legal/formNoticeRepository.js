@@ -7,9 +7,27 @@ export const minorPublicIdentityNotice = (() => {
 
   if (
     noticeArtifact?.schemaVersion !== 1
-    || noticeArtifact?.notices?.length !== 1
+    || noticeArtifact?.notices?.length !== 2
     || notice?.status !== 'vigente'
     || notice?.scope !== 'public_competition_identity'
+  ) {
+    return null;
+  }
+
+  return notice;
+})();
+
+export const contactFormNotice = (() => {
+  const notice = noticeArtifact?.notices?.find(
+    (candidate) => candidate.id === 'NOTICE-CONTACT-FORM',
+  );
+
+  if (
+    noticeArtifact?.schemaVersion !== 1
+    || noticeArtifact?.notices?.length !== 2
+    || notice?.status !== 'vigente'
+    || notice?.scope !== 'contact_request'
+    || notice?.privacyUrl !== '/legal/privacidad'
   ) {
     return null;
   }

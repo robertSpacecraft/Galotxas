@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { contactService } from '../contact/contactService';
+import { contactFormNotice } from '../legal/formNoticeRepository';
 import { ContactForm } from './ContactForm';
 import styles from './ClubPage.module.css';
 
@@ -7,6 +8,14 @@ const initialState = {
   status: 'loading',
   enabled: false,
 };
+
+const hasCurrentNotice = (config) => (
+  config.enabled
+  && contactFormNotice
+  && config.notice_id === contactFormNotice.id
+  && config.notice_version === contactFormNotice.version
+  && config.privacy_url === contactFormNotice.privacyUrl
+);
 
 export const ContactPanel = () => {
   const [state, setState] = useState(initialState);
@@ -22,8 +31,8 @@ export const ContactPanel = () => {
 
       if (activeRequest.current === requestId) {
         setState({
-          status: config.enabled ? 'enabled' : 'disabled',
-          enabled: config.enabled,
+          status: hasCurrentNotice(config) ? 'enabled' : 'disabled',
+          enabled: hasCurrentNotice(config),
         });
       }
     } catch {
@@ -41,8 +50,8 @@ export const ContactPanel = () => {
       (config) => {
         if (activeRequest.current === requestId) {
           setState({
-            status: config.enabled ? 'enabled' : 'disabled',
-            enabled: config.enabled,
+            status: hasCurrentNotice(config) ? 'enabled' : 'disabled',
+            enabled: hasCurrentNotice(config),
           });
         }
       },
@@ -84,7 +93,9 @@ export const ContactPanel = () => {
         </div>
       ) : null}
 
-      {state.status === 'enabled' && state.enabled ? <ContactForm /> : null}
+      {state.status === 'enabled' && state.enabled ? (
+        <ContactForm notice={contactFormNotice} />
+      ) : null}
     </section>
   );
 };

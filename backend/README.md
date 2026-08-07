@@ -22,16 +22,19 @@ El runner valida con `docker compose config` el proyecto, archivo, entorno, base
 
 ## Contacto institucional
 
-Laravel incluye la base técnica de `ContactRequest`: persistencia local, POST
-público protegido, configuración pública allowlisted, bandeja Blade y
-notificación opcional posterior al guardado. Se mantiene desactivada por
-defecto mediante `CONTACT_FORM_ENABLED=false`; el destinatario y el flag de
-notificación nunca se exponen en la API. Consulta el contrato y los gates en
+Laravel incluye la operación de `ContactRequest`: consentimiento versionado,
+persistencia local como recepción, POST protegido, configuración fail-closed,
+notificación auxiliar con estado y reintento, bandeja Blade, cierre, retención,
+hold y anonimización. Se mantiene desactivada por defecto mediante
+`CONTACT_FORM_ENABLED=false`; destinatario, remitente, mailer y estados nunca
+se exponen en la API. Consulta el contrato histórico en
 [`docs/17-club-technical-preparation-and-contact.md`](../docs/17-club-technical-preparation-and-contact.md)
 y su consumo público en
 [`docs/18-club-public-facades.md`](../docs/18-club-public-facades.md). El entorno
 E2E habilita el formulario sólo dentro de su base temporal protegida; el default
 de cualquier otro entorno continúa siendo `false`.
+La operación vigente y los gates de 7F están en
+[`docs/24-contact-operation-and-privacy-layer.md`](../docs/24-contact-operation-and-privacy-layer.md).
 
 ## Privacidad técnica
 

@@ -54,7 +54,28 @@ export const contactService = {
         );
       }
 
-      return { enabled };
+      if (!enabled) {
+        return { enabled: false };
+      }
+
+      const config = response.data?.data;
+      if (
+        typeof config.notice_id !== 'string'
+        || typeof config.notice_version !== 'string'
+        || config.privacy_url !== '/legal/privacidad'
+      ) {
+        throw new ContactServiceError(
+          'La configuración de contacto recibida no es válida.',
+          { kind: 'unexpected' },
+        );
+      }
+
+      return {
+        enabled: true,
+        notice_id: config.notice_id,
+        notice_version: config.notice_version,
+        privacy_url: config.privacy_url,
+      };
     } catch (error) {
       if (error instanceof ContactServiceError) {
         throw error;

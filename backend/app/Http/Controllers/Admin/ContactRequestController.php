@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\ContactNotificationStatus;
 use App\Enums\ContactRequestStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\AnonymizeContactRequest;
 use App\Http\Requests\Admin\ListContactRequest;
+use App\Http\Requests\Admin\PlaceContactRetentionHold;
 use App\Http\Requests\Admin\UpdateContactRequestStatus;
 use App\Models\ContactRequest;
 use App\Services\ContactRequestService;
@@ -18,6 +21,10 @@ class ContactRequestController extends Controller
             ->when(
                 isset($filters['status']),
                 fn ($query) => $query->withStatus($filters['status'])
+            )
+            ->when(
+                isset($filters['notification_status']),
+                fn ($query) => $query->withNotificationStatus($filters['notification_status'])
             )
             ->ordered()
             ->paginate(25)
@@ -35,6 +42,7 @@ class ContactRequestController extends Controller
         return view('admin.contact-requests.index', [
             'contactRequests' => $contactRequests,
             'statuses' => ContactRequestStatus::cases(),
+            'notificationStatuses' => ContactNotificationStatus::cases(),
             'counts' => $counts,
             'filters' => $filters,
         ]);
@@ -42,6 +50,8 @@ class ContactRequestController extends Controller
 
     public function show(ContactRequest $contactRequest)
     {
+        $contactRequest->load('events.actor');
+
         return view('admin.contact-requests.show', compact('contactRequest'));
     }
 
@@ -51,7 +61,7 @@ class ContactRequestController extends Controller
         ContactRequestService $service
     ) {
         $request->validated();
-        $service->markAsRead($contactRequest);
+        $service->markAsRead($contactRequest, $request->user());
 
         return redirect()
             ->route('admin.contact-requests.show', $contactRequest)
@@ -64,10 +74,66 @@ class ContactRequestController extends Controller
         ContactRequestService $service
     ) {
         $request->validated();
-        $service->close($contactRequest);
+        $service->close($contactRequest, $request->user());
 
         return redirect()
             ->route('admin.contact-requests.show', $contactRequest)
             ->with('success', 'La solicitud se ha cerrado conservando su contenido original.');
+    }
+
+    public function retryNotification(
+        UpdateContactRequestStatus $request,
+        ContactRequest $contactRequest,
+        ContactRequestService $service
+    ) {
+        $request->validated();
+        $service->retryNotification($contactRequest, $request->user());
+
+        return redirect()
+            ->route('admin.contact-requests.show', $contactRequest)
+            ->with('success', 'El reintento de notificación ha finalizado.');
+    }
+
+    public function placeRetentionHold(
+        PlaceContactRetentionHold $request,
+        ContactRequest $contactRequest,
+        ContactRequestService $service
+    ) {
+        $validated = $request->validated();
+        $service->placeRetentionHold(
+            $contactRequest,
+            $request->user(),
+            $validated['retention_hold_reason']
+        );
+
+        return redirect()
+            ->route('admin.contact-requests.show', $contactRequest)
+            ->with('success', 'La eliminación queda suspendida temporalmente.');
+    }
+
+    public function releaseRetentionHold(
+        UpdateContactRequestStatus $request,
+        ContactRequest $contactRequest,
+        ContactRequestService $service
+    ) {
+        $request->validated();
+        $service->releaseRetentionHold($contactRequest, $request->user());
+
+        return redirect()
+            ->route('admin.contact-requests.show', $contactRequest)
+            ->with('success', 'La suspensión de eliminación se ha liberado.');
+    }
+
+    public function anonymize(
+        AnonymizeContactRequest $request,
+        ContactRequest $contactRequest,
+        ContactRequestService $service
+    ) {
+        $request->validated();
+        $service->anonymize($contactRequest, $request->user());
+
+        return redirect()
+            ->route('admin.contact-requests.show', $contactRequest)
+            ->with('success', 'Los datos personales de la solicitud se han anonimizado.');
     }
 }

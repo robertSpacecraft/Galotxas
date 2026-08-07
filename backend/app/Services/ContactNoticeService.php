@@ -2,12 +2,15 @@
 
 namespace App\Services;
 
-use App\Models\PublicIdentityAuthorization;
 use RuntimeException;
 
-class PublicIdentityNoticeService
+class ContactNoticeService
 {
-    public const ID = 'NOTICE-PUBLIC-IDENTITY-MINORS';
+    public const ID = 'NOTICE-CONTACT-FORM';
+
+    public const SCOPE = 'contact_request';
+
+    public const PRIVACY_URL = '/legal/privacidad';
 
     /** @var array<string, mixed>|null */
     private ?array $notice = null;
@@ -19,8 +22,7 @@ class PublicIdentityNoticeService
             return $this->notice;
         }
 
-        $path = resource_path('generated/legal/form-notices.json');
-        $contents = @file_get_contents($path);
+        $contents = @file_get_contents(resource_path('generated/legal/form-notices.json'));
         $artifact = is_string($contents) ? json_decode($contents, true) : null;
         $notices = $artifact['notices'] ?? null;
         $notice = is_array($notices)
@@ -31,23 +33,22 @@ class PublicIdentityNoticeService
             ! is_array($notice)
             || ($artifact['schemaVersion'] ?? null) !== 1
             || count($notices ?? []) !== 2
-            || ($notice['id'] ?? null) !== self::ID
             || ($notice['status'] ?? null) !== 'vigente'
-            || ($notice['scope'] ?? null) !== PublicIdentityAuthorization::SCOPE
+            || ($notice['scope'] ?? null) !== self::SCOPE
+            || ($notice['privacyUrl'] ?? null) !== self::PRIVACY_URL
             || ! is_string($notice['version'] ?? null)
         ) {
-            throw new RuntimeException('La proyección legal de autorización no es válida.');
+            throw new RuntimeException('La proyección legal de Contacto no es válida.');
         }
 
         return $this->notice = $notice;
     }
 
-    public function recognizes(string $noticeId, string $version, string $scope): bool
+    public function recognizes(string $noticeId, string $version): bool
     {
         $notice = $this->current();
 
         return hash_equals((string) $notice['id'], $noticeId)
-            && hash_equals((string) $notice['version'], $version)
-            && hash_equals((string) $notice['scope'], $scope);
+            && hash_equals((string) $notice['version'], $version);
     }
 }

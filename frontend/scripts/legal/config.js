@@ -67,6 +67,14 @@ export const FORM_NOTICES = Object.freeze([
     scope: 'public_competition_identity',
     order: 1,
   }),
+  Object.freeze({
+    id: 'NOTICE-CONTACT-FORM',
+    filename: 'contact-form.md',
+    title: 'Información de privacidad del formulario de Contacto',
+    scope: 'contact_request',
+    privacyUrl: '/legal/privacidad',
+    order: 2,
+  }),
 ])
 
 export const DEFAULT_LEGAL_ROOT = fileURLToPath(

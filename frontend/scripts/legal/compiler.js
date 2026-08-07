@@ -164,8 +164,8 @@ const compileNotice = async (entry) => {
   return { entry, metadata, parsed }
 }
 
-const ensureUnique = (compiled) => {
-  for (const [field, code] of [['id', 'ID_DUPLICATE'], ['slug', 'SLUG_DUPLICATE']]) {
+const ensureUnique = (compiled, fields = [['id', 'ID_DUPLICATE'], ['slug', 'SLUG_DUPLICATE']]) => {
+  for (const [field, code] of fields) {
     const seen = new Set()
     for (const document of compiled) {
       const value = document.metadata[field]
@@ -264,6 +264,9 @@ export const validateFormNoticeArtifact = (artifact) => {
       notice?.id !== contract.id
       || notice.title !== contract.title
       || notice.scope !== contract.scope
+      || (contract.privacyUrl
+        ? notice.privacyUrl !== contract.privacyUrl
+        : Object.hasOwn(notice, 'privacyUrl'))
       || notice.order !== contract.order
       || !Array.isArray(notice.blocks)
       || !Array.isArray(notice.headings)
@@ -277,7 +280,7 @@ export const validateFormNoticeArtifact = (artifact) => {
 export const compileFormNoticeArtifact = async (legalRoot) => {
   const discovery = await discoverFormNotices(legalRoot)
   const compiled = await Promise.all(discovery.included.map(compileNotice))
-  ensureUnique(compiled)
+  ensureUnique(compiled, [['id', 'NOTICE_ID_DUPLICATE']])
   const byFilename = new Map(compiled.map((notice) => [path.basename(notice.entry.sourcePath), notice]))
 
   const notices = FORM_NOTICES.map((contract) => {
@@ -288,6 +291,9 @@ export const compileFormNoticeArtifact = async (legalRoot) => {
       metadata.id !== contract.id
       || metadata.title !== contract.title
       || metadata.scope !== contract.scope
+      || (contract.privacyUrl
+        ? metadata.privacy_url !== contract.privacyUrl
+        : Object.hasOwn(metadata, 'privacy_url'))
     ) {
       fail('los metadatos no coinciden con el contrato cerrado.', contract.filename, 'NOTICE_METADATA_CONTRACT_INVALID')
     }
@@ -305,6 +311,7 @@ export const compileFormNoticeArtifact = async (legalRoot) => {
       order: contract.order,
       headings: parsed.headings,
       blocks: parsed.blocks,
+      ...(contract.privacyUrl ? { privacyUrl: metadata.privacy_url } : {}),
     }
   })
 

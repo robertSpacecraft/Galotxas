@@ -84,6 +84,22 @@ Route::prefix('admin')->group(function () {
             '/contact-requests/{contactRequest}/close',
             [ContactRequestController::class, 'close']
         )->name('admin.contact-requests.close');
+        Route::post(
+            '/contact-requests/{contactRequest}/retry-notification',
+            [ContactRequestController::class, 'retryNotification']
+        )->name('admin.contact-requests.retry-notification');
+        Route::post(
+            '/contact-requests/{contactRequest}/retention-hold',
+            [ContactRequestController::class, 'placeRetentionHold']
+        )->name('admin.contact-requests.retention-hold');
+        Route::post(
+            '/contact-requests/{contactRequest}/release-retention-hold',
+            [ContactRequestController::class, 'releaseRetentionHold']
+        )->name('admin.contact-requests.release-retention-hold');
+        Route::post(
+            '/contact-requests/{contactRequest}/anonymize',
+            [ContactRequestController::class, 'anonymize']
+        )->name('admin.contact-requests.anonymize');
 
         // Autorizaciones de identidad pública de menores
         Route::get(

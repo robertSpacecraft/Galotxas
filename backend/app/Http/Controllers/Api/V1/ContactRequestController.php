@@ -27,6 +27,8 @@ class ContactRequestController extends Controller
                 'email',
                 'subject',
                 'message',
+                'privacy_notice_id',
+                'privacy_notice_version',
             ]),
             $request->ip()
         );

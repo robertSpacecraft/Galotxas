@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ContactNotificationStatus;
 use App\Enums\ContactRequestStatus;
 use App\Models\ContactRequest;
 use App\Models\User;
@@ -102,6 +103,25 @@ class AdminContactRequestTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.contact-requests.index', ['status' => 'deleted']))
             ->assertSessionHasErrors('status');
+    }
+
+    public function test_index_filters_by_notification_status(): void
+    {
+        $admin = User::factory()->admin()->create();
+        ContactRequest::factory()->notificationFailed()->create([
+            'subject' => 'Fallo visible',
+        ]);
+        ContactRequest::factory()->create([
+            'subject' => 'Sin intento oculto',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.contact-requests.index', [
+                'notification_status' => ContactNotificationStatus::FAILED->value,
+            ]))
+            ->assertOk()
+            ->assertSee('Fallo visible')
+            ->assertDontSee('Sin intento oculto');
     }
 
     public function test_admin_marks_new_request_as_read_without_changing_original_content(): void

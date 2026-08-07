@@ -38,6 +38,35 @@ describe('contactService', () => {
     });
   });
 
+  it('loads the versioned notice contract only when enabled', async () => {
+    api.get.mockResolvedValue({
+      data: {
+        message: null,
+        data: {
+          enabled: true,
+          notice_id: 'NOTICE-CONTACT-FORM',
+          notice_version: '1.0.0',
+          privacy_url: '/legal/privacidad',
+        },
+      },
+    });
+
+    await expect(contactService.getConfig()).resolves.toEqual({
+      enabled: true,
+      notice_id: 'NOTICE-CONTACT-FORM',
+      notice_version: '1.0.0',
+      privacy_url: '/legal/privacidad',
+    });
+  });
+
+  it('fails closed for incomplete enabled configuration', async () => {
+    api.get.mockResolvedValue({ data: { data: { enabled: true } } });
+
+    await expect(contactService.getConfig()).rejects.toMatchObject({
+      kind: 'unexpected',
+    });
+  });
+
   it('returns the receipt envelope for a valid 201 response', async () => {
     const payload = {
       name: 'Persona interesada',

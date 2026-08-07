@@ -55,8 +55,10 @@ La feature enlaza al Manual mediante su helper de ruta, pero no importa `public-
 de `GET /api/v1/contact/config` y el envío a
 `POST /api/v1/contact-requests`. Normaliza 422, 429, 503, errores de red y
 respuestas inesperadas. La fachada `/club/contacto` conserva siempre el CMS y
-monta el formulario accesible sólo cuando la API devuelve `enabled: true`; los
-campos no se guardan en storage, URL o logs añadidos y se limpian tras 201.
+monta la primera capa y el formulario accesible sólo cuando la API y el aviso
+compilado coinciden en ID, versión y URL de Privacidad. La casilla no está
+premarcada; los campos no se guardan en storage, URL o logs añadidos y se
+limpian tras 201. El acuse confirma persistencia, no entrega de correo.
 
 ## Club
 

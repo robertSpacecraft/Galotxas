@@ -31,6 +31,13 @@ const page = (overrides = {}) => ({
   ...overrides,
 });
 
+const enabledContactConfig = {
+  enabled: true,
+  notice_id: 'NOTICE-CONTACT-FORM',
+  notice_version: '1.0.0',
+  privacy_url: '/legal/privacidad',
+};
+
 const renderPage = (pageId = 'about') => render(
   <MemoryRouter>
     <ClubPage pageId={pageId} />
@@ -162,7 +169,7 @@ describe('ClubPage', () => {
 
   it('renders the contact fields only for an exact enabled boolean', async () => {
     cmsService.getPageBySlug.mockResolvedValue(page({ slug: 'contacto', title: 'Contacto' }));
-    contactService.getConfig.mockResolvedValue({ enabled: true });
+    contactService.getConfig.mockResolvedValue(enabledContactConfig);
 
     renderPage('contact');
 
@@ -171,6 +178,9 @@ describe('ClubPage', () => {
     expect(screen.getByLabelText(/^Asunto/)).toBeInTheDocument();
     expect(screen.getByLabelText(/^Mensaje/)).toBeInTheDocument();
     expect(screen.getByRole('checkbox')).toBeInTheDocument();
+    expect(screen.getByText(/Aviso NOTICE-CONTACT-FORM, versión 1.0.0/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Política de privacidad/ }))
+      .toHaveAttribute('href', '/legal/privacidad');
     expect(screen.queryByLabelText(/teléfono/i)).not.toBeInTheDocument();
   });
 

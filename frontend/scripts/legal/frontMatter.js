@@ -35,11 +35,16 @@ export const parseLegalFrontMatter = (source, sourcePath) => {
 export const parseNoticeFrontMatter = (source, sourcePath) => {
   return parseFrontMatter(source, sourcePath, {
     requiredFields: REQUIRED_NOTICE_METADATA_FIELDS,
+    allowedFields: [...REQUIRED_NOTICE_METADATA_FIELDS, 'privacy_url'],
     requireSlug: false,
   })
 }
 
-const parseFrontMatter = (source, sourcePath, { requiredFields, requireSlug }) => {
+const parseFrontMatter = (
+  source,
+  sourcePath,
+  { requiredFields, allowedFields = requiredFields, requireSlug },
+) => {
   const lines = source.split('\n')
 
   if (lines[0] !== '---') {
@@ -63,7 +68,7 @@ const parseFrontMatter = (source, sourcePath, { requiredFields, requireSlug }) =
     const key = line.slice(0, separatorIndex).trim()
     const value = line.slice(separatorIndex + 1).trim()
 
-    if (!requiredFields.includes(key)) {
+    if (!allowedFields.includes(key)) {
       fail(`campo de metadatos no admitido: "${key}".`, sourcePath, 'METADATA_UNKNOWN')
     }
 
