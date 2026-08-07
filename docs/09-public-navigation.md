@@ -10,7 +10,8 @@ Fase 6C. Fase 7B sustituye la topología plana inicial por el contrato agrupado
 de ADR-033. 7C.2 implementa las cuatro rutas hijas de Club y 7D.1 aplica el
 disclosure del Navbar, Home y footer estructural. 7D.2C1 añade al footer y al
 router los tres destinos legales versionados; la activación productiva de
-Contacto permanece pendiente de 7D.2C2B.
+7D.2C2B completa la primera capa y operación técnica de Contacto sin cambiar
+el árbol ni activar producción.
 
 Las fases 3B, 3C, 4A–4C y 5B–5C modifican únicamente compilación/frontend, sus pruebas y la documentación: no cambian backend, CMS, contenido canónico, despliegue ni redirects. 7C.2 añade fachadas sobre el CMS y mantiene la publicación editorial separada por entorno; una ruta documental no se considera implementada hasta existir con fuente verificable y pruebas.
 
@@ -836,6 +837,13 @@ la navegación y el pie globales. El token llega por fragmento, se retira al
 montar y la página usa `noindex`. Escuela incorpora una sección opcional sin
 cambiar `/escuela`; Competición conserva sus rutas y sólo recibe de Laravel el
 `public_display_name` ya resuelto. Contacto y el árbol editorial no cambian.
+
+### Seguimiento 7D.2C2B
+
+El árbol, Navbar, Home, footer, rutas Club y legado permanecen sin cambios.
+`/club/contacto` conserva el CMS y sólo añade la primera capa/formulario cuando
+API y aviso compilado coinciden. La Política se abre sin sustituir la ruta ni
+crear un cuarto documento legal. El default productivo sigue oculto.
 
 ## Mantenimiento
 

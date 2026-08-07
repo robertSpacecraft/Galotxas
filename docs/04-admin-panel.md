@@ -480,13 +480,16 @@ autoriza por sí sola contenido, imágenes o publicación.
 ## Solicitudes de contacto
 
 La sección `Contacto` lista 25 solicitudes por página, muestra conteos, filtra
-por `new`, `read` o `closed` y permite ver el mensaje original. Un administrador
-activo puede marcar una solicitud nueva como leída o cerrar una solicitud
-abierta. Las acciones usan sesión, middleware `IsAdmin`, CSRF y Requests
-validados.
+por `new`, `read` o `closed` y por estado de notificación, y permite ver el
+mensaje original. Un administrador activo puede marcar como leída, cerrar,
+reintentar una notificación fallida/desactivada dentro del límite, colocar o
+liberar un hold y anonimizar una solicitud cerrada cuyo plazo venció. Las
+acciones usan sesión, `IsAdmin`, CSRF y Requests validados.
 
-No se permite editar, borrar, reabrir, exportar, reenviar, adjuntar o responder
-desde Blade. El panel muestra `consent_at`, pero no la IP ni su hash. El
+No se permite editar mensaje, alterar consentimiento/versión, reabrir,
+exportar, adjuntar o responder desde Blade. El panel muestra aviso, fechas,
+estado de correo e historial sanitizado, pero no la IP ni su hash. Identifica
+legados sin versión y datos anonimizados. El
 formulario público está desactivado por defecto y la administración no puede
 activar flags de entorno.
 
@@ -505,7 +508,7 @@ activar flags de entorno.
 - coordinación de disponibilidad entre categorías;
 - administración avanzada de contenidos públicos (noticias);
 - gestión de documentos públicos (subida segura, visibilidad);
-- activación y presentación pública del formulario institucional de contacto.
+- activación productiva del formulario institucional de contacto.
 
 ---
 

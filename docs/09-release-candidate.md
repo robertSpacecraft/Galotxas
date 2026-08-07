@@ -8,6 +8,12 @@ La versión propuesta es `v0.1.0-rc.1`. El sistema supera la instalación limpia
 
 Este documento distingue un candidato MVP funcional de un despliegue de producción. TLS, proxy inverso, copias de seguridad, monitorización, correo real y operación productiva continúan pendientes.
 
+Seguimiento 7D.2C2B: el código dispone de primera capa, persistencia, reintento,
+retención y anonimización de Contacto, pero mantiene los flags productivos
+desactivados. Proveedor/remitente verificado, entrega, rebotes, logs, scheduler,
+backups, restauración, staging y rollback continúan como gates de 7F; esta
+evolución no publica ni etiqueta el candidato histórico.
+
 ## Identidad del candidato
 
 - Commit base validado: `6d8bdffa873102175dca09ff1b26400ec86a26e1` (`6d8bdff`).

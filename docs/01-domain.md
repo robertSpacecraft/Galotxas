@@ -396,13 +396,16 @@ Desde 7C.1, el contenido de Contacto y la recepción de mensajes se mantienen en
 ámbitos separados. Títulos, dirección, canales, enlaces y copy pertenecen a
 `CmsPage`/`CmsBlock`; una solicitud enviada pertenece al dominio funcional
 `ContactRequest` y no es contenido editorial. Conserva nombre, correo, asunto,
-mensaje, estado `new|read|closed`, instante de consentimiento y un HMAC de la
-IP. No conserva IP en claro, teléfono, archivos, DNI, user agent o cookies.
+mensaje, estado `new|read|closed`, aviso/versión, instante de consentimiento,
+estado de notificación y un HMAC temporal de la IP. No conserva IP en claro,
+teléfono, archivos, DNI, user agent o cookies.
 
-La solicitud se persiste antes de intentar una notificación opcional. El
-formulario nace desactivado y no se considera publicable hasta cerrar
-privacidad y operación. La bandeja Blade permite leer y cerrar sin editar o
-eliminar el original. Esta base técnica no crea una página o ruta pública Club.
+La solicitud se persiste antes de intentar una notificación auxiliar; por ello
+la persistencia acredita recepción. El formulario nace desactivado y aplica
+gates fail-closed. Cerrar inicia 12 meses de retención. Blade permite leer,
+cerrar, reintentar, colocar un hold y anonimizar al vencer, sin editar el
+original ni falsificar consentimiento. El HMAC es purgable a 30 días. Esta
+capacidad no crea contenido editorial ni activa producción.
 
 ## Contenido editorial temporal
 
@@ -423,7 +426,7 @@ Las siguientes capacidades forman parte del roadmap y no deben considerarse impl
 - mejoras avanzadas de rankings;
 - noticias mediante bloques de contenido;
 - gestión de documentos públicos;
-- activación y presentación pública del formulario institucional de contacto.
+- activación productiva del formulario institucional de contacto.
 
 ---
 

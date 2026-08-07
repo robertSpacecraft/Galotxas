@@ -789,6 +789,24 @@ Endpoint público anónimo. Sólo expone si el formulario está habilitado:
 No expone flag de notificación, destinatario, mailer, host, credenciales o
 secretos. El default es `false`.
 
+Si todos los gates técnicos son válidos, la allowlist es:
+
+```json
+{
+  "message": null,
+  "data": {
+    "enabled": true,
+    "notice_id": "NOTICE-CONTACT-FORM",
+    "notice_version": "1.0.0",
+    "privacy_url": "/legal/privacidad"
+  }
+}
+```
+
+Falta de flag, aviso compilado, URL, destinatario o persistencia devuelve sólo
+`enabled: false`. La respuesta nunca expone remitente, destinatario, proveedor,
+estado de notificación o motivo técnico.
+
 ### `POST /api/v1/contact-requests`
 
 Endpoint anónimo protegido por feature flag y por un límite de cinco
@@ -802,11 +820,14 @@ normalizado. Payload allowlisted:
   "subject": "Asunto",
   "message": "Mensaje con detalle suficiente.",
   "privacy_accepted": true,
+  "privacy_notice_id": "NOTICE-CONTACT-FORM",
+  "privacy_notice_version": "1.0.0",
   "website": ""
 }
 ```
 
-Nombre, correo RFC válido, asunto, mensaje y aceptación son obligatorios.
+Nombre, correo RFC válido, asunto, mensaje, aceptación e identificación exacta
+del aviso vigente son obligatorios.
 `website` es el honeypot: si llega relleno con un payload válido, la respuesta
 continúa siendo el mismo 201, pero no se guarda ni notifica nada.
 
@@ -822,15 +843,18 @@ Respuesta `201 Created`:
 ```
 
 La API devuelve 422 para validación, 429 para el límite y 503 con `data: null`
-cuando `CONTACT_FORM_ENABLED=false`. No devuelve ID, estado, consentimiento,
+cuando cualquier gate de disponibilidad falla. No devuelve ID, estado, consentimiento,
 IP/hash, destinatario o detalles de correo. La persistencia precede a la
-notificación opcional; un fallo de mail conserva el registro y el 201.
+notificación opcional; un fallo de mail conserva el registro y el 201. Ese
+acuse acredita persistencia, no entrega de correo.
 
 Desde 7C.2, `/club/contacto` consulta la configuración y muestra el formulario
 sólo cuando `enabled` es exactamente `true`. La UI conserva el contenido CMS si
 falla esta consulta, gestiona 201/422/429/503/red sin ampliar el envelope y no
 expone ni persiste campos internos. El default productivo continúa desactivado;
-privacidad, destinatario, correo y operación siguen siendo gates de activación.
+privacidad y operación técnica quedan preparadas en 7D.2C2B; proveedor,
+remitente verificado, entrega, logs, scheduler, backups y activación continúan
+como gates de 7F.
 
 ### Identidad pública desde 7D.2B y 7D.2C2A
 

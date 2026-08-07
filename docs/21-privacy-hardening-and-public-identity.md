@@ -188,6 +188,11 @@ menores, metadatos, alcance y proceso de retirada.
 capa, consentimiento real, destinatario, notificación ni ruta adicional. La
 activación E2E permanece limitada al entorno temporal de prueba.
 
+Seguimiento 7D.2C2B: ese estado describe el cierre histórico de 7D.2B. El
+bloque posterior incorpora primera capa versionada, consentimiento trazable,
+destinatario configurable, notificación auxiliar, retención y anonimización,
+pero conserva el mismo default y no activa producción.
+
 ## 23. Testing
 
 Los Feature tests cubren adultos con y sin alias, nombres compuestos, espacios,
@@ -243,5 +248,5 @@ Pint, PHP lint, Knowledge, hashes y E2E; no hay recursos remotos conocidos,
 `localStorage.user` ni campos privados en respuestas anónimas; en el cierre
 histórico de ese bloque Contacto y legal no se publicaron. CMS, imágenes,
 estatutos, Knowledge y `frontend/dist` permanecen intactos. Tras 7D.2C1,
-Tras 7D.2C2A, Contacto, 7D.2C2B, 7D, Fase 7, despliegue y MVP continúan
-pendientes.
+Tras 7D.2C2B, la capacidad técnica de Contacto y 7D.2 quedan cerradas. 7D.3,
+7D, Fase 7, despliegue y MVP continúan pendientes.

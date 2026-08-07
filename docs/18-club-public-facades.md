@@ -71,20 +71,25 @@ independiente `GET /api/v1/contact/config`. Un fallo de configuración no oculta
 el contenido y ofrece reintento. `enabled: false` muestra sólo un aviso neutro;
 únicamente el booleano exacto `true` monta el formulario.
 
+Seguimiento 7D.2C2B: `true` ya no basta por sí solo. React exige además que
+ID, versión y URL de Privacidad coincidan con `NOTICE-CONTACT-FORM` compilado;
+una discrepancia oculta el formulario sin afectar al CMS.
+
 ## 9. Formulario
 
-Cuando está habilitado, el formulario envía nombre, correo, asunto, mensaje,
-consentimiento y el honeypot invisible `website` al POST existente. Valida el
+Cuando está habilitado, el formulario muestra primero el aviso versionado y
+envía nombre, correo, asunto, mensaje, aceptación, ID/versión y el honeypot
+invisible `website` al POST existente. Valida el
 contrato básico, asocia errores, enfoca el primer campo inválido, impide doble
 envío, conserva datos corregibles ante 422/429/503/red/respuesta inesperada y
 los elimina tras el 201. No recoge teléfono, adjuntos, DNI o metadatos internos.
 
 ## 10. Privacidad
 
-No se inventa política ni URL legal. El texto de la casilla confirma solamente
-el envío de los datos introducidos. Producción mantiene
-`CONTACT_FORM_ENABLED=false` hasta aprobar página e información de privacidad,
-responsable, finalidad, conservación, derechos, destinatario operativo y correo.
+La primera capa procede de `legal/notices/contact-form.md`, enlaza la Política
+de privacidad vigente y la casilla no está premarcada. Producción mantiene
+`CONTACT_FORM_ENABLED=false` hasta configurar proveedor, remitente, entrega,
+logs, scheduler, backups y operación de 7F.
 El frontend no persiste los campos en URL, storage, logs o telemetría añadida.
 
 ## 11. Aliases

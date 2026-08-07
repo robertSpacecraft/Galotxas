@@ -12,7 +12,8 @@ despliegue productivo.
 7D.2A queda limitada históricamente a inventario, consolidación de fuentes,
 borradores y gates. 7D.2B aplica minimización y retirada de terceros. 7D.2C1
 promueve después tres textos a `legal/`, publica sus rutas y los enlaza en el
-footer. Tras 7D.2C2A, 7D.2C2B, 7D.2, 7D, Fase 7 y el MVP permanecen abiertos, y
+footer. Tras 7D.2C2B, la capacidad técnica de Contacto y 7D.2 quedan cerradas;
+7D.3, 7D, Fase 7 y el MVP permanecen abiertos, y
 `CONTACT_FORM_ENABLED=false` continúa siendo el valor por defecto.
 
 Los datos y riesgos de esta auditoría conservan su valor como evidencia de
@@ -348,3 +349,15 @@ Esto no resuelve imágenes, proveedores, Contacto, representación dudosa,
 operación productiva o purga programada. La primera capa y operación de
 Contacto pasan a 7D.2C2B y los gates productivos a 7F. Las imágenes conservan
 su valor como frente independiente posterior, todavía sin numeración aprobada.
+
+## Seguimiento de 7D.2C2B
+
+Los hallazgos históricos de ausencia de versión, retención y purga quedan
+remediados técnicamente para Contacto: aviso `NOTICE-CONTACT-FORM`, aceptación
+exacta, estados de notificación, cierre a 12 meses, hold, anonimización y HMAC
+purgable a 30 días. La Política pública 1.1.0 ya contenía base, plazo, derechos
+y proveedor pendiente, por lo que no se altera su versión.
+
+El destinatario y remitente son configuración privada, pero ningún valor real
+se incorpora al repositorio. Proveedor, credenciales, entrega, rebotes, logs,
+scheduler, backups, restauración y activación se mantienen como gates de 7F.

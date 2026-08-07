@@ -362,3 +362,17 @@ propio flag y plantilla y no activa, configura ni comparte destinatario con
 `CONTACT_NOTIFICATION_ENABLED=false` continúan siendo los defaults. El aviso
 de identidad y su flujo no sustituyen la primera capa ni los gates operativos
 de Contacto.
+
+## Seguimiento de 7D.2C2B
+
+El modelo histórico se amplía de forma incremental con referencia de aviso,
+estados e intentos de notificación, cierre, retención, hold, anonimización e
+historial mínimo. La recepción sigue dependiendo de persistencia; el correo es
+auxiliar, configurable y reintentable hasta tres veces. Blade incorpora filtros
+y acciones conservadoras, y los comandos `contact:purge-expired` y
+`contact:purge-abuse-hashes` quedan disponibles con `--dry-run`, sin scheduler.
+
+La primera capa procede de `legal/notices/contact-form.md` y la config pública
+falla cerrada si faltan aviso, URL, destinatario o esquema. Los defaults siguen
+desactivados y la operación productiva permanece en 7F. El contrato completo
+está en `24-contact-operation-and-privacy-layer.md`.

@@ -230,21 +230,26 @@ peligrosos.
 
 La infraestructura de contacto es una vertical funcional distinta del CMS:
 
-- `ContactRequest` y MariaDB conservan el mensaje mínimo, consentimiento y HMAC
-  de IP;
+- `ContactRequest` y MariaDB conservan el mensaje mínimo, referencia del aviso,
+  consentimiento, HMAC de IP y ciclo operativo;
 - un Form Request allowlisted normaliza y valida el payload anónimo;
-- middleware de feature flag, honeypot y rate limiter HMAC protegen el POST;
-- `ContactRequestService` persiste antes de delegar una notificación opcional;
-- Resources públicos cierran la configuración a `enabled` y el acuse a
-  `received`;
-- Blade usa el middleware administrativo existente y permite listado, detalle
-  y transiciones conservadoras;
+- un servicio de disponibilidad verifica flag, aviso compilado, URL de
+  Privacidad, destinatario y esquema antes de permitir el POST;
+- middleware, honeypot y rate limiter HMAC protegen el POST;
+- `ContactRequestService` persiste y registra historial antes de delegar una
+  notificación auxiliar con estado y reintento limitado;
+- Resources públicos cierran la configuración a `enabled` y, sólo al quedar
+  habilitada, ID/versión/URL del aviso; el acuse se limita a `received`;
+- Blade permite filtros, detalle, lectura, cierre, reintento, hold,
+  anonimización vencida e historial bajo administrador activo;
 - el servicio React alimenta el panel funcional de `/club/contacto`, que sólo
   monta campos cuando la configuración pública devuelve `enabled: true` y no
   bloquea el contenido CMS si falla.
 
 `CONTACT_FORM_ENABLED=false` y `CONTACT_NOTIFICATION_ENABLED=false` son los
-defaults. La activación productiva depende de privacidad y operación. El
+defaults. Cerrar inicia 12 meses de retención; los HMAC vencen a 30 días y los
+comandos de purga no quedan programados. La activación productiva depende de
+proveedor, entrega, logs, scheduler, backups y operación en 7F. El
 destinatario nunca forma parte de respuestas públicas. `frontend/dist`
 continúa como artefacto Vite ignorado y no participa como fuente de este flujo.
 

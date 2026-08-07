@@ -1466,6 +1466,61 @@ Consecuencias:
   aprobada y sin reutilizar este alcance;
 - Contacto, 7D.2, 7D, Fase 7 y MVP permanecen abiertos.
 
+# ADR-038 — La persistencia acredita la recepción de Contacto y el correo es auxiliar
+
+Fecha: 2026-08-07
+
+Estado: Aceptada
+
+Contexto:
+
+- `ContactRequest` ya persistía antes de notificar, pero no registraba el
+  resultado del correo ni existía una operación completa de reintento;
+- hacer depender el `201` de un proveedor externo podría perder o duplicar una
+  consulta ya guardada;
+- la activación debe seguir cerrada si falta aviso, destinatario o persistencia,
+  aunque el correo auxiliar puede estar desactivado;
+- el navegador no debe conocer destinatario, remitente, proveedor o fallos.
+
+Decisión:
+
+- una consulta se considera recibida exclusivamente cuando se persiste en
+  MariaDB;
+- el correo es una notificación auxiliar posterior y no condiciona el acuse;
+- el modelo registra `not_requested`, `pending`, `sent`, `failed` o `disabled`,
+  intentos y código sanitizado;
+- los reintentos son manuales, administrativos, auditados y limitados a tres;
+- `From` procede de configuración controlada y el solicitante sólo puede ser
+  `Reply-To` tras validación;
+- `CONTACT_FORM_ENABLED=false` y `CONTACT_NOTIFICATION_ENABLED=false` siguen
+  siendo los defaults, sin proveedor real elegido;
+- el cierre inicia 12 meses de retención; un hold impide anonimizar sin cambiar
+  el vencimiento original; el HMAC de IP es purgable a 30 días;
+- el aviso `NOTICE-CONTACT-FORM` versiona el consentimiento sin copiar su texto
+  en cada fila.
+
+Alternativas descartadas:
+
+- confirmar recepción sólo después del correo: acopla el contrato público a un
+  tercero y contradice el registro ya persistido;
+- usar el correo del solicitante como `From`: facilita suplantación y rompe
+  políticas de entrega;
+- reintentos automáticos ilimitados: pueden amplificar fallos y duplicados;
+- hardcodear destinatario, remitente o proveedor: mezcla operación y dominio y
+  expone cambios sensibles al código;
+- guardar el texto legal completo: duplica una fuente versionada;
+- borrar inmediatamente al cerrar o conservar indefinidamente: contradice el
+  plazo aprobado y la atención de reclamaciones.
+
+Consecuencias:
+
+- un fallo de correo conserva la solicitud y devuelve el mismo `201` neutro;
+- Blade concentra revisión, cierre, reintento, hold, historial y anonimización;
+- los comandos de purga son idempotentes y quedan sin programación hasta 7F;
+- la activación productiva requiere proveedor, remitente, credenciales,
+  entrega, rebotes, logs, scheduler, backups, staging y rollback;
+- 7D.2C2B y 7D.2 quedan cerradas, pero 7D.3, 7D, Fase 7 y MVP continúan abiertos.
+
 ---
 
 ## Mantenimiento

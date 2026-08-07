@@ -411,7 +411,7 @@ La Fase 3A no elimina `/contenidos`, no crea redirects, no cambia su API ni borr
 - Modelo de consentimiento y privacidad para contenido de menores.
 - Integración automática de las canalizaciones de Knowledge en CI/despliegue;
   Legal ya bloquea el build cuando su proyección no está sincronizada.
-- Gates productivos de Contacto y de imágenes en 7D.2C2B; aliases tras paridad y,
+- Gates productivos de Contacto en 7F e imágenes en un frente independiente; aliases tras paridad y,
   posteriormente, redirects permanentes, canonical, sitemap, 404 HTTP y SEO
   completo. Las cuatro URLs Club ya se descubren desde Navbar/footer en 7D.1.
 - Operación productiva, renovación y retirada de las autorizaciones de identidad
@@ -426,7 +426,7 @@ contenido real ni preparación de producción. Antes de cerrar el MVP:
 | Área | Fuente única | Aportación humana | Gate de publicación |
 |---|---|---|---|
 | Quiénes somos e historia | CMS | Copy, vigencia, imágenes y responsables | Sin placeholders ni duplicidad JSX |
-| Contacto institucional | CMS + `ContactRequest` funcional | Canal oficial atendido, privacidad, retención y operación | Contenido en CMS; formulario desactivado hasta aprobación |
+| Contacto institucional | CMS + `ContactRequest` + aviso Git versionado | Canal oficial atendido, privacidad, retención y operación | Contenido en CMS; formulario fail-closed y desactivado hasta configuración productiva |
 | Federarse | CMS | Proceso real y responsable | Destino vigente |
 | Documentos | CMS con URLs controladas | Piezas, vigencia, procedencia | Ciclo de vida y acceso verificados |
 | Prensa/Federaciones | CMS | Contenido real | Footer/secundaria, nunca tarjeta vacía |
@@ -518,6 +518,19 @@ Esta política no se aplica a la Junta: nombres y cargos institucionales siguen
 perteneciendo al CMS y requieren su propio control editorial. 7D.2B no publica
 los borradores legales, imágenes, estatutos ni datos institucionales, y no
 habilita Contacto. 7D.2C2A tampoco autoriza ni publica imágenes.
+
+## 24. Contacto tras 7D.2C2B
+
+El copy institucional continúa exclusivamente en el CMS. La primera capa es
+una fuente legal Git independiente (`NOTICE-CONTACT-FORM`) y los datos
+transaccionales viven sólo en Laravel/MariaDB. React consume ambas proyecciones,
+pero no edita ni duplica ninguna. Los datos no pasan a Knowledge, seeders de
+desarrollo, componentes editoriales o páginas legales nuevas.
+
+La persistencia acredita recepción. El correo auxiliar, estados, reintentos,
+historial, holds y purga son dominio operativo privado. La API pública limita
+la configuración a disponibilidad e identificación del aviso, y el acuse a
+`received`. Producción permanece cerrada hasta los gates de 7F.
 
 ## Mantenimiento
 

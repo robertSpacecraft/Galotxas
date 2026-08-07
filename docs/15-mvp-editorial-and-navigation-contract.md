@@ -66,6 +66,12 @@ conformidad 14–17 y revocación. Laravel mantiene `Participante` ante cualquie
 duda y React sólo presenta `public_display_name`. Correo productivo, Contacto,
 imágenes, 7D.2C2B, despliegue, Fase 7 y MVP siguen abiertos.
 
+Seguimiento 7D.2C2B: Contacto incorpora primera capa versionada, consentimiento
+trazable, config fail-closed, correo auxiliar, retención, holds y anonimización.
+El CMS y la navegación no cambian. La capacidad técnica y 7D.2 quedan cerradas,
+pero producción continúa desactivada; 7D.3, imágenes, 7F, Fase 7 y MVP siguen
+abiertos.
+
 En el momento del cierre documental de 7B el código no cambió: el Navbar
 continuaba plano, no existía `/club`, las rutas canónicas institucionales no
 estaban registradas y el footer global no estaba implementado.
@@ -933,8 +939,8 @@ descendientes mantienen sólo estado visual.
 7D.2B completa el endurecimiento técnico de identidad pública, sesión y
 recursos externos. 7D.2C1 publica privacidad, aviso legal y cookies desde una
 fuente versionada propia. 7D.2C2A implementa la identidad verificable de
-menores; 7D.2C2B conserva los gates de imágenes y operación restante. El
-formulario productivo de Contacto
-continúa desactivado.
+menores y 7D.2C2B completa la operación técnica de Contacto. Las imágenes
+quedan en un frente independiente; proveedor, entrega y activación pertenecen
+a 7F. El formulario productivo de Contacto continúa desactivado.
 No cambian CMS, contenido, `/nosotros`, `/contenidos`, aliases, redirects,
 canonical o despliegue. Por tanto 7D, Fase 7 y el MVP siguen abiertos.

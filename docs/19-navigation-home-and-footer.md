@@ -202,8 +202,9 @@ genera ni modifica.
 deja borradores internos. 7D.2B implementa la proyección deportiva, minimiza la
 sesión persistida y elimina recursos remotos prescindibles sin cambiar esta
 navegación. 7D.2C1 resuelve privacidad, aviso legal, cookies y sus rutas.
-7D.2C2 debe confirmar primera capa, operación, destinatario y correo de
-Contacto, y mantener bloqueada la recogida productiva de datos hasta entonces.
+7D.2C2B completa la primera capa, operación, destinatario configurable y correo
+auxiliar de Contacto, manteniendo bloqueada la recogida productiva por default.
+Proveedor, entrega, logs, scheduler, backups y activación pertenecen a 7F.
 No se deducen aliases, redirects, canonical, indexación o despliegue de este
 cierre estructural.
 

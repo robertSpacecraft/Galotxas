@@ -1311,6 +1311,44 @@ La retención de tres años para evidencia y la purga técnica a treinta días s
 documentan y no se automatizan en este bloque. Los jobs productivos permanecen
 como gate posterior.
 
+## CONTACT-OPERATION-PRIVACY-LAYER-1 — Operación de Contacto
+
+7D.2C2B añade Feature tests sobre MariaDB para migración incremental, casts,
+legado sin versión inventada, aviso compilado, configuración fail-closed,
+consentimiento exacto, HMAC, honeypot, rate limit y respuestas 201/422/429/503.
+La notificación cubre persistencia previa, estados, From controlado, Reply-To,
+CRLF, fallo sanitizado, reintento manual, actor e intentos limitados.
+
+La administración cubre permisos, filtros, lectura, cierre con 12 meses,
+historial, hold y liberación, confirmación de anonimización y ausencia de
+edición/reapertura. Los comandos se prueban en modo `--dry-run`, ejecución e
+idempotencia, excluyendo solicitudes abiertas y holds, eliminando PII y HMAC a
+30 días sin afectar otras verticales.
+
+Vitest prueba los dos avisos allowlisted, determinismo, config exacta, primera
+capa, versión, enlace de Privacidad, casilla no premarcada, 201/422/429/503/red,
+foco, doble envío, valores corregibles, CMS independiente y ausencia de
+storage. Playwright usa sólo el stack E2E aislado con mailer y direcciones
+ficticias y conserva las regresiones de Legal, Manual, 320 px y recursos
+remotos.
+
+Validación final de 7D.2C2B, 2026-08-07:
+
+- backend focalizado: 34 tests y 212 aserciones;
+- backend completo: 415 tests y 3.256 aserciones;
+- frontend focalizado: 46 tests en cuatro archivos;
+- frontend completo: 434 tests en 64 archivos;
+- E2E completo: 53 escenarios Chromium, incluido el recorrido Contacto →
+  persistencia → Blade → cierre;
+- legal: tres páginas, dos avisos, 49.772 bytes públicos y 13.209 bytes de
+  avisos;
+- Knowledge: 40 documentos y cuatro colecciones, con hashes canónico y público
+  sin cambios;
+- estatutos históricos: hash sin cambios;
+- build temporal: 221 módulos, sin warnings y sin escribir `frontend/dist`;
+- calidad: ESLint, Pint, `php -l`, `legal:check`, `knowledge:check` y
+  `git diff --check` correctos.
+
 ---
 
 # 11. Evolución

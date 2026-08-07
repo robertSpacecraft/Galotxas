@@ -8,8 +8,8 @@ activar Contacto, correo saliente, consentimientos de menores, imágenes o
 despliegue.
 
 7D.2C1 queda cerrada cuando la fuente, el artefacto, React, footer, pruebas y
-documentación pasan su validación. Tras 7D.2C2A, 7D.2C2B, 7D.2, 7D, Fase 7 y el MVP continúan
-abiertos.
+documentación pasan su validación. Tras 7D.2C2B, 7D.2 queda cerrada; 7D.3, 7D,
+Fase 7 y el MVP continúan abiertos.
 
 ## 2. Fuente de verdad
 
@@ -23,12 +23,13 @@ legal/
 ├── privacidad.md
 ├── cookies.md
 └── notices/
-    └── public-identity-minors.md
+    ├── public-identity-minors.md
+    └── contact-form.md
 ```
 
 `README.md` describe el proceso y no se publica. Las páginas siguen limitadas a
-los tres nombres. Desde 7D.2C2A, `notices/` admite exactamente el aviso de
-identidad de menores; es una fuente de formulario y no una cuarta página
+los tres nombres. Desde 7D.2C2B, `notices/` admite exactamente los avisos de
+identidad de menores y Contacto; son fuentes de formulario y no una cuarta página
 pública. Cualquier otro fichero, subdirectorio o enlace simbólico hace fallar
 la compilación.
 
@@ -201,15 +202,11 @@ backups y transferencias es gate de producción.
 
 ## 12. Contacto
 
-`CONTACT_FORM_ENABLED=false` continúa siendo el valor seguro. La ruta
-`/club/contacto` conserva su contenido CMS y no presenta campos cuando la API
-devuelve el default. No se añade primera capa al runtime, proveedor, correo
-saliente ni consentimiento.
-
-7D.2C2B deberá completar, antes de cualquier activación, responsable operativo,
-destinatario, proveedor de envío, primera capa versionada, aceptación,
-capacidad de atención, pruebas de entrega y procedimientos de conservación y
-borrado.
+`CONTACT_FORM_ENABLED=false` continúa siendo el valor seguro. 7D.2C2B añade
+`NOTICE-CONTACT-FORM` versión `1.0.0`, su proyección, consentimiento trazable,
+config fail-closed, retención y operación. La ruta conserva el CMS y sólo monta
+la primera capa/formulario si API y artefacto coinciden. No se configura
+proveedor ni se activa correo o formulario productivos.
 
 ## 13. CMS y persistencia por entorno
 
@@ -253,6 +250,11 @@ Escuela; Laravel valida la versión al solicitar y aprobar. La Política de
 privacidad sube de `1.0.0` a `1.1.0` porque incorpora el tratamiento real y su
 retención. No se añade una ruta `/legal/*` ni un enlace de footer para el aviso.
 
+Seguimiento 7D.2C2B: `NOTICE-CONTACT-FORM` 1.0.0 es el segundo aviso exacto.
+Ambos declaran `privacy_url: /legal/privacidad`; el compilador proyecta
+`privacyUrl`, mantiene tres páginas, exige dos avisos y bloquea artefactos
+desactualizados. Contacto muestra el aviso sólo cuando su config coincide.
+
 ## 17. Riesgos y gates pendientes
 
 Permanecen abiertos:
@@ -267,7 +269,8 @@ Permanecen abiertos:
 - canonical, sitemap, robots, redirects y SEO completo;
 - QA de despliegue y aceptación humana.
 
-7D.2C2B resolverá los gates propios de Contacto y 7F los de producción. Las
+7D.2C2B resuelve los gates técnicos propios de Contacto; 7F conserva proveedor,
+entrega, logs, scheduler, backups y activación. Las
 imágenes continúan en un frente independiente posterior, sin numeración
 aprobada. Publicar estas páginas no acredita por sí solo que Contacto, imágenes,
 consentimientos o infraestructura estén preparados. Fase 7 y el MVP siguen

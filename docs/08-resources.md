@@ -177,8 +177,10 @@ No forman parte de estos contratos el ID del programa, flags, órdenes, claves f
 
 ## Resources públicos de contacto
 
-`PublicContactConfigResource` expone exclusivamente `enabled` como booleano.
-No serializa notificación, destinatario, mailer o flags adicionales.
+`PublicContactConfigResource` expone `enabled` como booleano. Cuando es `true`,
+añade únicamente `notice_id`, `notice_version` y `privacy_url`; cuando falla un
+gate devuelve sólo `enabled: false`. No serializa notificación, destinatario,
+remitente, mailer, estados, códigos o flags adicionales.
 
 `PublicContactRequestResource` es un acuse mínimo: siempre proyecta
 `received: true` tras una persistencia válida o un descarte silencioso por

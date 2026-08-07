@@ -27,6 +27,7 @@ La documentación se organiza para separar claramente:
 - endurecimiento técnico de privacidad, identidad pública y recursos externos.
 - fuente legal pública versionada, páginas legales y footer.
 - autorización verificable y revocable de identidad pública de menores.
+- primera capa, operación, retención y activación controlada de Contacto.
 
 ## Orden recomendado de lectura
 
@@ -55,6 +56,7 @@ La documentación se organiza para separar claramente:
 23. [Endurecimiento de privacidad e identidad pública](21-privacy-hardening-and-public-identity.md)
 24. [Páginas legales públicas versionadas](22-versioned-legal-pages.md)
 25. [Identidad pública verificable de menores](23-verifiable-minor-public-identity.md)
+26. [Operación y primera capa de privacidad de Contacto](24-contact-operation-and-privacy-layer.md)
 
 El contrato de navegación inventaría el router y los enlaces actuales y conserva
 el histórico de la arquitectura pública desde Fase 3. El contrato de Fase 7B
@@ -62,8 +64,8 @@ cierra su evolución para el MVP: Inicio y Competición como enlaces, Aprende y
 Club como grupos de revelación, Cuenta separada y cuatro rutas institucionales
 canónicas. Las rutas Club ya tienen fachadas CMS diferidas y 7D.1 implementa el
 grupo del Navbar, Home veraz y footer global. Las rutas legales y los enlaces
-de footer se implementan en 7D.2C1; la activación productiva de Contacto
-permanece pendiente de 7D.2C2B. La auditoría 7D.2A
+de footer se implementan en 7D.2C1; 7D.2C2B completa la capacidad técnica de
+Contacto y su activación productiva permanece pendiente de 7F. La auditoría 7D.2A
 consolida las fuentes institucionales, identidad, tratamientos,
 almacenamientos y terceros y crea borradores internos no publicables. El documento de
 gobernanza define qué
@@ -102,8 +104,10 @@ del footer; el documento 22 registra el contrato y mantiene 7D.2C2B, Contacto y
 producción abiertos.
 7D.2C2A incorpora dentro de `legal/` un aviso de formulario separado, modela la
 autorización de identidad de menores, integra Escuela, confirmación y Blade y
-aplica la proyección fail-closed en Competición; el documento 23 conserva
-7D.2C2B, Contacto, imágenes y producción abiertos.
+aplica la proyección fail-closed en Competición. 7D.2C2B añade el aviso de
+Contacto, config fail-closed, consentimiento, notificación auxiliar, retención,
+holds y anonimización; el documento 24 cierra 7D.2 sin activar producción.
+7D.3, imágenes, despliegue, Fase 7 y MVP continúan abiertos.
 El conocimiento estable del deporte se mantiene por separado en
 [`knowledge/`](../knowledge/README.md); los documentos técnicos describen el
 software y no sustituyen esa fuente editorial.

@@ -92,14 +92,16 @@ La fuente vive en `legal/`; las salidas son
 `frontend/src/generated/legal/form-notices.json` y la copia backend del aviso.
 Las rutas públicas son
 `/legal/aviso-legal`, `/legal/privacidad` y `/legal/cookies`. No usan CMS, API
-ni Knowledge. El aviso de identidad de menores no crea una ruta legal nueva.
+ni Knowledge. Los avisos de identidad de menores y Contacto no crean rutas
+legales nuevas.
 
 El servidor de producción deberá servir `frontend/dist` con fallback SPA a `index.html` y enrutar `/api/v1` y `/admin` hacia Laravel.
 
-La base técnica del futuro formulario de contacto está desactivada por defecto.
-`CONTACT_FORM_ENABLED`, `CONTACT_NOTIFICATION_ENABLED` y
-`CONTACT_NOTIFICATION_TO` se configuran en Laravel; no deben habilitarse en
-producción hasta cerrar privacidad, destinatario y operación. La carga de las
+La capacidad técnica del formulario de contacto está desactivada por defecto.
+Laravel aplica aviso versionado, configuración fail-closed, persistencia como
+recepción, correo auxiliar, retención y operación Blade. No debe habilitarse en
+producción hasta configurar y probar destinatario, remitente, proveedor,
+entrega, logs, scheduler, backups y rollback. La carga de las
 páginas Club continúa siendo manual mediante el CMS Blade. React expone las
 fachadas diferidas `/club/quienes-somos`, `/club/contacto`, `/club/federarse` y
 `/club/documentos`; el formulario sólo se monta cuando la configuración pública
@@ -112,9 +114,10 @@ y recursos externos. 7D.2C1 publica los tres textos legales desde Git mediante
 compilación build-time y los enlaza en el footer. 7D.2C2A añade la autorización
 verificable y revocable de identidad deportiva de menores, integrada con
 Escuela, revisión Blade y proyección fail-closed de Competición; sus flags y el
-correo saliente continúan desactivados por defecto. 7D.2C2B queda reservado a
-la primera capa y operación de Contacto y correo; las imágenes permanecen como
-un frente independiente posterior y el despliegue continúa pendiente.
+correo saliente continúan desactivados por defecto. 7D.2C2B completa la primera
+capa y operación de Contacto sin proveedor ni activación productiva; 7D.2 queda
+cerrada, 7D.3 continúa pendiente, las imágenes permanecen como un frente
+independiente y el despliegue corresponde a 7F.
 
 ## Pruebas
 

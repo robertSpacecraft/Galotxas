@@ -52,14 +52,15 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 34. **Fase 7D.2B — Endurecimiento técnico de privacidad:** identidad deportiva anónima proyectada mediante allowlists y criterio fail-closed; perfil retirado de `localStorage` y restaurado con `/me`; recursos automáticos de Google Fonts, Bunny Fonts y jsDelivr eliminados; contratos privados, CMS, imágenes, legal y Contacto conservados.
 35. **Fase 7D.2C1 — Fuente y páginas legales versionadas:** fuente canónica `legal/`, metadatos y compilador fail-closed independientes de Knowledge, proyección build-time, tres rutas lazy y enlaces de footer; política de menores y conservación publicada, con Contacto, correo, consentimientos e imágenes todavía desactivados.
 36. **Fase 7D.2C2A — Identidad pública verificable de menores:** aviso de formulario versionado, estados y modos explícitos, tokens hash de un solo uso, confirmación de representante, conformidad 14–17, revisión y revocación Blade, integración opcional con Escuela y proyección fail-closed en toda Competición; flags y correo productivo desactivados.
+37. **Fase 7D.2C2B — Primera capa y operación de Contacto:** aviso versionado, consentimiento trazable, config fail-closed, persistencia como recepción, correo auxiliar configurable, reintento limitado, administración Blade, cierre, retención, holds, anonimización y purga de HMAC; producción y proveedor siguen desactivados.
 
-La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fases 7A y 7B, los bloques 7C.0–7C.2 y 7D.1–7D.2C2A están completados; 7C queda cerrada, pero 7D.2, 7D y Fase 7 siguen abiertas. Aliases, redirects, publicación productiva por entorno y migraciones editoriales no se han implementado.
+La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fases 7A y 7B, los bloques 7C.0–7C.2, 7D.1 y 7D.2A–7D.2C2B están completados; 7C y 7D.2 quedan cerradas, pero 7D.3, 7D y Fase 7 siguen abiertas. Aliases, redirects, publicación productiva por entorno y migraciones editoriales no se han implementado.
 
 ## Fase 7 abierta — bloques pendientes
 
-1. **Fase 7D.2C2B — Contacto y correo operativo:** completar la primera capa y la operación del formulario de Contacto; confirmar destinatario, proveedor y remitente; probar envío y tratamiento de errores; aplicar conservación y borrado; y definir una activación controlada. Fase 7D.2 no está completa.
+1. **Fase 7D.3 — Cierre restante de 7D:** pendiente de su instrucción específica; no se inicia en 7D.2C2B.
 2. **Fase 7E — Preparación operativa de Escuela:** cargar en privado y validar configuración, contenido, privacidad, conservación y capacidad de gestión antes de probar y abrir inscripciones.
-3. **Fase 7F — Preparación de despliegue:** cerrar Railway/Vercel, MariaDB, variables, CORS, correo, sesiones, logs, backups, migraciones, salud, staging y rollback.
+3. **Fase 7F — Preparación de despliegue:** cerrar Railway/Vercel, MariaDB, variables, CORS, proveedor y entrega de correo, sesiones, logs, scheduler, backups, migraciones, salud, staging y rollback.
 4. **Fase 7G — Validación y cierre del MVP:** ejecutar regresión, recorridos críticos, QA responsive/multibrowser priorizada, smoke y aceptación humana antes de tag/release.
 
 Las autorizaciones de imágenes para web, redes sociales y archivo histórico
@@ -67,7 +68,7 @@ permanecen como un frente independiente posterior, todavía sin numeración
 aprobada. No forman parte de 7D.2C2B ni reutilizan la autorización de identidad
 deportiva.
 
-Las fases 4, 5, 6 y los bloques 7B, 7C.0–7C.2 y 7D.1–7D.2C2A están completados.
+Las fases 4, 5, 6 y los bloques 7B, 7C.0–7C.2 y 7D.1–7D.2C2B están completados.
 `/competicion` ofrece el recorrido deportivo; `/aprende-a-jugar` y el Manual
 presentan los 40 documentos desde Knowledge; `/escuela` consume la configuración
 pública y admite solicitudes anónimas cuando el backend las abre. El cierre de
@@ -78,7 +79,10 @@ Manual y Escuela sin fusionar sus fuentes. Home y el footer global ofrecen
 destinos estructurales reales. 7D.2A aporta la base interna, 7D.2B resuelve el
 endurecimiento técnico y 7D.2C1 publica tres textos controlados desde `legal/`
 con rutas y footer. 7D.2C2A añade un aviso de formulario y autorización
-verificable de identidad de menores; no activa correo productivo ni Contacto.
+verificable de identidad de menores. 7D.2C2B completa después la capacidad
+técnica de Contacto, pero mantiene `CONTACT_FORM_ENABLED=false` y
+`CONTACT_NOTIFICATION_ENABLED=false` como defaults: no configura proveedor,
+credenciales, entrega o activación productiva.
 Los borradores permanecen como historia interna no vigente.
 
 La carga editorial local se realizó manualmente y 7C.2 incorpora la interfaz
@@ -197,7 +201,7 @@ debe crear el tag o la release hasta completar Fase 7G.
 
 1. revisión humana y eventual merge documental de 7A;
 2. cierre de decisiones y contenido en 7B;
-3. completar 7D.2C2B y continuar 7E–7F, cada bloque validado y revisado;
+3. completar 7D.3 y continuar 7E–7F, cada bloque validado y revisado;
 4. cierre de aceptación en 7G;
 5. sólo entonces, preparación del nuevo candidato, tag y publicación.
 

@@ -244,11 +244,13 @@ Manual, Contacto oculto, 320 px y ausencia de recursos remotos.
 - Una futura modificación del aviso necesita estrategia explícita de renovación
   para autorizaciones anteriores.
 
-## 26. Gates de 7D.2C2B
+## 26. Seguimiento de 7D.2C2B
 
-7D.2C2B permanece pendiente y corresponde a la primera capa y operación del
-formulario de Contacto: destinatario, proveedor y remitente, envío y errores,
-conservación y borrado, capacidad de atención y activación controlada.
+7D.2C2B completa después la primera capa y operación técnica de Contacto con un
+aviso separado, destinatario/remitente configurables, persistencia como
+recepción, fallos/reintentos, conservación, holds y anonimización. No mezcla ni
+modifica la autorización de identidad de menores. Proveedor, entrega y
+activación productiva continúan en 7F.
 
 Las autorizaciones de imágenes, web, redes sociales y archivo histórico siguen
 pendientes como un frente independiente posterior, sin numeración aprobada. No
@@ -268,5 +270,5 @@ Contacto tiene gates propios y no deriva de este flujo.
 7D.2C2A queda cerrada cuando fuente y proyecciones legales coinciden, migración
 y seeder aislado funcionan en MariaDB, backend y frontend aplican fail-closed,
 administración no permite aprobar evidencia incompleta, revocación es inmediata,
-tests y E2E pasan y `git diff --check` queda limpio. No cierra 7D.2C2B, 7D.2,
-7D, Fase 7 ni MVP.
+tests y E2E pasan y `git diff --check` queda limpio. El posterior 7D.2C2B cierra
+7D.2, no 7D.3, 7D, Fase 7 ni MVP.

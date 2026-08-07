@@ -6,6 +6,18 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Fase 7D.2C2B incorpora `NOTICE-CONTACT-FORM` 1.0.0, primera capa visible,
+  consentimiento no premarcado y trazable, configuración fail-closed y
+  proyecciones legales deterministas sin crear una cuarta página pública.
+- `ContactRequest` añade estados de notificación, historial mínimo, reintento
+  manual limitado, From/Reply-To controlados, cierre, retención de 12 meses,
+  holds, anonimización y purga idempotente del HMAC a 30 días. ADR-038 fija que
+  la persistencia acredita recepción y el correo es auxiliar.
+- Blade incorpora filtros y operación completa de las solicitudes; React
+  conserva siempre el CMS y sólo muestra aviso/formulario si API y artefacto
+  coinciden. Los defaults productivos siguen desactivados, sin proveedor,
+  secretos, despliegue, scheduler o backups configurados. 7D.2 queda cerrada;
+  7D.3, 7D, Fase 7 y MVP continúan abiertos.
 - Fase 7D.2C2A incorpora autorización versionada, verificable y revocable de
   identidad pública de menores para `public_competition_identity`, con estados
   explícitos, modos `alias|name_initial|anonymous`, tokens hash de un uso,
