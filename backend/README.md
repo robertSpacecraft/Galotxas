@@ -36,6 +36,18 @@ de cualquier otro entorno continúa siendo `false`.
 La operación vigente y los gates de 7F están en
 [`docs/24-contact-operation-and-privacy-layer.md`](../docs/24-contact-operation-and-privacy-layer.md).
 
+## Escuela de Galotxas
+
+La recepción pública de Escuela es fail-closed. Su default es
+`SCHOOL_ENROLLMENT_ENABLED=false` y `SchoolEnrollmentAvailabilityService`
+combina la flag con programa público, contenido, ubicación, nivel/horario y
+aviso vigente. Los contactos de inscripción y del programa son privados y no
+se serializan en `GET /api/v1/school`. El comando
+`school:purge-expired --dry-run` permite auditar vencimientos sin modificar
+datos; no está conectado al scheduler. La preparación y los gates productivos
+se documentan en
+[`docs/26-school-operational-readiness.md`](../docs/26-school-operational-readiness.md).
+
 ## Privacidad técnica
 
 Las respuestas anónimas de competición usan Resources con listas cerradas y

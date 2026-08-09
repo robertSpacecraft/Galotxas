@@ -45,9 +45,21 @@ grupo de Información legal con esos tres destinos.
 
 La ruta pública `/escuela` se carga de forma diferida desde `src/features/school/`. Su servicio usa la instancia Axios común para consumir `GET /api/v1/school` y `POST /api/v1/school/enrollments`; el hook local gestiona carga, ausencia válida, error y reintento sin estado global o persistencia.
 
-React conserva el orden y los campos autorizados por Laravel, presenta programa, niveles, horarios, ubicaciones, contacto y apertura, y sólo muestra el formulario cuando el agregado indica inscripciones abiertas. El cálculo local de minoría de edad controla la presentación del representante y la validación básica, pero el backend continúa siendo la autoridad. Los datos personales no se almacenan en URL, storage, logs o telemetría y se limpian tras una respuesta `201`.
+React conserva el orden y los campos autorizados por Laravel, presenta el
+contenido administrado, niveles, horarios, ubicaciones y los estados
+`open|closed|unavailable`. No recibe el contacto operativo privado y sólo
+muestra el formulario cuando el agregado y el aviso compilado coinciden. El
+cálculo local de minoría controla la presentación del representante y la
+validación básica, pero Laravel continúa siendo la autoridad de disponibilidad
+y edad. Los datos personales no se almacenan en URL, storage, logs o telemetría
+y se limpian tras una respuesta `201`.
 
 La feature enlaza al Manual mediante su helper de ruta, pero no importa `public-knowledge.json` ni duplica contenido pedagógico. `schoolRoutes.js` centraliza `/escuela` para Router, Navbar y Home. El slug CMS legado `academy` continúa independiente y no se redirige.
+
+El formulario usa `NOTICE-SCHOOL-ENROLLMENT` 1.0.0, honeypot y bloqueo de doble
+envío. La flag de apertura no existe en Vite: el entorno backend parte de
+`SCHOOL_ENROLLMENT_ENABLED=false`. Los datos y la activación reales pertenecen
+a 7F.
 
 ## Contacto institucional
 

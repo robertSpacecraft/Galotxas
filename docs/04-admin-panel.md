@@ -105,21 +105,34 @@ La ruta `/admin/venues` centraliza la configuración básica de pistas.
 
 Las rutas `/admin/school/*` agrupan siete áreas bajo un único acceso de navegación:
 
-- **Inscripciones:** listado y filtros, alta manual pendiente, detalle privado, corrección limitada, aprobación, rechazo, baja y reasignación de nivel, sin eliminación.
-- **Programa:** listado, alta, edición, visibilidad, apertura declarada de inscripciones, ubicación habitual, contacto, orden y borrado conservador. Sólo puede existir un programa público.
+- **Inscripciones:** listado y filtros, alta manual pendiente, detalle privado,
+  corrección administrativa trazada, aprobación, rechazo, baja, reasignación,
+  holds y anonimización al vencer, sin eliminación.
+- **Programa:** listado, alta, edición, visibilidad, contenido público, apertura
+  declarada y efectiva, ubicación, contacto operativo privado, orden y borrado
+  conservador. Sólo puede existir un programa público.
 - **Niveles:** listado filtrable por programa, alta, edición, edades opcionales, activación, visibilidad, orden y borrado conservador.
 - **Ubicaciones:** listado, alta, edición, activación, dirección, localidad, orden, notas administrativas y borrado conservador.
 - **Horarios:** listado filtrable por programa y nivel, alta, edición, día ISO, horas, ubicación, activación, orden y borrado.
 - **Centros educativos:** listado por estado y localidad, alta, detalle con histórico, edición, activación, contacto y notas privadas.
 - **Actividades con centros:** listado por centro, estado e intervalo, alta, detalle, corrección de datos y acciones explícitas de completar o cancelar.
 
-Los registros nuevos son privados o inactivos. Los formularios usan `old()`, valores ocultos para checkboxes, errores por campo y `validated()`. Activar un horario exige nivel y ubicación activos; publicar un nivel exige programa público; publicar un programa con ubicación habitual exige que ésta esté activa.
+Los registros nuevos son privados o inactivos. Los formularios usan `old()`,
+valores ocultos para checkboxes, errores por campo y `validated()`. Declarar
+abierto un programa exige contenido, ubicación, correo operativo, nivel y
+horario completos; la flag de entorno continúa fuera de Blade y cerrada por
+defecto.
 
-La navegación muestra por separado activo, público y visibilidad efectiva. Un programa privado puede conservar la apertura declarada y los flags hijos sin hacerlos públicos.
+La navegación muestra por separado activo, público y disponibilidad efectiva.
+El listado explica los requisitos incompletos sin exponerlos en la API.
 
 El listado de inscripciones permite filtrar por programa, nivel y estado, usa `requested_at` e ID como orden estable, presenta contadores y enlaza al detalle. El alta manual registra siempre una solicitud pendiente y nunca expone `user_id`. La edición sólo corrige participante, nacimiento, contacto, representante y notas; programa, nivel, cuenta, estado y fechas quedan fuera.
 
-Las acciones de inscripción son explícitas: una pendiente puede aprobarse con un nivel activo del mismo programa o rechazarse; una activa puede reasignarse a otro nivel activo del programa o darse de baja. Rechazadas y bajas sólo admiten consulta y corrección limitada. El panel confirma rechazo y baja, conserva `old()`, muestra errores junto a campos y no define `destroy`.
+Las acciones de inscripción son explícitas: una pendiente puede aprobarse con
+un nivel activo del mismo programa o rechazarse; una activa puede reasignarse o
+darse de baja. Cada acción registra fecha y actor. Rechazadas y bajas conservan
+histórico, plazo y hold; al vencer pueden anonimizarse. El aviso aceptado no se
+edita y un registro anonimizado no vuelve a corregirse. No existe `destroy`.
 
 Los centros nuevos nacen inactivos. El listado muestra contacto, estado, número de actividades y última fecha; el detalle conserva notas privadas, histórico y acceso a una actividad preseleccionada. Un centro con actividades no puede borrarse.
 

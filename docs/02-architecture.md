@@ -135,7 +135,8 @@ Fases 6A y 6A.1 definen Escuela como una vertical híbrida independiente de Apre
 - `knowledge/` podrá aportar metodología, iniciación y recursos pedagógicos estables únicamente cuando exista una colección real y aprobada; mientras tanto, Escuela enlazará al Manual existente;
 - Laravel/MariaDB es la fuente del programa permanente, niveles, horarios, ubicaciones, inscripciones, centros, actividades y datos personales;
 - Blade administra programa, niveles, ubicaciones, horarios, inscripciones, centros y actividades;
-- `GET /api/v1/school` entrega sólo configuración, niveles, horarios, ubicaciones, apertura y contacto efectivos;
+- `GET /api/v1/school` entrega sólo contenido administrado, estado de apertura,
+  aviso, niveles, horarios y ubicaciones efectivos; no entrega contactos;
 - `POST /api/v1/school/enrollments` recibe solicitudes anónimas o vinculadas opcionalmente a la sesión, siempre pendientes y sujetas a revisión;
 - React compone `/escuela` y su formulario desde la API, pero no almacena contenido editorial ni decide visibilidad o mayoría de edad;
 - el CMS genérico podrá conservar piezas no estructuradas, pero nunca alumnos, centros, actividades, horarios o solicitudes.
@@ -144,23 +145,44 @@ El contrato completo queda formado por `SchoolProgram`, `SchoolLevel`, `SchoolSc
 
 `SchoolLocation` es propia del dominio escolar y se comparte entre horarios y actividades. El `Venue` existente no se reutiliza: el generador de liga trata todos los registros de `venues` como pistas competitivas y sus relaciones y restricciones de borrado están acopladas a partidos y reprogramaciones.
 
-La persistencia mantiene defaults privados e inactivos y claves foráneas restrictivas. Un `SchoolProgramService` coordina la escritura del programa dentro de una transacción y bloquea el programa público existente. MariaDB completa la garantía concurrente mediante `public_slot`, una columna generada que vale `1` sólo para el programa público y `NULL` para los privados, con índice único. No se despublica silenciosamente otro registro.
+La persistencia mantiene defaults privados e inactivos y claves foráneas
+restrictivas. `SchoolProgramService` coordina la escritura y, desde 7E, impide
+declarar abierta una configuración incompleta. MariaDB completa la garantía
+concurrente mediante `public_slot`; no se despublica silenciosamente otro
+registro.
 
 Los scopes `effectivelyPublic()` de programa, nivel y horario centralizan la futura consulta pública. El horario efectivo exige programa público, nivel activo y público, horario activo y ubicación activa; no se propagan flags al ocultar padres. `SchoolDayOfWeek` aporta el valor ISO int-backed y las etiquetas administrativas.
 
 La Escuela admite menores y adultos. El representante se exige sólo al menor calculado desde nacimiento y fecha de solicitud; teléfono y correo siempre son obligatorios. No se gestionan plazas, pagos, asistentes nominales de centros o cuentas obligatorias.
 
-`SchoolEnrollmentService` resuelve dentro de transacciones el único programa público abierto, valida la coherencia programa–nivel y aplica las únicas transiciones admitidas. MariaDB refuerza la coherencia del nivel con una clave foránea compuesta; los programas y niveles no se borran si tienen inscripciones, mientras la cuenta nullable usa `nullOnDelete`. La edad se calcula respecto de `requested_at` mediante fechas inmutables.
+`SchoolEnrollmentAvailabilityService` es la única decisión de apertura:
+configuración completa, aviso vigente, apertura declarada y
+`SCHOOL_ENROLLMENT_ENABLED=true`. La flag parte de `false`; React no tiene una
+flag paralela. `SchoolEnrollmentService` valida esa decisión dentro de la
+transacción, la coherencia programa–nivel y las transiciones admitidas.
 
-La escritura pública se limita a cinco intentos por minuto por combinación de IP y hash SHA-256 del correo normalizado. La respuesta `201` sólo contiene confirmación genérica; programa no disponible responde `409` sin distinguir ausencia, privacidad o cierre. No existen lectura, consulta individual, Resources públicos ni API administrativa de inscripciones.
+La escritura pública se limita a cinco intentos por minuto mediante un HMAC de
+IP y correo normalizado e incorpora honeypot silencioso. La respuesta `201`
+sólo contiene confirmación genérica; programa no disponible responde `409` sin
+distinguir la causa. No existen lectura, consulta individual, Resources
+públicos ni API administrativa de inscripciones.
 
 Centros y actividades constituyen un subdominio operativo separado de las inscripciones. Sus dos tablas usan claves foráneas restrictivas, sus registros no se publican, Blade es su único consumidor y no existe API pública o administrativa. Los centros nacen inactivos; las actividades nacen `planned` y sólo pasan a `completed` o `cancelled`. Desactivar un centro o una ubicación preserva las relaciones históricas y sólo bloquea asociaciones nuevas.
 
 `SchoolPublicOverviewService` centraliza la consulta pública de sólo lectura: resuelve el programa público, restringe y ordena niveles y horarios, limita las columnas cargadas y obtiene todas las relaciones mediante eager loading. `SchoolController` sólo coordina esa consulta y el envelope. `PublicSchoolResource`, `PublicSchoolLevelResource`, `PublicSchoolScheduleResource` y `PublicSchoolLocationResource` aplican allowlists por contexto y no consultan la base de datos.
 
-La ausencia de programa público devuelve `200` con `data: null`; la respuesta no diferencia ausencia, privacidad o configuración incompleta. Con programa público, el contrato admite contacto nullable, ubicación habitual activa opcional, niveles sin horarios y datos parciales. Inscripciones, usuarios, centros, actividades, notas, flags y timestamps permanecen fuera de la lectura.
+La ausencia de programa público devuelve `200` con `data: null`. Con programa
+público, `open`, `closed` y `unavailable` separan apertura de configuración
+incompleta sin exponer causas técnicas. Teléfono, correo, inscripciones,
+usuarios, centros, actividades, notas, flags y timestamps permanecen fuera de
+la lectura.
 
 Fase 6C completa el consumidor React en `frontend/src/features/school/`: servicio Axios y normalización ligera, hook remoto local, helpers puros, landing diferida y formulario. El cliente conserva el orden recibido, no importa el corpus Knowledge, no persiste datos personales y trata `data: null` como ausencia válida. Fase 6C.1 revalida ese cierre tras separar los tres entornos Docker; no cambia el dominio ni los contratos School. El contrato completo está en `12-school-of-galotxas.md`.
+
+Fase 7E añade contenido público administrable al programa, primera capa
+`NOTICE-SCHOOL-ENROLLMENT`, trazabilidad y retención. La purga es manual,
+idempotente y con `--dry-run`; no se conecta al scheduler. Los gates y la
+matriz operativa están en `26-school-operational-readiness.md` y ADR-040.
 
 ## Canalización build-time de Knowledge
 

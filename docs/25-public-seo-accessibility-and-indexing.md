@@ -319,3 +319,16 @@ fail-closed, assets, accesibilidad, tests, E2E, build y hashes pasan sin tocar
 fuentes, `dist`, API o datos. Fase 7 y el MVP permanecen abiertos: 7E, 7F, 7G y
 los gates humanos/productivos no se consideran resueltos por este documento.
 La validación completa cumple estos criterios y cierra 7D.3 y 7D.
+
+## 43. Regresión de Fase 7E
+
+7E no cambia la clasificación, canonical, robots, sitemap ni indexación de
+`/escuela`. El contenido administrable y los estados `closed` o `unavailable`
+usan la metadata prudente de la ruta y nunca incorporan teléfono, correo,
+formulario enviado, confirmación, inscripción o datos individuales.
+
+`seo:check` conserva 26 rutas, 52 URLs canónicas y el modo noindex por defecto.
+La regresión completa crece a 63 escenarios E2E y pasa en 2,6 minutos; mantiene
+los ocho escenarios propios de 7D.3 y añade la operación ampliada de Escuela.
+La revisión perceptual humana, dominio, HTTPS y activación indexable siguen en
+7F/7G.

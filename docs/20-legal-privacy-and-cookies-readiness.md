@@ -362,3 +362,18 @@ y proveedor pendiente, por lo que no se altera su versión.
 El destinatario y remitente son configuración privada, pero ningún valor real
 se incorpora al repositorio. Proveedor, credenciales, entrega, rebotes, logs,
 scheduler, backups, restauración y activación se mantienen como gates de 7F.
+
+## Seguimiento de 7E
+
+Los hallazgos históricos de Escuela sobre primera capa, plazos y ausencia de
+purga quedan remediados técnicamente con `NOTICE-SCHOOL-ENROLLMENT` 1.0.0,
+evidencia versionada, vencimiento, holds, anonimización y
+`school:purge-expired --dry-run`. La Política de privacidad 1.1.0 ya recogía
+seis meses para solicitudes no formalizadas o rechazadas y dos años tras la
+baja de alumnos, por lo que no cambia de versión.
+
+El agregado público ya no serializa el teléfono o correo del programa y el
+limitador de inscripción usa HMAC para no incorporar IP o correo en claro a la
+clave. `SCHOOL_ENROLLMENT_ENABLED=false` conserva la operación productiva
+cerrada. Configuración real, revisión humana, proveedor de correo, scheduler,
+backups, restore, logs y despliegue continúan como gates de 7F.

@@ -160,7 +160,10 @@ Toda solicitud exige:
 
 Estos campos pertenecen a `SchoolEnrollment` y nunca son públicos.
 
-El canal público general es distinto. `SchoolProgram` dispone de `contact_phone` y `contact_email` nullable, editables desde Blade. La API conserva un objeto estable `contact` con `phone` y `email`, ambos nullable; esa ausencia no oculta el programa ni bloquea el resto de la experiencia. La decisión de mostrar u omitir visualmente el bloque completo pertenece a 6C.
+El canal operativo del programa es distinto de los contactos declarados por una
+solicitud. `SchoolProgram.contact_phone` y `contact_email` son privados y
+editables desde Blade; 7E deja de exponerlos en la API. Teléfono y correo de la
+solicitud continúan siendo obligatorios y exclusivamente privados.
 
 No se inventan teléfonos, correos institucionales, textos legales o consentimientos.
 
@@ -221,7 +224,8 @@ Los solapamientos parciales se permiten deliberadamente: puede haber niveles dis
 
 ## 14. Apertura y cierre
 
-`SchoolProgram.enrollments_open` controla la recepción de solicitudes.
+`SchoolProgram.enrollments_open` es sólo la apertura declarada. Desde 7E la
+recepción depende de `SchoolEnrollmentAvailabilityService`.
 
 Cuando sea `false`:
 
@@ -233,9 +237,13 @@ Cuando sea `false`:
 La apertura pública efectiva requiere simultáneamente:
 
 - programa público;
-- `enrollments_open = true`.
+- `enrollments_open = true`;
+- `SCHOOL_ENROLLMENT_ENABLED = true`;
+- contenido, ubicación, nivel/horario y aviso vigente completos.
 
-Un programa privado puede conservar internamente `enrollments_open = true`, pero la API lo tratará como cerrado/no disponible y el POST rechazará la solicitud. Esta conservación evita modificar configuración al ocultar temporalmente el programa.
+Un programa privado o incompleto no puede guardarse administrativamente como
+abierto. Una configuración completa puede conservar apertura declarada mientras
+la flag del entorno sigue cerrada; la API la representa como `closed`.
 
 ## 15. Solicitud pública
 
@@ -399,11 +407,11 @@ No forman parte del modelo los periodos de inscripción separados, solicitudes d
 
 | Entidad | Campos |
 |---|---|
-| `SchoolProgram` | `name`, `is_public`, `enrollments_open`, `default_school_location_id` nullable, `contact_phone` nullable, `contact_email` nullable, `sort_order`, `public_slot` generado, timestamps |
+| `SchoolProgram` | `name`, `public_description`, `enrollment_information`, `is_public`, `enrollments_open`, `default_school_location_id` nullable, contacto operativo privado nullable, `sort_order`, `public_slot` generado, timestamps |
 | `SchoolLevel` | `school_program_id`, `name`, `minimum_age` nullable, `maximum_age` nullable, `is_active`, `is_public`, `sort_order`, timestamps |
 | `SchoolSchedule` | `school_level_id`, `day_of_week`, `starts_at`, `ends_at`, `school_location_id`, `is_active`, `sort_order`, timestamps |
 | `SchoolLocation` | `name`, `locality`, `address` nullable, `is_active`, `sort_order`, `admin_notes` nullable, timestamps |
-| `SchoolEnrollment` | `school_program_id`, `school_level_id` nullable, `user_id` nullable, `participant_name`, `participant_birth_date`, `contact_phone`, `contact_email`, `guardian_name` nullable condicional, `guardian_relationship` nullable condicional, `status`, `requested_at`, `activated_at` nullable, `rejected_at` nullable, `withdrawn_at` nullable, `admin_notes` nullable, timestamps |
+| `SchoolEnrollment` | relaciones, PII nullable tras anonimización, estado y ciclo, aviso/aceptación, actores de transición/corrección, vencimiento, hold, anonimización, notas privadas y timestamps |
 | `EducationalCenter` | `name`, `locality`, `contact_name` nullable, `contact_phone` nullable, `contact_email` nullable, `is_active`, `admin_notes` nullable, timestamps |
 | `EducationalActivity` | `educational_center_id`, `name`, `activity_date`, `starts_at` nullable, `ends_at` nullable, `expected_students` nullable condicional, `school_location_id` nullable, `status`, `admin_notes` nullable, timestamps |
 
@@ -464,7 +472,8 @@ Política efectiva implementada como scopes internos y consumida por la API de 6
 - nivel visible: programa visible, `is_active = true` e `is_public = true`;
 - horario visible: nivel efectivo, `is_active = true` y ubicación activa;
 - ubicación: se expone únicamente dentro de un horario efectivo;
-- inscripciones abiertas: programa visible y `enrollments_open = true`.
+- inscripciones abiertas: disponibilidad central `open`; la flag parte de
+  `false` y React nunca la decide.
 
 Casos:
 
@@ -555,15 +564,15 @@ Entrega:
 - niveles activos y públicos;
 - horarios efectivos;
 - ubicaciones asociadas;
-- estado efectivo de inscripción;
-- contacto público cuando exista.
+- contenido público administrable;
+- estado efectivo de inscripción y aviso vigente.
 
 La consulta se centraliza en `SchoolPublicOverviewService`. Restringe las columnas, reutiliza los scopes efectivos, carga de forma anticipada ubicación habitual, niveles, horarios y ubicaciones, y aplica:
 
 - niveles por `sort_order`, `id`;
 - horarios por `day_of_week`, `starts_at`, `sort_order`, `id`.
 
-`PublicSchoolResource`, `PublicSchoolLevelResource`, `PublicSchoolScheduleResource` y `PublicSchoolLocationResource` serializan mediante allowlist. El contacto conserva `phone` y `email` nullable; la ubicación habitual sólo aparece si está activa; un nivel efectivo sin horarios continúa con `schedules: []`; el día es ISO 1–7 y las horas usan `HH:MM`.
+`PublicSchoolResource`, `PublicSchoolLevelResource`, `PublicSchoolScheduleResource` y `PublicSchoolLocationResource` serializan mediante allowlist. Teléfono y correo del programa no se publican; la ubicación habitual sólo aparece si está activa; un nivel efectivo sin horarios continúa con `schedules: []`; el día es ISO 1–7 y las horas usan `HH:MM`.
 
 No entrega ID de programa, flags administrativos, órdenes, claves foráneas, ranura generada, notas, timestamps, alumnado, solicitudes, fechas de nacimiento, contactos privados, usuarios, centros o actividades. Sólo se exponen los IDs mínimos de nivel, horario y ubicación.
 
@@ -576,7 +585,9 @@ Si no existe programa público, responde `200`:
 }
 ```
 
-No selecciona programas privados ni diferencia ausencia, ocultación o configuración incompleta. Un programa público sin contacto, ubicación habitual, niveles u horarios continúa siendo una respuesta válida.
+No selecciona programas privados ni diferencia ausencia y ocultación. Desde
+7E, un programa público incompleto sigue siendo una respuesta válida con
+`enrollment_status: unavailable`, contenido visible y formulario cerrado.
 
 ### Escritura
 
@@ -608,7 +619,7 @@ Respuestas:
 
 - `422` para validación;
 - `409` con un mensaje único si no existe un programa público abierto, sin distinguir ausencia, privacidad o cierre;
-- `429` al superar cinco intentos por minuto por IP y hash SHA-256 del correo normalizado.
+- `429` al superar cinco intentos por minuto mediante una clave HMAC de IP y correo normalizado.
 
 La respuesta `201` sólo contiene `message` y `data: null`; no incluye identificador, nombre, correo, nivel, estado o timestamps. No existen listado público, consulta por ID, estado individual, endpoints de alumnos, centros o actividades. Blade opera con rutas web, no con API administrativa.
 
@@ -622,7 +633,7 @@ Fase 6C implementa `/escuela` con:
 4. horarios semanales y ubicaciones;
 5. inscripción abierta o cerrada;
 6. formulario público cuando esté abierta;
-7. contacto general sólo si está configurado;
+7. primera capa de privacidad versionada;
 8. estados remotos y confirmación opaca.
 
 La landing reutiliza `PublicLanding` y `PageMetadata`, y “Escuela de Galotxas” ocupa la cuarta posición del Navbar. No publica centros, actividades o alumnos.
@@ -638,7 +649,7 @@ Estados:
 | Inscripción cerrada | Mensaje claro, sin formulario enviable |
 | Error de envío | Mantener valores no sensibles y errores por campo |
 | Éxito | Confirmación genérica sin ID o consulta de estado |
-| Sin contacto público | Omitir bloque sin afectar el resto |
+| Configuración incompleta | Estado no disponible y formulario cerrado |
 
 React calcula localmente la minoría sólo para adaptar la interfaz; Laravel conserva la decisión final. El cliente no confía en ocultar el formulario como control de seguridad y no persiste contenido editorial o datos personales.
 
@@ -745,7 +756,7 @@ El bloque implementa la ruta anónima, `SchoolPublicOverviewService`, controlado
 
 - servicio Axios, normalización ligera y hook local;
 - landing diferida `/escuela`;
-- programa, niveles, horarios, ubicaciones, contacto y apertura;
+- programa, niveles, horarios, ubicaciones, contacto entonces público y apertura;
 - formulario con validación básica, menores, adultos, representante condicional y nivel opcional;
 - estados de lectura y envío, foco y anuncios accesibles;
 - Navbar en cuarta posición, Home sin la referencia pública “Academy” y enlace al Manual;
@@ -759,7 +770,7 @@ El bloque implementa la ruta anónima, `SchoolPublicOverviewService`, controlado
 
 - ausencia o privacidad del programa con el mismo `data: null`;
 - contrato mínimo, completo y parcial;
-- apertura efectiva, contacto nullable y ubicación habitual activa;
+- apertura efectiva, contacto entonces nullable y ubicación habitual activa;
 - niveles efectivos, niveles sin horarios y orden estable;
 - horarios efectivos, día ISO, horas `HH:MM` y ubicación activa;
 - allowlists recursivas sin datos administrativos, inscripciones, usuarios, centros o actividades;
@@ -780,9 +791,9 @@ La regresión final conserva 80 tests y 557 aserciones para `--filter=School`, y
 
 Deuda futura no bloqueante:
 
-- canal público de contacto definitivo;
-- textos aprobados de privacidad y aceptaciones;
-- política de conservación y borrado extraordinario;
+- responsable y canales operativos reales para atender inscripciones;
+- revisión humana de la información de privacidad vigente;
+- operación programada de conservación y procedimiento de borrado extraordinario;
 - reglas de duplicados o reinscripción compleja;
 - varios programas públicos;
 - subdivisión futura de niveles en grupos;
@@ -825,3 +836,32 @@ siendo independiente. La lectura pública de Escuela sólo añade configuración
 allowlisted del aviso cuando el flag está activo; no expone solicitudes,
 estados, personas o evidencia. El contrato completo se encuentra en
 `23-verifiable-minor-public-identity.md`.
+
+## 34. Seguimiento 7E — preparación operativa
+
+`SCHOOL-OPERATIONAL-READINESS-1` centraliza en Laravel una apertura
+fail-closed con estados públicos `open`, `closed` y `unavailable`. El estado
+`open` exige flag de entorno, programa público, presentación y proceso
+administrables, ubicación habitual activa, correo operativo privado válido,
+nivel público con horario y ubicación activos y el aviso vigente
+`NOTICE-SCHOOL-ENROLLMENT` 1.0.0. `SCHOOL_ENROLLMENT_ENABLED` permanece en
+`false` por defecto y React no decide la apertura.
+
+El agregado público deja de publicar teléfono o correo. Presentación y proceso
+proceden de `SchoolProgram`; los datos operativos reales siguen pendientes de
+carga y revisión humana en Blade. La ubicación conocida se limita a `Centro
+Polideportivo de Monóvar`, sin inventar pista, punto de encuentro u horario.
+
+La inscripción conserva teléfono y correo obligatorios como datos privados,
+incorpora primera capa versionada, honeypot, payload cerrado y limitador con
+HMAC. La autorización de identidad de menores sigue siendo opcional e
+independiente. Los plazos ya publicados se aplican mediante vencimiento,
+holds, anonimización y `school:purge-expired --dry-run`: seis meses para
+solicitudes rechazadas o no formalizadas y dos años desde la baja para antiguos
+alumnos. El comando no se programa todavía.
+
+La trazabilidad administrativa registra actores y fechas de corrección,
+activación, rechazo, baja y hold. Centros y actividades permanecen sólo en
+Blade y una actividad conserva únicamente el número previsto de alumnos. La
+matriz completa, los gates humanos y los límites de 7F se documentan en
+`26-school-operational-readiness.md`.

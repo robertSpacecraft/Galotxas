@@ -11,9 +11,10 @@ Documentos admitidos:
 
 Los avisos específicos para formularios viven bajo `legal/notices/` y no crean
 una cuarta página pública. La allowlist contiene
-`notices/public-identity-minors.md` y `notices/contact-form.md`; sus
-proyecciones se consumen respectivamente en la autorización de identidad de
-menores y en la primera capa de Contacto.
+`notices/public-identity-minors.md`, `notices/contact-form.md` y
+`notices/school-enrollment.md`; sus proyecciones se consumen respectivamente
+en la autorización de identidad de menores, la primera capa de Contacto y la
+inscripción de Escuela.
 
 No se admite un cuarto documento sin cambiar previamente el contrato cerrado y
 su documentación. `README.md` queda fuera de la proyección pública. Los

@@ -16,7 +16,7 @@ El candidato no equivale a un despliegue de producción. HTTPS, proxy inverso, b
 - `docs/`: documentación técnica y funcional.
 - `knowledge/`: fuente canónica del reglamento, los conceptos y el conocimiento estable del deporte.
 - `legal/`: fuente canónica versionada de los tres textos legales públicos y
-  de los avisos de formulario allowlisted.
+  de los avisos de formulario allowlisted de identidad, Contacto y Escuela.
 
 MariaDB es el único motor de base de datos soportado. Laravel utiliza la conexión mariadb y PHP accede al servidor mediante la extensión pdo_mysql.
 
@@ -120,6 +120,14 @@ añade la política SEO y de accesibilidad transversal, canonicaliza aliases y
 genera robots/sitemap de forma fail-closed y completa 61 escenarios E2E sobre
 el stack aislado. 7D queda cerrada. Las imágenes permanecen como un frente
 independiente y el despliegue corresponde a 7F.
+
+La inscripción de Escuela también permanece cerrada por defecto mediante
+`SCHOOL_ENROLLMENT_ENABLED=false`. Laravel exige configuración operativa
+completa, contenido administrable y `NOTICE-SCHOOL-ENROLLMENT` vigente antes de
+declararla disponible; React sólo consume `open`, `closed` o `unavailable`.
+Los datos reales, el correo y la activación productiva siguen siendo gates de
+7F. El contrato está en
+[docs/26-school-operational-readiness.md](docs/26-school-operational-readiness.md).
 
 La indexación pública está desactivada por defecto. Un build indexable exige
 configurar explícitamente una URL HTTPS no local. El dominio real no se incluye

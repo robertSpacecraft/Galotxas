@@ -146,7 +146,14 @@ Su arquitectura es híbrida y se implementa por bloques:
 
 La Escuela enlaza al Manual existente, pero no lo copia ni se anida dentro de Aprende a jugar. React compone únicamente los datos operativos autorizados; no existe todavía una colección pedagógica escolar. El CMS, `knowledge/` y JSX nunca almacenan niveles, horarios, alumnos, solicitudes, centros o actividades como fuente alternativa, y la inscripción a campeonatos no se reutiliza como inscripción escolar.
 
-La lectura pública `GET /api/v1/school` expone mediante allowlists únicamente nombre del programa, apertura efectiva, contacto general nullable, ubicación habitual activa, niveles activos y públicos, horarios efectivos y sus ubicaciones activas. La ausencia de programa público se representa como `data: null`; niveles sin horarios y demás datos parciales siguen siendo válidos. Nombres, fechas de nacimiento, representante, teléfono, correo, estado individual y observaciones de solicitudes nunca son públicos. El POST de 6B.2 devuelve sólo una confirmación genérica y no permite consultar solicitudes. Los datos personales permanecen en MariaDB y Blade; no se copian a CMS, `knowledge/`, React, URLs, logs añadidos o métricas.
+La lectura pública `GET /api/v1/school` expone mediante allowlists únicamente
+nombre, presentación y proceso administrados, estado de apertura, aviso,
+ubicación habitual activa, niveles activos/públicos y horarios efectivos. No
+expone teléfono o correo del programa. La ausencia se representa como
+`data: null`; una configuración incompleta usa `unavailable`. Nombres,
+nacimiento, representante, contactos, estado individual y observaciones de
+solicitudes nunca son públicos. El POST devuelve confirmación genérica y no
+permite consultar solicitudes.
 
 Desde 7D.2C2A, ese POST puede registrar por separado una autorización opcional
 de identidad deportiva. El texto procede de `legal/notices/`, la evidencia y
@@ -212,7 +219,7 @@ La tabla diferencia la fuente aprobada de las capacidades actuales que todavía 
 | Reglamento | `knowledge/reglamento/` | Git y revisión | No | No | Normativa |
 | Conceptos | `knowledge/conceptos/` | Git y revisión | No | No | Canónica |
 | Escuela: contenido estable | `knowledge/` futuro | Git y revisión | No inicialmente | No | Pedagógica |
-| Escuela: programa, niveles, ubicaciones y horarios | Dominio Laravel | Administrador desde Blade | Sí, desde 6B.1 | Sí, lectura cerrada desde 6B.4 | Operativa |
+| Escuela: programa, contenido, niveles, ubicaciones y horarios | Dominio Laravel | Administrador desde Blade | Sí, reforzada en 7E | Sí, lectura cerrada desde 6B.4 y estado fail-closed desde 7E | Operativa/editorial administrable |
 | Escuela: inscripciones | `SchoolEnrollment` | Solicitante público + administrador autorizado | Sí, desde 6B.2 | Sólo POST, sin lectura | Personal y privada |
 | Escuela: centros y actividades | `EducationalCenter` y `EducationalActivity` | Administrador desde Blade | Sí, desde 6B.3 | No en MVP | Operativa y privada |
 | Escuela: avisos simples | CMS genérico, si se aprueba | Administrador | Genérico actual | Genérica actual | Editorial |
@@ -431,7 +438,7 @@ contenido real ni preparación de producción. Antes de cerrar el MVP:
 | Documentos | CMS con URLs controladas | Piezas, vigencia, procedencia | Ciclo de vida y acceso verificados |
 | Prensa/Federaciones | CMS | Contenido real | Footer/secundaria, nunca tarjeta vacía |
 | Legal y privacidad | `legal/` | Revisión responsable/jurídica y versionado | Tres rutas y footer implementados; toda nueva versión debe pasar compilador y revisión |
-| Escuela operativa | Dominio Laravel | Programa, contacto, niveles, horarios y ubicación | Configurar privada/cerrada; abrir tras privacidad y capacidad |
+| Escuela operativa | Dominio Laravel | Programa, contenido, contacto operativo, niveles, horarios y ubicación | 7E preparada; cargar datos reales y mantener flag cerrada hasta 7F |
 | Reglas y modalidad | Knowledge | Revisión editorial existente | No copiar en CMS o React |
 | Mensajes de interfaz | React | Microcopy funcional | No convertirse en fuente editorial |
 
@@ -445,8 +452,9 @@ de Aprende, Club, Cuenta, rutas canónicas y footer. ADR-034 sustituye únicamen
 su decisión inicial de Contacto sin formulario por persistencia local,
 notificación opcional y desactivación por defecto. 7C.2 implementa la interfaz
 condicionada sin autorizar activación productiva o publicación editorial.
-Ninguna decisión cierra privacidad, operación o la política de identidad
-pública.
+7E incorpora la primera capa específica de inscripción, la conservación y la
+disponibilidad centralizada. La aceptación humana, los datos reales, el correo
+y la activación productiva permanecen pendientes de 7F/7G.
 
 ## 21. Plantillas, revisión y vigencia del MVP
 

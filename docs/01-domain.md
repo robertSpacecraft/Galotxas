@@ -351,7 +351,12 @@ El participante individual de la Escuela no es un `Player`, un centro educativo 
 
 Desde 6B.1 existe el núcleo operativo de la Escuela permanente:
 
-- `SchoolProgram` conserva configuración, visibilidad, apertura declarada de inscripciones, contacto público opcional, ubicación habitual y orden. Los registros nacen privados y cerrados. MariaDB garantiza como máximo un programa público mediante una ranura generada nullable e índice único; el servicio de persistencia añade transacción, bloqueo y feedback administrativo.
+- `SchoolProgram` conserva configuración, visibilidad, apertura declarada,
+  presentación pública, explicación del proceso, contacto operativo privado,
+  ubicación habitual y orden. Los registros nacen privados y cerrados. MariaDB
+  garantiza como máximo un programa público mediante una ranura generada
+  nullable e índice único; el servicio de persistencia añade transacción,
+  bloqueo y feedback administrativo.
 - `SchoolLevel` pertenece a un programa, admite edades mínima y máxima opcionales, distingue activación y visibilidad y no utiliza slug.
 - `SchoolLocation` pertenece exclusivamente al dominio escolar, exige nombre y localidad y admite dirección, activación, orden y notas administrativas privadas. No reutiliza `Venue`, que continúa reservado a pistas competitivas.
 - `SchoolSchedule` pertenece a un nivel y una ubicación, usa día ISO 1–7, exige hora inicial anterior a la final y bloquea únicamente duplicados exactos. Los solapamientos parciales continúan permitidos.
@@ -370,9 +375,19 @@ Desde 6B.3, el segundo subdominio dispone de persistencia y administración prop
 
 Los borrados son conservadores: un centro o ubicación con actividades no se elimina; sólo una actividad planificada creada por error puede borrarse. Una actividad completada o cancelada conserva su histórico. Este subdominio no registra alumnos nominales, no crea `SchoolEnrollment` y no tiene API pública o administrativa.
 
-La lectura pública `GET /api/v1/school` resuelve el único programa público y proyecta mediante Resources cerrados su apertura efectiva, contacto general, ubicación habitual activa, niveles activos y públicos, horarios efectivos y ubicaciones activas. Un programa público puede carecer de contacto, ubicación, niveles u horarios; esos vacíos se representan de forma estable. Si no existe programa público, la ruta responde `200` con `data: null` sin revelar si falta, es privado o está incompleto.
+La lectura pública `GET /api/v1/school` resuelve el único programa público y
+proyecta mediante Resources cerrados su contenido administrado, estado
+`open|closed|unavailable`, aviso vigente, ubicación habitual activa, niveles
+activos/públicos y horarios efectivos. Teléfono y correo permanecen privados.
+Si no existe programa público, responde `200` con `data: null`.
 
-`POST /api/v1/school/enrollments` resuelve en backend el programa público abierto, admite nivel público y activo opcional, toma la cuenta exclusivamente de una sesión Sanctum opcional y crea una solicitud pendiente. Desde 6C, `/escuela` consume la lectura y escritura públicas: React presenta el agregado, calcula localmente la minoría sólo para adaptar el formulario y deja al backend la decisión definitiva. No existe seguimiento por ID ni API administrativa. Ninguna lectura expone inscripciones, alumnado, centros o actividades.
+`POST /api/v1/school/enrollments` exige disponibilidad centralizada y la flag
+`SCHOOL_ENROLLMENT_ENABLED`, cerrada por defecto. Admite nivel opcional, toma
+la cuenta exclusivamente de una sesión Sanctum opcional y crea una solicitud
+pendiente con aviso versionado, retención inicial de seis meses, rate limit y
+honeypot. Desde 6C, `/escuela` consume la lectura y escritura públicas: React
+adapta el formulario, pero el backend decide disponibilidad y edad. No existe
+seguimiento por ID ni API administrativa.
 
 Desde 7D.2C2A, la inscripción conserva por separado la versión de Privacidad
 aceptada y puede originar una `PublicIdentityAuthorization` opcional para el
@@ -385,6 +400,13 @@ coincide exactamente. Confirmación del representante, revisión y, entre 14 y
 ellos, con flag desactivado o tras revocación, la proyección es `Participante`.
 Al alcanzar 18 años deja de aplicarse la autorización del representante y rige
 la política adulta vigente.
+
+Desde 7E, `SchoolEnrollment` registra actores y fechas de corrección,
+activación, rechazo y baja. Pendientes no formalizadas y rechazadas vencen a
+los seis meses; una inscripción activa no vence y una baja vence a los dos
+años. Holds motivados suspenden la anonimización. `school:purge-expired`
+admite `--dry-run`, es idempotente y elimina PII sin borrar el histórico de
+programa, nivel, estado, aviso o transiciones. No está programado en producción.
 
 Los únicos datos sembrados de Escuela se limitan al escenario aislado `E2ESmokeSeeder`, protegido por `APP_ENV=e2e` y la base desechable `galotxas_e2e`; no son datos de desarrollo o producción.
 

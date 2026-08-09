@@ -1385,6 +1385,55 @@ Validación final de 7D.3, 2026-08-09:
 Con este gate, 7D.3 y 7D quedan cerradas. No se ejecutó una suite backend
 separada porque no cambian PHP, API o contrato backend.
 
+---
+
+## SCHOOL-OPERATIONAL-READINESS-1 — Preparación operativa de Escuela
+
+7E añade cobertura MariaDB para apertura `open|closed|unavailable`, flag
+desactivada por defecto, configuración completa, bloqueo administrativo,
+contenido administrable y ausencia de contacto privado en el agregado. El POST
+cubre aviso exacto, teléfono, payload cerrado, honeypot, rate limit, menor,
+adulto, nivel, cierre concurrente y persistencia previa a cualquier flujo
+opcional de identidad.
+
+La administración prueba actores y fechas de corrección, aprobación, rechazo y
+baja; seis meses para pendientes/rechazadas, dos años tras baja; holds,
+`--dry-run`, anonimización e idempotencia. Centros y actividades mantienen una
+relación centro–múltiples actividades sin identidades individuales. La lectura
+pública conserva allowlists, orden y número constante de consultas.
+
+Vitest/RTL cubre estados, contenido, aviso, menor/adulto, validación, doble
+envío, foco, ausencia de storage y contratos HTTP. Playwright añade dos
+escenarios de Escuela y recorre cierre, apertura E2E, privacidad, identidad
+opcional, trazabilidad, colegios, 320 px, zoom/reflow, teclado, Legal,
+Knowledge, SEO y ausencia de recursos remotos.
+
+Validación final de 7E, 2026-08-09:
+
+- backend focalizado: 78 tests y 549 aserciones;
+- backend completo mediante runner oficial: 421 tests y 3.309 aserciones;
+- frontend focalizado: 24 tests en tres archivos;
+- frontend completo: 484 tests en 68 archivos;
+- E2E de Escuela: 7 escenarios; E2E completo: 63 escenarios Chromium en 2,6
+  minutos sobre el stack aislado;
+- lint, Pint, `php -l`, `legal:check`, `knowledge:check`, `seo:check` y
+  `git diff --check`: correctos;
+- Legal: tres páginas, tres avisos, 49.772 bytes públicos y 19.140 bytes de
+  avisos;
+- Knowledge: 40 documentos y cuatro colecciones; hashes canónico
+  `66dfba8b620539b148539a8181e7f196b1abcc1a77e86efc737714983035d182`
+  y público
+  `4e5f28fd21d29291cddba2fede70ef7e057e45dbc5bb7583399186133911517e`;
+- estatutos: hash
+  `17314902d717fa94a3b4016dcd5d6bed7ee6a94a233a314b58fb7ce83d56eadc`;
+- build temporal: 228 módulos, School 21,87 kB (6,63 kB gzip), chunk inicial
+  380,78 kB (110,77 kB gzip), sin escribir `frontend/dist`;
+- cleanup: directorio de build, informes E2E, contenedores y red eliminados.
+
+La revisión humana no se afirma realizada. Los datos y horarios reales,
+activación, correo, scheduler, backups, restore, staging y rollback permanecen
+en 7F; Fase 7 y el MVP siguen abiertos.
+
 # 11. Evolución
 
 La cobertura de pruebas debe crecer junto con el proyecto.

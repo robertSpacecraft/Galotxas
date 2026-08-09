@@ -166,14 +166,24 @@ El seeder `InstitutionalCmsPageSeeder` puede crear estas páginas y sus bloques 
 
 `GET /api/v1/school` utiliza cuatro Resources cerrados:
 
-- `PublicSchoolResource` expone nombre, apertura efectiva, contacto estable, ubicación habitual activa nullable y niveles cargados;
+- `PublicSchoolResource` expone nombre, presentación, explicación del proceso,
+  estado de apertura, aviso mínimo, ubicación habitual activa nullable y
+  niveles cargados;
 - `PublicSchoolLevelResource` expone ID, nombre, edades nullable y horarios cargados, incluida la colección vacía;
 - `PublicSchoolScheduleResource` expone ID, día ISO, horas `HH:MM` y ubicación activa cargada;
 - `PublicSchoolLocationResource` reutiliza una única allowlist de ID, nombre, localidad y dirección para ubicación habitual y horarios.
 
-`SchoolPublicOverviewService` entrega a los Resources únicamente el programa público y relaciones ya filtradas y ordenadas mediante eager loading. Los Resources usan relaciones cargadas y no consultan la base de datos. El envelope lo aporta `ApiResponse`: la ausencia de programa produce `message: null` y `data: null` sin instanciar un Resource vacío.
+`SchoolPublicOverviewService` entrega al Resource únicamente el programa
+público y relaciones ya filtradas y ordenadas mediante eager loading.
+`SchoolEnrollmentAvailabilityService` reutiliza esas relaciones cargadas para
+evitar consultas adicionales por entidad y calcula `open|closed|unavailable`.
+El envelope lo aporta `ApiResponse`: la ausencia de programa produce
+`message: null` y `data: null`.
 
-No forman parte de estos contratos el ID del programa, flags, órdenes, claves foráneas, ranura generada, notas, timestamps, inscripciones, alumnado, usuarios, centros o actividades. No existen Resources públicos para `SchoolEnrollment`, `EducationalCenter` o `EducationalActivity`.
+No forman parte de estos contratos el ID del programa, teléfono, correo, flags,
+órdenes, claves foráneas, ranura generada, notas, timestamps, inscripciones,
+alumnado, usuarios, centros o actividades. No existen Resources públicos para
+`SchoolEnrollment`, `EducationalCenter` o `EducationalActivity`.
 
 ## Resources públicos de contacto
 
@@ -249,7 +259,9 @@ Los tres Resources administrativos de competición evitan serializar modelos Elo
 - `ParticipantMatchResultReportResource` limita cada reporte a lado, tanteo, estado y comentario.
 - `PendingMatchActionResource` solo añade el tipo de acción y el partido mínimo del participante.
 - los tres Resources públicos CMS omiten IDs internos, estado administrativo, claves foráneas y timestamps de edición.
-- los cuatro Resources públicos de Escuela omiten programa, flags, órdenes, notas, timestamps, claves foráneas y cualquier dato de inscripciones, centros o actividades.
+- los cuatro Resources públicos de Escuela omiten contacto, programa, flags,
+  órdenes, notas, timestamps, claves foráneas y cualquier dato de
+  inscripciones, centros o actividades.
 - `UserResource`, `PlayerProfileResource`, `ChampionshipRegistrationRequestResource` y `MatchRescheduleRequestResource` pueden contener datos personales o administrativos y no deben reutilizarse en endpoints de lectura anónima.
 - `MatchResource` y `MatchResultReportResource` contienen identificadores, responsables y trazabilidad. El primero sigue usándose en varios endpoints privados heredados; ambos están prohibidos para un detalle público nuevo.
 

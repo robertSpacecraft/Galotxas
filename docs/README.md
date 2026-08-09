@@ -29,6 +29,7 @@ La documentación se organiza para separar claramente:
 - autorización verificable y revocable de identidad pública de menores.
 - primera capa, operación, retención y activación controlada de Contacto.
 - SEO, canonicalización, indexación fail-closed y accesibilidad pública.
+- preparación operativa fail-closed de la Escuela de Galotxas.
 
 ## Orden recomendado de lectura
 
@@ -59,6 +60,7 @@ La documentación se organiza para separar claramente:
 25. [Identidad pública verificable de menores](23-verifiable-minor-public-identity.md)
 26. [Operación y primera capa de privacidad de Contacto](24-contact-operation-and-privacy-layer.md)
 27. [SEO, accesibilidad e indexación pública](25-public-seo-accessibility-and-indexing.md)
+28. [Preparación operativa de Escuela](26-school-operational-readiness.md)
 
 El contrato de navegación inventaría el router y los enlaces actuales y conserva
 el histórico de la arquitectura pública desde Fase 3. El contrato de Fase 7B
@@ -111,7 +113,9 @@ Contacto, config fail-closed, consentimiento, notificación auxiliar, retención
 holds y anonimización; el documento 24 cierra 7D.2 sin activar producción.
 7D.3 centraliza el inventario SEO, canonical, aliases, metadatos, robots,
 sitemap, foco y anuncio SPA; los 61 escenarios E2E pasan y cierran 7D.3 y 7D.
-Imágenes, despliegue, Fase 7 y MVP continúan abiertos.
+7E prepara después la apertura fail-closed de Escuela, su contenido
+administrable, aviso propio, trazabilidad y retención sin cargar datos reales
+ni activar producción. Imágenes, despliegue, Fase 7 y MVP continúan abiertos.
 El conocimiento estable del deporte se mantiene por separado en
 [`knowledge/`](../knowledge/README.md); los documentos técnicos describen el
 software y no sustituyen esa fuente editorial.

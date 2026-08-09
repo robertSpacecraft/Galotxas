@@ -111,9 +111,10 @@ no configura SMTP ni otro proveedor productivo.
 
 ## 12. Escuela
 
-`POST /api/v1/school/enrollments` exige por separado la información de
-privacidad de la inscripción, actualmente versión `1.1.0`. Para menores y sólo
-con `PUBLIC_IDENTITY_AUTHORIZATION_ENABLED=true`, admite el objeto opcional
+`POST /api/v1/school/enrollments` exige por separado el aviso de inscripción
+`NOTICE-SCHOOL-ENROLLMENT`, actualmente versión `1.0.0`; la Política enlazada
+permanece en `1.1.0`. Para menores y sólo con
+`PUBLIC_IDENTITY_AUTHORIZATION_ENABLED=true`, admite el objeto opcional
 `public_identity_authorization` con modo, versión y declaración de autoridad
 cuando el modo es identificable.
 

@@ -642,10 +642,14 @@ Cuando existe programa público, la forma es:
   "message": null,
   "data": {
     "name": "Escuela de Galotxas",
+    "description": "Presentación pública administrada.",
+    "enrollment_information": "Proceso público administrado.",
+    "enrollment_status": "open",
     "enrollments_open": true,
-    "contact": {
-      "phone": null,
-      "email": null
+    "privacy_notice": {
+      "id": "NOTICE-SCHOOL-ENROLLMENT",
+      "version": "1.0.0",
+      "privacy_url": "/legal/privacidad"
     },
     "default_location": {
       "id": 1,
@@ -679,7 +683,11 @@ Cuando existe programa público, la forma es:
 }
 ```
 
-`enrollments_open` expresa la apertura efectiva del programa público. `contact` siempre contiene `phone` y `email`, ambos nullable. `default_location` es nullable y sólo aparece como objeto si la ubicación habitual está activa.
+`enrollment_status` admite `open`, `closed` y `unavailable`.
+`enrollments_open` sólo es `true` en el primer estado y con aviso vigente.
+`description` y `enrollment_information` proceden de Blade. Teléfono y correo
+del programa o de solicitudes no forman parte del contrato. `default_location`
+es nullable y sólo aparece como objeto si la ubicación habitual está activa.
 
 Los niveles deben pertenecer al programa y ser activos y públicos; se ordenan por `sort_order` e `id`. Un nivel sin horario efectivo permanece en la colección con `schedules: []`. Los horarios exigen horario activo, nivel efectivo y ubicación activa; se ordenan por día ISO, hora inicial, `sort_order` e `id`. `day_of_week` utiliza ISO 1–7 y las horas usan `HH:MM`.
 
@@ -701,7 +709,9 @@ Payload admitido:
   "guardian_relationship": "Madre",
   "school_level_id": 1,
   "privacy_acknowledged": true,
-  "privacy_notice_version": "1.1.0",
+  "privacy_notice_id": "NOTICE-SCHOOL-ENROLLMENT",
+  "privacy_notice_version": "1.0.0",
+  "website": "",
   "public_identity_authorization": {
     "mode": "alias",
     "notice_version": "1.0.0",
@@ -710,13 +720,12 @@ Payload admitido:
 }
 ```
 
-`school_level_id` y `public_identity_authorization` son opcionales; la
-confirmación y versión de Privacidad de la inscripción son obligatorias y
-separadas. Si se informa el nivel, debe identificar un nivel activo y público
-del único programa público con `enrollments_open = true`. El programa nunca se
-acepta desde el payload. Nombre, nacimiento no futuro, teléfono y correo válido
-son obligatorios; un menor en la fecha de solicitud exige los dos campos de
-representante. Para adultos se normalizan a `null`.
+`school_level_id` y `public_identity_authorization` son opcionales; ID, versión
+y confirmación de Privacidad son obligatorios y separados. `website` es el
+honeypot y debe permanecer vacío para una persona. Si se informa nivel, debe
+ser activo y público dentro del programa resuelto. Nombre, nacimiento no
+futuro, teléfono válido y correo válido son obligatorios; un menor exige los
+dos campos de representante y un adulto los normaliza a `null`.
 
 La autorización opcional sólo se admite para menores cuando
 `PUBLIC_IDENTITY_AUTHORIZATION_ENABLED=true`. `mode` admite `alias`,
@@ -725,7 +734,11 @@ autoridad del representante. El objeto no altera el `201` ni bloquea la
 inscripción si se omite o se elige `anonymous`. Su persistencia precede al
 correo y un fallo de envío no revierte la solicitud.
 
-El payload es cerrado. Se rechazan campos desconocidos y, expresamente, `school_program_id`, `user_id`, `status`, fechas del ciclo, `admin_notes`, `is_public` y `enrollments_open`. El servidor normaliza espacios, correo a minúsculas y genera `requested_at`; toda solicitud se crea `pending`.
+El payload es cerrado. Se rechazan campos desconocidos y, expresamente,
+`school_program_id`, `user_id`, `status`, fechas del ciclo, `admin_notes`,
+`is_public` y `enrollments_open`. El servidor normaliza espacios, correo a
+minúsculas y genera `requested_at`; toda solicitud real se crea `pending`. Un
+honeypot relleno recibe el mismo `201` sin persistencia.
 
 Respuesta `201 Created`:
 
@@ -740,11 +753,15 @@ La respuesta no incluye identificador, estado, nombre, correo, teléfono, nivel,
 
 Errores:
 
-- `409 Conflict` con `La inscripción no está disponible actualmente.` cuando no hay programa público abierto; no distingue programa inexistente, privado o cerrado;
+- `409 Conflict` con `La inscripción no está disponible actualmente.` cuando
+  la decisión central no está `open`; no distingue flag, ausencia, privacidad,
+  cierre o configuración incompleta;
 - `422 Unprocessable Entity` para validación de payload o nivel;
 - `429 Too Many Requests` al superar cinco intentos por minuto para la combinación de IP y hash del correo normalizado.
 
-El limitador se llama `school-enrollments`, no afecta al resto de la API y nunca conserva el correo en claro en su clave.
+El limitador se llama `school-enrollments`, no afecta al resto de la API y usa
+un HMAC de IP y correo normalizado; nunca conserva el correo en claro en su
+clave. El backend parte de `SCHOOL_ENROLLMENT_ENABLED=false`.
 
 ### Confirmación de identidad pública de menores
 
@@ -767,7 +784,11 @@ Continúan ausentes:
 - endpoints públicos de alumnos, centros o actividades;
 - endpoints administrativos de `EducationalCenter` o `EducationalActivity`.
 
-Los centros y actividades implementados en 6B.3 son deliberadamente privados y administrativos. No forman parte de `GET /api/v1/school`, que se limita al programa permanente, niveles, horarios, ubicaciones efectivas, apertura y contacto. No existe API administrativa de Escuela: Blade utiliza rutas web con sesión, CSRF y administrador activo.
+Los centros y actividades implementados en 6B.3 son deliberadamente privados y
+administrativos. No forman parte de `GET /api/v1/school`, que se limita al
+programa, contenido, estado, aviso, niveles, horarios y ubicaciones efectivas.
+No existe API administrativa de Escuela: Blade utiliza rutas web con sesión,
+CSRF y administrador activo.
 
 Desde 6C, React consume ambos contratos exclusivamente en `/escuela`. La lectura conserva el orden y tolera datos parciales; el formulario sólo envía la allowlist documentada, no exige cuenta y no muestra identificador o estado interno tras `201`. La interfaz trata `409`, `422` y `429` sin ampliar ni modificar este contrato.
 

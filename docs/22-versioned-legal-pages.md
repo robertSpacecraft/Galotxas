@@ -256,6 +256,14 @@ Ambos declaran `privacy_url: /legal/privacidad`; el compilador proyecta
 `privacyUrl`, mantiene tres páginas, exige dos avisos y bloquea artefactos
 desactualizados. Contacto muestra el aviso sólo cuando su config coincide.
 
+Seguimiento 7E: `NOTICE-SCHOOL-ENROLLMENT` 1.0.0 es el tercer aviso exacto y
+usa el scope `school_enrollment`. Informa de datos necesarios, menores,
+conservación, derechos e independencia de la autorización de identidad
+pública. Laravel exige su ID y versión en la inscripción y React lo obtiene del
+artefacto generado. La Política de privacidad permanece en `1.1.0` porque ya
+incluía el tratamiento y los plazos escolares; siguen existiendo tres páginas
+legales y los avisos no crean rutas propias.
+
 ## 17. Riesgos y gates pendientes
 
 Permanecen abiertos:

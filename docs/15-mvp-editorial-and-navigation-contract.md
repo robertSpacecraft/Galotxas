@@ -524,8 +524,8 @@ Checklist exacto de configuración mediante Blade:
 2. Crear y revisar `SchoolProgram` sin publicarlo inicialmente.
 3. Crear `SchoolLevel` con edades orientativas, estado y orden.
 4. Crear `SchoolSchedule` con nivel, día, horas, ubicación, estado y orden.
-5. Configurar y verificar el correo público; mantener teléfono nulo salvo que
-   se apruebe un número distinto expresamente publicable.
+5. Configurar y verificar el correo operativo privado; el teléfono y el correo
+   no forman parte del agregado público.
 6. Revisar visibilidad efectiva de programa, niveles, horarios y ubicaciones.
 7. Mantener inscripciones cerradas hasta superar todos los gates y probar el
    cierre efectivo.
@@ -549,8 +549,8 @@ Plantilla de datos reales:
 **Programa**
 
 - nombre:
-- teléfono público:
-- correo público:
+- teléfono operativo privado:
+- correo operativo privado:
 - ubicación habitual:
 - público: sí/no
 - inscripciones abiertas: sí/no
@@ -581,14 +581,14 @@ privado y cerrado; la apertura es el último paso humano.
 
 | Bloque | Fuente | Aportación pendiente |
 |---|---|---|
-| Presentación institucional | CMS | Texto humano aprobado, sin metodología inventada |
-| Destinatarios narrativos | CMS | Explicación humana; las edades operativas siguen en Laravel |
+| Presentación institucional | `SchoolProgram` | Texto humano aprobado, sin metodología inventada |
+| Destinatarios narrativos | `SchoolProgram` | Explicación humana; las edades operativas siguen en Laravel |
 | Objetivos pedagógicos | `knowledge/` futuro | Validación pedagógica y canónica |
-| Funcionamiento general | CMS | Proceso estable; horarios y apertura siguen en Laravel |
+| Funcionamiento general | `SchoolProgram` | Proceso estable; horarios y apertura siguen en Laravel |
 | Material necesario | `knowledge/` futuro | Contenido técnico/pedagógico aprobado |
 | Relación con el Manual | React copy y enlace; destino en Knowledge | Etiqueta breve, sin copiar reglas |
-| Preguntas frecuentes | CMS | Preguntas y respuestas reales mantenidas |
-| Contacto | Laravel operativo | Teléfono/correo públicos confirmados |
+| Preguntas frecuentes | CMS futuro, si se aprueba | Preguntas y respuestas reales mantenidas |
+| Contacto | Laravel operativo privado | Teléfono/correo necesarios para la operación; no se serializan públicamente |
 | Fecha de revisión | Control editorial humano/CMS cuando exista soporte | Fecha, responsable y próxima revisión |
 
 No existe hoy una colección pedagógica de Escuela en `knowledge/`. Hasta que se
@@ -712,7 +712,7 @@ valor “Pendiente” se publicará como contenido.
 | 5 | Núcleo y enlaces condicionales del footer | Cerrados por este contrato | Antes de 7D |
 | 6 | Prensa y Federaciones condicionales, fuera del Navbar | Cerrada por este contrato | Antes de 7D |
 | 7 | Política de identidad pública | Adultos y dominio verificable de menores implementados; operación productiva abierta | Antes de publicar competición real/7G |
-| 8 | Datos reales de Escuela | Abiertos | Antes de 7E |
+| 8 | Datos reales de Escuela | Abiertos; 7E prepara su carga sin inventarlos | Antes de activar en 7F |
 | 9 | Contacto oficial | Correo público confirmado; destinatario, envío y operación del formulario abiertos | Antes de activar Contacto/7D.2C2B |
 | 10 | Textos y responsables legales | Versión pública 1.0.0 cerrada en 7D.2C1; revisión futura versionada | Antes de cada nueva versión y del despliegue |
 | 11 | Contenido de Quiénes somos e imágenes | Abierto | Antes de cerrar 7C |
@@ -833,24 +833,28 @@ Fuera:
 
 ## 28. Plan 7E
 
-**Objetivo:** preparar Escuela con datos, contenido, privacidad y operación
-reales.
+**Objetivo:** preparar técnicamente Escuela para recibir datos, contenido y
+configuración reales, manteniendo cerrada la activación productiva.
 
 Alcance:
 
-- carga manual privada/cerrada por Blade;
-- validación de ubicación, programa, niveles, horarios y contacto;
-- contenido editorial aprobado según su fuente;
-- información de privacidad y conservación;
-- responsable y procedimiento de solicitudes;
-- prueba controlada de una solicitud;
-- apertura sólo tras aceptación explícita;
-- regresión School y smoke acotado.
+- carga manual privada/cerrada por Blade, sin inventar datos;
+- validación central y fail-closed de programa, contenido, ubicación, nivel,
+  horario, contacto operativo privado y aviso vigente;
+- presentación y proceso administrables en `SchoolProgram`;
+- primera capa versionada y conservación técnica de los plazos publicados;
+- trazabilidad, holds, anonimización y purga manual en dry-run;
+- prueba integral con fixtures exclusivamente E2E;
+- apertura productiva sólo tras configuración real y aceptación explícita en
+  7F;
+- regresión completa de backend, frontend y E2E.
 
 Fuera:
 
 - nuevos modelos/endpoints, centros públicos, metodología inventada,
-  `academy`, pagos, plazas o contenido de menores no autorizado.
+  `academy`, pagos, plazas o contenido de menores no autorizado;
+- datos, horarios, responsables o canales productivos inventados;
+- proveedor de correo, scheduler, backups, restore, staging o despliegue.
 
 ## 29. Plan 7F
 
@@ -958,3 +962,18 @@ Los 61 escenarios E2E pasan sobre el stack aislado y cierran 7D.3 y 7D.
 Dominio, redirects HTTP, activación indexable, correo, backups, restore,
 scheduler, staging, rollback y aceptación pertenecen a 7F/7G; Fase 7 y el MVP
 siguen abiertos.
+
+## 35. Seguimiento de Fase 7E
+
+El plan 7E se ejecuta como preparación técnica, no como carga de valores
+productivos. `SCHOOL_ENROLLMENT_ENABLED=false` es el default y Laravel exige
+configuración completa antes de responder `open`; `closed` mantiene visible el
+contenido y `unavailable` no filtra causas técnicas al visitante. Presentación
+y proceso se editan en `SchoolProgram`, no en React ni en el CMS `academy`.
+
+`NOTICE-SCHOOL-ENROLLMENT` 1.0.0 separa la privacidad obligatoria de la
+autorización opcional de identidad pública. Retención, holds, trazabilidad y
+anonimización quedan preparados sin scheduler. Los datos, horarios, niveles,
+responsable y canales reales deben cargarse y aprobarse antes de activar el
+flag. El detalle técnico y la matriz humana pendiente se encuentran en
+`26-school-operational-readiness.md`; 7F, 7G, Fase 7 y MVP siguen abiertos.

@@ -6,6 +6,18 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Fase 7E incorpora apertura fail-closed de Escuela centralizada en Laravel con
+  estados `open`, `closed` y `unavailable`, flag productiva desactivada por
+  defecto y gate de configuración completa. Presentación y proceso pasan a
+  `SchoolProgram`; el agregado público deja de exponer teléfono y correo.
+- `NOTICE-SCHOOL-ENROLLMENT` 1.0.0 versiona la primera capa independiente de
+  identidad pública. Las inscripciones añaden trazabilidad administrativa,
+  vencimiento, holds, anonimización y purga manual idempotente conforme a los
+  plazos publicados, sin scheduler ni correo productivo.
+- La operación se valida con 421 tests backend, 484 frontend y 63 E2E, además
+  de lint, Pint, sintaxis, Legal, Knowledge, SEO, hashes y build temporal. 7E
+  queda cerrada técnicamente sin datos inventados ni activación; 7F, 7G, Fase
+  7 y MVP continúan abiertos.
 - Fase 7D.3 incorpora inventario y clasificación de rutas, metadata y canonical
   centralizados, aliases institucionales `noindex`, Open Graph prudente,
   JSON-LD confirmado de Home y `seo:check` sin dependencias nuevas.

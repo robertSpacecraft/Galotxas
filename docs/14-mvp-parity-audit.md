@@ -1034,3 +1034,19 @@ forma fail-closed y añade foco y anuncio SPA. La indexación real continúa
 desactivada hasta confirmar dominio HTTPS en 7F. Los 61 escenarios E2E pasan y
 cierran 7D.3 y 7D. Permanecen abiertos 7E–7G, imágenes, operación productiva,
 aceptación humana, Fase 7 y MVP; la definición observable de 7A no se reduce.
+
+## 30. Seguimiento de Fase 7E
+
+7E resuelve la preparación técnica inventariada por 7A sin afirmar que existan
+datos productivos. Laravel centraliza la disponibilidad de inscripción,
+permanece cerrado por defecto mediante `SCHOOL_ENROLLMENT_ENABLED=false` y
+rechaza la apertura administrativa si faltan contenido, ubicación, nivel,
+horario, contacto operativo privado o aviso vigente. React presenta el estado
+resultante y ya no recibe teléfono o correo del programa.
+
+La primera capa `NOTICE-SCHOOL-ENROLLMENT` y la automatización manual de
+vencimiento, holds y anonimización aplican los plazos ya publicados. Los datos,
+horarios, niveles, responsable y canales reales, así como la revisión humana,
+continúan como gates previos a activar un entorno. Correo, scheduler, backups,
+restore, staging y rollback pertenecen a 7F. Por tanto 7E puede cerrarse
+técnicamente con producción cerrada; 7F, 7G, Fase 7 y el MVP siguen abiertos.

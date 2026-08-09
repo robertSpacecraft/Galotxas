@@ -1586,6 +1586,67 @@ Consecuencias:
 
 ---
 
+# ADR-040 — Apertura fail-closed de inscripciones de Escuela resuelta por Laravel
+
+Fecha: 2026-08-09
+
+Estado: Aceptada
+
+Contexto:
+
+- la apertura declarada en `SchoolProgram` no acreditaba por sí sola que
+  contenido, ubicación, niveles, horarios, contacto operativo y privacidad
+  estuvieran listos;
+- React podía presentar el booleano recibido, pero no debía reconstruir reglas
+  operativas ni convertirse en fuente editorial;
+- un despliegue incompleto o sin datos reales debe conservar el formulario
+  cerrado sin ocultar el contenido público disponible;
+- teléfono y correo del programa son necesarios para la operación privada, no
+  para el contrato público de lectura.
+
+Decisión:
+
+- centralizar la disponibilidad en Laravel con estados públicos `open`,
+  `closed` y `unavailable`;
+- exigir para `open` la flag `SCHOOL_ENROLLMENT_ENABLED`, desactivada por
+  defecto, apertura declarada y configuración completa: programa y contenido
+  públicos, ubicación activa, contacto operativo privado válido, nivel público
+  con horario y ubicación activos y aviso vigente;
+- impedir desde Blade guardar apertura declarada cuando la configuración está
+  incompleta, manteniendo el backend como protección efectiva;
+- publicar sólo estado, contenido administrable, niveles, horarios,
+  ubicaciones y referencia mínima del aviso; excluir correo, teléfono y causas
+  técnicas;
+- mantener visible la Escuela cuando está `closed` y tratar la ausencia de
+  configuración como `unavailable`, sin inventar fechas o detalles;
+- cargar datos productivos y activar la flag únicamente tras los gates de 7F.
+
+Alternativas descartadas:
+
+- usar sólo `enrollments_open`: permite abrir configuraciones incompletas;
+- decidir en React mediante presencia de niveles u horarios: duplica dominio y
+  permite discrepancias con el POST;
+- activar automáticamente en producción: confunde despliegue con autorización
+  operativa;
+- publicar contacto operativo para que el cliente evalúe disponibilidad:
+  expone datos privados innecesarios;
+- ocultar toda la página cuando se cierra: impide consultar programa, niveles y
+  horarios y confunde cierre temporal con ausencia de contenido.
+
+Consecuencias:
+
+- GET y POST comparten una única evaluación y fallan cerrados;
+- los administradores ven las causas de configuración incompleta, mientras el
+  visitante recibe un estado neutro;
+- presentación y proceso se mantienen en `SchoolProgram`, no en JSX;
+- los fixtures ficticios pueden abrir exclusivamente el stack E2E sin cambiar
+  el default ni introducir datos reales;
+- 7E puede cerrarse técnicamente con inscripción productiva cerrada; datos
+  reales, correo, scheduler, backups, restore, staging y activación permanecen
+  en 7F, y Fase 7/MVP siguen abiertos.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.
