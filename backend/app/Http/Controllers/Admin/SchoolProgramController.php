@@ -7,19 +7,30 @@ use App\Http\Requests\Admin\StoreSchoolProgramRequest;
 use App\Http\Requests\Admin\UpdateSchoolProgramRequest;
 use App\Models\SchoolLocation;
 use App\Models\SchoolProgram;
+use App\Services\SchoolEnrollmentAvailabilityService;
 use App\Services\SchoolProgramService;
 
 class SchoolProgramController extends Controller
 {
-    public function index()
+    public function index(SchoolEnrollmentAvailabilityService $availability)
     {
         $programs = SchoolProgram::query()
-            ->with('defaultLocation')
+            ->with(['defaultLocation', 'levels.schedules.location'])
             ->withCount(['levels', 'enrollments'])
             ->ordered()
             ->get();
 
-        return view('admin.school.programs.index', compact('programs'));
+        $availabilityByProgram = $programs->mapWithKeys(fn (SchoolProgram $program) => [
+            $program->id => [
+                'status' => $availability->status($program),
+                'issues' => $availability->readinessIssues($program),
+            ],
+        ]);
+
+        return view(
+            'admin.school.programs.index',
+            compact('programs', 'availabilityByProgram')
+        );
     }
 
     public function create()

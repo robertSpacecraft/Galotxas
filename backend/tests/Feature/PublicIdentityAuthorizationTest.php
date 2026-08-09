@@ -31,6 +31,7 @@ class PublicIdentityAuthorizationTest extends TestCase
             'public_identity.authorization_enabled' => true,
             'public_identity.notification_enabled' => true,
             'public_identity.confirmation_ttl_hours' => 48,
+            'school.enrollment_enabled' => true,
         ]);
     }
 
@@ -44,7 +45,7 @@ class PublicIdentityAuthorizationTest extends TestCase
     public function test_school_request_is_optional_separate_versioned_and_persists_before_mail(): void
     {
         Mail::fake();
-        $program = SchoolProgram::factory()->publiclyVisible()->enrollmentsOpen()->create();
+        $program = SchoolProgram::factory()->operationallyReady()->enrollmentsOpen()->create();
 
         $this->postJson('/api/v1/school/enrollments', $this->minorPayload('alias'))
             ->assertCreated()
@@ -57,7 +58,8 @@ class PublicIdentityAuthorizationTest extends TestCase
         $enrollment = $authorization->schoolEnrollment;
 
         $this->assertSame($program->id, $enrollment->school_program_id);
-        $this->assertSame('1.1.0', $enrollment->privacy_notice_version);
+        $this->assertSame('NOTICE-SCHOOL-ENROLLMENT', $enrollment->privacy_notice_id);
+        $this->assertSame('1.0.0', $enrollment->privacy_notice_version);
         $this->assertNotNull($enrollment->privacy_acknowledged_at);
         $this->assertNull($authorization->player_id);
         $this->assertSame(PublicIdentityAuthorizationMode::ALIAS, $authorization->mode);
@@ -251,7 +253,7 @@ class PublicIdentityAuthorizationTest extends TestCase
     public function test_feature_disabled_is_fail_closed_and_school_does_not_accept_forged_authorization(): void
     {
         config(['public_identity.authorization_enabled' => false]);
-        SchoolProgram::factory()->publiclyVisible()->enrollmentsOpen()->create();
+        SchoolProgram::factory()->operationallyReady()->enrollmentsOpen()->create();
 
         $this->getJson('/api/v1/school')
             ->assertOk()
@@ -437,7 +439,7 @@ class PublicIdentityAuthorizationTest extends TestCase
     public function test_mail_failure_keeps_pending_request_and_records_only_sanitized_event(): void
     {
         config(['mail.default' => 'public-identity-test-failure']);
-        SchoolProgram::factory()->publiclyVisible()->enrollmentsOpen()->create();
+        SchoolProgram::factory()->operationallyReady()->enrollmentsOpen()->create();
 
         $this->postJson('/api/v1/school/enrollments', $this->minorPayload('alias'))
             ->assertCreated();
@@ -505,7 +507,7 @@ class PublicIdentityAuthorizationTest extends TestCase
     ): PublicIdentityAuthorization {
         $program = SchoolProgram::query()->where('is_public', true)->first();
         if ($program === null) {
-            SchoolProgram::factory()->publiclyVisible()->enrollmentsOpen()->create();
+            SchoolProgram::factory()->operationallyReady()->enrollmentsOpen()->create();
         } else {
             $program->update(['enrollments_open' => true]);
         }
@@ -533,7 +535,8 @@ class PublicIdentityAuthorizationTest extends TestCase
             'guardian_name' => 'Representante Privado',
             'guardian_relationship' => 'Madre',
             'privacy_acknowledged' => true,
-            'privacy_notice_version' => '1.1.0',
+            'privacy_notice_id' => 'NOTICE-SCHOOL-ENROLLMENT',
+            'privacy_notice_version' => '1.0.0',
             'public_identity_authorization' => [
                 'mode' => $mode,
                 'notice_version' => '1.0.0',

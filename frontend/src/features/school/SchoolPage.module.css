@@ -30,6 +30,34 @@
   font-size: 1.35rem;
 }
 
+.managedCopy {
+  white-space: pre-line;
+}
+
+.enrollmentInformation {
+  margin-top: 1rem;
+}
+
+.privacyNotice {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.privacyNotice :global(h2) {
+  font-size: 1rem;
+}
+
+.honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 .enrollmentStatus {
   display: inline-flex;
   margin: 0;

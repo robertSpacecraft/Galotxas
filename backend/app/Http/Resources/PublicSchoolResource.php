@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Enums\PublicIdentityAuthorizationMode;
 use App\Services\PublicIdentityNoticeService;
+use App\Services\SchoolEnrollmentAvailabilityService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,6 +15,8 @@ class PublicSchoolResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $configuration = app(SchoolEnrollmentAvailabilityService::class)
+            ->publicConfiguration($this->resource);
         $authorizationEnabled = (bool) config('public_identity.authorization_enabled');
         $authorization = ['enabled' => false];
         if ($authorizationEnabled) {
@@ -32,11 +35,11 @@ class PublicSchoolResource extends JsonResource
 
         return [
             'name' => $this->name,
-            'enrollments_open' => $this->acceptsPublicEnrollments(),
-            'contact' => [
-                'phone' => $this->contact_phone,
-                'email' => $this->contact_email,
-            ],
+            'description' => $this->public_description,
+            'enrollment_information' => $this->enrollment_information,
+            'enrollment_status' => $configuration['status'],
+            'enrollments_open' => $configuration['enrollments_open'],
+            'privacy_notice' => $configuration['privacy_notice'],
             'default_location' => $this->relationLoaded('defaultLocation')
                 && $this->defaultLocation !== null
                     ? new PublicSchoolLocationResource($this->defaultLocation)

@@ -75,6 +75,14 @@ export const FORM_NOTICES = Object.freeze([
     privacyUrl: '/legal/privacidad',
     order: 2,
   }),
+  Object.freeze({
+    id: 'NOTICE-SCHOOL-ENROLLMENT',
+    filename: 'school-enrollment.md',
+    title: 'Información de privacidad de la inscripción en la Escuela',
+    scope: 'school_enrollment',
+    privacyUrl: '/legal/privacidad',
+    order: 3,
+  }),
 ])
 
 export const DEFAULT_LEGAL_ROOT = fileURLToPath(

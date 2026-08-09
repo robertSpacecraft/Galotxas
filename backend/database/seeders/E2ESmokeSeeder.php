@@ -238,6 +238,8 @@ class E2ESmokeSeeder extends Seeder
             $schoolProgram = SchoolProgram::query()->updateOrCreate(
                 ['name' => 'Escuela de Galotxas E2E'],
                 [
+                    'public_description' => 'Programa operativo ficticio para validar la experiencia E2E.',
+                    'enrollment_information' => 'Completa la solicitud y el equipo de Escuela revisará los datos antes de activarla.',
                     'is_public' => true,
                     'enrollments_open' => true,
                     'default_school_location_id' => $schoolLocation->id,
@@ -482,7 +484,8 @@ class E2ESmokeSeeder extends Seeder
             'guardian_relationship' => 'Tutor legal',
             'status' => SchoolEnrollmentStatus::PENDING->value,
             'requested_at' => CarbonImmutable::now(),
-            'privacy_notice_version' => '1.1.0',
+            'privacy_notice_id' => 'NOTICE-SCHOOL-ENROLLMENT',
+            'privacy_notice_version' => '1.0.0',
             'privacy_acknowledged_at' => CarbonImmutable::now(),
         ]);
         $enrollment->save();

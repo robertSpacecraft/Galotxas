@@ -22,8 +22,15 @@ describe('schoolService', () => {
         message: null,
         data: {
           name: 'Programa público',
+          description: 'Descripción pública',
+          enrollment_information: 'Proceso público',
+          enrollment_status: 'open',
           enrollments_open: true,
-          contact: { phone: null, email: 'school@example.test' },
+          privacy_notice: {
+            id: 'NOTICE-SCHOOL-ENROLLMENT',
+            version: '1.0.0',
+            privacy_url: '/legal/privacidad',
+          },
           default_location: null,
           levels: [
             {

@@ -32,6 +32,8 @@ class SchoolCoreModelTest extends TestCase
         $this->assertTrue(Schema::hasColumns('school_programs', [
             'id',
             'name',
+            'public_description',
+            'enrollment_information',
             'is_public',
             'enrollments_open',
             'default_school_location_id',
@@ -84,6 +86,8 @@ class SchoolCoreModelTest extends TestCase
         $this->assertSame(0, $location->fresh()->sort_order);
         $this->assertFalse($program->fresh()->is_public);
         $this->assertFalse($program->fresh()->enrollments_open);
+        $this->assertNull($program->fresh()->public_description);
+        $this->assertNull($program->fresh()->enrollment_information);
         $this->assertSame(0, $program->fresh()->sort_order);
         $this->assertFalse($level->fresh()->is_active);
         $this->assertFalse($level->fresh()->is_public);

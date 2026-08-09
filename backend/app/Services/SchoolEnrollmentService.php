@@ -21,7 +21,8 @@ class SchoolEnrollmentService
 
     public function __construct(
         private readonly PublicIdentityAuthorizationService $authorizationService,
-        private readonly PublicIdentityAuthorizationNotificationService $notificationService
+        private readonly PublicIdentityAuthorizationNotificationService $notificationService,
+        private readonly SchoolEnrollmentAvailabilityService $availability
     ) {}
 
     /**
@@ -34,11 +35,10 @@ class SchoolEnrollmentService
         $result = DB::transaction(function () use ($attributes, $user): array {
             $program = SchoolProgram::query()
                 ->effectivelyPublic()
-                ->where('enrollments_open', true)
                 ->lockForUpdate()
                 ->first();
 
-            if ($program === null) {
+            if ($program === null || ! $this->availability->isOpen($program)) {
                 throw new SchoolEnrollmentUnavailableException;
             }
 
@@ -111,13 +111,20 @@ class SchoolEnrollmentService
      */
     public function updateDetails(
         SchoolEnrollment $enrollment,
-        array $attributes
+        array $attributes,
+        ?User $actor = null
     ): SchoolEnrollment {
         return DB::transaction(function () use (
             $enrollment,
-            $attributes
+            $attributes,
+            $actor
         ): SchoolEnrollment {
             $locked = $this->lockEnrollment($enrollment);
+            if ($locked->isAnonymized()) {
+                throw ValidationException::withMessages([
+                    'enrollment' => 'No se pueden corregir datos de una inscripción anonimizada.',
+                ]);
+            }
             $participant = $this->normalizedParticipantAttributes(
                 $attributes,
                 CarbonImmutable::instance($locked->requested_at)
@@ -126,6 +133,8 @@ class SchoolEnrollmentService
             $locked->forceFill([
                 ...$participant,
                 'admin_notes' => $attributes['admin_notes'] ?? null,
+                'corrected_at' => CarbonImmutable::now(),
+                'corrected_by' => $actor?->id,
             ])->save();
 
             return $locked->refresh();
@@ -134,11 +143,13 @@ class SchoolEnrollmentService
 
     public function approve(
         SchoolEnrollment $enrollment,
-        int $levelId
+        int $levelId,
+        ?User $actor = null
     ): SchoolEnrollment {
         return DB::transaction(function () use (
             $enrollment,
-            $levelId
+            $levelId,
+            $actor
         ): SchoolEnrollment {
             $locked = $this->lockEnrollment($enrollment);
             $this->assertStatus($locked, SchoolEnrollmentStatus::PENDING);
@@ -153,41 +164,62 @@ class SchoolEnrollmentService
                 'school_level_id' => $level->id,
                 'status' => SchoolEnrollmentStatus::ACTIVE,
                 'activated_at' => CarbonImmutable::now(),
+                'activated_by' => $actor?->id,
                 'rejected_at' => null,
+                'rejected_by' => null,
                 'withdrawn_at' => null,
+                'withdrawn_by' => null,
+                'retention_until' => null,
             ])->save();
 
             return $locked->refresh();
         });
     }
 
-    public function reject(SchoolEnrollment $enrollment): SchoolEnrollment
-    {
-        return DB::transaction(function () use ($enrollment): SchoolEnrollment {
+    public function reject(
+        SchoolEnrollment $enrollment,
+        ?User $actor = null
+    ): SchoolEnrollment {
+        return DB::transaction(function () use ($enrollment, $actor): SchoolEnrollment {
             $locked = $this->lockEnrollment($enrollment);
             $this->assertStatus($locked, SchoolEnrollmentStatus::PENDING);
+            $rejectedAt = CarbonImmutable::now();
 
             $locked->forceFill([
                 'status' => SchoolEnrollmentStatus::REJECTED,
                 'activated_at' => null,
-                'rejected_at' => CarbonImmutable::now(),
+                'activated_by' => null,
+                'rejected_at' => $rejectedAt,
+                'rejected_by' => $actor?->id,
                 'withdrawn_at' => null,
+                'withdrawn_by' => null,
+                'retention_until' => $rejectedAt->addMonthsNoOverflow(
+                    $this->unformalizedRetentionMonths()
+                ),
             ])->save();
 
             return $locked->refresh();
         });
     }
 
-    public function withdraw(SchoolEnrollment $enrollment): SchoolEnrollment
-    {
-        return DB::transaction(function () use ($enrollment): SchoolEnrollment {
+    public function withdraw(
+        SchoolEnrollment $enrollment,
+        ?User $actor = null
+    ): SchoolEnrollment {
+        return DB::transaction(function () use ($enrollment, $actor): SchoolEnrollment {
             $locked = $this->lockEnrollment($enrollment);
             $this->assertStatus($locked, SchoolEnrollmentStatus::ACTIVE);
+            $withdrawnAt = CarbonImmutable::now();
 
             $locked->forceFill([
                 'status' => SchoolEnrollmentStatus::WITHDRAWN,
                 'rejected_at' => null,
-                'withdrawn_at' => CarbonImmutable::now(),
+                'rejected_by' => null,
+                'withdrawn_at' => $withdrawnAt,
+                'withdrawn_by' => $actor?->id,
+                'retention_until' => $withdrawnAt->addYearsNoOverflow(
+                    $this->studentRetentionYears()
+                ),
             ])->save();
 
             return $locked->refresh();
@@ -196,11 +228,13 @@ class SchoolEnrollmentService
 
     public function reassignLevel(
         SchoolEnrollment $enrollment,
-        int $levelId
+        int $levelId,
+        ?User $actor = null
     ): SchoolEnrollment {
         return DB::transaction(function () use (
             $enrollment,
-            $levelId
+            $levelId,
+            $actor
         ): SchoolEnrollment {
             $locked = $this->lockEnrollment($enrollment);
             $this->assertStatus($locked, SchoolEnrollmentStatus::ACTIVE);
@@ -213,6 +247,8 @@ class SchoolEnrollmentService
 
             $locked->forceFill([
                 'school_level_id' => $level->id,
+                'corrected_at' => CarbonImmutable::now(),
+                'corrected_by' => $actor?->id,
             ])->save();
 
             return $locked->refresh();
@@ -246,12 +282,18 @@ class SchoolEnrollmentService
             'activated_at' => null,
             'rejected_at' => null,
             'withdrawn_at' => null,
+            'retention_until' => $requestedAt->addMonthsNoOverflow(
+                $this->unformalizedRetentionMonths()
+            ),
             'admin_notes' => $includeAdminNotes
                 ? ($attributes['admin_notes'] ?? null)
                 : null,
             'privacy_notice_version' => $includeAdminNotes
                 ? ($attributes['privacy_notice_version'] ?? null)
                 : $attributes['privacy_notice_version'],
+            'privacy_notice_id' => $includeAdminNotes
+                ? ($attributes['privacy_notice_id'] ?? null)
+                : $attributes['privacy_notice_id'],
             'privacy_acknowledged_at' => $includeAdminNotes
                 ? null
                 : $requestedAt,
@@ -259,6 +301,102 @@ class SchoolEnrollmentService
         $enrollment->save();
 
         return $enrollment->refresh();
+    }
+
+    public function placeRetentionHold(
+        SchoolEnrollment $enrollment,
+        User $actor,
+        string $reason
+    ): SchoolEnrollment {
+        return DB::transaction(function () use ($enrollment, $actor, $reason): SchoolEnrollment {
+            $locked = $this->lockEnrollment($enrollment);
+
+            if ($locked->status === SchoolEnrollmentStatus::ACTIVE || $locked->isAnonymized()) {
+                throw ValidationException::withMessages([
+                    'retention_hold_reason' => 'Sólo puede suspenderse la eliminación de una inscripción no activa y no anonimizada.',
+                ]);
+            }
+
+            if ($locked->retention_hold) {
+                throw ValidationException::withMessages([
+                    'retention_hold_reason' => 'La inscripción ya tiene una suspensión activa.',
+                ]);
+            }
+
+            $locked->forceFill([
+                'retention_hold' => true,
+                'retention_hold_reason' => $reason,
+                'retention_hold_placed_at' => CarbonImmutable::now(),
+                'retention_hold_placed_by' => $actor->id,
+                'retention_hold_released_at' => null,
+                'retention_hold_released_by' => null,
+            ])->save();
+
+            return $locked->refresh();
+        });
+    }
+
+    public function releaseRetentionHold(
+        SchoolEnrollment $enrollment,
+        User $actor
+    ): SchoolEnrollment {
+        return DB::transaction(function () use ($enrollment, $actor): SchoolEnrollment {
+            $locked = $this->lockEnrollment($enrollment);
+
+            if (! $locked->retention_hold) {
+                throw ValidationException::withMessages([
+                    'retention_hold' => 'La inscripción no tiene una suspensión activa.',
+                ]);
+            }
+
+            $locked->forceFill([
+                'retention_hold' => false,
+                'retention_hold_released_at' => CarbonImmutable::now(),
+                'retention_hold_released_by' => $actor->id,
+            ])->save();
+
+            return $locked->refresh();
+        });
+    }
+
+    public function anonymize(
+        SchoolEnrollment $enrollment,
+        ?User $actor = null
+    ): SchoolEnrollment {
+        return DB::transaction(function () use ($enrollment, $actor): SchoolEnrollment {
+            $locked = $this->lockEnrollment($enrollment);
+
+            if (! $this->canAnonymize($locked)) {
+                throw ValidationException::withMessages([
+                    'anonymize' => 'La inscripción no cumple las condiciones de anonimización.',
+                ]);
+            }
+
+            $locked->forceFill([
+                'user_id' => null,
+                'participant_name' => null,
+                'participant_birth_date' => null,
+                'contact_phone' => null,
+                'contact_email' => null,
+                'guardian_name' => null,
+                'guardian_relationship' => null,
+                'admin_notes' => null,
+                'retention_hold_reason' => null,
+                'anonymized_at' => CarbonImmutable::now(),
+                'corrected_at' => CarbonImmutable::now(),
+                'corrected_by' => $actor?->id,
+            ])->save();
+
+            return $locked->refresh();
+        });
+    }
+
+    public function canAnonymize(SchoolEnrollment $enrollment): bool
+    {
+        return $enrollment->status !== SchoolEnrollmentStatus::ACTIVE
+            && $enrollment->retention_until?->lessThanOrEqualTo(CarbonImmutable::now())
+            && ! $enrollment->retention_hold
+            && ! $enrollment->isAnonymized();
     }
 
     /**
@@ -358,5 +496,15 @@ class SchoolEnrollmentService
             ->with('program')
             ->lockForUpdate()
             ->findOrFail($enrollment->id);
+    }
+
+    private function unformalizedRetentionMonths(): int
+    {
+        return max(1, (int) config('school.retention.unformalized_months', 6));
+    }
+
+    private function studentRetentionYears(): int
+    {
+        return max(1, (int) config('school.retention.student_years', 2));
     }
 }

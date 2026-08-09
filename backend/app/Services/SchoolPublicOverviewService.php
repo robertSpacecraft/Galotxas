@@ -12,6 +12,8 @@ class SchoolPublicOverviewService
             ->select([
                 'id',
                 'name',
+                'public_description',
+                'enrollment_information',
                 'is_public',
                 'enrollments_open',
                 'default_school_location_id',

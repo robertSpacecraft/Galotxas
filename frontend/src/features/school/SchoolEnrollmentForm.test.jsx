@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { schoolService } from './schoolService';
@@ -61,7 +61,7 @@ describe('SchoolEnrollmentForm', () => {
     expect(schoolService.createEnrollment).not.toHaveBeenCalled();
   });
 
-  it('submits one adult payload with numeric optional level and clears personal data on success', async () => {
+  it('prevents a double submission, sends the adult payload and focuses the neutral result', async () => {
     const user = userEvent.setup();
     let resolveRequest;
     schoolService.createEnrollment.mockReturnValue(new Promise((resolve) => {
@@ -71,7 +71,9 @@ describe('SchoolEnrollmentForm', () => {
 
     await fillAdult(user);
     await user.selectOptions(screen.getByLabelText(/Nivel solicitado/), '12');
-    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+    const button = screen.getByRole('button', { name: 'Enviar solicitud' });
+    await user.click(button);
+    fireEvent.submit(button.closest('form'));
 
     expect(screen.getByRole('button', { name: 'Enviando solicitud…' })).toBeDisabled();
     expect(schoolService.createEnrollment).toHaveBeenCalledOnce();
@@ -82,7 +84,9 @@ describe('SchoolEnrollmentForm', () => {
       contact_email: 'adulto@example.test',
       school_level_id: 12,
       privacy_acknowledged: true,
-      privacy_notice_version: '1.1.0',
+      privacy_notice_id: 'NOTICE-SCHOOL-ENROLLMENT',
+      privacy_notice_version: '1.0.0',
+      website: '',
     });
 
     resolveRequest({ message: 'Recibida', data: null });
@@ -90,7 +94,38 @@ describe('SchoolEnrollmentForm', () => {
     expect(await screen.findByText('La solicitud de inscripción se ha recibido correctamente.'))
       .toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Solicitud recibida');
+    expect(screen.getByRole('status')).toHaveFocus();
     expect(screen.queryByDisplayValue('Persona Adulta')).not.toBeInTheDocument();
+  });
+
+  it('rejects an invalid phone before sending', async () => {
+    const user = userEvent.setup();
+    render(<SchoolEnrollmentForm levels={levels} reloadOverview={reloadOverview} />);
+
+    await fillAdult(user);
+    await user.clear(screen.getByLabelText(/Teléfono de contacto/));
+    await user.type(screen.getByLabelText(/Teléfono de contacto/), 'teléfono inválido');
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+
+    expect(screen.getByText('Indica un teléfono de contacto válido.')).toBeInTheDocument();
+    expect(screen.getByLabelText(/Teléfono de contacto/)).toHaveFocus();
+    expect(schoolService.createEnrollment).not.toHaveBeenCalled();
+  });
+
+  it('keeps the honeypot untabbable and never writes personal fields to web storage', async () => {
+    const user = userEvent.setup();
+    localStorage.clear();
+    sessionStorage.clear();
+    const { container } = render(
+      <SchoolEnrollmentForm levels={levels} reloadOverview={reloadOverview} />,
+    );
+
+    const honeypot = container.querySelector('input[name="website"]');
+    expect(honeypot).toHaveAttribute('tabindex', '-1');
+    expect(honeypot.closest('[aria-hidden="true"]')).toBeInTheDocument();
+    await user.type(screen.getByLabelText(/Nombre completo del participante/), 'Dato temporal');
+    expect(localStorage).toHaveLength(0);
+    expect(sessionStorage).toHaveLength(0);
   });
 
   it('sends required representative data for a minor and no internal fields', async () => {
@@ -116,7 +151,9 @@ describe('SchoolEnrollmentForm', () => {
       guardian_name: 'Persona Tutora',
       guardian_relationship: 'Madre',
       privacy_acknowledged: true,
-      privacy_notice_version: '1.1.0',
+      privacy_notice_id: 'NOTICE-SCHOOL-ENROLLMENT',
+      privacy_notice_version: '1.0.0',
+      website: '',
     });
   });
 
@@ -157,7 +194,8 @@ describe('SchoolEnrollmentForm', () => {
         guardian_authority_declared: true,
       },
       privacy_acknowledged: true,
-      privacy_notice_version: '1.1.0',
+      privacy_notice_id: 'NOTICE-SCHOOL-ENROLLMENT',
+      privacy_notice_version: '1.0.0',
     }));
   });
 
@@ -195,7 +233,8 @@ describe('SchoolEnrollmentForm', () => {
     await waitFor(() => expect(schoolService.createEnrollment).toHaveBeenCalledOnce());
     expect(schoolService.createEnrollment).toHaveBeenCalledWith(expect.objectContaining({
       privacy_acknowledged: true,
-      privacy_notice_version: '1.1.0',
+      privacy_notice_id: 'NOTICE-SCHOOL-ENROLLMENT',
+      privacy_notice_version: '1.0.0',
       public_identity_authorization: {
         mode,
         notice_version: '1.0.0',
@@ -270,7 +309,7 @@ describe('SchoolEnrollmentForm', () => {
     });
     reloadOverview.mockResolvedValue({
       ok: true,
-      data: { enrollments_open: true },
+      data: { enrollment_status: 'open' },
     });
     render(<SchoolEnrollmentForm levels={levels} reloadOverview={reloadOverview} />);
 

@@ -29,6 +29,7 @@ services:
       # Fuerza un fallo controlado para verificar que la autorización persiste sin proveedor real.
       MAIL_MAILER: public-identity-e2e-failure
       CONTACT_FORM_ENABLED: "true"
+      SCHOOL_ENROLLMENT_ENABLED: "true"
       CONTACT_NOTIFICATION_ENABLED: "true"
       CONTACT_NOTIFICATION_TO: contact-recipient@example.test
       CONTACT_NOTIFICATION_FROM: no-reply@example.test

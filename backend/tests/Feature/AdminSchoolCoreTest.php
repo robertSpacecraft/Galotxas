@@ -143,8 +143,10 @@ class AdminSchoolCoreTest extends TestCase
             ->post(route('admin.school.programs.store'), $this->programPayload([
                 'name' => 'Programa público',
                 'is_public' => '1',
-                'enrollments_open' => '1',
+                'enrollments_open' => '0',
                 'default_school_location_id' => $location->id,
+                'public_description' => 'Presentación pública.',
+                'enrollment_information' => 'Proceso público.',
                 'contact_phone' => '600 000 000',
                 'contact_email' => 'escuela@example.test',
             ]))
@@ -152,6 +154,16 @@ class AdminSchoolCoreTest extends TestCase
             ->assertSessionHasNoErrors();
 
         $program = SchoolProgram::query()->sole();
+        $level = SchoolLevel::factory()
+            ->for($program, 'program')
+            ->active()
+            ->publiclyVisible()
+            ->create();
+        SchoolSchedule::factory()
+            ->for($level, 'level')
+            ->for($location, 'location')
+            ->active()
+            ->create();
 
         $this->actingAs($admin)
             ->put(
@@ -159,8 +171,11 @@ class AdminSchoolCoreTest extends TestCase
                 $this->programPayload([
                     'name' => 'Programa público actualizado',
                     'is_public' => '1',
-                    'enrollments_open' => '0',
+                    'enrollments_open' => '1',
                     'default_school_location_id' => $location->id,
+                    'public_description' => 'Presentación pública.',
+                    'enrollment_information' => 'Proceso público.',
+                    'contact_email' => 'escuela@example.test',
                 ])
             )
             ->assertRedirect(route('admin.school.programs.index'))
@@ -170,11 +185,12 @@ class AdminSchoolCoreTest extends TestCase
             'id' => $program->id,
             'name' => 'Programa público actualizado',
             'is_public' => true,
-            'enrollments_open' => false,
+            'enrollments_open' => true,
             'default_school_location_id' => $location->id,
         ]);
 
         $this->actingAs($admin)
+            ->from(route('admin.school.programs.edit', $program))
             ->put(
                 route('admin.school.programs.update', $program),
                 $this->programPayload([
@@ -182,13 +198,15 @@ class AdminSchoolCoreTest extends TestCase
                     'is_public' => '0',
                     'enrollments_open' => '1',
                     'default_school_location_id' => $location->id,
+                    'public_description' => 'Presentación pública.',
+                    'enrollment_information' => 'Proceso público.',
+                    'contact_email' => 'escuela@example.test',
                 ])
             )
-            ->assertSessionHasNoErrors();
+            ->assertSessionHasErrors('enrollments_open');
 
-        $this->assertFalse($program->fresh()->is_public);
+        $this->assertTrue($program->fresh()->is_public);
         $this->assertTrue($program->fresh()->enrollments_open);
-        $this->assertFalse($program->fresh()->acceptsPublicEnrollments());
     }
 
     public function test_second_public_program_and_inactive_default_location_are_rejected(): void
@@ -613,6 +631,8 @@ class AdminSchoolCoreTest extends TestCase
     {
         return array_merge([
             'name' => 'Programa escolar',
+            'public_description' => null,
+            'enrollment_information' => null,
             'is_public' => '0',
             'enrollments_open' => '0',
             'default_school_location_id' => null,

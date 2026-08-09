@@ -11,12 +11,14 @@
             </div>
 
             <div class="d-flex gap-2">
-                <a
-                    href="{{ route('admin.school.enrollments.edit', $enrollment) }}"
-                    class="btn btn-outline-secondary"
-                >
-                    Corregir datos
-                </a>
+                @unless ($enrollment->isAnonymized())
+                    <a
+                        href="{{ route('admin.school.enrollments.edit', $enrollment) }}"
+                        class="btn btn-outline-secondary"
+                    >
+                        Registrar corrección administrativa
+                    </a>
+                @endunless
                 <a href="{{ route('admin.school.enrollments.index') }}" class="btn btn-outline-secondary">
                     Volver al listado
                 </a>
@@ -47,7 +49,13 @@
                 <div class="card page-card mb-4">
                     <div class="card-header fw-bold">Participante y contacto</div>
                     <div class="card-body">
-                        <dl class="row mb-0">
+                        @if ($enrollment->isAnonymized())
+                            <p class="text-secondary mb-0">
+                                Los datos personales fueron anonimizados el
+                                {{ $enrollment->anonymized_at->format('d/m/Y H:i') }}.
+                            </p>
+                        @else
+                            <dl class="row mb-0">
                             <dt class="col-sm-4">Participante</dt>
                             <dd class="col-sm-8">{{ $enrollment->participant_name }}</dd>
 
@@ -67,14 +75,17 @@
 
                             <dt class="col-sm-4">Cuenta vinculada</dt>
                             <dd class="col-sm-8">{{ $enrollment->user ? 'Sí' : 'No' }}</dd>
-                        </dl>
+                            </dl>
+                        @endif
                     </div>
                 </div>
 
                 <div class="card page-card mb-4">
                     <div class="card-header fw-bold">Representante</div>
                     <div class="card-body">
-                        @if ($enrollment->guardian_name)
+                        @if ($enrollment->isAnonymized())
+                            <p class="text-secondary mb-0">Datos anonimizados.</p>
+                        @elseif ($enrollment->guardian_name)
                             <dl class="row mb-0">
                                 <dt class="col-sm-4">Nombre</dt>
                                 <dd class="col-sm-8">{{ $enrollment->guardian_name }}</dd>
@@ -85,6 +96,60 @@
                         @else
                             <p class="text-secondary mb-0">No procede para este participante adulto.</p>
                         @endif
+                    </div>
+                </div>
+
+                <div class="card page-card mt-4">
+                    <div class="card-header fw-bold">Privacidad y trazabilidad</div>
+                    <div class="card-body">
+                        <dl class="row mb-0">
+                            <dt class="col-sm-5">Aviso de inscripción</dt>
+                            <dd class="col-sm-7">
+                                @if ($enrollment->privacy_notice_id && $enrollment->privacy_notice_version)
+                                    {{ $enrollment->privacy_notice_id }} — versión
+                                    {{ $enrollment->privacy_notice_version }}
+                                @else
+                                    Registro manual o legado sin aceptación pública versionada
+                                @endif
+                            </dd>
+
+                            <dt class="col-sm-5">Aceptación</dt>
+                            <dd class="col-sm-7">
+                                {{ $enrollment->privacy_acknowledged_at?->format('d/m/Y H:i') ?? 'No registrada' }}
+                            </dd>
+
+                            <dt class="col-sm-5">Última corrección administrativa</dt>
+                            <dd class="col-sm-7">
+                                {{ $enrollment->corrected_at?->format('d/m/Y H:i') ?? '—' }}
+                                @if ($enrollment->correctedBy)
+                                    por {{ $enrollment->correctedBy->name }}
+                                @endif
+                            </dd>
+
+                            <dt class="col-sm-5">Activación</dt>
+                            <dd class="col-sm-7">
+                                {{ $enrollment->activated_at?->format('d/m/Y H:i') ?? '—' }}
+                                @if ($enrollment->activatedBy)
+                                    por {{ $enrollment->activatedBy->name }}
+                                @endif
+                            </dd>
+
+                            <dt class="col-sm-5">Rechazo</dt>
+                            <dd class="col-sm-7">
+                                {{ $enrollment->rejected_at?->format('d/m/Y H:i') ?? '—' }}
+                                @if ($enrollment->rejectedBy)
+                                    por {{ $enrollment->rejectedBy->name }}
+                                @endif
+                            </dd>
+
+                            <dt class="col-sm-5">Baja</dt>
+                            <dd class="col-sm-7">
+                                {{ $enrollment->withdrawn_at?->format('d/m/Y H:i') ?? '—' }}
+                                @if ($enrollment->withdrawnBy)
+                                    por {{ $enrollment->withdrawnBy->name }}
+                                @endif
+                            </dd>
+                        </dl>
                     </div>
                 </div>
 
@@ -256,6 +321,71 @@
                         Esta inscripción se conserva para consulta histórica. No puede reactivarse.
                     </div>
                 @endif
+
+                <div class="card page-card mb-4">
+                    <div class="card-header fw-bold">Conservación</div>
+                    <div class="card-body">
+                        <p>
+                            Vencimiento:
+                            <strong>{{ $enrollment->retention_until?->format('d/m/Y H:i') ?? 'Mientras permanezca activa' }}</strong>
+                        </p>
+
+                        @if ($enrollment->retention_hold)
+                            <div class="alert alert-warning">
+                                Eliminación suspendida: {{ $enrollment->retention_hold_reason }}
+                            </div>
+                            <form
+                                method="POST"
+                                action="{{ route('admin.school.enrollments.release-retention-hold', $enrollment) }}"
+                            >
+                                @csrf
+                                <button type="submit" class="btn btn-outline-secondary w-100">
+                                    Retirar suspensión
+                                </button>
+                            </form>
+                        @elseif (! $enrollment->isAnonymized() && $enrollment->status !== \App\Enums\SchoolEnrollmentStatus::ACTIVE)
+                            <form
+                                method="POST"
+                                action="{{ route('admin.school.enrollments.retention-hold', $enrollment) }}"
+                                class="mb-3"
+                            >
+                                @csrf
+                                <label for="retention_hold_reason" class="form-label">
+                                    Motivo mínimo de suspensión
+                                </label>
+                                <input
+                                    id="retention_hold_reason"
+                                    name="retention_hold_reason"
+                                    type="text"
+                                    minlength="3"
+                                    maxlength="500"
+                                    required
+                                    class="form-control mb-2 @error('retention_hold_reason') is-invalid @enderror"
+                                >
+                                @error('retention_hold_reason')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <button type="submit" class="btn btn-outline-secondary w-100">
+                                    Suspender eliminación
+                                </button>
+                            </form>
+                        @endif
+
+                        @if ($canAnonymize)
+                            <form
+                                method="POST"
+                                action="{{ route('admin.school.enrollments.anonymize', $enrollment) }}"
+                                onsubmit="return confirm('¿Anonimizar definitivamente los datos personales?')"
+                            >
+                                @csrf
+                                <input type="hidden" name="confirm_anonymization" value="1">
+                                <button type="submit" class="btn btn-outline-danger w-100">
+                                    Anonimizar datos vencidos
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                </div>
             </div>
         </div>
     </div>

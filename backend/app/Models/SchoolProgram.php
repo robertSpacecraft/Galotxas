@@ -14,6 +14,8 @@ class SchoolProgram extends Model
 
     protected $fillable = [
         'name',
+        'public_description',
+        'enrollment_information',
         'is_public',
         'enrollments_open',
         'default_school_location_id',
@@ -47,11 +49,6 @@ class SchoolProgram extends Model
     public function isEffectivelyPublic(): bool
     {
         return $this->is_public;
-    }
-
-    public function acceptsPublicEnrollments(): bool
-    {
-        return $this->is_public && $this->enrollments_open;
     }
 
     public function defaultLocation(): BelongsTo

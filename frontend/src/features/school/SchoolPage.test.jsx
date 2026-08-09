@@ -13,10 +13,14 @@ const reload = vi.fn();
 
 const publicSchool = {
   name: 'Programa Escuela E2E',
+  description: 'Presentación administrada de la Escuela.',
+  enrollment_information: 'Proceso administrado de inscripción.',
+  enrollment_status: 'open',
   enrollments_open: true,
-  contact: {
-    phone: '600 100 200',
-    email: 'escuela@example.test',
+  privacy_notice: {
+    id: 'NOTICE-SCHOOL-ENROLLMENT',
+    version: '1.0.0',
+    privacy_url: '/legal/privacidad',
   },
   default_location: {
     id: 7,
@@ -71,6 +75,8 @@ describe('SchoolPage', () => {
     expect(screen.getByRole('link', { name: 'Consultar el Manual' }))
       .toHaveAttribute('href', '/aprende-a-jugar/manual');
     expect(screen.getByText('Programa Escuela E2E')).toBeInTheDocument();
+    expect(screen.getByText('Presentación administrada de la Escuela.')).toBeInTheDocument();
+    expect(screen.getByText('Proceso administrado de inscripción.')).toBeInTheDocument();
     expect(screen.getByText('Inscripciones abiertas.')).toHaveAttribute('role', 'status');
     expect(screen.getByRole('heading', { name: 'Ubicación habitual', level: 3 }))
       .toBeInTheDocument();
@@ -80,10 +86,8 @@ describe('SchoolPage', () => {
     expect(screen.getByText('Martes')).toBeInTheDocument();
     expect(screen.getByText('18:00–19:00')).toBeInTheDocument();
     expect(screen.getByText('Pista secundaria')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: '600 100 200' }))
-      .toHaveAttribute('href', 'tel:600 100 200');
-    expect(screen.getByRole('link', { name: 'escuela@example.test' }))
-      .toHaveAttribute('href', 'mailto:escuela@example.test');
+    expect(screen.queryByText('600 100 200')).not.toBeInTheDocument();
+    expect(screen.queryByText('escuela@example.test')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Enviar solicitud' })).toBeInTheDocument();
     expect(container).not.toHaveTextContent('school_program_id');
     expect(container).not.toHaveTextContent('admin_notes');
@@ -98,8 +102,11 @@ describe('SchoolPage', () => {
     useSchoolOverview.mockReturnValue({
       data: {
         name: null,
+        description: null,
+        enrollment_information: null,
+        enrollment_status: 'closed',
         enrollments_open: false,
-        contact: { phone: null, email: null },
+        privacy_notice: null,
         default_location: null,
         levels: [
           {
@@ -125,6 +132,25 @@ describe('SchoolPage', () => {
     expect(screen.getByText('Horario todavía no disponible.')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Contacto' })).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Ubicación habitual' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Enviar solicitud' })).not.toBeInTheDocument();
+  });
+
+  it('keeps content visible and hides the form when configuration is unavailable', () => {
+    useSchoolOverview.mockReturnValue({
+      data: {
+        ...publicSchool,
+        enrollment_status: 'unavailable',
+        enrollments_open: false,
+      },
+      status: 'content',
+      error: null,
+      reload,
+    });
+
+    renderPage();
+
+    expect(screen.getByText('Presentación administrada de la Escuela.')).toBeInTheDocument();
+    expect(screen.getByText(/configuración operativa/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Enviar solicitud' })).not.toBeInTheDocument();
   });
 

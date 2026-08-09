@@ -43,6 +43,7 @@
                             </thead>
                             <tbody>
                             @foreach ($programs as $program)
+                                @php($operational = $availabilityByProgram[$program->id])
                                 <tr>
                                     <td>{{ $program->name }}</td>
                                     <td>
@@ -51,13 +52,24 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="badge {{ $program->acceptsPublicEnrollments() ? 'text-bg-success' : 'text-bg-secondary' }}">
-                                            {{ $program->acceptsPublicEnrollments() ? 'Abiertas públicamente' : 'Cerradas públicamente' }}
+                                        <span class="badge {{ $operational['status'] === 'open' ? 'text-bg-success' : 'text-bg-secondary' }}">
+                                            {{ match ($operational['status']) {
+                                                'open' => 'Abiertas públicamente',
+                                                'closed' => 'Cerradas públicamente',
+                                                default => 'Configuración no disponible',
+                                            } }}
                                         </span>
-                                        @if ($program->enrollments_open && ! $program->is_public)
+                                        @if ($program->enrollments_open && $operational['status'] !== 'open')
                                             <div class="small text-secondary mt-1">
-                                                Apertura declarada; programa privado.
+                                                Apertura declarada, pero no efectiva.
                                             </div>
+                                        @endif
+                                        @if ($operational['issues'] !== [])
+                                            <ul class="small text-secondary mt-2 mb-0 ps-3">
+                                                @foreach ($operational['issues'] as $issue)
+                                                    <li>{{ $issue }}</li>
+                                                @endforeach
+                                            </ul>
                                         @endif
                                     </td>
                                     <td>

@@ -9,6 +9,7 @@
             @endforeach
         </ul>
     </div>
+
 @endif
 
 <div class="row g-3">
@@ -46,6 +47,42 @@
     </div>
 
     <div class="col-12">
+        <label for="public_description" class="form-label">Presentación pública</label>
+        <textarea
+            id="public_description"
+            name="public_description"
+            rows="4"
+            maxlength="5000"
+            class="form-control @error('public_description') is-invalid @enderror"
+            aria-describedby="public_description_help"
+        >{{ old('public_description', $program->public_description) }}</textarea>
+        @error('public_description')
+        <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+        <div id="public_description_help" class="form-text">
+            Explica qué es la Escuela sin inventar metodología ni datos pendientes.
+        </div>
+    </div>
+
+    <div class="col-12">
+        <label for="enrollment_information" class="form-label">Proceso público de inscripción</label>
+        <textarea
+            id="enrollment_information"
+            name="enrollment_information"
+            rows="4"
+            maxlength="5000"
+            class="form-control @error('enrollment_information') is-invalid @enderror"
+            aria-describedby="enrollment_information_help"
+        >{{ old('enrollment_information', $program->enrollment_information) }}</textarea>
+        @error('enrollment_information')
+        <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+        <div id="enrollment_information_help" class="form-text">
+            Describe el trámite real. No incluyas horarios o niveles que ya se gestionan de forma estructurada.
+        </div>
+    </div>
+
+    <div class="col-12">
         <label for="default_school_location_id" class="form-label">Ubicación habitual</label>
         <select
             id="default_school_location_id"
@@ -73,7 +110,7 @@
     </div>
 
     <div class="col-md-6">
-        <label for="contact_phone" class="form-label">Teléfono público</label>
+        <label for="contact_phone" class="form-label">Teléfono operativo privado (opcional)</label>
         <input
             id="contact_phone"
             type="text"
@@ -88,7 +125,7 @@
     </div>
 
     <div class="col-md-6">
-        <label for="contact_email" class="form-label">Correo público</label>
+        <label for="contact_email" class="form-label">Correo operativo privado</label>
         <input
             id="contact_email"
             type="email"
@@ -100,6 +137,7 @@
         @error('contact_email')
         <div class="invalid-feedback">{{ $message }}</div>
         @enderror
+        <div class="form-text">Se usa para preparar la gestión; no se expone en la API pública.</div>
     </div>
 
     <div class="col-md-6">
@@ -144,8 +182,9 @@
             @enderror
         </div>
         <div id="enrollments_open_help" class="form-text">
-            La apertura pública efectiva exige también que el programa sea público.
-            La recepción de solicitudes se implementará en 6B.2.
+            La apertura efectiva exige programa público, contenido, ubicación, correo
+            operativo, un nivel con horario activo, aviso vigente y el flag seguro del entorno.
+            El entorno permanece cerrado por defecto.
         </div>
     </div>
 

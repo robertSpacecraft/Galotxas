@@ -12,6 +12,13 @@ class SchoolProgramService
     public const PUBLICATION_ERROR =
         'Sólo puede existir un programa público de Escuela de Galotxas.';
 
+    public const OPENING_ERROR =
+        'No se pueden abrir las inscripciones hasta completar la configuración operativa.';
+
+    public function __construct(
+        private readonly SchoolEnrollmentAvailabilityService $availability
+    ) {}
+
     /**
      * @param  array<string, mixed>  $attributes
      */
@@ -53,6 +60,16 @@ class SchoolProgramService
                 }
 
                 $program->fill($attributes);
+
+                if ($program->enrollments_open) {
+                    $issues = $this->availability->readinessIssues($program);
+                    if ($issues !== []) {
+                        throw ValidationException::withMessages([
+                            'enrollments_open' => [self::OPENING_ERROR, ...$issues],
+                        ]);
+                    }
+                }
+
                 $program->save();
 
                 return $program->refresh();

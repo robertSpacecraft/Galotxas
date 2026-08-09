@@ -6,6 +6,7 @@ use App\Http\Requests\SchoolEnrollmentDataRequest;
 use App\Models\SchoolLevel;
 use App\Models\SchoolProgram;
 use App\Services\PublicIdentityNoticeService;
+use App\Services\SchoolEnrollmentNoticeService;
 use App\Services\SchoolEnrollmentService;
 use Carbon\CarbonImmutable;
 use Illuminate\Validation\Rule;
@@ -37,11 +38,9 @@ class StoreSchoolEnrollmentRequest extends SchoolEnrollmentDataRequest
             ...$this->participantRules(),
             'school_level_id' => ['nullable', 'integer'],
             'privacy_acknowledged' => ['required', 'accepted'],
-            'privacy_notice_version' => [
-                'required',
-                'string',
-                Rule::in([(string) config('public_identity.privacy_notice_version')]),
-            ],
+            'privacy_notice_id' => ['required', 'string', 'max:80'],
+            'privacy_notice_version' => ['required', 'string', 'max:20'],
+            'website' => ['nullable', 'string', 'max:255'],
             'public_identity_authorization' => [
                 Rule::prohibitedIf(! config('public_identity.authorization_enabled')),
                 'nullable',
@@ -92,7 +91,9 @@ class StoreSchoolEnrollmentRequest extends SchoolEnrollmentDataRequest
                 'guardian_relationship',
                 'school_level_id',
                 'privacy_acknowledged',
+                'privacy_notice_id',
                 'privacy_notice_version',
+                'website',
                 'public_identity_authorization',
             ];
             $unexpectedFields = array_diff(array_keys($this->all()), $allowedFields);
@@ -104,6 +105,22 @@ class StoreSchoolEnrollmentRequest extends SchoolEnrollmentDataRequest
                 );
 
                 return;
+            }
+
+            if (
+                ! $validator->errors()->hasAny([
+                    'privacy_notice_id',
+                    'privacy_notice_version',
+                ])
+                && ! app(SchoolEnrollmentNoticeService::class)->recognizes(
+                    (string) $this->input('privacy_notice_id'),
+                    (string) $this->input('privacy_notice_version')
+                )
+            ) {
+                $validator->errors()->add(
+                    'privacy_notice_version',
+                    'La versión del aviso de privacidad de Escuela no está vigente.'
+                );
             }
 
             $authorization = $this->input('public_identity_authorization');
@@ -133,7 +150,6 @@ class StoreSchoolEnrollmentRequest extends SchoolEnrollmentDataRequest
 
             $program = SchoolProgram::query()
                 ->effectivelyPublic()
-                ->where('enrollments_open', true)
                 ->first();
 
             if ($program === null) {

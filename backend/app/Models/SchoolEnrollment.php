@@ -21,6 +21,7 @@ class SchoolEnrollment extends Model
         'contact_email',
         'guardian_name',
         'guardian_relationship',
+        'privacy_notice_id',
         'privacy_notice_version',
     ];
 
@@ -32,6 +33,12 @@ class SchoolEnrollment extends Model
         'rejected_at' => 'immutable_datetime',
         'withdrawn_at' => 'immutable_datetime',
         'privacy_acknowledged_at' => 'immutable_datetime',
+        'corrected_at' => 'immutable_datetime',
+        'retention_until' => 'immutable_datetime',
+        'retention_hold' => 'boolean',
+        'retention_hold_placed_at' => 'immutable_datetime',
+        'retention_hold_released_at' => 'immutable_datetime',
+        'anonymized_at' => 'immutable_datetime',
     ];
 
     public function scopeWithStatus(
@@ -91,11 +98,50 @@ class SchoolEnrollment extends Model
         return $this->hasMany(PublicIdentityAuthorization::class);
     }
 
-    public function wasMinorAtRequest(): bool
+    public function correctedBy(): BelongsTo
     {
+        return $this->belongsTo(User::class, 'corrected_by');
+    }
+
+    public function activatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'activated_by');
+    }
+
+    public function rejectedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'rejected_by');
+    }
+
+    public function withdrawnBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'withdrawn_by');
+    }
+
+    public function retentionHoldPlacedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'retention_hold_placed_by');
+    }
+
+    public function retentionHoldReleasedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'retention_hold_released_by');
+    }
+
+    public function wasMinorAtRequest(): ?bool
+    {
+        if ($this->participant_birth_date === null || $this->requested_at === null) {
+            return null;
+        }
+
         return SchoolEnrollmentAgeService::isMinor(
             $this->participant_birth_date,
             $this->requested_at
         );
+    }
+
+    public function isAnonymized(): bool
+    {
+        return $this->anonymized_at !== null;
     }
 }

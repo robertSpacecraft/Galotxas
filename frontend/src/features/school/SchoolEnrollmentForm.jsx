@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getParticipantAgeStatus } from './schoolDate';
 import { schoolService } from './schoolService';
-import { minorPublicIdentityNotice } from '../legal/formNoticeRepository';
-import publicLegalArtifact from '../../generated/legal/public-legal.json';
+import {
+  minorPublicIdentityNotice,
+  schoolEnrollmentNotice,
+} from '../legal/formNoticeRepository';
+import { LegalRenderer } from '../legal/LegalRenderer';
 import styles from './SchoolPage.module.css';
 
 const emptyFields = {
@@ -16,6 +19,7 @@ const emptyFields = {
   privacy_acknowledged: false,
   public_identity_mode: 'anonymous',
   guardian_authority_declared: false,
+  website: '',
 };
 
 const fieldOrder = [
@@ -42,8 +46,6 @@ const fieldLabels = {
   guardian_authority_declared: 'Declaración de patria potestad o tutela',
 };
 
-const privacyDocument = publicLegalArtifact.documents.find(({ id }) => id === 'LEG-002');
-
 const firstMessage = (value) => (
   Array.isArray(value) ? value.find((message) => typeof message === 'string') : null
 );
@@ -69,6 +71,8 @@ const validateSchoolEnrollment = (
 
   if (!fields.contact_phone.trim()) {
     errors.contact_phone = 'Indica un teléfono de contacto.';
+  } else if (!/^\+?[0-9][0-9\s().-]{6,24}$/.test(fields.contact_phone.trim())) {
+    errors.contact_phone = 'Indica un teléfono de contacto válido.';
   }
 
   if (!fields.contact_email.trim()) {
@@ -115,13 +119,21 @@ const FieldError = ({ field, errors }) => (
   ) : null
 );
 
-export const SchoolEnrollmentForm = ({ levels, reloadOverview, identityAuthorization }) => {
+export const SchoolEnrollmentForm = ({
+  levels,
+  reloadOverview,
+  identityAuthorization,
+  privacyNotice = schoolEnrollmentNotice,
+}) => {
   const [fields, setFields] = useState(emptyFields);
   const [errors, setErrors] = useState({});
   const [submitState, setSubmitState] = useState('idle');
   const [generalMessage, setGeneralMessage] = useState(null);
   const fieldRefs = useRef({});
   const pendingFocus = useRef(null);
+  const messageRef = useRef(null);
+  const successRef = useRef(null);
+  const submittingRef = useRef(false);
   const ageStatus = useMemo(
     () => getParticipantAgeStatus(fields.participant_birth_date),
     [fields.participant_birth_date],
@@ -139,6 +151,14 @@ export const SchoolEnrollmentForm = ({ levels, reloadOverview, identityAuthoriza
       pendingFocus.current = null;
     }
   }, [errors]);
+
+  useEffect(() => {
+    if (submitState === 'success') {
+      successRef.current?.focus();
+    } else if (generalMessage && submitState !== 'invalid') {
+      messageRef.current?.focus();
+    }
+  }, [generalMessage, submitState]);
 
   const handleChange = (event) => {
     const { checked, name, type, value } = event.target;
@@ -177,7 +197,7 @@ export const SchoolEnrollmentForm = ({ levels, reloadOverview, identityAuthoriza
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (isSubmitting || isUnavailable) {
+    if (isSubmitting || isUnavailable || submittingRef.current) {
       return;
     }
 
@@ -202,7 +222,9 @@ export const SchoolEnrollmentForm = ({ levels, reloadOverview, identityAuthoriza
       contact_phone: fields.contact_phone.trim(),
       contact_email: fields.contact_email.trim(),
       privacy_acknowledged: true,
-      privacy_notice_version: privacyDocument.version,
+      privacy_notice_id: privacyNotice.id,
+      privacy_notice_version: privacyNotice.version,
+      website: fields.website,
       ...(fields.school_level_id
         ? { school_level_id: Number(fields.school_level_id) }
         : {}),
@@ -228,6 +250,7 @@ export const SchoolEnrollmentForm = ({ levels, reloadOverview, identityAuthoriza
         : {}),
     };
 
+    submittingRef.current = true;
     setSubmitState('submitting');
 
     try {
@@ -237,6 +260,7 @@ export const SchoolEnrollmentForm = ({ levels, reloadOverview, identityAuthoriza
       setSubmitState('success');
       setGeneralMessage('La solicitud de inscripción se ha recibido correctamente.');
     } catch (error) {
+      submittingRef.current = false;
       const status = error.response?.status;
 
       if (status === 422) {
@@ -285,7 +309,7 @@ export const SchoolEnrollmentForm = ({ levels, reloadOverview, identityAuthoriza
   const refreshAvailability = async () => {
     const result = await reloadOverview();
 
-    if (result.ok && result.data?.enrollments_open) {
+    if (result.ok && result.data?.enrollment_status === 'open') {
       setSubmitState('idle');
       setGeneralMessage(null);
     }
@@ -293,7 +317,7 @@ export const SchoolEnrollmentForm = ({ levels, reloadOverview, identityAuthoriza
 
   if (submitState === 'success') {
     return (
-      <div className={styles.successState} role="status" tabIndex="-1">
+      <div ref={successRef} className={styles.successState} role="status" tabIndex="-1">
         <h3>Solicitud recibida</h3>
         <p>{generalMessage}</p>
       </div>
@@ -303,7 +327,7 @@ export const SchoolEnrollmentForm = ({ levels, reloadOverview, identityAuthoriza
   return (
     <form className={styles.form} noValidate onSubmit={handleSubmit}>
       {generalMessage ? (
-        <div className={styles.formMessage} role="alert">
+        <div ref={messageRef} className={styles.formMessage} role="alert" tabIndex="-1">
           <p>{generalMessage}</p>
           {isUnavailable ? (
             <button type="button" className={styles.secondaryButton} onClick={refreshAvailability}>
@@ -399,12 +423,20 @@ export const SchoolEnrollmentForm = ({ levels, reloadOverview, identityAuthoriza
 
       <fieldset disabled={isSubmitting || isUnavailable}>
         <legend>Privacidad de la inscripción</legend>
-        <p className={styles.noticeText}>
-          Club Galotxes de Monover utilizará los datos para tramitar y gestionar la
-          inscripción en la Escuela. La inscripción no autoriza a publicar la identidad
-          ni imágenes. Consulta la <a href="/legal/privacidad">Política de privacidad</a>
-          {' '}versión {privacyDocument.version}.
-        </p>
+        <aside
+          className={styles.privacyNotice}
+          aria-labelledby="school-enrollment-privacy-title"
+        >
+          <h3 id="school-enrollment-privacy-title">Información sobre protección de datos</h3>
+          <LegalRenderer blocks={privacyNotice.blocks} />
+          <p className={styles.noticeText}>
+            Aviso {privacyNotice.id}, versión {privacyNotice.version}. Consulta la{' '}
+            <a href={privacyNotice.privacyUrl} target="_blank" rel="noopener noreferrer">
+              Política de privacidad
+              <span className={styles.srOnly}> (se abre en una pestaña nueva)</span>
+            </a>.
+          </p>
+        </aside>
         <div className={styles.checkField}>
           <input {...fieldProps('privacy_acknowledged')} type="checkbox" required />
           <label htmlFor="privacy_acknowledged">
@@ -414,6 +446,16 @@ export const SchoolEnrollmentForm = ({ levels, reloadOverview, identityAuthoriza
         </div>
         <FieldError field="privacy_acknowledged" errors={errors} />
       </fieldset>
+
+      <div className={styles.honeypot} aria-hidden="true">
+        <label htmlFor="website">Sitio web</label>
+        <input
+          {...fieldProps('website')}
+          type="text"
+          autoComplete="off"
+          tabIndex="-1"
+        />
+      </div>
 
       {ageStatus === 'minor'
         && identityAuthorization?.enabled

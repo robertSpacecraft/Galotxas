@@ -399,6 +399,189 @@
         }
       ],
       "privacyUrl": "/legal/privacidad"
+    },
+    {
+      "id": "NOTICE-SCHOOL-ENROLLMENT",
+      "title": "Información de privacidad de la inscripción en la Escuela",
+      "version": "1.0.0",
+      "status": "vigente",
+      "publishedAt": "2026-08-09",
+      "reviewedAt": "2026-08-09",
+      "owner": "Club Galotxes de Monover",
+      "scope": "school_enrollment",
+      "summary": "Información esencial sobre el tratamiento necesario para tramitar una inscripción en la Escuela de Galotxas.",
+      "order": 3,
+      "headings": [
+        {
+          "level": 2,
+          "text": "Responsable y finalidad",
+          "id": "responsable-y-finalidad"
+        },
+        {
+          "level": 2,
+          "text": "Menores y representante",
+          "id": "menores-y-representante"
+        },
+        {
+          "level": 2,
+          "text": "Acceso y conservación",
+          "id": "acceso-y-conservacion"
+        },
+        {
+          "level": 2,
+          "text": "Derechos e información adicional",
+          "id": "derechos-e-informacion-adicional"
+        }
+      ],
+      "blocks": [
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "responsable-y-finalidad",
+          "children": [
+            {
+              "type": "text",
+              "value": "Responsable y finalidad"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "strong",
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Club Galotxes de Monover"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "value": " es responsable del tratamiento. Los datos se utilizan para recibir, revisar, tramitar y gestionar la inscripción y, si se formaliza, la participación en la Escuela de Galotxas."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Para tramitar la solicitud son necesarios el nombre y la fecha de nacimiento del participante, un teléfono y un correo electrónico de contacto y la aceptación expresa de esta información. El nivel solicitado es opcional."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "menores-y-representante",
+          "children": [
+            {
+              "type": "text",
+              "value": "Menores y representante"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Cuando el participante es menor de edad también son necesarios el nombre del representante y su relación con el menor. Estos datos no se publican ni convierten por sí mismos a la persona en participante de una competición."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "La inscripción y cualquier autorización opcional de identidad pública son decisiones independientes. No solicitar o no autorizar una identidad pública no impide enviar la inscripción ni participar en la Escuela."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "acceso-y-conservacion",
+          "children": [
+            {
+              "type": "text",
+              "value": "Acceso y conservación"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Los datos sólo serán accesibles para las personas autorizadas del club y, cuando se configuren, para las categorías de proveedores técnicos necesarias para prestar y proteger el servicio, sin atribuir aquí un proveedor no verificado."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Las solicitudes retiradas, rechazadas o no formalizadas se conservan durante 6 meses. Los datos de alumnos se conservan durante la inscripción y 2 años después de la baja. Una reclamación, un incidente o una obligación aplicable puede suspender temporalmente la eliminación de los datos estrictamente necesarios."
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "level": 2,
+          "id": "derechos-e-informacion-adicional",
+          "children": [
+            {
+              "type": "text",
+              "value": "Derechos e información adicional"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Puede solicitar el ejercicio de los derechos aplicables escribiendo a clubgalotxesmonover@hotmail.com. La información ampliada está disponible en la Política de privacidad, en "
+            },
+            {
+              "type": "inlineCode",
+              "value": "/legal/privacidad"
+            },
+            {
+              "type": "text",
+              "value": "."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "No se toman decisiones automatizadas sobre la inscripción. Este aviso corresponde a la versión "
+            },
+            {
+              "type": "strong",
+              "children": [
+                {
+                  "type": "text",
+                  "value": "1.0.0"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "value": "."
+            }
+          ]
+        }
+      ],
+      "privacyUrl": "/legal/privacidad"
     }
   ]
 }

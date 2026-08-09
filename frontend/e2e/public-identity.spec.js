@@ -103,7 +103,8 @@ test.describe.serial('autorización verificable de identidad pública de menores
         contact_phone: '600 555 555',
         contact_email: 'without-identity.e2e@example.test',
         privacy_acknowledged: true,
-        privacy_notice_version: '1.1.0',
+        privacy_notice_id: 'NOTICE-SCHOOL-ENROLLMENT',
+        privacy_notice_version: '1.0.0',
       },
     });
     expect(withoutAuthorization.status()).toBe(201);

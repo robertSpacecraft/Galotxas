@@ -33,8 +33,12 @@ class SchoolEnrollmentFactory extends Factory
             'rejected_at' => null,
             'withdrawn_at' => null,
             'admin_notes' => null,
-            'privacy_notice_version' => '1.1.0',
+            'privacy_notice_id' => 'NOTICE-SCHOOL-ENROLLMENT',
+            'privacy_notice_version' => '1.0.0',
             'privacy_acknowledged_at' => CarbonImmutable::now(),
+            'retention_until' => CarbonImmutable::now()->addMonthsNoOverflow(6),
+            'retention_hold' => false,
+            'anonymized_at' => null,
         ];
     }
 
@@ -45,6 +49,7 @@ class SchoolEnrollmentFactory extends Factory
             'activated_at' => null,
             'rejected_at' => null,
             'withdrawn_at' => null,
+            'retention_until' => CarbonImmutable::now()->addMonthsNoOverflow(6),
         ]);
     }
 
@@ -57,6 +62,7 @@ class SchoolEnrollmentFactory extends Factory
                 'activated_at' => CarbonImmutable::now(),
                 'rejected_at' => null,
                 'withdrawn_at' => null,
+                'retention_until' => null,
             ]);
     }
 
@@ -67,6 +73,7 @@ class SchoolEnrollmentFactory extends Factory
             'activated_at' => null,
             'rejected_at' => CarbonImmutable::now(),
             'withdrawn_at' => null,
+            'retention_until' => CarbonImmutable::now()->addMonthsNoOverflow(6),
         ]);
     }
 
@@ -82,6 +89,7 @@ class SchoolEnrollmentFactory extends Factory
                     'activated_at' => $activatedAt,
                     'rejected_at' => null,
                     'withdrawn_at' => $activatedAt->addMonth(),
+                    'retention_until' => $activatedAt->addMonth()->addYearsNoOverflow(2),
                 ];
             });
     }

@@ -20,6 +20,7 @@ class SchoolEnrollmentApiTest extends TestCase
         parent::setUp();
 
         Carbon::setTestNow('2026-07-28 10:15:00');
+        config(['school.enrollment_enabled' => true]);
     }
 
     protected function tearDown(): void
@@ -32,7 +33,7 @@ class SchoolEnrollmentApiTest extends TestCase
     public function test_anonymous_minor_can_submit_to_public_open_program_without_level(): void
     {
         $program = SchoolProgram::factory()
-            ->publiclyVisible()
+            ->operationallyReady()
             ->enrollmentsOpen()
             ->create();
         $payload = $this->minorPayload();
@@ -75,7 +76,7 @@ class SchoolEnrollmentApiTest extends TestCase
     public function test_authenticated_request_links_only_session_user_without_overwriting_payload(): void
     {
         SchoolProgram::factory()
-            ->publiclyVisible()
+            ->operationallyReady()
             ->enrollmentsOpen()
             ->create();
         $user = User::factory()->create([
@@ -102,7 +103,7 @@ class SchoolEnrollmentApiTest extends TestCase
     public function test_adult_guardian_fields_are_normalized_to_null_and_contact_remains_required(): void
     {
         SchoolProgram::factory()
-            ->publiclyVisible()
+            ->operationallyReady()
             ->enrollmentsOpen()
             ->create();
 
@@ -123,7 +124,7 @@ class SchoolEnrollmentApiTest extends TestCase
     public function test_minor_requires_both_guardian_fields(): void
     {
         SchoolProgram::factory()
-            ->publiclyVisible()
+            ->operationallyReady()
             ->enrollmentsOpen()
             ->create();
 
@@ -143,7 +144,7 @@ class SchoolEnrollmentApiTest extends TestCase
     public function test_public_validation_requires_contact_and_valid_non_future_birth(): void
     {
         SchoolProgram::factory()
-            ->publiclyVisible()
+            ->operationallyReady()
             ->enrollmentsOpen()
             ->create();
 
@@ -167,7 +168,7 @@ class SchoolEnrollmentApiTest extends TestCase
     public function test_optional_public_level_must_be_public_active_and_in_current_program(): void
     {
         $program = SchoolProgram::factory()
-            ->publiclyVisible()
+            ->operationallyReady()
             ->enrollmentsOpen()
             ->create();
         $validLevel = SchoolLevel::factory()
@@ -247,7 +248,7 @@ class SchoolEnrollmentApiTest extends TestCase
     public function test_sensitive_and_unknown_payload_fields_are_rejected(): void
     {
         SchoolProgram::factory()
-            ->publiclyVisible()
+            ->operationallyReady()
             ->enrollmentsOpen()
             ->create();
         $user = User::factory()->create();
@@ -282,7 +283,7 @@ class SchoolEnrollmentApiTest extends TestCase
     public function test_public_response_never_contains_personal_or_internal_data(): void
     {
         SchoolProgram::factory()
-            ->publiclyVisible()
+            ->operationallyReady()
             ->enrollmentsOpen()
             ->create();
         $payload = $this->adultPayload([
@@ -307,7 +308,7 @@ class SchoolEnrollmentApiTest extends TestCase
     public function test_school_enrollment_rate_limiter_allows_five_and_blocks_sixth(): void
     {
         SchoolProgram::factory()
-            ->publiclyVisible()
+            ->operationallyReady()
             ->enrollmentsOpen()
             ->create();
         $payload = $this->adultPayload([
@@ -358,7 +359,8 @@ class SchoolEnrollmentApiTest extends TestCase
             'guardian_name' => '  Persona Tutora  ',
             'guardian_relationship' => '  Madre  ',
             'privacy_acknowledged' => true,
-            'privacy_notice_version' => '1.1.0',
+            'privacy_notice_id' => 'NOTICE-SCHOOL-ENROLLMENT',
+            'privacy_notice_version' => '1.0.0',
         ], $overrides);
     }
 
@@ -376,7 +378,8 @@ class SchoolEnrollmentApiTest extends TestCase
             'guardian_name' => '',
             'guardian_relationship' => '',
             'privacy_acknowledged' => true,
-            'privacy_notice_version' => '1.1.0',
+            'privacy_notice_id' => 'NOTICE-SCHOOL-ENROLLMENT',
+            'privacy_notice_version' => '1.0.0',
         ], $overrides);
     }
 

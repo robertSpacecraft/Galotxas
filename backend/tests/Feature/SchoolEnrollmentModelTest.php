@@ -49,6 +49,22 @@ class SchoolEnrollmentModelTest extends TestCase
             'rejected_at',
             'withdrawn_at',
             'admin_notes',
+            'privacy_notice_id',
+            'privacy_notice_version',
+            'privacy_acknowledged_at',
+            'corrected_at',
+            'corrected_by',
+            'activated_by',
+            'rejected_by',
+            'withdrawn_by',
+            'retention_until',
+            'retention_hold',
+            'retention_hold_reason',
+            'retention_hold_placed_at',
+            'retention_hold_placed_by',
+            'retention_hold_released_at',
+            'retention_hold_released_by',
+            'anonymized_at',
             'created_at',
             'updated_at',
         ]));
@@ -72,6 +88,7 @@ class SchoolEnrollmentModelTest extends TestCase
         $this->assertInstanceOf(CarbonImmutable::class, $enrollment->requested_at);
         $this->assertNull($enrollment->school_level_id);
         $this->assertNull($enrollment->activated_at);
+        $this->assertFalse($enrollment->retention_hold);
         $this->assertTrue($enrollment->program->is($program));
         $this->assertTrue($enrollment->user->is($user));
         $this->assertTrue($program->enrollments->contains($enrollment));

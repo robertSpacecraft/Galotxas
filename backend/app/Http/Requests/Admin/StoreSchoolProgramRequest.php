@@ -19,6 +19,8 @@ class StoreSchoolProgramRequest extends FormRequest
     {
         $this->merge([
             'name' => trim((string) $this->input('name')),
+            'public_description' => $this->nullableTrimmed('public_description'),
+            'enrollment_information' => $this->nullableTrimmed('enrollment_information'),
             'contact_phone' => $this->nullableTrimmed('contact_phone'),
             'contact_email' => $this->nullableTrimmed('contact_email'),
             'is_public' => $this->has('is_public') ? $this->boolean('is_public') : null,
@@ -35,6 +37,8 @@ class StoreSchoolProgramRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
+            'public_description' => ['nullable', 'string', 'max:5000'],
+            'enrollment_information' => ['nullable', 'string', 'max:5000'],
             'is_public' => ['required', 'boolean'],
             'enrollments_open' => ['required', 'boolean'],
             'default_school_location_id' => [

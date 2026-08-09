@@ -71,13 +71,30 @@ export const normalizeSchoolOverview = (data) => {
       }
     : { enabled: false };
 
+  const enrollmentStatus = ['open', 'closed', 'unavailable'].includes(data.enrollment_status)
+    ? data.enrollment_status
+    : 'unavailable';
+  const privacyNotice = data.privacy_notice;
+  const normalizedPrivacyNotice = privacyNotice
+    && privacyNotice.id === 'NOTICE-SCHOOL-ENROLLMENT'
+    && typeof privacyNotice.version === 'string'
+    && privacyNotice.privacy_url === '/legal/privacidad'
+    ? {
+        id: privacyNotice.id,
+        version: privacyNotice.version,
+        privacy_url: privacyNotice.privacy_url,
+      }
+    : null;
+
   return {
     name: nullableString(data.name),
-    enrollments_open: data.enrollments_open === true,
-    contact: {
-      phone: nullableString(data.contact?.phone),
-      email: nullableString(data.contact?.email),
-    },
+    description: nullableString(data.description),
+    enrollment_information: nullableString(data.enrollment_information),
+    enrollment_status: enrollmentStatus,
+    enrollments_open: enrollmentStatus === 'open'
+      && data.enrollments_open === true
+      && normalizedPrivacyNotice !== null,
+    privacy_notice: normalizedPrivacyNotice,
     default_location: normalizeLocation(data.default_location),
     levels: Array.isArray(data.levels)
       ? data.levels.map(normalizeLevel).filter(Boolean)

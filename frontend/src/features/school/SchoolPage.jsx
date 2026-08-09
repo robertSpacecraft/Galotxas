@@ -9,33 +9,17 @@ import { SchoolEnrollmentForm } from './SchoolEnrollmentForm';
 import { SchoolLevels } from './SchoolLevels';
 import { SchoolLocation } from './SchoolLocation';
 import { useSchoolOverview } from './useSchoolOverview';
+import { schoolEnrollmentNotice } from '../legal/formNoticeRepository';
 import styles from './SchoolPage.module.css';
 
 const manualActions = [
   { to: manualPath(), label: 'Consultar el Manual', variant: 'secondary' },
 ];
 
-const SchoolContact = ({ contact }) => {
-  if (!contact.phone && !contact.email) {
-    return null;
-  }
-
-  return (
-    <LandingSection
-      id="school-contact"
-      title="Contacto"
-      introduction="Utiliza los datos públicos del programa para solicitar información."
-    >
-      <ul className={styles.contactList}>
-        {contact.phone ? (
-          <li><a href={`tel:${contact.phone}`}>{contact.phone}</a></li>
-        ) : null}
-        {contact.email ? (
-          <li><a href={`mailto:${contact.email}`}>{contact.email}</a></li>
-        ) : null}
-      </ul>
-    </LandingSection>
-  );
+const enrollmentStatusCopy = {
+  open: 'Inscripciones abiertas.',
+  closed: 'No se admiten solicitudes de inscripción en este momento.',
+  unavailable: 'La inscripción no está disponible hasta completar la configuración operativa.',
 };
 
 const SchoolContent = ({ school, reload }) => (
@@ -46,16 +30,23 @@ const SchoolContent = ({ school, reload }) => (
       introduction="Consulta la información operativa disponible actualmente."
     >
       {school.name ? <h3 className={styles.programName}>{school.name}</h3> : null}
+      {school.description ? (
+        <p className={styles.managedCopy}>{school.description}</p>
+      ) : null}
       <p
         className={`${styles.enrollmentStatus} ${
-          school.enrollments_open ? styles.enrollmentOpen : styles.enrollmentClosed
+          school.enrollment_status === 'open' ? styles.enrollmentOpen : styles.enrollmentClosed
         }`}
         role="status"
       >
-        {school.enrollments_open
-          ? 'Inscripciones abiertas.'
-          : 'No se admiten solicitudes de inscripción en este momento.'}
+        {enrollmentStatusCopy[school.enrollment_status]}
       </p>
+      {school.enrollment_information ? (
+        <div className={styles.enrollmentInformation}>
+          <h3>Cómo solicitar la inscripción</h3>
+          <p className={styles.managedCopy}>{school.enrollment_information}</p>
+        </div>
+      ) : null}
       {school.default_location ? (
         <div className={styles.defaultLocation}>
           <h3>Ubicación habitual</h3>
@@ -72,9 +63,11 @@ const SchoolContent = ({ school, reload }) => (
       <SchoolLevels levels={school.levels} />
     </LandingSection>
 
-    <SchoolContact contact={school.contact} />
-
-    {school.enrollments_open ? (
+    {school.enrollments_open
+      && schoolEnrollmentNotice
+      && school.privacy_notice?.id === schoolEnrollmentNotice.id
+      && school.privacy_notice?.version === schoolEnrollmentNotice.version
+      && school.privacy_notice?.privacy_url === schoolEnrollmentNotice.privacyUrl ? (
       <LandingSection
         id="school-enrollment"
         title="Solicitud de inscripción"
@@ -84,6 +77,7 @@ const SchoolContent = ({ school, reload }) => (
           levels={school.levels}
           reloadOverview={reload}
           identityAuthorization={school.public_identity_authorization}
+          privacyNotice={schoolEnrollmentNotice}
         />
       </LandingSection>
     ) : null}

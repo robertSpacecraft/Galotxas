@@ -64,7 +64,12 @@ abstract class SchoolEnrollmentDataRequest extends FormRequest
                 'date_format:Y-m-d',
                 'before_or_equal:today',
             ],
-            'contact_phone' => ['required', 'string', 'max:50'],
+            'contact_phone' => [
+                'required',
+                'string',
+                'max:50',
+                'regex:/^\+?[0-9][0-9\s().-]{6,24}$/',
+            ],
             'contact_email' => ['required', 'string', 'email', 'max:255'],
             'guardian_name' => [
                 Rule::requiredIf(fn (): bool => $this->participantIsMinor === true),

@@ -69,10 +69,10 @@ describe('legal compiler', () => {
     expect(JSON.stringify(artifact)).not.toMatch(/legal-drafts|knowledge\//i)
   })
 
-  it('projects the two allowlisted form notices separately from public legal pages', async () => {
+  it('projects the three allowlisted form notices separately from public legal pages', async () => {
     const { artifact } = await compileFormNoticeArtifact(DEFAULT_LEGAL_ROOT)
 
-    expect(artifact.notices).toHaveLength(2)
+    expect(artifact.notices).toHaveLength(3)
     expect(artifact.notices[0]).toMatchObject({
       id: 'NOTICE-PUBLIC-IDENTITY-MINORS',
       version: '1.0.0',
@@ -86,6 +86,13 @@ describe('legal compiler', () => {
       version: '1.0.0',
       status: 'vigente',
       scope: 'contact_request',
+      privacyUrl: '/legal/privacidad',
+    })
+    expect(artifact.notices[2]).toMatchObject({
+      id: 'NOTICE-SCHOOL-ENROLLMENT',
+      version: '1.0.0',
+      status: 'vigente',
+      scope: 'school_enrollment',
       privacyUrl: '/legal/privacidad',
     })
     expect(JSON.stringify(artifact)).not.toMatch(/knowledge\/|legal-drafts|guardian@example/i)

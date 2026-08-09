@@ -4,11 +4,11 @@ namespace App\Services;
 
 use RuntimeException;
 
-class ContactNoticeService
+class SchoolEnrollmentNoticeService
 {
-    public const ID = 'NOTICE-CONTACT-FORM';
+    public const ID = 'NOTICE-SCHOOL-ENROLLMENT';
 
-    public const SCOPE = 'contact_request';
+    public const SCOPE = 'school_enrollment';
 
     public const PRIVACY_URL = '/legal/privacidad';
 
@@ -38,7 +38,7 @@ class ContactNoticeService
             || ($notice['privacyUrl'] ?? null) !== self::PRIVACY_URL
             || ! is_string($notice['version'] ?? null)
         ) {
-            throw new RuntimeException('La proyección legal de Contacto no es válida.');
+            throw new RuntimeException('La proyección legal de inscripción de Escuela no es válida.');
         }
 
         return $this->notice = $notice;

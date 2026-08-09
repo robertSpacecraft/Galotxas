@@ -165,6 +165,18 @@ Route::prefix('admin')->group(function () {
                 'enrollments/{enrollment}/reassign-level',
                 [SchoolEnrollmentController::class, 'reassignLevel']
             )->name('enrollments.reassign-level');
+            Route::post(
+                'enrollments/{enrollment}/retention-hold',
+                [SchoolEnrollmentController::class, 'placeRetentionHold']
+            )->name('enrollments.retention-hold');
+            Route::post(
+                'enrollments/{enrollment}/release-retention-hold',
+                [SchoolEnrollmentController::class, 'releaseRetentionHold']
+            )->name('enrollments.release-retention-hold');
+            Route::post(
+                'enrollments/{enrollment}/anonymize',
+                [SchoolEnrollmentController::class, 'anonymize']
+            )->name('enrollments.anonymize');
             Route::resource('programs', SchoolProgramController::class)->except('show');
             Route::resource('levels', SchoolLevelController::class)->except('show');
             Route::resource('locations', SchoolLocationController::class)->except('show');

@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\SchoolEnrollmentStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\AnonymizeSchoolEnrollmentRequest;
 use App\Http\Requests\Admin\ApproveSchoolEnrollmentRequest;
 use App\Http\Requests\Admin\ListSchoolEnrollmentRequest;
+use App\Http\Requests\Admin\PlaceSchoolEnrollmentRetentionHoldRequest;
 use App\Http\Requests\Admin\ReassignSchoolEnrollmentLevelRequest;
 use App\Http\Requests\Admin\RejectSchoolEnrollmentRequest;
+use App\Http\Requests\Admin\ReleaseSchoolEnrollmentRetentionHoldRequest;
 use App\Http\Requests\Admin\StoreSchoolEnrollmentRequest;
 use App\Http\Requests\Admin\UpdateSchoolEnrollmentRequest;
 use App\Http\Requests\Admin\WithdrawSchoolEnrollmentRequest;
@@ -86,18 +89,38 @@ class SchoolEnrollmentController extends Controller
             ->with('success', 'Inscripción creada como pendiente.');
     }
 
-    public function show(SchoolEnrollment $enrollment)
-    {
-        $enrollment->load(['program', 'level', 'user', 'publicIdentityAuthorizations']);
+    public function show(
+        SchoolEnrollment $enrollment,
+        SchoolEnrollmentService $service
+    ) {
+        $enrollment->load([
+            'program',
+            'level',
+            'user',
+            'publicIdentityAuthorizations',
+            'correctedBy',
+            'activatedBy',
+            'rejectedBy',
+            'withdrawnBy',
+            'retentionHoldPlacedBy',
+            'retentionHoldReleasedBy',
+        ]);
 
         return view('admin.school.enrollments.show', [
             'enrollment' => $enrollment,
             'availableLevels' => $this->availableLevels($enrollment),
+            'canAnonymize' => $service->canAnonymize($enrollment),
         ]);
     }
 
     public function edit(SchoolEnrollment $enrollment)
     {
+        if ($enrollment->isAnonymized()) {
+            return redirect()
+                ->route('admin.school.enrollments.show', $enrollment)
+                ->with('error', 'No se pueden corregir datos de una inscripción anonimizada.');
+        }
+
         $enrollment->load(['program', 'level']);
 
         return view('admin.school.enrollments.edit', compact('enrollment'));
@@ -108,7 +131,11 @@ class SchoolEnrollmentController extends Controller
         SchoolEnrollment $enrollment,
         SchoolEnrollmentService $service
     ) {
-        $service->updateDetails($enrollment, $request->validated());
+        $service->updateDetails(
+            $enrollment,
+            $request->validated(),
+            $request->user()
+        );
 
         return redirect()
             ->route('admin.school.enrollments.show', $enrollment)
@@ -122,7 +149,8 @@ class SchoolEnrollmentController extends Controller
     ) {
         $service->approve(
             $enrollment,
-            (int) $request->validated('school_level_id')
+            (int) $request->validated('school_level_id'),
+            $request->user()
         );
 
         return redirect()
@@ -136,7 +164,7 @@ class SchoolEnrollmentController extends Controller
         SchoolEnrollmentService $service
     ) {
         $request->validated();
-        $service->reject($enrollment);
+        $service->reject($enrollment, $request->user());
 
         return redirect()
             ->route('admin.school.enrollments.show', $enrollment)
@@ -149,7 +177,7 @@ class SchoolEnrollmentController extends Controller
         SchoolEnrollmentService $service
     ) {
         $request->validated();
-        $service->withdraw($enrollment);
+        $service->withdraw($enrollment, $request->user());
 
         return redirect()
             ->route('admin.school.enrollments.show', $enrollment)
@@ -163,12 +191,55 @@ class SchoolEnrollmentController extends Controller
     ) {
         $service->reassignLevel(
             $enrollment,
-            (int) $request->validated('school_level_id')
+            (int) $request->validated('school_level_id'),
+            $request->user()
         );
 
         return redirect()
             ->route('admin.school.enrollments.show', $enrollment)
             ->with('success', 'Nivel reasignado correctamente.');
+    }
+
+    public function placeRetentionHold(
+        PlaceSchoolEnrollmentRetentionHoldRequest $request,
+        SchoolEnrollment $enrollment,
+        SchoolEnrollmentService $service
+    ) {
+        $service->placeRetentionHold(
+            $enrollment,
+            $request->user(),
+            $request->validated('retention_hold_reason')
+        );
+
+        return redirect()
+            ->route('admin.school.enrollments.show', $enrollment)
+            ->with('success', 'Suspensión de conservación aplicada correctamente.');
+    }
+
+    public function releaseRetentionHold(
+        ReleaseSchoolEnrollmentRetentionHoldRequest $request,
+        SchoolEnrollment $enrollment,
+        SchoolEnrollmentService $service
+    ) {
+        $request->validated();
+        $service->releaseRetentionHold($enrollment, $request->user());
+
+        return redirect()
+            ->route('admin.school.enrollments.show', $enrollment)
+            ->with('success', 'Suspensión de conservación retirada correctamente.');
+    }
+
+    public function anonymize(
+        AnonymizeSchoolEnrollmentRequest $request,
+        SchoolEnrollment $enrollment,
+        SchoolEnrollmentService $service
+    ) {
+        $request->validated();
+        $service->anonymize($enrollment, $request->user());
+
+        return redirect()
+            ->route('admin.school.enrollments.show', $enrollment)
+            ->with('success', 'Datos personales de la inscripción anonimizados.');
     }
 
     /**

@@ -48,13 +48,14 @@ class AppServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('school-enrollments', function (Request $request) {
-            $emailHash = hash(
+            $key = hash_hmac(
                 'sha256',
-                Str::lower(trim((string) $request->input('contact_email')))
+                $request->ip().'|'.Str::lower(trim((string) $request->input('contact_email'))),
+                (string) config('app.key')
             );
 
             return Limit::perMinute(5)
-                ->by($request->ip().'|'.$emailHash)
+                ->by($key)
                 ->response(fn () => response()->json([
                     'message' => 'Demasiadas solicitudes. Inténtalo de nuevo más tarde.',
                     'data' => null,

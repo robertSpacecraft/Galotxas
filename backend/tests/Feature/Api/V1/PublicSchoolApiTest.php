@@ -71,10 +71,14 @@ class PublicSchoolApiTest extends TestCase
                 'message' => null,
                 'data' => [
                     'name' => 'Escuela permanente',
+                    'description' => null,
+                    'enrollment_information' => null,
+                    'enrollment_status' => 'unavailable',
                     'enrollments_open' => false,
-                    'contact' => [
-                        'phone' => null,
-                        'email' => null,
+                    'privacy_notice' => [
+                        'id' => 'NOTICE-SCHOOL-ENROLLMENT',
+                        'version' => '1.0.0',
+                        'privacy_url' => '/legal/privacidad',
                     ],
                     'default_location' => null,
                     'levels' => [],
@@ -87,6 +91,8 @@ class PublicSchoolApiTest extends TestCase
 
     public function test_complete_public_program_uses_closed_resources_and_hh_mm_times(): void
     {
+        config(['school.enrollment_enabled' => true]);
+
         $defaultLocation = SchoolLocation::factory()->active()->create([
             'name' => 'Canchas de Monóvar',
             'locality' => 'Monóvar',
@@ -98,6 +104,8 @@ class PublicSchoolApiTest extends TestCase
             ->enrollmentsOpen()
             ->create([
                 'name' => 'Escuela de Galotxas',
+                'public_description' => 'Presentación pública de prueba.',
+                'enrollment_information' => 'Proceso público de prueba.',
                 'default_school_location_id' => $defaultLocation->id,
                 'contact_phone' => '600 000 000',
                 'contact_email' => 'escuela@example.test',
@@ -125,10 +133,14 @@ class PublicSchoolApiTest extends TestCase
                 'message' => null,
                 'data' => [
                     'name' => 'Escuela de Galotxas',
+                    'description' => 'Presentación pública de prueba.',
+                    'enrollment_information' => 'Proceso público de prueba.',
+                    'enrollment_status' => 'open',
                     'enrollments_open' => true,
-                    'contact' => [
-                        'phone' => '600 000 000',
-                        'email' => 'escuela@example.test',
+                    'privacy_notice' => [
+                        'id' => 'NOTICE-SCHOOL-ENROLLMENT',
+                        'version' => '1.0.0',
+                        'privacy_url' => '/legal/privacidad',
                     ],
                     'default_location' => [
                         'id' => $defaultLocation->id,
@@ -165,7 +177,7 @@ class PublicSchoolApiTest extends TestCase
             ]);
     }
 
-    public function test_partial_contact_inactive_default_location_and_level_without_schedule_are_supported(): void
+    public function test_incomplete_configuration_is_unavailable_without_exposing_operational_contact(): void
     {
         $inactiveLocation = SchoolLocation::factory()->inactive()->create();
         $program = SchoolProgram::factory()
@@ -183,8 +195,8 @@ class PublicSchoolApiTest extends TestCase
 
         $this->getJson('/api/v1/school')
             ->assertOk()
-            ->assertJsonPath('data.contact.phone', '600 111 111')
-            ->assertJsonPath('data.contact.email', null)
+            ->assertJsonPath('data.enrollment_status', 'unavailable')
+            ->assertJsonMissingPath('data.contact')
             ->assertJsonPath('data.default_location', null)
             ->assertJsonPath('data.levels.0.id', $level->id)
             ->assertJsonCount(0, 'data.levels.0.schedules');

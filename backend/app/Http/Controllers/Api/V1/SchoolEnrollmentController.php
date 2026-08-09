@@ -17,9 +17,20 @@ class SchoolEnrollmentController extends Controller
         StoreSchoolEnrollmentRequest $request,
         SchoolEnrollmentService $service
     ): JsonResponse {
+        $attributes = $request->validated();
+
+        if (filled($attributes['website'] ?? null)) {
+            return $this->successResponse(
+                message: 'La solicitud de inscripción se ha recibido correctamente.',
+                status: 201
+            );
+        }
+
+        unset($attributes['website']);
+
         try {
             $service->createPublic(
-                $request->validated(),
+                $attributes,
                 $request->user('sanctum')
             );
         } catch (SchoolEnrollmentUnavailableException $exception) {
