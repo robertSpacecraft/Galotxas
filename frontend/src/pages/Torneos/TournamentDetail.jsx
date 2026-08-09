@@ -142,7 +142,7 @@ export const TournamentDetail = () => {
     return (
       <div className={styles.container}>
         <PageMetadata
-          title="Campeonato | Competición | Galotxas"
+          title="Campeonato"
           description="Consulta el detalle de un campeonato público de Galotxas."
         />
         <Link to={TOURNAMENTS_PATH} className={styles.backLink}>← Volver a Torneos</Link>
@@ -185,8 +185,8 @@ export const TournamentDetail = () => {
   return (
     <div className={styles.container}>
       <PageMetadata
-        title={`${name} | Competición | Galotxas`}
-        description={`Consulta categorías, clasificación y datos del campeonato ${name}.`}
+        title="Campeonato"
+        description="Consulta las categorías, la clasificación y los datos públicos del campeonato."
       />
       <Link to={TOURNAMENTS_PATH} className={styles.backLink}>← Volver a Torneos</Link>
 

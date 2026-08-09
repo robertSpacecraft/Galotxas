@@ -22,7 +22,7 @@ export const LegalPage = ({ pageId }) => {
     <PublicContentSurface>
       <div className={styles.page}>
         <PageMetadata
-          title={`${document.title} | Galotxas`}
+          title={document.title}
           description={document.summary}
         />
         <LegalNavigation />

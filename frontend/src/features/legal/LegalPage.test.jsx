@@ -34,7 +34,7 @@ describe('LegalPage', () => {
   it('applies title and description metadata from the projection', async () => {
     renderWithProviders(<LegalPage pageId="LEG-001" />, { route: '/legal/aviso-legal' });
 
-    await waitFor(() => expect(document.title).toBe('Aviso legal | Galotxas'));
+    await waitFor(() => expect(document.title).toBe('Aviso legal | Club Galotxes Monòver'));
     expect(document.head.querySelector('meta[name="description"]')).toHaveAttribute(
       'content',
       'Identificación del titular, condiciones de uso y responsabilidades del sitio web de Galotxas.',

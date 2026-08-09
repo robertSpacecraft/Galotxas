@@ -1,59 +1,76 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { Link, Route, Routes } from 'react-router-dom';
+import { createPublicSiteConfig } from '../../seo/seoConfig';
+import { seoRouteClassifications } from '../../seo/seoManifest';
 import { renderWithProviders } from '../../test/renderWithProviders';
 import { PageMetadata } from './PageMetadata';
 
-const removeTestMetadata = () => {
-  document.head.querySelectorAll('meta[name="description"], meta[name="robots"]')
-    .forEach((element) => element.remove());
-};
+const managedSelector = [
+  'meta[name="description"]',
+  'meta[name="robots"]',
+  'link[rel="canonical"]',
+  'meta[property^="og:"]',
+  'script[data-public-seo-jsonld]',
+].join(', ');
+
+const indexingEnabled = createPublicSiteConfig({
+  VITE_PUBLIC_SITE_URL: 'https://example.test/',
+  VITE_PUBLIC_INDEXING_ENABLED: 'true',
+});
 
 describe('PageMetadata', () => {
   beforeEach(() => {
-    removeTestMetadata();
+    document.head.querySelectorAll(managedSelector).forEach((element) => element.remove());
     document.title = 'Galotxas base';
   });
 
   afterEach(() => {
-    removeTestMetadata();
-    document.title = 'frontend';
+    document.head.querySelectorAll(managedSelector).forEach((element) => element.remove());
+    document.title = 'Club Galotxes Monòver';
   });
 
-  it('updates the title and description and restores the previous document state', () => {
+  it('applies route metadata through the central provider and restores the head', async () => {
     const { unmount } = renderWithProviders(
-      <PageMetadata title="Ruta de prueba | Galotxas" description="Descripción de prueba." />,
+      <PageMetadata title="Ruta de prueba" description="Descripción de prueba." />,
+      { route: '/competicion' },
     );
 
-    expect(document.title).toBe('Ruta de prueba | Galotxas');
+    await waitFor(() => {
+      expect(document.title).toBe('Ruta de prueba | Club Galotxes Monòver');
+    });
     expect(document.head.querySelector('meta[name="description"]')).toHaveAttribute(
       'content',
       'Descripción de prueba.',
     );
+    expect(document.head.querySelector('meta[name="robots"]'))
+      .toHaveAttribute('content', 'noindex, nofollow');
+    expect(document.head.querySelector('link[rel="canonical"]')).toBeNull();
 
     unmount();
 
     expect(document.title).toBe('Galotxas base');
-    expect(document.head.querySelector('meta[name="description"]')).toBeNull();
+    expect(document.head.querySelector(managedSelector)).toBeNull();
   });
 
-  it('updates one existing description without creating duplicates and restores its content', () => {
-    const existingDescription = document.createElement('meta');
-    existingDescription.setAttribute('name', 'description');
-    existingDescription.setAttribute('content', 'Descripción anterior.');
-    document.head.appendChild(existingDescription);
-
-    const { unmount } = renderWithProviders(
-      <PageMetadata title="Nueva ruta | Galotxas" description="Descripción nueva." />,
+  it('keeps one canonical and one set of Open Graph tags under valid indexing config', async () => {
+    renderWithProviders(
+      <PageMetadata title="Competición pública" description="Descripción pública." />,
+      { route: '/competicion/?preview=1#fragmento', seoConfig: indexingEnabled },
     );
 
-    expect(document.head.querySelectorAll('meta[name="description"]')).toHaveLength(1);
-    expect(existingDescription).toHaveAttribute('content', 'Descripción nueva.');
-
-    unmount();
-
-    expect(existingDescription).toHaveAttribute('content', 'Descripción anterior.');
+    await waitFor(() => {
+      expect(document.title).toBe('Competición pública | Club Galotxes Monòver');
+    });
+    expect(document.head.querySelectorAll('link[rel="canonical"]')).toHaveLength(1);
+    expect(document.head.querySelector('link[rel="canonical"]'))
+      .toHaveAttribute('href', 'https://example.test/competicion');
+    expect(document.head.querySelector('meta[property="og:url"]'))
+      .toHaveAttribute('content', 'https://example.test/competicion');
+    expect(document.head.querySelectorAll('meta[property="og:title"]')).toHaveLength(1);
+    expect(document.head.querySelector('meta[name="robots"]'))
+      .toHaveAttribute('content', 'index, follow');
   });
 
   it('substitutes metadata during SPA navigation and prevents 404 inheritance', async () => {
@@ -65,10 +82,7 @@ describe('PageMetadata', () => {
           path="/competicion"
           element={(
             <>
-              <PageMetadata
-                title="Competición | Galotxas"
-                description="Descripción de Competición."
-              />
+              <PageMetadata title="Competición" description="Descripción de Competición." />
               <Link to="/ruta-inexistente">Abrir ruta inexistente</Link>
             </>
           )}
@@ -78,35 +92,39 @@ describe('PageMetadata', () => {
           element={(
             <>
               <PageMetadata
-                title="Página no encontrada | Galotxas"
+                title="Página no encontrada"
                 description="Descripción de error."
-                robots="noindex"
+                classification={seoRouteClassifications.notFound}
+                canonicalPath={null}
               />
               <Link to="/competicion">Volver a Competición</Link>
             </>
           )}
         />
       </Routes>,
-      { route: '/competicion' },
+      { route: '/competicion', seoConfig: indexingEnabled },
     );
 
-    expect(document.title).toBe('Competición | Galotxas');
+    await waitFor(() => expect(document.title).toBe('Competición | Club Galotxes Monòver'));
+    expect(document.head.querySelector('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      'https://example.test/competicion',
+    );
+
     await user.click(screen.getByRole('link', { name: 'Abrir ruta inexistente' }));
 
-    expect(document.title).toBe('Página no encontrada | Galotxas');
-    expect(document.head.querySelector('meta[name="description"]')).toHaveAttribute(
-      'content',
-      'Descripción de error.',
-    );
-    expect(document.head.querySelector('meta[name="robots"]')).toHaveAttribute(
-      'content',
-      'noindex',
-    );
-    expect(document.head.querySelectorAll('meta[name="description"]')).toHaveLength(1);
+    await waitFor(() => expect(document.title).toBe('Página no encontrada | Club Galotxes Monòver'));
+    expect(document.head.querySelector('meta[name="description"]'))
+      .toHaveAttribute('content', 'Descripción de error.');
+    expect(document.head.querySelector('meta[name="robots"]'))
+      .toHaveAttribute('content', 'noindex, nofollow');
+    expect(document.head.querySelector('link[rel="canonical"]')).toBeNull();
+    expect(document.head.querySelector('meta[property="og:title"]')).toBeNull();
 
     await user.click(screen.getByRole('link', { name: 'Volver a Competición' }));
 
-    expect(document.title).toBe('Competición | Galotxas');
-    expect(document.head.querySelector('meta[name="robots"]')).toBeNull();
+    await waitFor(() => expect(document.title).toBe('Competición | Club Galotxes Monòver'));
+    expect(document.head.querySelector('meta[name="robots"]'))
+      .toHaveAttribute('content', 'index, follow');
   });
 });

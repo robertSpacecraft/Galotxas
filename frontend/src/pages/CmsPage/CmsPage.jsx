@@ -3,6 +3,9 @@ import { useParams } from 'react-router-dom';
 import { cmsService } from '../../api/cms';
 import { CmsBlockRenderer } from '../../components/CmsBlocks/CmsBlockRenderer';
 import { PublicContentSurface } from '../../components/PublicContentSurface/PublicContentSurface';
+import { PageMetadata } from '../../components/PublicLanding/PageMetadata';
+import { seoRouteClassifications } from '../../seo/seoManifest';
+import { NotFoundPage } from '../NotFound/NotFoundPage';
 import styles from './CmsPage.module.css';
 
 export const CmsPage = () => {
@@ -41,14 +44,6 @@ export const CmsPage = () => {
     };
   }, [slug]);
 
-  useEffect(() => {
-    if (!page) {
-      return;
-    }
-
-    document.title = `${page.seo_title || page.title} | Galotxas`;
-  }, [page]);
-
   if (status === 'loading') {
     return (
       <PublicContentSurface>
@@ -60,22 +55,19 @@ export const CmsPage = () => {
   }
 
   if (status === 'notFound') {
-    return (
-      <PublicContentSurface>
-        <div className={styles.container}>
-          <div className={styles.stateMessage}>
-            <h1>Página no encontrada</h1>
-            <p>El contenido solicitado no está disponible.</p>
-          </div>
-        </div>
-      </PublicContentSurface>
-    );
+    return <NotFoundPage />;
   }
 
   if (status === 'error') {
     return (
       <PublicContentSurface>
         <div className={styles.container}>
+          <PageMetadata
+            title="Error de carga"
+            description="No se ha podido cargar el contenido solicitado."
+            classification={seoRouteClassifications.noindexPublic}
+            canonicalPath={null}
+          />
           <div className={styles.stateMessage}>
             <h1>Error de carga</h1>
             <p>{errorMessage}</p>
@@ -90,6 +82,10 @@ export const CmsPage = () => {
   return (
     <PublicContentSurface>
       <article className={styles.container}>
+        <PageMetadata
+          title={page.seo_title || page.title}
+          description={page.seo_description || 'Contenido público administrado por el club.'}
+        />
         <header className={styles.header}>
           <h1 className={styles.title}>{page.title}</h1>
           {page.seo_description ? (

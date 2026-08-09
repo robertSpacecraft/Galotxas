@@ -45,7 +45,7 @@ test.describe('páginas legales versionadas', () => {
     await expect(page.locator('main h1')).toHaveCount(1);
     await expect(page.getByText('1.0.0')).toBeVisible();
     await expect(page.getByText('06/08/2026')).toBeVisible();
-    await expect(page).toHaveTitle('Aviso legal | Galotxas');
+    await expect(page).toHaveTitle('Aviso legal | Club Galotxes Monòver');
   });
 
   test('publica exactamente los tres documentos y permite navegación interna', async ({ page }) => {

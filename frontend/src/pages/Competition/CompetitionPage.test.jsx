@@ -83,7 +83,7 @@ describe('CompetitionPage', () => {
     expectGlobalDestinations();
     expect(championshipsService.getSeasons).toHaveBeenCalledTimes(1);
     expect(championshipsService.getChampionships).not.toHaveBeenCalled();
-    expect(document.title).toBe('Competición | Galotxas');
+    expect(document.title).toBe('Competición | Club Galotxes Monòver');
     expect(document.head.querySelector('meta[name="description"]')).toHaveAttribute(
       'content',
       'Consulta temporadas y campeonatos públicos, calendarios, resultados y clasificaciones de Galotxas.',

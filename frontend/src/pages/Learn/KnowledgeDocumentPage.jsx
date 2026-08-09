@@ -32,7 +32,7 @@ export const KnowledgeDocumentPage = ({ type }) => {
     <PublicContentSurface>
       <article className={styles.document}>
         <PageMetadata
-          title={`${document.title} | Manual | Galotxas`}
+          title={`${document.title} | Manual`}
           description={`Consulta ${document.title} en el Manual público de Galotxas.`}
         />
         <KnowledgeContextNavigation collection={context.collection} />

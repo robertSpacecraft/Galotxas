@@ -24,7 +24,7 @@ export const ManualPage = () => {
   return (
     <PublicLanding>
       <PageMetadata
-        title="Manual | Aprende a jugar | Galotxas"
+        title="Manual"
         description="Consulta el reglamento y los conceptos del Manual público de Galotxas."
       />
       <LandingHeader

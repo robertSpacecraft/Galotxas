@@ -90,7 +90,7 @@ test.describe.serial('fachadas públicas de Club', () => {
       await expect(page.getByRole('heading', { name: clubPage.heading, level: 2 })).toBeVisible();
       await expect(page.getByText(`Contenido CMS de prueba exclusivo de la fachada ${clubPage.slug}.`))
         .toBeVisible();
-      await expect(page).toHaveTitle(`${clubPage.title} | Galotxas`);
+      await expect(page).toHaveTitle(`${clubPage.title} | Club Galotxes Monòver`);
       await expect(page.locator('meta[name="description"]')).toHaveAttribute(
         'content',
         `Escenario técnico aislado para ${clubPage.slug}.`,

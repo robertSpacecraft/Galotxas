@@ -18,7 +18,7 @@ export const LearnPage = () => {
   return (
     <PublicLanding>
       <PageMetadata
-        title="Aprende a jugar | Galotxas"
+        title="Aprende a jugar"
         description="Aprende las reglas y los conceptos esenciales de Galotxas mediante el Manual público."
       />
       <LandingHeader

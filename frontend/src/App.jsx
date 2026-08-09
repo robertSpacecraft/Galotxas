@@ -26,6 +26,8 @@ import { RouteLoading } from './components/RouteLoading/RouteLoading';
 import { clubPages } from './features/club/clubRoutes';
 import { legalPages } from './features/legal/legalRoutes';
 import { schoolPath } from './features/school/schoolRoutes';
+import { RouteAccessibility } from './seo/RouteAccessibility';
+import { SeoProvider } from './seo/SeoProvider';
 import './index.css';
 
 const LearnPage = lazy(() => import('./pages/Learn/LearnPage'));
@@ -166,7 +168,10 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <AppContent />
+        <SeoProvider>
+          <RouteAccessibility />
+          <AppContent />
+        </SeoProvider>
       </Router>
     </AuthProvider>
   );

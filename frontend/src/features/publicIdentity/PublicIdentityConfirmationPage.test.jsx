@@ -1,8 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PublicIdentityConfirmationPage } from './PublicIdentityConfirmationPage';
 import { publicIdentityService } from './publicIdentityService';
+import { renderWithProviders } from '../../test/renderWithProviders';
 
 vi.mock('./publicIdentityService', () => ({
   publicIdentityService: {
@@ -13,6 +14,10 @@ vi.mock('./publicIdentityService', () => ({
 }));
 
 const validToken = 'a'.repeat(64);
+const renderPage = () => renderWithProviders(
+  <PublicIdentityConfirmationPage />,
+  { route: '/public-identity/confirm' },
+);
 
 describe('PublicIdentityConfirmationPage', () => {
   beforeEach(() => {
@@ -44,7 +49,7 @@ describe('PublicIdentityConfirmationPage', () => {
       data: { received: true },
     });
 
-    render(<PublicIdentityConfirmationPage />);
+    renderPage();
 
     expect(window.location.hash).toBe('');
     expect(await screen.findByText(/Se ha solicitado el modo/)).toHaveTextContent('Alias deportivo');
@@ -81,7 +86,7 @@ describe('PublicIdentityConfirmationPage', () => {
     });
     publicIdentityService.deny.mockResolvedValue({ data: { received: true } });
 
-    render(<PublicIdentityConfirmationPage />);
+    renderPage();
     await screen.findByText(/Nombres de pila e inicial/);
     await user.click(screen.getByRole('button', { name: /Rechazar/ }));
 
@@ -96,7 +101,7 @@ describe('PublicIdentityConfirmationPage', () => {
     async () => {
     publicIdentityService.lookup.mockRejectedValue({ response: { status: 404 } });
 
-    render(<PublicIdentityConfirmationPage />);
+    renderPage();
 
     expect(await screen.findByRole('heading', { name: 'Enlace no disponible' }))
       .toBeInTheDocument();
@@ -116,7 +121,7 @@ describe('PublicIdentityConfirmationPage', () => {
     window.history.replaceState(null, '', '/previous-page');
     window.history.pushState(null, '', `/public-identity/confirm#token=${validToken}`);
 
-    const firstRender = render(<PublicIdentityConfirmationPage />);
+    const firstRender = renderPage();
     expect(window.location.hash).toBe('');
     await screen.findByText(/Se ha solicitado el modo/);
     expect(publicIdentityService.lookup).toHaveBeenCalledOnce();
@@ -127,7 +132,7 @@ describe('PublicIdentityConfirmationPage', () => {
 
     firstRender.unmount();
     window.history.pushState(null, '', '/public-identity/confirm');
-    render(<PublicIdentityConfirmationPage />);
+    renderPage();
     expect(await screen.findByRole('heading', { name: 'Enlace no disponible' }))
       .toBeInTheDocument();
     expect(publicIdentityService.lookup).toHaveBeenCalledOnce();
@@ -147,7 +152,7 @@ describe('PublicIdentityConfirmationPage', () => {
       resolveConfirmation = resolve;
     }));
 
-    render(<PublicIdentityConfirmationPage />);
+    renderPage();
     const button = await screen.findByRole('button', { name: 'Confirmar autorización' });
     await user.dblClick(button);
 

@@ -4,6 +4,7 @@ import { LandingSection } from '../../components/PublicLanding/LandingSection';
 import { PageMetadata } from '../../components/PublicLanding/PageMetadata';
 import { PublicLanding } from '../../components/PublicLanding/PublicLanding';
 import { manualPath } from '../knowledge/knowledgeRoutes';
+import { seoRouteClassifications } from '../../seo/seoManifest';
 import { SchoolEnrollmentForm } from './SchoolEnrollmentForm';
 import { SchoolLevels } from './SchoolLevels';
 import { SchoolLocation } from './SchoolLocation';
@@ -100,8 +101,12 @@ export const SchoolPage = () => {
   return (
     <PublicLanding>
       <PageMetadata
-        title="Escuela de Galotxas | Galotxas"
+        title="Escuela de Galotxas"
         description="Consulta niveles, horarios, ubicaciones e inscripciones de la Escuela de Galotxas."
+        classification={status === 'error'
+          ? seoRouteClassifications.noindexPublic
+          : undefined}
+        canonicalPath={status === 'error' ? null : undefined}
       />
       <LandingHeader
         id="school"

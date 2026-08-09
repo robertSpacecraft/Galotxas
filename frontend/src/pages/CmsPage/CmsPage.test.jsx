@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { cmsService } from '../../api/cms';
 import { renderWithProviders } from '../../test/renderWithProviders';
@@ -43,7 +43,8 @@ describe('CmsPage', () => {
     renderCmsPage();
 
     expect(await screen.findByRole('heading', { name: 'Página no encontrada' })).toBeInTheDocument();
-    expect(screen.getByText('El contenido solicitado no está disponible.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Volver a Inicio' })).toHaveAttribute('href', '/');
+    expect(document.head.querySelector('link[rel="canonical"]')).toBeNull();
   });
 
   it('renders valid blocks and ignores an unknown block type', async () => {
@@ -64,6 +65,8 @@ describe('CmsPage', () => {
     expect(screen.getByRole('heading', { name: 'Bienvenida', level: 2 })).toBeInTheDocument();
     expect(screen.getByText('Contenido público válido.')).toBeInTheDocument();
     expect(screen.queryByText('No debe mostrarse')).not.toBeInTheDocument();
-    expect(document.title).toBe('Sobre Galotxas | Galotxas');
+    await waitFor(() => {
+      expect(document.title).toBe('Sobre Galotxas | Club Galotxes Monòver');
+    });
   });
 });

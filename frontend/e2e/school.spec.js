@@ -61,7 +61,7 @@ test.describe.serial('experiencia pública de Escuela de Galotxas', () => {
       name: 'Escuela de Galotxas',
       includeHidden: true,
     })).toHaveAttribute('aria-current', 'page');
-    await expect(page).toHaveTitle('Escuela de Galotxas | Galotxas');
+    await expect(page).toHaveTitle('Escuela de Galotxas | Club Galotxes Monòver');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       'content',
       'Consulta niveles, horarios, ubicaciones e inscripciones de la Escuela de Galotxas.',

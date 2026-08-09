@@ -67,8 +67,8 @@ export default function Schedule() {
   return (
     <div className="page-container">
       <PageMetadata
-        title={`Calendario de ${categoryName} | Galotxas`}
-        description={`Consulta el calendario y los resultados públicos de ${categoryName}.`}
+        title="Calendario y resultados"
+        description="Consulta un calendario y sus resultados públicos con identidad minimizada."
       />
       <Link to={backPath} className={styles.backLink}>← {backLabel}</Link>
       <header className={styles.header}>

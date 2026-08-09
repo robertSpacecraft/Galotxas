@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { AuthContext } from '../context/authContext';
+import { SeoProvider } from '../seo/SeoProvider';
 
 export const renderWithProviders = (
   ui,
@@ -8,6 +9,7 @@ export const renderWithProviders = (
     route = '/',
     routePath = null,
     authValue = null,
+    seoConfig = undefined,
   } = {},
 ) => {
   const routedUi = routePath ? (
@@ -22,7 +24,9 @@ export const renderWithProviders = (
 
   return render(
     <MemoryRouter initialEntries={[route]}>
-      {content}
+      <SeoProvider config={seoConfig}>
+        {content}
+      </SeoProvider>
     </MemoryRouter>,
   );
 };

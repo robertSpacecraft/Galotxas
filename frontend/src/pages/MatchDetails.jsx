@@ -65,7 +65,7 @@ export default function MatchDetails() {
         return (
             <div className={styles.container}>
                 <PageMetadata
-                    title="Partido | Competición | Galotxas"
+                    title="Partido"
                     description="Consulta el detalle de un partido público de Galotxas."
                 />
                 <p className={styles.stateMessage} role="status">Cargando partido…</p>
@@ -77,7 +77,7 @@ export default function MatchDetails() {
         return (
             <div className={styles.container}>
                 <PageMetadata
-                    title="Partido | Competición | Galotxas"
+                    title="Partido"
                     description="Consulta el detalle de un partido público de Galotxas."
                 />
                 <Link to={TOURNAMENTS_PATH} className={styles.backLink}>← Volver a Torneos</Link>
@@ -109,8 +109,8 @@ export default function MatchDetails() {
     return (
         <div className={styles.container}>
             <PageMetadata
-                title={`${homeName} contra ${awayName} | Galotxas`}
-                description={`Consulta el partido entre ${homeName} y ${awayName}.`}
+                title="Partido"
+                description="Consulta el detalle público de un partido con identidad minimizada."
             />
             <h1 className={styles.visuallyHidden}>Partido: {homeName} contra {awayName}</h1>
 

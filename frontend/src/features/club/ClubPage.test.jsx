@@ -1,9 +1,9 @@
-import { MemoryRouter } from 'react-router-dom';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { cmsService } from '../../api/cms';
 import { contactService } from '../contact/contactService';
+import { renderWithProviders } from '../../test/renderWithProviders';
 import { ClubPage } from './ClubPage';
 
 vi.mock('../../api/cms', () => ({
@@ -38,10 +38,9 @@ const enabledContactConfig = {
   privacy_url: '/legal/privacidad',
 };
 
-const renderPage = (pageId = 'about') => render(
-  <MemoryRouter>
-    <ClubPage pageId={pageId} />
-  </MemoryRouter>,
+const renderPage = (pageId = 'about') => renderWithProviders(
+  <ClubPage pageId={pageId} />,
+  { route: pageId === 'contact' ? '/club/contacto' : '/club/quienes-somos' },
 );
 
 describe('ClubPage', () => {
@@ -72,7 +71,7 @@ describe('ClubPage', () => {
     expect(screen.getByRole('heading', { name: 'Bloque CMS', level: 2 })).toBeInTheDocument();
     expect(screen.getByText('Contenido exclusivo del CMS.')).toBeInTheDocument();
     await waitFor(() => {
-      expect(document.title).toBe('Club técnico | Galotxas');
+      expect(document.title).toBe('Club técnico | Club Galotxes Monòver');
       expect(document.head.querySelector('meta[name="description"]'))
         .toHaveAttribute('content', 'Descripción técnica desde CMS.');
     });
@@ -85,7 +84,7 @@ describe('ClubPage', () => {
 
     await screen.findByRole('heading', { name: 'Club de prueba', level: 1 });
     await waitFor(() => {
-      expect(document.title).toBe('Club de prueba | Galotxas');
+      expect(document.title).toBe('Club de prueba | Club Galotxes Monòver');
       expect(document.head.querySelector('meta[name="description"]'))
         .toHaveAttribute('content', 'Información institucional del Club Galotxes Monòver.');
     });
@@ -98,7 +97,8 @@ describe('ClubPage', () => {
 
     expect(await screen.findByRole('heading', { name: 'Página no encontrada', level: 1 }))
       .toBeInTheDocument();
-    expect(document.head.querySelector('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
+    expect(document.head.querySelector('meta[name="robots"]'))
+      .toHaveAttribute('content', 'noindex, nofollow');
   });
 
   it('offers a retry after a recoverable error', async () => {

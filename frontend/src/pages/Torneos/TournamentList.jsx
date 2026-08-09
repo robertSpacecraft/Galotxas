@@ -80,7 +80,7 @@ export const TournamentList = () => {
   return (
     <div className={styles.container}>
       <PageMetadata
-        title="Torneos | Competición | Galotxas"
+        title="Torneos"
         description="Consulta los campeonatos públicos de Galotxas y accede a sus categorías, clasificaciones y calendarios."
       />
       <Link to={COMPETITION_PATH} className={styles.backLink}>

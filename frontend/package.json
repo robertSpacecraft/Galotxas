@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run legal:check && vite build",
+    "build": "npm run legal:check && npm run seo:check && vite build",
     "legal:check": "node scripts/legal/cli.js check",
     "legal:build": "node scripts/legal/cli.js build",
     "knowledge:check": "node scripts/knowledge/cli.js check",
     "knowledge:build": "node scripts/knowledge/cli.js build",
+    "seo:check": "node scripts/seo/cli.js",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "TMPDIR=/tmp TMP=/tmp TEMP=/tmp vitest",

@@ -18,7 +18,7 @@ const homeDestinations = Object.freeze({
 export const Home = () => (
   <>
     <PageMetadata
-      title="Galotxas en Monóvar | Galotxas"
+      title="Club Galotxes Monòver"
       description="Consulta las competiciones, aprende las reglas y conoce la Escuela de Galotxas y la actividad del Club Galotxes Monòver."
     />
 

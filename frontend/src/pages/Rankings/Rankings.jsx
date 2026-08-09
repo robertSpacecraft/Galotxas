@@ -52,7 +52,7 @@ export const Rankings = () => {
   return (
     <div className={styles.container}>
       <PageMetadata
-        title="Rankings | Competición | Galotxas"
+        title="Rankings"
         description="Consulta el ranking histórico de Galotxas y los rankings por temporada."
       />
       <Link to={COMPETITION_PATH} className={styles.backLink}>← Volver a Competición</Link>

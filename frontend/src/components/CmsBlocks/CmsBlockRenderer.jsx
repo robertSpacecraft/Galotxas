@@ -24,7 +24,8 @@ const clampHeadingLevel = (level) => {
     return 2;
   }
 
-  return Math.min(Math.max(parsedLevel, 1), 6);
+  // La página ya aporta su H1; los bloques CMS sólo completan su jerarquía interna.
+  return Math.min(Math.max(parsedLevel, 2), 6);
 };
 
 const renderHeading = (data) => {

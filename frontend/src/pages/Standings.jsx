@@ -77,8 +77,8 @@ export default function Standings() {
   return (
     <div className="page-container">
       <PageMetadata
-        title={`Clasificación de ${categoryName} | Galotxas`}
-        description={`Consulta la clasificación pública de ${categoryName}.`}
+        title="Clasificación"
+        description="Consulta una clasificación pública de Galotxas con identidad minimizada."
       />
       <Link to={backPath} className={styles.backLink}>← {backLabel}</Link>
       <header className={styles.header}>

@@ -2,12 +2,11 @@ import { CmsBlockRenderer } from '../../components/CmsBlocks/CmsBlockRenderer';
 import { PublicContentSurface } from '../../components/PublicContentSurface/PublicContentSurface';
 import { PageMetadata } from '../../components/PublicLanding/PageMetadata';
 import { NotFoundPage } from '../../pages/NotFound/NotFoundPage';
+import { seoRouteClassifications } from '../../seo/seoManifest';
 import { ContactPanel } from './ContactPanel';
 import { getClubPage } from './clubRoutes';
 import { useClubPage } from './useClubPage';
 import styles from './ClubPage.module.css';
-
-const pageTitle = (title) => `${title} | Galotxas`;
 
 const ClubContent = ({ config, page }) => {
   const blocks = page.blocks;
@@ -16,7 +15,7 @@ const ClubContent = ({ config, page }) => {
     <PublicContentSurface>
       <article className={styles.page}>
         <PageMetadata
-          title={pageTitle(page.seo_title || page.title)}
+          title={page.seo_title || page.title}
           description={page.seo_description || config.description}
         />
         <header className={styles.header}>
@@ -71,7 +70,16 @@ const ConfiguredClubPage = ({ config }) => {
   return (
     <PublicContentSurface>
       <section className={styles.page}>
-        <PageMetadata title={pageTitle(config.title)} description={config.description} />
+        <PageMetadata
+          title={status === 'error' ? 'Error de carga' : config.title}
+          description={status === 'error'
+            ? 'No se ha podido cargar la información institucional solicitada.'
+            : config.description}
+          classification={status === 'error'
+            ? seoRouteClassifications.noindexPublic
+            : undefined}
+          canonicalPath={status === 'error' ? null : undefined}
+        />
         {status === 'loading' ? (
           <p className={styles.remoteState} role="status" aria-live="polite">
             Cargando contenido…

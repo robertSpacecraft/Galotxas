@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { PageMetadata } from '../../components/PublicLanding/PageMetadata';
 import { publicIdentityService } from './publicIdentityService';
 import styles from './PublicIdentityConfirmationPage.module.css';
 
@@ -32,15 +33,6 @@ export const PublicIdentityConfirmationPage = () => {
   }));
 
   useEffect(() => {
-    const previousTitle = document.title;
-    const existingRobots = document.querySelector('meta[name="robots"]');
-    const previousRobots = existingRobots?.getAttribute('content') ?? null;
-    const robots = existingRobots ?? document.createElement('meta');
-    robots.setAttribute('name', 'robots');
-    robots.setAttribute('content', 'noindex, nofollow, noarchive');
-    if (!existingRobots) document.head.append(robots);
-    document.title = 'Decisión de identidad pública | Galotxas';
-
     const controller = new AbortController();
     if (token.current.length >= 40) {
       publicIdentityService.lookup(token.current, { signal: controller.signal })
@@ -58,9 +50,6 @@ export const PublicIdentityConfirmationPage = () => {
 
     return () => {
       controller.abort();
-      document.title = previousTitle;
-      if (existingRobots && previousRobots !== null) robots.setAttribute('content', previousRobots);
-      else robots.remove();
     };
   }, []);
 
@@ -92,6 +81,10 @@ export const PublicIdentityConfirmationPage = () => {
 
   return (
     <div className={styles.page}>
+      <PageMetadata
+        title="Decisión de identidad pública"
+        description="Ruta temporal para registrar una decisión de identidad pública."
+      />
       <section className={styles.card} aria-labelledby="identity-confirmation-title">
         <p className={styles.brand}>Club Galotxes Monòver</p>
         <h1 id="identity-confirmation-title">Identidad pública en competición</h1>

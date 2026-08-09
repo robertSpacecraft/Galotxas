@@ -87,7 +87,7 @@ describe('SchoolPage', () => {
     expect(screen.getByRole('button', { name: 'Enviar solicitud' })).toBeInTheDocument();
     expect(container).not.toHaveTextContent('school_program_id');
     expect(container).not.toHaveTextContent('admin_notes');
-    expect(document.title).toBe('Escuela de Galotxas | Galotxas');
+    expect(document.title).toBe('Escuela de Galotxas | Club Galotxes Monòver');
     expect(document.head.querySelector('meta[name="description"]')).toHaveAttribute(
       'content',
       'Consulta niveles, horarios, ubicaciones e inscripciones de la Escuela de Galotxas.',

@@ -32,7 +32,7 @@ export const CompetitionPage = () => {
   return (
     <PublicLanding>
       <PageMetadata
-        title="Competición | Galotxas"
+        title="Competición"
         description="Consulta temporadas y campeonatos públicos, calendarios, resultados y clasificaciones de Galotxas."
       />
       <LandingHeader

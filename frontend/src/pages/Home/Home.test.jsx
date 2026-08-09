@@ -72,7 +72,7 @@ describe('Home', () => {
   it('sets basic metadata without loading remote content', () => {
     renderWithProviders(<Home />);
 
-    expect(document.title).toBe('Galotxas en Monóvar | Galotxas');
+    expect(document.title).toBe('Club Galotxes Monòver');
     expect(document.head.querySelector('meta[name="description"]')).toHaveAttribute(
       'content',
       'Consulta las competiciones, aprende las reglas y conoce la Escuela de Galotxas y la actividad del Club Galotxes Monòver.',

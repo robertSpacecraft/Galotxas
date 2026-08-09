@@ -8,7 +8,7 @@ import { KnowledgeDocumentPage } from './KnowledgeDocumentPage';
 
 describe('Aprende a jugar', () => {
   it('publica una landing funcional con un H1, resumen derivado y acceso al Manual', () => {
-    renderWithProviders(<LearnPage />);
+    renderWithProviders(<LearnPage />, { route: '/aprende-a-jugar' });
 
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
     expect(screen.getByRole('heading', { name: 'Aprende a jugar', level: 1 })).toBeInTheDocument();
@@ -16,7 +16,7 @@ describe('Aprende a jugar', () => {
       'href',
       '/aprende-a-jugar/manual',
     );
-    expect(document.title).toBe('Aprende a jugar | Galotxas');
+    expect(document.title).toBe('Aprende a jugar | Club Galotxes Monòver');
     expect(screen.getByText(/40 documentos organizados en 4 colecciones/)).toBeInTheDocument();
 
     for (const placeholder of ['Historia', 'Escuela', 'Cursos', 'Vídeos']) {
@@ -85,7 +85,7 @@ describe('página reutilizable de documento', () => {
     expect(screen.getByText('Documento 6 de 8 en Reglamento')).toBeInTheDocument();
     expect(screen.queryByText('← Volver al Manual')).not.toBeInTheDocument();
     expect(container.querySelectorAll('h1')).toHaveLength(1);
-    expect(document.title).toBe('Sistema de puntuación | Manual | Galotxas');
+    expect(document.title).toBe('Sistema de puntuación | Manual | Club Galotxes Monòver');
   });
 
   it('navega a un fragmento compilado y enfoca el heading sólo tras activar el índice', async () => {
@@ -105,7 +105,7 @@ describe('página reutilizable de documento', () => {
     await waitFor(() => expect(target).toHaveFocus());
     expect(target).toHaveAttribute('id', '2-objetivo-del-saque');
     expect(target).toHaveAttribute('tabindex', '-1');
-    expect(document.title).toBe('El saque | Manual | Galotxas');
+    expect(document.title).toBe('El saque | Manual | Club Galotxes Monòver');
   });
 
   it('resuelve un deep link directo sin mover el foco de forma inesperada', async () => {
@@ -174,7 +174,8 @@ describe('página reutilizable de documento', () => {
 
     expect(screen.getByRole('heading', { name: 'Página no encontrada', level: 1 }))
       .toBeInTheDocument();
-    expect(document.head.querySelector('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
+    expect(document.head.querySelector('meta[name="robots"]'))
+      .toHaveAttribute('content', 'noindex, nofollow');
     expect(screen.queryByText(/Borrador|sourcePath/)).not.toBeInTheDocument();
   });
 });

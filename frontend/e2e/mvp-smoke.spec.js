@@ -107,7 +107,7 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await expect(page.getByRole('heading', { name: 'Explora los campeonatos', level: 2 })).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Acceso principal de Competición' }).getByRole('link'))
       .toHaveCount(1);
-    await expect(page).toHaveTitle('Competición | Galotxas');
+    await expect(page).toHaveTitle('Competición | Club Galotxes Monòver');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       'content',
       'Consulta temporadas y campeonatos públicos, calendarios, resultados y clasificaciones de Galotxas.',
@@ -224,7 +224,7 @@ test.describe.serial('smoke narrativo del MVP', () => {
     })).toHaveAttribute('aria-current', 'page');
     await expect(editorialNavigation.getByRole('link', { name: 'Competición' }))
       .not.toHaveAttribute('aria-current');
-    await expect(page).toHaveTitle('Aprende a jugar | Galotxas');
+    await expect(page).toHaveTitle('Aprende a jugar | Club Galotxes Monòver');
     await expect(page.getByText(/40 documentos organizados en 4 colecciones/)).toBeVisible();
 
     const manualAccess = page.getByRole('link', { name: 'Consultar el Manual' });
@@ -343,7 +343,8 @@ test.describe.serial('smoke narrativo del MVP', () => {
       await page.goto(pathname);
       await expect(page).toHaveURL(new RegExp(`${pathname}$`));
       await expect(page.getByRole('heading', { name: 'Página no encontrada', level: 1 })).toBeVisible();
-      await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
+      await expect(page.locator('meta[name="robots"]'))
+        .toHaveAttribute('content', 'noindex, nofollow');
       await expect(page.getByText(/Borrador|sourcePath/)).toHaveCount(0);
     }
 
@@ -766,13 +767,16 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await page.goto('/cuenta/ruta-inexistente');
     await expect(page).toHaveURL(/\/cuenta\/ruta-inexistente$/);
     await expect(page.getByRole('heading', { name: 'Página no encontrada', level: 1 })).toBeVisible();
-    await expect(page).toHaveTitle('Página no encontrada | Galotxas');
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
+    await expect(page).toHaveTitle('Página no encontrada | Club Galotxes Monòver');
+    await expect(page.locator('meta[name="robots"]'))
+      .toHaveAttribute('content', 'noindex, nofollow');
 
     await page.getByRole('link', { name: 'Volver a Inicio' }).click();
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByRole('heading', { name: 'Galotxas en Monóvar' })).toBeVisible();
-    await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
+    await expect(page.locator('meta[name="robots"]')).toHaveCount(1);
+    await expect(page.locator('meta[name="robots"]'))
+      .toHaveAttribute('content', 'index, follow');
 
     assertNoConsoleErrors();
   });

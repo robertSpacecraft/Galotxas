@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { cmsService } from '../../api/cms';
+import { PageMetadata } from '../../components/PublicLanding/PageMetadata';
 import styles from './CmsPageIndex.module.css';
 
 const formatPublishedDate = (date) => {
@@ -51,7 +52,6 @@ export const CmsPageIndex = () => {
       }
     };
 
-    document.title = 'Contenidos | Galotxas';
     loadPages();
 
     return () => {
@@ -92,6 +92,10 @@ export const CmsPageIndex = () => {
 
   return (
     <div className={styles.container}>
+      <PageMetadata
+        title="Contenidos"
+        description="Índice legado de contenidos públicos administrados por el club."
+      />
       <header className={styles.header}>
         <h1 className={styles.title}>Contenidos</h1>
         <p className={styles.subtitle}>Información pública de Galotxas.</p>
