@@ -225,3 +225,12 @@ la pila del sistema. Las pruebas E2E mantienen los recorridos de Cuenta y Club,
 confirman Contacto oculto y la 404 de las rutas legales, y vigilan los hosts
 remotos retirados. 7D.2C1 realiza posteriormente la publicación visible desde
 una fuente versionada; Contacto sigue reservado a 7D.2C2.
+
+## 26. Seguimiento de 7D.3
+
+Navbar, Home y footer conservan sus destinos. La nueva capa SEO adopta las
+rutas Club como canonical, mantiene los aliases históricos sin redirect y deja
+los padres Aprende/Club en 404. El layout conserva un solo main y el skip link;
+el cambio real de pathname mueve foco a ese main y se anuncia mediante una
+única región live. La indexación permanece desactivada hasta 7F. Los 61
+escenarios E2E pasan y cierran 7D.3 y 7D; Fase 7 y el MVP siguen abiertos.

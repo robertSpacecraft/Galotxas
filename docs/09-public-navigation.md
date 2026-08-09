@@ -845,6 +845,23 @@ El árbol, Navbar, Home, footer, rutas Club y legado permanecen sin cambios.
 API y aviso compilado coinciden. La Política se abre sin sustituir la ruta ni
 crear un cuarto documento legal. El default productivo sigue oculto.
 
+### Aplicación 7D.3
+
+Fase 7D.3 sustituye la cobertura SEO parcial de 3C por un manifiesto único que
+clasifica todo el router. Inicio, Competición principal, Aprende, los 40
+documentos Knowledge, Escuela, Club canónico y Legal son indexables sólo bajo
+configuración explícita. Las rutas deportivas dinámicas y el CMS genérico son
+`noindex`; Cuenta y token no tienen canonical; `/aprende`, `/club`, `/glosario`
+y cualquier desconocida permanecen 404.
+
+`/nosotros` y los cuatro slugs institucionales de `/contenidos` continúan como
+compatibilidad, pero apuntan al canonical Club, usan `noindex, follow` y se
+excluyen del sitemap. No se implementan redirects. La base pública y la
+indexación fallan cerradas hasta 7F; robots, sitemap, metadata, foco y anuncio
+SPA se describen en `25-public-seo-accessibility-and-indexing.md`. Los 61
+escenarios E2E pasan sobre el stack aislado y cierran 7D.3 y 7D; Fase 7 y el
+MVP siguen abiertos.
+
 ## Mantenimiento
 
 Este contrato debe actualizarse antes o junto con cualquier cambio visible de Navbar, rutas canónicas, aliases, redirects o fuente editorial. Una ruta futura pasa a implementada sólo cuando código, contenido, despliegue y pruebas lo demuestran.

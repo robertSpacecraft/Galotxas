@@ -1025,3 +1025,12 @@ Este cierre no acredita contenido productivo ni resuelve privacidad, legal,
 correo, operación de Contacto, datos School, identidad deportiva o despliegue.
 No crea aliases, redirects, canonical o SEO completo. 7D.2, 7E–7G, Fase 7 y el
 MVP permanecen abiertos; la definición observable de 7A no se reduce.
+
+## 29. Seguimiento de Fase 7D.3
+
+Tras cerrar 7D.2, 7D.3 inventaría y clasifica el router completo, centraliza
+metadata/canonical, mantiene aliases sin redirect, genera robots y sitemap de
+forma fail-closed y añade foco y anuncio SPA. La indexación real continúa
+desactivada hasta confirmar dominio HTTPS en 7F. Los 61 escenarios E2E pasan y
+cierran 7D.3 y 7D. Permanecen abiertos 7E–7G, imágenes, operación productiva,
+aceptación humana, Fase 7 y MVP; la definición observable de 7A no se reduce.

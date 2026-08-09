@@ -13,7 +13,8 @@ despliegue productivo.
 borradores y gates. 7D.2B aplica minimización y retirada de terceros. 7D.2C1
 promueve después tres textos a `legal/`, publica sus rutas y los enlaza en el
 footer. Tras 7D.2C2B, la capacidad técnica de Contacto y 7D.2 quedan cerradas;
-7D.3, 7D, Fase 7 y el MVP permanecen abiertos, y
+7D.3 implementa después la indexación fail-closed y sus 61 escenarios E2E
+cierran 7D. Fase 7 y el MVP siguen pendientes, y
 `CONTACT_FORM_ENABLED=false` continúa siendo el valor por defecto.
 
 Los datos y riesgos de esta auditoría conservan su valor como evidencia de

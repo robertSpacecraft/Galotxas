@@ -69,8 +69,8 @@ imágenes, 7D.2C2B, despliegue, Fase 7 y MVP siguen abiertos.
 Seguimiento 7D.2C2B: Contacto incorpora primera capa versionada, consentimiento
 trazable, config fail-closed, correo auxiliar, retención, holds y anonimización.
 El CMS y la navegación no cambian. La capacidad técnica y 7D.2 quedan cerradas,
-pero producción continúa desactivada; 7D.3, imágenes, 7F, Fase 7 y MVP siguen
-abiertos.
+pero producción continúa desactivada; en ese punto 7D.3, imágenes, 7F, Fase 7 y
+MVP seguían abiertos. El seguimiento 34 registra el cierre posterior de 7D.3.
 
 En el momento del cierre documental de 7B el código no cambió: el Navbar
 continuaba plano, no existía `/club`, las rutas canónicas institucionales no
@@ -944,3 +944,17 @@ quedan en un frente independiente; proveedor, entrega y activación pertenecen
 a 7F. El formulario productivo de Contacto continúa desactivado.
 No cambian CMS, contenido, `/nosotros`, `/contenidos`, aliases, redirects,
 canonical o despliegue. Por tanto 7D, Fase 7 y el MVP siguen abiertos.
+
+## 34. Seguimiento de Fase 7D.3
+
+7D.3 no cambia el árbol editorial ni las fuentes. Clasifica las rutas, adopta
+las cuatro fachadas Club como canonical, conserva `/nosotros` y los slugs CMS
+institucionales como aliases `noindex`, y mantiene el CMS genérico fuera del
+sitemap. Metadata, robots y sitemap quedan bloqueados por defecto hasta una URL
+HTTPS explícita. La accesibilidad transversal añade foco y anuncio de cambios
+de ruta sin crear `/aprende` o `/club`.
+
+Los 61 escenarios E2E pasan sobre el stack aislado y cierran 7D.3 y 7D.
+Dominio, redirects HTTP, activación indexable, correo, backups, restore,
+scheduler, staging, rollback y aceptación pertenecen a 7F/7G; Fase 7 y el MVP
+siguen abiertos.

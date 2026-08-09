@@ -532,6 +532,21 @@ historial, holds y purga son dominio operativo privado. La API pública limita
 la configuración a disponibilidad e identificación del aviso, y el acuse a
 `received`. Producción permanece cerrada hasta los gates de 7F.
 
+## 25. Metadata e indexación tras 7D.3
+
+El manifiesto SEO no crea una quinta fuente editorial. React consume títulos,
+summaries y rutas de CMS, Knowledge y Legal, mientras el dominio deportivo sólo
+aporta datos funcionales y recibe metadata genérica para evitar identidad
+personal. Las descripciones estáticas del manifiesto son copy de interfaz y no
+sustituyen contenido administrable o canónico.
+
+Los aliases conservan compatibilidad, pero canonical y sitemap señalan sólo las
+fachadas adoptadas. El CMS genérico permanece `noindex`; no se copia su cuerpo
+en JSX ni en el generador. `robots.txt` y `sitemap.xml` son proyecciones de
+build dependientes de configuración, no fuentes tracked ni mecanismos de
+autorización. El contrato completo está en
+`25-public-seo-accessibility-and-indexing.md`.
+
 ## Mantenimiento
 
 Toda nueva fuente o sección pública debe actualizar esta gobernanza antes o junto con su implementación. Si el comportamiento real difiere de la decisión aprobada, se debe registrar de forma explícita el estado, la deuda y el plan de reconciliación.

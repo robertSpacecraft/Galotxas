@@ -248,8 +248,8 @@ El CMS y las solicitudes ya persistidas permanecen operables. Desactivar
 - Los plazos de logs y backups dependen de la infraestructura de 7F.
 - Restaurar un backup puede reintroducir datos ya anonimizados; el proceso de
   purga debe repetirse.
-- CMS export/import, imágenes, aliases, redirects, canonical y SEO completo son
-  frentes independientes.
+- CMS export/import, imágenes y redirects son frentes independientes; canonical
+  y la base SEO se completan después en 7D.3.
 
-7D.2C2B y 7D.2 quedan cerradas técnicamente. 7D.3, 7D, Fase 7 y el MVP continúan
-abiertos.
+7D.2C2B y 7D.2 quedan cerradas técnicamente. 7D.3 se implementa después y sus
+61 escenarios E2E cierran 7D; Fase 7 y el MVP siguen pendientes.

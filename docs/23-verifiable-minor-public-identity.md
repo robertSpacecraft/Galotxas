@@ -272,3 +272,6 @@ y seeder aislado funcionan en MariaDB, backend y frontend aplican fail-closed,
 administración no permite aprobar evidencia incompleta, revocación es inmediata,
 tests y E2E pasan y `git diff --check` queda limpio. El posterior 7D.2C2B cierra
 7D.2, no 7D.3, 7D, Fase 7 ni MVP.
+
+Seguimiento: 7D.3 se implementa posteriormente sin modificar esta autorización;
+sus 61 escenarios E2E cierran 7D. Fase 7, despliegue y MVP continúan pendientes.

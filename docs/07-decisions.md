@@ -1523,6 +1523,69 @@ Consecuencias:
 
 ---
 
+# ADR-039 — Indexación pública fail-closed y canonicalización explícita en la SPA
+
+Fecha: 2026-08-09
+
+Estado: Aceptada
+
+Contexto:
+
+- el router combina contenido estable, aliases, CMS legado, datos deportivos
+  volátiles, cuenta, tokens y 404, pero los metadatos anteriores no expresaban
+  una política completa por ruta;
+- no existe todavía un dominio productivo confirmado y publicar canonical,
+  robots o sitemap con un host inventado sería incorrecto;
+- las fachadas Club y sus rutas legadas pueden competir como duplicados sin un
+  destino canónico explícito;
+- la SPA puede actualizar el `<head>` al navegar, pero no garantiza previews a
+  crawlers que no ejecuten JavaScript.
+
+Decisión:
+
+- mantener un único manifiesto de rutas con seis clasificaciones de indexación
+  y una única resolución de canonical;
+- hacer que `VITE_PUBLIC_INDEXING_ENABLED` sea falso por defecto y exigir una
+  `VITE_PUBLIC_SITE_URL` HTTPS no local para activarlo;
+- no emitir canonical ni sitemap cuando falta esa configuración y generar un
+  `robots.txt` con cierre total;
+- conservar los cinco aliases institucionales, marcarlos `noindex, follow`,
+  apuntarlos a las cuatro fachadas Club y excluirlos del sitemap sin introducir
+  redirects todavía;
+- indexar sólo superficies estables y excluir del sitemap Cuenta, tokens, CMS
+  genérico y competición dinámica centrada en datos volátiles;
+- generar sitemap y robots de forma determinista durante Vite, sin archivos
+  públicos tracked dependientes del entorno;
+- aceptar metadata client-side como límite consciente del MVP y trasladar a 7F
+  la comprobación del host real, canonical, robots, sitemap y previews.
+
+Alternativas descartadas:
+
+- activar indexación por detectar modo producción: no acredita URL, HTTPS ni
+  intención operativa;
+- hardcodear un dominio o usar el origen del navegador: puede generar URLs
+  falsas, internas o dependientes del request;
+- indexar todas las rutas públicas: incluiría duplicados, tokens y superficies
+  deportivas volátiles;
+- retirar o redirigir aliases en esta fase: cambia compatibilidad y requiere
+  coordinación HTTP en hosting;
+- incorporar una dependencia SEO, SSR o prerender completo: amplía de forma
+  desproporcionada el alcance y no elimina los gates de despliegue.
+
+Consecuencias:
+
+- cualquier entorno permanece noindex hasta una activación explícita y válida;
+- las rutas canónicas reciben title, description, robots, canonical y Open
+  Graph coherentes; Home puede añadir JSON-LD sólo con datos confirmados;
+- aliases continúan disponibles sin competir en sitemap y la retirada futura
+  conserva una decisión separada;
+- la política es testeable sin red mediante `npm run seo:check`;
+- 7D.3 y 7D pueden cerrarse técnicamente, mientras dominio, indexación real,
+  redirects, HTTP 404 y validación de previews permanecen en 7F o post-MVP;
+- Fase 7 y el MVP continúan abiertos.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

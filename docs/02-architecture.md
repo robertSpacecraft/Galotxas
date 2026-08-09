@@ -473,7 +473,7 @@ viewport sin fijarlo. La rama no consumida de `ProtectedRoute` hacia
 - `LandingHeader` produce el único `h1`, asocia su introducción y admite acciones opcionales controladas.
 - `LandingSection` exige un identificador explícito y estable, usa `<section>` y enlaza su `h2` mediante `aria-labelledby`.
 - `LandingActions`, `LandingLinkGrid` y `LandingLinkCard` generan navegación React Router real, targets de al menos 44 px, foco visible y una única interacción por tarjeta.
-- `PageMetadata` actualiza título y descripción por ruta sin dependencias, reutiliza una meta description existente y restaura el estado anterior al desmontarse. Competición y sus vistas deportivas aportan metadatos básicos con sus datos disponibles; la 404 añade `noindex` de forma local y reversible. No se implementan canonical, Open Graph ni robots globales.
+- Históricamente, `PageMetadata` sólo actualizaba título y descripción y la 404 añadía `noindex` local. Fase 7D.3 sustituye esa responsabilidad aislada por el proveedor SEO transversal descrito más abajo.
 
 El módulo CSS común usa grids fluidos, corte a una columna cuando no hay espacio y texto no truncado, sin alturas rígidas ni estilos globales nuevos. La matriz Playwright valida 320, 375, 768, 1024, 1280 y 1440 px, además del acceso por Tab y activación con Enter.
 
@@ -528,7 +528,31 @@ El detalle operativo se mantiene en `09-public-navigation.md` y el cierre
 editorial de 7B en `15-mvp-editorial-and-navigation-contract.md`; la aplicación
 de 7D.1 se registra en `19-navigation-home-and-footer.md`.
 
-La secuencia aprobada separa responsabilidades: 3B–3C establecieron navegación y landings; 4A–4C completaron Competición; 5A–5C consolidaron Knowledge y Aprende; 6A–6B.4 establecieron el dominio escolar, 6C publica su consumo y 6C.1 revalida el cierre de la Fase 6 con aislamiento Docker efectivo. Consolidación institucional, migraciones, aliases, redirects, canonical, indexación de `/contenidos` y SEO completo quedan en bloques independientes posteriores.
+La secuencia aprobada separa responsabilidades: 3B–3C establecieron navegación y landings; 4A–4C completaron Competición; 5A–5C consolidaron Knowledge y Aprende; 6A–6B.4 establecieron el dominio escolar, 6C publica su consumo y 6C.1 revalida el cierre de la Fase 6 con aislamiento Docker efectivo. Fase 7D.3 añade la política transversal de canonical e indexación; redirects, retirada del legado y despliegue continúan como bloques independientes posteriores.
+
+## SEO e indexación pública transversal
+
+Fase 7D.3 incorpora un manifiesto próximo al router que clasifica las rutas
+como canónicas, aliases, públicas no indexables, privadas, transitorias o 404.
+`SeoProvider` resuelve esa política una sola vez por navegación y
+`PageMetadata` permite que CMS, Knowledge y Legal aporten título y resumen sin
+convertir React en fuente editorial. El proveedor limpia title, description,
+robots, canonical, Open Graph y JSON-LD anteriores para que una ruta no herede
+la política de otra.
+
+`VITE_PUBLIC_SITE_URL` y `VITE_PUBLIC_INDEXING_ENABLED` forman una guarda
+fail-closed: el default es noindex; activar exige un origen HTTPS no local. El
+plugin Vite genera `robots.txt` siempre y `sitemap.xml` sólo bajo configuración
+indexable válida. El sitemap se deriva del manifiesto, los 40 documentos
+Knowledge públicos y las tres páginas Legal, no del reloj del build. El
+canonical de los cinco aliases institucionales no implica un redirect HTTP.
+
+La arquitectura continúa siendo una SPA. Los metadatos de cada ruta requieren
+ejecución JavaScript y los previews de bots sin JavaScript pueden limitarse a
+los fallbacks de `index.html`. Respuesta HTTP 404, dominio, activación real,
+previews sobre el host final y una eventual estrategia SSR/prerender quedan
+como gates de despliegue. El contrato completo está en
+`25-public-seo-accessibility-and-indexing.md` y ADR-039.
 
 ---
 

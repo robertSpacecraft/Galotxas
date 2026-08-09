@@ -118,6 +118,28 @@ si una autorización es efectiva.
 fuente de imágenes o módulos; para una comprobación que no altere el árbol se
 debe construir hacia un `outDir` temporal.
 
+## SEO, canonical e indexación
+
+`src/seo/seoManifest.js` clasifica las rutas reales y centraliza canonical y
+aliases. `SeoProvider` administra title, description, robots, canonical, Open
+Graph y JSON-LD durante la navegación SPA; las páginas sólo aportan metadata de
+su fuente mediante `PageMetadata`.
+
+La configuración es fail-closed:
+
+```bash
+VITE_PUBLIC_SITE_URL=
+VITE_PUBLIC_INDEXING_ENABLED=false
+npm run seo:check
+```
+
+Activar indexación exige una URL HTTPS no local. Vite emite `robots.txt` y sólo
+genera `sitemap.xml` cuando esa configuración es válida; no escribe assets de
+entorno en `public/`. El sitemap combina rutas estáticas canónicas, Knowledge y
+Legal, y excluye aliases, CMS genérico, deporte volátil, Cuenta, token y 404.
+La activación con dominio real queda para 7F. El contrato está en
+[`docs/25-public-seo-accessibility-and-indexing.md`](../docs/25-public-seo-accessibility-and-indexing.md).
+
 ## E2E aislado
 
 `npm run e2e` usa exclusivamente el proyecto `galotxas-e2e` y `backend/docker/docker-compose.e2e.yml`. Antes de levantar o limpiar, una guarda comprueba la configuración resuelta, `APP_ENV=e2e`, la base `galotxas_e2e`, el almacenamiento `tmpfs` y la ausencia de volúmenes, redes o nombres de contenedor de desarrollo. La limpieza siempre recibe proyecto y archivo explícitos.

@@ -6,6 +6,13 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Fase 7D.3 incorpora inventario y clasificación de rutas, metadata y canonical
+  centralizados, aliases institucionales `noindex`, Open Graph prudente,
+  JSON-LD confirmado de Home y `seo:check` sin dependencias nuevas.
+- Vite genera `robots.txt` y un sitemap determinista de 52 URLs sólo bajo una
+  URL HTTPS y activación explícita; el default bloquea rastreo y omite sitemap.
+  Foco y announcer SPA, reduced motion y 61 escenarios responsive/E2E completan
+  el cierre técnico de 7D. Fase 7, MVP, dominio y despliegue siguen abiertos.
 - Fase 7D.2C2B incorpora `NOTICE-CONTACT-FORM` 1.0.0, primera capa visible,
   consentimiento no premarcado y trazable, configuración fail-closed y
   proyecciones legales deterministas sin crear una cuarta página pública.
@@ -17,7 +24,7 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
   conserva siempre el CMS y sólo muestra aviso/formulario si API y artefacto
   coinciden. Los defaults productivos siguen desactivados, sin proveedor,
   secretos, despliegue, scheduler o backups configurados. 7D.2 queda cerrada;
-  7D.3, 7D, Fase 7 y MVP continúan abiertos.
+  el cierre posterior de 7D se registra en la entrada de 7D.3.
 - Fase 7D.2C2A incorpora autorización versionada, verificable y revocable de
   identidad pública de menores para `public_competition_identity`, con estados
   explícitos, modos `alias|name_initial|anonymous`, tokens hash de un uso,

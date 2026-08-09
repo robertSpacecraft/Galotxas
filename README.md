@@ -115,9 +115,25 @@ compilación build-time y los enlaza en el footer. 7D.2C2A añade la autorizaci�
 verificable y revocable de identidad deportiva de menores, integrada con
 Escuela, revisión Blade y proyección fail-closed de Competición; sus flags y el
 correo saliente continúan desactivados por defecto. 7D.2C2B completa la primera
-capa y operación de Contacto sin proveedor ni activación productiva; 7D.2 queda
-cerrada, 7D.3 continúa pendiente, las imágenes permanecen como un frente
+capa y operación de Contacto sin proveedor ni activación productiva. 7D.3
+añade la política SEO y de accesibilidad transversal, canonicaliza aliases y
+genera robots/sitemap de forma fail-closed y completa 61 escenarios E2E sobre
+el stack aislado. 7D queda cerrada. Las imágenes permanecen como un frente
 independiente y el despliegue corresponde a 7F.
+
+La indexación pública está desactivada por defecto. Un build indexable exige
+configurar explícitamente una URL HTTPS no local. El dominio real no se incluye
+en el repositorio y su activación pertenece a 7F:
+
+~~~bash
+cd frontend
+VITE_PUBLIC_SITE_URL=https://dominio-confirmado.example \
+VITE_PUBLIC_INDEXING_ENABLED=true \
+npm run build
+~~~
+
+El host anterior es únicamente ilustrativo. `npm run seo:check` valida el
+contrato sin red y el build normal sigue funcionando en modo fail-closed.
 
 ## Pruebas
 
@@ -160,5 +176,6 @@ El stack E2E es desechable y no utiliza la base de desarrollo.
 - [Navegación agrupada, Home y footer](docs/19-navigation-home-and-footer.md)
 - [Preparación legal, privacidad y cookies](docs/20-legal-privacy-and-cookies-readiness.md)
 - [Páginas legales públicas versionadas](docs/22-versioned-legal-pages.md)
+- [SEO, accesibilidad e indexación pública](docs/25-public-seo-accessibility-and-indexing.md)
 - [Candidato MVP y publicación](docs/09-release-candidate.md)
 - [Historial de cambios](CHANGELOG.md)

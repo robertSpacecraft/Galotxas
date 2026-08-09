@@ -1351,6 +1351,40 @@ Validación final de 7D.2C2B, 2026-08-07:
 
 ---
 
+## PUBLIC-SEO-ACCESSIBILITY-1 — SEO e interacción transversal
+
+Fase 7D.3 añade tests unitarios para configuración fail-closed, normalización
+de URL, seis clases de ruta, aliases y targets, metadata, limpieza de tags,
+canonical, robots, Open Graph, JSON-LD, sitemap y representación exacta de
+Knowledge, Legal y Club. `npm run seo:check` repite las invariantes críticas
+sin navegador ni red y forma parte del build.
+
+Playwright levanta dos servidores Vite dentro del runner aislado: uno usa el
+origen reservado `https://example.test` con indexación activa y otro conserva
+el modo noindex. La cobertura recorre rutas canónicas, aliases, CMS genérico,
+deporte dinámico, auth, token y 404; verifica un main/H1/canonical, privacidad
+de metadata, robots/sitemap, skip link, foco SPA, announcer, disclosures,
+teclado, formularios, tablas, recursos remotos, viewports 320–1600 y reflow al
+200 %. `/glosario` se prueba como 404 porque no existe en el router real.
+
+No se incorpora axe ni se modifica el lock: la auditoría automática integral,
+contraste perceptual y matriz multibrowser siguen como mejora y gate humano.
+El backend no cambia en este bloque; la regresión E2E sobre MariaDB cubre su
+integración pública sin justificar otra suite Laravel completa.
+
+Validación final de 7D.3, 2026-08-09:
+
+- focalizados SEO/accesibilidad: 94 tests en 6 archivos;
+- frontend completo: 481 tests en 68 archivos;
+- ESLint, `seo:check`, `legal:check` y `knowledge:check`: correctos;
+- builds temporales fail-closed e indexable: 228 módulos, sin warnings;
+- E2E completo: 61 tests en 7 archivos, incluidos 8 nuevos de 7D.3, ejecutados
+  sobre el stack Docker/MariaDB aislado en 2,5 minutos;
+- cleanup: contenedores y red E2E eliminados por el runner.
+
+Con este gate, 7D.3 y 7D quedan cerradas. No se ejecutó una suite backend
+separada porque no cambian PHP, API o contrato backend.
+
 # 11. Evolución
 
 La cobertura de pruebas debe crecer junto con el proyecto.

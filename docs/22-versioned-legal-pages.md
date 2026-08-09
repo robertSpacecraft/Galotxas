@@ -8,8 +8,9 @@ activar Contacto, correo saliente, consentimientos de menores, imágenes o
 despliegue.
 
 7D.2C1 queda cerrada cuando la fuente, el artefacto, React, footer, pruebas y
-documentación pasan su validación. Tras 7D.2C2B, 7D.2 queda cerrada; 7D.3, 7D,
-Fase 7 y el MVP continúan abiertos.
+documentación pasan su validación. Tras 7D.2C2B, 7D.2 queda cerrada; 7D.3
+implementa después la indexación fail-closed y sus 61 escenarios E2E cierran
+7D. Fase 7 y el MVP siguen pendientes.
 
 ## 2. Fuente de verdad
 
@@ -266,7 +267,8 @@ Permanecen abiertos:
 - contratos, regiones, transferencias y configuración reales;
 - CSP, expiración/revocación de Bearer y eventual migración a cookies seguras;
 - exportación/importación CMS, backups y restauración;
-- canonical, sitemap, robots, redirects y SEO completo;
+- activación productiva de canonical, sitemap y robots, redirects y metadata
+  por respuesta para crawlers sin JavaScript;
 - QA de despliegue y aceptación humana.
 
 7D.2C2B resuelve los gates técnicos propios de Contacto; 7F conserva proveedor,
@@ -275,3 +277,12 @@ imágenes continúan en un frente independiente posterior, sin numeración
 aprobada. Publicar estas páginas no acredita por sí solo que Contacto, imágenes,
 consentimientos o infraestructura estén preparados. Fase 7 y el MVP siguen
 pendientes.
+
+## 18. Seguimiento de 7D.3
+
+Las tres páginas Legal entran en el sitemap determinista con sus fechas
+canónicas y aportan título y summary desde la proyección, sin copiar texto en
+el manifiesto. Los avisos de formularios continúan fuera de rutas y sitemap.
+Robots, canonical y sitemap quedan implementados pero cerrados por defecto; los
+61 escenarios E2E de 7D.3 pasan. Dominio, activación y verificación sobre el
+host final pertenecen a 7F.
