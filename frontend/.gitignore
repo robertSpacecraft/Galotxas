@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 *.local
+!.env.production.example
+!.env.staging.example
 test-results
 playwright-report
 blob-report
