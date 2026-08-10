@@ -1647,6 +1647,65 @@ Consecuencias:
 
 ---
 
+# ADR-041 — Staging y producción separados con migraciones manuales forward-only
+
+Fecha: 2026-08-10
+
+Estado: Aceptada
+
+Contexto:
+
+- la aplicación combina contenido CMS persistido, formularios con datos
+  personales, autenticación, Legal/Knowledge versionados y migraciones
+  incrementales;
+- un entorno staging que compartiera DB con producción podría descubrir,
+  modificar o eliminar información real durante un ensayo;
+- ejecutar migraciones en cada arranque acoplaría disponibilidad, rollout y
+  cambio de esquema, impediría revisar `migrate:status` y complicaría volver a
+  una imagen anterior;
+- las migraciones existentes no establecen por sí solas que un `down()` sea la
+  estrategia segura ante un incidente productivo.
+
+Decisión:
+
+- desplegar frontend, backend y MariaDB de staging físicamente separados de
+  sus equivalentes productivos;
+- prohibir E2E, seeders destructivos y copias no anonimizadas de datos reales
+  en ambos entornos;
+- ejecutar migraciones productivas manualmente, una sola vez y después de
+  preflight, revisión de estado y backup cuando corresponda;
+- no incluir `migrate`, seeders o purgas en el comando de arranque Railway;
+- tratar la evolución de esquema como forward-only: ante un fallo se prefiere
+  código compatible o migración correctiva, sin rollback automático de DB;
+- reservar restore para una decisión humana apoyada en una copia verificada y
+  ensayada primero en una DB temporal.
+
+Alternativas descartadas:
+
+- staging contra la DB productiva: mezcla datos, permisos y riesgo de
+  escritura;
+- un único servicio MariaDB con schemas por entorno: amplía el radio de una
+  credencial o intervención equivocada;
+- `php artisan migrate --force` en cada startup: ejecuta cambios sin revisión y
+  puede bloquear todas las réplicas simultáneamente;
+- rollback automático de aplicación y DB: una release anterior puede no ser
+  compatible y un `down()` puede perder información;
+- seeders para transportar CMS: convertirían datos editoriales de entorno en
+  código y podrían sobrescribir decisiones administrativas.
+
+Consecuencias:
+
+- la release exige una operación manual y trazable de migración;
+- el arranque puede reconstruir cachés y responder liveness, pero no acredita
+  readiness de DB; `deploy:check` cubre esa comprobación por CLI;
+- CMS se recrea manualmente y permanece protegido por backups de MariaDB;
+- rollback de frontend/backend es rápido sólo si el esquema sigue siendo
+  compatible;
+- 7F.1 prepara el contrato, pero recursos, DNS, migración real, restore test y
+  aceptación permanecen en 7F/7G.
+
+---
+
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.

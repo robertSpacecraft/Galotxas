@@ -30,6 +30,7 @@ La documentación se organiza para separar claramente:
 - primera capa, operación, retención y activación controlada de Contacto.
 - SEO, canonicalización, indexación fail-closed y accesibilidad pública.
 - preparación operativa fail-closed de la Escuela de Galotxas.
+- preparación productiva, entornos y runbooks de despliegue.
 
 ## Orden recomendado de lectura
 
@@ -61,6 +62,7 @@ La documentación se organiza para separar claramente:
 26. [Operación y primera capa de privacidad de Contacto](24-contact-operation-and-privacy-layer.md)
 27. [SEO, accesibilidad e indexación pública](25-public-seo-accessibility-and-indexing.md)
 28. [Preparación operativa de Escuela](26-school-operational-readiness.md)
+29. [Preparación productiva y runbook de despliegue](27-production-readiness-and-deployment-runbook.md)
 
 El contrato de navegación inventaría el router y los enlaces actuales y conserva
 el histórico de la arquitectura pública desde Fase 3. El contrato de Fase 7B
@@ -115,7 +117,9 @@ holds y anonimización; el documento 24 cierra 7D.2 sin activar producción.
 sitemap, foco y anuncio SPA; los 61 escenarios E2E pasan y cierran 7D.3 y 7D.
 7E prepara después la apertura fail-closed de Escuela, su contenido
 administrable, aviso propio, trazabilidad y retención sin cargar datos reales
-ni activar producción. Imágenes, despliegue, Fase 7 y MVP continúan abiertos.
+ni activar producción. 7F.1 prepara después Vercel, Railway, entornos,
+preflights, health, bootstrap administrativo y runbooks sin conectar servicios;
+el despliegue manual, imágenes, Fase 7 y MVP continúan abiertos.
 El conocimiento estable del deporte se mantiene por separado en
 [`knowledge/`](../knowledge/README.md); los documentos técnicos describen el
 software y no sustituyen esa fuente editorial.

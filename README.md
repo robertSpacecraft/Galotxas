@@ -6,7 +6,10 @@ Plataforma web para la gestión y visualización de competiciones de Galotxas.
 
 El MVP funcional está preparado como candidato propuesto `v0.1.0-rc.1`, todavía sin tag ni publicación. La evidencia, alcance, limitaciones y checklist se encuentran en [docs/09-release-candidate.md](docs/09-release-candidate.md).
 
-El candidato no equivale a un despliegue de producción. HTTPS, proxy inverso, backups, monitorización, correo real y configuración operativa siguen pendientes.
+El candidato no equivale a un despliegue de producción. El repositorio ya
+incluye la configuración y los runbooks para Vercel, Railway y MariaDB, pero
+los proyectos externos, DNS, TLS, backups, correo real y aceptación operativa
+siguen pendientes.
 
 ## Arquitectura
 
@@ -61,14 +64,26 @@ npm ci
 npm run dev
 ~~~
 
-Por defecto Vite queda disponible en http://localhost:5173 y consume `http://localhost:8080/api/v1`. En otros entornos, `VITE_API_BASE_URL` permite configurar la URL de la API durante el build; sin variable, producción utiliza `/api/v1`.
+Por defecto Vite queda disponible en http://localhost:5173 y consume
+`http://localhost:8080/api/v1`. En staging y producción,
+`VITE_API_BASE_URL` y `VITE_PUBLIC_SITE_URL` deben declarar las URLs HTTPS
+explícitas del entorno.
 
-Para generar el artefacto productivo bajo el mismo dominio:
+Para validar y generar el primer artefacto productivo, todavía no indexable:
 
 ~~~bash
 cd frontend
-VITE_API_BASE_URL=/api/v1 npm run build
+DEPLOYMENT_TARGET=production \
+DEPLOYMENT_RELEASE_STAGE=initial \
+VITE_API_BASE_URL=https://api.galotxesmonover.es/api/v1 \
+VITE_PUBLIC_SITE_URL=https://galotxesmonover.es \
+VITE_PUBLIC_INDEXING_ENABLED=false \
+npm run deploy:build
 ~~~
+
+`frontend/vercel.json` fija el build Vite, la salida `dist`, el fallback SPA,
+los headers mínimos y el redirect permanente de `www` al apex. No contiene ni
+despliega el backend.
 
 El conocimiento canónico dispone de una validación y compilación independiente. La proyección pública generada se versiona y alimenta las rutas de Aprende a jugar y Manual mediante carga diferida en React:
 
@@ -95,7 +110,9 @@ Las rutas públicas son
 ni Knowledge. Los avisos de identidad de menores y Contacto no crean rutas
 legales nuevas.
 
-El servidor de producción deberá servir `frontend/dist` con fallback SPA a `index.html` y enrutar `/api/v1` y `/admin` hacia Laravel.
+Vercel sirve `frontend/dist` con fallback SPA. Laravel y `/admin` se despliegan
+separadamente en Railway bajo `https://api.galotxesmonover.es`; no existe un
+proxy `/api/v1` alojado dentro del frontend.
 
 La capacidad técnica del formulario de contacto está desactivada por defecto.
 Laravel aplica aviso versionado, configuración fail-closed, persistencia como
@@ -129,19 +146,22 @@ Los datos reales, el correo y la activación productiva siguen siendo gates de
 7F. El contrato está en
 [docs/26-school-operational-readiness.md](docs/26-school-operational-readiness.md).
 
-La indexación pública está desactivada por defecto. Un build indexable exige
-configurar explícitamente una URL HTTPS no local. El dominio real no se incluye
-en el repositorio y su activación pertenece a 7F:
+La indexación pública está desactivada por defecto. El primer despliegue usará
+el dominio canónico con `VITE_PUBLIC_INDEXING_ENABLED=false`; activarla exige
+aceptación humana y una release posterior separada:
 
 ~~~bash
 cd frontend
-VITE_PUBLIC_SITE_URL=https://dominio-confirmado.example \
+VITE_PUBLIC_SITE_URL=https://galotxesmonover.es \
 VITE_PUBLIC_INDEXING_ENABLED=true \
 npm run build
 ~~~
 
-El host anterior es únicamente ilustrativo. `npm run seo:check` valida el
-contrato sin red y el build normal sigue funcionando en modo fail-closed.
+`npm run deploy:check` rechaza localhost, placeholders, HTTP, URLs ajenas al
+contrato productivo o una activación prematura. `npm run seo:check` valida el
+contrato SEO sin red y el build normal sigue funcionando en modo fail-closed.
+El proceso completo está en
+[docs/27-production-readiness-and-deployment-runbook.md](docs/27-production-readiness-and-deployment-runbook.md).
 
 ## Pruebas
 
@@ -185,5 +205,6 @@ El stack E2E es desechable y no utiliza la base de desarrollo.
 - [Preparación legal, privacidad y cookies](docs/20-legal-privacy-and-cookies-readiness.md)
 - [Páginas legales públicas versionadas](docs/22-versioned-legal-pages.md)
 - [SEO, accesibilidad e indexación pública](docs/25-public-seo-accessibility-and-indexing.md)
+- [Preparación productiva y runbook de despliegue](docs/27-production-readiness-and-deployment-runbook.md)
 - [Candidato MVP y publicación](docs/09-release-candidate.md)
 - [Historial de cambios](CHANGELOG.md)

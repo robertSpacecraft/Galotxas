@@ -149,8 +149,33 @@ Activar indexación exige una URL HTTPS no local. Vite emite `robots.txt` y sól
 genera `sitemap.xml` cuando esa configuración es válida; no escribe assets de
 entorno en `public/`. El sitemap combina rutas estáticas canónicas, Knowledge y
 Legal, y excluye aliases, CMS genérico, deporte volátil, Cuenta, token y 404.
-La activación con dominio real queda para 7F. El contrato está en
+La activación con dominio real queda para la ejecución manual de 7F. El contrato está en
 [`docs/25-public-seo-accessibility-and-indexing.md`](../docs/25-public-seo-accessibility-and-indexing.md).
+
+## Preparación de Vercel
+
+`vercel.json` define el proyecto Vite con raíz `frontend`, instalación mediante
+`npm ci`, build verificado, salida `dist`, fallback SPA, headers prudentes y
+redirect permanente de `www.galotxesmonover.es` al apex. No aloja ni duplica
+Laravel.
+
+Las plantillas `.env.staging.example` y `.env.production.example` conservan la
+indexación cerrada. Antes de un build de plataforma se ejecuta:
+
+```bash
+npm run deploy:check
+npm run deploy:build
+```
+
+El preflight exige `DEPLOYMENT_TARGET`, `DEPLOYMENT_RELEASE_STAGE`, site/API
+HTTPS explícitas, separación de staging y el dominio canónico exacto en
+producción; rechaza localhost, placeholders y una indexación no autorizada. El
+primer despliegue de producción debe usar
+`https://galotxesmonover.es`,
+`https://api.galotxesmonover.es/api/v1` e indexación `false`.
+
+El runbook completo se encuentra en
+[`docs/27-production-readiness-and-deployment-runbook.md`](../docs/27-production-readiness-and-deployment-runbook.md).
 
 ## E2E aislado
 

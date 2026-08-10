@@ -71,6 +71,33 @@ El layout administrativo carga únicamente `public/css/admin.css` y
 CDN al renderizarse. El alcance y los riesgos residuales se documentan en
 [`docs/21-privacy-hardening-and-public-identity.md`](../docs/21-privacy-hardening-and-public-identity.md).
 
+## Preparación de staging y producción
+
+`Dockerfile`, `railway.json` y `docker/production/` preparan un único servicio
+Laravel para Railway con Nginx, PHP-FPM, puerto dinámico, logs a `stderr`,
+cachés de configuración/rutas/vistas y liveness mínima en `/up`. El arranque
+no ejecuta migraciones: en staging y producción se revisan y aplican
+manualmente con `migrate:status` y `migrate --force`.
+
+Antes de desplegar, completa `.env.staging.example` o
+`.env.production.example` fuera de Git y ejecuta:
+
+```bash
+php artisan deploy:check
+php artisan admin:create
+```
+
+El preflight es de sólo lectura, no imprime secretos y bloquea una clave,
+URLs, MariaDB, CORS, cookies, proxies, logs, caché, filesystem o flags
+inseguros. `--allow-live-features` sólo se usa en una activación posterior para
+validar las dependencias de Contacto, Escuela, identidad y correo. El comando
+de administrador pide una contraseña robusta de forma oculta y no eleva una
+cuenta normal ya existente.
+
+El despliegue, DNS, backups, restore, CMS manual y activación gradual se
+documentan en
+[`docs/27-production-readiness-and-deployment-runbook.md`](../docs/27-production-readiness-and-deployment-runbook.md).
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

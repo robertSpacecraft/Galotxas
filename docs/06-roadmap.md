@@ -55,12 +55,13 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 37. **Fase 7D.2C2B — Primera capa y operación de Contacto:** aviso versionado, consentimiento trazable, config fail-closed, persistencia como recepción, correo auxiliar configurable, reintento limitado, administración Blade, cierre, retención, holds, anonimización y purga de HMAC; producción y proveedor siguen desactivados.
 38. **Fase 7D.3 — SEO, accesibilidad e indexación pública:** inventario y clasificación de rutas, canonical y aliases centralizados, indexación fail-closed, metadata/OG/JSON-LD prudentes, robots y sitemap deterministas, foco y anuncio SPA, reflow y 61 escenarios E2E validados; sin dominio, activación o despliegue.
 39. **Fase 7E — Preparación operativa de Escuela:** apertura fail-closed centralizada, contenido de programa administrable, contacto operativo privado, aviso versionado, trazabilidad, retención, holds y anonimización; 421 tests backend, 484 frontend y 63 E2E validados con producción cerrada y sin inventar datos reales.
+40. **Fase 7F.1 — Production readiness, entornos y runbooks:** dominio y API canónicos centralizados, staging/producción separados, preflights fail-closed, liveness mínima, bootstrap administrativo seguro, CORS/headers/proxy, artefactos Vercel/Railway y operación de DB, CMS, correo, DNS, backup, restore y rollback documentados; 431 tests backend, 493 frontend y 63 E2E validados sin desplegar ni activar servicios.
 
-La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fases 7A, 7B y 7E, los bloques 7C.0–7C.2 y 7D.1–7D.3 están completados; 7C y 7D quedan cerradas, pero Fase 7 sigue abierta. Los aliases se canonicalizan sin redirects; publicación productiva por entorno y migraciones editoriales no se han implementado.
+La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fases 7A, 7B, 7E y 7F.1, los bloques 7C.0–7C.2 y 7D.1–7D.3 están completados; 7C y 7D quedan cerradas, pero 7F, Fase 7 y el MVP siguen abiertos. Los aliases se canonicalizan sin redirects; no se ha realizado publicación productiva ni migración editorial de ningún entorno externo.
 
 ## Fase 7 abierta — bloques pendientes
 
-1. **Fase 7F — Preparación de despliegue:** cerrar dominio y HTTPS, URL pública, activación de indexación, robots/sitemap/canonical reales, Railway/Vercel, MariaDB, variables, CORS, proveedor y entrega de correo, sesiones, secretos, logs, scheduler, backups/restauración, migraciones, salud, staging y rollback; cargar y revisar los datos reales de Escuela antes de activar su flag.
+1. **Fase 7F — Ejecución manual y aceptación del despliegue:** crear y separar los proyectos Vercel/Railway/MariaDB, cargar variables y secretos, configurar DNS/TLS sin alterar MX, migrar forward-only, bootstrap administrativo, CMS y datos reales, verificar correo, backup/restore, rollback y smoke en staging; después desplegar producción inicialmente noindex y con Contacto, Escuela, identidad de menores y scheduler cerrados, activándolos de uno en uno sólo tras sus gates.
 2. **Fase 7G — Validación y cierre del MVP:** ejecutar regresión, recorridos críticos, QA responsive/multibrowser priorizada, smoke y aceptación humana antes de tag/release.
 
 Las autorizaciones de imágenes para web, redes sociales y archivo histórico
@@ -68,7 +69,7 @@ permanecen como un frente independiente posterior, todavía sin numeración
 aprobada. No forman parte de 7D.2C2B ni reutilizan la autorización de identidad
 deportiva.
 
-Las fases 4, 5, 6 y los bloques 7B, 7C.0–7C.2, 7D.1–7D.3 y 7E están completados.
+Las fases 4, 5, 6 y los bloques 7B, 7C.0–7C.2, 7D.1–7D.3, 7E y 7F.1 están completados.
 `/competicion` ofrece el recorrido deportivo; `/aprende-a-jugar` y el Manual
 presentan los 40 documentos desde Knowledge; `/escuela` consume la configuración
 pública y admite solicitudes anónimas cuando el backend las abre. El cierre de
@@ -85,7 +86,8 @@ técnica de Contacto, pero mantiene `CONTACT_FORM_ENABLED=false` y
 credenciales, entrega o activación productiva. 7E añade la misma separación
 para Escuela: la capacidad técnica queda preparada y validada, pero
 `SCHOOL_ENROLLMENT_ENABLED=false` continúa como default hasta cargar y aprobar
-configuración real en 7F.
+configuración real durante la ejecución manual de 7F. 7F.1 aporta los
+preflights y runbooks, pero no conecta proveedores ni activa ninguna flag.
 Los borradores permanecen como historia interna no vigente.
 
 La carga editorial local se realizó manualmente y 7C.2 incorpora la interfaz
@@ -97,8 +99,9 @@ tienen canonical y no compiten en el sitemap; el CMS genérico y las superficies
 deportivas volátiles permanecen `noindex`. Redirects permanentes, retirada del
 legado, metadata por respuesta para bots sin JavaScript, limpieza de código
 huérfano y migración de `academy`, Prensa y Federaciones permanecen en bloques
-posteriores. Dominio, URL pública e indexación productiva siguen desactivados
-hasta 7F.
+posteriores. El dominio y las URLs canónicas están decididos y centralizados,
+pero DNS, TLS, despliegue e indexación productiva siguen sin activar hasta la
+ejecución manual de 7F.
 
 Este programa no altera por sí solo el proceso operativo de revisión y publicación del candidato descrito más abajo. Antes de iniciar un bloque funcional debe reconciliarse su calendario con el candidato y con cualquier corrección P0/P1.
 
@@ -179,7 +182,7 @@ React de reprogramación continúa como P1 y no bloquea por sí misma el MVP.
 ## Frontend, despliegue y calidad
 
 - URL API por `VITE_API_BASE_URL`, fallback local de desarrollo y `/api/v1` en producción (DEPLOY-1);
-- Vitest, React Testing Library y 484 tests en 68 archivos, incluidos pipeline y páginas legales, SEO/canonical, identidad pública, sesión mínima, Escuela, formularios, navegación agrupada, Home/footer, Knowledge, Competición, cuenta, foco, landmarks, 404 y regresiones previas;
+- Vitest, React Testing Library y 493 tests en 70 archivos, incluidos pipeline y páginas legales, SEO/canonical, identidad pública, sesión mínima, Escuela, formularios, navegación agrupada, Home/footer, Knowledge, Competición, cuenta, foco, landmarks, 404, preflight y contrato Vercel;
 - smoke Playwright completo: 63 escenarios en 7 archivos con Chromium y stack temporal aislado, incluidos 8 casos SEO/accesibilidad de 7D.3 y la operación ampliada de Escuela;
 - auditoría y actualización compatible de npm/Composer sin vulnerabilidades conocidas pendientes en la instantánea de cierre (DEPS-1);
 - documentación técnica 00–08 reconciliada con el código (DOC-1);
@@ -195,6 +198,7 @@ React de reprogramación continúa como P1 y no bloquea por sí misma el MVP.
 - proyección pública versionada con 40 documentos vigentes, parser seguro, repositorio y renderer frontend, landing de Aprende, Manual, referencias internas, Navbar y 404 validados sin backend o API (KNOWLEDGE-PUBLIC-CONSUMER-1 / Fase 5B).
 - cierre de Aprende a jugar con resumen derivado, accesos de colección, contexto local, índice documental, anterior/siguiente sin cruces, fragmentos estables y Knowledge fuera del chunk inicial (KNOWLEDGE-EXPERIENCE-CLOSURE-1 / Fase 5C).
 - identidad deportiva pública minimizada y fail-closed, perfil autenticado sólo en memoria con bootstrap `/me`, y recursos tipográficos/administrativos locales sin peticiones automáticas a los proveedores retirados (PRIVACY-HARDENING-PUBLIC-IDENTITY-1 / Fase 7D.2B).
+- preparación reproducible de Vercel/Railway, liveness mínima, preflights frontend/backend, CORS exacto, headers, proxy, admin bootstrap y runbooks forward-only de operación sin despliegue ni activación externa (PRODUCTION-READINESS-1 / Fase 7F.1).
 - inventario, instalación limpia, regresión, auditoría, notas de versión y runbook del candidato preparados sin publicar ni etiquetar (MVP-RC-1).
 
 ---
@@ -207,7 +211,7 @@ debe crear el tag o la release hasta completar Fase 7G.
 
 1. revisión humana y eventual merge documental de 7A;
 2. cierre de decisiones y contenido en 7B;
-3. continuar con 7F; 7D y la preparación técnica 7E ya están cerradas;
+3. ejecutar manualmente 7F conforme al runbook; 7D, 7E y la preparación técnica 7F.1 ya están cerradas;
 4. cierre de aceptación en 7G;
 5. sólo entonces, preparación del nuevo candidato, tag y publicación.
 

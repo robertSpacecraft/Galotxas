@@ -6,6 +6,17 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Fase 7F.1 prepara, sin desplegar, los contratos separados de staging y
+  producción para Vercel, Railway y MariaDB: dominio/API canónicos, plantillas
+  de entorno sin secretos, CORS exacto, proxy, headers prudentes, liveness
+  mínima, preflights frontend/backend y bootstrap administrativo seguro.
+- Se incorporan artefactos reproducibles de Vercel y Railway sin migraciones
+  en startup, más el runbook de DB forward-only, CMS manual, DonDominio sin
+  password, DNS/MX, backup/restore, rollback, mantenimiento, observabilidad,
+  smoke y activación gradual. ADR-041 fija la separación física de entornos.
+- La validación de 7F.1 pasa 431 tests backend, 493 frontend y 63 E2E, además de
+  lint, Pint, sintaxis, caches, builds temporales, SEO, Legal, Knowledge y
+  hashes. 7F, 7G, Fase 7 y MVP siguen abiertos; no hay deploy ni activación.
 - Fase 7E incorpora apertura fail-closed de Escuela centralizada en Laravel con
   estados `open`, `closed` y `unavailable`, flag productiva desactivada por
   defecto y gate de configuración completa. Presentación y proceso pasan a

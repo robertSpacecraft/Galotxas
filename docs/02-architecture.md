@@ -576,6 +576,34 @@ previews sobre el host final y una eventual estrategia SSR/prerender quedan
 como gates de despliegue. El contrato completo está en
 `25-public-seo-accessibility-and-indexing.md` y ADR-039.
 
+## Topología preparada para staging y producción
+
+Fase 7F.1 fija Vercel para la SPA React/Vite, Railway para un único servicio
+Nginx/PHP-FPM/Laravel y una MariaDB Railway persistente separada. Producción
+utiliza `https://galotxesmonover.es` y
+`https://api.galotxesmonover.es`; `www` es sólo una entrada con redirect
+permanente al apex. Staging replica las tres piezas con recursos físicamente
+independientes y permanece noindex.
+
+`frontend/vercel.json` define instalación reproducible, preflight, salida
+`dist`, fallback SPA y headers mínimos. `backend/Dockerfile` escucha el `PORT`
+de Railway, reconstruye cachés y no ejecuta migraciones, seeders, worker o
+scheduler. `/up` es una liveness sin sesión ni DB; la readiness detallada se
+ejecuta mediante `php artisan deploy:check`. Las migraciones son manuales y
+forward-only conforme a ADR-041.
+
+React continúa usando Bearer Sanctum: CORS admite exclusivamente el origen
+frontend configurado y no habilita credenciales cross-origin. Blade conserva
+sesión DB con cookie Secure/HttpOnly/SameSite. Los proxies de Railway sólo se
+confían mediante variable explícita y el smoke debe acreditar el esquema HTTPS.
+
+La primera publicación mantiene indexación, Contacto, Escuela, autorización y
+notificación de identidad de menores y scheduler desactivados. CMS permanece
+en MariaDB y se recrea manualmente; el filesystem efímero no admite uploads.
+Backups, restore, DNS, SMTP y activación requieren ejecución humana posterior.
+El contrato y los runbooks se encuentran en
+`27-production-readiness-and-deployment-runbook.md`.
+
 ---
 
 # 9. Contrato API

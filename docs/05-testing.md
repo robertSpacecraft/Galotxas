@@ -1434,6 +1434,52 @@ La revisión humana no se afirma realizada. Los datos y horarios reales,
 activación, correo, scheduler, backups, restore, staging y rollback permanecen
 en 7F; Fase 7 y el MVP siguen abiertos.
 
+---
+
+## PRODUCTION-READINESS-1 — Preparación productiva sin despliegue
+
+7F.1 añade pruebas MariaDB del health público mínimo, CORS exacto para el
+frontend Bearer, preflight backend válido e inválido, configuración de correo
+condicionada y bootstrap administrativo seguro, robusto e idempotente. El
+contrato de plataforma comprueba Railway, ausencia de migraciones durante el
+arranque, cachés, endurecimiento PHP y buffers FastCGI compatibles con los
+redirects de validación Blade.
+
+Vitest valida URLs HTTPS, dominio/API canónicos, separación de staging,
+indexación inicial cerrada, rechazo de localhost/placeholders y la estructura
+Vercel —build, `dist`, fallback SPA, redirect `www`, headers y ausencia de
+HSTS prematuro—. E2E revalida el stack con su origen CORS explícito y conserva
+los 63 recorridos funcionales.
+
+Validación final de 7F.1, 2026-08-10:
+
+- backend focalizado: 10 tests y 70 aserciones;
+- backend completo mediante runner oficial: 431 tests y 3.379 aserciones;
+- frontend focalizado de despliegue: 9 tests en dos archivos;
+- frontend completo: 493 tests en 70 archivos;
+- E2E completo: 63 escenarios Chromium en 2,6 minutos sobre el stack aislado;
+- lint, Pint, `php -l`, cachés de configuración/rutas/vistas, `legal:check`,
+  `knowledge:check`, `seo:check` y preflights frontend: correctos;
+- builds normal y production-like noindex: 228 módulos, sólo `robots.txt`
+  bloqueante y sin escribir `frontend/dist`;
+- imagen Railway: build correcto, puerto dinámico, caches de arranque y `/up`
+  `200` mínimo sin DB ni `X-Powered-By`;
+- Knowledge: 40 documentos y cuatro colecciones; hashes canónico
+  `66dfba8b620539b148539a8181e7f196b1abcc1a77e86efc737714983035d182`
+  y público
+  `4e5f28fd21d29291cddba2fede70ef7e057e45dbc5bb7583399186133911517e`;
+- estatutos: hash
+  `17314902d717fa94a3b4016dcd5d6bed7ee6a94a233a314b58fb7ce83d56eadc`;
+- cleanup: builds, informes E2E, contenedores, redes e imagen de verificación
+  eliminados.
+
+La primera ejecución E2E detectó el origen temporal ausente de la nueva
+allowlist CORS; tras declararlo, los logs de una segunda ejecución aislaron un
+`upstream sent too big header` al devolver validación Blade con sesión-cookie.
+El buffer FastCGI se fijó en 16 KiB y la ejecución completa posterior pasó
+63/63. No se desplegó ni se conectó ningún servicio. 7F, 7G, Fase 7 y el MVP
+siguen abiertos.
+
 # 11. Evolución
 
 La cobertura de pruebas debe crecer junto con el proyecto.
