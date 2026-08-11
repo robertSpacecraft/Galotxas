@@ -107,7 +107,7 @@ deportivas volátiles permanecen `noindex`. Redirects permanentes, retirada del
 legado, metadata por respuesta para bots sin JavaScript, limpieza de código
 huérfano y migración de `academy`, Prensa y Federaciones permanecen en bloques
 posteriores. El dominio y las URLs canónicas están decididos y centralizados,
-el entorno de staging ha sido desplegado y validado (excepto SMTP y backups, bloqueados por plan), pero
+el entorno de staging ha sido desplegado y validado, salvo SMTP y el bloque de backup/restore/rollback, que permanece aplazado; el backup nativo de volúmenes está bloqueado por el plan Railway Hobby, pero
 el despliegue, indexación productiva y activación de funciones operativas reales
 siguen sin activar hasta finalizar 7F y 7G.
 
