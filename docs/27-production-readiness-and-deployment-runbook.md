@@ -515,9 +515,9 @@ Los siguientes pasos ya se han validado en staging:
 
 Pasos **Pendientes / Aplazados** en staging:
 11. **Ejecutar backup, restore a DB temporal y rollback (El backup nativo está bloqueado por requerir cuenta Railway Pro. La alternativa de backup manual y el rollback de aplicación se posponen por decisión operativa).**
-12. Ejecutar smoke completo global y aceptación humana para cerrar la fase 7F staging.
+12. **Ejecutar smoke completo global y aceptación humana para cerrar la fase 7F staging (COMPLETADO).** *(Nota: Se ha registrado una observación de UX no bloqueante en `/aprende-a-jugar` para 7G o posterior).*
 
-Staging ha quedado devuelto a un estado seguro (`CONTACT_FORM_ENABLED=false`, `SCHOOL_ENROLLMENT_ENABLED=false`, etc.). Nunca se enviaron correos a usuarios reales.
+La aceptación humana de staging queda completada. Staging ha quedado devuelto a un estado seguro (`CONTACT_FORM_ENABLED=false`, `SCHOOL_ENROLLMENT_ENABLED=false`, etc.). Nunca se enviaron correos a usuarios reales.
 
 ## Primer despliegue y aceptación de producción
 

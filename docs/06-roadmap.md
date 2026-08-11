@@ -59,12 +59,13 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 
 La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fases 7A, 7B, 7E y 7F.1, los bloques 7C.0–7C.2 y 7D.1–7D.3 están completados; 7C y 7D quedan cerradas.
 
-**Fase 7F (Staging)** ha sido ejecutada parcialmente: Vercel/Railway/MariaDB separados para staging, configuración de DNS/TLS, CMS verificado, API, Legal, Contacto (sin SMTP) y Escuela (inscripciones, permisos) validados. La verificación de backups/restore/rollback en staging queda **aplazada / no ejecutada por decisión operativa** (el backup nativo de volúmenes está bloqueado por el plan Railway Hobby; no se ensaya por ahora la alternativa manual ni el rollback de aplicación). 
+**Fase 7F (Staging)** ha sido validada mediante *smoke test global y aceptación humana*: Vercel/Railway/MariaDB separados para staging, configuración de DNS/TLS, CMS verificado, API, Legal, Contacto (sin SMTP) y Escuela (inscripciones, permisos) validados. La verificación de backups/restore/rollback en staging queda **aplazada / no ejecutada por decisión operativa** (el backup nativo de volúmenes está bloqueado por el plan Railway Hobby; no se ensaya por ahora la alternativa manual ni el rollback de aplicación). Se ha registrado una posible mejora de UX para `/aprende-a-jugar` (no bloqueante).
+
 7F (Producción), Fase 7 y el MVP siguen abiertos. No se ha realizado publicación productiva ni migración editorial definitiva.
 
 ## Fase 7 abierta — bloques parcialmente completados / bloqueados
 
-1. **Fase 7F (Backups y Staging pendiente):** configuración de SMTP real, identidad pública completa de menores y ejecución de backup/restore/rollback en staging (aplazado).
+1. **Fase 7F (Pendientes de Staging y Producción):** configuración de SMTP real, identidad pública completa de menores y ejecución de backup/restore/rollback en staging (aplazado).
 
 ## Fase 7 abierta — bloques pendientes
 
