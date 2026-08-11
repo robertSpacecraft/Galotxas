@@ -57,11 +57,18 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 39. **Fase 7E — Preparación operativa de Escuela:** apertura fail-closed centralizada, contenido de programa administrable, contacto operativo privado, aviso versionado, trazabilidad, retención, holds y anonimización; 421 tests backend, 484 frontend y 63 E2E validados con producción cerrada y sin inventar datos reales.
 40. **Fase 7F.1 — Production readiness, entornos y runbooks:** dominio y API canónicos centralizados, staging/producción separados, preflights fail-closed, liveness mínima, bootstrap administrativo seguro, CORS/headers/proxy, artefactos Vercel/Railway y operación de DB, CMS, correo, DNS, backup, restore y rollback documentados; 431 tests backend, 493 frontend y 63 E2E validados sin desplegar ni activar servicios.
 
-La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fases 7A, 7B, 7E y 7F.1, los bloques 7C.0–7C.2 y 7D.1–7D.3 están completados; 7C y 7D quedan cerradas, pero 7F, Fase 7 y el MVP siguen abiertos. Los aliases se canonicalizan sin redirects; no se ha realizado publicación productiva ni migración editorial de ningún entorno externo.
+La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fases 7A, 7B, 7E y 7F.1, los bloques 7C.0–7C.2 y 7D.1–7D.3 están completados; 7C y 7D quedan cerradas.
+
+**Fase 7F (Staging)** ha sido ejecutada parcialmente: Vercel/Railway/MariaDB separados para staging, configuración de DNS/TLS, CMS verificado, API, Legal, Contacto (sin SMTP) y Escuela (inscripciones, permisos) validados. La verificación de backups/restore/rollback en staging queda **aplazada / no ejecutada por decisión operativa** (el backup nativo de volúmenes está bloqueado por el plan Railway Hobby; no se ensaya por ahora la alternativa manual ni el rollback de aplicación). 
+7F (Producción), Fase 7 y el MVP siguen abiertos. No se ha realizado publicación productiva ni migración editorial definitiva.
+
+## Fase 7 abierta — bloques parcialmente completados / bloqueados
+
+1. **Fase 7F (Backups y Staging pendiente):** configuración de SMTP real, identidad pública completa de menores y ejecución de backup/restore/rollback en staging (aplazado).
 
 ## Fase 7 abierta — bloques pendientes
 
-1. **Fase 7F — Ejecución manual y aceptación del despliegue:** crear y separar los proyectos Vercel/Railway/MariaDB, cargar variables y secretos, configurar DNS/TLS sin alterar MX, migrar forward-only, bootstrap administrativo, CMS y datos reales, verificar correo, backup/restore, rollback y smoke en staging; después desplegar producción inicialmente noindex y con Contacto, Escuela, identidad de menores y scheduler cerrados, activándolos de uno en uno sólo tras sus gates.
+1. **Fase 7F (Producción):** tras completar validaciones y smoke de staging, desplegar producción inicialmente noindex y con Contacto, Escuela, identidad de menores y scheduler cerrados, activándolos de uno en uno sólo tras sus gates.
 2. **Fase 7G — Validación y cierre del MVP:** ejecutar regresión, recorridos críticos, QA responsive/multibrowser priorizada, smoke y aceptación humana antes de tag/release.
 
 Las autorizaciones de imágenes para web, redes sociales y archivo histórico
@@ -100,8 +107,9 @@ deportivas volátiles permanecen `noindex`. Redirects permanentes, retirada del
 legado, metadata por respuesta para bots sin JavaScript, limpieza de código
 huérfano y migración de `academy`, Prensa y Federaciones permanecen en bloques
 posteriores. El dominio y las URLs canónicas están decididos y centralizados,
-pero DNS, TLS, despliegue e indexación productiva siguen sin activar hasta la
-ejecución manual de 7F.
+el entorno de staging ha sido desplegado y validado (excepto SMTP y backups, bloqueados por plan), pero
+el despliegue, indexación productiva y activación de funciones operativas reales
+siguen sin activar hasta finalizar 7F y 7G.
 
 Este programa no altera por sí solo el proceso operativo de revisión y publicación del candidato descrito más abajo. Antes de iniciar un bloque funcional debe reconciliarse su calendario con el candidato y con cualquier corrección P0/P1.
 

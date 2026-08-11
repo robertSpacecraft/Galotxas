@@ -2,11 +2,12 @@
 
 ## Estado y alcance
 
-`PRODUCTION-READINESS-1` prepara el repositorio para staging y producción sin
-crear proyectos, conectar cuentas, modificar DNS, desplegar, migrar una base
-externa ni enviar correo real. 7D está cerrada, 7E está cerrada técnicamente y
-7F.1 deja contratos verificables para ejecutar después la parte manual de 7F.
-Fase 7, 7F, 7G y el MVP permanecen abiertos.
+`PRODUCTION-READINESS-1` preparó el repositorio para staging y producción sin
+crear proyectos. Tras la ejecución manual parcial de 7F, el entorno de **staging** está
+desplegado y validado (proyectos en Vercel/Railway, base de datos MariaDB, DNS
+personalizado, dominios canónicos de staging). 
+El despliegue a **producción** permanece pendiente.
+Fase 7, 7F (completa), 7G y el MVP permanecen abiertos.
 
 La primera publicación está deliberadamente cerrada:
 
@@ -79,25 +80,25 @@ Prohibiciones comunes:
 
 ## Inventario de preparación
 
-| Área | Situación después de 7F.1 | Gate manual pendiente |
+| Área | Situación actual tras ejecución parcial 7F | Gate manual pendiente |
 |---|---|---|
-| URL frontend/API | Variables Vite y Laravel centralizadas; preflight HTTPS | Asignar dominios y comprobar TLS |
-| Vercel | `frontend/vercel.json`, Node 22, SPA, headers y build con preflight | Crear y vincular proyectos |
-| Railway | Imagen única Nginx/PHP-FPM, `PORT`, `/up`, cachés | Crear servicios y asignar variables |
-| MariaDB | Driver `mariadb`, UTF-8, migraciones versionadas | Crear dos DB, backups y restore test |
+| URL frontend/API | Dominios de staging activos y validados con TLS | Asignar dominios de producción y comprobar TLS |
+| Vercel | Proyecto `galotxas-staging` vinculado y desplegado | Crear proyecto producción |
+| Railway | Servicios backend y MariaDB activos para staging | Crear servicios de producción |
+| MariaDB | DB de staging operativa, migraciones completadas | Crear DB producción, **backups y restore test (aplazados)** |
 | CORS | Origen exacto, sin patrones, wildcard o cookies CORS | Cargar el origen real de cada entorno |
 | Auth | Sanctum Bearer existente; contratos 401/403/419 intactos | Smoke HTTPS de registro/login/logout/reset |
 | Sesión Blade | Cookie Secure/HttpOnly/SameSite y driver DB en ejemplos | Validar admin detrás del proxy |
 | Proxy/HTTPS | `TRUSTED_PROXIES` y cabeceras Traefik | Verificar cadena Railway y URL generada |
 | Salud | `/up` mínimo, independiente de DB; readiness CLI | Monitor externo y ejecución preflight |
 | Admin | `admin:create` interactivo e idempotente | Crear la primera cuenta por consola |
-| CMS | Persistencia en MariaDB | Recrear y aprobar cuatro páginas |
-| Legal/Knowledge | Artefactos versionados existentes | Validar hashes y rutas en staging |
-| SEO | Build fail-closed y `deploy:check` frontend | Activación humana posterior |
-| Contacto/Escuela/menores | Capacidades implementadas, flags apagadas | Datos, correo y recorridos reales |
+| CMS | Páginas staging recreadas manualmente y aprobadas | Recrear y aprobar en producción |
+| Legal/Knowledge | Hashes validados y activos en staging | Validar hashes en producción |
+| SEO | Staging validado como no indexable (`robots.txt`) | Activar indexación en producción posterior |
+| Contacto/Escuela/menores | Capacidades validadas con fail-closed y flag global; persistencia staging probada | SMTP real, flujo menores completo en staging |
 | Queue/scheduler | Cola síncrona, ningún worker/cron productivo | Diseñar y ensayar purgas antes de activar |
 | Logs/storage | `stderr`; disco efímero sólo para runtime | Retención de logs y no habilitar uploads |
-| Backups/restore/rollback | Procedimiento definido | Contratar/configurar y ensayar |
+| Backups/restore/rollback | **Aplazado por decisión operativa** (backup nativo bloqueado por plan) | Contratar Pro para backup nativo, o ensayar backup manual en staging |
 
 ## Variables y secretos
 
@@ -498,24 +499,25 @@ Sin añadir SaaS ni analytics, la operación revisa:
 La ausencia de un monitor externo persistente es un gate manual de 7F, no una
 capacidad que 7F.1 finja resolver.
 
-## Aceptación de staging
+## Aceptación de staging (Ejecución real de 7F)
 
-1. crear recursos físicamente separados sin datos reales;
-2. cargar secrets por panel y confirmar `APP_DEBUG=false`;
-3. ejecutar frontend preflight y backend `deploy:check` con todo cerrado;
-   aceptar antes de migrar sólo el bloqueo esperado por esquema pendiente;
-4. migrar una DB vacía y repetir `migrate:status`;
-5. crear un admin de prueba seguro;
-6. recrear CMS en borrador y comprobar `/contenidos/*`/`/club/*`;
-7. validar Legal, Knowledge y hashes;
-8. probar API, CORS, proxy, HTTPS, auth y administración;
-9. confirmar robots `noindex, nofollow` y ausencia de sitemap indexable;
-10. probar Contacto, Escuela e identidad sólo en una ventana controlada, con
-    datos ficticios y correo `log`/sandbox no entregable;
-11. ejecutar backup, restore a DB temporal y rollback rehearsal;
-12. ejecutar smoke completo y obtener aceptación humana.
+Los siguientes pasos ya se han validado en staging:
+1. recursos físicamente separados sin datos reales (Vercel/Railway) creados;
+2. secrets cargados por panel y confirmado `APP_DEBUG=false`;
+3. preflight frontend y backend superados;
+4. MariaDB vacía migrada exitosamente;
+5. admin de prueba seguro creado;
+6. CMS recreado manualmente en borrador, publicado y comprobado (`nosotros`, `contacto`, `federarse`, `documentos`);
+7. Legal, Knowledge y hashes validados con scripts en staging;
+8. API, CORS exacto, proxy, HTTPS, auth y administración validados sobre dominio real;
+9. robots `noindex, nofollow` y ausencia de sitemap confirmados en staging;
+10. Contacto y Escuela probados en ventana controlada con `log`, validando persistencia y fail-closed; el SMTP y ciclo de identidad pública completa de menores sigue pendiente.
 
-Staging nunca envía a usuarios reales ni utiliza datos productivos.
+Pasos **Pendientes / Aplazados** en staging:
+11. **Ejecutar backup, restore a DB temporal y rollback (El backup nativo está bloqueado por requerir cuenta Railway Pro. La alternativa de backup manual y el rollback de aplicación se posponen por decisión operativa).**
+12. Ejecutar smoke completo global y aceptación humana para cerrar la fase 7F staging.
+
+Staging ha quedado devuelto a un estado seguro (`CONTACT_FORM_ENABLED=false`, `SCHOOL_ENROLLMENT_ENABLED=false`, etc.). Nunca se enviaron correos a usuarios reales.
 
 ## Primer despliegue y aceptación de producción
 
