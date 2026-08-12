@@ -511,7 +511,7 @@ Los siguientes pasos ya se han validado en staging:
 7. Legal, Knowledge y hashes validados con scripts en staging;
 8. API, CORS exacto, proxy, HTTPS, auth y administración validados sobre dominio real;
 9. robots `noindex, nofollow` y ausencia de sitemap confirmados en staging;
-10. Contacto y Escuela probados en ventana controlada con `log`, validando persistencia y fail-closed; el SMTP y ciclo de identidad pública completa de menores sigue pendiente.
+10. Contacto y Escuela probados en ventana controlada con `log`, validando persistencia y fail-closed; el SMTP real desde Railway está BLOQUEADO por el plan Hobby, por lo que la notificación de Contacto, el reset de contraseña y el ciclo de identidad pública de menores siguen pendientes.
 
 Pasos **Pendientes / Aplazados** en staging:
 11. **Ejecutar backup, restore a DB temporal y rollback (El backup nativo está bloqueado por requerir cuenta Railway Pro. La alternativa de backup manual y el rollback de aplicación se posponen por decisión operativa).**
@@ -564,7 +564,7 @@ E2E, seeders ni cuentas con password por defecto.
 ## Riesgos y gates abiertos
 
 - no existen todavía proyectos, DNS, TLS o recursos externos configurados;
-- SMTP, entrega, rebotes, SPF, DKIM, DMARC y aliases no están probados;
+- SMTP saliente está bloqueado por el plan Railway Hobby; entrega, rebotes, SPF, DKIM, DMARC y aliases no están probados;
 - el correo anterior sigue siendo el canal Legal vigente;
 - CMS y datos reales de Escuela no están cargados en producción;
 - backup, restore, RTO, rollback rehearsal y monitor continuo no están
