@@ -3,23 +3,12 @@ import { Link, useParams } from 'react-router-dom';
 import { championshipsService } from '../api/championships';
 import { CategoryNavigation } from '../components/Competition/CategoryNavigation';
 import { PageMetadata } from '../components/PublicLanding/PageMetadata';
+import { CategoryRankingTable } from '../components/Rankings/CategoryRankingTable';
 import {
   getCategoryDetailPath,
   TOURNAMENTS_PATH,
 } from '../navigation/competitionRoutes';
 import styles from './Standings.module.css';
-
-const displayValue = (value) => (
-  value === null || value === undefined || value === '' ? '—' : value
-);
-
-const displayDifference = (value) => {
-  if (value === null || value === undefined || value === '') {
-    return '—';
-  }
-
-  return Number(value) > 0 ? `+${value}` : value;
-};
 
 export default function Standings() {
   const { categoryId } = useParams();
@@ -112,46 +101,11 @@ export default function Standings() {
         <p className={styles.emptyMessage}>Todavía no hay participantes o resultados en esta clasificación.</p>
       ) : null}
       {status === 'content' ? (
-        <div
-          className={styles.tableWrapper}
-          role="region"
-          aria-label={`Tabla de clasificación de ${categoryName}`}
-          tabIndex="0"
-        >
-          <table className={styles.table}>
-            <caption className={styles.visuallyHidden}>Clasificación de {categoryName}</caption>
-            <thead>
-              <tr className={styles.headerRow}>
-                <th scope="col" className={styles.pos}>Pos.</th>
-                <th scope="col">Participante</th>
-                <th scope="col" className={styles.center}><abbr title="Partidos jugados">PJ</abbr></th>
-                <th scope="col" className={styles.center}><abbr title="Victorias">V</abbr></th>
-                <th scope="col" className={styles.center}><abbr title="Derrotas">D</abbr></th>
-                <th scope="col" className={styles.center}><abbr title="Juegos a favor">JF</abbr></th>
-                <th scope="col" className={styles.center}><abbr title="Juegos en contra">JC</abbr></th>
-                <th scope="col" className={styles.center}><abbr title="Diferencia de juegos">Dif.</abbr></th>
-                <th scope="col" className={styles.center}>Puntos</th>
-              </tr>
-            </thead>
-            <tbody>
-              {standings.map((row, index) => (
-                <tr key={`${row.position ?? 'provisional'}-${index}`} className={styles.row}>
-                  <td className={styles.pos}>{displayValue(row.position)}</td>
-                  <th scope="row" className={styles.name}>
-                    {row.public_display_name || 'Participante'}
-                  </th>
-                  <td className={styles.center}>{displayValue(row.played)}</td>
-                  <td className={styles.center}>{displayValue(row.wins)}</td>
-                  <td className={styles.center}>{displayValue(row.losses)}</td>
-                  <td className={styles.center}>{displayValue(row.games_for)}</td>
-                  <td className={styles.center}>{displayValue(row.games_against)}</td>
-                  <td className={styles.center}>{displayDifference(row.games_diff)}</td>
-                  <td className={styles.points}>{displayValue(row.points)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <CategoryRankingTable
+          ranking={standings}
+          categoryName={categoryName}
+          tableStyles={styles}
+        />
       ) : null}
     </div>
   );

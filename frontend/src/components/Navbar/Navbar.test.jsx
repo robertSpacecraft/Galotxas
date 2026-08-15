@@ -38,11 +38,11 @@ describe('Navbar', () => {
     expect(screen.getByRole('link', { name: 'Saltar al contenido principal' }))
       .toHaveAttribute('href', '#main-content');
     expect(screen.getByRole('link', { name: 'Galotxas' })).toHaveAttribute('href', '/');
-    expect(within(editorialNavigation).getAllByRole('listitem', { hidden: true })).toHaveLength(11);
+    expect(within(editorialNavigation).getAllByRole('listitem', { hidden: true })).toHaveLength(14);
     expect(within(editorialNavigation).getByRole('link', { name: 'Inicio' }))
       .toHaveAttribute('href', '/');
-    expect(within(editorialNavigation).getByRole('link', { name: 'Competición' }))
-      .toHaveAttribute('href', '/competicion');
+    expect(within(editorialNavigation).getByRole('button', { name: 'Competición' }))
+      .toHaveAttribute('aria-controls', 'public-navigation-competition-panel');
     expect(within(editorialNavigation).getByRole('button', { name: 'Aprende' }))
       .toHaveAttribute('aria-controls', 'public-navigation-learn-panel');
     expect(within(editorialNavigation).getByRole('button', { name: 'Club' }))
@@ -59,10 +59,21 @@ describe('Navbar', () => {
     const user = userEvent.setup();
     renderWithProviders(<Navbar />, { authValue: anonymousAuth });
 
+    const competitionButton = screen.getByRole('button', { name: 'Competición' });
     const learnButton = screen.getByRole('button', { name: 'Aprende' });
     const clubButton = screen.getByRole('button', { name: 'Club' });
 
+    await user.click(competitionButton);
+    expect(competitionButton).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('link', { name: 'Vista general' }))
+      .toHaveAttribute('href', '/competicion');
+    expect(screen.getByRole('link', { name: 'Campeonatos' }))
+      .toHaveAttribute('href', '/torneos');
+    expect(screen.getByRole('link', { name: 'Rankings' }))
+      .toHaveAttribute('href', '/rankings');
+
     await user.click(learnButton);
+    expect(competitionButton).toHaveAttribute('aria-expanded', 'false');
     expect(learnButton).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByRole('link', { name: 'Aprende a jugar' }))
       .toHaveAttribute('href', '/aprende-a-jugar');
@@ -216,9 +227,11 @@ describe('Navbar', () => {
 
   it.each([
     ['/', 'Inicio', 'link', 'page'],
-    ['/competicion', 'Competición', 'link', 'page'],
-    ['/torneos/12', 'Competición', 'link', null],
-    ['/categories/8/standings', 'Competición', 'link', null],
+    ['/competicion', 'Competición', 'button', null],
+    ['/torneos/12', 'Competición', 'button', null],
+    ['/categories/8/standings', 'Competición', 'button', null],
+    ['/matches/3', 'Competición', 'button', null],
+    ['/rankings', 'Competición', 'button', null],
     ['/aprende-a-jugar', 'Aprende', 'button', null],
     ['/aprende-a-jugar/manual/reglamento/el-saque', 'Aprende', 'button', null],
     ['/escuela', 'Aprende', 'button', null],
@@ -245,6 +258,27 @@ describe('Navbar', () => {
     expect(screen.getByRole('link', { name: 'Manual y reglas', hidden: true }))
       .toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('button', { name: 'Aprende' })).not.toHaveAttribute('aria-current');
+  });
+
+  it('sets current only on exact Competition children and not on detail routes', () => {
+    const { unmount } = renderWithProviders(<Navbar />, {
+      route: '/rankings',
+      authValue: anonymousAuth,
+    });
+
+    expect(screen.getByRole('link', { name: 'Rankings', hidden: true }))
+      .toHaveAttribute('aria-current', 'page');
+    unmount();
+
+    renderWithProviders(<Navbar />, {
+      route: '/torneos/12',
+      authValue: anonymousAuth,
+    });
+    expect(screen.getByRole('button', { name: 'Competición' })).toHaveClass(styles.navItemActive);
+    expect(screen.getByRole('link', { name: 'Campeonatos', hidden: true }))
+      .not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('link', { name: 'Campeonatos', hidden: true }))
+      .not.toHaveClass(styles.disclosureLinkActive);
   });
 
   it('does not activate public navigation on CMS legacy or account routes', () => {

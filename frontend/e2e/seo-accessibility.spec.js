@@ -140,6 +140,13 @@ test.describe('SEO, indexación y accesibilidad pública', () => {
     expect(headText).not.toContain('Pilotari E2E');
     expect(headText).not.toContain('Menor E2E');
     await expect(page).toHaveTitle('Rankings | Club Galotxes Monòver');
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+      'content',
+      'Consulta los rankings públicos de Galotxas por histórico, temporada, campeonato y categoría.',
+    );
+    await expect(page.locator('meta[name="robots"]'))
+      .toHaveAttribute('content', 'noindex, follow');
+    await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
   });
 
   test('robots y sitemap responden según la configuración de build', async ({ page }) => {

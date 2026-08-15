@@ -2,10 +2,19 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { championshipsService } from '../../api/championships';
 import { AllTimeRanking } from '../../components/Rankings/AllTimeRanking';
+import { CategoryRanking } from '../../components/Rankings/CategoryRanking';
+import { ChampionshipRanking } from '../../components/Rankings/ChampionshipRanking';
 import { SeasonRanking } from '../../components/Rankings/SeasonRanking';
 import { PageMetadata } from '../../components/PublicLanding/PageMetadata';
 import { COMPETITION_PATH } from '../../navigation/competitionRoutes';
 import styles from './Rankings.module.css';
+
+const rankingTabs = Object.freeze([
+  { id: 'all-time', label: 'Histórico' },
+  { id: 'season', label: 'Temporada' },
+  { id: 'championship', label: 'Campeonato' },
+  { id: 'category', label: 'Categoría' },
+]);
 
 export const Rankings = () => {
   const request = useRef(0);
@@ -53,39 +62,31 @@ export const Rankings = () => {
     <div className={styles.container}>
       <PageMetadata
         title="Rankings"
-        description="Consulta el ranking histórico de Galotxas y los rankings por temporada."
+        description="Consulta los rankings públicos de Galotxas por histórico, temporada, campeonato y categoría."
       />
       <Link to={COMPETITION_PATH} className={styles.backLink}>← Volver a Competición</Link>
       <header className={styles.header}>
         <h1 className={styles.title}>Rankings de Galotxas</h1>
         <p className={styles.subtitle}>
-          Consulta el rendimiento histórico y el ranking de cada temporada.
+          Consulta el rendimiento por histórico, temporada, campeonato o categoría.
         </p>
       </header>
 
       <div className={styles.tabs} role="tablist" aria-label="Tipos de ranking">
-        <button
-          type="button"
-          id="all-time-ranking-tab"
-          role="tab"
-          aria-selected={activeTab === 'all-time'}
-          aria-controls="all-time-ranking-panel"
-          className={`${styles.tabBtn} ${activeTab === 'all-time' ? styles.activeTab : ''}`}
-          onClick={() => setActiveTab('all-time')}
-        >
-          Ranking histórico
-        </button>
-        <button
-          type="button"
-          id="season-ranking-tab"
-          role="tab"
-          aria-selected={activeTab === 'season'}
-          aria-controls="season-ranking-panel"
-          className={`${styles.tabBtn} ${activeTab === 'season' ? styles.activeTab : ''}`}
-          onClick={() => setActiveTab('season')}
-        >
-          Ranking de temporada
-        </button>
+        {rankingTabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            id={`${tab.id}-ranking-tab`}
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            aria-controls={`${tab.id}-ranking-panel`}
+            className={`${styles.tabBtn} ${activeTab === tab.id ? styles.activeTab : ''}`}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       <div className={styles.content}>
@@ -108,6 +109,32 @@ export const Rankings = () => {
               seasons={seasons}
               selectedSeasonId={selectedSeasonId}
               onSeasonChange={setSelectedSeasonId}
+              seasonStatus={seasonStatus}
+              onRetrySeasons={loadSeasons}
+            />
+          </div>
+        ) : null}
+        {activeTab === 'championship' ? (
+          <div
+            id="championship-ranking-panel"
+            role="tabpanel"
+            aria-labelledby="championship-ranking-tab"
+          >
+            <ChampionshipRanking
+              seasons={seasons}
+              seasonStatus={seasonStatus}
+              onRetrySeasons={loadSeasons}
+            />
+          </div>
+        ) : null}
+        {activeTab === 'category' ? (
+          <div
+            id="category-ranking-panel"
+            role="tabpanel"
+            aria-labelledby="category-ranking-tab"
+          >
+            <CategoryRanking
+              seasons={seasons}
               seasonStatus={seasonStatus}
               onRetrySeasons={loadSeasons}
             />

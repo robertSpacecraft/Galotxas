@@ -54,7 +54,7 @@ test.describe.serial('experiencia pública de Escuela de Galotxas', () => {
     await expect(schoolHomeLink).toHaveAttribute('href', '/escuela');
 
     const editorialNavigation = page.getByRole('list', { name: 'Navegación editorial' });
-    await expect(editorialNavigation.getByRole('link')).toHaveCount(2);
+    await expect(editorialNavigation.getByRole('link')).toHaveCount(1);
     const learnNavigationButton = editorialNavigation.getByRole('button', { name: 'Aprende' });
     await learnNavigationButton.click();
     const schoolNavigationLink = editorialNavigation.getByRole('link', {

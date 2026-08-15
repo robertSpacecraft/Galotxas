@@ -2,19 +2,19 @@ import React from 'react';
 import { formatCompetitionNumber } from '../../pages/Competition/competitionPresentation';
 import styles from './TournamentRanking.module.css';
 
-export const TournamentRanking = ({ ranking }) => {
+export const TournamentRanking = ({ ranking, showTitle = true }) => {
   if (!ranking || ranking.length === 0) {
     return (
-      <section className={styles.rankingContainer}>
-        <h2 className={styles.title}>Ranking del campeonato</h2>
+      <section className={styles.rankingContainer} aria-label={!showTitle ? 'Ranking del campeonato' : undefined}>
+        {showTitle ? <h2 className={styles.title}>Ranking del campeonato</h2> : null}
         <p className={styles.noData}>Todavía no hay datos de ranking para este campeonato.</p>
       </section>
     );
   }
 
   return (
-    <section className={styles.rankingContainer}>
-      <h2 className={styles.title}>Ranking del campeonato</h2>
+    <section className={styles.rankingContainer} aria-label={!showTitle ? 'Ranking del campeonato' : undefined}>
+      {showTitle ? <h2 className={styles.title}>Ranking del campeonato</h2> : null}
       <div
         className={styles.tableWrapper}
         role="region"

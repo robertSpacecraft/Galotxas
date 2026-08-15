@@ -2,12 +2,11 @@ import { Link } from 'react-router-dom';
 import { PageMetadata } from '../../components/PublicLanding/PageMetadata';
 import {
   getPublicNavigationChild,
-  getPublicNavigationItem,
 } from '../../navigation/publicNavigation';
 import styles from './Home.module.css';
 
 const homeDestinations = Object.freeze({
-  competition: getPublicNavigationItem('competition'),
+  competition: getPublicNavigationChild('competition', 'competition-overview'),
   learn: getPublicNavigationChild('learn', 'learn-overview'),
   manual: getPublicNavigationChild('learn', 'manual'),
   school: getPublicNavigationChild('learn', 'school'),

@@ -76,16 +76,24 @@ test.describe.serial('smoke narrativo del MVP', () => {
     const editorialNavigation = page.getByRole('list', { name: 'Navegación editorial' });
     const accountArea = page.getByRole('group', { name: 'Cuenta' });
 
-    await expect(editorialNavigation.getByRole('link')).toHaveCount(2);
+    await expect(editorialNavigation.getByRole('link')).toHaveCount(1);
     await expect(editorialNavigation.getByRole('link', { name: 'Inicio' })).toBeVisible();
-    await expect(editorialNavigation.getByRole('link', { name: 'Competición' })).toBeVisible();
+    const competitionButton = editorialNavigation.getByRole('button', { name: 'Competición' });
+    await expect(competitionButton).toBeVisible();
     await expect(editorialNavigation.getByRole('button', { name: 'Aprende' })).toBeVisible();
     await expect(editorialNavigation.getByRole('button', { name: 'Club' })).toBeVisible();
     await expect(editorialNavigation.getByRole('link', { name: 'Torneos' })).toHaveCount(0);
     await expect(editorialNavigation.getByRole('link', { name: 'Rankings' })).toHaveCount(0);
     await expect(accountArea.getByRole('link', { name: 'Iniciar sesión' })).toBeVisible();
 
-    await editorialNavigation.getByRole('link', { name: 'Competición' }).click();
+    await competitionButton.click();
+    await expect(editorialNavigation.getByRole('link', { name: 'Vista general' }))
+      .toHaveAttribute('href', '/competicion');
+    await expect(editorialNavigation.getByRole('link', { name: 'Campeonatos' }))
+      .toHaveAttribute('href', '/torneos');
+    await expect(editorialNavigation.getByRole('link', { name: 'Rankings' }))
+      .toHaveAttribute('href', '/rankings');
+    await editorialNavigation.getByRole('link', { name: 'Vista general' }).click();
     await expect(page).toHaveURL(/\/competicion$/);
     await expect(page.getByRole('heading', { name: 'Competición', level: 1 })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Temporadas y campeonatos', level: 2 }))
@@ -118,15 +126,32 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await expect(page.getByRole('heading', { name: 'Campeonato Individual E2E', level: 1 }))
       .toBeVisible();
 
-    await editorialNavigation.getByRole('link', { name: 'Competición' }).click();
-    await page.getByRole('link', { name: /Torneos/ }).click();
+    await competitionButton.click();
+    await editorialNavigation.getByRole('link', { name: 'Campeonatos' }).click();
     await expect(page).toHaveURL(/\/torneos$/);
     await expect(page.getByRole('heading', { name: 'Torneos', level: 1 })).toBeVisible();
 
-    await editorialNavigation.getByRole('link', { name: 'Competición' }).click();
-    await page.getByRole('link', { name: 'Ver ranking completo' }).click();
+    await competitionButton.click();
+    await editorialNavigation.getByRole('link', { name: 'Rankings' }).click();
     await expect(page).toHaveURL(/\/rankings$/);
     await expect(page.getByRole('heading', { name: 'Rankings de Galotxas', level: 1 })).toBeVisible();
+    await expect(page.getByRole('tab', { name: 'Histórico' }))
+      .toHaveAttribute('aria-selected', 'true');
+    await page.getByRole('tab', { name: 'Temporada' }).click();
+    await expect(page.getByRole('combobox', { name: 'Temporada', exact: true }))
+      .toHaveValue(/\d+/);
+    await page.getByRole('tab', { name: 'Campeonato' }).click();
+    await expect(page.getByRole('combobox', { name: 'Temporada del campeonato' }))
+      .toHaveValue(/\d+/);
+    await expect(page.getByRole('combobox', { name: 'Campeonato', exact: true }))
+      .toHaveValue(/\d+/);
+    await page.getByRole('tab', { name: 'Categoría' }).click();
+    await expect(page.getByRole('combobox', { name: 'Temporada de la categoría' }))
+      .toHaveValue(/\d+/);
+    await expect(page.getByRole('combobox', { name: 'Campeonato de la categoría' }))
+      .toHaveValue(/\d+/);
+    await expect(page.getByRole('combobox', { name: 'Categoría', exact: true }))
+      .toHaveValue(/\d+/);
 
     assertNoConsoleErrors();
   });
@@ -175,14 +200,19 @@ test.describe.serial('smoke narrativo del MVP', () => {
     ]) {
       await page.goto(pathname);
       const editorialNavigation = page.getByRole('list', { name: 'Navegación editorial' });
-      const competitionLink = editorialNavigation.getByRole('link', { name: 'Competición' });
+      const competitionButton = editorialNavigation.getByRole('button', { name: 'Competición' });
 
-      await expect(competitionLink).toHaveClass(/navItemActive/);
-      if (currentValue) {
-        await expect(competitionLink).toHaveAttribute('aria-current', currentValue);
-      } else {
-        await expect(competitionLink).not.toHaveAttribute('aria-current');
-      }
+      await expect(competitionButton).toHaveClass(/navItemActive/);
+      await expect(competitionButton).not.toHaveAttribute('aria-current');
+      await competitionButton.click();
+
+      const currentChildName = {
+        '/competicion': 'Vista general',
+        '/torneos': 'Campeonatos',
+        '/rankings': 'Rankings',
+      }[pathname];
+      await expect(editorialNavigation.getByRole('link', { name: currentChildName }))
+        .toHaveAttribute('aria-current', currentValue || 'page');
     }
 
     assertNoConsoleErrors();
@@ -222,7 +252,7 @@ test.describe.serial('smoke narrativo del MVP', () => {
       name: 'Aprende a jugar',
       includeHidden: true,
     })).toHaveAttribute('aria-current', 'page');
-    await expect(editorialNavigation.getByRole('link', { name: 'Competición' }))
+    await expect(editorialNavigation.getByRole('button', { name: 'Competición' }))
       .not.toHaveAttribute('aria-current');
     await expect(page).toHaveTitle('Aprende a jugar | Club Galotxes Monòver');
     await expect(page.getByText(/40 documentos organizados en 4 colecciones/)).toBeVisible();
@@ -454,8 +484,9 @@ test.describe.serial('smoke narrativo del MVP', () => {
     const assertNoConsoleErrors = watchCriticalConsoleErrors(page);
 
     await page.goto('/');
-    await page.getByRole('list', { name: 'Navegación editorial' })
-      .getByRole('link', { name: 'Competición' }).click();
+    const competitionNavigation = page.getByRole('list', { name: 'Navegación editorial' });
+    await competitionNavigation.getByRole('button', { name: 'Competición' }).click();
+    await competitionNavigation.getByRole('link', { name: 'Vista general' }).click();
     await page.getByRole('link', { name: 'Ver detalle de Campeonato Individual E2E' }).click();
     await expect(page.getByRole('heading', { name: 'Campeonato Individual E2E' })).toBeVisible();
     publicChampionshipPath = new URL(page.url()).pathname;
@@ -612,27 +643,29 @@ test.describe.serial('smoke narrativo del MVP', () => {
     const openMenu = page.getByRole('button', { name: 'Abrir menú de navegación' });
     await expect(openMenu).toBeVisible();
     await expect(openMenu).toHaveAttribute('aria-expanded', 'false');
-    await expect(page.getByRole('link', { name: 'Competición', exact: true })).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Competición', exact: true })).toBeHidden();
 
     await openMenu.click();
     const closeMenu = page.getByRole('button', { name: 'Cerrar menú de navegación' });
     await expect(closeMenu).toHaveAttribute('aria-expanded', 'true');
     await expect(page.getByRole('link', { name: 'Inicio', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Competición', exact: true })).toBeVisible();
+    const competitionButton = page.getByRole('button', { name: 'Competición', exact: true });
+    await expect(competitionButton).toBeVisible();
     await expect(page.getByRole('button', { name: 'Aprende', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Club', exact: true })).toBeVisible();
 
-    await page.getByRole('link', { name: 'Competición', exact: true }).click();
+    await competitionButton.click();
+    await page.getByRole('link', { name: 'Vista general', exact: true }).click();
     await expect(page).toHaveURL(/\/competicion$/);
     await expect(page.getByRole('button', { name: 'Abrir menú de navegación' }))
       .toHaveAttribute('aria-expanded', 'false');
-    await expect(page.getByRole('link', { name: 'Competición', exact: true })).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Competición', exact: true })).toBeHidden();
 
     await page.getByRole('button', { name: 'Abrir menú de navegación' }).click();
-    await page.getByRole('link', { name: 'Competición', exact: true }).focus();
+    await page.getByRole('button', { name: 'Competición', exact: true }).focus();
     await page.keyboard.press('Escape');
     await expect(page.getByRole('button', { name: 'Abrir menú de navegación' })).toBeFocused();
-    await expect(page.getByRole('link', { name: 'Competición', exact: true })).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Competición', exact: true })).toBeHidden();
     await page.keyboard.press('Tab');
     await expect(
       page.getByRole('group', { name: 'Cuenta' }).getByRole('link', { name: 'Iniciar sesión' }),

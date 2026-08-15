@@ -34,7 +34,7 @@ describe('publicNavigation', () => {
       {
         id: 'competition',
         label: 'Competición',
-        type: navigationItemTypes.link,
+        type: navigationItemTypes.disclosure,
         visible: true,
         audience: navigationAudiences.public,
       },
@@ -58,11 +58,18 @@ describe('publicNavigation', () => {
   });
 
   it('keeps disclosure parents without routes and declares their canonical children', () => {
+    const competition = getPublicNavigationItem('competition');
     const learn = getPublicNavigationItem('learn');
     const club = getPublicNavigationItem('club');
 
+    expect(competition).not.toHaveProperty('to');
     expect(learn).not.toHaveProperty('to');
     expect(club).not.toHaveProperty('to');
+    expect(competition.children.map(({ label, to }) => ({ label, to }))).toEqual([
+      { label: 'Vista general', to: '/competicion' },
+      { label: 'Campeonatos', to: '/torneos' },
+      { label: 'Rankings', to: '/rankings' },
+    ]);
     expect(learn.children.map(({ label, to }) => ({ label, to }))).toEqual([
       { label: 'Aprende a jugar', to: '/aprende-a-jugar' },
       { label: 'Manual y reglas', to: '/aprende-a-jugar/manual' },
@@ -81,7 +88,7 @@ describe('publicNavigation', () => {
   it.each([
     ['/', 'home'],
     ['/competicion', 'competition'],
-    ['/competicion/temporada', 'competition'],
+    ['/competicion/temporada', null],
     ['/torneos', 'competition'],
     ['/torneos/campeonato-1', 'competition'],
     ['/categories/7/standings', 'competition'],
@@ -105,12 +112,16 @@ describe('publicNavigation', () => {
 
   it('uses exact and prefix matchers while reserving aria-current page for exact destinations', () => {
     const competition = getPublicNavigationItem('competition');
+    const competitionOverview = getPublicNavigationChild('competition', 'competition-overview');
+    const championships = getPublicNavigationChild('competition', 'competition-championships');
     const manual = getPublicNavigationChild('learn', 'manual');
 
     expect(matchesNavigationItem(competition, '/torneos/12')).toBe(true);
+    expect(matchesNavigationItem(championships, '/torneos/12')).toBe(false);
     expect(matchesNavigationItem(manual, '/aprende-a-jugar/manual/reglamento/saque')).toBe(true);
-    expect(getPublicNavigationAriaCurrent(competition, '/competicion')).toBe('page');
-    expect(getPublicNavigationAriaCurrent(competition, '/torneos')).toBeUndefined();
+    expect(getPublicNavigationAriaCurrent(competitionOverview, '/competicion')).toBe('page');
+    expect(getPublicNavigationAriaCurrent(championships, '/torneos')).toBe('page');
+    expect(getPublicNavigationAriaCurrent(championships, '/torneos/12')).toBeUndefined();
     expect(getPublicNavigationAriaCurrent(manual, '/aprende-a-jugar/manual')).toBe('page');
     expect(getPublicNavigationAriaCurrent(
       manual,

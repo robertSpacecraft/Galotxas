@@ -87,7 +87,7 @@ const staticRoutes = [
     id: 'rankings',
     path: '/rankings',
     title: 'Rankings',
-    description: 'Consulta rankings públicos de competición con identidad minimizada.',
+    description: 'Consulta rankings públicos por histórico, temporada, campeonato y categoría con identidad minimizada.',
     classification: seoRouteClassifications.noindexPublic,
     canonicalPath: null,
     sitemap: false,

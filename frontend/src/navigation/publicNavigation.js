@@ -43,6 +43,12 @@ const learnOverviewPath = learnPath();
 const publicManualPath = manualPath();
 const publicSchoolPath = schoolPath();
 
+const competitionChildren = [
+  link({ id: 'competition-overview', label: 'Vista general', to: '/competicion' }),
+  link({ id: 'competition-championships', label: 'Campeonatos', to: '/torneos' }),
+  link({ id: 'competition-rankings', label: 'Rankings', to: '/rankings' }),
+];
+
 const learnChildren = [
   link({
     id: 'learn-overview',
@@ -72,12 +78,13 @@ const clubChildren = [
 
 export const publicNavigation = Object.freeze([
   link({ id: 'home', label: 'Inicio', to: '/' }),
-  link({
+  disclosure({
     id: 'competition',
     label: 'Competición',
-    to: '/competicion',
+    panelId: 'public-navigation-competition-panel',
     exact: ['/competicion', '/torneos', '/rankings'],
-    prefixes: ['/competicion/', '/torneos/', '/categories/', '/matches/'],
+    prefixes: ['/torneos/', '/categories/', '/matches/'],
+    children: competitionChildren,
   }),
   disclosure({
     id: 'learn',

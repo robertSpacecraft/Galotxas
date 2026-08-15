@@ -95,4 +95,13 @@ describe('public SEO route manifest', () => {
     expect(paths).not.toContain('/nosotros');
     expect(publicSeoAliases).toHaveLength(5);
   });
+
+  it('keeps Rankings noindex while describing all four public scopes', () => {
+    expect(resolveSeoRoute('/rankings')).toMatchObject({
+      classification: seoRouteClassifications.noindexPublic,
+      canonicalPath: null,
+      sitemap: false,
+      description: 'Consulta rankings públicos por histórico, temporada, campeonato y categoría con identidad minimizada.',
+    });
+  });
 });

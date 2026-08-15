@@ -6,15 +6,23 @@ const playerCredentials = {
 };
 
 test.describe('navegación agrupada, Home y footer', () => {
-  test('desktop opera ambos disclosures, mantiene uno abierto y restaura el foco con Escape', async ({ page }) => {
+  test('desktop opera los tres disclosures, mantiene uno abierto y restaura el foco con Escape', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto('/');
 
     const navigation = page.getByRole('list', { name: 'Navegación editorial' });
+    const competitionButton = navigation.getByRole('button', { name: 'Competición' });
     const learnButton = navigation.getByRole('button', { name: 'Aprende' });
     const clubButton = navigation.getByRole('button', { name: 'Club' });
 
+    await competitionButton.click();
+    await expect(competitionButton).toHaveAttribute('aria-expanded', 'true');
+    await expect(navigation.getByRole('link', { name: 'Vista general' })).toBeVisible();
+    await expect(navigation.getByRole('link', { name: 'Campeonatos' })).toBeVisible();
+    await expect(navigation.getByRole('link', { name: 'Rankings' })).toBeVisible();
+
     await learnButton.click();
+    await expect(competitionButton).toHaveAttribute('aria-expanded', 'false');
     await expect(learnButton).toHaveAttribute('aria-expanded', 'true');
     await expect(navigation.getByRole('link', { name: 'Manual y reglas' })).toBeVisible();
 
@@ -44,11 +52,22 @@ test.describe('navegación agrupada, Home y footer', () => {
     await expect(clubButton).toHaveClass(/navItemActive/);
   });
 
-  test('móvil navega a Escuela, cierra todo y aplica Escape en dos niveles', async ({ page }) => {
+  test('móvil navega a Rankings y Escuela, cierra todo y aplica Escape en dos niveles', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
 
     const openMenu = page.getByRole('button', { name: 'Abrir menú de navegación' });
+    await openMenu.click();
+    const competitionButton = page.getByRole('button', { name: 'Competición' });
+    await competitionButton.click();
+    await page.getByRole('link', { name: 'Rankings' }).click();
+
+    await expect(page).toHaveURL(/\/rankings$/);
+    await expect(page.getByRole('heading', { name: 'Rankings de Galotxas', level: 1 }))
+      .toBeVisible();
+    await expect(page.getByRole('button', { name: 'Abrir menú de navegación' }))
+      .toHaveAttribute('aria-expanded', 'false');
+
     await openMenu.click();
     const learnButton = page.getByRole('button', { name: 'Aprende' });
     await learnButton.click();
@@ -166,7 +185,7 @@ test.describe('navegación agrupada, Home y footer', () => {
     await page.setViewportSize({ width: 320, height: 740 });
     await page.goto('/');
     await page.getByRole('button', { name: 'Abrir menú de navegación' }).click();
-    await page.getByRole('button', { name: 'Club' }).click();
+    await page.getByRole('button', { name: 'Competición' }).click();
 
     await expect.poll(() => page.evaluate(
       () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,

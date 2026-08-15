@@ -42,6 +42,7 @@
 
 .tabs {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     gap: 1rem;
     margin-bottom: 2.5rem;
@@ -96,7 +97,7 @@
     }
     
     .tabBtn {
-        flex: 1;
+        flex: 1 1 calc(50% - 0.5rem);
         padding: 0.5rem 1rem;
         font-size: 0.95rem;
     }
