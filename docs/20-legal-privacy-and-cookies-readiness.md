@@ -377,3 +377,8 @@ limitador de inscripción usa HMAC para no incorporar IP o correo en claro a la
 clave. `SCHOOL_ENROLLMENT_ENABLED=false` conserva la operación productiva
 cerrada. Configuración real, revisión humana, proveedor de correo, scheduler,
 backups, restore, logs y despliegue continúan como gates de 7F.
+
+
+---
+
+**Nota de seguimiento posterior (Fase 7F.2):** Tras la aceptación de staging, ciertas decisiones (como el modelo de navegación en Competición y el aplazamiento de noticias y multimedia persistente) han sido promovidas o refinadas en la Fase 7F.2. Ver `docs/28-preproduction-product-refinement.md` y `ADR-042`.

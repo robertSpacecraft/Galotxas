@@ -62,6 +62,7 @@ La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A�
 **Fase 7F (Staging)** ha sido validada mediante *smoke test global y aceptación humana*: Vercel/Railway/MariaDB separados para staging, configuración de DNS/TLS, CMS verificado, API, Legal, Contacto (formulario/persistencia) y Escuela (inscripciones, permisos) validados. El envío **SMTP real desde Railway queda BLOQUEADO por el plan Railway Hobby** (requiere Pro o proveedor HTTPS alternativo, pospuesto); por tanto, la notificación real de Contacto, el flujo completo de identidad de menores (token/confirmación) y la recuperación de contraseña por correo quedan pendientes. La verificación de backups/restore/rollback en staging queda **aplazada / no ejecutada por decisión operativa** (el backup nativo de volúmenes también está bloqueado por el plan Railway Hobby; no se ensaya por ahora la alternativa manual ni el rollback de aplicación). Se ha registrado una posible mejora de UX para `/aprende-a-jugar` (no bloqueante).
 
 7F (Producción), Fase 7 y el MVP siguen abiertos. No se ha realizado publicación productiva ni migración editorial definitiva.
+Se incorpora la **Fase 7F.2** de refinamiento preproducción, re-evaluando capacidades como noticias, foto de usuario, multimedia persistente y rankings.
 
 ## Fase 7 abierta — bloques parcialmente completados / bloqueados
 
@@ -69,7 +70,8 @@ La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A�
 
 ## Fase 7 abierta — bloques pendientes
 
-1. **Fase 7F (Producción):** tras completar validaciones y smoke de staging, desplegar producción inicialmente noindex y con Contacto, Escuela, identidad de menores y scheduler cerrados, activándolos de uno en uno sólo tras sus gates.
+1. **Fase 7F.2 — Refinamiento preproducción y ampliación controlada del alcance:** implementar en desarrollo (Rankings, Multimedia S3, Banners, Avatar User, Noticias, Menú CMS), revalidar y aceptar de nuevo el baseline en staging.
+2. **Fase 7F (Producción):** tras completar validaciones y smoke de staging, desplegar producción inicialmente noindex y con Contacto, Escuela, identidad de menores y scheduler cerrados, activándolos de uno en uno sólo tras sus gates.
 2. **Fase 7G — Validación y cierre del MVP:** ejecutar regresión, recorridos críticos, QA responsive/multibrowser priorizada, smoke y aceptación humana antes de tag/release.
 
 Las autorizaciones de imágenes para web, redes sociales y archivo histórico
@@ -235,8 +237,6 @@ Estas capacidades son válidas, pero no bloquean el candidato actual:
 - pagos online;
 - notificaciones;
 - sugerencia o asignación automática de categoría;
-- noticias como entidad editorial propia;
-- subida segura y gestión de documentos e imágenes;
 - formularios públicos institucionales o de federación con privacidad y antispam;
 - SEO y ordenación editorial avanzados del CMS;
 - métricas y filtros administrativos avanzados;

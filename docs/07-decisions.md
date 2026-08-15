@@ -1709,3 +1709,25 @@ Consecuencias:
 ## Mantenimiento
 
 Cuando una decisión arquitectónica relevante cambie, deberá registrarse una nueva entrada en este documento en lugar de modificar silenciosamente una anterior.
+
+---
+
+# ADR-042 — Refinamiento de Competición como disclosure
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-08
+
+Contexto:
+- ADR-033 fijó `Competición` como un enlace directo en el menú principal y estableció una landing `/competicion` con enlaces secundarios a Torneos y Rankings.
+- Tras la validación inicial en staging y pruebas con usuarios, se decide consolidar `/rankings` como un centro unificado de clasificaciones (Histórico, Temporada, Campeonato, Categoría).
+- Mantener Competición como enlace directo ocultaría esta nueva estructura centralizada.
+
+Decisión:
+- Sustituir únicamente la decisión de ADR-033 relativa a que “Competición es un enlace directo”.
+- Convertir `Competición` en un elemento disclosure en el menú principal, con las opciones: Vista general (`/competicion`), Campeonatos (`/torneos`) y Rankings (`/rankings`).
+- Mantener inalterado el resto de ADR-033 (Aprende y Club como disclosures, Cuenta separada, etc.).
+
+Consecuencias:
+- `/rankings` gana descubribilidad y actúa como un centro unificado.
+- El menú de navegación debe actualizarse en React para reflejar este nuevo disclosure, manteniendo la accesibilidad y el soporte móvil.

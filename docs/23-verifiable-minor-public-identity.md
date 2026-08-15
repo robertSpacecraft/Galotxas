@@ -276,3 +276,8 @@ tests y E2E pasan y `git diff --check` queda limpio. El posterior 7D.2C2B cierra
 
 Seguimiento: 7D.3 se implementa posteriormente sin modificar esta autorización;
 sus 61 escenarios E2E cierran 7D. Fase 7, despliegue y MVP continúan pendientes.
+
+
+---
+
+**Nota de seguimiento posterior (Fase 7F.2):** Tras la aceptación de staging, ciertas decisiones (como el modelo de navegación en Competición y el aplazamiento de noticias y multimedia persistente) han sido promovidas o refinadas en la Fase 7F.2. Ver `docs/28-preproduction-product-refinement.md` y `ADR-042`.

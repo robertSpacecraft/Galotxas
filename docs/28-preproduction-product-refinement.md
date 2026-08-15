@@ -1,0 +1,70 @@
+# Refinamiento preproducción de producto, navegación y multimedia
+
+## 1. Propósito
+Este documento oficializa una intervención documental para registrar decisiones de producto surgidas tras la aceptación inicial del entorno de staging y las pruebas con usuarios reales (testers). Su objetivo es estructurar la promoción de capacidades previamente consideradas Post-MVP (P1/P2) hacia una fase de preproducción controlada, sin reescribir la auditoría histórica ni fingir que siempre formaron parte del alcance original de la Fase 7.
+
+## 2. Origen del refinamiento
+Tras validar exhaustivamente el baseline en staging, han surgido necesidades de refinamiento antes de abrir el producto al público en producción. En lugar de retrasarlas hasta después del MVP o implementarlas sin documentar, se agrupan en una fase de ampliación estructurada.
+
+## 3. Baseline actual
+- Staging base ha sido desplegado y aceptado mediante smoke test y revisión humana.
+- La Fase 7F original (Staging) ha cumplido sus validaciones, salvo restricciones de proveedor (SMTP Hobby y backups nativos bloqueados).
+- Producción no está desplegada y el MVP sigue abierto.
+
+## 4. No reescritura histórica
+Las decisiones de las fases 7A, 7B y 7D relativas a Competición, Prensa y Multimedia (que postergaban estos aspectos) se mantienen como registro válido de su momento. Este documento no invalida esa historia; actúa como addendum vinculante de promoción de alcance. El baseline de staging aceptado sigue siendo válido y requerirá una **nueva validación** tras incorporar estos bloques.
+
+## 5. Alcance promovido (Fase 7F.2)
+Las siguientes capacidades pasan a formar parte de los requisitos preproducción:
+
+### 7F.2A — Rankings y navegación de Competición
+- Consolidación de `/rankings` como centro público con vistas de Histórico (por defecto), Temporada, Campeonato y Categoría.
+- Modificación del menú: `Competición` dejará de ser un enlace directo para convertirse en un disclosure con: Vista general, Campeonatos y Rankings. (Documentado en ADR-042).
+
+### 7F.2B — Infraestructura multimedia persistente
+- Implementación de object storage S3-compatible (p.ej. Storage Bucket) separado del filesystem efímero de la aplicación.
+- Configuración en backend sin afectar a Git ni guardar binarios en base de datos.
+- Requisito previo ineludible para banderas visuales y noticias.
+
+### 7F.2C — Banners administrables
+- CRUD en Blade para gestión promocional interna sin React.
+- Sin inclusión de scripts, trackers o dependencias publicitarias de terceros (seguridad fail-closed).
+
+### 7F.2D — Foto de perfil de Usuario
+- Reutilización segura de `User.profile_photo_path` sin duplicar estado en `Player`.
+- Capacidad de subida, sustitución, fallback y visualización en Mi Panel.
+- **Protección de menores**: la foto existirá en la cuenta, pero su proyección en perfiles públicos deportivos estará condicionada por políticas específicas de consentimiento (independientes de la actual `public_competition_identity`).
+
+### 7F.2E — Noticias
+- Creación de entidad/arquitectura editorial (ya sea `NewsArticle` o especialización CMS) para gestionar listado cronológico, extractos y detalle.
+- Separación estricta frente al dominio previo de `prensa-media`.
+
+### 7F.2F — Navegación CMS administrable
+- Capacidad limitada y validada para que Blade asigne páginas del CMS a slots controlados de navegación.
+- Protección estricta de las rutas de producto y la estructura del enrutador React.
+
+## 6. Dependencias y decisiones
+- **Decisiones cerradas**: Sustitución parcial de la navegación de Competición (ADR-042); obligatoriedad de almacenamiento de objetos (sin sistema de archivos efímero) para persistencia. Utilización de `User.profile_photo_path` para fotos de perfil.
+- **Decisiones abiertas**: Proveedor de CDN o modelo S3 concreto; modelo exacto de datos para noticias (`NewsArticle` vs `CmsPage`); configuración exacta de los slots del menú.
+
+## 7. Privacidad y Seguridad
+La filosofía fail-closed se mantiene:
+- La autorización para perfiles públicos de menores NO incluye por defecto autorización de difusión de fotografía. Requiere un gate de consentimiento explícito e independiente.
+- Las imágenes subidas por usuarios no controlarán sus rutas locales directamente (prevención de path traversal).
+- No se incorporan rastreadores publicitarios mediante los banners.
+
+## 8. Ciclo de pruebas y compatibilidad
+El ciclo de desarrollo deberá seguir la pauta:
+`desarrollo → tests dirigidos → regresión completa → staging → smoke → beta/pruebas manuales → aceptación del nuevo baseline → producción`.
+
+## 9. Relación con 7F Producción y 7G
+El despliegue en Producción (7F) queda **suspendido** hasta la compleción y validación estricta de toda la Fase 7F.2 en Staging. El cierre del MVP (7G) ocurrirá posteriormente. La deuda técnica de post-MVP descrita en el roadmap (p. ej. aplicación móvil, pasarela de pago, migración auth) sigue fuera del alcance.
+
+## 10. Checklist observable
+- [ ] 7F.2A implementado en `develop`.
+- [ ] 7F.2B infraestructura multimedia S3 disponible.
+- [ ] 7F.2C banners funcionales.
+- [ ] 7F.2D avatar de usuario gestionable.
+- [ ] 7F.2E noticias navegables.
+- [ ] 7F.2F enlaces de menú CMS asignables.
+- [ ] Promoción a Staging y nueva aceptación humana (beta) superadas.

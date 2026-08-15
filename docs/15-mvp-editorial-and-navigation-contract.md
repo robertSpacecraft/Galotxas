@@ -977,3 +977,8 @@ anonimización quedan preparados sin scheduler. Los datos, horarios, niveles,
 responsable y canales reales deben cargarse y aprobarse antes de activar el
 flag. El detalle técnico y la matriz humana pendiente se encuentran en
 `26-school-operational-readiness.md`; 7F, 7G, Fase 7 y MVP siguen abiertos.
+
+
+---
+
+**Nota de seguimiento posterior (Fase 7F.2):** Tras la aceptación de staging, ciertas decisiones (como el modelo de navegación en Competición y el aplazamiento de noticias y multimedia persistente) han sido promovidas o refinadas en la Fase 7F.2. Ver `docs/28-preproduction-product-refinement.md` y `ADR-042`.

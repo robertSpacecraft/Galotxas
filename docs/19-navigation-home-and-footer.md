@@ -234,3 +234,8 @@ los padres Aprende/Club en 404. El layout conserva un solo main y el skip link;
 el cambio real de pathname mueve foco a ese main y se anuncia mediante una
 única región live. La indexación permanece desactivada hasta 7F. Los 61
 escenarios E2E pasan y cierran 7D.3 y 7D; Fase 7 y el MVP siguen abiertos.
+
+
+---
+
+**Nota de seguimiento posterior (Fase 7F.2):** Tras la aceptación de staging, ciertas decisiones (como el modelo de navegación en Competición y el aplazamiento de noticias y multimedia persistente) han sido promovidas o refinadas en la Fase 7F.2. Ver `docs/28-preproduction-product-refinement.md` y `ADR-042`.

@@ -558,3 +558,8 @@ autorización. El contrato completo está en
 ## Mantenimiento
 
 Toda nueva fuente o sección pública debe actualizar esta gobernanza antes o junto con su implementación. Si el comportamiento real difiere de la decisión aprobada, se debe registrar de forma explícita el estado, la deuda y el plan de reconciliación.
+
+
+---
+
+**Nota de seguimiento posterior (Fase 7F.2):** Tras la aceptación de staging, ciertas decisiones (como el modelo de navegación en Competición y el aplazamiento de noticias y multimedia persistente) han sido promovidas o refinadas en la Fase 7F.2. Ver `docs/28-preproduction-product-refinement.md` y `ADR-042`.

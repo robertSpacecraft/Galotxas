@@ -1050,3 +1050,8 @@ horarios, niveles, responsable y canales reales, así como la revisión humana,
 continúan como gates previos a activar un entorno. Correo, scheduler, backups,
 restore, staging y rollback pertenecen a 7F. Por tanto 7E puede cerrarse
 técnicamente con producción cerrada; 7F, 7G, Fase 7 y el MVP siguen abiertos.
+
+
+---
+
+**Nota de seguimiento posterior (Fase 7F.2):** Tras la aceptación de staging, ciertas decisiones (como el modelo de navegación en Competición y el aplazamiento de noticias y multimedia persistente) han sido promovidas o refinadas en la Fase 7F.2. Ver `docs/28-preproduction-product-refinement.md` y `ADR-042`.

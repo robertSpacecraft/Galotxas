@@ -387,3 +387,8 @@ Para probarlo, seguir la instalación del README y ejecutar los comandos de vali
 - Ausencia de vulnerabilidades conocidas que superen el umbral aceptado por el responsable.
 
 Cumplir estos criterios permite considerar `v0.1.0`; no implica ni recomienda automáticamente `v1.0.0`.
+
+
+---
+
+**Nota de seguimiento posterior (Fase 7F.2):** Tras la aceptación de staging, ciertas decisiones (como el modelo de navegación en Competición y el aplazamiento de noticias y multimedia persistente) han sido promovidas o refinadas en la Fase 7F.2. Ver `docs/28-preproduction-product-refinement.md` y `ADR-042`.
