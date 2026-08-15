@@ -19,17 +19,28 @@ FROM php:8.2-fpm-alpine
 RUN apk add --no-cache \
         bash \
         gettext \
+        freetype \
         icu-libs \
+        libjpeg-turbo \
+        libpng \
+        libwebp \
         libzip \
         nginx \
         oniguruma \
     && apk add --no-cache --virtual .build-deps \
         $PHPIZE_DEPS \
+        freetype-dev \
         icu-dev \
+        libjpeg-turbo-dev \
+        libpng-dev \
+        libwebp-dev \
         libzip-dev \
         oniguruma-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install \
         bcmath \
+        exif \
+        gd \
         intl \
         mbstring \
         opcache \

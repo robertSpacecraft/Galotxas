@@ -4,17 +4,25 @@ RUN apk add --no-cache \
     bash \
     git \
     unzip \
+    freetype-dev \
+    libjpeg-turbo-dev \
+    libpng-dev \
+    libwebp-dev \
     libzip-dev \
     icu-dev \
     oniguruma-dev
 
-RUN docker-php-ext-install \
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install \
     pdo_mysql \
     bcmath \
+    exif \
+    gd \
     intl \
     zip
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY docker/app/php.ini /usr/local/etc/php/conf.d/zz-media.ini
 
 WORKDIR /var/www
 

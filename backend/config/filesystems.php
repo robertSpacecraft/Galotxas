@@ -47,6 +47,27 @@ return [
             'report' => false,
         ],
 
+        'media_local' => [
+            'driver' => 'local',
+            'root' => storage_path('app/media'),
+            'visibility' => 'private',
+            'throw' => true,
+            'report' => false,
+        ],
+
+        'media_s3' => [
+            'driver' => 's3',
+            'key' => env('MEDIA_ACCESS_KEY_ID'),
+            'secret' => env('MEDIA_SECRET_ACCESS_KEY'),
+            'region' => env('MEDIA_REGION'),
+            'bucket' => env('MEDIA_BUCKET'),
+            'endpoint' => env('MEDIA_ENDPOINT'),
+            'use_path_style_endpoint' => env('MEDIA_USE_PATH_STYLE_ENDPOINT', false),
+            'visibility' => 'private',
+            'throw' => true,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
