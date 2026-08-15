@@ -332,3 +332,20 @@ La regresión completa crece a 63 escenarios E2E y pasa en 2,6 minutos; mantiene
 los ocho escenarios propios de 7D.3 y añade la operación ampliada de Escuela.
 La revisión perceptual humana, dominio, HTTPS y activación indexable siguen en
 7F/7G.
+
+## 44. Seguimiento de Fase 7F.2A
+
+7F.2A mantiene `/rankings` en `NOINDEX_PUBLIC`, sin canonical ni sitemap. La
+ruta continúa usando `noindex, follow` cuando la indexación está habilitada y
+no publica nombres deportivos en title, description, Open Graph o datos
+estructurados. Sólo se actualiza su descripción genérica para explicar los
+cuatro ámbitos disponibles: histórico, temporada, campeonato y categoría.
+
+El nuevo disclosure Competición no crea rutas, aliases o canonical. Sus tres
+hijos exactos son `/competicion`, `/torneos` y `/rankings`; los detalles
+deportivos activan sólo el padre y no atribuyen `aria-current` a un hijo
+incorrecto. Los tres disclosures comparten exclusión mutua, cierre al navegar,
+clic exterior y Escape con retorno de foco. La regresión completa de
+`develop` conserva 63 E2E verdes, incluidos noindex/canonical de Rankings,
+teclado y ausencia de overflow a 320 px. La revisión humana y la nueva
+aceptación de staging siguen pendientes.

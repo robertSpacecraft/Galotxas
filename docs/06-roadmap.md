@@ -56,6 +56,7 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 38. **Fase 7D.3 — SEO, accesibilidad e indexación pública:** inventario y clasificación de rutas, canonical y aliases centralizados, indexación fail-closed, metadata/OG/JSON-LD prudentes, robots y sitemap deterministas, foco y anuncio SPA, reflow y 61 escenarios E2E validados; sin dominio, activación o despliegue.
 39. **Fase 7E — Preparación operativa de Escuela:** apertura fail-closed centralizada, contenido de programa administrable, contacto operativo privado, aviso versionado, trazabilidad, retención, holds y anonimización; 421 tests backend, 484 frontend y 63 E2E validados con producción cerrada y sin inventar datos reales.
 40. **Fase 7F.1 — Production readiness, entornos y runbooks:** dominio y API canónicos centralizados, staging/producción separados, preflights fail-closed, liveness mínima, bootstrap administrativo seguro, CORS/headers/proxy, artefactos Vercel/Railway y operación de DB, CMS, correo, DNS, backup, restore y rollback documentados; 431 tests backend, 493 frontend y 63 E2E validados sin desplegar ni activar servicios.
+41. **Fase 7F.2A — Rankings y navegación de Competición en `develop`:** `/rankings` consolidado en Histórico, Temporada, Campeonato y Categoría sobre contratos API existentes; selectores jerárquicos seguros; Competición convertida en disclosure accesible con Vista general, Campeonatos y Rankings; 508 tests frontend y 63 E2E validados sin modificar backend, desplegar ni obtener aceptación humana de staging.
 
 La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fases 7A, 7B, 7E y 7F.1, los bloques 7C.0–7C.2 y 7D.1–7D.3 están completados; 7C y 7D quedan cerradas.
 
@@ -66,15 +67,18 @@ Se incorpora la **Fase 7F.2** de refinamiento preproducción, re-evaluando capac
 
 Antes de iniciar 7F.2A se ha cerrado su prerrequisito de dominio: el reparto base de rankings es `3-0` cuando quien pierde suma menos de 8 juegos y `2-1` cuando suma 8 o más, siempre con tres puntos totales. Los cuatro cálculos backend y Mi Panel consumen una única regla, con regresión de dobles y generación de copa. Esta corrección no inicia ni completa 7F.2A y no vuelve a sembrar copas ya generadas.
 
+7F.2A está implementada y validada automáticamente en `develop`. No se ha promovido a staging ni se ha realizado su smoke o aceptación humana; 7F.2B–7F.2F permanecen pendientes y la Fase 7F.2 no está cerrada. La corrección de reparto de puntos que actuaba como prerrequisito se verificó manualmente en staging el 2026-08-15, sin que esa evidencia se considere aceptación de 7F.2A.
+
 ## Fase 7 abierta — bloques parcialmente completados / bloqueados
 
 1. **Fase 7F (Pendientes de Staging y Producción):** configuración de SMTP real (bloqueado en Hobby), identidad pública completa de menores y reset de contraseña (dependen de SMTP), y ejecución de backup/restore/rollback en staging (aplazado).
+2. **Fase 7F.2 — Refinamiento preproducción:** 7F.2A está cerrada sólo en `develop`; faltan 7F.2B–7F.2F y la promoción, smoke y aceptación humana del nuevo baseline de staging.
 
 ## Fase 7 abierta — bloques pendientes
 
-1. **Fase 7F.2 — Refinamiento preproducción y ampliación controlada del alcance:** implementar en desarrollo (Rankings, Multimedia S3, Banners, Avatar User, Noticias, Menú CMS), partiendo del reparto de puntos ya corregido como prerrequisito de 7F.2A, revalidar y aceptar de nuevo el baseline en staging.
+1. **Fase 7F.2 — Refinamiento preproducción y ampliación controlada del alcance:** implementar 7F.2B–7F.2F en desarrollo (Multimedia S3, Banners, Avatar User, Noticias y Menú CMS) y después promover, revalidar y aceptar de nuevo el baseline completo en staging. 7F.2A no autoriza iniciar 7F.2B de forma implícita.
 2. **Fase 7F (Producción):** tras completar validaciones y smoke de staging, desplegar producción inicialmente noindex y con Contacto, Escuela, identidad de menores y scheduler cerrados, activándolos de uno en uno sólo tras sus gates.
-2. **Fase 7G — Validación y cierre del MVP:** ejecutar regresión, recorridos críticos, QA responsive/multibrowser priorizada, smoke y aceptación humana antes de tag/release.
+3. **Fase 7G — Validación y cierre del MVP:** ejecutar regresión, recorridos críticos, QA responsive/multibrowser priorizada, smoke y aceptación humana antes de tag/release.
 
 Las autorizaciones de imágenes para web, redes sociales y archivo histórico
 permanecen como un frente independiente posterior, todavía sin numeración
@@ -195,7 +199,7 @@ React de reprogramación continúa como P1 y no bloquea por sí misma el MVP.
 ## Frontend, despliegue y calidad
 
 - URL API por `VITE_API_BASE_URL`, fallback local de desarrollo y `/api/v1` en producción (DEPLOY-1);
-- Vitest, React Testing Library y 493 tests en 70 archivos, incluidos pipeline y páginas legales, SEO/canonical, identidad pública, sesión mínima, Escuela, formularios, navegación agrupada, Home/footer, Knowledge, Competición, cuenta, foco, landmarks, 404, preflight y contrato Vercel;
+- Vitest, React Testing Library y 508 tests en 73 archivos, incluidos pipeline y páginas legales, SEO/canonical, identidad pública, sesión mínima, Escuela, formularios, navegación agrupada, Home/footer, Knowledge, los cuatro ámbitos de Rankings, Competición, cuenta, foco, landmarks, 404, preflight y contrato Vercel;
 - smoke Playwright completo: 63 escenarios en 7 archivos con Chromium y stack temporal aislado, incluidos 8 casos SEO/accesibilidad de 7D.3 y la operación ampliada de Escuela;
 - auditoría y actualización compatible de npm/Composer sin vulnerabilidades conocidas pendientes en la instantánea de cierre (DEPS-1);
 - documentación técnica 00–08 reconciliada con el código (DOC-1);
@@ -212,6 +216,7 @@ React de reprogramación continúa como P1 y no bloquea por sí misma el MVP.
 - cierre de Aprende a jugar con resumen derivado, accesos de colección, contexto local, índice documental, anterior/siguiente sin cruces, fragmentos estables y Knowledge fuera del chunk inicial (KNOWLEDGE-EXPERIENCE-CLOSURE-1 / Fase 5C).
 - identidad deportiva pública minimizada y fail-closed, perfil autenticado sólo en memoria con bootstrap `/me`, y recursos tipográficos/administrativos locales sin peticiones automáticas a los proveedores retirados (PRIVACY-HARDENING-PUBLIC-IDENTITY-1 / Fase 7D.2B).
 - preparación reproducible de Vercel/Railway, liveness mínima, preflights frontend/backend, CORS exacto, headers, proxy, admin bootstrap y runbooks forward-only de operación sin despliegue ni activación externa (PRODUCTION-READINESS-1 / Fase 7F.1).
+- centro público de Rankings con cuatro ámbitos y navegación Competición agrupada, jerárquica, accesible y responsive sobre los endpoints existentes, validado sólo en `develop` (COMPETITION-RANKINGS-HUB-1 / Fase 7F.2A).
 - inventario, instalación limpia, regresión, auditoría, notas de versión y runbook del candidato preparados sin publicar ni etiquetar (MVP-RC-1).
 
 ---

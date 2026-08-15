@@ -238,4 +238,4 @@ escenarios E2E pasan y cierran 7D.3 y 7D; Fase 7 y el MVP siguen abiertos.
 
 ---
 
-**Nota de seguimiento posterior (Fase 7F.2):** Tras la aceptación de staging, ciertas decisiones (como el modelo de navegación en Competición y el aplazamiento de noticias y multimedia persistente) han sido promovidas o refinadas en la Fase 7F.2. Ver `docs/28-preproduction-product-refinement.md` y `ADR-042`.
+**Nota de seguimiento posterior (Fase 7F.2):** Tras la aceptación de staging, ciertas decisiones (como el modelo de navegación en Competición y el aplazamiento de noticias y multimedia persistente) han sido promovidas o refinadas en la Fase 7F.2. El 2026-08-15, 7F.2A sustituyó en `develop` el enlace directo histórico de Competición por un tercer disclosure con Vista general, Campeonatos y Rankings, usando el mismo comportamiento accesible y responsive de Aprende y Club. Home conserva su CTA exacto a `/competicion`; Cuenta y footer no cambian. Esta nota no reescribe el contrato histórico de 7D.1 y no acredita promoción ni aceptación del nuevo baseline en staging. Ver `docs/28-preproduction-product-refinement.md` y `ADR-042`.

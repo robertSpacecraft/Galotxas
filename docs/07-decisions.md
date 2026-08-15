@@ -1731,3 +1731,9 @@ Decisión:
 Consecuencias:
 - `/rankings` gana descubribilidad y actúa como un centro unificado.
 - El menú de navegación debe actualizarse en React para reflejar este nuevo disclosure, manteniendo la accesibilidad y el soporte móvil.
+
+Seguimiento de implementación (2026-08-15):
+- ADR-042 queda aplicada en `develop` mediante el mismo sistema genérico de disclosures que Aprende y Club, con exclusión mutua, cierre exterior, Escape, restauración de foco y cierre al navegar en desktop y móvil.
+- `/rankings` presenta Histórico por defecto y los ámbitos Temporada, Campeonato y Categoría. La jerarquía usa los endpoints públicos existentes y React conserva posiciones y orden backend sin recalcular reglas deportivas.
+- El padre Competición queda activo en `/competicion`, `/torneos`, sus detalles, `/rankings`, categorías y partidos; sólo Vista general, Campeonatos y Rankings reciben `aria-current="page"` en su destino exacto.
+- La implementación y la regresión automática están cerradas únicamente en `develop`. La promoción a staging, el smoke y la aceptación humana del nuevo baseline siguen pendientes; 7F.2B no se ha iniciado.

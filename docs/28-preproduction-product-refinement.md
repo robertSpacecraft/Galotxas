@@ -19,8 +19,10 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
 
 ### 7F.2A — Rankings y navegación de Competición
 - Prerrequisito de dominio ya cerrado antes de iniciar el bloque: reparto base único `3-0` si quien pierde suma menos de 8 juegos y `2-1` si suma 8 o más, siempre con tres puntos totales. Los rankings históricos se recalculan dinámicamente desde partidos validados.
-- Consolidación de `/rankings` como centro público con vistas de Histórico (por defecto), Temporada, Campeonato y Categoría.
-- Modificación del menú: `Competición` dejará de ser un enlace directo para convertirse en un disclosure con: Vista general, Campeonatos y Rankings. (Documentado en ADR-042).
+- Implementado en `develop` el 2026-08-15: `/rankings` es el centro público con vistas de Histórico (por defecto), Temporada, Campeonato y Categoría sobre los contratos públicos existentes, sin cálculos deportivos en React.
+- Implementado en `develop` el disclosure `Competición` con Vista general, Campeonatos y Rankings, compartido por desktop y móvil y documentado en ADR-042.
+- Los selectores siguen la jerarquía Temporada → Campeonato → Categoría, invalidan hijos y respuestas obsoletas al cambiar un padre y distinguen carga, error recuperable, vacío y contenido.
+- La regresión en desarrollo comprende 508 tests frontend y 63 E2E sobre el stack aislado. La promoción, el smoke y la aceptación humana del nuevo baseline de staging siguen pendientes.
 - La corrección del prerrequisito no inicia 7F.2A. Los cruces de copa ya generados no se vuelven a sembrar automáticamente y deberán revisarse de forma operativa si se desea regenerarlos.
 
 ### 7F.2B — Infraestructura multimedia persistente
@@ -48,6 +50,7 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
 ## 6. Dependencias y decisiones
 - **Decisiones cerradas**: Sustitución parcial de la navegación de Competición (ADR-042); obligatoriedad de almacenamiento de objetos (sin sistema de archivos efímero) para persistencia. Utilización de `User.profile_photo_path` para fotos de perfil.
 - **Prerrequisito cerrado de Rankings**: una única regla backend distribuye tres puntos base por partido (`3-0` o `2-1`) antes de contribuciones de dobles y multiplicadores de nivel; no existe persistencia ni backfill de puntos.
+- **Verificación operativa del prerrequisito**: el reparto corregido se comprobó manualmente en staging el 2026-08-15. Esta evidencia corresponde al prerrequisito de dominio y no acredita despliegue, smoke ni aceptación de 7F.2A.
 - **Decisiones abiertas**: Proveedor de CDN o modelo S3 concreto; modelo exacto de datos para noticias (`NewsArticle` vs `CmsPage`); configuración exacta de los slots del menú.
 
 ## 7. Privacidad y Seguridad
@@ -64,7 +67,7 @@ El ciclo de desarrollo deberá seguir la pauta:
 El despliegue en Producción (7F) queda **suspendido** hasta la compleción y validación estricta de toda la Fase 7F.2 en Staging. El cierre del MVP (7G) ocurrirá posteriormente. La deuda técnica de post-MVP descrita en el roadmap (p. ej. aplicación móvil, pasarela de pago, migración auth) sigue fuera del alcance.
 
 ## 10. Checklist observable
-- [ ] 7F.2A implementado en `develop`.
+- [x] 7F.2A implementado y validado automáticamente en `develop`.
 - [ ] 7F.2B infraestructura multimedia S3 disponible.
 - [ ] 7F.2C banners funcionales.
 - [ ] 7F.2D avatar de usuario gestionable.
