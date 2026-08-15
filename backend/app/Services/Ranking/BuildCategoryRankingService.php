@@ -10,6 +10,7 @@ use Illuminate\Support\Collection;
 class BuildCategoryRankingService
 {
     public function __construct(
+        private readonly ResolveMatchBasePointsService $basePointsService,
         private readonly PublicPlayerIdentityService $publicIdentityService
     ) {}
 
@@ -99,18 +100,16 @@ class BuildCategoryRankingService
             $away['games_for'] += $awayScore;
             $away['games_against'] += $homeScore;
 
+            $basePoints = $this->basePointsService->resolve($homeScore, $awayScore);
+            $home['points'] += $basePoints['home_points'];
+            $away['points'] += $basePoints['away_points'];
+
             if ($homeScore > $awayScore) {
                 $home['wins']++;
                 $away['losses']++;
-
-                $home['points'] += 3;
-                $away['points'] += $awayScore >= 8 ? 1 : 0;
             } else {
                 $away['wins']++;
                 $home['losses']++;
-
-                $away['points'] += 3;
-                $home['points'] += $homeScore >= 8 ? 1 : 0;
             }
 
             $table->put($homeId, $home);

@@ -12,6 +12,7 @@ class BuildSeasonRankingService
 {
     public function __construct(
         private readonly ResolveEntryPlayerContributionsService $contributionsService,
+        private readonly ResolveMatchBasePointsService $basePointsService,
         private readonly PublicPlayerIdentityService $publicIdentityService
     ) {}
 
@@ -66,9 +67,9 @@ class BuildSeasonRankingService
             }
 
             $homeWon = $homeScore > $awayScore;
-
-            $homeRawPoints = $homeWon ? 3 : ($homeScore >= 8 ? 1 : 0);
-            $awayRawPoints = $homeWon ? ($awayScore >= 8 ? 1 : 0) : 3;
+            $basePoints = $this->basePointsService->resolve($homeScore, $awayScore);
+            $homeRawPoints = $basePoints['home_points'];
+            $awayRawPoints = $basePoints['away_points'];
 
             foreach ($homeContributions as $contribution) {
                 /** @var Player $player */

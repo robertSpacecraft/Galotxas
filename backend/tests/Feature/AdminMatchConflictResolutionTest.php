@@ -254,7 +254,8 @@ class AdminMatchConflictResolutionTest extends TestCase
 
         $this->assertSame($match->home_entry_id, $ranking[0]['entry_id']);
         $this->assertSame(1, $ranking[0]['wins']);
-        $this->assertSame(3, $ranking[0]['points']);
+        $this->assertSame(2, $ranking[0]['points']);
+        $this->assertSame(1, $ranking->firstWhere('entry_id', $match->away_entry_id)['points']);
     }
 
     public function test_invalid_and_tied_resolutions_leave_match_and_reports_unchanged(): void
