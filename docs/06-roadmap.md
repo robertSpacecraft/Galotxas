@@ -67,12 +67,12 @@ Se incorpora la **Fase 7F.2** de refinamiento preproducción, re-evaluando capac
 
 Antes de iniciar 7F.2A se ha cerrado su prerrequisito de dominio: el reparto base de rankings es `3-0` cuando quien pierde suma menos de 8 juegos y `2-1` cuando suma 8 o más, siempre con tres puntos totales. Los cuatro cálculos backend y Mi Panel consumen una única regla, con regresión de dobles y generación de copa. Esta corrección no inicia ni completa 7F.2A y no vuelve a sembrar copas ya generadas.
 
-7F.2A está implementada y validada automáticamente en `develop`. No se ha promovido a staging ni se ha realizado su smoke o aceptación humana; 7F.2B–7F.2F permanecen pendientes y la Fase 7F.2 no está cerrada. La corrección de reparto de puntos que actuaba como prerrequisito se verificó manualmente en staging el 2026-08-15, sin que esa evidencia se considere aceptación de 7F.2A.
+7F.2A está implementada, validada automáticamente en `develop`, promovida a staging y su smoke y aceptación humana fueron superados el 2026-08-15 sin incidencias funcionales; 7F.2B–7F.2F permanecen pendientes y la Fase 7F.2 no está cerrada. La corrección de reparto de puntos que actuaba como prerrequisito se verificó manualmente en staging el 2026-08-15, sin que esa evidencia se considere aceptación de 7F.2A.
 
 ## Fase 7 abierta — bloques parcialmente completados / bloqueados
 
 1. **Fase 7F (Pendientes de Staging y Producción):** configuración de SMTP real (bloqueado en Hobby), identidad pública completa de menores y reset de contraseña (dependen de SMTP), y ejecución de backup/restore/rollback en staging (aplazado).
-2. **Fase 7F.2 — Refinamiento preproducción:** 7F.2A está cerrada sólo en `develop`; faltan 7F.2B–7F.2F y la promoción, smoke y aceptación humana del nuevo baseline de staging.
+2. **Fase 7F.2 — Refinamiento preproducción:** 7F.2A está cerrada en staging; faltan 7F.2B–7F.2F y la aceptación humana global del nuevo baseline completo de staging.
 
 ## Fase 7 abierta — bloques pendientes
 

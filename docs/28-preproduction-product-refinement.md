@@ -65,7 +65,7 @@ El ciclo de desarrollo deberá seguir la pauta:
 `desarrollo → tests dirigidos → regresión completa → staging → smoke → beta/pruebas manuales → aceptación del nuevo baseline → producción`.
 
 ## 9. Relación con 7F Producción y 7G
-El despliegue en Producción (7F) queda **suspendido** hasta la compleción y validación estricta de toda la Fase 7F.2 en Staging. El cierre del MVP (7G) ocurrirá posteriormente. La deuda técnica de post-MVP descrita en el roadmap (p. ej. aplicación móvil, pasarela de pago, migración auth) sigue fuera del alcance.
+El despliegue en Producción (7F) queda **suspendido** hasta la compleción y validación estricta de toda la Fase 7F.2 en Staging. (Nota: 7F.2A ya se cerró en staging; faltan 7F.2B–7F.2F). El cierre del MVP (7G) ocurrirá posteriormente. La deuda técnica de post-MVP descrita en el roadmap (p. ej. aplicación móvil, pasarela de pago, migración auth) sigue fuera del alcance.
 
 ## 10. Checklist observable
 - [x] 7F.2A implementado y validado automáticamente en `develop`.
@@ -74,4 +74,4 @@ El despliegue en Producción (7F) queda **suspendido** hasta la compleción y va
 - [ ] 7F.2D avatar de usuario gestionable.
 - [ ] 7F.2E noticias navegables.
 - [ ] 7F.2F enlaces de menú CMS asignables.
-- [ ] Promoción a Staging y nueva aceptación humana (beta) superadas.
+- [ ] Promoción a Staging y nueva aceptación humana (beta) superadas. (7F.2A verificada el 2026-08-15)
