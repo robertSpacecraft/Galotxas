@@ -1737,3 +1737,28 @@ Seguimiento de implementación (2026-08-15):
 - `/rankings` presenta Histórico por defecto y los ámbitos Temporada, Campeonato y Categoría. La jerarquía usa los endpoints públicos existentes y React conserva posiciones y orden backend sin recalcular reglas deportivas.
 - El padre Competición queda activo en `/competicion`, `/torneos`, sus detalles, `/rankings`, categorías y partidos; sólo Vista general, Campeonatos y Rankings reciben `aria-current="page"` en su destino exacto.
 - La implementación y la regresión automática están cerradas únicamente en `develop`. La promoción a staging, el smoke y la aceptación humana del nuevo baseline siguen pendientes; 7F.2B no se ha iniciado.
+
+---
+
+# ADR-043 — Multimedia persistente privada sobre object storage S3-compatible
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-08
+
+Contexto:
+- El filesystem de la aplicación actual en Railway es efímero. No es apto para almacenar ficheros persistentes (banners, avatares, noticias) subidos por usuarios.
+- La Fase 7F.2B exige soporte de multimedia persistente antes de Producción (Fase 7F).
+- Se debe garantizar privacidad de recursos, evitar servir binarios pesados por PHP y simplificar la seguridad inicial sin integraciones complejas frontend-storage directo.
+
+Decisión:
+- Almacenamiento multimedia durable persistirá en object storage privado S3-compatible, desacoplado lógicamente del framework mediante un nuevo disco de Laravel (`MEDIA_DISK`).
+- Mantener `FILESYSTEM_DISK=local` como predeterminado del sistema general.
+- Desarrollo ordinario utilizará disco local (`media_local`); entornos remotos aislarán credenciales y namespaces. S3-compatible será validado inexcusablemente en el gate de Staging.
+- Flujo MVP Upload: Navegador/Blade -> Endpoint de Laravel (autorización, normalización, redecodificación de JPEGs/PNGs, stripping explícito de metadata EXIF) -> Bucket.
+- Referencia: Los modelos de base de datos usarán una 'object key' opaca sin ruta absoluta, sin tabla genérica `MediaAsset` por el momento.
+- Flujo MVP Lectura: Enlaces públicos de imágenes persistidas serán rutas estables de Laravel, que validarán estado/políticas de publicación y harán redirección 302/307 hacia un enlace presigned GET (bucket) con un TTL corto (1-5 min).
+
+Consecuencias y aspectos abiertos:
+- **Decisiones cerradas:** Almacenamiento privado S3-compatible; uso de capa abstracta de Laravel; redirect a presigned GET; backend upload MVP sin presigned PUT; keys opacas; fail-closed local por defecto; documentos PDFs/persistencia documental aplazados.
+- **Decisiones mantenidas abiertas:** Proveedor definitivo S3; CDN; direct upload frontend a bucket futuro; múltiples variantes responsive generadas; tabla MediaAsset/DAM; política explícita de publicación de fotos de menores.

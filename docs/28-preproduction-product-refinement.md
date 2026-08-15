@@ -26,7 +26,8 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
 - La regresión en desarrollo comprende 508 tests frontend y 63 E2E sobre el stack aislado. La promoción, el smoke y la aceptación humana del nuevo baseline de staging siguen pendientes.
 - La corrección del prerrequisito no inicia 7F.2A. Los cruces de copa ya generados no se vuelven a sembrar automáticamente y deberán revisarse de forma operativa si se desea regenerarlos.
 
-### 7F.2B — Infraestructura multimedia persistente
+### 7F.2B — Infraestructura multimedia persistente (Auditoría completada)
+- **Estado**: Auditoría técnica finalizada y arquitectura aprobada (ADR-043). Implementación de código NO iniciada.
 - Implementación de object storage S3-compatible (p.ej. Storage Bucket) separado del filesystem efímero de la aplicación.
 - Configuración en backend sin afectar a Git ni guardar binarios en base de datos.
 - Requisito previo ineludible para banderas visuales y noticias.
@@ -69,7 +70,8 @@ El despliegue en Producción (7F) queda **suspendido** hasta la compleción y va
 
 ## 10. Checklist observable
 - [x] 7F.2A implementado y validado automáticamente en `develop`.
-- [ ] 7F.2B infraestructura multimedia S3 disponible.
+- [x] Auditoría 7F.2B completada y ADR-043 formalizado.
+- [ ] 7F.2B infraestructura multimedia S3 implementada y gate superado.
 - [ ] 7F.2C banners funcionales.
 - [ ] 7F.2D avatar de usuario gestionable.
 - [ ] 7F.2E noticias navegables.
