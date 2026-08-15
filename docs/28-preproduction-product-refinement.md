@@ -17,7 +17,8 @@ Las decisiones de las fases 7A, 7B y 7D relativas a Competición, Prensa y Multi
 ## 5. Alcance promovido (Fase 7F.2)
 Las siguientes capacidades pasan a formar parte de los requisitos preproducción:
 
-### 7F.2A — Rankings y navegación de Competición
+### 7F.2A — Rankings y navegación de Competición (Cerrada en staging)
+- **Estado**: Implementada, promovida y aceptada manualmente en staging el 2026-08-15 sin incidencias funcionales.
 - Prerrequisito de dominio ya cerrado antes de iniciar el bloque: reparto base único `3-0` si quien pierde suma menos de 8 juegos y `2-1` si suma 8 o más, siempre con tres puntos totales. Los rankings históricos se recalculan dinámicamente desde partidos validados.
 - Implementado en `develop` el 2026-08-15: `/rankings` es el centro público con vistas de Histórico (por defecto), Temporada, Campeonato y Categoría sobre los contratos públicos existentes, sin cálculos deportivos en React.
 - Implementado en `develop` el disclosure `Competición` con Vista general, Campeonatos y Rankings, compartido por desktop y móvil y documentado en ADR-042.
