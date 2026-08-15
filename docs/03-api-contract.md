@@ -313,6 +313,14 @@ Los nombres de los campos se mantienen en `snake_case`.
 
 ---
 
+## Cálculo de puntos de rankings
+
+Los endpoints de categoría, campeonato, temporada, histórico y Mi Panel conservan sus campos, tipos y envelopes. Sólo cambia el valor calculado conforme a la regla de dominio: cada partido validado reparte `3-0` si quien pierde suma menos de 8 juegos y `2-1` si suma 8 o más; el total base siempre es tres.
+
+`points` representa el resultado de categoría. En los agregados, `raw_points` parte de ese mismo reparto y `weighted_points` aplica después las contribuciones de jugador y el multiplicador de nivel existentes. Los Services calculan estos valores dinámicamente desde los partidos; los Resources únicamente los serializan y React sólo los presenta.
+
+---
+
 ## Rankings privados del participante
 
 `GET /api/v1/me/rankings` mantiene el envelope habitual y devuelve una fila por cada categoría en la que se localiza al jugador autenticado:
@@ -348,6 +356,8 @@ El endpoint no devuelve `CategoryEntry` ni otros modelos Eloquent. Los nombres d
 ## Ranking histórico
 
 `GET /api/v1/rankings/all-time` devuelve el ranking histórico serializado mediante `AllTimeRankingResource`.
+
+El histórico se recalcula en cada consulta a partir de partidos validados. No existe una columna de puntos ni un backfill asociado al cambio de regla; los resultados almacenados permanecen intactos.
 
 El campo `win_rate` utiliza escala `0–100`, no una fracción `0–1`:
 

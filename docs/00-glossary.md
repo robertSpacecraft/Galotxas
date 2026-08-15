@@ -222,6 +222,18 @@ En dobles, el reporte de cualquiera de los integrantes representa a todo su lado
 
 ---
 
+# Puntos base de clasificación
+
+Reparto deportivo previo a cualquier ponderación. Cada partido validado distribuye exactamente tres puntos: `3-0` cuando quien pierde suma menos de 8 juegos y `2-1` cuando suma 8 o más.
+
+---
+
+# Puntos ponderados de ranking
+
+Valor derivado de los puntos base al aplicar la contribución individual o por rol del equipo y, en los rankings agregados, el multiplicador del nivel de categoría. No cambia el reparto total del partido ni se calcula en React o en los API Resources.
+
+---
+
 # Acción pendiente de partido
 
 Resumen calculado por el backend para indicar qué intervención corresponde al jugador en Mi Panel.

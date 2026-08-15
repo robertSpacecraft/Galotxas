@@ -64,13 +64,15 @@ La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A�
 7F (Producción), Fase 7 y el MVP siguen abiertos. No se ha realizado publicación productiva ni migración editorial definitiva.
 Se incorpora la **Fase 7F.2** de refinamiento preproducción, re-evaluando capacidades como noticias, foto de usuario, multimedia persistente y rankings.
 
+Antes de iniciar 7F.2A se ha cerrado su prerrequisito de dominio: el reparto base de rankings es `3-0` cuando quien pierde suma menos de 8 juegos y `2-1` cuando suma 8 o más, siempre con tres puntos totales. Los cuatro cálculos backend y Mi Panel consumen una única regla, con regresión de dobles y generación de copa. Esta corrección no inicia ni completa 7F.2A y no vuelve a sembrar copas ya generadas.
+
 ## Fase 7 abierta — bloques parcialmente completados / bloqueados
 
 1. **Fase 7F (Pendientes de Staging y Producción):** configuración de SMTP real (bloqueado en Hobby), identidad pública completa de menores y reset de contraseña (dependen de SMTP), y ejecución de backup/restore/rollback en staging (aplazado).
 
 ## Fase 7 abierta — bloques pendientes
 
-1. **Fase 7F.2 — Refinamiento preproducción y ampliación controlada del alcance:** implementar en desarrollo (Rankings, Multimedia S3, Banners, Avatar User, Noticias, Menú CMS), revalidar y aceptar de nuevo el baseline en staging.
+1. **Fase 7F.2 — Refinamiento preproducción y ampliación controlada del alcance:** implementar en desarrollo (Rankings, Multimedia S3, Banners, Avatar User, Noticias, Menú CMS), partiendo del reparto de puntos ya corregido como prerrequisito de 7F.2A, revalidar y aceptar de nuevo el baseline en staging.
 2. **Fase 7F (Producción):** tras completar validaciones y smoke de staging, desplegar producción inicialmente noindex y con Contacto, Escuela, identidad de menores y scheduler cerrados, activándolos de uno en uno sólo tras sus gates.
 2. **Fase 7G — Validación y cierre del MVP:** ejecutar regresión, recorridos críticos, QA responsive/multibrowser priorizada, smoke y aceptación humana antes de tag/release.
 

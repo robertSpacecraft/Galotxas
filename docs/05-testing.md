@@ -359,6 +359,20 @@ RANK-1 incorpora cobertura Feature para:
 - coherencia entre categoría, campeonato y temporada;
 - conservación del contrato privado de Mi Panel.
 
+RANK-POINTS-FIX-1 amplía esa cobertura con:
+
+- resolvedor unitario único para los casos individuales `10-7`, `10-8`, `10-9`, los equivalentes de dobles `12-7`, `12-8`, `12-11` y todos sus resultados simétricos como visitante;
+- invariancia de tres puntos base totales y rechazo explícito de `8-8`;
+- aplicación exacta de `3-0` y `2-1` en categoría, campeonato, temporada, histórico y Mi Panel;
+- cálculo de `raw_points`, `weighted_points`, puntos ponderados por partido y posiciones sin alterar multiplicadores ni desempates;
+- reparto de dobles `12-8` por roles: ganador `0,50/1,50`, perdedor `0,25/0,75`, con multiplicador de nivel aplicado después;
+- conservación deliberada de categoría limitada a liga frente a agregados que incluyen todas las rondas validadas;
+- resolución administrativa de un `10-8` con efecto `2-1` en la clasificación;
+- cambio de orden comprobado antes de generar semifinales y siembra posterior `1.º-4.º` y `2.º-3.º`;
+- ausencia de una segunda fórmula productiva y eliminación de `StandingsCalculatorService`, que no tenía consumidores.
+
+La validación final de RANK-POINTS-FIX-1 completa 437 tests backend y 3.485 aserciones sobre MariaDB aislado. El E2E oficial completa 63 escenarios Chromium en 2,7 minutos, incluido el resultado validado y su reflejo posterior en rankings. Pint, `php -l` y `git diff --check` no encuentran incidencias.
+
 `formatPercentage` dispone de cobertura unitaria para números, strings numéricos, límites `0–100` y valores ausentes, infinitos o fuera de rango.
 
 ## Workflow seguro de resultados

@@ -186,6 +186,16 @@ Cada uno utiliza criterios propios definidos por el dominio.
 
 Los algoritmos concretos pertenecen a la implementación del backend.
 
+## Reparto base de puntos
+
+Todo partido validado distribuye exactamente tres puntos de clasificación. Si quien pierde suma menos de 8 juegos, el reparto es `3-0`; si alcanza 8 o más, el reparto es `2-1`. La regla es simétrica respecto al lado local o visitante y se aplica tanto a individuales como a dobles. Los empates no son resultados deportivos válidos y el cálculo falla explícitamente si recibe uno.
+
+Los rankings de categoría aplican esos puntos a la entrada competitiva. Los rankings agregados de campeonato, temporada e histórico parten del mismo reparto base, lo distribuyen entre jugadores según la contribución ya definida para individuales o roles de dobles y aplican después el multiplicador del nivel de categoría para obtener los puntos ponderados. Mi Panel reutiliza el ranking de categoría y no mantiene una fórmula propia.
+
+El alcance de rondas no cambia con esta regla: categoría agrega únicamente rondas de liga, mientras campeonato, temporada e histórico agregan todos los partidos validados de su ámbito. Los rankings se calculan dinámicamente desde `game_matches`, por lo que los resultados históricos reflejan la regla vigente en la siguiente consulta y no requieren migración ni backfill.
+
+La generación de semifinales de copa consume el orden actual del ranking de categoría. Los cruces ya generados están persistidos y no se vuelven a sembrar automáticamente cuando cambia el cálculo; cualquier regeneración debe ser una decisión operativa explícita.
+
 ## Desempates del ranking de categoría
 
 El ranking de categoría conserva este orden:

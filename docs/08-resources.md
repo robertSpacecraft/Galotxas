@@ -67,6 +67,8 @@ Recibe una estructura explícita preparada por `BuildMyRankingsService` y expone
 
 `AllTimeRankingResource` serializa el ranking histórico. El campo `win_rate` es numérico, se redondea a dos decimales y representa un porcentaje en escala `0–100`. Un consumidor debe mostrar `50` como `50 %`, sin volver a multiplicarlo por `100`.
 
+Ningún Resource calcula puntos. Los Services entregan `points` para categoría y Mi Panel, y `raw_points`/`weighted_points` para los agregados, después de aplicar el reparto base `3-0` o `2-1` y las ponderaciones de dominio. Los Resources conservan sus allowlists y sólo serializan esos valores; la corrección del reparto no añade ni renombra campos y el histórico se refleja dinámicamente sin persistir puntos.
+
 ## Resources del workflow de resultados
 
 `ParticipantMatchResource` serializa el partido devuelto a un participante desde:

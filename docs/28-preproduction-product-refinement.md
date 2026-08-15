@@ -18,8 +18,10 @@ Las decisiones de las fases 7A, 7B y 7D relativas a Competición, Prensa y Multi
 Las siguientes capacidades pasan a formar parte de los requisitos preproducción:
 
 ### 7F.2A — Rankings y navegación de Competición
+- Prerrequisito de dominio ya cerrado antes de iniciar el bloque: reparto base único `3-0` si quien pierde suma menos de 8 juegos y `2-1` si suma 8 o más, siempre con tres puntos totales. Los rankings históricos se recalculan dinámicamente desde partidos validados.
 - Consolidación de `/rankings` como centro público con vistas de Histórico (por defecto), Temporada, Campeonato y Categoría.
 - Modificación del menú: `Competición` dejará de ser un enlace directo para convertirse en un disclosure con: Vista general, Campeonatos y Rankings. (Documentado en ADR-042).
+- La corrección del prerrequisito no inicia 7F.2A. Los cruces de copa ya generados no se vuelven a sembrar automáticamente y deberán revisarse de forma operativa si se desea regenerarlos.
 
 ### 7F.2B — Infraestructura multimedia persistente
 - Implementación de object storage S3-compatible (p.ej. Storage Bucket) separado del filesystem efímero de la aplicación.
@@ -45,6 +47,7 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
 
 ## 6. Dependencias y decisiones
 - **Decisiones cerradas**: Sustitución parcial de la navegación de Competición (ADR-042); obligatoriedad de almacenamiento de objetos (sin sistema de archivos efímero) para persistencia. Utilización de `User.profile_photo_path` para fotos de perfil.
+- **Prerrequisito cerrado de Rankings**: una única regla backend distribuye tres puntos base por partido (`3-0` o `2-1`) antes de contribuciones de dobles y multiplicadores de nivel; no existe persistencia ni backfill de puntos.
 - **Decisiones abiertas**: Proveedor de CDN o modelo S3 concreto; modelo exacto de datos para noticias (`NewsArticle` vs `CmsPage`); configuración exacta de los slots del menú.
 
 ## 7. Privacidad y Seguridad
