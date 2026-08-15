@@ -1494,6 +1494,40 @@ El buffer FastCGI se fijó en 16 KiB y la ejecución completa posterior pasó
 63/63. No se desplegó ni se conectó ningún servicio. 7F, 7G, Fase 7 y el MVP
 siguen abiertos.
 
+## MEDIA-PERSISTENT-CORE-LOCAL-1 — Núcleo multimedia local
+
+7F.2B.1 cubre el núcleo sin consumidores mediante imágenes pequeñas generadas
+durante los tests, sin incorporar binarios al repositorio. La normalización
+prueba JPEG, PNG y WebP; rechaza texto renombrado, contenido que afirma ser
+JPEG pero no decodifica, SVG, GIF animado y AVIF; aplica límites de bytes,
+dimensiones y píxeles, conserva ratio, evita upscale, corrige orientación EXIF,
+elimina metadata y produce una salida redecodificable cuya extensión procede
+del encoder.
+
+Los tests de filesystem usan `Storage::fake('media_local')` o adapters
+controlados. Cubren escritura privada, existencia, metadata, borrado, URL
+temporal simulada sin presentarla como prueba S3, keys UUID con prefijos
+cerrados, rechazo de path traversal y propagación saneada de fallos. El probe
+acredita éxito y cleanup local, error genérico sin secrets y separación de la
+capacidad de URL temporal.
+
+Validación de 7F.2B.1, 2026-08-15:
+
+- suite dirigida: 22 tests y 89 aserciones;
+- backend completo mediante el runner MariaDB aislado: 459 tests y 3.574
+  aserciones;
+- `composer validate`, Pint, `php -l` y `git diff --check`: correctos;
+- imagen de test y Dockerfile Railway construidos con GD y EXIF; `gd_info()`
+  acredita JPEG, PNG y WebP en ambos;
+- límites comprobados dentro de los contenedores: `upload_max_filesize=10M`,
+  `post_max_size=12M` y `memory_limit=256M`;
+- ningún bucket, endpoint, feature upload, frontend o base de desarrollo
+  intervino en las pruebas.
+
+Esta evidencia valida únicamente `media_local` y dobles de Flysystem. No
+acredita `media_s3`, persistencia Railway, credenciales, presigned GET ni el
+gate remoto: 7F.2B continúa abierta.
+
 # 11. Evolución
 
 La cobertura de pruebas debe crecer junto con el proyecto.

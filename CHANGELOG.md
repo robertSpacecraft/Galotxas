@@ -6,6 +6,14 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Fase 7F.2B.1 incorpora el núcleo multimedia local sin consumidores: discos
+  privados `media_local`/`media_s3`, configuración `MEDIA_DISK`, adaptador
+  Flysystem S3, normalización JPEG/PNG/WebP con GD/EXIF, keys UUID, servicio de
+  storage y probe con cleanup.
+- Docker de test y Railway quedan preparados con JPEG/PNG/WebP y límites
+  Nginx/PHP de 12M/10M/12M. La cobertura añade 22 tests dirigidos y la suite
+  backend pasa 459 pruebas; no existe bucket, secret, endpoint o integración
+  de feature y 7F.2B continúa abierta.
 - Fase 7F.1 prepara, sin desplegar, los contratos separados de staging y
   producción para Vercel, Railway y MariaDB: dominio/API canónicos, plantillas
   de entorno sin secretos, CORS exacto, proxy, headers prudentes, liveness

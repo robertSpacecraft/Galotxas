@@ -1762,3 +1762,10 @@ Decisión:
 Consecuencias y aspectos abiertos:
 - **Decisiones cerradas:** Almacenamiento privado S3-compatible; uso de capa abstracta de Laravel; redirect a presigned GET; backend upload MVP sin presigned PUT; keys opacas; fail-closed local por defecto; documentos PDFs/persistencia documental aplazados.
 - **Decisiones mantenidas abiertas:** Proveedor definitivo S3; CDN; direct upload frontend a bucket futuro; múltiples variantes responsive generadas; tabla MediaAsset/DAM; política explícita de publicación de fotos de menores.
+
+Seguimiento de implementación local (2026-08-15):
+- 7F.2B.1 incorpora `media_local` y `media_s3`, configuración `MEDIA_DISK`, adaptador Flysystem S3, Intervention Image sobre GD y perfiles `avatar`, `banner` y `content`.
+- El pipeline valida MIME y decodificación reales, límites de bytes/dimensiones/píxeles, orientación, animación, resize proporcional y stripping mediante re-encode JPEG/PNG/WebP.
+- Las referencias se generan como UUID bajo prefijos cerrados y el servicio común ofrece primitivas privadas de almacenamiento, borrado, metadata y URL temporal con errores saneados.
+- `media:probe` valida escritura/lectura/borrado local; su chequeo de URL temporal es opcional y no habilita serving local.
+- No existe bucket, credencial, conexión Railway, endpoint, modelo o consumidor. El gate S3 de staging y las rutas estables de lectura siguen pendientes; 7F.2B permanece abierta y 7F.2C no se inicia.

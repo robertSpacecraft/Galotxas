@@ -97,7 +97,7 @@ Prohibiciones comunes:
 | SEO | Staging validado como no indexable (`robots.txt`) | Activar indexación en producción posterior |
 | Contacto/Escuela/menores | Capacidades validadas con fail-closed y flag global; persistencia staging probada | SMTP real, flujo menores completo en staging |
 | Queue/scheduler | Cola síncrona, ningún worker/cron productivo | Diseñar y ensayar purgas antes de activar |
-| Logs/storage | `stderr`; disco efímero sólo para runtime | Retención de logs y no habilitar uploads |
+| Logs/storage | `stderr`; núcleo `media_local` validado, sin consumidores y sin bucket remoto | Crear bucket privado aislado, configurar `media_s3` y superar probe/gate de staging antes de uploads |
 | Backups/restore/rollback | **Aplazado por decisión operativa** (backup nativo bloqueado por plan) | Contratar Pro para backup nativo, o ensayar backup manual en staging |
 
 ## Variables y secretos
@@ -191,9 +191,27 @@ instancia, no otro schema del servicio productivo.
 
 El filesystem de la aplicación es efímero. Sólo aloja cachés, sesiones si se
 configuraran como archivo local por error y logs transitorios. Producción usa
-sesión y caché en MariaDB, logs en `stderr` y no admite uploads. Los assets e
-imágenes públicas versionadas en Git forman parte de la imagen. Cualquier
-subida futura exige almacenamiento persistente externo y otro bloque.
+sesión y caché en MariaDB, logs en `stderr` y todavía no admite uploads de
+features. Los assets e imágenes públicas versionadas en Git forman parte de la
+imagen.
+
+7F.2B.1 añade el núcleo desacoplado sin activar consumidores:
+
+- `FILESYSTEM_DISK=local` permanece inalterado;
+- `MEDIA_DISK=media_local` permite desarrollo privado en
+  `storage/app/media`, sin `storage:link` ni URL temporal local;
+- `media_s3` acepta únicamente variables `MEDIA_*`, usa visibilidad privada y
+  propaga fallos;
+- `php artisan media:probe` comprueba escritura, tamaño, existencia y cleanup;
+  `--temporary-url` añade la capacidad de URL firmada cuando el adapter la
+  ofrece.
+
+No se han añadido variables `MEDIA_*` a los contratos remotos porque todavía
+no existe bucket. En el siguiente subbloque de 7F.2B deberán crearse recursos
+físicamente separados, cargar secrets sólo en Railway, seleccionar
+`MEDIA_DISK=media_s3` y ejecutar el probe con URL temporal en staging. El
+resultado no podrá promoverse a producción ni habilitar Banners, Avatar,
+Noticias o CMS hasta superar ese gate.
 
 No se introduce Redis ni worker: los flujos actuales no despachan jobs y las
 notificaciones controladas soportan ejecución síncrona. Un worker futuro debe
@@ -556,6 +574,8 @@ No se considera 7F cerrada hasta completar y evidenciar esas acciones.
 - ninguna carga automática de recursos remotos retirada;
 - Contacto, Escuela, identidad de menores y scheduler cerrados;
 - logs sin PII/secrets y sin errores repetidos;
+- cuando 7F.2B configure staging: `media:probe --temporary-url` correcto y sin
+  objeto residual;
 - estado del último backup.
 
 Las escrituras de aceptación se realizan primero en staging. Producción no usa
@@ -569,7 +589,8 @@ E2E, seeders ni cuentas con password por defecto.
 - CMS y datos reales de Escuela no están cargados en producción;
 - backup, restore, RTO, rollback rehearsal y monitor continuo no están
   acreditados;
-- HSTS/CSP, uploads persistentes, worker y scheduler continúan aplazados;
+- HSTS/CSP, integración de uploads en features, gate S3, worker y scheduler
+  continúan aplazados;
 - la SPA mantiene metadata client-side y la respuesta HTTP de rutas React no
   constituye SSR;
 - el token Bearer continúa en `localStorage`, según la decisión vigente;
