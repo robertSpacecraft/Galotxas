@@ -30,7 +30,9 @@ describe('profilePhotoService', () => {
     expect(api.post.mock.calls[0][0]).toBe('/me/profile-photo');
     expect(api.post.mock.calls[0][1]).toBeInstanceOf(FormData);
     expect(api.post.mock.calls[0][1].get('photo')).toBe(file);
-    expect(api.post.mock.calls[0]).toHaveLength(2);
+    expect(api.post.mock.calls[0][2]).toEqual({
+      headers: { 'Content-Type': null },
+    });
   });
 
   it('deletes the private photo and requires a null contract', async () => {

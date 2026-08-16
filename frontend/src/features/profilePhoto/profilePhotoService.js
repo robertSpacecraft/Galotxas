@@ -9,7 +9,9 @@ export const profilePhotoService = {
   upload: async (photo) => {
     const formData = new FormData();
     formData.append('photo', photo);
-    const response = await api.post('/me/profile-photo', formData);
+    const response = await api.post('/me/profile-photo', formData, {
+      headers: { 'Content-Type': null },
+    });
 
     return mutationPhoto(response);
   },
