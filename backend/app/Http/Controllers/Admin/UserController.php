@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\User;
+use App\Services\ProfilePhotoService;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -89,7 +90,7 @@ class UserController extends Controller
             'active' => $validated['active'] ?? false,
         ];
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $data['password'] = $validated['password'];
         }
 
@@ -100,7 +101,7 @@ class UserController extends Controller
             ->with('success', 'Usuario actualizado correctamente.');
     }
 
-    public function destroy(User $user)
+    public function destroy(User $user, ProfilePhotoService $profilePhotos)
     {
         if ($user->player) {
             return redirect()
@@ -108,7 +109,7 @@ class UserController extends Controller
                 ->with('error', 'No se puede eliminar el usuario porque tiene un jugador asociado. Puedes desactivarlo.');
         }
 
-        $user->delete();
+        $profilePhotos->deleteUser($user);
 
         return redirect()
             ->route('admin.users.index')

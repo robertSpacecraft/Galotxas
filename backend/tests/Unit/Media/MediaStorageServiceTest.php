@@ -65,6 +65,17 @@ class MediaStorageServiceTest extends TestCase
         $this->assertTrue($generator->isValid($key));
     }
 
+    public function test_key_validation_can_be_restricted_to_its_media_purpose(): void
+    {
+        $generator = app(MediaObjectKeyGenerator::class);
+        $avatar = 'avatars/00000000-0000-4000-8000-000000000001.jpg';
+        $sponsor = 'sponsors/00000000-0000-4000-8000-000000000001.jpg';
+
+        $this->assertTrue($generator->isValidForPurpose($avatar, MediaPurpose::Avatar));
+        $this->assertFalse($generator->isValidForPurpose($sponsor, MediaPurpose::Avatar));
+        $this->assertFalse($generator->isValidForPurpose('../avatars/private.jpg', MediaPurpose::Avatar));
+    }
+
     public function test_storage_operations_reject_path_traversal_before_touching_the_disk(): void
     {
         Storage::fake('media_local');

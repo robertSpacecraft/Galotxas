@@ -20,6 +20,7 @@ class UserResource extends JsonResource
             'role' => $this->role,
             'active' => $this->active,
             'has_player' => $this->relationLoaded('player') && $this->player !== null,
+            'profile_photo' => ProfilePhotoResource::forUser($this->resource),
         ];
     }
 }

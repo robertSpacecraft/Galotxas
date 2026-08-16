@@ -17,6 +17,8 @@ use App\Http\Controllers\Api\V1\ContactRequestController;
 use App\Http\Controllers\Api\V1\MatchController;
 use App\Http\Controllers\Api\V1\MyChampionshipRegistrationController;
 use App\Http\Controllers\Api\V1\MyDashboardController;
+use App\Http\Controllers\Api\V1\ProfilePhotoController;
+use App\Http\Controllers\Api\V1\ProfilePhotoImageController;
 use App\Http\Controllers\Api\V1\PublicIdentityConfirmationController;
 use App\Http\Controllers\Api\V1\SchoolController;
 use App\Http\Controllers\Api\V1\SchoolEnrollmentController;
@@ -94,6 +96,12 @@ Route::prefix('v1')->group(function () {
         Route::get('/me/player-profile', [AuthController::class, 'myPlayerProfile']);
         Route::post('/me/player-profile', [AuthController::class, 'createMyPlayerProfile']);
         Route::patch('/me/player-profile', [AuthController::class, 'updateMyPlayerProfile']);
+        Route::post('/me/profile-photo', [ProfilePhotoController::class, 'store'])
+            ->middleware('throttle:profile-photo-mutations');
+        Route::delete('/me/profile-photo', [ProfilePhotoController::class, 'destroy'])
+            ->middleware('throttle:profile-photo-mutations');
+        Route::get('/me/profile-photo/image', ProfilePhotoImageController::class)
+            ->name('api.v1.me.profile-photo.image');
 
         Route::get('/me/championship-registrations', [MyChampionshipRegistrationController::class, 'index']);
         Route::get('/me/matches', [MatchController::class, 'myMatches']);

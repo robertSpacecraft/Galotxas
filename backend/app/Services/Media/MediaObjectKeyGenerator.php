@@ -27,4 +27,9 @@ class MediaObjectKeyGenerator
             $key,
         ) === 1;
     }
+
+    public function isValidForPurpose(string $key, MediaPurpose $purpose): bool
+    {
+        return str_starts_with($key, $purpose->value.'/') && $this->isValid($key);
+    }
 }

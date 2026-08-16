@@ -37,6 +37,7 @@ class MyPanelTest extends TestCase
                         'role',
                         'active',
                         'has_player',
+                        'profile_photo',
                     ],
                     'player',
                 ],
@@ -62,6 +63,7 @@ class MyPanelTest extends TestCase
             'role' => $user->role,
             'active' => true,
             'has_player' => true,
+            'profile_photo' => null,
         ], $response->json('data.user'));
     }
 
@@ -382,6 +384,9 @@ class MyPanelTest extends TestCase
             ['GET', '/api/v1/me/player-profile', []],
             ['POST', '/api/v1/me/player-profile', ['level' => 5]],
             ['PATCH', '/api/v1/me/player-profile', ['nickname' => 'Pilotari']],
+            ['POST', '/api/v1/me/profile-photo', []],
+            ['DELETE', '/api/v1/me/profile-photo', []],
+            ['GET', '/api/v1/me/profile-photo/image', []],
             ['GET', '/api/v1/me/championship-registrations', []],
             ['GET', '/api/v1/me/matches', []],
             ['GET', '/api/v1/me/calendar', []],
@@ -417,7 +422,7 @@ class MyPanelTest extends TestCase
     }
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     private function createSinglesMatchFor(Player $player, array $attributes = []): GameMatch
     {
