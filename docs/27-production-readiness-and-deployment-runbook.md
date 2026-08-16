@@ -195,7 +195,7 @@ sesión y caché en MariaDB, logs en `stderr` y todavía no admite uploads de
 features. Los assets e imágenes públicas versionadas en Git forman parte de la
 imagen.
 
-7F.2B.1 añade el núcleo desacoplado sin activar consumidores:
+Fase 7F.2B añade la infraestructura multimedia persistente S3-compatible:
 
 - `FILESYSTEM_DISK=local` permanece inalterado;
 - `MEDIA_DISK=media_local` permite desarrollo privado en

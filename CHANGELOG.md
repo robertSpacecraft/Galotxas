@@ -6,6 +6,7 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Se cierra la Fase 7F.2B tras validar la infraestructura multimedia persistente S3-compatible en staging, verificando el probe, limpieza y persistencia real tras redeploy; la producción multimedia sigue sin configurarse y el siguiente bloque oficial es 7F.2C Banners.
 - Fase 7F.2B.1 incorpora el núcleo multimedia local sin consumidores: discos
   privados `media_local`/`media_s3`, configuración `MEDIA_DISK`, adaptador
   Flysystem S3, normalización JPEG/PNG/WebP con GD/EXIF, keys UUID, servicio de

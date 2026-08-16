@@ -73,7 +73,7 @@ El despliegue en Producción (7F) queda **suspendido** hasta la compleción y va
 - [x] 7F.2A implementado y validado automáticamente en `develop`.
 - [x] Auditoría 7F.2B completada y ADR-043 formalizado.
 - [x] 7F.2B.1 núcleo local, runtime, normalización, storage y probe implementados y validados.
-- [ ] 7F.2B infraestructura multimedia S3 implementada y gate superado.
+- [x] 7F.2B infraestructura multimedia S3 implementada, validada (persistencia tras redeploy) y gate superado.
 - [ ] 7F.2C banners funcionales.
 - [ ] 7F.2D avatar de usuario gestionable.
 - [ ] 7F.2E noticias navegables.
