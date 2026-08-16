@@ -23,27 +23,30 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
 - Implementado en `develop` el 2026-08-15: `/rankings` es el centro público con vistas de Histórico (por defecto), Temporada, Campeonato y Categoría sobre los contratos públicos existentes, sin cálculos deportivos en React.
 - Implementado en `develop` el disclosure `Competición` con Vista general, Campeonatos y Rankings, compartido por desktop y móvil y documentado en ADR-042.
 - Los selectores siguen la jerarquía Temporada → Campeonato → Categoría, invalidan hijos y respuestas obsoletas al cambiar un padre y distinguen carga, error recuperable, vacío y contenido.
-- La regresión en desarrollo comprende 508 tests frontend y 63 E2E sobre el stack aislado. La promoción, el smoke y la aceptación humana del nuevo baseline de staging siguen pendientes.
+- La regresión en desarrollo comprende 508 tests frontend y 63 E2E sobre el stack aislado; la promoción, el smoke y la aceptación humana de 7F.2A se completaron el 2026-08-15.
 - La corrección del prerrequisito no inicia 7F.2A. Los cruces de copa ya generados no se vuelven a sembrar automáticamente y deberán revisarse de forma operativa si se desea regenerarlos.
 
 ### 7F.2B — Infraestructura multimedia persistente (Cerrada en staging)
 - **Estado**: Auditoría y ADR-043 cerrados; núcleo local, bucket, configuración Railway, probe remoto y persistencia tras redeploy validados en staging.
 - Backend incorpora discos privados `media_local` y `media_s3`, perfiles centralizados, normalización JPEG/PNG/WebP con GD/EXIF, keys UUID, servicio común y probe con cleanup.
 - `FILESYSTEM_DISK` continúa en `local`; `media_s3` sólo define el contrato `MEDIA_*` y no contiene secrets, bucket o URL hardcodeados.
-- 7F.2C es el primer consumidor; Avatar, Noticias y CMS no la consumen todavía.
+- 7F.2C fue el primer consumidor y 7F.2D reutiliza ya el núcleo para el avatar privado; Noticias y CMS no lo consumen todavía.
 - Sigue siendo requisito previo ineludible para futuras imágenes y noticias.
 
-### 7F.2C — Patrocinadores/colaboradores administrables (implementada en `develop`; staging pendiente)
+### 7F.2C — Patrocinadores/colaboradores administrables (aceptación parcial de staging)
 - El nombre histórico “Banners administrables” se especializa sin reescribir la historia: no existe entidad Banner, campaña, placement o plataforma publicitaria.
 - `Sponsor` gestiona en Blade nombre, logo, web HTTPS opcional, orden, activación y ventana temporal; todos los efectivos aparecen simultáneamente en una rejilla discreta antes del footer.
 - API y Resources son cerrados; el object key permanece privado y el serving usa la infraestructura de ADR-043 con autorización previa.
 - React renderiza `null` en vacío/error/contrato inválido y omite cuenta, token y 404. Los enlaces usan `rel="sponsored noopener noreferrer"`.
-- La regresión automática está completada en `develop`; faltan promoción, reemplazo/cleanup, redeploy, responsive y aceptación manual con `media-staging`.
+- La regresión automática está completada en `develop`. Staging ya validó migración, alta administrativa, storage real, render frontend, múltiples colaboradores, orden, sustitución con cleanup y desactivar/reactivar. Faltan programación temporal, persistencia tras redeploy, borrado con cleanup y revisión móvil/accesible; por ello el bloque no está cerrado.
 
-### 7F.2D — Foto de perfil de Usuario
-- Reutilización segura de `User.profile_photo_path` sin duplicar estado en `Player`.
-- Capacidad de subida, sustitución, fallback y visualización en Mi Panel.
-- **Protección de menores**: la foto existirá en la cuenta, pero su proyección en perfiles públicos deportivos estará condicionada por políticas específicas de consentimiento (independientes de la actual `public_competition_identity`).
+### 7F.2D — Foto de perfil privada de Usuario (implementada en `develop`; staging pendiente)
+- Reutiliza `User.profile_photo_path` como object key privada estricta, fuera de `$fillable`, sin migración, tabla, estado duplicado en `Player` o gestor administrativo.
+- El propio usuario activo dispone de upload, sustitución, borrado idempotente y lectura autenticada. El lifecycle confirma la referencia antes de limpiar el objeto anterior y sanea fallos de storage/cleanup.
+- `UserResource` devuelve sólo `profile_photo: null|{url}`; login, `/me`, perfil deportivo y APIs públicas nunca exponen la key ni proyectan la foto.
+- Mi Panel descarga el binario con Bearer como blob, revoca object URLs, ofrece preview, estados recuperables y fallback de iniciales sin depender de que exista `Player`.
+- **Protección de adultos y menores**: upload no implica consentimiento; la foto no forma parte de `public_competition_identity` ni de perfiles públicos deportivos.
+- La regresión local está completada. El cierre requiere consulta legacy, CORS GET/HEAD exacto del bucket, upload/replace/delete y cleanup reales, redeploy, responsive/teclado, ausencia pública y logs saneados en staging.
 
 ### 7F.2E — Noticias
 - Creación de entidad/arquitectura editorial (ya sea `NewsArticle` o especialización CMS) para gestionar listado cronológico, extractos y detalle.
@@ -57,7 +60,7 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
 - **Decisiones cerradas**: Sustitución parcial de la navegación de Competición (ADR-042); obligatoriedad de almacenamiento de objetos (sin sistema de archivos efímero) para persistencia. Utilización de `User.profile_photo_path` para fotos de perfil.
 - **Prerrequisito cerrado de Rankings**: una única regla backend distribuye tres puntos base por partido (`3-0` o `2-1`) antes de contribuciones de dobles y multiplicadores de nivel; no existe persistencia ni backfill de puntos.
 - **Verificación operativa del prerrequisito**: el reparto corregido se comprobó manualmente en staging el 2026-08-15. Esta evidencia corresponde al prerrequisito de dominio y no acredita despliegue, smoke ni aceptación de 7F.2A.
-- **Decisiones abiertas**: Proveedor de CDN o modelo S3 concreto; modelo exacto de datos para noticias (`NewsArticle` vs `CmsPage`); configuración exacta de los slots del menú.
+- **Decisiones abiertas**: Proveedor de CDN; modelo exacto de datos para noticias (`NewsArticle` vs `CmsPage`); configuración exacta de los slots del menú; cualquier consentimiento fotográfico o publicación futura sigue fuera de 7F.2D.
 
 ## 7. Privacidad y Seguridad
 La filosofía fail-closed se mantiene:
@@ -70,7 +73,7 @@ El ciclo de desarrollo deberá seguir la pauta:
 `desarrollo → tests dirigidos → regresión completa → staging → smoke → beta/pruebas manuales → aceptación del nuevo baseline → producción`.
 
 ## 9. Relación con 7F Producción y 7G
-El despliegue en Producción (7F) queda **suspendido** hasta la compleción y validación estricta de toda la Fase 7F.2 en Staging. 7F.2A y 7F.2B ya se cerraron allí; 7F.2C espera aceptación y faltan 7F.2D–7F.2F. El cierre del MVP (7G) ocurrirá posteriormente. La deuda técnica de post-MVP descrita en el roadmap (p. ej. aplicación móvil, pasarela de pago, migración auth) sigue fuera del alcance.
+El despliegue en Producción (7F) queda **suspendido** hasta la compleción y validación estricta de toda la Fase 7F.2 en Staging. 7F.2A y 7F.2B ya se cerraron allí; 7F.2C conserva gates parciales y 7F.2D espera promoción y aceptación; faltan 7F.2E–7F.2F. El cierre del MVP (7G) ocurrirá posteriormente. La deuda técnica de post-MVP descrita en el roadmap (p. ej. aplicación móvil, pasarela de pago, migración auth) sigue fuera del alcance.
 
 ## 10. Checklist observable
 - [x] 7F.2A implementado y validado automáticamente en `develop`.
@@ -78,8 +81,9 @@ El despliegue en Producción (7F) queda **suspendido** hasta la compleción y va
 - [x] 7F.2B.1 núcleo local, runtime, normalización, storage y probe implementados y validados.
 - [x] 7F.2B infraestructura multimedia S3 implementada, validada (persistencia tras redeploy) y gate superado.
 - [x] 7F.2C patrocinadores funcionales y regresión automática en `develop`.
-- [ ] 7F.2C promoción y aceptación manual en staging.
-- [ ] 7F.2D avatar de usuario gestionable.
+- [ ] 7F.2C completar programación, redeploy, borrado y revisión móvil/accesible en staging.
+- [x] 7F.2D foto privada de usuario gestionable y regresión local en `develop`.
+- [ ] 7F.2D promoción y aceptación manual en staging.
 - [ ] 7F.2E noticias navegables.
 - [ ] 7F.2F enlaces de menú CMS asignables.
 - [ ] Promoción a Staging y nueva aceptación humana (beta) superadas. (7F.2A verificada el 2026-08-15)

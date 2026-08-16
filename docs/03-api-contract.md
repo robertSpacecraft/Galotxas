@@ -276,18 +276,66 @@ La normalización completa del contrato API constituye una fase específica del 
             "email": "jugador@example.com",
             "role": "user",
             "active": true,
-            "has_player": true
+            "has_player": true,
+            "profile_photo": {
+                "url": "https://api.example.test/api/v1/me/profile-photo/image"
+            }
         },
         "player": {}
     }
 }
 ```
 
-`user` se serializa mediante `UserResource` y solo expone los campos explícitos del contrato. No incluye credenciales, token de sesión, estado de verificación de email, timestamps ni otros atributos internos del modelo.
+`user` se serializa mediante `UserResource` y solo expone los campos explícitos del contrato. `profile_photo` es `null` o contiene exclusivamente la URL estable autenticada. No incluye `profile_photo_path`, object key, disco, URL temporal, credenciales, token de sesión, estado de verificación de email, timestamps ni otros atributos internos del modelo.
 
 La respuesta completa se compone mediante `MeResource`, que delega el perfil deportivo en `PlayerProfileResource`. Cuando el usuario no tiene perfil de jugador, `has_player` es `false` y `player` es `null`.
 
-Los nombres de campos y la estructura consumida por React se mantienen sin cambios.
+7F.2D amplía de forma aditiva `user` con `profile_photo`; el resto de nombres y
+la composición `user`/`player` consumida por React se mantiene.
+
+---
+
+## Foto de perfil privada
+
+Las tres rutas pertenecen al usuario autenticado y activo; no aceptan ID de
+cuenta ni de jugador:
+
+| Método | Ruta | Resultado |
+|---|---|---|
+| `POST` | `/api/v1/me/profile-photo` | multipart `photo`; crea o sustituye y devuelve `200` |
+| `DELETE` | `/api/v1/me/profile-photo` | elimina de forma idempotente y devuelve `200` |
+| `GET` | `/api/v1/me/profile-photo/image` | binario privado local o `302` temporal S3 |
+
+Respuesta de escritura:
+
+```json
+{
+  "message": "Foto de perfil actualizada correctamente.",
+  "data": {
+    "profile_photo": {
+      "url": "https://api.example.test/api/v1/me/profile-photo/image"
+    }
+  }
+}
+```
+
+Respuesta de borrado:
+
+```json
+{
+  "message": "Foto de perfil eliminada correctamente.",
+  "data": { "profile_photo": null }
+}
+```
+
+El upload admite JPEG, PNG o WebP reales hasta 3 MiB y la normalización es la
+autoridad final. Las mutaciones comparten un límite de cinco por minuto por
+usuario e IP; la lectura no usa ese límite. Ausencia, key ilegítima u objeto
+ausente producen `404`; un fallo operativo de storage produce `503` genérico.
+La lectura usa `private, no-store`, `noindex, nofollow`, `nosniff` y variación
+por autorización. Ninguna respuesta expone la object key.
+
+Estas rutas no publican la foto ni amplían `public_competition_identity`.
 
 ---
 

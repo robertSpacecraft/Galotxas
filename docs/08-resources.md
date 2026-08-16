@@ -43,7 +43,7 @@ No se pretende una reescritura masiva únicamente para homogeneizar la serializa
 
 Delega los datos de cuenta en `UserResource` y el perfil deportivo opcional en `PlayerProfileResource`.
 
-`UserResource` expone únicamente `id`, `name`, `lastname`, `email`, `role`, `active` y `has_player`. No serializa credenciales, tokens, verificación de email, timestamps ni otros campos internos.
+`UserResource` expone únicamente `id`, `name`, `lastname`, `email`, `role`, `active`, `has_player` y `profile_photo`. Este último es `null` o un objeto generado por `ProfilePhotoResource` con la URL estable autenticada. No serializa `profile_photo_path`, object keys, disco, URL temporal, credenciales, tokens, verificación de email, timestamps ni otros campos internos.
 
 ---
 
@@ -236,6 +236,7 @@ correo, nacimiento, alcance, versión, motivo o ID de autorización.
 | `PublicContactConfigResource` | flag público allowlisted del formulario institucional |
 | `PublicContactRequestResource` | acuse mínimo de recepción sin datos internos o personales |
 | `UserResource` | cuenta del usuario autenticado dentro de `MeResource` |
+| `ProfilePhotoResource` | referencia privada allowlisted a la imagen propia autenticada |
 | `PlayerProfileResource` | perfil deportivo privado del propio usuario y respuestas de auth |
 | `MeResource` | composición privada de cuenta y perfil opcional |
 | `ChampionshipRegistrationRequestResource` | solicitudes del propio usuario y gestión administrativa |
@@ -265,6 +266,7 @@ Los tres Resources administrativos de competición evitan serializar modelos Elo
   órdenes, notas, timestamps, claves foráneas y cualquier dato de
   inscripciones, centros o actividades.
 - `UserResource`, `PlayerProfileResource`, `ChampionshipRegistrationRequestResource` y `MatchRescheduleRequestResource` pueden contener datos personales o administrativos y no deben reutilizarse en endpoints de lectura anónima.
+- `ProfilePhotoResource` no contiene la key: sólo existe en el contexto propio autenticado y no debe incorporarse a Resources deportivos públicos, CMS o Sponsors.
 - `MatchResource` y `MatchResultReportResource` contienen identificadores, responsables y trazabilidad. El primero sigue usándose en varios endpoints privados heredados; ambos están prohibidos para un detalle público nuevo.
 
 La normalización de `MatchResource` en “mis partidos”, calendario y reprogramación es deuda técnica conocida. DOC-1 documenta esa realidad sin cambiar el contrato consumido.

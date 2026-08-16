@@ -649,7 +649,31 @@ React consume la colección pública efectiva y monta una rejilla institucional
 inmediatamente antes del footer. Un fallo, contrato inválido o colección vacía
 renderiza `null`. Esta integración no incluye publicidad, tracking, cookies,
 carousel ni contenido editorial. 7F.2B está cerrada; 7F.2C queda implementada
-en `develop`, pero abierta hasta superar su aceptación manual en staging.
+en `develop` y parcialmente validada en staging, pero abierta hasta comprobar
+ventanas temporales, redeploy, borrado y revisión móvil/accesible.
+
+### Foto de perfil privada de Usuario en 7F.2D
+
+`User.profile_photo_path` contiene exclusivamente una object key privada
+`avatars/<uuid>.(jpg|png|webp)` y queda fuera de asignación masiva y de todo
+Resource público. `ProfilePhotoService` normaliza con el perfil `avatar`, guarda
+el objeto nuevo, bloquea la fila `User` dentro de la transacción y confirma la
+referencia antes de limpiar el objeto anterior. Un fallo de persistencia
+compensa el objeto nuevo; un fallo de cleanup posterior sólo genera un warning
+saneado y no revierte el estado ya confirmado. Borrar el `User` aplica el mismo
+cleanup; borrar únicamente `Player` conserva cuenta y foto.
+
+La API expone una referencia estable autenticada, nunca la key ni una URL S3
+persistida. En local/E2E, Nginx entrega el objeto mediante una ubicación
+`internal` y conserva el origen CORS que Laravel ya autorizó; con `media_s3`, la
+ruta responde con una redirección temporal privada de TTL corto. React descarga
+el binario con Bearer, crea un object URL sólo en memoria y lo revoca al
+sustituir, borrar o desmontar. El fallback son las iniciales de la cuenta.
+
+La foto no forma parte de `Player`, identidad deportiva, CMS o Sponsors, y su
+subida no constituye consentimiento de publicación para adultos ni menores.
+7F.2D está implementada y validada localmente en `develop`, pero permanece
+abierta hasta superar su gate manual de staging.
 
 ---
 

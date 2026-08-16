@@ -215,6 +215,25 @@ sirven por ruta Laravel estable y redirect prefirmado corto. El modo local usa
 ubicación Nginx `internal`; el proceso Nginx debe pertenecer al grupo lector.
 No usar `storage:link` ni persistir URLs firmadas.
 
+7F.2D reutiliza la misma infraestructura para la foto privada de `User`. El
+backend sólo acepta keys `avatars/<uuid>.(jpg|png|webp)`, entrega la ruta propia
+autenticada y aplica un TTL S3 privado de aproximadamente 60 segundos. En
+local, el salto Nginx `internal` conserva el valor
+`Access-Control-Allow-Origin` que Laravel ya resolvió contra su allowlist; no
+refleja un origen no autorizado.
+
+Antes de promover 7F.2D se debe auditar, sin modificar ni sembrar datos, si
+existen referencias anteriores:
+
+```sql
+SELECT id, profile_photo_path
+FROM users
+WHERE profile_photo_path IS NOT NULL;
+```
+
+Un valor fuera del prefijo/formato aprobado se trata como ausencia: no se
+sirve ni se intenta borrar automáticamente.
+
 No se introduce Redis ni worker: los flujos actuales no despachan jobs y las
 notificaciones controladas soportan ejecución síncrona. Un worker futuro debe
 tener supervisión, reintentos, failed jobs y runbook antes de cambiar
@@ -234,6 +253,12 @@ Blade sí usa sesión. Por ello:
   una prueba real demuestra una ventana técnica previa al redirect;
 - los contratos existentes `401`, `403` y `419` no cambian;
 - Blade requiere cookie `Secure`, `HttpOnly`, `SameSite=lax` y sesión DB.
+
+El bucket privado de `media-staging` necesita CORS de lectura para seguir el
+`302` desde Axios: sólo `GET`/`HEAD` y el origen exacto
+`https://staging.galotxesmonover.es`. Producción usará exclusivamente
+`https://galotxesmonover.es`. No usar `*`, no habilitar `PUT` directo y no
+configurar credenciales desde el repositorio.
 
 Backend y frontend emiten una base prudente de cabeceras:
 `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`,
@@ -582,6 +607,12 @@ No se considera 7F cerrada hasta completar y evidenciar esas acciones.
   rejilla pre-footer; reemplazar logo y verificar cleanup; probar fechas,
   desactivación y 320 px; redeploy y confirmar persistencia; borrar ambos y
   verificar objetos ausentes;
+- para aceptar 7F.2D: ejecutar primero la consulta legacy; iniciar sesión con
+  una cuenta sin depender de `Player`; subir una imagen real y comprobar
+  objeto privado, `/me` sin key y foto visible; sustituir y verificar cleanup;
+  borrar y verificar cleanup/fallback; repetir tras redeploy, a 320 px y por
+  teclado; comprobar que ninguna API o vista pública publica la foto y que los
+  logs no contienen key, token o PII;
 - estado del último backup.
 
 Las escrituras de aceptación se realizan primero en staging. Producción no usa
@@ -596,8 +627,9 @@ E2E, seeders ni cuentas con password por defecto.
 - backup, restore, RTO, rollback rehearsal y monitor continuo no están
   acreditados;
 - HSTS/CSP, otros uploads de features, worker y scheduler continúan aplazados;
-  la aceptación manual de 7F.2C y la configuración multimedia productiva
-  siguen abiertas;
+  7F.2C aún debe validar ventanas, redeploy, borrado y revisión
+  móvil/accesible; 7F.2D debe superar todos sus gates de staging y la
+  configuración multimedia productiva sigue abierta;
 - la SPA mantiene metadata client-side y la respuesta HTTP de rutas React no
   constituye SSR;
 - el token Bearer continúa en `localStorage`, según la decisión vigente;

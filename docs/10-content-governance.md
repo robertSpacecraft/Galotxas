@@ -348,6 +348,15 @@ antes del footer; el nombre aporta el alt y el enlace se cualifica como
 rotación, métricas, scripts o cookies. La procedencia/licencia del logo sigue
 siendo responsabilidad editorial del club antes de activarlo.
 
+La foto de perfil de 7F.2D es un dato funcional privado de la cuenta `User`, no
+contenido editorial, identidad deportiva, CMS, Knowledge ni material de
+Sponsor. El propio usuario la carga y retira; el backend normaliza, elimina
+metadata y controla sustitución/borrado sobre storage privado. React sólo
+mantiene el blob y su object URL en memoria. Subir una foto no autoriza su
+publicación, tampoco para una persona adulta, y
+`public_competition_identity` no cubre imágenes de menores. Cualquier uso
+público futuro exige finalidad, consentimiento y gate propios.
+
 ## 15. Contenido relacionado con menores
 
 La Escuela puede tratar imágenes o información de menores. La identidad

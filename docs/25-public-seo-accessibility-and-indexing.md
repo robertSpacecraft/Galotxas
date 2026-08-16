@@ -363,3 +363,17 @@ HTTPS, abren en pestaña nueva con indicación accesible y usan
 `rel="sponsored noopener noreferrer"`. La rejilla no introduce overflow a
 320 px, animación, carousel o tracking. Esta integración no modifica el
 contrato SEO ni subsana la incidencia separada del hero de Home.
+
+## 46. Foto de perfil privada de 7F.2D
+
+La foto de `User` sólo aparece en `/player`, una ruta privada no indexable. No
+se incorpora a metadata, Open Graph, JSON-LD, sitemap, CMS, colaboradores o
+superficies deportivas públicas. La ruta binaria autenticada responde con
+`X-Robots-Tag: noindex, nofollow`, `Cache-Control: private, no-store` y
+`nosniff`; su URL estable no contiene identificador ni object key.
+
+Mi Panel reserva un contenedor circular, aplica `object-fit: cover`, ofrece
+texto alternativo con el nombre de la cuenta y usa iniciales o un símbolo
+neutral con nombre accesible cuando no hay imagen. Upload, sustitución,
+borrado, feedback y error recuperable funcionan por teclado y sin overflow a
+320 px. Esta capacidad privada no modifica el contrato SEO público.

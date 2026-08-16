@@ -6,6 +6,16 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Fase 7F.2D implementa en `develop` la foto privada de `User` sin migración:
+  lifecycle transaccional, cleanup post-commit, keys `avatars/` estrictas,
+  API `/me` autenticada, serving local/S3 privado y rate limit de mutaciones.
+- Mi Panel permite previsualizar, subir, sustituir y eliminar la foto mediante
+  descarga Bearer como blob, object URLs revocables y fallback de iniciales.
+  La foto no se publica ni amplía el consentimiento de identidad deportiva;
+  7F.2D permanece abierta hasta su aceptación manual en staging.
+- Nginx conserva el origen CORS exacto ya autorizado por Laravel durante la
+  entrega `X-Accel-Redirect`, sin abrir el recurso privado a otros orígenes.
+
 - Fase 7F.2C implementa en `develop` patrocinadores/colaboradores administrables:
   `Sponsor`, CRUD Blade, ventanas efectivas, lifecycle privado, API allowlisted,
   serving estable local/S3 y rejilla React inmediatamente antes del footer.

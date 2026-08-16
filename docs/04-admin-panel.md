@@ -526,6 +526,18 @@ se borra sólo después del commit; al eliminar se confirma primero la fila. Un
 fallo de cleanup posterior queda registrado sin restaurar una fila ya
 confirmada. No se crean roles nuevos ni una administración publicitaria.
 
+## Foto de perfil de cuentas
+
+7F.2D no crea un gestor administrativo de fotos. El propio usuario gestiona su
+foto desde React en Mi Panel. El borrado real de una cuenta desde
+`Admin\UserController` captura sólo una key `avatars/` válida, confirma primero
+la eliminación de la fila y limpia después el objeto. Un fallo de cleanup se
+registra sin PII, key ni restauración artificial de la cuenta. El borrado de un
+perfil `Player` no elimina el `User` ni su foto.
+
+El panel no puede publicar, sustituir o consentir fotos en nombre del usuario.
+La autorización de identidad deportiva de menores tampoco habilita fotografía.
+
 ---
 
 # 15. Funcionalidades futuras

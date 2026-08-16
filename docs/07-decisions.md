@@ -1781,5 +1781,20 @@ Seguimiento posterior (2026-08-16):
   patrocinadores/colaboradores institucionales simultáneos. No se crean
   campañas, placements, CTA, rotación, tracking o cookies.
 - No se abre un ADR nuevo: la decisión de almacenamiento y serving ya está
-  cubierta por ADR-043. La aceptación manual de 7F.2C en staging sigue
-  pendiente.
+  cubierta por ADR-043. Staging validó el flujo principal de 7F.2C; ventanas,
+  redeploy, borrado y revisión móvil/accesible siguen pendientes.
+
+Seguimiento de foto de perfil privada (2026-08-16):
+- 7F.2D reutiliza `User.profile_photo_path` como key opaca `avatars/` y no crea
+  tabla, referencia en `Player`, gestor administrativo o consentimiento.
+- El usuario activo gestiona su propia foto mediante rutas `/me`; la lectura
+  estable autentica antes de usar Nginx `internal` o una redirección S3
+  temporal privada. React obtiene el binario con Bearer y object URL efímera.
+- El lifecycle confirma MariaDB antes de borrar la referencia anterior y
+  sanea los fallos de cleanup. Las keys legacy ilegítimas no se sirven ni se
+  borran.
+- La foto no se proyecta en identidad deportiva ni superficies públicas y
+  subirla no implica consentimiento de publicación. Esta decisión queda dentro
+  de ADR-043; no requiere otro ADR transversal.
+- La regresión local está completada, pero 7F.2D continúa abierta hasta el
+  gate manual con `media-staging`.

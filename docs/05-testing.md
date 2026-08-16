@@ -1557,6 +1557,53 @@ Validación dirigida inicial de 7F.2C, 2026-08-16:
 Esta evidencia no sustituye la creación, reemplazo, redeploy y cleanup reales
 con `media-staging`. 7F.2C permanece abierta hasta esa aceptación manual.
 
+Seguimiento manual real de 7F.2C en staging, 2026-08-16:
+
+- validados migración, alta administrativa, objeto real, render frontend,
+  múltiples colaboradores, orden, reemplazo con cleanup y
+  desactivación/reactivación;
+- no ejecutados todavía: ventanas temporales, persistencia tras redeploy,
+  borrado con cleanup y revisión móvil/accesible.
+
+El bloque continúa abierto; la evidencia parcial no se presenta como
+aceptación completa.
+
+## PRIVATE-USER-PROFILE-PHOTO-1 — Foto privada de Usuario
+
+7F.2D cubre la eliminación de la exposición latente en login, `/me`, perfil
+propio y Resources deportivos; `profile_photo_path`, `avatars/` y las keys no
+aparecen en respuestas. Las pruebas API verifican usuario anónimo/inactivo,
+cuenta sin `Player`, upload, sustitución, borrado idempotente, `/me`, lectura
+local y redirect S3 simulado, keys legacy, objeto ausente, fallos saneados,
+validación y rate limit sin penalizar el GET.
+
+Las pruebas de lifecycle fuerzan fallo de DB, cleanup nuevo/anterior, warning
+post-commit, referencias obsoletas replace/replace y replace/delete, borrado
+administrativo de `User` y conservación al borrar sólo `Player`, sin `sleep`.
+La normalización JPEG/PNG/WebP, ratio, orientación, metadata y límites se
+reutiliza de `MEDIA-PERSISTENT-CORE-LOCAL-1`.
+
+Vitest cubre contrato cerrado, FormData sin boundary manual, blob autenticado,
+fallback/iniciales, preview, upload/replace/delete, revocación de object URLs,
+errores 422/429/503, imagen rota, actualización de contexto y ausencia de
+persistencia del blob. Playwright recorre login, fallback, upload, reemplazo,
+borrado, 320 px, consola y ausencia de keys en `/me` y APIs públicas sobre el
+storage E2E efímero.
+
+Validación local de 7F.2D, 2026-08-16:
+
+- regresión previa de exposición: 24 tests y 263 aserciones;
+- lifecycle/API dirigido: 18 tests y 151 aserciones;
+- backend completo MariaDB: 496 tests y 3.885 aserciones;
+- frontend dirigido inicial: 32 tests en cinco archivos;
+- frontend completo: 550 tests en 79 archivos;
+- E2E dirigido: un escenario Chromium verde;
+- E2E completo: 65 escenarios Chromium en 2,7 minutos.
+
+La ejecución local no acredita referencias legacy reales, CORS del bucket,
+presigned GET, persistencia tras redeploy ni cleanup remoto. 7F.2D continúa
+abierta hasta staging.
+
 # 11. Evolución
 
 La cobertura de pruebas debe crecer junto con el proyecto.

@@ -149,7 +149,7 @@ un plazo legal aprobado.
 
 | Flujo | Interesados y datos | Finalidad técnica/origen | Almacenamiento y accesos | Salidas | Borrado/retención técnica | Riesgos | Gate productivo |
 |---|---|---|---|---|---|---|---|
-| Cuentas y autenticación | Usuarios: nombre, apellidos, correo, hash de contraseña, rol, activo, foto opcional; tokens y restablecimiento | Registro/login React y administración | MariaDB; perfil React sólo en memoria tras bootstrap `/me`; administradores activos gestionan usuarios | Correo de restablecimiento mediante mailer configurado | Usuario hasta borrado administrativo; reset token 60 min; Sanctum sin expiración global y revocación del token actual en logout | Sólo Bearer en `localStorage`; persiste riesgo XSS y tokens antiguos no se revocan al nuevo login; base jurídica y derechos ausentes | Información de privacidad, política de cuenta, expiración/revocación y proveedor de correo |
+| Cuentas y autenticación | Usuarios: nombre, apellidos, correo, hash de contraseña, rol, activo, foto opcional; tokens y restablecimiento | Registro/login React y gestión propia de foto privada | MariaDB guarda una key opaca; objeto en storage privado; perfil y blob React sólo en memoria tras bootstrap `/me`; administradores activos gestionan usuarios, no fotos | Correo de restablecimiento mediante mailer configurado; foto sin salida pública | Usuario hasta borrado administrativo; borrar cuenta limpia la foto tras commit; reset token 60 min; Sanctum sin expiración global y revocación del token actual en logout | Sólo Bearer en `localStorage`; persiste riesgo XSS y tokens antiguos no se revocan al nuevo login; base jurídica y derechos ausentes | Información de privacidad, política de cuenta, expiración/revocación, proveedor de correo y aceptación de storage/CORS en staging |
 | Sesión Blade | Administradores: identificador, IP, user-agent y payload de sesión | Autenticación administrativa | Tabla `sessions`; cookie de primera parte; acceso técnico a DB | Ninguna salida funcional explícita | Inactividad configurable, 120 min por defecto; limpieza probabilística | Sesión no cifrada en DB por defecto; producción debe exigir HTTPS/cookie segura | Configuración productiva, acceso, retención y seguridad aprobados |
 | Perfil deportivo | Jugadores: vínculo a cuenta, alias, slug, DNI opcional, nacimiento, género, nivel, licencia, mano, notas, estado | Gestión deportiva y autoperfil parcial | MariaDB; usuario ve su perfil; administradores ven datos completos | Proyecciones autenticadas y, parcialmente, API pública deportiva | Cascada al borrar usuario; sin purga automática separada | Datos identificativos y fecha de nacimiento; DNI/licencia/notas de mayor impacto | Minimización, bases, plazos, derechos e identidad pública implementada |
 | Contacto | Remitente: nombre, correo, asunto, mensaje, aceptación e IP con HMAC | Solicitud anónima; formulario condicionado | MariaDB y bandeja Blade para administradores | Mail opcional con contenido completo al destinatario configurado | No hay borrado ni purga; estados `new/read/closed` conservan el registro | Texto libre, destinatario/proveedor/retención no definidos | Mantener desactivado; aprobar primera capa, política, destinatario, mailer y borrado |
@@ -282,6 +282,16 @@ con el tercero ocurre cuando la persona activa voluntariamente una web HTTPS;
 el enlace usa `rel="sponsored noopener noreferrer"`. La revisión jurídica de
 la relación de patrocinio y de los derechos de cada logo continúa siendo
 responsabilidad del club.
+
+La foto de perfil privada de 7F.2D no se incorpora a rankings, partidos,
+clasificaciones, CMS, colaboradores, metadatos o fichas públicas. La carga
+autenticada no equivale a consentimiento para publicar la imagen y no amplía
+la autorización `public_competition_identity`. Este criterio es fail-closed
+para adultos y menores. La imagen se re-encodea sin metadata y el frontend
+descarga un blob autenticado que no se persiste en almacenamiento web. Antes
+de aceptar staging deben revisarse las referencias legacy y comprobarse
+objeto, cleanup, CORS privado y ausencia de exposición pública; esta descripción
+técnica no sustituye la información jurídica definitiva.
 
 ## 10. Terceros y encargados potenciales
 
