@@ -34,6 +34,10 @@ class MediaStorageServiceTest extends TestCase
         $this->assertTrue($service->exists($key));
         $this->assertSame('private', Storage::disk('media_local')->visibility($key));
         $this->assertSame(strlen($image->bytes), $service->metadata($key)['size']);
+        $stream = $service->readStream($key);
+        $this->assertIsResource($stream);
+        $this->assertSame($image->bytes, stream_get_contents($stream));
+        fclose($stream);
 
         $service->delete($key);
 
@@ -105,6 +109,21 @@ class MediaStorageServiceTest extends TestCase
             $this->assertStringNotContainsString('do-not-leak', (string) $exception);
             $this->assertNull($exception->getPrevious());
         }
+    }
+
+    public function test_invalid_read_stream_is_rejected_with_a_sanitized_error(): void
+    {
+        $key = 'avatars/00000000-0000-4000-8000-000000000001.jpg';
+        $disk = Mockery::mock(FilesystemAdapter::class);
+        $disk->shouldReceive('readStream')->once()->with($key)->andReturnFalse();
+        $manager = Mockery::mock(FilesystemManager::class);
+        $manager->shouldReceive('disk')->once()->with('media_local')->andReturn($disk);
+        $service = new MediaStorageService($manager, new MediaObjectKeyGenerator);
+
+        $this->expectException(MediaStorageException::class);
+        $this->expectExceptionMessage('No se pudo leer el recurso multimedia.');
+
+        $service->readStream($key);
     }
 
     public function test_temporary_url_uses_the_configured_ttl_without_persisting_the_url(): void

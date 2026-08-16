@@ -6,6 +6,7 @@ use App\Services\Media\Exceptions\MediaObjectNotFound;
 use App\Services\Media\Exceptions\MediaStorageException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MediaDeliveryService
 {
@@ -13,7 +14,24 @@ class MediaDeliveryService
         private readonly MediaStorageService $storage,
     ) {}
 
-    public function deliver(string $key, bool $private = false): Response|RedirectResponse
+    public function deliver(
+        string $key,
+        bool $privateTemporaryUrl = false
+    ): Response|RedirectResponse {
+        if (! $this->storage->exists($key)) {
+            throw new MediaObjectNotFound('El recurso multimedia no existe.');
+        }
+
+        return match ((string) config('media.disk')) {
+            'media_local' => $this->localResponse($key),
+            'media_s3' => $this->temporaryRedirect($key, $privateTemporaryUrl),
+            default => throw new MediaStorageException(
+                'No se pudo entregar el recurso multimedia.'
+            ),
+        };
+    }
+
+    public function deliverPrivate(string $key): Response|StreamedResponse
     {
         if (! $this->storage->exists($key)) {
             throw new MediaObjectNotFound('El recurso multimedia no existe.');
@@ -21,7 +39,7 @@ class MediaDeliveryService
 
         return match ((string) config('media.disk')) {
             'media_local' => $this->localResponse($key),
-            'media_s3' => $this->temporaryRedirect($key, $private),
+            'media_s3' => $this->privateStreamResponse($key),
             default => throw new MediaStorageException(
                 'No se pudo entregar el recurso multimedia.'
             ),
@@ -49,5 +67,31 @@ class MediaDeliveryService
                 'Cache-Control' => 'private, no-store',
                 'X-Robots-Tag' => 'noindex, nofollow',
             ]);
+    }
+
+    private function privateStreamResponse(string $key): StreamedResponse
+    {
+        $metadata = $this->storage->metadata($key);
+        $stream = $this->storage->readStream($key);
+
+        return response()->stream(
+            static function () use ($stream): void {
+                try {
+                    fpassthru($stream);
+                } finally {
+                    if (is_resource($stream)) {
+                        fclose($stream);
+                    }
+                }
+            },
+            200,
+            [
+                'Content-Type' => $metadata['mime_type'],
+                'Content-Length' => (string) $metadata['size'],
+                'Cache-Control' => 'private, no-store',
+                'X-Content-Type-Options' => 'nosniff',
+                'X-Robots-Tag' => 'noindex, nofollow',
+            ]
+        );
     }
 }

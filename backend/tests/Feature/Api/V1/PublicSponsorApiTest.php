@@ -127,6 +127,27 @@ class PublicSponsorApiTest extends TestCase
         $this->assertStringNotContainsString('do-not-leak', $response->getContent());
     }
 
+    public function test_public_sponsor_logo_keeps_its_s3_temporary_redirect(): void
+    {
+        $sponsor = Sponsor::factory()->active()->create();
+        config()->set('media.disk', 'media_s3');
+        $storage = Mockery::mock(MediaStorageService::class);
+        $storage->shouldReceive('exists')
+            ->once()
+            ->with($sponsor->logo_key)
+            ->andReturnTrue();
+        $storage->shouldReceive('temporaryUrl')
+            ->once()
+            ->with($sponsor->logo_key, false)
+            ->andReturn('https://objects.example.test/signed-sponsor-logo');
+        $storage->shouldNotReceive('metadata');
+        $storage->shouldNotReceive('readStream');
+        $this->app->instance(MediaStorageService::class, $storage);
+
+        $this->get(route('api.v1.sponsors.logo', $sponsor))
+            ->assertRedirect('https://objects.example.test/signed-sponsor-logo');
+    }
+
     protected function tearDown(): void
     {
         CarbonImmutable::setTestNow();

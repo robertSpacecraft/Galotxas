@@ -179,25 +179,80 @@ class ProfilePhotoApiTest extends TestCase
         $this->assertStringNotContainsString($key, $delivery->getContent());
     }
 
-    public function test_s3_delivery_uses_the_private_ttl_and_keeps_the_stable_route_private(): void
+    public function test_s3_delivery_streams_the_private_avatar_without_redirecting(): void
     {
         $user = $this->authenticate();
         $key = 'avatars/00000000-0000-4000-8000-000000000001.webp';
+        $bytes = 'private-avatar-bytes';
+        $stream = fopen('php://temp', 'w+b');
+        fwrite($stream, $bytes);
+        rewind($stream);
         $user->forceFill(['profile_photo_path' => $key])->save();
         config()->set('media.disk', 'media_s3');
         $storage = Mockery::mock(MediaStorageService::class);
         $storage->shouldReceive('exists')->once()->with($key)->andReturnTrue();
-        $storage->shouldReceive('temporaryUrl')
-            ->once()
-            ->with($key, true)
-            ->andReturn('https://objects.example.test/private-avatar');
+        $storage->shouldReceive('metadata')->once()->with($key)->andReturn([
+            'size' => strlen($bytes),
+            'mime_type' => 'image/webp',
+            'last_modified' => 1,
+        ]);
+        $storage->shouldReceive('readStream')->once()->with($key)->andReturn($stream);
+        $storage->shouldNotReceive('temporaryUrl');
         $this->app->instance(MediaStorageService::class, $storage);
 
-        $this->get('/api/v1/me/profile-photo/image')
-            ->assertRedirect('https://objects.example.test/private-avatar')
+        $response = $this->get('/api/v1/me/profile-photo/image')
+            ->assertOk()
+            ->assertHeaderMissing('Location')
+            ->assertHeader('Content-Type', 'image/webp')
+            ->assertHeader('Content-Length', (string) strlen($bytes))
             ->assertHeader('Cache-Control', 'no-store, private')
+            ->assertHeader('X-Content-Type-Options', 'nosniff')
             ->assertHeader('X-Robots-Tag', 'noindex, nofollow')
             ->assertHeader('Vary', 'Authorization');
+
+        $this->assertSame($bytes, $response->streamedContent());
+        $this->assertFalse(is_resource($stream));
+    }
+
+    public function test_s3_metadata_and_stream_failures_return_a_sanitized_service_unavailable(): void
+    {
+        $user = $this->authenticate();
+        $key = 'avatars/00000000-0000-4000-8000-000000000001.jpg';
+        $user->forceFill(['profile_photo_path' => $key])->save();
+        config()->set('media.disk', 'media_s3');
+
+        foreach (['metadata', 'readStream'] as $failingOperation) {
+            $storage = Mockery::mock(MediaStorageService::class);
+            $storage->shouldReceive('exists')->once()->with($key)->andReturnTrue();
+
+            if ($failingOperation === 'metadata') {
+                $storage->shouldReceive('metadata')
+                    ->once()
+                    ->with($key)
+                    ->andThrow(new MediaStorageException('secret metadata detail'));
+                $storage->shouldNotReceive('readStream');
+            } else {
+                $storage->shouldReceive('metadata')->once()->with($key)->andReturn([
+                    'size' => 10,
+                    'mime_type' => 'image/jpeg',
+                    'last_modified' => 1,
+                ]);
+                $storage->shouldReceive('readStream')
+                    ->once()
+                    ->with($key)
+                    ->andThrow(new MediaStorageException('secret stream detail'));
+            }
+
+            $storage->shouldNotReceive('temporaryUrl');
+            $this->app->instance(MediaStorageService::class, $storage);
+
+            $response = $this->getJson('/api/v1/me/profile-photo/image')
+                ->assertServiceUnavailable();
+
+            $this->assertStringNotContainsString('secret', $response->getContent());
+            $this->assertStringNotContainsString($key, $response->getContent());
+            $this->assertStringNotContainsString('objects.', $response->getContent());
+        }
     }
 
     public function test_upload_validation_rejects_missing_unsupported_forged_and_oversized_files(): void

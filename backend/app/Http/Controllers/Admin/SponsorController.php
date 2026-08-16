@@ -91,7 +91,10 @@ class SponsorController extends Controller
         MediaDeliveryService $delivery
     ): Response|RedirectResponse {
         try {
-            return $delivery->deliver($sponsor->logo_key, private: true);
+            return $delivery->deliver(
+                $sponsor->logo_key,
+                privateTemporaryUrl: true
+            );
         } catch (MediaObjectNotFound) {
             abort(404);
         } catch (MediaStorageException) {

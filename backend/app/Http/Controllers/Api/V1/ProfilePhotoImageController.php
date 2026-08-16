@@ -8,9 +8,9 @@ use App\Services\Media\Exceptions\MediaStorageException;
 use App\Services\Media\MediaDeliveryService;
 use App\Services\Media\MediaObjectKeyGenerator;
 use App\Services\Media\MediaPurpose;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ProfilePhotoImageController extends Controller
 {
@@ -18,7 +18,7 @@ class ProfilePhotoImageController extends Controller
         Request $request,
         MediaObjectKeyGenerator $keys,
         MediaDeliveryService $delivery
-    ): Response|RedirectResponse {
+    ): Response|StreamedResponse {
         $key = $request->user()->profile_photo_path;
 
         abort_unless(
@@ -27,7 +27,7 @@ class ProfilePhotoImageController extends Controller
         );
 
         try {
-            $response = $delivery->deliver($key, private: true);
+            $response = $delivery->deliverPrivate($key);
         } catch (MediaObjectNotFound) {
             abort(404);
         } catch (MediaStorageException) {

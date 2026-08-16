@@ -277,6 +277,29 @@ class AdminSponsorTest extends TestCase
         $this->get('/_private-media/'.$sponsor->logo_key)->assertNotFound();
     }
 
+    public function test_admin_s3_preview_keeps_its_short_lived_redirect(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $sponsor = Sponsor::factory()->inactive()->create();
+        config()->set('media.disk', 'media_s3');
+        $storage = Mockery::mock(MediaStorageService::class);
+        $storage->shouldReceive('exists')
+            ->once()
+            ->with($sponsor->logo_key)
+            ->andReturnTrue();
+        $storage->shouldReceive('temporaryUrl')
+            ->once()
+            ->with($sponsor->logo_key, true)
+            ->andReturn('https://objects.example.test/private-sponsor-preview');
+        $storage->shouldNotReceive('metadata');
+        $storage->shouldNotReceive('readStream');
+        $this->app->instance(MediaStorageService::class, $storage);
+
+        $this->actingAs($admin)
+            ->get(route('admin.sponsors.logo', $sponsor))
+            ->assertRedirect('https://objects.example.test/private-sponsor-preview');
+    }
+
     /**
      * @param  array<string, mixed>  $overrides
      * @return array<string, mixed>

@@ -71,6 +71,26 @@ class MediaStorageService
         }
     }
 
+    /**
+     * @return resource
+     */
+    public function readStream(string $key)
+    {
+        $this->assertValidKey($key);
+
+        try {
+            $stream = $this->disk()->readStream($key);
+        } catch (Throwable) {
+            throw $this->storageFailure('leer');
+        }
+
+        if (! is_resource($stream)) {
+            throw $this->storageFailure('leer');
+        }
+
+        return $stream;
+    }
+
     public function delete(string $key): void
     {
         $this->assertValidKey($key);
