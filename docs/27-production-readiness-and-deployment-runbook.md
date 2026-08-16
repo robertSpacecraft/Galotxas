@@ -97,7 +97,7 @@ Prohibiciones comunes:
 | SEO | Staging validado como no indexable (`robots.txt`) | Activar indexación en producción posterior |
 | Contacto/Escuela/menores | Capacidades validadas con fail-closed y flag global; persistencia staging probada | SMTP real, flujo menores completo en staging |
 | Queue/scheduler | Cola síncrona, ningún worker/cron productivo | Diseñar y ensayar purgas antes de activar |
-| Logs/storage | `stderr`; núcleo `media_local` validado, sin consumidores y sin bucket remoto | Crear bucket privado aislado, configurar `media_s3` y superar probe/gate de staging antes de uploads |
+| Logs/storage | `stderr`; `media_s3` y bucket privado de staging validados; Sponsor es el primer consumidor en `develop` | Crear bucket privado productivo aislado y aceptar 7F.2C en staging antes de promoción |
 | Backups/restore/rollback | **Aplazado por decisión operativa** (backup nativo bloqueado por plan) | Contratar Pro para backup nativo, o ensayar backup manual en staging |
 
 ## Variables y secretos
@@ -189,11 +189,11 @@ sólo recibe variables. `DB_CONNECTION=mariadb` es obligatorio; charset y
 collation continúan en `utf8mb4`/`utf8mb4_unicode_ci`. Staging usa otra
 instancia, no otro schema del servicio productivo.
 
-El filesystem de la aplicación es efímero. Sólo aloja cachés, sesiones si se
-configuraran como archivo local por error y logs transitorios. Producción usa
-sesión y caché en MariaDB, logs en `stderr` y todavía no admite uploads de
-features. Los assets e imágenes públicas versionadas en Git forman parte de la
-imagen.
+El filesystem general de la aplicación es efímero. Sólo aloja cachés, sesiones
+si se configuraran como archivo local por error y logs transitorios. Producción
+usa sesión y caché en MariaDB y logs en `stderr`; los uploads funcionales sólo
+pueden usar `MEDIA_DISK=media_s3`, nunca ese filesystem efímero. Los assets
+públicos versionados en Git forman parte de la imagen.
 
 Fase 7F.2B añade la infraestructura multimedia persistente S3-compatible:
 
@@ -206,12 +206,14 @@ Fase 7F.2B añade la infraestructura multimedia persistente S3-compatible:
   `--temporary-url` añade la capacidad de URL firmada cuando el adapter la
   ofrece.
 
-No se han añadido variables `MEDIA_*` a los contratos remotos porque todavía
-no existe bucket. En el siguiente subbloque de 7F.2B deberán crearse recursos
-físicamente separados, cargar secrets sólo en Railway, seleccionar
-`MEDIA_DISK=media_s3` y ejecutar el probe con URL temporal en staging. El
-resultado no podrá promoverse a producción ni habilitar Banners, Avatar,
-Noticias o CMS hasta superar ese gate.
+El bucket privado de staging, sus secrets Railway, `MEDIA_DISK=media_s3`, probe
+con URL temporal y persistencia tras redeploy ya fueron validados para cerrar
+7F.2B. Producción sigue sin configurar y debe disponer de bucket/namespace y
+credenciales propios. 7F.2C es el primer consumidor: los logos de Sponsor se
+sirven por ruta Laravel estable y redirect prefirmado corto. El modo local usa
+`MEDIA_LOCAL_ROOT` opcional, ficheros privados `0640`, directorios `0750` y una
+ubicación Nginx `internal`; el proceso Nginx debe pertenecer al grupo lector.
+No usar `storage:link` ni persistir URLs firmadas.
 
 No se introduce Redis ni worker: los flujos actuales no despachan jobs y las
 notificaciones controladas soportan ejecución síncrona. Un worker futuro debe
@@ -576,6 +578,10 @@ No se considera 7F cerrada hasta completar y evidenciar esas acciones.
 - logs sin PII/secrets y sin errores repetidos;
 - cuando 7F.2B configure staging: `media:probe --temporary-url` correcto y sin
   objeto residual;
+- para aceptar 7F.2C: crear dos Sponsors de prueba, comprobar orden, HTTPS y
+  rejilla pre-footer; reemplazar logo y verificar cleanup; probar fechas,
+  desactivación y 320 px; redeploy y confirmar persistencia; borrar ambos y
+  verificar objetos ausentes;
 - estado del último backup.
 
 Las escrituras de aceptación se realizan primero en staging. Producción no usa
@@ -589,8 +595,9 @@ E2E, seeders ni cuentas con password por defecto.
 - CMS y datos reales de Escuela no están cargados en producción;
 - backup, restore, RTO, rollback rehearsal y monitor continuo no están
   acreditados;
-- HSTS/CSP, integración de uploads en features, gate S3, worker y scheduler
-  continúan aplazados;
+- HSTS/CSP, otros uploads de features, worker y scheduler continúan aplazados;
+  la aceptación manual de 7F.2C y la configuración multimedia productiva
+  siguen abiertas;
 - la SPA mantiene metadata client-side y la respuesta HTTP de rutas React no
   constituye SSR;
 - el token Bearer continúa en `localStorage`, según la decisión vigente;

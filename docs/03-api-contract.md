@@ -88,6 +88,8 @@ El inventario siguiente corresponde a `backend/routes/api.php` y a la salida de 
 | `GET` | `/cms/pages/{slug}` | `PublicCmsPageResource` o `404` |
 | `GET` | `/school` | `PublicSchoolResource` o `data: null` |
 | `POST` | `/school/enrollments` | confirmación genérica sin datos personales |
+| `GET` | `/sponsors` | colección efectiva de `PublicSponsorResource` |
+| `GET` | `/sponsors/{sponsor}/logo` | logo efectivo por ruta estable; binario local o redirect temporal |
 | `GET` | `/seasons/{season}/ranking` | colección `ChampionshipRankingResource` |
 | `GET` | `/rankings/all-time` | colección `AllTimeRankingResource` |
 
@@ -886,6 +888,37 @@ expone ni persiste campos internos. El default productivo continúa desactivado;
 privacidad y operación técnica quedan preparadas en 7D.2C2B; proveedor,
 remitente verificado, entrega, logs, scheduler, backups y activación continúan
 como gates de 7F.
+
+### Colaboradores institucionales
+
+`GET /api/v1/sponsors` es una lectura pública anónima y no paginada. Incluye
+todos los registros que cumplen `is_active = true`, inicio nulo o inclusivo y
+fin nulo o exclusivo, ordenados por `sort_order ASC, id ASC`. La allowlist es:
+
+```json
+{
+  "message": null,
+  "data": [
+    {
+      "id": 1,
+      "name": "Empresa colaboradora",
+      "logo": {
+        "url": "https://api.example.test/api/v1/sponsors/1/logo",
+        "width": 1200,
+        "height": 600
+      },
+      "website_url": "https://example.com"
+    }
+  ]
+}
+```
+
+Sin colaboradores devuelve `data: []`. Nunca expone `logo_key`, orden,
+activación, fechas, timestamps, disco o nombre original. No existe detalle
+público. `GET /api/v1/sponsors/{sponsor}/logo` responde `404` ante registro no
+efectivo, inexistente u objeto ausente, y `503` genérico ante fallo de storage;
+en S3 responde `302` a una GET prefirmada corta. El JSON nunca persiste ni
+entrega esa URL temporal.
 
 ### Identidad pública desde 7D.2B y 7D.2C2A
 

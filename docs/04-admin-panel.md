@@ -506,6 +506,26 @@ legados sin versión y datos anonimizados. El
 formulario público está desactivado por defecto y la administración no puede
 activar flags de entorno.
 
+## Colaboradores institucionales
+
+`/admin/sponsors` es el CRUD Blade, bajo sesión, CSRF, `IsAdmin` y requisito de
+administrador activo. La UI usa “Colaboradores”, aunque el modelo de dominio es
+`Sponsor`. Permite nombre público, logo obligatorio al crear y opcional al
+editar, web HTTPS opcional, orden, activación e inicio/fin opcionales. No admite
+descripción comercial, HTML, CTA, placement, target editable o tracking.
+
+El índice presenta miniatura privada, web, orden, ventana y uno de cuatro
+estados calculados: Inactivo, Programado, Activo o Expirado. El preview
+administrativo puede leer cualquier registro; la ruta pública sólo un Sponsor
+efectivo. La URL rechaza esquemas no HTTPS, protocolo relativo, credenciales y
+caracteres de control. El nombre constituye el texto alternativo del logo.
+
+Create, replace y destroy siguen el lifecycle de ADR-043: el objeto nuevo se
+compensa si falla MariaDB; al reemplazar se bloquea la fila y el objeto viejo
+se borra sólo después del commit; al eliminar se confirma primero la fila. Un
+fallo de cleanup posterior queda registrado sin restaurar una fila ya
+confirmada. No se crean roles nuevos ni una administración publicitaria.
+
 ---
 
 # 15. Funcionalidades futuras

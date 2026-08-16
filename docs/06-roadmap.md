@@ -58,6 +58,7 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 40. **Fase 7F.1 — Production readiness, entornos y runbooks:** dominio y API canónicos centralizados, staging/producción separados, preflights fail-closed, liveness mínima, bootstrap administrativo seguro, CORS/headers/proxy, artefactos Vercel/Railway y operación de DB, CMS, correo, DNS, backup, restore y rollback documentados; 431 tests backend, 493 frontend y 63 E2E validados sin desplegar ni activar servicios.
 41. **Fase 7F.2A — Rankings y navegación de Competición en `develop`:** `/rankings` consolidado en Histórico, Temporada, Campeonato y Categoría sobre contratos API existentes; selectores jerárquicos seguros; Competición convertida en disclosure accesible con Vista general, Campeonatos y Rankings; 508 tests frontend y 63 E2E validados sin modificar backend, desplegar ni obtener aceptación humana de staging.
 42. **Fase 7F.2B — Infraestructura multimedia persistente:** auditoría, ADR-043 aprobado, núcleo local implementado y validado, bucket staging creado, conectado y validado con persistencia tras redeploy; 7F.2B cerrada.
+43. **Fase 7F.2C — Patrocinadores/colaboradores administrables en `develop`:** modelo `Sponsor`, CRUD Blade, lifecycle privado, API efectiva, serving estable y franja React pre-footer implementados y validados automáticamente; aceptación manual de staging pendiente, por lo que el bloque continúa abierto.
 
 La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fases 7A, 7B, 7E y 7F.1, los bloques 7C.0–7C.2 y 7D.1–7D.3 están completados; 7C y 7D quedan cerradas.
 
@@ -68,16 +69,16 @@ Se incorpora la **Fase 7F.2** de refinamiento preproducción, re-evaluando capac
 
 Antes de iniciar 7F.2A se ha cerrado su prerrequisito de dominio: el reparto base de rankings es `3-0` cuando quien pierde suma menos de 8 juegos y `2-1` cuando suma 8 o más, siempre con tres puntos totales. Los cuatro cálculos backend y Mi Panel consumen una única regla, con regresión de dobles y generación de copa. Esta corrección no inicia ni completa 7F.2A y no vuelve a sembrar copas ya generadas.
 
-7F.2A está implementada, validada automáticamente en `develop`, promovida a staging y su smoke y aceptación humana fueron superados el 2026-08-15 sin incidencias funcionales. 7F.2B está implementada y validada en staging tras superar las pruebas reales de persistencia tras redeploy. 7F.2C (Banners) será el siguiente bloque oficial. 7F.2D–7F.2F tampoco se han iniciado y la Fase 7F.2 continúa abierta. La corrección de reparto de puntos que actuaba como prerrequisito se verificó manualmente en staging el 2026-08-15, sin que esa evidencia se considere aceptación de 7F.2A.
+7F.2A está implementada, validada automáticamente en `develop`, promovida a staging y su smoke y aceptación humana fueron superados el 2026-08-15 sin incidencias funcionales. 7F.2B está implementada y validada en staging tras superar las pruebas reales de persistencia tras redeploy. 7F.2C, históricamente “Banners”, se especializa como patrocinadores/colaboradores institucionales y está implementada y validada automáticamente en `develop`; su aceptación manual de staging continúa pendiente. 7F.2D–7F.2F no se han iniciado y la Fase 7F.2 continúa abierta. La corrección de reparto de puntos que actuaba como prerrequisito se verificó manualmente en staging el 2026-08-15, sin que esa evidencia se considere aceptación de 7F.2A.
 
 ## Fase 7 abierta — bloques parcialmente completados / bloqueados
 
 1. **Fase 7F (Pendientes de Staging y Producción):** configuración de SMTP real (bloqueado en Hobby), identidad pública completa de menores y reset de contraseña (dependen de SMTP), y ejecución de backup/restore/rollback en staging (aplazado).
-2. **Fase 7F.2 — Refinamiento preproducción:** 7F.2A y 7F.2B están cerradas en staging; falta implementar 7F.2C (Banners) como siguiente bloque, seguido de 7F.2D–7F.2F, y obtener la aceptación humana global del nuevo baseline completo de staging.
+2. **Fase 7F.2 — Refinamiento preproducción:** 7F.2A y 7F.2B están cerradas en staging; 7F.2C está implementada en `develop` y pendiente de aceptación manual de staging; después siguen 7F.2D–7F.2F y la aceptación humana global del nuevo baseline completo.
 
 ## Fase 7 abierta — bloques pendientes
 
-1. **Fase 7F.2 — Refinamiento preproducción y ampliación controlada del alcance:** 7F.2B completada y validada; implementar 7F.2C–7F.2F (Banners, Avatar User, Noticias y Menú CMS), promover, revalidar y aceptar de nuevo el baseline completo en staging. El siguiente bloque es 7F.2C (Banners).
+1. **Fase 7F.2 — Refinamiento preproducción y ampliación controlada del alcance:** 7F.2B completada y validada; promover y aceptar 7F.2C (patrocinadores/colaboradores) en staging, implementar 7F.2D–7F.2F (Avatar User, Noticias y Menú CMS) y revalidar el baseline completo.
 2. **Fase 7F (Producción):** tras completar validaciones y smoke de staging, desplegar producción inicialmente noindex y con Contacto, Escuela, identidad de menores y scheduler cerrados, activándolos de uno en uno sólo tras sus gates.
 3. **Fase 7G — Validación y cierre del MVP:** ejecutar regresión, recorridos críticos, QA responsive/multibrowser priorizada, smoke y aceptación humana antes de tag/release.
 

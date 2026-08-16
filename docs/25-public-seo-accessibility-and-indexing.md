@@ -349,3 +349,17 @@ clic exterior y Escape con retorno de foco. La regresión completa de
 `develop` conserva 63 E2E verdes, incluidos noindex/canonical de Rankings,
 teclado y ausencia de overflow a 320 px. La revisión humana y la nueva
 aceptación de staging siguen pendientes.
+
+## 45. Colaboradores institucionales de 7F.2C
+
+La franja de Colaboradores forma parte del shell de rutas públicas ordinarias,
+pero no crea ruta, detalle, canonical, sitemap, metadata, JSON-LD u `og:image`.
+Se omite en cuenta, ruta token/transient y 404. Si la API está vacía, falla o
+incumple el contrato, no deja heading ni espacio residual.
+
+El heading H2 etiqueta una región secundaria; cada logo conserva dimensiones,
+proporción y `alt` igual al nombre. Los destinos externos son exclusivamente
+HTTPS, abren en pestaña nueva con indicación accesible y usan
+`rel="sponsored noopener noreferrer"`. La rejilla no introduce overflow a
+320 px, animación, carousel o tracking. Esta integración no modifica el
+contrato SEO ni subsana la incidencia separada del hero de Home.

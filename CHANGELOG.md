@@ -6,6 +6,14 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Fase 7F.2C implementa en `develop` patrocinadores/colaboradores administrables:
+  `Sponsor`, CRUD Blade, ventanas efectivas, lifecycle privado, API allowlisted,
+  serving estable local/S3 y rejilla React inmediatamente antes del footer.
+  No crea plataforma publicitaria, tracking, cookies, CTA, placement o carousel;
+  el bloque permanece abierto hasta la aceptación manual de staging.
+- La regresión de Colaboradores cubre dominio, permisos, validación, fallos y
+  cleanup multimedia, contrato/serving público, estados React y un E2E real de
+  dos logos, orden, reemplazo, 320 px y borrado sobre volumen efímero aislado.
 - Se cierra la Fase 7F.2B tras validar la infraestructura multimedia persistente S3-compatible en staging, verificando el probe, limpieza y persistencia real tras redeploy; la producción multimedia sigue sin configurarse y el siguiente bloque oficial es 7F.2C Banners.
 - Fase 7F.2B.1 incorpora el núcleo multimedia local sin consumidores: discos
   privados `media_local`/`media_s3`, configuración `MEDIA_DISK`, adaptador
@@ -14,7 +22,7 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - Docker de test y Railway quedan preparados con JPEG/PNG/WebP y límites
   Nginx/PHP de 12M/10M/12M. La cobertura añade 22 tests dirigidos y la suite
   backend pasa 459 pruebas; no existe bucket, secret, endpoint o integración
-  de feature y 7F.2B continúa abierta.
+  de feature; en ese subbloque 7F.2B continuaba abierta.
 - Fase 7F.1 prepara, sin desplegar, los contratos separados de staging y
   producción para Vercel, Railway y MariaDB: dominio/API canónicos, plantillas
   de entorno sin secretos, CORS exacto, proxy, headers prudentes, liveness

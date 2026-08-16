@@ -339,6 +339,15 @@ Cada tipo de archivo debe definir permisos, propietario, procedencia, licencia, 
 
 Para Escuela, una imagen o galería debe registrar además el responsable editorial y la posibilidad de retirada. Los bloques CMS actuales basados en URLs no resuelven procedencia, consentimiento, texto alternativo individual de galería o ciclo de vida. La portada, el orden y cualquier medio con menores se omiten hasta disponer de permisos verificables; las subidas administrativas no se guardarán en Git.
 
+Los patrocinadores de 7F.2C son contenido institucional funcional administrado
+en Blade/MariaDB, no CMS editorial, Knowledge ni publicidad de terceros. Cada
+`Sponsor` tiene nombre público, logo privado, web HTTPS opcional, orden,
+activación y ventana temporal. Todos los efectivos aparecen simultáneamente
+antes del footer; el nombre aporta el alt y el enlace se cualifica como
+`sponsored noopener noreferrer`. No hay copy comercial, HTML, CTA, placement,
+rotación, métricas, scripts o cookies. La procedencia/licencia del logo sigue
+siendo responsabilidad editorial del club antes de activarlo.
+
 ## 15. Contenido relacionado con menores
 
 La Escuela puede tratar imágenes o información de menores. La identidad

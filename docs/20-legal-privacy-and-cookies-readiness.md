@@ -274,6 +274,15 @@ y autenticación pendientes de reflejar en la política definitiva. Esta
 conclusión no es un dictamen legal; no se implementa banner y el despliegue real
 debe reauditarse.
 
+La denominación histórica 7F.2C “Banners” no altera esa conclusión: la
+implementación es una rejilla estática de patrocinadores/colaboradores cargada
+desde la API propia. No integra píxeles, analítica, scripts, iframes, impresión
+o tracking de clics y no escribe cookies ni almacenamiento. El único contacto
+con el tercero ocurre cuando la persona activa voluntariamente una web HTTPS;
+el enlace usa `rel="sponsored noopener noreferrer"`. La revisión jurídica de
+la relación de patrocinio y de los derechos de cada logo continúa siendo
+responsabilidad del club.
+
 ## 10. Terceros y encargados potenciales
 
 | Tercero/elemento | Rol técnico observable | Estado | Pendiente |

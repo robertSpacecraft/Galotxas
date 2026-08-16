@@ -305,9 +305,16 @@ Ejemplos implementados actualmente:
 - ParticipantMatchResource
 - ParticipantMatchResultReportResource
 - PendingMatchActionResource
+- PublicSponsorResource
 - MatchResource y MatchResultReportResource para el contexto amplio privado/administrativo heredado
 
-Los cuatro primeros son contratos específicos por contexto. `MatchResource` y `MatchResultReportResource` forman el contrato amplio heredado que todavía comparte más de un contexto privado.
+Los cinco primeros son contratos específicos por contexto. `MatchResource` y `MatchResultReportResource` forman el contrato amplio heredado que todavía comparte más de un contexto privado.
+
+`PublicSponsorResource` es una allowlist cerrada: `id`, `name`, el objeto
+`logo` con URL estable y dimensiones, y `website_url` nullable. No serializa
+`logo_key`, orden, flags, ventana temporal, timestamps, disco o nombre
+original. La consulta decide antes la efectividad; el Resource no ejecuta ese
+scope ni genera una URL firmada persistible.
 
 ---
 

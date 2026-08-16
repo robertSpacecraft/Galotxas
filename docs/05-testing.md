@@ -1528,6 +1528,35 @@ Esta evidencia valida únicamente `media_local` y dobles de Flysystem. No
 acredita `media_s3`, persistencia Railway, credenciales, presigned GET ni el
 gate remoto: 7F.2B continúa abierta.
 
+## SPONSORS-INSTITUTIONAL-PUBLIC-1 — Colaboradores administrables
+
+7F.2C prueba casts, factory, estados y límites exactos de la ventana efectiva,
+orden estable, permisos Blade, create/update/replace/destroy, compensación ante
+fallo de MariaDB, cleanup fallido, imágenes inválidas, dimensiones, URL HTTPS y
+fechas. La API verifica allowlist, vacío, exclusión temporal, 404 fail-closed,
+503 saneado, `X-Accel-Redirect` local y redirect S3 simulado.
+
+Vitest cubre contrato cerrado, colección inválida, estados remotos sin ruido,
+varios logos, orden recibido, dimensiones, alt, enlace `sponsored`, ausencia
+total de franja y exclusión en cuenta/token/404. Playwright genera PNG pequeños
+en memoria y recorre dos altas, orden, desactivación, reactivación, reemplazo,
+atributos del enlace, 320 px, borrado y 404 del objeto eliminado. El volumen
+multimedia E2E es efímero, compartido sólo entre PHP-FPM y Nginx y se elimina
+con `safe-compose-down`; no interviene staging.
+
+Validación dirigida inicial de 7F.2C, 2026-08-16:
+
+- backend MariaDB dirigido: 23 tests y 163 aserciones;
+- backend completo: 476 tests y 3.700 aserciones;
+- frontend: 65 tests en cuatro archivos;
+- frontend completo: 529 tests en 76 archivos;
+- E2E Chromium: un recorrido integral verde;
+- E2E completo: 64 escenarios Chromium en 2,7 minutos;
+- lint y Pint: correctos.
+
+Esta evidencia no sustituye la creación, reemplazo, redeploy y cleanup reales
+con `media-staging`. 7F.2C permanece abierta hasta esa aceptación manual.
+
 # 11. Evolución
 
 La cobertura de pruebas debe crecer junto con el proyecto.

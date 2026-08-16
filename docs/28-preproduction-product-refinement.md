@@ -26,16 +26,19 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
 - La regresión en desarrollo comprende 508 tests frontend y 63 E2E sobre el stack aislado. La promoción, el smoke y la aceptación humana del nuevo baseline de staging siguen pendientes.
 - La corrección del prerrequisito no inicia 7F.2A. Los cruces de copa ya generados no se vuelven a sembrar automáticamente y deberán revisarse de forma operativa si se desea regenerarlos.
 
-### 7F.2B — Infraestructura multimedia persistente (Núcleo local implementado; bloque abierto)
-- **Estado**: Auditoría y ADR-043 cerrados; 7F.2B.1 implementa el núcleo local y sus tests. Bucket, configuración Railway, probe remoto y gate de staging NO realizados.
+### 7F.2B — Infraestructura multimedia persistente (Cerrada en staging)
+- **Estado**: Auditoría y ADR-043 cerrados; núcleo local, bucket, configuración Railway, probe remoto y persistencia tras redeploy validados en staging.
 - Backend incorpora discos privados `media_local` y `media_s3`, perfiles centralizados, normalización JPEG/PNG/WebP con GD/EXIF, keys UUID, servicio común y probe con cleanup.
 - `FILESYSTEM_DISK` continúa en `local`; `media_s3` sólo define el contrato `MEDIA_*` y no contiene secrets, bucket o URL hardcodeados.
-- Banners, Avatar, Noticias y CMS no consumen todavía la infraestructura. El cierre de 7F.2B exige object storage S3-compatible separado del filesystem efímero y evidencia real en staging.
-- Sigue siendo requisito previo ineludible para banderas visuales y noticias.
+- 7F.2C es el primer consumidor; Avatar, Noticias y CMS no la consumen todavía.
+- Sigue siendo requisito previo ineludible para futuras imágenes y noticias.
 
-### 7F.2C — Banners administrables
-- CRUD en Blade para gestión promocional interna sin React.
-- Sin inclusión de scripts, trackers o dependencias publicitarias de terceros (seguridad fail-closed).
+### 7F.2C — Patrocinadores/colaboradores administrables (implementada en `develop`; staging pendiente)
+- El nombre histórico “Banners administrables” se especializa sin reescribir la historia: no existe entidad Banner, campaña, placement o plataforma publicitaria.
+- `Sponsor` gestiona en Blade nombre, logo, web HTTPS opcional, orden, activación y ventana temporal; todos los efectivos aparecen simultáneamente en una rejilla discreta antes del footer.
+- API y Resources son cerrados; el object key permanece privado y el serving usa la infraestructura de ADR-043 con autorización previa.
+- React renderiza `null` en vacío/error/contrato inválido y omite cuenta, token y 404. Los enlaces usan `rel="sponsored noopener noreferrer"`.
+- La regresión automática está completada en `develop`; faltan promoción, reemplazo/cleanup, redeploy, responsive y aceptación manual con `media-staging`.
 
 ### 7F.2D — Foto de perfil de Usuario
 - Reutilización segura de `User.profile_photo_path` sin duplicar estado en `Player`.
@@ -60,21 +63,22 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
 La filosofía fail-closed se mantiene:
 - La autorización para perfiles públicos de menores NO incluye por defecto autorización de difusión de fotografía. Requiere un gate de consentimiento explícito e independiente.
 - Las imágenes subidas por usuarios no controlarán sus rutas locales directamente (prevención de path traversal).
-- No se incorporan rastreadores publicitarios mediante los banners.
+- No se incorporan rastreadores publicitarios mediante los colaboradores.
 
 ## 8. Ciclo de pruebas y compatibilidad
 El ciclo de desarrollo deberá seguir la pauta:
 `desarrollo → tests dirigidos → regresión completa → staging → smoke → beta/pruebas manuales → aceptación del nuevo baseline → producción`.
 
 ## 9. Relación con 7F Producción y 7G
-El despliegue en Producción (7F) queda **suspendido** hasta la compleción y validación estricta de toda la Fase 7F.2 en Staging. (Nota: 7F.2A ya se cerró en staging; faltan 7F.2B–7F.2F). El cierre del MVP (7G) ocurrirá posteriormente. La deuda técnica de post-MVP descrita en el roadmap (p. ej. aplicación móvil, pasarela de pago, migración auth) sigue fuera del alcance.
+El despliegue en Producción (7F) queda **suspendido** hasta la compleción y validación estricta de toda la Fase 7F.2 en Staging. 7F.2A y 7F.2B ya se cerraron allí; 7F.2C espera aceptación y faltan 7F.2D–7F.2F. El cierre del MVP (7G) ocurrirá posteriormente. La deuda técnica de post-MVP descrita en el roadmap (p. ej. aplicación móvil, pasarela de pago, migración auth) sigue fuera del alcance.
 
 ## 10. Checklist observable
 - [x] 7F.2A implementado y validado automáticamente en `develop`.
 - [x] Auditoría 7F.2B completada y ADR-043 formalizado.
 - [x] 7F.2B.1 núcleo local, runtime, normalización, storage y probe implementados y validados.
 - [x] 7F.2B infraestructura multimedia S3 implementada, validada (persistencia tras redeploy) y gate superado.
-- [ ] 7F.2C banners funcionales.
+- [x] 7F.2C patrocinadores funcionales y regresión automática en `develop`.
+- [ ] 7F.2C promoción y aceptación manual en staging.
 - [ ] 7F.2D avatar de usuario gestionable.
 - [ ] 7F.2E noticias navegables.
 - [ ] 7F.2F enlaces de menú CMS asignables.

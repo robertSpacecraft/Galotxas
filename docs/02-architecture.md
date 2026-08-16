@@ -604,10 +604,10 @@ Backups, restore, DNS, SMTP y activación requieren ejecución humana posterior.
 El contrato y los runbooks se encuentran en
 `27-production-readiness-and-deployment-runbook.md`.
 
-## Núcleo multimedia privado de 7F.2B.1
+## Multimedia privada de 7F.2B y primer consumidor 7F.2C
 
-El backend dispone de una primera infraestructura común de imágenes, todavía
-sin consumidores funcionales. `FILESYSTEM_DISK=local` continúa gobernando el
+El backend dispone de una infraestructura común de imágenes cuyo primer
+consumidor funcional es `Sponsor`. `FILESYSTEM_DISK=local` continúa gobernando el
 filesystem general y `MEDIA_DISK` selecciona de forma independiente uno de
 estos discos privados:
 
@@ -615,8 +615,8 @@ estos discos privados:
 - `media_s3`, S3-compatible, con credenciales `MEDIA_*`, endpoint y path-style
   configurables, sin URL pública fija ni ACL pública.
 
-`config/media.php` centraliza allowlist, TTL y perfiles `avatar`, `banner` y
-`content`. `ImageNormalizer` acepta únicamente JPEG, PNG y WebP acreditados por
+`config/media.php` centraliza allowlist, TTL y perfiles `avatar`, `banner`,
+`sponsor_logo` y `content`. `ImageNormalizer` acepta únicamente JPEG, PNG y WebP acreditados por
 MIME y decodificación reales; limita bytes, dimensiones y píxeles antes de
 persistir, aplica orientación EXIF, descarta animación, reduce sin crop ni
 upscale y re-encodea en el formato original con metadata eliminada. El
@@ -624,7 +624,7 @@ resultado normalizado ya no depende del nombre o extensión aportados por el
 usuario.
 
 `MediaObjectKeyGenerator` produce keys UUID bajo los prefijos cerrados
-`avatars/`, `banners/`, `news/` y `cms/`. `MediaStorageService` sólo conoce
+`avatars/`, `banners/`, `sponsors/`, `news/` y `cms/`. `MediaStorageService` sólo conoce
 esas keys e imágenes normalizadas y ofrece `store`, `exists`, metadata,
 `delete` y `temporaryUrl`; los errores se propagan mediante una excepción
 saneada. Las primitivas soportan el patrón futuro «guardar nuevo → confirmar
@@ -637,11 +637,19 @@ porque `media_local` no habilita serving ni URLs firmadas. PHP-FPM dispone de
 GD, EXIF y soporte JPEG/PNG/WebP; Nginx admite 12 MiB y PHP limita cada fichero
 a 10 MiB dentro de un POST de 12 MiB.
 
-Este bloque no crea modelos, migraciones, endpoints, rutas estables de lectura
-ni integración con Banner, Avatar, Noticias o CMS. Tampoco configura o valida
-un bucket real: `media_s3`, sus secrets, el probe remoto y el gate de staging
-siguen pendientes dentro de 7F.2B. Por tanto, 7F.2B permanece abierta y 7F.2C
-no se ha iniciado.
+7F.2C añade `Sponsor` sin crear `Banner`, campaña, placement o plataforma
+publicitaria. Blade normaliza y almacena el logo antes de confirmar la fila;
+la sustitución bloquea la fila, confirma MariaDB y sólo entonces limpia el
+objeto anterior. Las rutas estables comprueban estado y objeto: S3 redirige a
+una GET firmada corta y `media_local` delega el binario mediante una ubicación
+Nginx `internal`, nunca mediante `storage:link`. El volumen E2E vive fuera del
+bind mount y se elimina con el stack.
+
+React consume la colección pública efectiva y monta una rejilla institucional
+inmediatamente antes del footer. Un fallo, contrato inválido o colección vacía
+renderiza `null`. Esta integración no incluye publicidad, tracking, cookies,
+carousel ni contenido editorial. 7F.2B está cerrada; 7F.2C queda implementada
+en `develop`, pero abierta hasta superar su aceptación manual en staging.
 
 ---
 

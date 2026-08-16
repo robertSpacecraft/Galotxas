@@ -1769,3 +1769,17 @@ Seguimiento de implementación local (2026-08-15):
 - Las referencias se generan como UUID bajo prefijos cerrados y el servicio común ofrece primitivas privadas de almacenamiento, borrado, metadata y URL temporal con errores saneados.
 - `media:probe` valida escritura/lectura/borrado local; su chequeo de URL temporal es opcional y no habilita serving local.
 - No existe bucket, credencial, conexión Railway, endpoint, modelo o consumidor. El gate S3 de staging y las rutas estables de lectura siguen pendientes; 7F.2B permanece abierta y 7F.2C no se inicia.
+
+Seguimiento posterior (2026-08-16):
+- 7F.2B ya superó el gate S3 y la persistencia tras redeploy en staging.
+- 7F.2C aplica ADR-043 a `Sponsor`: object key privada, normalización común,
+  commit de dominio antes de limpiar el objeto anterior y rutas Laravel
+  estables que autorizan antes de entregar o redirigir.
+- `media_local` usa Nginx `internal` y permisos de grupo; `media_s3` conserva
+  redirect temporal. Ninguna ruta expone la key.
+- El nombre histórico “Banners administrables” se especializa en varios
+  patrocinadores/colaboradores institucionales simultáneos. No se crean
+  campañas, placements, CTA, rotación, tracking o cookies.
+- No se abre un ADR nuevo: la decisión de almacenamiento y serving ya está
+  cubierta por ADR-043. La aceptación manual de 7F.2C en staging sigue
+  pendiente.
