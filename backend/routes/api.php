@@ -22,6 +22,8 @@ use App\Http\Controllers\Api\V1\SchoolController;
 use App\Http\Controllers\Api\V1\SchoolEnrollmentController;
 use App\Http\Controllers\Api\V1\SeasonController;
 use App\Http\Controllers\Api\V1\SeasonRankingController;
+use App\Http\Controllers\Api\V1\SponsorController;
+use App\Http\Controllers\Api\V1\SponsorLogoController;
 use App\Http\Middleware\EnsureContactFormIsEnabled;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\IsAdmin;
@@ -67,6 +69,10 @@ Route::prefix('v1')->group(function () {
     Route::get('/school', SchoolController::class);
     Route::post('/school/enrollments', [SchoolEnrollmentController::class, 'store'])
         ->middleware('throttle:school-enrollments');
+
+    Route::get('/sponsors', [SponsorController::class, 'index']);
+    Route::get('/sponsors/{sponsor}/logo', SponsorLogoController::class)
+        ->name('api.v1.sponsors.logo');
 
     Route::prefix('public-identity/confirmation')->group(function () {
         Route::post('/lookup', [PublicIdentityConfirmationController::class, 'lookup'])

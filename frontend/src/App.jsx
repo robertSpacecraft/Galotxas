@@ -28,6 +28,8 @@ import { legalPages } from './features/legal/legalRoutes';
 import { schoolPath } from './features/school/schoolRoutes';
 import { RouteAccessibility } from './seo/RouteAccessibility';
 import { SeoProvider } from './seo/SeoProvider';
+import { resolveSeoRoute, seoRouteClassifications } from './seo/seoManifest';
+import { SponsorStrip } from './features/sponsors/SponsorStrip';
 import './index.css';
 
 const LearnPage = lazy(() => import('./pages/Learn/LearnPage'));
@@ -39,6 +41,12 @@ const LegalPage = lazy(() => import('./features/legal/LegalPage'));
 const PublicIdentityConfirmationPage = lazy(
   () => import('./features/publicIdentity/PublicIdentityConfirmationPage'),
 );
+
+const sponsorExcludedClassifications = new Set([
+  seoRouteClassifications.noindexPrivate,
+  seoRouteClassifications.notFound,
+  seoRouteClassifications.tokenOrTransient,
+]);
 
 export const KnowledgeRoute = ({ children }) => (
   <Suspense fallback={<RouteLoading label="Cargando Aprende a jugar" />}>
@@ -67,6 +75,9 @@ export const LegalRoute = ({ children }) => (
 const AppContent = () => {
   const location = useLocation();
   const isPublicIdentityConfirmation = location.pathname === '/public-identity/confirm';
+  const showSponsors = !sponsorExcludedClassifications.has(
+    resolveSeoRoute(location.pathname).classification,
+  );
 
   return (
     <div className="app-layout">
@@ -159,6 +170,7 @@ const AppContent = () => {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
+      {showSponsors ? <SponsorStrip /> : null}
       {!isPublicIdentityConfirmation ? <Footer /> : null}
     </div>
   );

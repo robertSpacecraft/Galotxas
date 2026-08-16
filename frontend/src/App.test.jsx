@@ -5,6 +5,7 @@ import { championshipsService } from './api/championships';
 import { cmsService } from './api/cms';
 import { contactService } from './features/contact/contactService';
 import { schoolService } from './features/school/schoolService';
+import { sponsorService } from './features/sponsors/sponsorService';
 import App, { ClubRoute, KnowledgeRoute, LegalRoute, SchoolRoute } from './App';
 
 vi.mock('./api/championships', () => ({
@@ -37,6 +38,12 @@ vi.mock('./features/contact/contactService', () => ({
   },
 }));
 
+vi.mock('./features/sponsors/sponsorService', () => ({
+  sponsorService: {
+    getAll: vi.fn(),
+  },
+}));
+
 const openAppAt = (pathname) => {
   window.history.replaceState({}, '', pathname);
   return render(<App />);
@@ -57,6 +64,7 @@ describe('App public routes', () => {
     }));
     schoolService.getOverview.mockResolvedValue(null);
     contactService.getConfig.mockResolvedValue({ enabled: false });
+    sponsorService.getAll.mockResolvedValue([]);
   });
 
   it('muestra un fallback accesible sin main, H1 ni 404 mientras carga una ruta diferida', () => {
@@ -139,6 +147,44 @@ describe('App public routes', () => {
     expect(screen.getByRole('main')).toHaveAttribute('id', 'main-content');
     expect(screen.getByRole('contentinfo')).toHaveTextContent('Club Galotxes Monòver');
   });
+
+  it('renders collaborators between public content and footer without altering Home', async () => {
+    sponsorService.getAll.mockResolvedValue([{
+      id: 1,
+      name: 'Empresa colaboradora',
+      logo: {
+        url: 'https://api.example.test/api/v1/sponsors/1/logo',
+        width: 600,
+        height: 300,
+      },
+      website_url: null,
+    }]);
+
+    const { container } = openAppAt('/');
+
+    expect(await screen.findByRole('heading', { name: 'Colaboradores', level: 2 }))
+      .toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Galotxas en Monóvar', level: 1 }))
+      .toBeInTheDocument();
+    const sponsorSection = screen.getByRole('heading', { name: 'Colaboradores' }).closest('section');
+    expect(sponsorSection.nextElementSibling).toBe(screen.getByRole('contentinfo'));
+    expect(container.scrollWidth).toBeLessThanOrEqual(container.clientWidth);
+  });
+
+  it.each(['/player', '/login', '/public-identity/confirm', '/ruta-inexistente'])(
+    'does not request or render collaborators on excluded route %s',
+    async (pathname) => {
+      openAppAt(pathname);
+
+      if (pathname === '/ruta-inexistente') {
+        expect(await screen.findByRole('heading', { name: 'Página no encontrada' }))
+          .toBeInTheDocument();
+      }
+
+      expect(sponsorService.getAll).not.toHaveBeenCalled();
+      expect(screen.queryByRole('heading', { name: 'Colaboradores' })).not.toBeInTheDocument();
+    },
+  );
 
   it('renders the wildcard page without automatically redirecting', async () => {
     openAppAt('/cuenta/ruta-inexistente');
