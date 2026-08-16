@@ -44,9 +44,9 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
 - Reutiliza `User.profile_photo_path` como object key privada estricta, fuera de `$fillable`, sin migración, tabla, estado duplicado en `Player` o gestor administrativo.
 - El propio usuario activo dispone de upload, sustitución, borrado idempotente y lectura autenticada. El lifecycle confirma la referencia antes de limpiar el objeto anterior y sanea fallos de storage/cleanup.
 - `UserResource` devuelve sólo `profile_photo: null|{url}`; login, `/me`, perfil deportivo y APIs públicas nunca exponen la key ni proyectan la foto.
-- Mi Panel descarga el binario con Bearer como blob, revoca object URLs, ofrece preview, estados recuperables y fallback de iniciales sin depender de que exista `Player`.
+- Mi Panel descarga el binario con Bearer como blob, revoca object URLs, ofrece preview, estados recuperables y fallback de iniciales sin depender de que exista `Player`. En S3, Laravel transmite la imagen con `200`; no redirige el XHR al bucket ni expone una URL prefirmada. Sponsor conserva su redirect público.
 - **Protección de adultos y menores**: upload no implica consentimiento; la foto no forma parte de `public_competition_identity` ni de perfiles públicos deportivos.
-- La regresión local está completada. El cierre requiere consulta legacy, CORS GET/HEAD exacto del bucket, upload/replace/delete y cleanup reales, redeploy, responsive/teclado, ausencia pública y logs saneados en staging.
+- La regresión local, incluido el hotfix del doble salto CORS, está completada. El bucket mantiene CORS GET/HEAD exacto, pero el avatar ya no depende de él. El cierre requiere consulta legacy, upload y lectura `200` desde la API sin `Location`, replace/delete y cleanup reales, redeploy, responsive/teclado, ausencia pública y logs saneados en staging.
 
 ### 7F.2E — Noticias
 - Creación de entidad/arquitectura editorial (ya sea `NewsArticle` o especialización CMS) para gestionar listado cronológico, extractos y detalle.

@@ -1574,7 +1574,7 @@ aceptación completa.
 propio y Resources deportivos; `profile_photo_path`, `avatars/` y las keys no
 aparecen en respuestas. Las pruebas API verifican usuario anónimo/inactivo,
 cuenta sin `Player`, upload, sustitución, borrado idempotente, `/me`, lectura
-local y redirect S3 simulado, keys legacy, objeto ausente, fallos saneados,
+local y streaming S3 simulado, keys legacy, objeto ausente, fallos saneados,
 validación y rate limit sin penalizar el GET.
 
 Las pruebas de lifecycle fuerzan fallo de DB, cleanup nuevo/anterior, warning
@@ -1600,9 +1600,25 @@ Validación local de 7F.2D, 2026-08-16:
 - E2E dirigido: un escenario Chromium verde;
 - E2E completo: 65 escenarios Chromium en 2,7 minutos.
 
-La ejecución local no acredita referencias legacy reales, CORS del bucket,
-presigned GET, persistencia tras redeploy ni cleanup remoto. 7F.2D continúa
-abierta hasta staging.
+El hotfix de serving privado posterior añade cobertura de `readStream`, cierre
+del recurso, `200` binario S3 sin `Location` ni llamada a `temporaryUrl`, fallos
+de metadata/lectura saneados y regresiones que mantienen los redirects S3 de
+Sponsor público y de su preview Blade. Resultados locales del hotfix:
+
+- backend dirigido: 69 tests y 630 aserciones;
+- backend completo sobre MariaDB aislada: 501 tests y 3.942 aserciones;
+- frontend dirigido: 20 tests en tres archivos;
+- frontend completo: 550 tests en 79 archivos;
+- E2E dirigido: un escenario Chromium verde;
+- E2E completo: 65 escenarios Chromium en 2,9 minutos;
+- Composer estricto, Pint dirigido, `php -l`, ESLint, build Vite e imagen
+  Docker de producción: correctos.
+
+La ejecución local no acredita referencias legacy reales, serving S3 tras el
+nuevo despliegue, persistencia tras redeploy ni cleanup remoto. El CORS exacto
+GET/HEAD del bucket ya fue comprobado, pero la lectura del avatar deja de
+depender de él porque el navegador recibe el binario desde la API. 7F.2D
+continúa abierta hasta repetir sus gates en staging.
 
 # 11. Evolución
 

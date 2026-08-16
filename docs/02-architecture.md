@@ -626,7 +626,7 @@ usuario.
 `MediaObjectKeyGenerator` produce keys UUID bajo los prefijos cerrados
 `avatars/`, `banners/`, `sponsors/`, `news/` y `cms/`. `MediaStorageService` sólo conoce
 esas keys e imágenes normalizadas y ofrece `store`, `exists`, metadata,
-`delete` y `temporaryUrl`; los errores se propagan mediante una excepción
+lectura por stream, `delete` y `temporaryUrl`; los errores se propagan mediante una excepción
 saneada. Las primitivas soportan el patrón futuro «guardar nuevo → confirmar
 la escritura de dominio → borrar anterior», sin fingir una transacción común
 con MariaDB.
@@ -665,10 +665,14 @@ cleanup; borrar únicamente `Player` conserva cuenta y foto.
 
 La API expone una referencia estable autenticada, nunca la key ni una URL S3
 persistida. En local/E2E, Nginx entrega el objeto mediante una ubicación
-`internal` y conserva el origen CORS que Laravel ya autorizó; con `media_s3`, la
-ruta responde con una redirección temporal privada de TTL corto. React descarga
-el binario con Bearer, crea un object URL sólo en memoria y lo revoca al
-sustituir, borrar o desmontar. El fallback son las iniciales de la cuenta.
+`internal` y conserva el origen CORS que Laravel ya autorizó. Con `media_s3`,
+Laravel lee el objeto privado mediante stream y responde directamente `200`
+con el binario y cabeceras privadas; no emite `Location` ni URL prefirmada. Esta
+excepción evita la cadena cross-origin API → `302` → bucket en la descarga XHR
+autenticada. Los logos públicos de Sponsor mantienen el redirect S3 temporal.
+React descarga el binario con Bearer, crea un object URL sólo en memoria y lo
+revoca al sustituir, borrar o desmontar. El fallback son las iniciales de la
+cuenta.
 
 La foto no forma parte de `Player`, identidad deportiva, CMS o Sponsors, y su
 subida no constituye consentimiento de publicación para adultos ni menores.

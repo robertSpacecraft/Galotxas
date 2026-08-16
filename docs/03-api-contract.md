@@ -304,7 +304,7 @@ cuenta ni de jugador:
 |---|---|---|
 | `POST` | `/api/v1/me/profile-photo` | multipart `photo`; crea o sustituye y devuelve `200` |
 | `DELETE` | `/api/v1/me/profile-photo` | elimina de forma idempotente y devuelve `200` |
-| `GET` | `/api/v1/me/profile-photo/image` | binario privado local o `302` temporal S3 |
+| `GET` | `/api/v1/me/profile-photo/image` | `200` con binario privado tanto en local como en S3 |
 
 Respuesta de escritura:
 
@@ -333,7 +333,10 @@ autoridad final. Las mutaciones comparten un límite de cinco por minuto por
 usuario e IP; la lectura no usa ese límite. Ausencia, key ilegítima u objeto
 ausente producen `404`; un fallo operativo de storage produce `503` genérico.
 La lectura usa `private, no-store`, `noindex, nofollow`, `nosniff` y variación
-por autorización. Ninguna respuesta expone la object key.
+por autorización. En `media_local`, Nginx completa el `200` mediante
+`X-Accel-Redirect`; en `media_s3`, Laravel transmite el objeto y devuelve su
+`Content-Type` y `Content-Length` sin `302`, `Location` ni URL prefirmada.
+Ninguna respuesta expone la object key.
 
 Estas rutas no publican la foto ni amplían `public_competition_identity`.
 

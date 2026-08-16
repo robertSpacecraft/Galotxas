@@ -216,9 +216,10 @@ ubicación Nginx `internal`; el proceso Nginx debe pertenecer al grupo lector.
 No usar `storage:link` ni persistir URLs firmadas.
 
 7F.2D reutiliza la misma infraestructura para la foto privada de `User`. El
-backend sólo acepta keys `avatars/<uuid>.(jpg|png|webp)`, entrega la ruta propia
-autenticada y aplica un TTL S3 privado de aproximadamente 60 segundos. En
-local, el salto Nginx `internal` conserva el valor
+backend sólo acepta keys `avatars/<uuid>.(jpg|png|webp)` y entrega la ruta
+propia autenticada. En `media_s3`, Laravel lee el objeto privado mediante
+stream y devuelve `200 image/*` sin `Location` ni URL prefirmada; en local, el
+salto Nginx `internal` conserva el valor
 `Access-Control-Allow-Origin` que Laravel ya resolvió contra su allowlist; no
 refleja un origen no autorizado.
 
@@ -254,11 +255,13 @@ Blade sí usa sesión. Por ello:
 - los contratos existentes `401`, `403` y `419` no cambian;
 - Blade requiere cookie `Secure`, `HttpOnly`, `SameSite=lax` y sesión DB.
 
-El bucket privado de `media-staging` necesita CORS de lectura para seguir el
-`302` desde Axios: sólo `GET`/`HEAD` y el origen exacto
-`https://staging.galotxesmonover.es`. Producción usará exclusivamente
-`https://galotxesmonover.es`. No usar `*`, no habilitar `PUT` directo y no
-configurar credenciales desde el repositorio.
+El bucket privado de `media-staging` mantiene CORS de lectura limitado a
+`GET`/`HEAD` y al origen exacto `https://staging.galotxesmonover.es`;
+producción usará exclusivamente `https://galotxesmonover.es`. La lectura del
+avatar ya no depende de ese CORS porque el navegador recibe el binario desde la
+API. No añadir `Origin: null`, no usar `*`, no habilitar `PUT` directo y no
+configurar credenciales desde el repositorio. Los recursos públicos que usan
+redirect prefirmado, como Sponsor, conservan su estrategia actual.
 
 Backend y frontend emiten una base prudente de cabeceras:
 `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`,
@@ -609,7 +612,8 @@ No se considera 7F cerrada hasta completar y evidenciar esas acciones.
   verificar objetos ausentes;
 - para aceptar 7F.2D: ejecutar primero la consulta legacy; iniciar sesión con
   una cuenta sin depender de `Player`; subir una imagen real y comprobar
-  objeto privado, `/me` sin key y foto visible; sustituir y verificar cleanup;
+  objeto privado, `/me` sin key y foto visible mediante `200` desde la API, sin
+  `302` ni `Location`; sustituir y verificar cleanup;
   borrar y verificar cleanup/fallback; repetir tras redeploy, a 320 px y por
   teclado; comprobar que ninguna API o vista pública publica la foto y que los
   logs no contienen key, token o PII;

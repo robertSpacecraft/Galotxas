@@ -184,6 +184,11 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Fixed
 
+- La foto privada en `media_s3` deja de redirigir el XHR Bearer al bucket:
+  Laravel transmite el binario con `200`, cabeceras privadas y sin `Location`
+  ni URL prefirmada. `media_local` conserva `X-Accel-Redirect` y los logos S3
+  de Sponsor mantienen su redirect temporal público. No se relaja CORS ni se
+  acepta `Origin: null`; 7F.2D continúa abierta hasta repetir staging.
 - Se impide eliminar el último bloque de una página `published` sin despublicarla primero.
 - Se amplía la cobertura Feature del flujo editorial, el criterio público compartido y las sesiones administrativas activas.
 - El CRUD Blade de Temporadas valida y persiste nombre, estado y fechas nullable, respeta la cronología y selecciona correctamente el enum casteado al editar.

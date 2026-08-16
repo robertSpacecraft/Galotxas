@@ -1757,10 +1757,10 @@ Decisión:
 - Desarrollo ordinario utilizará disco local (`media_local`); entornos remotos aislarán credenciales y namespaces. S3-compatible será validado inexcusablemente en el gate de Staging.
 - Flujo MVP Upload: Navegador/Blade -> Endpoint de Laravel (autorización, normalización, redecodificación de JPEGs/PNGs, stripping explícito de metadata EXIF) -> Bucket.
 - Referencia: Los modelos de base de datos usarán una 'object key' opaca sin ruta absoluta, sin tabla genérica `MediaAsset` por el momento.
-- Flujo MVP Lectura: Enlaces públicos de imágenes persistidas serán rutas estables de Laravel, que validarán estado/políticas de publicación y harán redirección 302/307 hacia un enlace presigned GET (bucket) con un TTL corto (1-5 min).
+- Flujo MVP Lectura pública: las imágenes persistidas tendrán rutas estables de Laravel, que validarán estado/políticas de publicación y harán redirección 302/307 hacia un enlace presigned GET (bucket) con un TTL corto (1-5 min). Los recursos privados autenticados pueden requerir entrega por backend cuando el redirect comprometa el contrato de acceso.
 
 Consecuencias y aspectos abiertos:
-- **Decisiones cerradas:** Almacenamiento privado S3-compatible; uso de capa abstracta de Laravel; redirect a presigned GET; backend upload MVP sin presigned PUT; keys opacas; fail-closed local por defecto; documentos PDFs/persistencia documental aplazados.
+- **Decisiones cerradas:** Almacenamiento privado S3-compatible; uso de capa abstracta de Laravel; redirect a presigned GET para lecturas públicas; backend upload MVP sin presigned PUT; keys opacas; fail-closed local por defecto; documentos PDFs/persistencia documental aplazados.
 - **Decisiones mantenidas abiertas:** Proveedor definitivo S3; CDN; direct upload frontend a bucket futuro; múltiples variantes responsive generadas; tabla MediaAsset/DAM; política explícita de publicación de fotos de menores.
 
 Seguimiento de implementación local (2026-08-15):
@@ -1788,8 +1788,8 @@ Seguimiento de foto de perfil privada (2026-08-16):
 - 7F.2D reutiliza `User.profile_photo_path` como key opaca `avatars/` y no crea
   tabla, referencia en `Player`, gestor administrativo o consentimiento.
 - El usuario activo gestiona su propia foto mediante rutas `/me`; la lectura
-  estable autentica antes de usar Nginx `internal` o una redirección S3
-  temporal privada. React obtiene el binario con Bearer y object URL efímera.
+  estable autentica antes de usar Nginx `internal` en local o streaming desde
+  Laravel en S3. React obtiene el binario con Bearer y object URL efímera.
 - El lifecycle confirma MariaDB antes de borrar la referencia anterior y
   sanea los fallos de cleanup. Las keys legacy ilegítimas no se sirven ni se
   borran.
@@ -1798,3 +1798,19 @@ Seguimiento de foto de perfil privada (2026-08-16):
   de ADR-043; no requiere otro ADR transversal.
 - La regresión local está completada, pero 7F.2D continúa abierta hasta el
   gate manual con `media-staging`.
+
+Corrección de serving privado de 7F.2D (2026-08-16):
+- Staging confirmó que el bucket respondía correctamente a una petición
+  prefirmada directa con el origen exacto, pero el XHR Bearer API → `302` → S3
+  podía llegar al segundo origen con `Origin: null` por quedar la cadena de
+  redirects contaminada entre orígenes.
+- No se relaja CORS, no se acepta `Origin: null` y el bucket sigue privado. El
+  avatar S3 se transmite desde Laravel con `200`, sin `Location` ni URL
+  prefirmada; el coste limitado de egress backend se acepta para este recurso
+  normalizado y privado.
+- Los logos públicos de Sponsor conservan el redirect S3 prefirmado. No se
+  abre un ADR nuevo porque se trata de una especialización del contrato de
+  lectura de ADR-043, no de un cambio de almacenamiento.
+- La corrección está validada localmente; 7F.2D sigue abierta hasta repetir
+  upload, visualización, replace/delete, cleanup, redeploy, accesibilidad,
+  ausencia pública y logs saneados en staging.
