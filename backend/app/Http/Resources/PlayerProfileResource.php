@@ -36,8 +36,8 @@ class PlayerProfileResource extends JsonResource
                 ];
             }),
 
-            'display_name' => $this->nickname ?: trim(($this->user?->name ?? '') . ' ' . ($this->user?->lastname ?? '')),
-            'full_name' => trim(($this->user?->name ?? '') . ' ' . ($this->user?->lastname ?? '')),
+            'display_name' => $this->nickname ?: trim(($this->user?->name ?? '').' '.($this->user?->lastname ?? '')),
+            'full_name' => trim(($this->user?->name ?? '').' '.($this->user?->lastname ?? '')),
 
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
