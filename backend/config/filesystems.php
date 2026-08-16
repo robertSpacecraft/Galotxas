@@ -49,8 +49,19 @@ return [
 
         'media_local' => [
             'driver' => 'local',
-            'root' => storage_path('app/media'),
+            'root' => env('MEDIA_LOCAL_ROOT', storage_path('app/media')),
             'visibility' => 'private',
+            'directory_visibility' => 'private',
+            'permissions' => [
+                'file' => [
+                    'public' => 0644,
+                    'private' => 0640,
+                ],
+                'dir' => [
+                    'public' => 0755,
+                    'private' => 0750,
+                ],
+            ],
             'throw' => true,
             'report' => false,
         ],

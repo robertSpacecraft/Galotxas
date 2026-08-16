@@ -16,6 +16,17 @@ services:
 
   web:
     image: nginx:1.27-alpine
+    command:
+      - /bin/sh
+      - -c
+      - |
+        media_group="$$(awk -F: '$$3 == 1000 { print $$1; exit }' /etc/group)"
+        if [ -z "$$media_group" ]; then
+          addgroup -g 1000 media-readers
+          media_group="media-readers"
+        fi
+        addgroup nginx "$$media_group" 2>/dev/null || true
+        exec nginx -g 'daemon off;'
     restart: unless-stopped
     ports:
       - "8080:80"

@@ -56,6 +56,15 @@ class MediaStorageServiceTest extends TestCase
         $generator->generate(MediaPurpose::Cms, '../jpg');
     }
 
+    public function test_sponsor_keys_use_the_dedicated_private_prefix(): void
+    {
+        $generator = app(MediaObjectKeyGenerator::class);
+        $key = $generator->generate(MediaPurpose::Sponsor, 'png');
+
+        $this->assertStringStartsWith('sponsors/', $key);
+        $this->assertTrue($generator->isValid($key));
+    }
+
     public function test_storage_operations_reject_path_traversal_before_touching_the_disk(): void
     {
         Storage::fake('media_local');
@@ -113,6 +122,8 @@ class MediaStorageServiceTest extends TestCase
         $this->assertSame('media_local', config('media.disk'));
         $this->assertSame(storage_path('app/media'), config('filesystems.disks.media_local.root'));
         $this->assertSame('private', config('filesystems.disks.media_local.visibility'));
+        $this->assertSame(0640, config('filesystems.disks.media_local.permissions.file.private'));
+        $this->assertSame(0750, config('filesystems.disks.media_local.permissions.dir.private'));
         $this->assertTrue(config('filesystems.disks.media_local.throw'));
         $this->assertSame('s3', config('filesystems.disks.media_s3.driver'));
         $this->assertSame('private', config('filesystems.disks.media_s3.visibility'));

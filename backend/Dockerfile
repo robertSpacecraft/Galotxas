@@ -52,6 +52,7 @@ WORKDIR /var/www
 
 RUN addgroup -S laravel \
     && adduser -S -D -H -G laravel laravel \
+    && addgroup nginx laravel \
     && sed -i 's/user = www-data/user = laravel/' /usr/local/etc/php-fpm.d/www.conf \
     && sed -i 's/group = www-data/group = laravel/' /usr/local/etc/php-fpm.d/www.conf
 

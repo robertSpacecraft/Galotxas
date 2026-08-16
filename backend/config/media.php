@@ -33,6 +33,16 @@ return [
             'jpeg_quality' => 85,
             'webp_quality' => 82,
         ],
+        'sponsor_logo' => [
+            'input_max_kb' => 8192,
+            'max_pixels' => 16_000_000,
+            'max_width' => 6000,
+            'max_height' => 6000,
+            'output_max_width' => 1200,
+            'output_max_height' => 600,
+            'jpeg_quality' => 85,
+            'webp_quality' => 82,
+        ],
         'content' => [
             'input_max_kb' => 8192,
             'max_pixels' => 16_000_000,

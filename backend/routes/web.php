@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\SchoolLocationController;
 use App\Http\Controllers\Admin\SchoolProgramController;
 use App\Http\Controllers\Admin\SchoolScheduleController;
 use App\Http\Controllers\Admin\SeasonController as AdminSeasonController;
+use App\Http\Controllers\Admin\SponsorController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\VenueController;
 use App\Http\Middleware\IsAdmin;
@@ -68,6 +69,13 @@ Route::prefix('admin')->group(function () {
             ->name('admin.cms-pages.blocks.update');
         Route::delete('/cms/pages/{cmsPage}/blocks/{cmsBlock}', [CmsBlockController::class, 'destroy'])
             ->name('admin.cms-pages.blocks.destroy');
+
+        // Colaboradores
+        Route::get('/sponsors/{sponsor}/logo', [SponsorController::class, 'logo'])
+            ->name('admin.sponsors.logo');
+        Route::resource('sponsors', SponsorController::class)
+            ->except('show')
+            ->names('admin.sponsors');
 
         // Contacto
         Route::get('/contact-requests', [ContactRequestController::class, 'index'])
