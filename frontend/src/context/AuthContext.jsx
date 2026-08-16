@@ -163,6 +163,12 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
+    const updateProfilePhoto = useCallback((profilePhoto) => {
+        setUser((currentUser) => currentUser
+            ? { ...currentUser, profile_photo: profilePhoto }
+            : currentUser);
+    }, []);
+
     const forgotPassword = async (email) => {
         const response = await api.post('/auth/forgot-password', { email });
         return response.data;
@@ -183,6 +189,7 @@ export const AuthProvider = ({ children }) => {
         forgotPassword,
         resetPassword,
         refreshUser,
+        updateProfilePhoto,
         isAuthenticated: !!token && !!user,
         isAdmin: user?.role === 'admin'
     };

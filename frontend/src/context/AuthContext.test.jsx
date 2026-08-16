@@ -22,6 +22,7 @@ const AuthProbe = () => {
     login,
     refreshUser,
     logout,
+    updateProfilePhoto,
   } = useAuth();
 
   return (
@@ -39,6 +40,10 @@ const AuthProbe = () => {
         Refrescar
       </button>
       <button type="button" onClick={logout}>Cerrar sesión</button>
+      <button type="button" onClick={() => updateProfilePhoto({ url: 'private-stable-url' })}>
+        Actualizar foto
+      </button>
+      <p data-testid="profile-photo">{user?.profile_photo?.url || 'sin foto'}</p>
     </>
   );
 };
@@ -172,6 +177,20 @@ describe('AuthProvider storage and bootstrap', () => {
     await browserUser.click(screen.getByRole('button', { name: 'Refrescar' }));
 
     expect(await screen.findByTestId('auth-name')).toHaveTextContent('Perfil actualizado');
+    expect(localStorage.getItem('user')).toBeNull();
+    expect(localStorage).toHaveLength(1);
+  });
+
+  it('updates only the in-memory profile photo projection', async () => {
+    const browserUser = userEvent.setup();
+    localStorage.setItem('token', 'stored-token');
+    api.get.mockResolvedValue(meResponse('Perfil con foto'));
+
+    renderAuthProvider();
+    expect(await screen.findByTestId('auth-state')).toHaveTextContent('autenticada');
+    await browserUser.click(screen.getByRole('button', { name: 'Actualizar foto' }));
+
+    expect(screen.getByTestId('profile-photo')).toHaveTextContent('private-stable-url');
     expect(localStorage.getItem('user')).toBeNull();
     expect(localStorage).toHaveLength(1);
   });

@@ -5,6 +5,7 @@ import { meService } from '../api/me';
 import { matchesService } from '../api/matches';
 import MatchCard from '../components/MatchCard';
 import { PendingMatchActions } from '../components/PendingMatchActions/PendingMatchActions';
+import { ProfilePhotoCard } from '../features/profilePhoto/ProfilePhotoCard';
 import styles from './Dashboard.module.css';
 
 const registrationStatusLabels = {
@@ -83,7 +84,7 @@ const normalizeCalendarDays = (calendarItems) => {
 };
 
 export default function Dashboard() {
-    const { user, createPlayerProfile, refreshUser } = useAuth();
+    const { user, createPlayerProfile, refreshUser, updateProfilePhoto } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
     
@@ -282,6 +283,7 @@ export default function Dashboard() {
                 <div className={styles.infoBlock}>
                     <h2 className={styles.sectionTitle}>Datos de Usuario</h2>
                     <div className={styles.profileCard}>
+                        <ProfilePhotoCard user={user} onProfilePhotoChange={updateProfilePhoto} />
                         <div className={styles.infoField}>
                             <span className={styles.label}>Nombre y Apellidos</span>
                             <span className={styles.value}>{user.name} {user.lastname}</span>

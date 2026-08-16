@@ -25,6 +25,7 @@ describe('Dashboard session refresh', () => {
       },
       createPlayerProfile: vi.fn(),
       refreshUser,
+      updateProfilePhoto: vi.fn(),
     });
 
     render(
@@ -34,6 +35,7 @@ describe('Dashboard session refresh', () => {
     );
 
     expect(screen.getByRole('heading', { name: 'Panel de Control', level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Foto de perfil', level: 3 })).toBeInTheDocument();
     await waitFor(() => expect(refreshUser).toHaveBeenCalledOnce());
     expect(consoleError).not.toHaveBeenCalled();
   });
