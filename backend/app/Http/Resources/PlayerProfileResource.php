@@ -33,7 +33,6 @@ class PlayerProfileResource extends JsonResource
                     'email' => $this->user?->email,
                     'role' => $this->user?->role,
                     'active' => $this->user?->active,
-                    'profile_photo_path' => $this->user?->profile_photo_path,
                 ];
             }),
 

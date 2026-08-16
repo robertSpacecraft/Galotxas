@@ -92,6 +92,7 @@ class PublicCompetitionIdentityTest extends TestCase
             'name' => 'Aina',
             'lastname' => 'Martínez Serrano',
             'email' => 'aina.private@example.test',
+            'profile_photo_path' => 'avatars/00000000-0000-4000-8000-000000000001.webp',
         ], [
             'nickname' => null,
             'birth_date' => '1990-05-03',
@@ -170,6 +171,8 @@ class PublicCompetitionIdentityTest extends TestCase
             $this->assertStringNotContainsString('11111111H', $content);
             $this->assertStringNotContainsString('Dato privado de prueba', $content);
             $this->assertStringNotContainsString('1990-05-03', $content);
+            $this->assertStringNotContainsString('profile_photo_path', $content);
+            $this->assertStringNotContainsString('avatars/', $content);
         }
     }
 

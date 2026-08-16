@@ -151,6 +151,50 @@ class MyPanelTest extends TestCase
         ]);
     }
 
+    public function test_private_profile_photo_key_never_leaves_authenticated_player_contracts(): void
+    {
+        $key = 'avatars/00000000-0000-4000-8000-000000000001.webp';
+        $user = User::factory()->create([
+            'email' => 'photo-private@example.test',
+            'profile_photo_path' => $key,
+        ]);
+        Player::factory()->for($user)->create();
+
+        $login = $this->postJson('/api/v1/auth/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ])->assertOk();
+
+        Sanctum::actingAs($user);
+
+        $responses = [
+            $login,
+            $this->getJson('/api/v1/me')->assertOk(),
+            $this->getJson('/api/v1/me/player-profile')->assertOk(),
+            $this->patchJson('/api/v1/me/player-profile', [
+                'nickname' => 'Privado',
+            ])->assertOk(),
+        ];
+
+        foreach ($responses as $response) {
+            $this->assertStringNotContainsString('profile_photo_path', $response->getContent());
+            $this->assertStringNotContainsString($key, $response->getContent());
+        }
+
+        $userWithoutPlayer = User::factory()->create([
+            'profile_photo_path' => $key,
+        ]);
+        Sanctum::actingAs($userWithoutPlayer);
+
+        $created = $this->postJson('/api/v1/me/player-profile', [
+            'nickname' => 'Nou perfil privat',
+            'level' => 5,
+        ])->assertCreated();
+
+        $this->assertStringNotContainsString('profile_photo_path', $created->getContent());
+        $this->assertStringNotContainsString($key, $created->getContent());
+    }
+
     public function test_update_player_profile_returns_current_error_when_user_has_no_profile(): void
     {
         $this->createAuthenticatedUser();
