@@ -33,20 +33,26 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
 - 7F.2C fue el primer consumidor y 7F.2D reutiliza ya el núcleo para el avatar privado; Noticias y CMS no lo consumen todavía.
 - Sigue siendo requisito previo ineludible para futuras imágenes y noticias.
 
-### 7F.2C — Patrocinadores/colaboradores administrables (aceptación parcial de staging)
+### 7F.2C — Patrocinadores/colaboradores administrables (Flujo principal aceptado en staging)
 - El nombre histórico “Banners administrables” se especializa sin reescribir la historia: no existe entidad Banner, campaña, placement o plataforma publicitaria.
-- `Sponsor` gestiona en Blade nombre, logo, web HTTPS opcional, orden, activación y ventana temporal; todos los efectivos aparecen simultáneamente en una rejilla discreta antes del footer.
+- Sponsor gestiona en Blade nombre, logo, web HTTPS opcional, orden, activación y ventana temporal; todos los efectivos aparecen simultáneamente en una rejilla discreta antes del footer.
 - API y Resources son cerrados; el object key permanece privado y el serving usa la infraestructura de ADR-043 con autorización previa.
 - React renderiza `null` en vacío/error/contrato inválido y omite cuenta, token y 404. Los enlaces usan `rel="sponsored noopener noreferrer"`.
-- La regresión automática está completada en `develop`. Staging ya validó migración, alta administrativa, storage real, render frontend, múltiples colaboradores, orden, sustitución con cleanup y desactivar/reactivar. Faltan programación temporal, persistencia tras redeploy, borrado con cleanup y revisión móvil/accesible; por ello el bloque no está cerrado.
+- Implementación y regresión automática completadas en develop.
+- **Validado manualmente en staging**: migración aplicada correctamente, alta administrativa, almacenamiento real en media-staging, render público antes del footer, múltiples patrocinadores simultáneos, orden (sort_order), sustitución de logo, cleanup de sustitución y desactivar/reactivar.
+- **Gates secundarios diferidos**: ventanas temporales (starts_at/ends_at), persistencia tras redeploy, borrado con cleanup, revisión dedicada 320 px y revisión de accesibilidad. El flujo principal se considera aceptado para permitir el avance hacia 7F.2E.
 
-### 7F.2D — Foto de perfil privada de Usuario (implementada en `develop`; staging pendiente)
-- Reutiliza `User.profile_photo_path` como object key privada estricta, fuera de `$fillable`, sin migración, tabla, estado duplicado en `Player` o gestor administrativo.
-- El propio usuario activo dispone de upload, sustitución, borrado idempotente y lectura autenticada. El lifecycle confirma la referencia antes de limpiar el objeto anterior y sanea fallos de storage/cleanup.
-- `UserResource` devuelve sólo `profile_photo: null|{url}`; login, `/me`, perfil deportivo y APIs públicas nunca exponen la key ni proyectan la foto.
-- Mi Panel descarga el binario con Bearer como blob, revoca object URLs, ofrece preview, estados recuperables y fallback de iniciales sin depender de que exista `Player`. En S3, Laravel transmite la imagen con `200`; no redirige el XHR al bucket ni expone una URL prefirmada. Sponsor conserva su redirect público.
-- **Protección de adultos y menores**: upload no implica consentimiento; la foto no forma parte de `public_competition_identity` ni de perfiles públicos deportivos.
-- La regresión local, incluido el hotfix del doble salto CORS, está completada. El bucket mantiene CORS GET/HEAD exacto, pero el avatar ya no depende de él. El cierre requiere consulta legacy, upload y lectura `200` desde la API sin `Location`, replace/delete y cleanup reales, redeploy, responsive/teclado, ausencia pública y logs saneados en staging.
+### 7F.2D — Foto de perfil privada de Usuario (Flujo principal aceptado en staging tras hotfix)
+- **Modelo/Privacidad**: Reutiliza User.profile_photo_path sin exponer key/URL en APIs públicas. Aplica a menores y adultos; no amplía public_competition_identity. Fallback visual por iniciales.
+- **API Privada**: POST/DELETE/GET autenticados sin ID en URL. Lifecycle seguro (store -> commit -> cleanup antiguo) con compensación de fallos. Normalización JPEG/PNG/WebP, máx 3 MB, resize/re-encode y sin EXIF/GPS.
+- **Frontend (Mi Panel)**: UI de subida, sustitución, borrado y preview. Descarga autenticada como blob con URLs revocables, sin persistir en localStorage. Aviso explícito de privacidad.
+- **Incidente Staging y Hotfix CORS**:
+  - Se detectó un bloqueo CORS cross-origin en navegador (frontend -> API -> 302 -> presigned URL S3).
+  - Se configuró la regla CORS GET/HEAD en el bucket media-staging.
+  - **Hotfix**: El serving privado S3 ahora streamea la imagen a través de Laravel (200 OK) evitando el redirect, mientras Sponsor conserva su redirect 302 a presigned URL.
+  - Validación local automática del hotfix: 501 tests backend, 550 tests frontend, 65 tests E2E y análisis estático superados.
+- **Validado manualmente en staging**: UI visible en Mi Panel, upload real hacia media-staging, hotfix desplegado resolviendo CORS, renderizado correcto de la foto, replace y delete básicos operativos.
+- **Gates secundarios diferidos**: cleanup exhaustivo post-replace/delete, persistencia post-redeploy, revisión móvil/accesible y revisión de logs. El flujo principal se considera aceptado.
 
 ### 7F.2E — Noticias
 - Creación de entidad/arquitectura editorial (ya sea `NewsArticle` o especialización CMS) para gestionar listado cronológico, extractos y detalle.
@@ -87,3 +93,18 @@ El despliegue en Producción (7F) queda **suspendido** hasta la compleción y va
 - [ ] 7F.2E noticias navegables.
 - [ ] 7F.2F enlaces de menú CMS asignables.
 - [ ] Promoción a Staging y nueva aceptación humana (beta) superadas. (7F.2A verificada el 2026-08-15)
+
+
+## 11. Mejoras futuras (Post-MVP)
+
+Las siguientes propuestas han sido concebidas durante la Fase 7F.2 pero **NO** forman parte del alcance actual (no alteran 7F.2E ni 7F.2F) y se difieren a una evolución posterior del producto:
+
+### 11.1 Patrocinios Contextuales (Evolución de Sponsor)
+- **Campeonatos Patrocinados**: Asociación (N:M) de un campeonato con uno o varios patrocinadores, mostrando su identidad en detalles y clasificaciones sin duplicar datos en el modelo de campeonato.
+- **Pistas Patrocinadas**: Asociación comercial temporal de una pista (ej. "Pista OpenAI"), preservando la identidad estructural y técnica original para no romper referencias históricas ni estadísticas.
+- **Diseño**: Podría requerir relaciones N:M o un modelo Sponsorship con metadatos contractuales (vigencia, prioridad). Se mantendrá la filosofía sin trackers ni scripts de terceros.
+
+### 11.2 Perfil Público Deportivo de Jugador
+- **Ficha Pública**: Espacio opcional para mostrar nombre, apodo, palmarés, categorías y estadísticas.
+- **Privacidad y Menores**: Requerirá consentimientos independientes, trato diferenciado para menores (fail-closed) y un sistema de alias.
+- **Fotografía**: La foto de perfil privada (7F.2D) **NO** se reutilizará automáticamente; publicarla exigirá una autorización explícita separada.

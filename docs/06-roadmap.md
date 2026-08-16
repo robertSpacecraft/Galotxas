@@ -58,8 +58,8 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 40. **Fase 7F.1 — Production readiness, entornos y runbooks:** dominio y API canónicos centralizados, staging/producción separados, preflights fail-closed, liveness mínima, bootstrap administrativo seguro, CORS/headers/proxy, artefactos Vercel/Railway y operación de DB, CMS, correo, DNS, backup, restore y rollback documentados; 431 tests backend, 493 frontend y 63 E2E validados sin desplegar ni activar servicios.
 41. **Fase 7F.2A — Rankings y navegación de Competición en `develop`:** `/rankings` consolidado en Histórico, Temporada, Campeonato y Categoría sobre contratos API existentes; selectores jerárquicos seguros; Competición convertida en disclosure accesible con Vista general, Campeonatos y Rankings; 508 tests frontend y 63 E2E validados sin modificar backend, desplegar ni obtener aceptación humana de staging.
 42. **Fase 7F.2B — Infraestructura multimedia persistente:** auditoría, ADR-043 aprobado, núcleo local implementado y validado, bucket staging creado, conectado y validado con persistencia tras redeploy; 7F.2B cerrada.
-43. **Fase 7F.2C — Patrocinadores/colaboradores administrables:** modelo `Sponsor`, CRUD Blade, lifecycle privado, API efectiva, serving estable y franja React pre-footer implementados; staging ya validó el flujo principal, pero ventanas, redeploy, borrado y revisión móvil/accesible siguen pendientes, por lo que el bloque continúa abierto.
-44. **Fase 7F.2D — Foto de perfil privada de Usuario en `develop`:** referencia `User.profile_photo_path` endurecida, lifecycle transaccional y cleanup, API propia autenticada, serving privado local/S3, consumo Bearer como blob y UI accesible en Mi Panel implementados y validados localmente; aceptación manual de staging pendiente, por lo que el bloque continúa abierto.
+43. **Fase 7F.2C — Patrocinadores/colaboradores administrables:** modelo Sponsor, CRUD Blade, lifecycle privado, API efectiva, serving estable y franja React pre-footer implementados; staging validó el flujo principal, difiriendo temporalidad, redeploy, borrado y revisión móvil/accesible a regresión global.
+44. **Fase 7F.2D — Foto de perfil privada de Usuario:** referencia User.profile_photo_path endurecida, API propia, serving privado backend (200 OK) resolviendo CORS de S3 y UI accesible en Mi Panel implementados; staging validó el flujo principal tras hotfix, difiriendo cleanup manual, redeploy y accesibilidad a regresión global.
 
 La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fases 7A, 7B, 7E y 7F.1, los bloques 7C.0–7C.2 y 7D.1–7D.3 están completados; 7C y 7D quedan cerradas.
 
@@ -75,11 +75,11 @@ Antes de iniciar 7F.2A se ha cerrado su prerrequisito de dominio: el reparto bas
 ## Fase 7 abierta — bloques parcialmente completados / bloqueados
 
 1. **Fase 7F (Pendientes de Staging y Producción):** configuración de SMTP real (bloqueado en Hobby), identidad pública completa de menores y reset de contraseña (dependen de SMTP), y ejecución de backup/restore/rollback en staging (aplazado).
-2. **Fase 7F.2 — Refinamiento preproducción:** 7F.2A y 7F.2B están cerradas en staging; 7F.2C conserva cuatro gates manuales pendientes y 7F.2D está implementada en `develop` pendiente de aceptación manual de staging; después siguen 7F.2E–7F.2F y la aceptación humana global del nuevo baseline completo.
+2. **Fase 7F.2 — Refinamiento preproducción:** 7F.2A y 7F.2B están cerradas en staging; los flujos principales de 7F.2C y 7F.2D están aceptados funcionalmente en staging difiriendo cierres secundarios. Próximos desarrollos: 7F.2E–7F.2F; finalmente, aceptación humana global del baseline completo.
 
 ## Fase 7 abierta — bloques pendientes
 
-1. **Fase 7F.2 — Refinamiento preproducción y ampliación controlada del alcance:** 7F.2B completada y validada; completar los gates pendientes de 7F.2C, promover y aceptar 7F.2D (foto privada de User), implementar 7F.2E–7F.2F (Noticias y Menú CMS) y revalidar el baseline completo.
+1. **Fase 7F.2 — Refinamiento preproducción y ampliación controlada del alcance:** flujos principales de 7F.2C y 7F.2D aceptados en staging. Próximos desarrollos: implementar 7F.2E–7F.2F (Noticias y Menú CMS) y revalidar el baseline completo (incluyendo gates secundarios diferidos).
 2. **Fase 7F (Producción):** tras completar validaciones y smoke de staging, desplegar producción inicialmente noindex y con Contacto, Escuela, identidad de menores y scheduler cerrados, activándolos de uno en uno sólo tras sus gates.
 3. **Fase 7G — Validación y cierre del MVP:** ejecutar regresión, recorridos críticos, QA responsive/multibrowser priorizada, smoke y aceptación humana antes de tag/release.
 
@@ -250,7 +250,9 @@ Estas capacidades son válidas, pero no bloquean el candidato actual:
 - formularios públicos institucionales o de federación con privacidad y antispam;
 - SEO y ordenación editorial avanzados del CMS;
 - métricas y filtros administrativos avanzados;
-- aplicación móvil y API administrativa consolidada.
+- aplicación móvil y API administrativa consolidada;
+- **Patrocinios Contextuales**: asociación de patrocinadores con campeonatos o pistas temporales, manteniendo la identidad física inmutable;
+- **Perfil Público Deportivo**: ficha pública opcional (requiere autorización explícita e independiente para foto, alias y palmarés, fail-closed por defecto).
 
 ---
 

@@ -6,6 +6,10 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Se acepta en staging el flujo funcional de Sponsor (Fase 7F.2C); migración, alta administrativa, almacenamiento real, render público y desactivar/reactivar confirmados. Cierres secundarios (redeploy, borrado, programación temporal y accesibilidad) quedan diferidos.
+- Se acepta manualmente en staging el flujo funcional de avatar privado de 7F.2D (upload, serving, replace, delete); gates secundarios (redeploy, cleanup riguroso y accesibilidad) quedan diferidos.
+- Se documentan como mejoras futuras (post-MVP) los patrocinios contextuales (campeonatos y pistas) y el perfil público deportivo opcional de jugador. Ninguna altera 7F.2E (Noticias) ni 7F.2F (Menú CMS).
+
 - Fase 7F.2D implementa en `develop` la foto privada de `User` sin migración:
   lifecycle transaccional, cleanup post-commit, keys `avatars/` estrictas,
   API `/me` autenticada, serving local/S3 privado y rate limit de mutaciones.
@@ -183,6 +187,9 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - El repositorio Knowledge devuelve copias de sus colecciones y documentos y resuelve posición y vecinos según el orden canónico de cada colección.
 
 ### Fixed
+
+- Hotfix en Fase 7F.2D: el serving privado S3 del avatar de usuario se transmite a través del backend (200 OK) en lugar de usar un redirect cruzado a la URL prefirmada, resolviendo el bloqueo CORS cross-origin del navegador en Mi Panel. Sponsor conserva su redirect S3 directo.
+- Se aplicó y validó regla CORS explícita (GET/HEAD) en el bucket S3 media-staging.
 
 - La foto privada en `media_s3` deja de redirigir el XHR Bearer al bucket:
   Laravel transmite el binario con `200`, cabeceras privadas y sin `Location`
