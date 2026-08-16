@@ -79,7 +79,7 @@ test.describe('páginas legales versionadas', () => {
     }
   });
 
-  test('no consulta API, no carga terceros automáticos y no muestra banner', async ({ page }) => {
+  test('sólo consulta colaboradores propios, no carga terceros automáticos y no muestra banner', async ({ page }) => {
     const apiRequests = [];
     const remoteRequests = [];
     page.on('request', (request) => {
@@ -96,7 +96,11 @@ test.describe('páginas legales versionadas', () => {
       await expect(page.getByRole('dialog')).toHaveCount(0);
     }
 
-    expect(apiRequests).toEqual([]);
+    expect(apiRequests.map((url) => new URL(url).pathname)).toEqual([
+      '/api/v1/sponsors',
+      '/api/v1/sponsors',
+      '/api/v1/sponsors',
+    ]);
     expect(remoteRequests).toEqual([]);
   });
 
