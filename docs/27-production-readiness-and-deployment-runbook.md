@@ -312,7 +312,9 @@ incorrecta reiniciando sin corregirla.
 ## Base de datos, migraciones y primer administrador
 
 La estrategia es incremental y forward-only. El despliegue no migra por sí
-solo. En una DB vacía o una release con cambios:
+solo. *(Nota operativa: Sponsors y News confirmaron en staging que un deploy
+exitoso no ejecuta migraciones, y éstas deben verificarse/aplicarse
+explícitamente con los comandos inferiores).* En una DB vacía o una release con cambios:
 
 1. ejecutar los dos preflight con flags cerradas; antes de la primera
    migración el backend puede bloquear exclusivamente por repositorio o
@@ -592,8 +594,7 @@ No se considera 7F cerrada hasta completar y evidenciar esas acciones.
 
 ## Gate de staging de Noticias 7F.2E
 
-7F.2E sólo está validada localmente. Su aceptación exige ejecutar en staging,
-en este orden y con evidencias, el siguiente checklist:
+7F.2E ha superado su aceptación manual en staging. Su gate (ya ejecutado con éxito) requería el siguiente checklist:
 
 1. completar backup y preflight del entorno según este runbook;
 2. revisar `php artisan migrate:status` antes de cambiar el esquema;
@@ -620,7 +621,7 @@ en este orden y con evidencias, el siguiente checklist:
 23. obtener aprobación editorial y de derechos de las imágenes de prueba.
 
 Un deploy marcado como `SUCCESS` no acredita que la migración se haya
-ejecutado. No se cierra 7F.2E hasta completar este gate y la aceptación humana.
+ejecutado (como evidenció el error 500 inicial por la ausencia de la tabla `news_articles`, resuelto al aplicar `migrate --force`). Este gate y la aceptación humana de 7F.2E se consideran completados.
 
 ## Smoke no destructivo post-deploy
 

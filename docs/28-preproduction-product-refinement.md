@@ -57,8 +57,7 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
 - **Gates secundarios diferidos**: cleanup exhaustivo post-replace/delete, persistencia post-redeploy, revisión móvil/accesible y revisión de logs. El flujo principal se considera aceptado.
 
 ### 7F.2E — Noticias
-- **Estado**: implementada y validada localmente; abierta hasta aceptación en
-  staging.
+- **Estado**: implementada, promovida y aceptada manualmente en staging. 7F.2E cerrada.
 - `NewsArticle` dedicado, separado de `CmsPage`/`CmsBlock` y de
   `/contenidos/prensa-media`, conforme a ADR-044.
 - Administración Blade con borrador, programación, publicación efectiva,
@@ -69,11 +68,16 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
   aporta `/noticias`, detalle lazy, `Cargar más`, estados remotos, responsive y
   navegación top-level estructural.
 - SEO client-side con canonical, OG article y JSON-LD en detalles válidos;
-  `/noticias` entra en sitemap y los slugs runtime quedan como deuda P1.
+  `/noticias` entra en sitemap.
 - Regresión local final: 526 tests backend, 601 frontend y 66 E2E, además de
   análisis estático, build Vite e imagen Docker de producción.
+- **Incidente de migración**: Tras el deploy exitoso, los endpoints devolvieron error 500 por tabla `news_articles` ausente. Se verificó que el deploy no aplica migraciones automáticamente. Se resolvió con `migrate --force` y validación posterior.
+- **Validado manualmente en staging**: migración explícita, administración, alta/edición, publicación efectiva, imágenes funcionales tras migración y navegación pública.
+- **Regla editorial (no técnica)**: Las imágenes reales publicadas deben tener procedencia/derechos/autorizaciones verificables; fotos con personas/menores requieren procedimiento. El checkbox administrativo es sólo registro de verificación.
+- **Deuda P1 (sin reabrir 7F.2E)**: Sitemap dinámico runtime de slugs, metadata client-side, sin SSR/prerender dinámico.
 
 ### 7F.2F — Navegación CMS administrable
+- **Estado**: Siguiente bloque activo.
 - Capacidad limitada y validada para que Blade asigne páginas del CMS a slots controlados de navegación.
 - Protección estricta de las rutas de producto y la estructura del enrutador React.
 
@@ -94,7 +98,7 @@ El ciclo de desarrollo deberá seguir la pauta:
 `desarrollo → tests dirigidos → regresión completa → staging → smoke → beta/pruebas manuales → aceptación del nuevo baseline → producción`.
 
 ## 9. Relación con 7F Producción y 7G
-El despliegue en Producción (7F) queda **suspendido** hasta la compleción y validación estricta de toda la Fase 7F.2 en Staging. 7F.2A y 7F.2B ya se cerraron allí; 7F.2C y 7F.2D conservan gates secundarios; 7F.2E está validada localmente y espera aceptación en staging; falta 7F.2F. El cierre del MVP (7G) ocurrirá posteriormente. La deuda técnica de post-MVP descrita en el roadmap (p. ej. aplicación móvil, pasarela de pago, migración auth) sigue fuera del alcance.
+El despliegue en Producción (7F) queda **suspendido** hasta la compleción y validación estricta de toda la Fase 7F.2 en Staging. 7F.2A y 7F.2B ya se cerraron allí; 7F.2C y 7F.2D conservan gates secundarios; 7F.2E está cerrada y aceptada en staging; falta 7F.2F. El cierre del MVP (7G) ocurrirá posteriormente. La deuda técnica de post-MVP descrita en el roadmap (p. ej. aplicación móvil, pasarela de pago, migración auth) sigue fuera del alcance.
 
 ## 10. Checklist observable
 - [x] 7F.2A implementado y validado automáticamente en `develop`.
@@ -107,8 +111,8 @@ El despliegue en Producción (7F) queda **suspendido** hasta la compleción y va
 - [x] 7F.2D flujo principal aceptado manualmente en staging tras hotfix.
 - [ ] 7F.2D completar gates secundarios diferidos en staging.
 - [x] 7F.2E noticias navegables y regresión local completa.
-- [ ] 7F.2E migración, storage real y aceptación humana en staging.
-- [ ] 7F.2F enlaces de menú CMS asignables.
+- [x] 7F.2E migración, storage real y aceptación humana en staging.
+- [ ] 7F.2F enlaces de menú CMS asignables (Siguiente bloque activo).
 - [ ] Promoción a Staging y nueva aceptación humana (beta) superadas. (7F.2A verificada el 2026-08-15)
 
 

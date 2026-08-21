@@ -20,8 +20,13 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
   7F.2F.
 - El índice entra en el sitemap estático y el detalle aplica canonical, Open
   Graph article y JSON-LD tras validar la respuesta. Los slugs runtime quedan
-  fuera del sitemap MVP como deuda P1. La fase pasa 526 tests backend, 601
-  frontend y 66 E2E, pero permanece abierta hasta aceptación en staging.
+  fuera del sitemap MVP como deuda P1, así como metadata client-side y SSR
+  dinámico. La fase pasa 526 tests backend, 601 frontend y 66 E2E.
+- Se promueve 7F.2E a staging; un 500 inicial evidenció la tabla `news_articles`
+  ausente al no ejecutarse migraciones automáticamente en el deploy.
+- Se aplica explícitamente `migrate --force` con éxito y se acepta manualmente
+  en staging todo el flujo técnico/funcional de Noticias, cerrando 7F.2E.
+  El siguiente bloque activo es 7F.2F (Navegación CMS administrable).
 - Se acepta en staging el flujo funcional de Sponsor (Fase 7F.2C); migración, alta administrativa, almacenamiento real, render público y desactivar/reactivar confirmados. Cierres secundarios (redeploy, borrado, programación temporal y accesibilidad) quedan diferidos.
 - Se acepta manualmente en staging el flujo funcional de avatar privado de 7F.2D (upload, serving, replace, delete); gates secundarios (redeploy, cleanup riguroso y accesibilidad) quedan diferidos.
 - Se documentan como mejoras futuras (post-MVP) los patrocinios contextuales (campeonatos y pistas) y el perfil público deportivo opcional de jugador. Ninguna altera 7F.2E (Noticias) ni 7F.2F (Menú CMS).
