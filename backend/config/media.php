@@ -43,6 +43,16 @@ return [
             'jpeg_quality' => 85,
             'webp_quality' => 82,
         ],
+        'news_cover' => [
+            'input_max_kb' => 8192,
+            'max_pixels' => 16_000_000,
+            'max_width' => 6000,
+            'max_height' => 6000,
+            'output_max_width' => 1920,
+            'output_max_height' => 1080,
+            'jpeg_quality' => 85,
+            'webp_quality' => 82,
+        ],
         'content' => [
             'input_max_kb' => 8192,
             'max_pixels' => 16_000_000,

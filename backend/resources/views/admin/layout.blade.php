@@ -119,6 +119,9 @@
                     <a class="nav-link" href="{{ route('admin.cms-pages.index') }}">CMS/Páginas</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="{{ route('admin.news-articles.index') }}">Noticias</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.sponsors.index') }}">Colaboradores</a>
                 </li>
                 <li class="nav-item">

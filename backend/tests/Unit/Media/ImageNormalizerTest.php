@@ -131,6 +131,18 @@ class ImageNormalizerTest extends TestCase
         $this->assertSame([20, 10], [$small->width, $small->height]);
     }
 
+    public function test_news_cover_profile_scales_into_a_1920_by_1080_box_without_crop(): void
+    {
+        $wide = $this->upload($this->imageBytes('png', 2400, 1200), 'wide.png');
+        $portrait = $this->upload($this->imageBytes('png', 1200, 2400), 'portrait.png');
+
+        $wideResult = app(ImageNormalizer::class)->normalize($wide, 'news_cover');
+        $portraitResult = app(ImageNormalizer::class)->normalize($portrait, 'news_cover');
+
+        $this->assertSame([1920, 960], [$wideResult->width, $wideResult->height]);
+        $this->assertSame([540, 1080], [$portraitResult->width, $portraitResult->height]);
+    }
+
     public function test_it_applies_exif_orientation_and_strips_metadata(): void
     {
         $metadataMarker = 'GALOTXAS_PRIVATE_METADATA';

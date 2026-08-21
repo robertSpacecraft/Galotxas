@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\EducationalActivityController;
 use App\Http\Controllers\Admin\EducationalCenterController;
 use App\Http\Controllers\Admin\GameMatchController;
 use App\Http\Controllers\Admin\MatchConflictController;
+use App\Http\Controllers\Admin\NewsArticleController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\PublicIdentityAuthorizationController;
 use App\Http\Controllers\Admin\RankingController as AdminRankingController;
@@ -69,6 +70,13 @@ Route::prefix('admin')->group(function () {
             ->name('admin.cms-pages.blocks.update');
         Route::delete('/cms/pages/{cmsPage}/blocks/{cmsBlock}', [CmsBlockController::class, 'destroy'])
             ->name('admin.cms-pages.blocks.destroy');
+
+        // Noticias
+        Route::get('/news-articles/{newsArticle}/image', [NewsArticleController::class, 'image'])
+            ->name('admin.news-articles.image');
+        Route::resource('news-articles', NewsArticleController::class)
+            ->except('show')
+            ->names('admin.news-articles');
 
         // Colaboradores
         Route::get('/sponsors/{sponsor}/logo', [SponsorController::class, 'logo'])
