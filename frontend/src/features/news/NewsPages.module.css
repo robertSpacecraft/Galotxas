@@ -1,0 +1,282 @@
+.page {
+  min-width: 0;
+  padding: clamp(3rem, 7vw, 5rem) clamp(1rem, 6vw, 5rem);
+  background: #f8f9fa;
+  color: #1f2937;
+}
+
+.newsSection,
+.detailArticle {
+  display: grid;
+  min-width: 0;
+  gap: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.card,
+.detailArticle {
+  border: 1px solid #d7dee8;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 6px 20px rgba(0, 31, 63, 0.08);
+  overflow: hidden;
+}
+
+.card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.featuredCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 1fr);
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 1.25rem;
+}
+
+.cardImageFrame {
+  min-width: 0;
+  aspect-ratio: 16 / 9;
+  background: #eaf1f8;
+  overflow: hidden;
+}
+
+.cardImage,
+.imageFallback {
+  width: 100%;
+  height: 100%;
+}
+
+.cardImage {
+  display: block;
+  object-fit: cover;
+}
+
+.imageFallback {
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: #eaf1f8;
+  color: #354254;
+  font-weight: 700;
+  text-align: center;
+}
+
+.cardContent {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: clamp(1.1rem, 3vw, 1.6rem);
+}
+
+.eyebrow {
+  margin: 0;
+  color: #526173;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cardTitle,
+.detailHeader h1 {
+  margin: 0;
+  color: #003366;
+  overflow-wrap: anywhere;
+}
+
+.cardTitle {
+  font-size: clamp(1.25rem, 3vw, 1.65rem);
+  line-height: 1.3;
+}
+
+.date {
+  color: #526173;
+  font-size: 0.95rem;
+}
+
+.excerpt,
+.detailExcerpt,
+.body,
+.remoteState,
+.errorState,
+.detailState {
+  color: #354254;
+  line-height: 1.7;
+}
+
+.excerpt {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.articleLink,
+.backLink,
+.button,
+.loadMoreButton {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #003366;
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.articleLink,
+.backLink {
+  padding: 0.7rem 1rem;
+  background: #003366;
+  color: #ffffff;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+.articleLink {
+  margin-top: auto;
+}
+
+.remoteState,
+.errorState,
+.detailState {
+  margin: 0;
+  padding: 1.25rem;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.errorState {
+  border: 1px solid #a53b3b;
+}
+
+.errorState p,
+.detailState p {
+  margin: 0;
+}
+
+.button,
+.loadMoreButton {
+  padding: 0.65rem 1rem;
+  background: #ffffff;
+  color: #003366;
+  cursor: pointer;
+}
+
+.button {
+  margin-top: 1rem;
+}
+
+.loadMoreButton {
+  justify-self: center;
+}
+
+.loadMoreButton:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.detailArticle {
+  padding: clamp(1.25rem, 5vw, 3rem);
+  overflow: visible;
+}
+
+.contextLink {
+  width: fit-content;
+  color: #003366;
+  font-weight: 800;
+}
+
+.detailHeader {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.detailHeader h1 {
+  font-size: clamp(2rem, 6vw, 3.4rem);
+  line-height: 1.1;
+}
+
+.detailExcerpt {
+  max-width: 70ch;
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.detailFigure {
+  min-width: 0;
+  margin: 0;
+}
+
+.detailImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 80vh;
+  border-radius: 10px;
+  object-fit: contain;
+  background: #eaf1f8;
+}
+
+.detailFigure .imageFallback {
+  min-height: 240px;
+  border-radius: 10px;
+}
+
+.detailFigure figcaption {
+  margin-top: 0.6rem;
+  color: #526173;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.body {
+  max-width: 72ch;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+.body p {
+  margin: 0 0 1.25rem;
+  white-space: pre-wrap;
+}
+
+.backLink {
+  width: fit-content;
+}
+
+.articleLink:focus-visible,
+.backLink:focus-visible,
+.contextLink:focus-visible,
+.button:focus-visible,
+.loadMoreButton:focus-visible {
+  outline: 3px solid #003366;
+  outline-offset: 4px;
+}
+
+@media (max-width: 720px) {
+  .featuredCard {
+    display: flex;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+
+  .articleLink,
+  .backLink,
+  .button,
+  .loadMoreButton {
+    width: 100%;
+  }
+}

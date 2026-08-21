@@ -38,6 +38,8 @@ const KnowledgeDocumentPage = lazy(() => import('./pages/Learn/KnowledgeDocument
 const SchoolPage = lazy(() => import('./features/school/SchoolPage'));
 const ClubPage = lazy(() => import('./features/club/ClubPage'));
 const LegalPage = lazy(() => import('./features/legal/LegalPage'));
+const NewsIndexPage = lazy(() => import('./features/news/NewsIndexPage'));
+const NewsDetailPage = lazy(() => import('./features/news/NewsDetailPage'));
 const PublicIdentityConfirmationPage = lazy(
   () => import('./features/publicIdentity/PublicIdentityConfirmationPage'),
 );
@@ -72,6 +74,12 @@ export const LegalRoute = ({ children }) => (
   </Suspense>
 );
 
+export const NewsRoute = ({ children }) => (
+  <Suspense fallback={<RouteLoading label="Cargando Noticias" />}>
+    {children}
+  </Suspense>
+);
+
 const AppContent = () => {
   const location = useLocation();
   const isPublicIdentityConfirmation = location.pathname === '/public-identity/confirm';
@@ -95,6 +103,14 @@ const AppContent = () => {
           />
           <Route path="/" element={<Home />} />
           <Route path="/competicion" element={<CompetitionPage />} />
+          <Route
+            path="/noticias"
+            element={<NewsRoute><NewsIndexPage /></NewsRoute>}
+          />
+          <Route
+            path="/noticias/:slug"
+            element={<NewsRoute><NewsDetailPage /></NewsRoute>}
+          />
           <Route
             path="/aprende-a-jugar"
             element={<KnowledgeRoute><LearnPage /></KnowledgeRoute>}

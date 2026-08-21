@@ -4,9 +4,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { championshipsService } from './api/championships';
 import { cmsService } from './api/cms';
 import { contactService } from './features/contact/contactService';
+import { newsService } from './features/news/newsService';
 import { schoolService } from './features/school/schoolService';
 import { sponsorService } from './features/sponsors/sponsorService';
-import App, { ClubRoute, KnowledgeRoute, LegalRoute, SchoolRoute } from './App';
+import App, {
+  ClubRoute,
+  KnowledgeRoute,
+  LegalRoute,
+  NewsRoute,
+  SchoolRoute,
+} from './App';
 
 vi.mock('./api/championships', () => ({
   championshipsService: {
@@ -38,6 +45,13 @@ vi.mock('./features/contact/contactService', () => ({
   },
 }));
 
+vi.mock('./features/news/newsService', () => ({
+  newsService: {
+    getList: vi.fn(),
+    getBySlug: vi.fn(),
+  },
+}));
+
 vi.mock('./features/sponsors/sponsorService', () => ({
   sponsorService: {
     getAll: vi.fn(),
@@ -64,6 +78,32 @@ describe('App public routes', () => {
     }));
     schoolService.getOverview.mockResolvedValue(null);
     contactService.getConfig.mockResolvedValue({ enabled: false });
+    newsService.getList.mockResolvedValue({
+      articles: [],
+      meta: {
+        current_page: 1,
+        last_page: 1,
+        per_page: 12,
+        total: 0,
+        has_more: false,
+      },
+    });
+    newsService.getBySlug.mockResolvedValue({
+      slug: 'cronica-final',
+      title: 'Crónica de la final',
+      excerpt: 'Resumen manual.',
+      body: 'Cuerpo de la noticia.',
+      published_at: '2026-08-21T10:00:00+00:00',
+      seo_title: null,
+      seo_description: null,
+      image: {
+        url: 'https://api.example.test/api/v1/news/cronica-final/image',
+        width: 1600,
+        height: 900,
+        alt: 'Pelota sobre una pista vacía.',
+        credit: null,
+      },
+    });
     sponsorService.getAll.mockResolvedValue([]);
   });
 
@@ -124,6 +164,20 @@ describe('App public routes', () => {
     expect(screen.queryByText('Página no encontrada')).not.toBeInTheDocument();
   });
 
+  it('uses the accessible News fallback without a false H1 or 404', () => {
+    const PendingPage = lazy(() => new Promise(() => {}));
+
+    render(
+      <NewsRoute>
+        <PendingPage />
+      </NewsRoute>,
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando Noticias');
+    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
+    expect(screen.queryByText('Página no encontrada')).not.toBeInTheDocument();
+  });
+
   it('renders the functional tournament list without the legacy placeholder', async () => {
     openAppAt('/torneos');
 
@@ -136,6 +190,26 @@ describe('App public routes', () => {
 
     expect(await screen.findByRole('heading', { name: 'Competición', level: 1 })).toBeInTheDocument();
     expect(screen.getAllByRole('main')).toHaveLength(1);
+  });
+
+  it('registers the lazy News index route', async () => {
+    openAppAt('/noticias');
+
+    expect(await screen.findByRole('heading', { name: 'Noticias', level: 1 })).toBeInTheDocument();
+    expect(await screen.findByText('No hay noticias publicadas en este momento.'))
+      .toBeInTheDocument();
+    expect(newsService.getList).toHaveBeenCalledOnce();
+  });
+
+  it('registers the lazy News detail route', async () => {
+    openAppAt('/noticias/cronica-final');
+
+    expect(await screen.findByRole('heading', { name: 'Crónica de la final', level: 1 }))
+      .toBeInTheDocument();
+    expect(newsService.getBySlug).toHaveBeenCalledWith(
+      'cronica-final',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
   });
 
   it('keeps Home inside a single main landmark', async () => {

@@ -38,11 +38,13 @@ describe('Navbar', () => {
     expect(screen.getByRole('link', { name: 'Saltar al contenido principal' }))
       .toHaveAttribute('href', '#main-content');
     expect(screen.getByRole('link', { name: 'Galotxas' })).toHaveAttribute('href', '/');
-    expect(within(editorialNavigation).getAllByRole('listitem', { hidden: true })).toHaveLength(14);
+    expect(within(editorialNavigation).getAllByRole('listitem', { hidden: true })).toHaveLength(15);
     expect(within(editorialNavigation).getByRole('link', { name: 'Inicio' }))
       .toHaveAttribute('href', '/');
     expect(within(editorialNavigation).getByRole('button', { name: 'Competición' }))
       .toHaveAttribute('aria-controls', 'public-navigation-competition-panel');
+    expect(within(editorialNavigation).getByRole('link', { name: 'Noticias' }))
+      .toHaveAttribute('href', '/noticias');
     expect(within(editorialNavigation).getByRole('button', { name: 'Aprende' }))
       .toHaveAttribute('aria-controls', 'public-navigation-learn-panel');
     expect(within(editorialNavigation).getByRole('button', { name: 'Club' }))
@@ -232,6 +234,8 @@ describe('Navbar', () => {
     ['/categories/8/standings', 'Competición', 'button', null],
     ['/matches/3', 'Competición', 'button', null],
     ['/rankings', 'Competición', 'button', null],
+    ['/noticias', 'Noticias', 'link', 'page'],
+    ['/noticias/cronica-final', 'Noticias', 'link', null],
     ['/aprende-a-jugar', 'Aprende', 'button', null],
     ['/aprende-a-jugar/manual/reglamento/el-saque', 'Aprende', 'button', null],
     ['/escuela', 'Aprende', 'button', null],

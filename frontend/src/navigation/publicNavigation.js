@@ -86,6 +86,12 @@ export const publicNavigation = Object.freeze([
     prefixes: ['/torneos/', '/categories/', '/matches/'],
     children: competitionChildren,
   }),
+  link({
+    id: 'news',
+    label: 'Noticias',
+    to: '/noticias',
+    prefixes: ['/noticias/'],
+  }),
   disclosure({
     id: 'learn',
     label: 'Aprende',

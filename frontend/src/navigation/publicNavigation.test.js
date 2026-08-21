@@ -39,6 +39,13 @@ describe('publicNavigation', () => {
         audience: navigationAudiences.public,
       },
       {
+        id: 'news',
+        label: 'Noticias',
+        type: navigationItemTypes.link,
+        visible: true,
+        audience: navigationAudiences.public,
+      },
+      {
         id: 'learn',
         label: 'Aprende',
         type: navigationItemTypes.disclosure,
@@ -94,6 +101,8 @@ describe('publicNavigation', () => {
     ['/categories/7/standings', 'competition'],
     ['/matches/15', 'competition'],
     ['/rankings', 'competition'],
+    ['/noticias', 'news'],
+    ['/noticias/cronica-final', 'news'],
     ['/aprende-a-jugar', 'learn'],
     ['/aprende-a-jugar/manual', 'learn'],
     ['/aprende-a-jugar/manual/reglamento/el-saque', 'learn'],
