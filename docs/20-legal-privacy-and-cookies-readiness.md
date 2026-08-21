@@ -400,6 +400,22 @@ clave. `SCHOOL_ENROLLMENT_ENABLED=false` conserva la operación productiva
 cerrada. Configuración real, revisión humana, proveedor de correo, scheduler,
 backups, restore, logs y despliegue continúan como gates de 7F.
 
+## Seguimiento de 7F.2E — Noticias e imágenes
+
+Noticias publica únicamente contenido de texto escapado y portadas
+normalizadas sin EXIF/GPS. La procedencia editorial, la object key y la
+confirmación/responsable de derechos permanecen privadas; el crédito es el
+único dato de atribución opcional público. La confirmación Blade acredita que
+un administrador revisó evidencia preexistente, pero no constituye ni almacena
+un consentimiento fotográfico.
+
+Una imagen de cuenta o una autorización `public_competition_identity` nunca se
+reutilizan como autorización de publicación. En especial, cualquier imagen con
+personas identificables o menores necesita evidencia independiente fuera de
+este MVP. No se admiten HTML, embeds, scripts, trackers, SVG ni metadatos del
+fichero original. Staging debe verificar derechos de sus imágenes de prueba,
+logs saneados y cleanup remoto antes de aceptar 7F.2E.
+
 
 ---
 

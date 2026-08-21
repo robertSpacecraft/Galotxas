@@ -30,8 +30,10 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
 - **Estado**: Auditoría y ADR-043 cerrados; núcleo local, bucket, configuración Railway, probe remoto y persistencia tras redeploy validados en staging.
 - Backend incorpora discos privados `media_local` y `media_s3`, perfiles centralizados, normalización JPEG/PNG/WebP con GD/EXIF, keys UUID, servicio común y probe con cleanup.
 - `FILESYSTEM_DISK` continúa en `local`; `media_s3` sólo define el contrato `MEDIA_*` y no contiene secrets, bucket o URL hardcodeados.
-- 7F.2C fue el primer consumidor y 7F.2D reutiliza ya el núcleo para el avatar privado; Noticias y CMS no lo consumen todavía.
-- Sigue siendo requisito previo ineludible para futuras imágenes y noticias.
+- 7F.2C fue el primer consumidor, 7F.2D reutiliza el núcleo para el avatar
+  privado y 7F.2E lo aplica a portadas públicas de Noticias; CMS aún no lo
+  consume.
+- Sigue siendo requisito previo ineludible para futuras imágenes del CMS.
 
 ### 7F.2C — Patrocinadores/colaboradores administrables (Flujo principal aceptado en staging)
 - El nombre histórico “Banners administrables” se especializa sin reescribir la historia: no existe entidad Banner, campaña, placement o plataforma publicitaria.
@@ -55,18 +57,31 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
 - **Gates secundarios diferidos**: cleanup exhaustivo post-replace/delete, persistencia post-redeploy, revisión móvil/accesible y revisión de logs. El flujo principal se considera aceptado.
 
 ### 7F.2E — Noticias
-- Creación de entidad/arquitectura editorial (ya sea `NewsArticle` o especialización CMS) para gestionar listado cronológico, extractos y detalle.
-- Separación estricta frente al dominio previo de `prensa-media`.
+- **Estado**: implementada y validada localmente; abierta hasta aceptación en
+  staging.
+- `NewsArticle` dedicado, separado de `CmsPage`/`CmsBlock` y de
+  `/contenidos/prensa-media`, conforme a ADR-044.
+- Administración Blade con borrador, programación, publicación efectiva,
+  slug protegido, soft delete y gate de imagen/alt/procedencia/derechos.
+- Portadas sobre el núcleo 7F.2B con normalización `news_cover`, lifecycle
+  transaccional/compensatorio y serving estable local o S3 público temporal.
+- API pública paginada de 12, detalle por slug y Resources cerrados; React
+  aporta `/noticias`, detalle lazy, `Cargar más`, estados remotos, responsive y
+  navegación top-level estructural.
+- SEO client-side con canonical, OG article y JSON-LD en detalles válidos;
+  `/noticias` entra en sitemap y los slugs runtime quedan como deuda P1.
+- Regresión local final: 526 tests backend, 601 frontend y 66 E2E, además de
+  análisis estático, build Vite e imagen Docker de producción.
 
 ### 7F.2F — Navegación CMS administrable
 - Capacidad limitada y validada para que Blade asigne páginas del CMS a slots controlados de navegación.
 - Protección estricta de las rutas de producto y la estructura del enrutador React.
 
 ## 6. Dependencias y decisiones
-- **Decisiones cerradas**: Sustitución parcial de la navegación de Competición (ADR-042); obligatoriedad de almacenamiento de objetos (sin sistema de archivos efímero) para persistencia. Utilización de `User.profile_photo_path` para fotos de perfil.
+- **Decisiones cerradas**: Sustitución parcial de la navegación de Competición (ADR-042); obligatoriedad de almacenamiento de objetos (sin sistema de archivos efímero) para persistencia; utilización de `User.profile_photo_path` para fotos de perfil; `NewsArticle` dedicado y separado del CMS/prensa-media (ADR-044).
 - **Prerrequisito cerrado de Rankings**: una única regla backend distribuye tres puntos base por partido (`3-0` o `2-1`) antes de contribuciones de dobles y multiplicadores de nivel; no existe persistencia ni backfill de puntos.
 - **Verificación operativa del prerrequisito**: el reparto corregido se comprobó manualmente en staging el 2026-08-15. Esta evidencia corresponde al prerrequisito de dominio y no acredita despliegue, smoke ni aceptación de 7F.2A.
-- **Decisiones abiertas**: Proveedor de CDN; modelo exacto de datos para noticias (`NewsArticle` vs `CmsPage`); configuración exacta de los slots del menú; cualquier consentimiento fotográfico o publicación futura sigue fuera de 7F.2D.
+- **Decisiones abiertas**: Proveedor de CDN; configuración exacta de los slots del menú; sitemap dinámico runtime de noticias; cualquier consentimiento fotográfico general o publicación futura de avatares sigue fuera de 7F.2D/7F.2E.
 
 ## 7. Privacidad y Seguridad
 La filosofía fail-closed se mantiene:
@@ -79,7 +94,7 @@ El ciclo de desarrollo deberá seguir la pauta:
 `desarrollo → tests dirigidos → regresión completa → staging → smoke → beta/pruebas manuales → aceptación del nuevo baseline → producción`.
 
 ## 9. Relación con 7F Producción y 7G
-El despliegue en Producción (7F) queda **suspendido** hasta la compleción y validación estricta de toda la Fase 7F.2 en Staging. 7F.2A y 7F.2B ya se cerraron allí; 7F.2C conserva gates parciales y 7F.2D espera promoción y aceptación; faltan 7F.2E–7F.2F. El cierre del MVP (7G) ocurrirá posteriormente. La deuda técnica de post-MVP descrita en el roadmap (p. ej. aplicación móvil, pasarela de pago, migración auth) sigue fuera del alcance.
+El despliegue en Producción (7F) queda **suspendido** hasta la compleción y validación estricta de toda la Fase 7F.2 en Staging. 7F.2A y 7F.2B ya se cerraron allí; 7F.2C y 7F.2D conservan gates secundarios; 7F.2E está validada localmente y espera aceptación en staging; falta 7F.2F. El cierre del MVP (7G) ocurrirá posteriormente. La deuda técnica de post-MVP descrita en el roadmap (p. ej. aplicación móvil, pasarela de pago, migración auth) sigue fuera del alcance.
 
 ## 10. Checklist observable
 - [x] 7F.2A implementado y validado automáticamente en `develop`.
@@ -89,8 +104,10 @@ El despliegue en Producción (7F) queda **suspendido** hasta la compleción y va
 - [x] 7F.2C patrocinadores funcionales y regresión automática en `develop`.
 - [ ] 7F.2C completar programación, redeploy, borrado y revisión móvil/accesible en staging.
 - [x] 7F.2D foto privada de usuario gestionable y regresión local en `develop`.
-- [ ] 7F.2D promoción y aceptación manual en staging.
-- [ ] 7F.2E noticias navegables.
+- [x] 7F.2D flujo principal aceptado manualmente en staging tras hotfix.
+- [ ] 7F.2D completar gates secundarios diferidos en staging.
+- [x] 7F.2E noticias navegables y regresión local completa.
+- [ ] 7F.2E migración, storage real y aceptación humana en staging.
 - [ ] 7F.2F enlaces de menú CMS asignables.
 - [ ] Promoción a Staging y nueva aceptación humana (beta) superadas. (7F.2A verificada el 2026-08-15)
 

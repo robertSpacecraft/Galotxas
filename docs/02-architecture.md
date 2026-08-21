@@ -679,6 +679,29 @@ subida no constituye consentimiento de publicación para adultos ni menores.
 7F.2D está implementada y validada localmente en `develop`, pero permanece
 abierta hasta superar su gate manual de staging.
 
+### Noticias editoriales dedicadas en 7F.2E
+
+`NewsArticle` constituye un vertical independiente del CMS institucional:
+`Blade → NewsArticleService → MariaDB/media privada → Resources públicos →
+React`. El servicio es dueño de publicación, slug y lifecycle multimedia. Una
+escritura nueva se compensa si falla MariaDB; una sustitución confirma primero
+la referencia nueva bajo lock y limpia después la anterior; eliminar hace soft
+delete antes del cleanup. No existe transacción ficticia entre MariaDB y object
+storage.
+
+La lectura pública usa un scope efectivo (`published`, fecha no futura y no
+eliminada), Resources cerrados y rutas por slug. `media_local` delega mediante
+`X-Accel-Redirect`; `media_s3` redirige a una GET temporal porque la portada es
+pública e indexable. Esta semántica se separa del redirect público de Sponsor y
+del stream privado `200` del avatar. React valida el contrato, no persiste URLs
+firmadas y renderiza cuerpo de texto escapado.
+
+El índice `/noticias` es estructural, lazy e indexable; los detalles obtienen
+metadata `article` y JSON-LD únicamente tras una respuesta válida. El sitemap
+build-time incluye el índice, no consulta Laravel y aplaza como P1 el inventario
+runtime de slugs. 7F.2E está implementada y validada localmente, pero permanece
+abierta hasta aceptación en staging.
+
 ---
 
 # 9. Contrato API

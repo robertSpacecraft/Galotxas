@@ -909,3 +909,16 @@ Este contrato debe actualizarse antes o junto con cualquier cambio visible de Na
 ---
 
 **Nota de seguimiento posterior (Fase 7F.2):** Tras la aceptación de staging, ciertas decisiones (como el modelo de navegación en Competición y el aplazamiento de noticias y multimedia persistente) han sido promovidas o refinadas en la Fase 7F.2. Ver `docs/28-preproduction-product-refinement.md` y `ADR-042`.
+
+### Seguimiento 7F.2E — Noticias
+
+La configuración única incorpora `Noticias` como enlace estructural top-level
+entre Competición y Aprende, con destino exacto `/noticias`. El enlace obtiene
+`aria-current="page"` sólo en el índice y el estado visual del elemento cubre
+también `/noticias/:slug`. Desktop y móvil reutilizan cierre al navegar,
+disclosures, Escape y foco ya existentes.
+
+Las rutas lazy `/noticias` y `/noticias/:slug` son funcionales y no dependen
+del CMS institucional. Home y footer no reciben feed, tarjeta ni enlace extra.
+`/contenidos/prensa-media` continúa intacta. El futuro 7F.2F podrá gestionar
+slots CMS limitados, pero no podrá eliminar o sustituir esta ruta estructural.

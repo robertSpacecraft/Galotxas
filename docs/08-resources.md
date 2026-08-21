@@ -413,6 +413,19 @@ La adopción se realizará de forma progresiva conforme evolucionen los distinto
 
 Con la evolución del sistema de gestión de contenidos (CMS), deberá mantenerse de forma estricta la separación de Resources: los Resources administrativos podrán incluir metadatos, estado de borrador o trazabilidad, mientras que los Resources públicos seguirán entregando únicamente información visible para usuarios anónimos.
 
+## Noticias públicas en 7F.2E
+
+`PublicNewsArticleSummaryResource` es la allowlist del listado: `slug`, `title`,
+`excerpt`, `published_at` e `image` (`url`, `width`, `height`, `alt`, `credit`).
+`PublicNewsArticleResource` amplía esa forma únicamente con `body`, `seo_title`
+y `seo_description`. Ambos reciben sólo modelos ya filtrados por publicación
+efectiva y nunca serializan Eloquent de forma automática.
+
+Quedan excluidos de ambos contextos `status`, `created_at`, `updated_at`,
+`deleted_at`, `image_key`, `image_source`, derechos, administrador confirmante,
+disco y URLs temporales. La URL de imagen es la ruta Laravel estable por slug;
+la firma S3, cuando existe, pertenece únicamente a la respuesta binaria.
+
 ---
 
 ## Mantenimiento

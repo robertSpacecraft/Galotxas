@@ -60,6 +60,7 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 42. **Fase 7F.2B — Infraestructura multimedia persistente:** auditoría, ADR-043 aprobado, núcleo local implementado y validado, bucket staging creado, conectado y validado con persistencia tras redeploy; 7F.2B cerrada.
 43. **Fase 7F.2C — Patrocinadores/colaboradores administrables:** modelo Sponsor, CRUD Blade, lifecycle privado, API efectiva, serving estable y franja React pre-footer implementados; staging validó el flujo principal, difiriendo temporalidad, redeploy, borrado y revisión móvil/accesible a regresión global.
 44. **Fase 7F.2D — Foto de perfil privada de Usuario:** referencia User.profile_photo_path endurecida, API propia, serving privado backend (200 OK) resolviendo CORS de S3 y UI accesible en Mi Panel implementados; staging validó el flujo principal tras hotfix, difiriendo cleanup manual, redeploy y accesibilidad a regresión global.
+45. **Fase 7F.2E — Noticias:** `NewsArticle` dedicado, administración Blade, publicación efectiva, lifecycle de portada, API paginada, listado/detalle React, Navbar, SEO article y E2E implementados y validados localmente; pendiente de migración, storage real y aceptación humana en staging.
 
 La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fases 7A, 7B, 7E y 7F.1, los bloques 7C.0–7C.2 y 7D.1–7D.3 están completados; 7C y 7D quedan cerradas.
 
@@ -70,16 +71,16 @@ Se incorpora la **Fase 7F.2** de refinamiento preproducción, re-evaluando capac
 
 Antes de iniciar 7F.2A se ha cerrado su prerrequisito de dominio: el reparto base de rankings es `3-0` cuando quien pierde suma menos de 8 juegos y `2-1` cuando suma 8 o más, siempre con tres puntos totales. Los cuatro cálculos backend y Mi Panel consumen una única regla, con regresión de dobles y generación de copa. Esta corrección no inicia ni completa 7F.2A y no vuelve a sembrar copas ya generadas.
 
-7F.2A está implementada, validada automáticamente en `develop`, promovida a staging y su smoke y aceptación humana fueron superados el 2026-08-15 sin incidencias funcionales. 7F.2B está implementada y validada en staging tras superar las pruebas reales de persistencia tras redeploy. 7F.2C, históricamente “Banners”, se especializa como patrocinadores/colaboradores institucionales y está implementada en `develop`; staging ya validó migración, alta administrativa, storage real, render público, múltiples registros, orden, sustitución con cleanup y desactivar/reactivar, pero aún faltan programación temporal, redeploy, borrado y revisión móvil/accesible para cerrarla. 7F.2D está implementada y validada localmente en `develop`, con su aceptación de staging pendiente. 7F.2E–7F.2F no se han iniciado y la Fase 7F.2 continúa abierta. La corrección de reparto de puntos que actuaba como prerrequisito se verificó manualmente en staging el 2026-08-15, sin que esa evidencia se considere aceptación de 7F.2A.
+7F.2A está implementada, validada automáticamente en `develop`, promovida a staging y su smoke y aceptación humana fueron superados el 2026-08-15 sin incidencias funcionales. 7F.2B está implementada y validada en staging tras superar las pruebas reales de persistencia tras redeploy. 7F.2C, históricamente “Banners”, se especializa como patrocinadores/colaboradores institucionales y está implementada en `develop`; staging ya validó migración, alta administrativa, storage real, render público, múltiples registros, orden, sustitución con cleanup y desactivar/reactivar, pero aún faltan programación temporal, redeploy, borrado y revisión móvil/accesible para cerrarla. 7F.2D tiene su flujo principal aceptado en staging y conserva gates secundarios. 7F.2E está implementada y validada localmente, pero abierta hasta aceptación en staging. 7F.2F no se ha iniciado y la Fase 7F.2 continúa abierta. La corrección de reparto de puntos que actuaba como prerrequisito se verificó manualmente en staging el 2026-08-15, sin que esa evidencia se considere aceptación de 7F.2A.
 
 ## Fase 7 abierta — bloques parcialmente completados / bloqueados
 
 1. **Fase 7F (Pendientes de Staging y Producción):** configuración de SMTP real (bloqueado en Hobby), identidad pública completa de menores y reset de contraseña (dependen de SMTP), y ejecución de backup/restore/rollback en staging (aplazado).
-2. **Fase 7F.2 — Refinamiento preproducción:** 7F.2A y 7F.2B están cerradas en staging; los flujos principales de 7F.2C y 7F.2D están aceptados funcionalmente en staging difiriendo cierres secundarios. Próximos desarrollos: 7F.2E–7F.2F; finalmente, aceptación humana global del baseline completo.
+2. **Fase 7F.2 — Refinamiento preproducción:** 7F.2A y 7F.2B están cerradas en staging; los flujos principales de 7F.2C y 7F.2D están aceptados allí con cierres secundarios diferidos; 7F.2E está validada localmente y espera staging. Próximo desarrollo: 7F.2F; finalmente, aceptación humana global del baseline completo.
 
 ## Fase 7 abierta — bloques pendientes
 
-1. **Fase 7F.2 — Refinamiento preproducción y ampliación controlada del alcance:** flujos principales de 7F.2C y 7F.2D aceptados en staging. Próximos desarrollos: implementar 7F.2E–7F.2F (Noticias y Menú CMS) y revalidar el baseline completo (incluyendo gates secundarios diferidos).
+1. **Fase 7F.2 — Refinamiento preproducción y ampliación controlada del alcance:** flujos principales de 7F.2C y 7F.2D aceptados en staging; 7F.2E implementada localmente y pendiente de aceptación allí. Próximo desarrollo: 7F.2F (Menú CMS) y revalidación del baseline completo, incluidos los gates secundarios diferidos.
 2. **Fase 7F (Producción):** tras completar validaciones y smoke de staging, desplegar producción inicialmente noindex y con Contacto, Escuela, identidad de menores y scheduler cerrados, activándolos de uno en uno sólo tras sus gates.
 3. **Fase 7G — Validación y cierre del MVP:** ejecutar regresión, recorridos críticos, QA responsive/multibrowser priorizada, smoke y aceptación humana antes de tag/release.
 
@@ -202,8 +203,8 @@ React de reprogramación continúa como P1 y no bloquea por sí misma el MVP.
 ## Frontend, despliegue y calidad
 
 - URL API por `VITE_API_BASE_URL`, fallback local de desarrollo y `/api/v1` en producción (DEPLOY-1);
-- Vitest, React Testing Library y 508 tests en 73 archivos, incluidos pipeline y páginas legales, SEO/canonical, identidad pública, sesión mínima, Escuela, formularios, navegación agrupada, Home/footer, Knowledge, los cuatro ámbitos de Rankings, Competición, cuenta, foco, landmarks, 404, preflight y contrato Vercel;
-- smoke Playwright completo: 63 escenarios en 7 archivos con Chromium y stack temporal aislado, incluidos 8 casos SEO/accesibilidad de 7D.3 y la operación ampliada de Escuela;
+- Vitest, React Testing Library y 601 tests en 86 archivos, incluidos Noticias, pipeline y páginas legales, SEO/canonical, identidad pública, sesión mínima, Escuela, formularios, navegación agrupada, Home/footer, Knowledge, los cuatro ámbitos de Rankings, Competición, cuenta, foco, landmarks, 404, preflight y contrato Vercel;
+- smoke Playwright completo: 66 escenarios Chromium con stack temporal aislado, incluido el lifecycle editorial/multimedia de Noticias y las regresiones SEO, Escuela, Club, cuenta, Sponsor y avatar;
 - auditoría y actualización compatible de npm/Composer sin vulnerabilidades conocidas pendientes en la instantánea de cierre (DEPS-1);
 - documentación técnica 00–08 reconciliada con el código (DOC-1);
 - corrección de los bloqueantes QA del calendario público y de la navegación responsive, con revalidación dirigida en 1440 × 900, 1280 × 720 y 390 × 844 (QA-FIX-1).

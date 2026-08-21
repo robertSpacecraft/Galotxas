@@ -590,6 +590,38 @@ Orden manual:
 
 No se considera 7F cerrada hasta completar y evidenciar esas acciones.
 
+## Gate de staging de Noticias 7F.2E
+
+7F.2E sólo está validada localmente. Su aceptación exige ejecutar en staging,
+en este orden y con evidencias, el siguiente checklist:
+
+1. completar backup y preflight del entorno según este runbook;
+2. revisar `php artisan migrate:status` antes de cambiar el esquema;
+3. ejecutar explícitamente `php artisan migrate --force`;
+4. repetir `migrate:status` y confirmar la nueva migración;
+5. ejecutar `php artisan deploy:check`;
+6. crear una noticia borrador desde Blade;
+7. confirmar que borrador, detalle e imagen no son públicos;
+8. subir una portada de prueba sin personas a `media-staging`;
+9. publicar dos noticias efectivas;
+10. comprobar destacada, cards y orden cronológico en `/noticias`;
+11. comprobar detalle, fecha, cuerpo, alt y crédito;
+12. verificar el redirect y render de portada pública S3;
+13. confirmar que JSON/API/HTML no exponen `image_key` ni procedencia/derechos;
+14. programar una noticia futura y confirmar que permanece oculta;
+15. reemplazar una portada y acreditar cleanup del objeto anterior;
+16. eliminar una noticia y acreditar 404 y cleanup;
+17. hacer redeploy y confirmar persistencia de filas y objetos vigentes;
+18. revisar índice y detalle a 320 px sin overflow;
+19. recorrer Navbar, listado y detalle sólo con teclado;
+20. verificar canonical, Open Graph article, JSON-LD y limpieza en 404;
+21. revisar logs saneados sin key, URL firmada, procedencia o PII;
+22. comprobar sin regresión `/contenidos/prensa-media`, CMS, Sponsor y avatar;
+23. obtener aprobación editorial y de derechos de las imágenes de prueba.
+
+Un deploy marcado como `SUCCESS` no acredita que la migración se haya
+ejecutado. No se cierra 7F.2E hasta completar este gate y la aceptación humana.
+
 ## Smoke no destructivo post-deploy
 
 - `/`, `/competicion`, Aprende, Manual y un documento Knowledge;
@@ -617,6 +649,10 @@ No se considera 7F cerrada hasta completar y evidenciar esas acciones.
   borrar y verificar cleanup/fallback; repetir tras redeploy, a 320 px y por
   teclado; comprobar que ninguna API o vista pública publica la foto y que los
   logs no contienen key, token o PII;
+- para aceptar 7F.2E: ejecutar íntegramente el gate anterior, incluida la
+  migración explícita, publicación/orden, serving S3, programación,
+  replace/delete con cleanup, redeploy, privacidad, SEO, 320 px, teclado y
+  aprobación editorial;
 - estado del último backup.
 
 Las escrituras de aceptación se realizan primero en staging. Producción no usa
@@ -632,8 +668,9 @@ E2E, seeders ni cuentas con password por defecto.
   acreditados;
 - HSTS/CSP, otros uploads de features, worker y scheduler continúan aplazados;
   7F.2C aún debe validar ventanas, redeploy, borrado y revisión
-  móvil/accesible; 7F.2D debe superar todos sus gates de staging y la
-  configuración multimedia productiva sigue abierta;
+  móvil/accesible; 7F.2D conserva gates secundarios y 7F.2E debe superar su
+  aceptación completa de staging; la configuración multimedia productiva
+  sigue abierta;
 - la SPA mantiene metadata client-side y la respuesta HTTP de rutas React no
   constituye SSR;
 - el token Bearer continúa en `localStorage`, según la decisión vigente;

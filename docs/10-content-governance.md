@@ -573,6 +573,26 @@ build dependientes de configuración, no fuentes tracked ni mecanismos de
 autorización. El contrato completo está en
 `25-public-seo-accessibility-and-indexing.md`.
 
+## 26. Noticias dedicadas tras 7F.2E
+
+Noticias tiene una fuente editorial única en MariaDB mediante `NewsArticle` y
+una interfaz oficial en Blade. No pertenece a `CmsPage`/`CmsBlock`, Knowledge,
+JSX, seeders ordinarios ni `/contenidos/prensa-media`. React consume una
+proyección pública cerrada y no es editor ni copia del contenido.
+
+La publicación combina estado `published`, fecha efectiva y ausencia de soft
+delete. El extracto es manual y el cuerpo es texto plano. La portada reside en
+storage privado bajo una key opaca; sólo se publica su ruta Laravel estable,
+dimensiones, alt y crédito opcional. Procedencia, confirmación, responsable y
+object key son trazabilidad privada. Reemplazar la portada reinicia el gate de
+derechos y la confirmación sólo registra evidencia revisada: no crea
+consentimiento ni reutiliza avatar o identidad deportiva.
+
+El índice y detalle React, la API, metadata y sitemap son proyecciones de esta
+fuente. El sitemap build-time incluye `/noticias`; resolver slugs runtime en un
+sitemap dinámico queda como deuda P1. Tags, categorías, autoría pública,
+newsletter, rich text y navegación CMS pertenecen a evoluciones posteriores.
+
 ## Mantenimiento
 
 Toda nueva fuente o sección pública debe actualizar esta gobernanza antes o junto con su implementación. Si el comportamiento real difiere de la decisión aprobada, se debe registrar de forma explícita el estado, la deuda y el plan de reconciliación.

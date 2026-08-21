@@ -1620,6 +1620,40 @@ GET/HEAD del bucket ya fue comprobado, pero la lectura del avatar deja de
 depender de él porque el navegador recibe el binario desde la API. 7F.2D
 continúa abierta hasta repetir sus gates en staging.
 
+## NEWS-EDITORIAL-PUBLIC-1 — Fase 7F.2E
+
+La cobertura backend comprueba modelo, factory, estados derivados, scope
+efectivo, orden, reserva del slug tras soft delete, administración y permisos,
+validación de texto/imagen/derechos, publicación inmediata y programada,
+inmutabilidad histórica, locks, compensación y cleanup. La API cubre paginación
+de 12, páginas fuera de rango, allowlists, 404 indistinguible, serving local/S3
+y regresiones de Sponsor, avatar y CMS.
+
+Vitest cubre contrato estricto, URLs seguras, Axios/AbortSignal, protección
+frente a respuestas obsoletas, append/dedupe, estados y retry, noticia
+destacada cronológica, detalle escapado, fallbacks, Navbar, metadata article,
+canonical, Open Graph, JSON-LD, cleanup y noindex. Playwright crea contenido
+sólo en el entorno efímero: borrador invisible, dos publicaciones ordenadas,
+programación, detalle, reemplazo/cleanup, eliminación/404, 320 px, teclado,
+privacidad y SEO.
+
+Validación local final de 7F.2E, 2026-08-21:
+
+- backend dirigido de dominio/administración/lifecycle: 30 tests y 106
+  aserciones;
+- backend dirigido API/media/regresiones: 34 tests y 318 aserciones;
+- backend completo sobre MariaDB aislada: 526 tests y 4.103 aserciones;
+- frontend dirigido de Noticias/navegación/SEO: 147 tests en 14 archivos;
+- frontend completo: 601 tests en 86 archivos;
+- E2E dirigido de Noticias: un escenario Chromium verde;
+- E2E completo: 66 escenarios Chromium en 2,8 minutos;
+- Composer estricto, Pint dirigido, 30 comprobaciones `php -l`, ESLint,
+  Legal, Knowledge, SEO, build Vite e imagen Docker de producción: correctos.
+
+La ejecución local no acredita migración, object storage S3, persistencia tras
+redeploy, cleanup remoto, metadata sobre dominio real ni aprobación editorial
+de imágenes en staging. 7F.2E permanece abierta hasta superar ese gate.
+
 # 11. Evolución
 
 La cobertura de pruebas debe crecer junto con el proyecto.

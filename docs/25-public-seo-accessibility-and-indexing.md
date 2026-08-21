@@ -377,3 +377,24 @@ texto alternativo con el nombre de la cuenta y usa iniciales o un símbolo
 neutral con nombre accesible cuando no hay imagen. Upload, sustitución,
 borrado, feedback y error recuperable funcionan por teclado y sin overflow a
 320 px. Esta capacidad privada no modifica el contrato SEO público.
+
+## 47. Noticias de 7F.2E
+
+`/noticias` es `INDEXABLE_CANONICAL`, canonicaliza a sí misma, usa título y
+descripción editoriales estables y Open Graph `website`. Entra en el sitemap
+estático, que pasa a 53 URLs canónicas con la configuración actual.
+
+`/noticias/:slug` empieza en `NOINDEX_PUBLIC`, sin canonical ni JSON-LD. Sólo
+tras recibir una noticia pública con contrato válido pasa a indexable, fija el
+canonical por slug, usa SEO explícito o los fallbacks título/extracto, publica
+Open Graph `article`, `og:image`, `article:published_time` y un JSON-LD
+`NewsArticle` cuyo autor y publisher son `Club Galotxes Monòver`. No se inventa
+autor individual, teléfono o logo institucional. Loading, error, contrato
+inválido y 404 limpian toda metadata dinámica y permanecen noindex.
+
+El endpoint estable de portada es apto para `og:image`; la URL S3 firmada nunca
+se guarda en metadata. Los slugs runtime no entran en el sitemap MVP porque el
+build de la SPA no consulta Laravel. Un sitemap dinámico de artículos queda
+registrado como deuda P1, sin bloquear 7F.2E. La cobertura automática incluye
+navegación artículo→404/otra ruta, teclado, headings, `article`, `time`, alt,
+fallback de imagen y reflow a 320 px.

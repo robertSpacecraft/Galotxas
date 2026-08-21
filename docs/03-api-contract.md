@@ -971,6 +971,50 @@ efectivo, inexistente u objeto ausente, y `503` genérico ante fallo de storage;
 en S3 responde `302` a una GET prefirmada corta. El JSON nunca persiste ni
 entrega esa URL temporal.
 
+### Noticias
+
+`GET /api/v1/news?page=1` devuelve exclusivamente noticias efectivamente
+publicadas, ordenadas por `published_at DESC, id DESC` y paginadas de 12 en 12.
+Una página fuera de rango responde `200`, `data: []` y metadata coherente:
+
+```json
+{
+  "message": null,
+  "data": [
+    {
+      "slug": "jornada-de-galotxes",
+      "title": "Jornada de galotxes",
+      "excerpt": "Resumen editorial.",
+      "published_at": "2026-08-21T10:00:00+00:00",
+      "image": {
+        "url": "https://api.example.test/api/v1/news/jornada-de-galotxes/image",
+        "width": 1600,
+        "height": 900,
+        "alt": "Material deportivo preparado para la jornada",
+        "credit": null
+      }
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "last_page": 1,
+    "per_page": 12,
+    "total": 1,
+    "has_more": false
+  }
+}
+```
+
+`GET /api/v1/news/{slug}` usa la misma proyección y añade `body`, `seo_title`
+y `seo_description`. Borradores, futuras, eliminadas y slugs inexistentes
+devuelven el mismo `404`. `GET /api/v1/news/{slug}/image` exige igualmente una
+noticia efectiva; devuelve `404` si falta registro u objeto y `503` saneado si
+falla storage. Local usa entrega interna y S3 un redirect temporal público.
+
+Ninguna respuesta expone `status`, timestamps internos, `image_key`,
+`image_source`, confirmación/responsable de derechos, disco o URL firmada
+persistida. No existe endpoint por ID ni endpoint público de borradores.
+
 ### Identidad pública desde 7D.2B y 7D.2C2A
 
 Los endpoints públicos de ranking, clasificación, calendario y partido usan

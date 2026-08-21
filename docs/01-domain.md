@@ -443,7 +443,21 @@ capacidad no crea contenido editorial ni activa producción.
 
 Noticias, actividades, talleres, jornadas, convocatorias, galerías y documentos administrables requieren persistencia, permisos y publicación segura. No deben hardcodearse en React ni mantenerse como copia paralela en `knowledge/`.
 
-Estas responsabilidades están aprobadas como arquitectura objetivo. Las áreas públicas y rutas futuras no se consideran implementadas por su aparición en este documento. La matriz de fuentes, el flujo editorial y la migración de `/contenidos` se detallan en `10-content-governance.md`.
+Desde 7F.2E, Noticias es la primera capacidad de este grupo implementada de
+extremo a extremo. `NewsArticle` es un agregado editorial cronológico separado
+de `CmsPage`/`CmsBlock`: persiste título, slug, extracto manual, cuerpo de texto
+plano, imagen, metadata SEO, estado y fecha de publicación. Los únicos estados
+persistidos son `draft` y `published`; “Programada” se deriva de una fecha
+futura y la consulta pública exige publicación efectiva. La primera asignación
+de `published_at` reserva de forma permanente el slug, y el soft delete conserva
+esa reserva.
+
+La imagen es obligatoria al publicar y requiere alt, procedencia privada y una
+confirmación administrativa de derechos preexistentes. Esa confirmación no
+crea consentimiento, no reutiliza el avatar privado ni amplía la autorización
+de identidad deportiva. Actividades, galerías y documentos siguen siendo
+arquitectura objetivo. La matriz de fuentes y el flujo editorial se detallan
+en `10-content-governance.md`.
 
 ---
 
@@ -456,7 +470,6 @@ Las siguientes capacidades forman parte del roadmap y no deben considerarse impl
 - sugerencias inteligentes de categoría;
 - notificaciones automáticas;
 - mejoras avanzadas de rankings;
-- noticias mediante bloques de contenido;
 - gestión de documentos públicos;
 - activación productiva del formulario institucional de contacto.
 

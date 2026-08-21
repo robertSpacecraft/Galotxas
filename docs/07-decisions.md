@@ -1814,3 +1814,70 @@ Corrección de serving privado de 7F.2D (2026-08-16):
 - La corrección está validada localmente; 7F.2D sigue abierta hasta repetir
   upload, visualización, replace/delete, cleanup, redeploy, accesibilidad,
   ausencia pública y logs saneados en staging.
+
+---
+
+# ADR-044 — Noticias como dominio editorial cronológico dedicado
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-08
+
+Contexto:
+- Galotxas necesita un listado cronológico y detalles de noticias, con
+  programación, portada y SEO propios.
+- `CmsPage`/`CmsBlock` resuelve páginas institucionales y no expresa orden
+  temporal, paginación, extracto ni lifecycle de una publicación periódica.
+- `/contenidos/prensa-media` es una página institucional legada; convertirla
+  en feed mezclaría fuentes, rompería su URL y reescribiría su finalidad.
+- El almacenamiento privado S3-compatible y sus patrones de normalización y
+  cleanup ya están decididos en ADR-043.
+
+Decisión:
+- Crear `NewsArticle` como agregado dedicado, sin reutilizar ni especializar el
+  CMS. Su fuente de verdad es MariaDB y Blade es su administración oficial.
+- Persistir sólo `draft|published`; derivar “Programada” de `published_at`
+  futuro y hacer pública una noticia únicamente cuando la fecha sea efectiva y
+  no exista soft delete.
+- Reservar el slug desde la primera asignación de `published_at`, conservarlo
+  al volver a borrador y no reutilizar el de una fila eliminada.
+- Mantener contenido MVP en extracto manual y cuerpo de texto plano, sin HTML,
+  Markdown, bloques, tags, autoría pública o destacado manual. La noticia más
+  reciente de la primera página es la destacada.
+- Exigir portada, alt, procedencia privada y confirmación administrativa de
+  derechos para publicar. Esta confirmación registra una revisión de evidencia
+  preexistente y no crea consentimiento.
+- Hacer a `NewsArticleService` dueño del lifecycle: guardar el objeto antes de
+  la transacción y compensarlo si ésta falla; en replace/delete confirmar
+  MariaDB antes de limpiar el objeto anterior; sanear fallos post-commit.
+- Exponer listado paginado, detalle e imagen mediante Resources allowlisted y
+  rutas estables por slug. El servicio local usa Nginx `internal`; S3 usa una
+  URL temporal pública indexable sin exponer o persistir la key.
+- Mantener `/contenidos/prensa-media` intacta y añadir `/noticias` y
+  `/noticias/:slug` como rutas estructurales independientes.
+- Incluir sólo `/noticias` en el sitemap build-time. Los detalles son
+  indexables después de cargar un contrato válido, pero el sitemap runtime de
+  slugs queda fuera del MVP como deuda P1.
+
+Alternativas descartadas:
+- reutilizar `CmsPage` o añadir un tipo genérico: diluye dos workflows y
+  contratos editoriales diferentes;
+- reinterpretar o redirigir `prensa-media`: confunde información institucional
+  con actualidad y rompe compatibilidad;
+- modelar noticias como bloques, Markdown o JSX: duplica fuentes y obliga a
+  desplegar para editar;
+- añadir `is_featured`: introduce una segunda ordenación editorial innecesaria
+  para el MVP;
+- consultar Laravel durante el build del sitemap o introducir SSR/prerender:
+  acopla el artefacto a un entorno remoto y amplía infraestructura fuera de
+  alcance.
+
+Consecuencias:
+- Noticias dispone de autorización, persistencia, multimedia, API, React y SEO
+  propios sin contaminar el CMS institucional.
+- La trazabilidad de procedencia/derechos es privada y no equivale a un gestor
+  documental de consentimiento.
+- Tags, categorías, RSS, búsqueda, newsletter, autoría individual, sitemap
+  dinámico y navegación CMS quedan aplazados.
+- 7F.2E está implementada y validada localmente, pero permanece abierta hasta
+  migración, storage real, gates editoriales y aceptación humana en staging.

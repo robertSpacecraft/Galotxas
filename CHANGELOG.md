@@ -6,6 +6,22 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Fase 7F.2E implementa Noticias como dominio editorial dedicado: modelo y
+  migración `news_articles`, administración Blade, borrador/programación,
+  publicación efectiva, slug histórico, soft delete y ADR-044, sin reutilizar
+  CMS ni reinterpretar `/contenidos/prensa-media`.
+- Las portadas reutilizan el núcleo multimedia privado con perfil
+  `news_cover`, confirmación administrativa de derechos, lifecycle con
+  compensación/cleanup y serving estable: local vía Nginx `internal`, S3 vía
+  redirect público temporal; keys, procedencia y derechos no salen por API.
+- Se publican `GET /api/v1/news`, detalle e imagen por slug, con paginación de
+  12 y Resources cerrados; React añade `/noticias`, `/noticias/:slug` y el
+  enlace estructural Noticias en Navbar, sin feed Home, footer ni adelantar
+  7F.2F.
+- El índice entra en el sitemap estático y el detalle aplica canonical, Open
+  Graph article y JSON-LD tras validar la respuesta. Los slugs runtime quedan
+  fuera del sitemap MVP como deuda P1. La fase pasa 526 tests backend, 601
+  frontend y 66 E2E, pero permanece abierta hasta aceptación en staging.
 - Se acepta en staging el flujo funcional de Sponsor (Fase 7F.2C); migración, alta administrativa, almacenamiento real, render público y desactivar/reactivar confirmados. Cierres secundarios (redeploy, borrado, programación temporal y accesibilidad) quedan diferidos.
 - Se acepta manualmente en staging el flujo funcional de avatar privado de 7F.2D (upload, serving, replace, delete); gates secundarios (redeploy, cleanup riguroso y accesibilidad) quedan diferidos.
 - Se documentan como mejoras futuras (post-MVP) los patrocinios contextuales (campeonatos y pistas) y el perfil público deportivo opcional de jugador. Ninguna altera 7F.2E (Noticias) ni 7F.2F (Menú CMS).

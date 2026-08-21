@@ -538,6 +538,29 @@ perfil `Player` no elimina el `User` ni su foto.
 El panel no puede publicar, sustituir o consentir fotos en nombre del usuario.
 La autorización de identidad deportiva de menores tampoco habilita fotografía.
 
+## Noticias
+
+`/admin/news-articles` es el módulo Blade independiente de `CmsPage`, protegido
+por sesión, CSRF, `IsAdmin` y administrador activo. El índice pagina 25
+registros y muestra título, estado derivado, fecha, presencia de imagen y
+acciones. Create siempre da de alta un borrador; Edit permite guardar borrador,
+publicar ahora, programar, volver a borrador, reemplazar imagen, retirarla sólo
+en borrador y hacer soft delete.
+
+Los Form Requests permiten únicamente título, slug cuando aún es mutable,
+extracto manual, cuerpo de texto plano, portada, alt, crédito, procedencia
+privada, confirmación de derechos, SEO, estado y fecha. Para publicar se exige
+imagen, alt, procedencia y confirmación expresa de que el Club ya dispone de
+derechos suficientes. El panel advierte que el checkbox registra una revisión,
+pero no crea consentimiento ni cubre automáticamente personas o menores.
+
+El slug queda inmutable desde la primera asignación de `published_at`, incluso
+si la noticia vuelve a borrador. Una publicación ya efectiva conserva su fecha
+histórica; una programación futura sí puede reajustarse antes de hacerse
+efectiva. Sustituir imagen reinicia alt, crédito, procedencia y confirmación si
+no se aportan de nuevo. No hay preview público de borradores, recuperación de
+eliminadas, HTML, Markdown, bloques, tags, autor público ni roles nuevos.
+
 ---
 
 # 15. Funcionalidades futuras
@@ -551,7 +574,6 @@ La autorización de identidad deportiva de menores tampoco habilita fotografía.
 - panel de métricas avanzado;
 - cola administrativa específica de reprogramaciones;
 - coordinación de disponibilidad entre categorías;
-- administración avanzada de contenidos públicos (noticias);
 - gestión de documentos públicos (subida segura, visibilidad);
 - activación productiva del formulario institucional de contacto.
 
