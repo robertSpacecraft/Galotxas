@@ -51,6 +51,24 @@ const createSportsClubJsonLd = (url) => Object.freeze({
   ],
 });
 
+const createNewsArticleJsonLd = ({ article, description, url }) => Object.freeze({
+  '@context': 'https://schema.org',
+  '@type': 'NewsArticle',
+  headline: article.headline,
+  description,
+  datePublished: article.publishedAt,
+  image: article.image,
+  mainEntityOfPage: url,
+  author: {
+    '@type': 'Organization',
+    name: PUBLIC_SITE_NAME,
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: PUBLIC_SITE_NAME,
+  },
+});
+
 export const createSeoMetadata = ({ route, pathname, config, override = null }) => {
   const classification = override?.classification ?? route.classification;
   const canonicalPath = override && Object.hasOwn(override, 'canonicalPath')
@@ -66,6 +84,7 @@ export const createSeoMetadata = ({ route, pathname, config, override = null }) 
     && Boolean(canonicalUrl)
   );
   const title = formatDocumentTitle(pageTitle, pathname);
+  const article = override?.article ?? null;
 
   return Object.freeze({
     title,
@@ -73,14 +92,22 @@ export const createSeoMetadata = ({ route, pathname, config, override = null }) 
     robots: getRobotsContent(classification, config.indexingEnabled),
     canonicalUrl,
     openGraph: isIndexableCanonical ? Object.freeze({
-      type: 'website',
+      type: article ? 'article' : 'website',
       siteName: PUBLIC_SITE_NAME,
       title,
       description,
       url: canonicalUrl,
+      ...(article ? {
+        image: article.image,
+        publishedTime: article.publishedAt,
+      } : {}),
     }) : null,
-    jsonLd: isIndexableCanonical && normalizePublicPathname(pathname) === '/'
-      ? createSportsClubJsonLd(canonicalUrl)
+    jsonLd: isIndexableCanonical
+      ? article
+        ? createNewsArticleJsonLd({ article, description, url: canonicalUrl })
+        : normalizePublicPathname(pathname) === '/'
+          ? createSportsClubJsonLd(canonicalUrl)
+          : null
       : null,
   });
 };

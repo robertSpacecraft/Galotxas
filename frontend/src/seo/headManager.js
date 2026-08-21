@@ -7,6 +7,8 @@ const managedSelectors = [
   'meta[property="og:title"]',
   'meta[property="og:description"]',
   'meta[property="og:url"]',
+  'meta[property="og:image"]',
+  'meta[property="article:published_time"]',
   'script[data-public-seo-jsonld]',
 ];
 
@@ -71,8 +73,26 @@ export const applySeoMetadata = (metadata) => {
     setPropertyMeta('og:title', metadata.openGraph.title);
     setPropertyMeta('og:description', metadata.openGraph.description);
     setPropertyMeta('og:url', metadata.openGraph.url);
+    if (metadata.openGraph.image) {
+      setPropertyMeta('og:image', metadata.openGraph.image);
+    } else {
+      removeElements('meta[property="og:image"]');
+    }
+    if (metadata.openGraph.publishedTime) {
+      setPropertyMeta('article:published_time', metadata.openGraph.publishedTime);
+    } else {
+      removeElements('meta[property="article:published_time"]');
+    }
   } else {
-    for (const property of ['og:type', 'og:site_name', 'og:title', 'og:description', 'og:url']) {
+    for (const property of [
+      'og:type',
+      'og:site_name',
+      'og:title',
+      'og:description',
+      'og:url',
+      'og:image',
+      'article:published_time',
+    ]) {
       removeElements(`meta[property="${property}"]`);
     }
   }

@@ -7,16 +7,30 @@ export const PageMetadata = ({
   description,
   classification,
   canonicalPath,
+  article,
 }) => {
   const location = useLocation();
   const { registerOverride } = useSeoOverride();
+  const articleHeadline = article?.headline;
+  const articlePublishedAt = article?.publishedAt;
+  const articleImage = article?.image;
 
   useEffect(() => registerOverride(location.pathname, {
     title,
     description,
     ...(classification ? { classification } : {}),
     ...(canonicalPath !== undefined ? { canonicalPath } : {}),
+    ...(articleHeadline ? {
+      article: {
+        headline: articleHeadline,
+        publishedAt: articlePublishedAt,
+        image: articleImage,
+      },
+    } : {}),
   }), [
+    articleHeadline,
+    articleImage,
+    articlePublishedAt,
     canonicalPath,
     classification,
     description,

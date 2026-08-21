@@ -76,8 +76,10 @@ test.describe.serial('smoke narrativo del MVP', () => {
     const editorialNavigation = page.getByRole('list', { name: 'Navegación editorial' });
     const accountArea = page.getByRole('group', { name: 'Cuenta' });
 
-    await expect(editorialNavigation.getByRole('link')).toHaveCount(1);
+    await expect(editorialNavigation.getByRole('link')).toHaveCount(2);
     await expect(editorialNavigation.getByRole('link', { name: 'Inicio' })).toBeVisible();
+    await expect(editorialNavigation.getByRole('link', { name: 'Noticias' }))
+      .toHaveAttribute('href', '/noticias');
     const competitionButton = editorialNavigation.getByRole('button', { name: 'Competición' });
     await expect(competitionButton).toBeVisible();
     await expect(editorialNavigation.getByRole('button', { name: 'Aprende' })).toBeVisible();

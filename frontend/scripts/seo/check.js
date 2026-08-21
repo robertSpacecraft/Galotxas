@@ -95,6 +95,11 @@ export const checkPublicSeo = ({ environment, knowledgeArtifact, legalArtifact }
   assert(sitemapEntries.length === sitemapPaths.size, 'El sitemap contiene duplicados.');
   assert(sitemapPaths.has('/'), 'Home falta en el sitemap.');
   assert(sitemapPaths.has('/competicion'), 'Competición falta en el sitemap.');
+  assert(sitemapPaths.has('/noticias'), 'Noticias falta en el sitemap.');
+  assert(
+    !sitemapPaths.has('/noticias/noticia-runtime'),
+    'Los detalles runtime de Noticias no deben entrar en el sitemap estático.',
+  );
   assert(sitemapPaths.has('/club/quienes-somos'), 'Club falta en el sitemap.');
   assert(sitemapPaths.has('/legal/privacidad'), 'Legal falta en el sitemap.');
   assert(!sitemapPaths.has('/nosotros'), 'Un alias no puede entrar en el sitemap.');

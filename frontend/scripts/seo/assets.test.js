@@ -47,15 +47,17 @@ describe('public SEO assets', () => {
     expect(first.robots).toContain('Sitemap: https://example.test/sitemap.xml');
     expect(first.sitemap).toContain('<loc>https://example.test/</loc>');
     expect(first.sitemap).toContain('<loc>https://example.test/legal/privacidad</loc>');
+    expect(first.sitemap).toContain('<loc>https://example.test/noticias</loc>');
+    expect(first.sitemap).not.toContain('/noticias/cronica-runtime</loc>');
     expect(first.sitemap).not.toContain('/nosotros</loc>');
     expect(first.sitemap).not.toContain('/contenidos/');
-    expect(entries).toHaveLength(52);
+    expect(entries).toHaveLength(53);
   });
 
   it('runs the complete offline SEO gate', () => {
     expect(checkPublicSeo({ environment: {}, ...artifacts })).toEqual({
-      declaredRoutes: 26,
-      sitemapEntries: 52,
+      declaredRoutes: 27,
+      sitemapEntries: 53,
       indexingEnabled: false,
     });
     expect(createRobotsTxt({ indexingEnabled: false, siteUrl: null }))

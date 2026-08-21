@@ -1,8 +1,10 @@
 import { Link, useParams } from 'react-router-dom';
+import { PageMetadata } from '../../components/PublicLanding/PageMetadata';
 import { NotFoundPage } from '../../pages/NotFound/NotFoundPage';
+import { seoRouteClassifications } from '../../seo/seoManifest';
 import { formatDate } from '../../utils/formatDate';
 import { NewsImage } from './NewsImage';
-import { newsPath } from './newsRoutes';
+import { newsArticlePath, newsPath } from './newsRoutes';
 import { useNewsArticle } from './useNewsArticle';
 import styles from './NewsPages.module.css';
 
@@ -42,6 +44,17 @@ const NewsDetailPage = () => {
   return (
     <div className={styles.page}>
       <article className={styles.detailArticle}>
+        <PageMetadata
+          title={article.seo_title || article.title}
+          description={article.seo_description || article.excerpt}
+          classification={seoRouteClassifications.indexableCanonical}
+          canonicalPath={newsArticlePath(article.slug)}
+          article={{
+            headline: article.title,
+            publishedAt: article.published_at,
+            image: article.image.url,
+          }}
+        />
         <Link className={styles.contextLink} to={newsPath()}>Noticias</Link>
         <header className={styles.detailHeader}>
           <h1>{article.title}</h1>

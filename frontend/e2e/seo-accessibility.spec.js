@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test';
 const canonicalPages = [
   ['/', '/', 'Galotxas en Monóvar'],
   ['/competicion', '/competicion', 'Competición'],
+  ['/noticias', '/noticias', 'Noticias'],
   ['/aprende-a-jugar', '/aprende-a-jugar', 'Aprende a jugar'],
   ['/aprende-a-jugar/manual', '/aprende-a-jugar/manual', 'Manual'],
   [
@@ -163,7 +164,7 @@ test.describe('SEO, indexación y accesibilidad pública', () => {
     const sitemap = await page.request.get(new URL('/sitemap.xml', page.url()).href);
     expect(sitemap.ok()).toBe(true);
     const sitemapXml = await sitemap.text();
-    expect((sitemapXml.match(/<url>/g) ?? [])).toHaveLength(52);
+    expect((sitemapXml.match(/<url>/g) ?? [])).toHaveLength(53);
     expect(sitemapXml).toContain('<loc>https://example.test/legal/privacidad</loc>');
     expect(sitemapXml).toContain(
       '<loc>https://example.test/aprende-a-jugar/manual/reglamento/reglamento</loc>',

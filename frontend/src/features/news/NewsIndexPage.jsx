@@ -1,4 +1,5 @@
 import { LandingHeader } from '../../components/PublicLanding/LandingHeader';
+import { PageMetadata } from '../../components/PublicLanding/PageMetadata';
 import { NewsCard } from './NewsCard';
 import { useNewsList } from './useNewsList';
 import styles from './NewsPages.module.css';
@@ -27,6 +28,10 @@ const NewsIndexPage = () => {
 
   return (
     <div className={styles.page}>
+      <PageMetadata
+        title="Noticias"
+        description="Consulta la actualidad y la actividad pública del Club Galotxes Monòver."
+      />
       <LandingHeader
         id="news-header"
         title="Noticias"

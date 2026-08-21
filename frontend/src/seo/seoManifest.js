@@ -45,6 +45,12 @@ const staticRoutes = [
     description: 'Consulta temporadas y campeonatos públicos, calendarios, resultados y clasificaciones de Galotxas.',
   }),
   route({
+    id: 'news',
+    path: '/noticias',
+    title: 'Noticias',
+    description: 'Consulta la actualidad y la actividad pública del Club Galotxes Monòver.',
+  }),
+  route({
     id: 'learn',
     path: '/aprende-a-jugar',
     title: 'Aprende a jugar',
@@ -194,6 +200,15 @@ export const resolveSeoRoute = (pathname) => {
       ),
       canonicalPath: normalizedPathname,
     };
+  }
+
+  if (/^\/noticias\/[^/]+$/.test(normalizedPathname)) {
+    return dynamicRoute(
+      'news-detail',
+      'Noticia',
+      'Consulta una noticia pública del Club Galotxes Monòver.',
+      seoRouteClassifications.noindexPublic,
+    );
   }
 
   if (/^\/aprende-a-jugar\/manual\/conceptos\/(elementos|personas|juego)\/[^/]+$/.test(normalizedPathname)) {

@@ -10,6 +10,7 @@ describe('public SEO route manifest', () => {
   it.each([
     '/',
     '/competicion',
+    '/noticias',
     '/aprende-a-jugar',
     '/aprende-a-jugar/manual',
     '/aprende-a-jugar/manual/reglamento/saque',
@@ -60,6 +61,7 @@ describe('public SEO route manifest', () => {
     '/rankings',
     '/contenidos',
     '/contenidos/academy',
+    '/noticias/cronica-runtime',
   ])('keeps the public volatile or legacy route %s out of indexing', (pathname) => {
     expect(resolveSeoRoute(pathname)).toMatchObject({
       classification: seoRouteClassifications.noindexPublic,
@@ -92,6 +94,8 @@ describe('public SEO route manifest', () => {
     expect(new Set(paths).size).toBe(paths.length);
     expect(paths).toContain('/club/quienes-somos');
     expect(paths).toContain('/legal/privacidad');
+    expect(paths).toContain('/noticias');
+    expect(paths).not.toContain('/noticias/cronica-runtime');
     expect(paths).not.toContain('/nosotros');
     expect(publicSeoAliases).toHaveLength(5);
   });
