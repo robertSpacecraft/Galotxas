@@ -9,6 +9,28 @@ use Tests\TestCase;
 
 class MediaDeliveryServiceTest extends TestCase
 {
+    public function test_public_s3_delivery_has_explicit_indexable_semantics(): void
+    {
+        config()->set('media.disk', 'media_s3');
+        $key = 'news/00000000-0000-4000-8000-000000000001.webp';
+        $storage = Mockery::mock(MediaStorageService::class);
+        $storage->shouldReceive('exists')->once()->with($key)->andReturnTrue();
+        $storage->shouldReceive('temporaryUrl')
+            ->once()
+            ->with($key, false)
+            ->andReturn('https://objects.example.test/signed-news-cover');
+
+        $response = (new MediaDeliveryService($storage))->deliverPublic($key);
+
+        $this->assertSame(302, $response->getStatusCode());
+        $this->assertSame(
+            'https://objects.example.test/signed-news-cover',
+            $response->headers->get('Location')
+        );
+        $this->assertSame('max-age=60, public', $response->headers->get('Cache-Control'));
+        $this->assertFalse($response->headers->has('X-Robots-Tag'));
+    }
+
     public function test_s3_delivery_redirects_to_a_short_lived_url_without_exposing_the_key_in_json(): void
     {
         config()->set('media.disk', 'media_s3');

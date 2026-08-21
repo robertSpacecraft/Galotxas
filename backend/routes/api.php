@@ -17,6 +17,8 @@ use App\Http\Controllers\Api\V1\ContactRequestController;
 use App\Http\Controllers\Api\V1\MatchController;
 use App\Http\Controllers\Api\V1\MyChampionshipRegistrationController;
 use App\Http\Controllers\Api\V1\MyDashboardController;
+use App\Http\Controllers\Api\V1\NewsArticleController;
+use App\Http\Controllers\Api\V1\NewsArticleImageController;
 use App\Http\Controllers\Api\V1\ProfilePhotoController;
 use App\Http\Controllers\Api\V1\ProfilePhotoImageController;
 use App\Http\Controllers\Api\V1\PublicIdentityConfirmationController;
@@ -75,6 +77,11 @@ Route::prefix('v1')->group(function () {
     Route::get('/sponsors', [SponsorController::class, 'index']);
     Route::get('/sponsors/{sponsor}/logo', SponsorLogoController::class)
         ->name('api.v1.sponsors.logo');
+
+    Route::get('/news', [NewsArticleController::class, 'index']);
+    Route::get('/news/{slug}/image', NewsArticleImageController::class)
+        ->name('api.v1.news.image');
+    Route::get('/news/{slug}', [NewsArticleController::class, 'show']);
 
     Route::prefix('public-identity/confirmation')->group(function () {
         Route::post('/lookup', [PublicIdentityConfirmationController::class, 'lookup'])

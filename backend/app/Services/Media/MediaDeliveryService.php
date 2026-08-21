@@ -46,6 +46,21 @@ class MediaDeliveryService
         };
     }
 
+    public function deliverPublic(string $key): Response|RedirectResponse
+    {
+        if (! $this->storage->exists($key)) {
+            throw new MediaObjectNotFound('El recurso multimedia no existe.');
+        }
+
+        return match ((string) config('media.disk')) {
+            'media_local' => $this->publicLocalResponse($key),
+            'media_s3' => $this->publicTemporaryRedirect($key),
+            default => throw new MediaStorageException(
+                'No se pudo entregar el recurso multimedia.'
+            ),
+        };
+    }
+
     private function localResponse(string $key): Response
     {
         $metadata = $this->storage->metadata($key);
@@ -93,5 +108,26 @@ class MediaDeliveryService
                 'X-Robots-Tag' => 'noindex, nofollow',
             ]
         );
+    }
+
+    private function publicLocalResponse(string $key): Response
+    {
+        $metadata = $this->storage->metadata($key);
+
+        return response('', 200, [
+            'Content-Type' => $metadata['mime_type'],
+            'Cache-Control' => 'public, max-age=60',
+            'X-Accel-Redirect' => '/_private-media/'.$key,
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
+    private function publicTemporaryRedirect(string $key): RedirectResponse
+    {
+        return redirect()
+            ->away($this->storage->temporaryUrl($key, false))
+            ->withHeaders([
+                'Cache-Control' => 'public, max-age=60',
+            ]);
     }
 }
