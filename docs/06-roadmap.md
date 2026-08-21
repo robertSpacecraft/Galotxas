@@ -76,11 +76,11 @@ Antes de iniciar 7F.2A se ha cerrado su prerrequisito de dominio: el reparto bas
 ## Fase 7 abierta — bloques parcialmente completados / bloqueados
 
 1. **Fase 7F (Pendientes de Staging y Producción):** configuración de SMTP real (bloqueado en Hobby), identidad pública completa de menores y reset de contraseña (dependen de SMTP), y ejecución de backup/restore/rollback en staging (aplazado).
-2. **Fase 7F.2 — Refinamiento preproducción:** 7F.2A y 7F.2B están cerradas en staging; los flujos principales de 7F.2C y 7F.2D están aceptados allí con cierres secundarios diferidos; 7F.2E está cerrada y aceptada manualmente en staging. Próximo desarrollo: 7F.2F (Navegación CMS administrable); finalmente, aceptación humana global del baseline completo.
+2. **Fase 7F.2 — Refinamiento preproducción:** 7F.2A y 7F.2B están cerradas en staging; los flujos principales de 7F.2C y 7F.2D están aceptados allí con cierres secundarios diferidos; 7F.2E está cerrada y aceptada manualmente en staging. Próximo desarrollo: 7F.2F (Navegación CMS administrable) y la resolución de gap en flujo de resultados de Copa; finalmente, aceptación humana global del baseline completo.
 
 ## Fase 7 abierta — bloques pendientes
 
-1. **Fase 7F.2 — Refinamiento preproducción y ampliación controlada del alcance:** flujos principales de 7F.2C y 7F.2D aceptados en staging; 7F.2E cerrada y aceptada manualmente en staging. Próximo desarrollo: 7F.2F (Navegación CMS administrable) y revalidación del baseline completo, incluidos los gates secundarios diferidos.
+1. **Fase 7F.2 — Refinamiento preproducción y ampliación controlada del alcance:** flujos principales de 7F.2C y 7F.2D aceptados en staging; 7F.2E cerrada y aceptada manualmente en staging. Próximos desarrollos activos: 7F.2F (Navegación CMS administrable) y la resolución de un gap funcional de Copa detectado en preproducción (flujo de resultados en admin y generación de finales). Todo esto debe resolverse y revalidarse antes del baseline productivo.
 2. **Fase 7F (Producción):** tras completar validaciones y smoke de staging, desplegar producción inicialmente noindex y con Contacto, Escuela, identidad de menores y scheduler cerrados, activándolos de uno en uno sólo tras sus gates.
 3. **Fase 7G — Validación y cierre del MVP:** ejecutar regresión, recorridos críticos, QA responsive/multibrowser priorizada, smoke y aceptación humana antes de tag/release.
 

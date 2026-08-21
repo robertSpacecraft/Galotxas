@@ -386,7 +386,11 @@ Fase base de la competición.
 
 Fase eliminatoria generada a partir de la clasificación de liga.
 
-La lógica pertenece a Services, no a Blade.
+El flujo esperado para la gestión administrativa de la Copa es:
+1. Generar manualmente las semifinales (1.º vs 4.º y 2.º vs 3.º) tras finalizar la Liga, y fijar fechas manualmente.
+2. Tras la validación de resultados de ambas semifinales, generar manualmente la Final (con los ganadores) y el tercer/cuarto puesto (con los perdedores).
+
+*Nota de auditoría preproducción*: Se ha detectado un gap funcional en el workflow administrativo de resultados de Copa. Si bien la generación de semifinales funciona y se han probado los flujos en Liga, los resultados introducidos en semifinales de Copa no aparecen correctamente en backend/admin. La Copa debe requerir el mismo estándar funcional y de resolución de conflictos que la Liga. La generación de la Final y el tercer/cuarto puesto permanece pendiente de validación, supeditada a la resolución de este flujo de resultados.
 
 ## Configuración de pistas
 

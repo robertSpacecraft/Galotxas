@@ -81,6 +81,14 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
 - Capacidad limitada y validada para que Blade asigne páginas del CMS a slots controlados de navegación.
 - Protección estricta de las rutas de producto y la estructura del enrutador React.
 
+### 7F.2 (GAP) — Flujo de Copa y Resultados
+- **Estado**: Detectado en validación manual preproducción; pendiente de resolución. Bloqueante para Producción.
+- **Validado**: Campeonato de Liga completado con resultados y conflictos operando correctamente; generación manual de semifinales de Copa funcional (1.º vs 4.º y 2.º vs 3.º); fechas manuales correctas.
+- **Defecto**: Los resultados de semifinales introducidos no se reflejan correctamente en backend/admin. El flujo de resultados de Copa no es equivalente al de Liga en la superficie administrativa observada.
+- **Pendiente de validación (No probado)**: Generación de Final y partido por el 3.º/4.º puesto (depende de resolver el gap de resultados en semifinales).
+- **Pendiente de implementación (Frontend)**: Superficie pública mínima de Copa (cuadro, estado, resultados, final, tercer/cuarto puesto y ganador destacado) integrada en la vista de campeonato.
+- Esta incidencia debe resolverse ANTES de considerar cerrado el baseline final para producción. NO se debe mezclar con la implementación actual de 7F.2F.
+
 ## 6. Dependencias y decisiones
 - **Decisiones cerradas**: Sustitución parcial de la navegación de Competición (ADR-042); obligatoriedad de almacenamiento de objetos (sin sistema de archivos efímero) para persistencia; utilización de `User.profile_photo_path` para fotos de perfil; `NewsArticle` dedicado y separado del CMS/prensa-media (ADR-044).
 - **Prerrequisito cerrado de Rankings**: una única regla backend distribuye tres puntos base por partido (`3-0` o `2-1`) antes de contribuciones de dobles y multiplicadores de nivel; no existe persistencia ni backfill de puntos.

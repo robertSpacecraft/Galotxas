@@ -146,6 +146,8 @@ Los estados `validated`, `cancelled`, `postponed` y `under_review` están cerrad
 
 Mi Panel resume la intervención que corresponde al jugador en cada partido. Un partido programado sin reporte de su lado genera la acción de enviar resultado; si solo existe el reporte rival, genera la acción de confirmarlo o revisarlo desde el workflow. Cuando el partido está `under_review`, puede aparecer como aviso informativo, pero nunca como acción editable. Los estados `validated`, `cancelled` y `postponed` no generan acciones pendientes.
 
+
+## Particularidades de Copa\n\nLa Copa debe completar el mismo estándar funcional de resultados que la Liga. Los partidos de semifinales, final y tercer/cuarto puesto deben utilizar el mismo flujo de validación, envío de resultados y resolución de conflictos.\n\nEl flujo esperado para la generación de las fases de Copa es:\n1. **Fase 1 (Semifinales)**: Tras finalizar la Liga, se genera manualmente la Copa enfrentando al Top 4 (1.º vs 4.º y 2.º vs 3.º). Sus fechas se fijan manualmente.\n2. **Fase 2 (Final y 3.º/4.º puesto)**: Tras cerrarse ambas semifinales con resultados validados, se genera manualmente la Final (ganadores) y el partido por el tercer/cuarto puesto (perdedores). No debe ejecutarse prematuramente sin resultados válidos de semifinales.\n\nLa aceptación futura deberá validar que la clasificación final reconozca al ganador de la Final como campeón de Copa, al perdedor como subcampeón, al ganador del partido 3.º/4.º como tercero y al perdedor como cuarto.\n
 ## Reprogramación
 
 El backend dispone de un workflow independiente para proponer y confirmar reprogramaciones:

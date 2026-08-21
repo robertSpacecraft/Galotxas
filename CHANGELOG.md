@@ -6,6 +6,16 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Se registra un gap documental de dominio funcional en Copa detectado durante
+  pruebas manuales de preproducción. La Liga, su flujo de resultados,
+  y la generación de semifinales de Copa (1.º vs 4.º, 2.º vs 3.º) quedan
+  validados. Se detecta un defecto en la persistencia/visualización
+  administrativa de resultados en semifinales.
+- Se documentan como gates pendientes de validación la generación de Final
+  y 3.º/4.º puesto, y como funcionalidad faltante la representación frontend
+  del cuadro de Copa. Este gap se marca como bloqueante para preproducción
+  y debe resolverse antes del release.
+
 - Fase 7F.2E implementa Noticias como dominio editorial dedicado: modelo y
   migración `news_articles`, administración Blade, borrador/programación,
   publicación efectiva, slug histórico, soft delete y ADR-044, sin reutilizar
