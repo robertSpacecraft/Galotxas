@@ -20,15 +20,20 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
   checklist de staging documentan la decisión. El bloque está validado sólo en
   local y pendiente de aceptación en staging.
 
-- Se registra un gap documental de dominio funcional en Copa detectado durante
-  pruebas manuales de preproducción. La Liga, su flujo de resultados,
-  y la generación de semifinales de Copa (1.º vs 4.º, 2.º vs 3.º) quedan
-  validados. Se detecta un defecto en la persistencia/visualización
-  administrativa de resultados en semifinales.
-- Se documentan como gates pendientes de validación la generación de Final
-  y 3.º/4.º puesto, y como funcionalidad faltante la representación frontend
-  del cuadro de Copa. Este gap se marca como bloqueante para preproducción
-  y debe resolverse antes del release.
+- Se cierra localmente el gap preproducción de Copa: la caracterización confirma
+  persistencia correcta por admin, reportes coincidentes y conflictos; la única
+  incoherencia reproducida, tanteos con estado incompatible descartados en
+  silencio, pasa a rechazarse mediante validación común a Liga y Copa.
+- Semifinal, Final y tercer puesto usan `phase=cup` y stages explícitos; la
+  generación valida exactamente dos semifinales oficiales sin empate, conserva
+  ganadores/perdedores, nace sin programación y sigue siendo idempotente.
+- El schedule público existente añade fase, stage y `winner_entry` allowlisted,
+  orden estable y tanteos sólo oficiales. React incorpora un cuadro accesible y
+  responsive con pendientes y campeón derivado exclusivamente del ganador
+  backend. La regresión incluye contrato, rankings y E2E completo con cleanup.
+- La implementación de Copa queda validada localmente y pendiente de aceptación
+  en staging; la regresión final completa 554 tests backend, 644 frontend y 68
+  E2E, sin anunciar todavía su cierre productivo.
 
 - Fase 7F.2E implementa Noticias como dominio editorial dedicado: modelo y
   migración `news_articles`, administración Blade, borrador/programación,

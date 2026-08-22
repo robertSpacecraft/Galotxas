@@ -344,14 +344,52 @@ El backend dispone de cobertura automatizada Feature para componentes críticos 
 - regeneración de finales de copa sin duplicados;
 - cobertura de generación normal de semifinales de copa.
 
-### Pruebas futuras a registrar (Flujo de Copa)
+### CUP-FLOW-1 — Flujo completo de Copa
 
-La validación preproducción detectó gaps funcionales en la Copa, por lo que la documentación de testing deberá contemplar en el futuro:
-- **Liga (Regresión)**: asegurar resultados entre usuarios, aceptación, conflictos, resolución y cierre de Liga.
-- **Copa (Semifinales)**: generar sólo tras condiciones válidas (Liga finalizada), top 4 correcto (1 vs 4, 2 vs 3), fechas manuales, flujo de resultados equivalente a Liga, conflictos y resolución; resultado visible en admin y de forma pública.
-- **Copa (Final / 3.º-4.º)**: no generar antes de tener ambas semifinales resueltas, ganadores a Final, perdedores a tercer/cuarto, no duplicar generación, fechas manuales, mismos workflows de resultados, conflictos y cierre.
-- **Frontend (Copa)**: estados parciales, cuadro correcto, resultados, ganador destacado, accesibilidad, estados de vacío, y visualización de conflictos según el contrato público.
-- **E2E**: torneo aislado completo (Liga -> Copa semifinales -> Final/3.º-4.º -> Campeón).
+La caracterización previa a cualquier corrección demostró que los tres caminos
+de resultados de Copa ya compartían persistencia con Liga:
+
+- validación directa desde el formulario de Categoría;
+- reportes coincidentes entre participantes;
+- reportes discrepantes y resolución administrativa.
+
+La única incoherencia reproducida era el descarte silencioso de tanteos enviados
+con `status=scheduled`; la regresión exige ahora error de validación para Copa y
+Liga. La cobertura del bloque incluye además:
+
+- ausencia o número distinto de dos semifinales, estados no validados y empate;
+- fases `cup` y stages `semifinal`, `final` y `third_place`;
+- top 4 y cruces 1.º-4.º / 2.º-3.º;
+- emparejamientos de ganadores y perdedores, fechas inicialmente ausentes,
+  programación manual posterior e idempotencia;
+- API ordenada, sin N+1 mediante relaciones precargadas, tanteos oficiales,
+  `winner_entry` allowlisted y ausencia de trazabilidad privada;
+- contrato frontend cerrado ante stages desconocidos, estados pendientes,
+  cuadro semántico, ganador oficial, accesibilidad y 320 px;
+- E2E aislado Liga → semifinal coincidente → semifinal conflictiva → resolución
+  Blade → Final/3.º-4.º → campeón, con cleanup.
+
+La regresión de rankings conserva por separado categoría limitada a Liga y
+agregados de campeonato, temporada e histórico con todas las rondas validadas,
+incluida Copa.
+
+Validación local final de CUP-FLOW-1, 2026-08-22:
+
+- backend dirigido de workflow, generación, API y rankings: 26 tests y 211
+  aserciones;
+- backend completo sobre MariaDB aislada: 554 tests y 4.259 aserciones;
+- frontend dirigido de contrato, cuadro y composición: 18 tests en 3 archivos;
+- frontend completo: 644 tests en 91 archivos;
+- E2E dirigido de Copa, smoke MVP y patrocinadores: 21 escenarios Chromium;
+- E2E completo: 68 escenarios Chromium en 3,1 minutos;
+- Composer estricto, Pint dirigido, `php -l`, ESLint, Legal, Knowledge, SEO,
+  build Vite e imagen Docker de producción: correctos.
+
+El primer E2E completo detectó que el fixture de Copa reutilizaba dos jugadores
+del smoke narrativo y alteraba su contador de acciones pendientes. Las cuatro
+identidades quedaron aisladas en el seeder E2E; la repetición dirigida y la
+suite completa posterior finalizaron sin fallos. Los recursos temporales se
+eliminaron al terminar.
 
 ## Rankings deterministas
 

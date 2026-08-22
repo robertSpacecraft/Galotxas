@@ -94,12 +94,13 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
   deben completarse en staging antes de aceptar el bloque.
 
 ### 7F.2 (GAP) — Flujo de Copa y Resultados
-- **Estado**: Detectado en validación manual preproducción; pendiente de resolución. Bloqueante para Producción.
-- **Validado**: Campeonato de Liga completado con resultados y conflictos operando correctamente; generación manual de semifinales de Copa funcional (1.º vs 4.º y 2.º vs 3.º); fechas manuales correctas.
-- **Defecto**: Los resultados de semifinales introducidos no se reflejan correctamente en backend/admin. El flujo de resultados de Copa no es equivalente al de Liga en la superficie administrativa observada.
-- **Pendiente de validación (No probado)**: Generación de Final y partido por el 3.º/4.º puesto (depende de resolver el gap de resultados en semifinales).
-- **Pendiente de implementación (Frontend)**: Superficie pública mínima de Copa (cuadro, estado, resultados, final, tercer/cuarto puesto y ganador destacado) integrada en la vista de campeonato.
-- Esta incidencia debe resolverse ANTES de considerar cerrado el baseline final para producción. NO se debe mezclar con la implementación actual de 7F.2F.
+- **Estado**: corregido y validado localmente tras 7F.2F; pendiente de smoke y aceptación humana en staging. Continúa bloqueando Producción hasta superar ese gate.
+- **Caracterización**: el supuesto defecto general de persistencia no se reprodujo. La escritura directa Blade, los reportes coincidentes y la resolución de conflictos ya persistían y reaparecían correctamente en admin. Sí se reprodujo el descarte silencioso de tanteos combinados con `scheduled`, corregido mediante validación común a Liga y Copa.
+- **Backend**: semifinal, Final y tercer puesto registran `phase=cup` y stages explícitos; Final/3.º-4.º exigen exactamente dos semifinales validadas, con tanteos completos y sin empate, conservan los emparejamientos correctos y nacen sin programación manual inventada.
+- **API**: el schedule existente publica fases, stages y `winner_entry` oficial allowlisted, con orden estable, tanteos sólo validados, precarga de relaciones y ausencia de trazabilidad privada. No se crea endpoint nuevo.
+- **Frontend**: `/categories/{id}/schedule` separa Liga y Copa, muestra semifinales, estados pendientes, Final, tercer puesto y campeón desde `winner_entry`; un stage desconocido se omite de forma cerrada. No se calcula el ganador en React.
+- **Regresión**: pruebas backend, contrato/frontend y un E2E aislado cubren Liga completa, ambos workflows de semifinal, resolución Blade, generación, programación, resultados, campeón y 320 px con cleanup. El gate local final completa 554 tests backend y 4.259 aserciones, 644 tests frontend y 68 escenarios Chromium.
+- La inclusión de partidos de Copa en rankings agregados de campeonato, temporada e histórico es el contrato aprobado; sólo el ranking de categoría permanece limitado a Liga.
 
 ## 6. Dependencias y decisiones
 - **Decisiones cerradas**: Sustitución parcial de la navegación de Competición (ADR-042); obligatoriedad de almacenamiento de objetos (sin sistema de archivos efímero) para persistencia; utilización de `User.profile_photo_path` para fotos de perfil; `NewsArticle` dedicado y separado del CMS/prensa-media (ADR-044).
@@ -137,6 +138,8 @@ El despliegue en Producción (7F) queda **suspendido** hasta la compleción y va
 - [x] 7F.2E migración, storage real y aceptación humana en staging.
 - [x] 7F.2F enlaces de menú CMS implementados y validados localmente.
 - [ ] 7F.2F migración, smoke, redeploy y aceptación humana en staging.
+- [x] Gap de Copa implementado y validado localmente de extremo a extremo.
+- [ ] Flujo de Copa aceptado manualmente en staging.
 - [ ] Promoción a Staging y nueva aceptación humana (beta) superadas. (7F.2A verificada el 2026-08-15)
 
 

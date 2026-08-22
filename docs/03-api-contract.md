@@ -106,6 +106,35 @@ Las lecturas deportivas públicas aplican visibilidad efectiva antes de filtros 
 
 Los listados conservan orden, filtros, campos y envelopes. Un acceso directo que no cumpla la jerarquía responde `404`; `is_public` no se serializa en ningún Resource público. El estado operativo no participa en esta decisión, por lo que los estados públicos admitidos anteriormente continúan admitidos.
 
+### Calendario y cuadro público de Copa
+
+`GET /api/v1/categories/{category}/schedule` continúa siendo el único contrato
+público de calendario de categoría. Las rondas se ordenan por `order` e `id` y
+los partidos por `id`. Cada ronda incluye los campos existentes y añade la
+clasificación estructural `phase` y `stage`:
+
+- Liga: `type=league`, `phase=league`, `stage=matchday`;
+- Copa: `type=cup`, `phase=cup` y uno de `semifinal`, `final` o
+  `third_place`.
+
+Cada partido conserva `home_entry`, `away_entry`, fecha, pista y estado. Los
+tanteos sólo tienen valor público cuando el partido está `validated`; en los
+demás estados son `null`. `winner_entry` también es `null` salvo en un partido
+validado con ganador oficial y, cuando existe, usa exclusivamente la allowlist
+de `PublicCompetitionEntryResource`:
+
+```json
+{
+    "entry_type": "player",
+    "public_display_name": "Pilotari Blau"
+}
+```
+
+No se publican `winner_entry_id`, `submitted_by`, `validated_by`, reportes ni
+datos internos de jugador o equipo. El frontend reconoce las fases de Copa por
+`stage`, omite de forma cerrada cualquier stage desconocido y obtiene el
+campeón únicamente de `winner_entry` de la Final validada.
+
 ### Rutas autenticadas
 
 `POST /auth/logout` exige `auth:sanctum`, pero deliberadamente queda fuera de `EnsureUserIsActive` para que un usuario desactivado pueda revocar su token actual.
@@ -371,6 +400,12 @@ Los nombres de los campos se mantienen en `snake_case`.
 Los endpoints de categoría, campeonato, temporada, histórico y Mi Panel conservan sus campos, tipos y envelopes. Sólo cambia el valor calculado conforme a la regla de dominio: cada partido validado reparte `3-0` si quien pierde suma menos de 8 juegos y `2-1` si suma 8 o más; el total base siempre es tres.
 
 `points` representa el resultado de categoría. En los agregados, `raw_points` parte de ese mismo reparto y `weighted_points` aplica después las contribuciones de jugador y el multiplicador de nivel existentes. Los Services calculan estos valores dinámicamente desde los partidos; los Resources únicamente los serializan y React sólo los presenta.
+
+El alcance de rondas es deliberadamente distinto: la clasificación de
+categoría considera sólo `Round.type=league`, mientras campeonato, temporada e
+histórico consideran todos los partidos validados de su ámbito, incluidos los
+de Copa. La inclusión de Copa en los agregados no es un defecto ni debe
+corregirse añadiendo un filtro de Liga.
 
 ---
 

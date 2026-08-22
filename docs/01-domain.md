@@ -147,7 +147,32 @@ Los estados `validated`, `cancelled`, `postponed` y `under_review` están cerrad
 Mi Panel resume la intervención que corresponde al jugador en cada partido. Un partido programado sin reporte de su lado genera la acción de enviar resultado; si solo existe el reporte rival, genera la acción de confirmarlo o revisarlo desde el workflow. Cuando el partido está `under_review`, puede aparecer como aviso informativo, pero nunca como acción editable. Los estados `validated`, `cancelled` y `postponed` no generan acciones pendientes.
 
 
-## Particularidades de Copa\n\nLa Copa debe completar el mismo estándar funcional de resultados que la Liga. Los partidos de semifinales, final y tercer/cuarto puesto deben utilizar el mismo flujo de validación, envío de resultados y resolución de conflictos.\n\nEl flujo esperado para la generación de las fases de Copa es:\n1. **Fase 1 (Semifinales)**: Tras finalizar la Liga, se genera manualmente la Copa enfrentando al Top 4 (1.º vs 4.º y 2.º vs 3.º). Sus fechas se fijan manualmente.\n2. **Fase 2 (Final y 3.º/4.º puesto)**: Tras cerrarse ambas semifinales con resultados validados, se genera manualmente la Final (ganadores) y el partido por el tercer/cuarto puesto (perdedores). No debe ejecutarse prematuramente sin resultados válidos de semifinales.\n\nLa aceptación futura deberá validar que la clasificación final reconozca al ganador de la Final como campeón de Copa, al perdedor como subcampeón, al ganador del partido 3.º/4.º como tercero y al perdedor como cuarto.\n
+## Particularidades de Copa
+
+La Copa utiliza el mismo `GameMatch`, workflow de reportes y resolución de
+conflictos que la Liga. No existe una segunda lógica de resultados para las
+eliminatorias.
+
+El flujo implementado tiene dos pasos manuales:
+
+1. tras completar operativamente la Liga, se generan las semifinales desde las
+   cuatro primeras posiciones: 1.º contra 4.º y 2.º contra 3.º;
+2. cuando existen exactamente dos semifinales validadas, con ambos tanteos
+   oficiales y sin empate, se generan la Final con sus ganadores y el partido
+   por el tercer y cuarto puesto con sus perdedores.
+
+Las rondas quedan identificadas estructuralmente como `phase=cup` y con
+`stage=semifinal`, `stage=final` o `stage=third_place`; el nombre visible no es
+la autoridad para la experiencia pública. Los partidos nuevos nacen
+`scheduled`, sin fecha ni pista, y el administrador completa después ambos
+datos obligatorios. La regeneración sustituye únicamente las finales previas y
+no crea duplicados.
+
+Un resultado administrativo sólo admite tanteos con estado `submitted` o
+`validated`; combinar tanteos con `scheduled`, `postponed`, `cancelled` o
+`under_review` se rechaza en validación en vez de descartarlos silenciosamente.
+El campeón de Copa es el `winner_entry` oficial de una Final validada, nunca un
+cálculo de React a partir del marcador.
 ## Reprogramación
 
 El backend dispone de un workflow independiente para proponer y confirmar reprogramaciones:

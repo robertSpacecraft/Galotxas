@@ -409,7 +409,24 @@ El flujo esperado para la gestión administrativa de la Copa es:
 1. Generar manualmente las semifinales (1.º vs 4.º y 2.º vs 3.º) tras finalizar la Liga, y fijar fechas manualmente.
 2. Tras la validación de resultados de ambas semifinales, generar manualmente la Final (con los ganadores) y el tercer/cuarto puesto (con los perdedores).
 
-*Nota de auditoría preproducción*: Se ha detectado un gap funcional en el workflow administrativo de resultados de Copa. Si bien la generación de semifinales funciona y se han probado los flujos en Liga, los resultados introducidos en semifinales de Copa no aparecen correctamente en backend/admin. La Copa debe requerir el mismo estándar funcional y de resolución de conflictos que la Liga. La generación de la Final y el tercer/cuarto puesto permanece pendiente de validación, supeditada a la resolución de este flujo de resultados.
+La caracterización posterior descartó el supuesto defecto general de
+persistencia: la actualización directa de un partido de Copa, la confirmación
+coincidente entre participantes y la resolución administrativa de un conflicto
+persisten el resultado oficial y vuelven a mostrarlo en el detalle de
+categoría. Liga y Copa comparten controlador, servicio y reglas deportivas.
+
+Las rondas generadas registran `phase=cup` y el `stage` explícito de
+semifinal, final o tercer puesto. Final y tercer puesto sólo se generan cuando
+hay exactamente dos semifinales validadas, con tanteos completos y sin empate;
+la operación conserva los emparejamientos ganador/ganador y perdedor/perdedor y
+es idempotente respecto a finales previas.
+
+Fecha, hora y pista continúan siendo obligatorias al guardar desde Blade. Los
+partidos recién generados permanecen sin programar hasta que el administrador
+complete esos campos. Si se envían tanteos con un estado que no admite
+resultado, el Form Request muestra un error comprensible; ya no se borran
+silenciosamente. Esta regla común no introduce estados, automatismos ni un
+workflow exclusivo de Copa.
 
 ## Configuración de pistas
 
