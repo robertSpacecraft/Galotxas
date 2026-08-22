@@ -31,14 +31,21 @@ class CategoryController extends Controller
         abort_unless($category->isEffectivelyPublic(), 404);
 
         $rounds = $category->rounds()->with([
+            'matches' => fn ($query) => $query->orderBy('id'),
             'matches.homeEntry.player.user',
             'matches.homeEntry.player.publicIdentityAuthorizations',
             'matches.homeEntry.team',
             'matches.awayEntry.player.user',
             'matches.awayEntry.player.publicIdentityAuthorizations',
             'matches.awayEntry.team',
+            'matches.winnerEntry.player.user',
+            'matches.winnerEntry.player.publicIdentityAuthorizations',
+            'matches.winnerEntry.team',
             'matches.venue',
-        ])->get();
+        ])
+            ->orderBy('order')
+            ->orderBy('id')
+            ->get();
 
         return $this->successResponse(
             CategoryScheduleRoundResource::collection($rounds)

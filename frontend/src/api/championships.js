@@ -1,4 +1,5 @@
 import api from './api';
+import { normalizeCategorySchedule } from '../features/competition/categoryScheduleContract';
 
 /**
  * Championships (Tournaments) API Service
@@ -83,8 +84,7 @@ export const championshipsService = {
   getCategorySchedule: async (id) => {
     try {
       const response = await api.get(`/categories/${id}/schedule`);
-      // Schedule now returns response.data.data
-      return response.data.data;
+      return normalizeCategorySchedule(response.data.data);
     } catch (error) {
       console.error(`No se ha podido cargar el calendario de la categoría ${id}.`);
       throw error;

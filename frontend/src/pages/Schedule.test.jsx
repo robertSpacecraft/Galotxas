@@ -119,6 +119,40 @@ describe('Schedule', () => {
     expect(screen.queryByText('98')).not.toBeInTheDocument();
   });
 
+  it('separates cup stages and highlights the official cup champion', async () => {
+    championshipsService.getCategory.mockResolvedValue(category);
+    championshipsService.getCategorySchedule.mockResolvedValue([
+      {
+        id: 31,
+        name: 'Semifinales',
+        type: 'cup',
+        phase: 'cup',
+        stage: 'semifinal',
+        matches: [schedule[0].matches[0]],
+      },
+      {
+        id: 32,
+        name: 'Final',
+        type: 'cup',
+        phase: 'cup',
+        stage: 'final',
+        matches: [{
+          ...schedule[0].matches[0],
+          id: 110,
+          winner_entry: { entry_type: 'player', public_display_name: 'Pilotari Visitante' },
+        }],
+      },
+    ]);
+
+    renderSchedule();
+
+    expect(await screen.findByRole('heading', { name: 'Copa', level: 2 })).toBeInTheDocument();
+    expect(screen.getByText('Campeón de Copa').nextElementSibling)
+      .toHaveTextContent('Pilotari Visitante');
+    expect(screen.getByText('Tercer y cuarto puesto pendiente de generación')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Semifinales', level: 2 })).not.toBeInTheDocument();
+  });
+
   it('keeps the schedule usable with safe fallbacks when context or values are missing', async () => {
     championshipsService.getCategory.mockRejectedValue(new Error('Context unavailable'));
     championshipsService.getCategorySchedule.mockResolvedValue([
