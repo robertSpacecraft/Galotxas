@@ -1881,3 +1881,57 @@ Consecuencias:
   dinámico y navegación CMS quedan aplazados.
 - 7F.2E está implementada y validada localmente, pero permanece abierta hasta
   migración, storage real, gates editoriales y aceptación humana en staging.
+
+---
+
+# ADR-045 — Navegación CMS administrable mediante slots controlados
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-08
+
+Contexto:
+- `publicNavigation` protege rutas de producto, disclosures, Cuenta y el orden
+  común de desktop y móvil; convertirlo en un árbol editorial libre permitiría
+  romper destinos funcionales.
+- El CMS puede publicar páginas simples, pero su índice genérico no determina
+  cuáles deben descubrirse desde el Navbar.
+- Club dispone de cuatro fachadas estructurales sobre slugs reservados y
+  necesita añadir futuras páginas sin duplicarlas ni desplegar React.
+
+Decisión:
+- Crear `CmsNavigationItem`, relacionado obligatoriamente con `CmsPage`, con
+  etiqueta, orden, activación y un enum DB/PHP cuyo único valor MVP es `club`.
+- Mantener el placement inactivo por defecto, una única asignación por
+  página/slot y eliminación en cascade al borrar la página; no persistir URL.
+- Exponer sólo placements activos con página efectivamente publicada,
+  etiqueta válida y slug no reservado. La URL se deriva como
+  `/contenidos/{slug}` y el Resource publica sólo slot, etiqueta, URL y orden.
+- Reservar `nosotros`, `contacto`, `federarse` y `documentos` en Form Request y
+  consulta pública. Los cuatro hijos estructurales de Club permanecen siempre
+  primero, no editables ni reordenables desde CMS.
+- Componer el árbol en React sin mutar la configuración estructural. Contrato,
+  request o item inválido se omite; error o vacío conserva el Navbar base sin
+  mensaje de error, retry o persistencia local.
+- Mantener `/contenidos/:slug` en `noindex` y fuera del sitemap. Home, footer,
+  Cuenta, Legal, Noticias, Competición y Aprende no reciben placements.
+
+Alternativas descartadas:
+- un editor de menú o árbol anidado genérico: amplía permisos y permite romper
+  navegación de producto;
+- guardar URL, route, target o enlaces externos: duplica el slug y abre una
+  superficie de redirección no necesaria;
+- inferir navegación de todas las páginas publicadas: publicación y
+  descubribilidad son decisiones distintas;
+- usar el título de `CmsPage` como etiqueta sincronizada: impide copy de menú
+  específico y crea efectos laterales editoriales;
+- modificar Home o footer con el mismo payload: no forman parte del slot Club.
+
+Consecuencias:
+- Blade dispone de un módulo independiente y puede preparar placements para
+  borradores sin hacerlos públicos.
+- Despublicar o programar una página retira el enlace automáticamente y
+  republicarla lo restaura si el placement continúa activo.
+- Añadir cualquier slot futuro requiere una decisión y migración explícitas.
+- 7F.2F queda implementada y validada localmente; no se considera aceptada ni
+  cerrada en staging hasta aplicar migración y ejecutar su checklist manual.

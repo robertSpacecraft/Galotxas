@@ -920,5 +920,24 @@ disclosures, Escape y foco ya existentes.
 
 Las rutas lazy `/noticias` y `/noticias/:slug` son funcionales y no dependen
 del CMS institucional. Home y footer no reciben feed, tarjeta ni enlace extra.
-`/contenidos/prensa-media` continúa intacta. El futuro 7F.2F podrá gestionar
-slots CMS limitados, pero no podrá eliminar o sustituir esta ruta estructural.
+`/contenidos/prensa-media` continúa intacta. 7F.2F gestiona slots CMS limitados,
+pero no puede eliminar o sustituir esta ruta estructural.
+
+### Aplicación 7F.2F — Placements CMS al final de Club
+
+La configuración estructural continúa siendo la única fuente de Inicio,
+Competición, Noticias, Aprende y Club, así como de Cuenta. Al montar Navbar se
+realiza una sola lectura de `/api/v1/cms-navigation`; los placements válidos
+del slot `club` se ordenan y añaden después de Quiénes somos, Contacto,
+Federarse y Documentos. Los demás items y sus objetos no se modifican.
+
+Cada hijo dinámico tiene ID determinista, ruta exacta
+`/contenidos/{slug}` y `aria-current="page"` sólo en ese destino. Su URL amplía
+el criterio activo del padre Club; una página `/contenidos/x` no asignada no lo
+activa. Desktop y móvil consumen el mismo árbol compuesto y conservan click,
+cierre al navegar, exterior y Escape con retorno de foco.
+
+Loading, respuesta vacía, error API, raíz inválida, slot desconocido, URL no
+segura, etiqueta inválida, slug reservado o duplicado degradan al árbol
+estructural sin toast, placeholder o retry. Home y footer no consumen este
+endpoint. 7F.2F está validada localmente y pendiente de staging.

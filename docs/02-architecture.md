@@ -699,8 +699,28 @@ firmadas y renderiza cuerpo de texto escapado.
 El índice `/noticias` es estructural, lazy e indexable; los detalles obtienen
 metadata `article` y JSON-LD únicamente tras una respuesta válida. El sitemap
 build-time incluye el índice, no consulta Laravel y aplaza como P1 el inventario
-runtime de slugs. 7F.2E está implementada y validada localmente, pero permanece
-abierta hasta aceptación en staging.
+runtime de slugs. 7F.2E fue aceptada en staging tras aplicar explícitamente su
+migración y validar el flujo editorial completo.
+
+### Navegación CMS administrable y acotada en 7F.2F
+
+`CmsNavigationItem` separa la colocación de una página CMS de su contenido. El
+MVP sólo admite el enum DB/PHP `club`: cada página puede ocuparlo una vez, el
+placement nace inactivo y su URL se deriva siempre del `slug` relacionado. No
+existe un editor libre de árboles, URL manual, enlace externo ni modificación
+de rutas React.
+
+La API pública devuelve únicamente placements activos cuya `CmsPage` cumple
+`CmsPage::published()`, con etiqueta válida y slug no reservado. React valida
+esa allowlist y compone en memoria los elementos después de Quiénes somos,
+Contacto, Federarse y Documentos, sin mutar `publicNavigation`. Un fallo,
+respuesta vacía o elemento inválido conserva exactamente el árbol estructural.
+Home, footer, Cuenta, Legal, Noticias, Competición y Aprende permanecen fuera
+del control CMS. Las rutas `/contenidos/:slug` continúan siendo `noindex` y no
+entran en el sitemap.
+
+7F.2F está implementada y validada localmente; la migración y el recorrido
+editorial aún requieren aceptación en staging.
 
 ---
 

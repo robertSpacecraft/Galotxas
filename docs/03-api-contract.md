@@ -672,6 +672,38 @@ El frontend público consume este endpoint mediante la ruta:
 
 React renderiza los bloques con componentes controlados por `type` y no interpreta HTML libre. La ruta se mantiene bajo el prefijo `/contenidos` para evitar conflictos con rutas públicas ya existentes.
 
+## Navegación CMS pública
+
+`GET /api/v1/cms-navigation` es público, anónimo, no paginado y responde con
+`Cache-Control: no-store`. Devuelve sólo la capa CMS dinámica; la navegación
+estructural no sale de Laravel.
+
+```json
+{
+    "message": null,
+    "data": [
+        {
+            "slot": "club",
+            "label": "Historia",
+            "url": "/contenidos/historia",
+            "sort_order": 10
+        }
+    ]
+}
+```
+
+La allowlist exacta de cada item es `slot`, `label`, `url` y `sort_order`. Sólo
+se incluyen placements `is_active = true`, del slot `club`, con relación
+existente, página efectivamente publicada, etiqueta válida y slug distinto de
+`nosotros`, `contacto`, `federarse` y `documentos`. El orden es `slot`,
+`sort_order ASC`, `id ASC`; sin resultados devuelve `data: []`.
+
+`url` no se persiste ni procede de la petición administrativa: el Resource la
+deriva del slug actual. No se exponen ID, `cms_page_id`, activación, estado o
+fecha editorial, timestamps ni relaciones. Pasar una página a borrador o
+programarla en el futuro retira automáticamente su placement; republicarla lo
+restaura si sigue activo.
+
 ---
 
 # 11. Relación con otros documentos

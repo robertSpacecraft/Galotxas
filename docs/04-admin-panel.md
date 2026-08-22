@@ -75,6 +75,25 @@ La ruta `/admin/cms/pages` centraliza la gestión básica de páginas públicas 
 
 Estos slugs y sus enlaces pertenecen a la estructura pública legada. En particular, `academy` no define el nombre público futuro de Escuela de Galotxas. La auditoría decidirá el destino de cada página sin borrar o migrar contenido en esta fase.
 
+### Navegación CMS
+
+`/admin/cms-navigation` administra placements separados de las páginas. El
+único slot del MVP es Club y el índice muestra como referencia inmutable sus
+cuatro hijos estructurales, seguidos por etiqueta, página, slug, estado
+editorial efectivo, activación y orden de cada placement.
+
+Create permite seleccionar una página elegible, incluso en borrador o
+programada, y editar etiqueta, orden e intención activa. El placement nace
+inactivo por defecto; activarlo no publica la página. Edit conserva esas mismas
+reglas y Delete elimina sólo la configuración, nunca `CmsPage`. No existe
+campo de URL, route, target, padre o slot libre.
+
+El backend rechaza etiquetas vacías, HTML, URL o controles; orden negativo;
+slot manipulado; duplicidad página/slot y los slugs protegidos `nosotros`,
+`contacto`, `federarse` y `documentos`. El selector excluye protegidos y ya
+asignados. Sesión, CSRF, `IsAdmin` y la revalidación de administrador activo son
+las protecciones existentes; no se crean roles nuevos.
+
 ### Bloques CMS
 
 Las rutas `/admin/cms/pages/{cmsPage}/blocks/*` centralizan la gestión básica de bloques de una página CMS.

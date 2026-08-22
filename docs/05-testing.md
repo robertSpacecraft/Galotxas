@@ -1659,9 +1659,48 @@ Validación local final de 7F.2E, 2026-08-21:
 - Composer estricto, Pint dirigido, 30 comprobaciones `php -l`, ESLint,
   Legal, Knowledge, SEO, build Vite e imagen Docker de producción: correctos.
 
-La ejecución local no acredita migración, object storage S3, persistencia tras
+La ejecución local no acreditaba migración, object storage S3, persistencia tras
 redeploy, cleanup remoto, metadata sobre dominio real ni aprobación editorial
-de imágenes en staging. 7F.2E permanece abierta hasta superar ese gate.
+de imágenes. Posteriormente, la migración y el flujo técnico/funcional principal
+se aceptaron manualmente en staging; los gates secundarios diferidos conservan
+su seguimiento propio.
+
+## CMS-NAVIGATION-CONTROLLED-SLOT-1 — Fase 7F.2F
+
+La cobertura backend valida relación, casts, enum, defaults fail-closed,
+factory, orden estable, constraint página/slot y cascade; administración de
+administrador activo, inactivo, usuario y anónimo; altas activas/inactivas,
+edición, borrado sin borrar página, selector, payloads no escalares, etiquetas,
+orden, slot, páginas reservadas y duplicados. La API comprueba publicación
+efectiva, borrador/futuro/inactivo, republicación, defensa reservada, etiqueta
+inválida, URL derivada, allowlist, vacío, orden y dos consultas constantes con
+eager loading.
+
+Vitest cubre contrato cerrado y omisión fail-closed, URLs internas, slugs
+reservados, duplicados, servicio Axios con AbortSignal, hook sin retries,
+composición inmutable structural-first y Navbar desktop/móvil, activo y
+`aria-current`. El E2E desechable crea una página y bloque desde Blade,
+publica, asigna y activa, recorre la URL, alterna placement y estado editorial,
+rechaza un reserved manipulado, prueba 320 px/Escape/foco, elimina el placement
+y devuelve la página temporal a borrador. No usa seeder editorial permanente.
+
+Validación local final de 7F.2F, 2026-08-22:
+
+- backend dirigido de modelo, administración, API y regresiones CMS/Club/News:
+  45 tests y 245 aserciones;
+- backend completo sobre MariaDB aislada: 545 tests y 4.188 aserciones;
+- frontend dirigido de contrato, servicio, hook, composición y Navbar: 83
+  tests;
+- frontend completo: 632 tests en 89 archivos;
+- E2E dirigido CMS Navigation: un escenario Chromium verde;
+- regresión E2E legal ajustada al nuevo endpoint propio: 6 escenarios verdes;
+- E2E completo: 67 escenarios Chromium en 2,9 minutos;
+- Composer estricto, Pint sobre 21 PHP modificados, 21 comprobaciones `php -l`,
+  ESLint, Legal, Knowledge, SEO, build Vite e imagen Docker de producción:
+  correctos.
+
+Estado: 7F.2F implementada y validada localmente; pendiente de aceptación en
+staging.
 
 # 11. Evolución
 

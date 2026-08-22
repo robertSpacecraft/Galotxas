@@ -593,6 +593,25 @@ fuente. El sitemap build-time incluye `/noticias`; resolver slugs runtime en un
 sitemap dinámico queda como deuda P1. Tags, categorías, autoría pública,
 newsletter, rich text y navegación CMS pertenecen a evoluciones posteriores.
 
+## 27. Descubribilidad CMS controlada tras 7F.2F
+
+`CmsPage` y sus bloques continúan siendo la única fuente del cuerpo editorial;
+`CmsNavigationItem` almacena sólo una decisión de colocación. La etiqueta del
+menú pertenece al placement y no se sincroniza automáticamente con el título.
+La URL es una proyección del slug vigente, nunca contenido editable adicional.
+
+Publicar una página no la añade al Navbar y activar un placement no publica la
+página. Sólo la combinación efectiva de ambos aparece. Los slugs de las cuatro
+fachadas Club son estructurales y quedan excluidos para evitar una segunda
+entrada. React compone, pero no edita, persiste ni corrige la decisión del
+backend.
+
+El slot único `club` no convierte Cuenta, Home, footer, Noticias, Competición,
+Aprende, Legal o rutas funcionales en contenido CMS. Tampoco autoriza seeders
+editoriales o el alta automática de `prensa-media`. `/contenidos` conserva su
+carácter legado y `noindex`; aliases, redirects, canonical y migración
+editorial siguen siendo decisiones separadas.
+
 ## Mantenimiento
 
 Toda nueva fuente o sección pública debe actualizar esta gobernanza antes o junto con su implementación. Si el comportamiento real difiere de la decisión aprobada, se debe registrar de forma explícita el estado, la deuda y el plan de reconciliación.

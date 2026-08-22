@@ -244,5 +244,19 @@ escenarios E2E pasan y cierran 7D.3 y 7D; Fase 7 y el MVP siguen abiertos.
 estructural del Navbar, después de Competición y antes de Aprende. Está activo
 en índice y detalles y usa `aria-current` sólo en `/noticias`. Home no incorpora
 feed ni tarjeta de noticias y el footer no añade un destino nuevo. Cuenta y los
-tres disclosures conservan su contrato. Esta implementación está validada
-localmente y aún no acredita aceptación en staging.
+tres disclosures conservan su contrato. El flujo técnico/funcional principal
+de esta implementación fue aceptado posteriormente en staging.
+
+## 27. Seguimiento 7F.2F — Extensión acotada de Club
+
+El Navbar conserva la topología de 7D.1 y 7F.2A/7F.2E. Una lectura pública
+adicional aporta exclusivamente hijos CMS al final del disclosure Club. Los
+cuatro destinos estructurales siguen primero y no son configurables. Home,
+footer, Cuenta, Legal y el resto de ramas no consumen placements ni cambian su
+orden.
+
+La composición es única para desktop y móvil, no muta la configuración, añade
+al padre sólo los exactos asignados y mantiene `aria-current` exacto por hijo.
+El endpoint vacío, abortado o inválido produce el mismo árbol base, sin espacio
+residual o error visible. La cobertura local valida orden, cierre, Escape,
+retorno de foco y 320 px; staging sigue pendiente.

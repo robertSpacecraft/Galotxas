@@ -398,3 +398,17 @@ build de la SPA no consulta Laravel. Un sitemap dinámico de artículos queda
 registrado como deuda P1, sin bloquear 7F.2E. La cobertura automática incluye
 navegación artículo→404/otra ruta, teclado, headings, `article`, `time`, alt,
 fallback de imagen y reflow a 320 px.
+
+## 48. Navegación CMS controlada de 7F.2F
+
+Un placement no crea una ruta ni cambia su clasificación SEO. Todos sus
+destinos continúan resolviendo la ruta existente `/contenidos/:slug`, que es
+`NOINDEX_PUBLIC`, sin canonical propio ni sitemap. No se consulta Laravel
+durante el build y no se añaden slugs dinámicos a `sitemap.xml`.
+
+La composición del Navbar no modifica title, description, Open Graph,
+JSON-LD, robots o canonical. Sólo amplía el estado activo de Club para URLs
+exactamente asignadas y usa `aria-current="page"` en el hijo exacto. Respuesta
+vacía/error/contrato inválido conserva navegación estructural y política SEO.
+El E2E local confirma el meta `noindex`, teclado, foco y reflow a 320 px; la
+aceptación sobre dominio real corresponde al gate de staging.

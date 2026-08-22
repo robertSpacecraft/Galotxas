@@ -623,6 +623,41 @@ No se considera 7F cerrada hasta completar y evidenciar esas acciones.
 Un deploy marcado como `SUCCESS` no acredita que la migración se haya
 ejecutado (como evidenció el error 500 inicial por la ausencia de la tabla `news_articles`, resuelto al aplicar `migrate --force`). Este gate y la aceptación humana de 7F.2E se consideran completados.
 
+## Gate de staging de Navegación CMS 7F.2F
+
+Este checklist queda documentado para la futura promoción; no se ha ejecutado
+en staging. Debe realizarse sobre datos temporales y sin seeders editoriales:
+
+1. ejecutar `php artisan migrate:status`;
+2. ejecutar `php artisan migrate --force`;
+3. repetir `php artisan migrate:status` y confirmar la nueva migración;
+4. crear una `CmsPage` temporal;
+5. añadir contenido válido y publicarla;
+6. crear un placement del slot Club;
+7. activarlo;
+8. verificar el item en API y Navbar;
+9. comprobar el orden con dos items CMS temporales si procede;
+10. navegar y verificar padre Club activo y `aria-current="page"` exacto;
+11. pasar la página a borrador y comprobar que desaparece;
+12. republicarla y comprobar que reaparece;
+13. desactivar el placement y comprobar que desaparece;
+14. reactivarlo y comprobar que reaparece;
+15. eliminar el placement y comprobar que desaparece sin borrar la página;
+16. verificar que una asignación de slug reservado es rechazada;
+17. revisar el flujo a 320 px;
+18. revisar teclado, Escape y retorno de foco;
+19. comprobar intactos los cuatro hijos estructurales de Club;
+20. comprobar intactos Noticias, Competición y Aprende;
+21. comprobar degradación structural-first con API vacía/error cuando pueda
+    hacerse sin alterar infraestructura;
+22. hacer redeploy y confirmar persistencia de página y placement vigentes;
+23. revisar logs saneados sin payloads, sesiones o datos editoriales privados;
+24. eliminar placements y devolver/eliminar páginas temporales según las
+    capacidades seguras disponibles.
+
+`deploy SUCCESS != migrations applied`: 7F.2F no se acepta hasta acreditar
+explícitamente los pasos de migración y el recorrido funcional posterior.
+
 ## Smoke no destructivo post-deploy
 
 - `/`, `/competicion`, Aprende, Manual y un documento Knowledge;
@@ -654,6 +689,10 @@ ejecutado (como evidenció el error 500 inicial por la ausencia de la tabla `new
   migración explícita, publicación/orden, serving S3, programación,
   replace/delete con cleanup, redeploy, privacidad, SEO, 320 px, teclado y
   aprobación editorial;
+- para aceptar 7F.2F: ejecutar íntegramente su checklist de 24 pasos, incluida
+  migración explícita, publicación efectiva, orden structural-first,
+  active/draft/republish, reserved, fail-soft, redeploy, 320 px, teclado y
+  cleanup temporal;
 - estado del último backup.
 
 Las escrituras de aceptación se realizan primero en staging. Producción no usa
@@ -669,9 +708,9 @@ E2E, seeders ni cuentas con password por defecto.
   acreditados;
 - HSTS/CSP, otros uploads de features, worker y scheduler continúan aplazados;
   7F.2C aún debe validar ventanas, redeploy, borrado y revisión
-  móvil/accesible; 7F.2D conserva gates secundarios y 7F.2E debe superar su
-  aceptación completa de staging; la configuración multimedia productiva
-  sigue abierta;
+  móvil/accesible; 7F.2D conserva gates secundarios; 7F.2F debe aplicar su
+  migración y superar aceptación de staging; la configuración multimedia
+  productiva sigue abierta;
 - la SPA mantiene metadata client-side y la respuesta HTTP de rutas React no
   constituye SSR;
 - el token Bearer continúa en `localStorage`, según la decisión vigente;

@@ -77,9 +77,21 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
 - **Deuda P1 (sin reabrir 7F.2E)**: Sitemap dinámico runtime de slugs, metadata client-side, sin SSR/prerender dinámico.
 
 ### 7F.2F — Navegación CMS administrable
-- **Estado**: Siguiente bloque activo.
-- Capacidad limitada y validada para que Blade asigne páginas del CMS a slots controlados de navegación.
-- Protección estricta de las rutas de producto y la estructura del enrutador React.
+- **Estado**: implementada y validada localmente; pendiente de aceptación en staging.
+- `CmsNavigationItem` usa un único slot DB/PHP `club`, nace inactivo, relaciona
+  una página una sola vez y deriva siempre `/contenidos/{slug}`.
+- Blade administra página, etiqueta, orden y activación sin URL manual. Las
+  páginas estructurales `nosotros`, `contacto`, `federarse` y `documentos` no
+  son asignables y continúan primero en Club.
+- La API publica únicamente placements activos con página efectivamente
+  publicada y una allowlist de slot, etiqueta, URL y orden. Draft, fecha
+  futura, reservado o etiqueta inválida desaparecen.
+- React valida fail-closed, hace una petición por montaje y compone sin mutar
+  el árbol. Error, vacío o payload inválido conserva navegación estructural.
+- Home, footer, Cuenta, Legal, Noticias, Competición y Aprende quedan fuera;
+  `/contenidos/:slug` sigue `noindex` y el sitemap no cambia.
+- ADR-045 registra la decisión. La migración, redeploy y checklist de 24 pasos
+  deben completarse en staging antes de aceptar el bloque.
 
 ### 7F.2 (GAP) — Flujo de Copa y Resultados
 - **Estado**: Detectado en validación manual preproducción; pendiente de resolución. Bloqueante para Producción.
@@ -93,7 +105,10 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
 - **Decisiones cerradas**: Sustitución parcial de la navegación de Competición (ADR-042); obligatoriedad de almacenamiento de objetos (sin sistema de archivos efímero) para persistencia; utilización de `User.profile_photo_path` para fotos de perfil; `NewsArticle` dedicado y separado del CMS/prensa-media (ADR-044).
 - **Prerrequisito cerrado de Rankings**: una única regla backend distribuye tres puntos base por partido (`3-0` o `2-1`) antes de contribuciones de dobles y multiplicadores de nivel; no existe persistencia ni backfill de puntos.
 - **Verificación operativa del prerrequisito**: el reparto corregido se comprobó manualmente en staging el 2026-08-15. Esta evidencia corresponde al prerrequisito de dominio y no acredita despliegue, smoke ni aceptación de 7F.2A.
-- **Decisiones abiertas**: Proveedor de CDN; configuración exacta de los slots del menú; sitemap dinámico runtime de noticias; cualquier consentimiento fotográfico general o publicación futura de avatares sigue fuera de 7F.2D/7F.2E.
+- **Decisiones abiertas**: Proveedor de CDN; cualquier slot futuro distinto de
+  Club; sitemap dinámico runtime de noticias; cualquier consentimiento
+  fotográfico general o publicación futura de avatares sigue fuera de
+  7F.2D/7F.2E.
 
 ## 7. Privacidad y Seguridad
 La filosofía fail-closed se mantiene:
@@ -106,7 +121,7 @@ El ciclo de desarrollo deberá seguir la pauta:
 `desarrollo → tests dirigidos → regresión completa → staging → smoke → beta/pruebas manuales → aceptación del nuevo baseline → producción`.
 
 ## 9. Relación con 7F Producción y 7G
-El despliegue en Producción (7F) queda **suspendido** hasta la compleción y validación estricta de toda la Fase 7F.2 en Staging. 7F.2A y 7F.2B ya se cerraron allí; 7F.2C y 7F.2D conservan gates secundarios; 7F.2E está cerrada y aceptada en staging; falta 7F.2F. El cierre del MVP (7G) ocurrirá posteriormente. La deuda técnica de post-MVP descrita en el roadmap (p. ej. aplicación móvil, pasarela de pago, migración auth) sigue fuera del alcance.
+El despliegue en Producción (7F) queda **suspendido** hasta la compleción y validación estricta de toda la Fase 7F.2 en Staging. 7F.2A y 7F.2B ya se cerraron allí; 7F.2C y 7F.2D conservan gates secundarios; 7F.2E está cerrada y aceptada en staging; 7F.2F sólo está cerrada localmente. El cierre del MVP (7G) ocurrirá posteriormente. La deuda técnica de post-MVP descrita en el roadmap (p. ej. aplicación móvil, pasarela de pago, migración auth) sigue fuera del alcance.
 
 ## 10. Checklist observable
 - [x] 7F.2A implementado y validado automáticamente en `develop`.
@@ -120,7 +135,8 @@ El despliegue en Producción (7F) queda **suspendido** hasta la compleción y va
 - [ ] 7F.2D completar gates secundarios diferidos en staging.
 - [x] 7F.2E noticias navegables y regresión local completa.
 - [x] 7F.2E migración, storage real y aceptación humana en staging.
-- [ ] 7F.2F enlaces de menú CMS asignables (Siguiente bloque activo).
+- [x] 7F.2F enlaces de menú CMS implementados y validados localmente.
+- [ ] 7F.2F migración, smoke, redeploy y aceptación humana en staging.
 - [ ] Promoción a Staging y nueva aceptación humana (beta) superadas. (7F.2A verificada el 2026-08-15)
 
 

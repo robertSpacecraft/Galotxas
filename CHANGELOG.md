@@ -6,6 +6,20 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Fase 7F.2F incorpora `CmsNavigationItem` con slot DB/PHP único `club`,
+  constraint página/slot, activación privada por defecto, relación cascade y
+  administración Blade separada; las cuatro fachadas estructurales Club son
+  slugs reservados y no existe URL manual ni editor libre de menú.
+- Se publica `GET /api/v1/cms-navigation` con allowlist cerrada, URL derivada y
+  filtro de placement activo más `CmsPage` efectivamente publicada. React
+  valida fail-closed y añade los hijos al final de Club sin mutar la navegación
+  protegida; Home, footer, Cuenta y demás ramas permanecen intactos.
+- La cobertura 7F.2F incluye constraints, permisos, payloads manipulados,
+  publicación y N+1; contrato/servicio/hook/composición/Navbar; y E2E temporal
+  Blade→API→React con 320 px, teclado, ciclo editorial y cleanup. ADR-045 y el
+  checklist de staging documentan la decisión. El bloque está validado sólo en
+  local y pendiente de aceptación en staging.
+
 - Se registra un gap documental de dominio funcional en Copa detectado durante
   pruebas manuales de preproducción. La Liga, su flujo de resultados,
   y la generación de semifinales de Copa (1.º vs 4.º, 2.º vs 3.º) quedan
@@ -36,7 +50,7 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
   ausente al no ejecutarse migraciones automáticamente en el deploy.
 - Se aplica explícitamente `migrate --force` con éxito y se acepta manualmente
   en staging todo el flujo técnico/funcional de Noticias, cerrando 7F.2E.
-  El siguiente bloque activo es 7F.2F (Navegación CMS administrable).
+  Este cierre dio paso a 7F.2F (Navegación CMS administrable).
 - Se acepta en staging el flujo funcional de Sponsor (Fase 7F.2C); migración, alta administrativa, almacenamiento real, render público y desactivar/reactivar confirmados. Cierres secundarios (redeploy, borrado, programación temporal y accesibilidad) quedan diferidos.
 - Se acepta manualmente en staging el flujo funcional de avatar privado de 7F.2D (upload, serving, replace, delete); gates secundarios (redeploy, cleanup riguroso y accesibilidad) quedan diferidos.
 - Se documentan como mejoras futuras (post-MVP) los patrocinios contextuales (campeonatos y pistas) y el perfil público deportivo opcional de jugador. Ninguna altera 7F.2E (Noticias) ni 7F.2F (Menú CMS).
