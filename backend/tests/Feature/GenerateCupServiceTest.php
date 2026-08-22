@@ -7,6 +7,8 @@ use App\Models\Category;
 use App\Models\CategoryEntry;
 use App\Models\GameMatch;
 use App\Models\Round;
+use App\Models\User;
+use App\Models\Venue;
 use App\Services\GenerateCupService;
 use App\Services\Ranking\BuildCategoryRankingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -37,11 +39,18 @@ class GenerateCupServiceTest extends TestCase
             ->where('name', '3º y 4º')
             ->firstOrFail();
 
+        $this->assertSame('cup', $finalRound->phase);
+        $this->assertSame('final', $finalRound->stage);
+        $this->assertSame('cup', $thirdPlaceRound->phase);
+        $this->assertSame('third_place', $thirdPlaceRound->stage);
+
         $this->assertDatabaseHas('game_matches', [
             'round_id' => $finalRound->id,
             'home_entry_id' => $entries[0]->id,
             'away_entry_id' => $entries[2]->id,
             'status' => GameMatchStatus::SCHEDULED->value,
+            'scheduled_date' => null,
+            'venue_id' => null,
         ]);
 
         $this->assertDatabaseHas('game_matches', [
@@ -49,7 +58,45 @@ class GenerateCupServiceTest extends TestCase
             'home_entry_id' => $entries[1]->id,
             'away_entry_id' => $entries[3]->id,
             'status' => GameMatchStatus::SCHEDULED->value,
+            'scheduled_date' => null,
+            'venue_id' => null,
         ]);
+    }
+
+    public function test_cup_finals_are_not_generated_without_semifinals(): void
+    {
+        [$category] = $this->createCategoryWithApprovedEntries();
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('No existen semifinales.');
+
+        app(GenerateCupService::class)->generateFinals($category);
+    }
+
+    public function test_cup_finals_require_exactly_two_semifinal_matches(): void
+    {
+        [$category, $entries] = $this->createCategoryWithApprovedEntries();
+        $semifinalRound = Round::factory()->create([
+            'category_id' => $category->id,
+            'name' => 'Semifinales',
+            'order' => 100,
+            'type' => 'cup',
+            'phase' => 'cup',
+            'stage' => 'semifinal',
+        ]);
+        GameMatch::factory()->create([
+            'round_id' => $semifinalRound->id,
+            'home_entry_id' => $entries[0]->id,
+            'away_entry_id' => $entries[1]->id,
+            'status' => 'validated',
+            'home_score' => 10,
+            'away_score' => 7,
+        ]);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Las semifinales no están correctamente definidas.');
+
+        app(GenerateCupService::class)->generateFinals($category);
     }
 
     public function test_cup_finals_are_not_generated_if_semifinals_are_not_validated(): void
@@ -74,6 +121,26 @@ class GenerateCupServiceTest extends TestCase
             'type' => 'cup',
             'name' => '3º y 4º',
         ]);
+    }
+
+    public function test_cup_finals_are_not_generated_from_a_tied_semifinal(): void
+    {
+        [$category] = $this->createValidatedSemifinals();
+        $category->rounds()
+            ->where('stage', 'semifinal')
+            ->firstOrFail()
+            ->matches()
+            ->firstOrFail()
+            ->update([
+                'home_score' => 10,
+                'away_score' => 10,
+                'winner_entry_id' => null,
+            ]);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Las semifinales no pueden terminar en empate.');
+
+        app(GenerateCupService::class)->generateFinals($category);
     }
 
     public function test_cup_finals_are_recreated_without_duplicates_when_they_already_exist(): void
@@ -112,6 +179,8 @@ class GenerateCupServiceTest extends TestCase
             ->firstOrFail();
 
         $this->assertSame(2, $semifinalRound->matches()->count());
+        $this->assertSame('cup', $semifinalRound->phase);
+        $this->assertSame('semifinal', $semifinalRound->stage);
     }
 
     public function test_generate_semifinals_uses_the_ranking_corrected_for_close_results(): void
@@ -182,6 +251,42 @@ class GenerateCupServiceTest extends TestCase
         $this->assertSame($entries[3]->id, $semifinalMatches[1]->away_entry_id);
     }
 
+    public function test_generated_final_can_be_scheduled_from_the_admin_flow(): void
+    {
+        [$category] = $this->createValidatedSemifinals();
+        app(GenerateCupService::class)->generateFinals($category);
+
+        $final = Round::query()
+            ->where('category_id', $category->id)
+            ->where('stage', 'final')
+            ->firstOrFail()
+            ->matches()
+            ->firstOrFail();
+        $venue = Venue::factory()->create();
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)
+            ->patch(route('admin.categories.matches.update', [$category, $final]), [
+                'scheduled_date' => '2026-09-20',
+                'scheduled_time' => '19:15',
+                'venue_id' => $venue->id,
+                'status' => 'scheduled',
+                'home_score' => null,
+                'away_score' => null,
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('game_matches', [
+            'id' => $final->id,
+            'venue_id' => $venue->id,
+            'scheduled_date' => '2026-09-20 19:15:00',
+            'status' => 'scheduled',
+            'home_score' => null,
+            'away_score' => null,
+        ]);
+    }
+
     private function createValidatedSemifinals(): array
     {
         return $this->createSemifinals(GameMatchStatus::VALIDATED);
@@ -196,6 +301,8 @@ class GenerateCupServiceTest extends TestCase
             'name' => 'Semifinales',
             'order' => 100,
             'type' => 'cup',
+            'phase' => 'cup',
+            'stage' => 'semifinal',
         ]);
 
         GameMatch::query()->create([

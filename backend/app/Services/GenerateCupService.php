@@ -14,8 +14,7 @@ class GenerateCupService
 {
     public function __construct(
         private readonly BuildCategoryRankingService $rankingService
-    ) {
-    }
+    ) {}
 
     public function generateSemifinals(Category $category): void
     {
@@ -35,6 +34,8 @@ class GenerateCupService
                 'name' => 'Semifinales',
                 'order' => 100,
                 'type' => 'cup',
+                'phase' => 'cup',
+                'stage' => 'semifinal',
             ]);
 
             // 1º vs 4º
@@ -81,14 +82,17 @@ class GenerateCupService
             $semiRound = Round::query()
                 ->where('category_id', $category->id)
                 ->where('type', 'cup')
-                ->where('name', 'Semifinales')
+                ->where('phase', 'cup')
+                ->where('stage', 'semifinal')
                 ->first();
 
-            if (!$semiRound) {
+            if (! $semiRound) {
                 throw new RuntimeException('No existen semifinales.');
             }
 
-            $matches = $semiRound->matches;
+            $matches = $semiRound->matches()
+                ->orderBy('id')
+                ->get();
 
             if ($matches->count() !== 2) {
                 throw new RuntimeException('Las semifinales no están correctamente definidas.');
@@ -96,8 +100,8 @@ class GenerateCupService
 
             $validated = $matches->filter(function ($match) {
                 return $match->status === GameMatchStatus::VALIDATED
-                    && !is_null($match->home_score)
-                    && !is_null($match->away_score);
+                    && ! is_null($match->home_score)
+                    && ! is_null($match->away_score);
             });
 
             if ($validated->count() !== 2) {
@@ -108,6 +112,10 @@ class GenerateCupService
             $losers = [];
 
             foreach ($validated as $match) {
+                if ($match->home_score === $match->away_score) {
+                    throw new RuntimeException('Las semifinales no pueden terminar en empate.');
+                }
+
                 if ($match->home_score > $match->away_score) {
                     $winners[] = $match->home_entry_id;
                     $losers[] = $match->away_entry_id;
@@ -121,7 +129,8 @@ class GenerateCupService
             $existingFinals = Round::query()
                 ->where('category_id', $category->id)
                 ->where('type', 'cup')
-                ->whereIn('name', ['Final', '3º y 4º'])
+                ->where('phase', 'cup')
+                ->whereIn('stage', ['final', 'third_place'])
                 ->get();
 
             foreach ($existingFinals as $round) {
@@ -135,6 +144,8 @@ class GenerateCupService
                 'name' => 'Final',
                 'order' => 200,
                 'type' => 'cup',
+                'phase' => 'cup',
+                'stage' => 'final',
             ]);
 
             GameMatch::create([
@@ -152,6 +163,8 @@ class GenerateCupService
                 'name' => '3º y 4º',
                 'order' => 201,
                 'type' => 'cup',
+                'phase' => 'cup',
+                'stage' => 'third_place',
             ]);
 
             GameMatch::create([

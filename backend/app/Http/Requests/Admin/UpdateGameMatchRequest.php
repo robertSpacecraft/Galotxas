@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class UpdateGameMatchRequest extends FormRequest
 {
@@ -21,5 +22,28 @@ class UpdateGameMatchRequest extends FormRequest
             'home_score' => ['nullable', 'integer', 'min:0'],
             'away_score' => ['nullable', 'integer', 'min:0'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            if ($validator->errors()->has('status')) {
+                return;
+            }
+
+            $hasScores = $this->filled('home_score') || $this->filled('away_score');
+            $statusAcceptsScores = in_array(
+                $this->string('status')->toString(),
+                ['submitted', 'validated'],
+                true
+            );
+
+            if ($hasScores && ! $statusAcceptsScores) {
+                $validator->errors()->add(
+                    'status',
+                    'Los tanteos sólo pueden guardarse con estado submitted o validated.'
+                );
+            }
+        });
     }
 }

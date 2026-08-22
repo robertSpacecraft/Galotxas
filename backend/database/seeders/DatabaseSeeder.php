@@ -91,7 +91,7 @@ class DatabaseSeeder extends Seeder
                 'phase' => 'cup',
                 'stage' => 'third_place',
                 'name' => '3º y 4º puesto',
-                'order' => 101,
+                'order' => 201,
             ]);
 
             Round::factory()->create([
@@ -100,7 +100,7 @@ class DatabaseSeeder extends Seeder
                 'phase' => 'cup',
                 'stage' => 'final',
                 'name' => 'Final',
-                'order' => 102,
+                'order' => 200,
             ]);
         }
 
@@ -129,7 +129,7 @@ class DatabaseSeeder extends Seeder
                 'phase' => 'cup',
                 'stage' => 'third_place',
                 'name' => '3º y 4º puesto',
-                'order' => 101,
+                'order' => 201,
             ]);
 
             Round::factory()->create([
@@ -138,7 +138,7 @@ class DatabaseSeeder extends Seeder
                 'phase' => 'cup',
                 'stage' => 'final',
                 'name' => 'Final',
-                'order' => 102,
+                'order' => 200,
             ]);
 
             // Equipos de ejemplo solo en categorías de dobles
