@@ -183,6 +183,8 @@ class E2ESmokeSeeder extends Seeder
                 '2026-08-02 18:00:00'
             );
 
+            $this->seedCupScenario($season, $venue);
+
             $page = CmsPage::query()->updateOrCreate(
                 ['slug' => 'e2e-publicada'],
                 [
@@ -463,6 +465,119 @@ class E2ESmokeSeeder extends Seeder
             self::DENIED_IDENTITY_TOKEN
         );
 
+    }
+
+    private function seedCupScenario(
+        Season $season,
+        Venue $venue
+    ): void {
+        $firstPlayer = $this->createPlayerUser(
+            'cup-player1.e2e@example.test',
+            'Jugador',
+            'Uno Copa E2E',
+            'Pilotari Copa E2E 1',
+            'pilotari-copa-e2e-1',
+            'E2E00006F',
+            'E2E-LIC-006',
+            'right'
+        )->player;
+        $secondPlayer = $this->createPlayerUser(
+            'cup-player2.e2e@example.test',
+            'Jugador',
+            'Dos Copa E2E',
+            'Pilotari Copa E2E 2',
+            'pilotari-copa-e2e-2',
+            'E2E00007G',
+            'E2E-LIC-007',
+            'left'
+        )->player;
+        $thirdPlayer = $this->createPlayerUser(
+            'cup-player3.e2e@example.test',
+            'Jugador',
+            'Tres Copa E2E',
+            'Pilotari Copa E2E 3',
+            'pilotari-copa-e2e-3',
+            'E2E00008H',
+            'E2E-LIC-008',
+            'right'
+        )->player;
+        $fourthPlayer = $this->createPlayerUser(
+            'cup-player4.e2e@example.test',
+            'Jugador',
+            'Cuatro Copa E2E',
+            'Pilotari Copa E2E 4',
+            'pilotari-copa-e2e-4',
+            'E2E00009I',
+            'E2E-LIC-009',
+            'left'
+        )->player;
+
+        $championship = Championship::query()->updateOrCreate(
+            ['slug' => 'campeonato-copa-e2e'],
+            [
+                'season_id' => $season->id,
+                'name' => 'Campeonato Copa E2E',
+                'description' => 'Escenario aislado para completar el flujo eliminatorio E2E.',
+                'type' => ChampionshipType::SINGLES->value,
+                'start_date' => '2026-09-01',
+                'end_date' => '2026-10-31',
+                'status' => 'active',
+                'registration_status' => ChampionshipRegistrationStatus::CLOSED->value,
+                'registration_starts_at' => null,
+                'registration_ends_at' => null,
+            ]
+        );
+        $championship->forceFill(['is_public' => false])->save();
+
+        $category = Category::query()->updateOrCreate(
+            ['slug' => 'copa-e2e'],
+            [
+                'championship_id' => $championship->id,
+                'name' => 'Copa E2E',
+                'level' => 5,
+                'gender' => CategoryGender::MALE->value,
+                'description' => 'Categoría determinista para el ciclo completo de Copa.',
+                'status' => 'active',
+            ]
+        );
+        $category->forceFill(['is_public' => false])->save();
+
+        $players = collect([$firstPlayer, $secondPlayer, $thirdPlayer, $fourthPlayer]);
+        $entries = $players->map(function (Player $player) use ($category): CategoryEntry {
+            CategoryRegistration::query()->updateOrCreate(
+                ['category_id' => $category->id, 'player_id' => $player->id],
+                ['status' => 'approved']
+            );
+
+            return CategoryEntry::query()->updateOrCreate(
+                ['category_id' => $category->id, 'player_id' => $player->id],
+                ['entry_type' => 'player', 'team_id' => null, 'status' => 'approved']
+            );
+        })->values();
+
+        $pairings = [
+            [0, 1],
+            [0, 2],
+            [0, 3],
+            [1, 2],
+            [1, 3],
+            [2, 3],
+        ];
+
+        foreach ($pairings as $index => [$homeIndex, $awayIndex]) {
+            $round = $this->createRound(
+                $category,
+                'Liga Copa E2E '.($index + 1),
+                $index + 1
+            );
+            $this->createMatch(
+                $round,
+                $venue,
+                $entries[$homeIndex],
+                $entries[$awayIndex],
+                sprintf('2026-09-%02d 18:00:00', $index + 1)
+            );
+        }
     }
 
     private function createIdentityEnrollment(
