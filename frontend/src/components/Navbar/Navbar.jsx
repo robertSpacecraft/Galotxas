@@ -1,12 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useCmsNavigation } from '../../features/cmsNavigation/useCmsNavigation';
 import {
+  composePublicNavigation,
   getActivePublicNavigationItem,
   getPublicNavigationAriaCurrent,
   getVisiblePublicNavigation,
   matchesNavigationItem,
   navigationItemTypes,
+  publicNavigation,
 } from '../../navigation/publicNavigation';
 import styles from './Navbar.module.css';
 import logo from '../../assets/images/Logo_Galotxas_Femenino.png';
@@ -23,6 +26,11 @@ export const Navbar = () => {
   const headerRef = useRef(null);
   const menuToggleRef = useRef(null);
   const disclosureTriggerRefs = useRef({});
+  const cmsNavigation = useCmsNavigation();
+  const composedNavigation = useMemo(
+    () => composePublicNavigation(publicNavigation, cmsNavigation),
+    [cmsNavigation],
+  );
   const [navigationState, setNavigationState] = useState(
     closedNavigationState(location.pathname),
   );
@@ -30,8 +38,8 @@ export const Navbar = () => {
     ? navigationState
     : closedNavigationState(location.pathname);
   const { menuOpen: isMenuOpen, disclosureId: openDisclosureId } = currentState;
-  const activeItem = getActivePublicNavigationItem(location.pathname);
-  const visibleNavigation = getVisiblePublicNavigation();
+  const activeItem = getActivePublicNavigationItem(location.pathname, composedNavigation);
+  const visibleNavigation = getVisiblePublicNavigation(composedNavigation);
 
   const closeNavigation = () => setNavigationState(closedNavigationState(location.pathname));
 

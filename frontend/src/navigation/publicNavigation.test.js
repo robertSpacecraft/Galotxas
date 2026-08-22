@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  composePublicNavigation,
   getActivePublicNavigationItem,
   getPublicNavigationAriaCurrent,
   getPublicNavigationChild,
@@ -161,5 +162,45 @@ describe('publicNavigation', () => {
       { id: 'LEG-002', label: 'Privacidad', to: '/legal/privacidad' },
       { id: 'LEG-003', label: 'Cookies', to: '/legal/cookies' },
     ]);
+  });
+
+  it('appends sorted CMS links to Club without mutating or changing other branches', () => {
+    const originalSnapshot = JSON.stringify(publicNavigation);
+    const composed = composePublicNavigation(publicNavigation, [
+      { slot: 'club', label: 'Memoria', url: '/contenidos/memoria', sort_order: 20 },
+      { slot: 'club', label: 'Historia', url: '/contenidos/historia', sort_order: 10 },
+    ]);
+    const club = getPublicNavigationItem('club', composed);
+
+    expect(composed).not.toBe(publicNavigation);
+    expect(composed.slice(0, 4)).toEqual(publicNavigation.slice(0, 4));
+    expect(club.children.slice(0, 4)).toEqual(getPublicNavigationItem('club').children);
+    expect(club.children.slice(4).map(({ id, label, to }) => ({ id, label, to }))).toEqual([
+      {
+        id: 'cms-navigation:/contenidos/historia',
+        label: 'Historia',
+        to: '/contenidos/historia',
+      },
+      {
+        id: 'cms-navigation:/contenidos/memoria',
+        label: 'Memoria',
+        to: '/contenidos/memoria',
+      },
+    ]);
+    expect(getActivePublicNavigationItem('/contenidos/historia', composed)?.id).toBe('club');
+    expect(getPublicNavigationAriaCurrent(club.children[4], '/contenidos/historia/')).toBe('page');
+    expect(getActivePublicNavigationItem('/contenidos/no-asignada', composed)).toBeNull();
+    expect(JSON.stringify(publicNavigation)).toBe(originalSnapshot);
+    expect(Object.isFrozen(composed)).toBe(true);
+    expect(Object.isFrozen(club.children)).toBe(true);
+  });
+
+  it('omits invalid and duplicate CMS links while preserving the structural tree identity', () => {
+    const invalid = composePublicNavigation(publicNavigation, [
+      { slot: 'club', label: 'Contacto', url: '/contenidos/contacto', sort_order: 0 },
+      { slot: 'club', label: 'Externa', url: 'https://example.test', sort_order: 0 },
+    ]);
+
+    expect(invalid).toBe(publicNavigation);
   });
 });

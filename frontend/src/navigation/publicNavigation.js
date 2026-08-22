@@ -2,6 +2,7 @@ import { clubPath } from '../features/club/clubRoutes';
 import { learnPath, manualPath } from '../features/knowledge/knowledgeRoutes';
 import { legalPages } from '../features/legal/legalRoutes';
 import { schoolPath } from '../features/school/schoolRoutes';
+import { normalizeCmsNavigationItems } from '../features/cmsNavigation/cmsNavigationContract';
 
 export const navigationItemTypes = Object.freeze({
   link: 'link',
@@ -110,6 +111,40 @@ export const publicNavigation = Object.freeze([
   }),
 ]);
 
+export const composePublicNavigation = (
+  structuralNavigation = publicNavigation,
+  cmsPlacements = [],
+) => {
+  const normalizedPlacements = normalizeCmsNavigationItems(cmsPlacements);
+  if (normalizedPlacements.length === 0) return structuralNavigation;
+
+  return Object.freeze(structuralNavigation.map((item) => {
+    if (item.id !== 'club' || item.type !== navigationItemTypes.disclosure) return item;
+
+    const structuralUrls = new Set(item.children.map((child) => child.to));
+    const dynamicChildren = normalizedPlacements
+      .filter(({ url }) => !structuralUrls.has(url))
+      .map(({ label, url }) => link({
+        id: `cms-navigation:${url}`,
+        label,
+        to: url,
+      }));
+
+    if (dynamicChildren.length === 0) return item;
+
+    const children = Object.freeze([...item.children, ...dynamicChildren]);
+
+    return Object.freeze({
+      ...item,
+      match: freezeMatch({
+        exact: [...item.match.exact, ...dynamicChildren.map(({ to }) => to)],
+        prefixes: [...item.match.prefixes],
+      }),
+      children,
+    });
+  }));
+};
+
 export const publicSiteIdentity = Object.freeze({
   name: 'Club Galotxes Monòver',
 });
@@ -150,20 +185,21 @@ export const matchesNavigationItem = (item, pathname) => {
     || item.match.prefixes.some((prefix) => normalizedPathname.startsWith(prefix));
 };
 
-export const getVisiblePublicNavigation = () => publicNavigation.filter((item) => (
+export const getVisiblePublicNavigation = (navigation = publicNavigation) => navigation.filter((item) => (
   item.visible && item.audience === navigationAudiences.public
 ));
 
-export const getPublicNavigationItem = (itemId) => (
-  publicNavigation.find((item) => item.id === itemId) ?? null
+export const getPublicNavigationItem = (itemId, navigation = publicNavigation) => (
+  navigation.find((item) => item.id === itemId) ?? null
 );
 
-export const getPublicNavigationChild = (parentId, childId) => (
-  getPublicNavigationItem(parentId)?.children?.find((item) => item.id === childId) ?? null
+export const getPublicNavigationChild = (parentId, childId, navigation = publicNavigation) => (
+  getPublicNavigationItem(parentId, navigation)?.children?.find((item) => item.id === childId) ?? null
 );
 
-export const getActivePublicNavigationItem = (pathname) => (
-  getVisiblePublicNavigation().find((item) => matchesNavigationItem(item, pathname)) ?? null
+export const getActivePublicNavigationItem = (pathname, navigation = publicNavigation) => (
+  getVisiblePublicNavigation(navigation)
+    .find((item) => matchesNavigationItem(item, pathname)) ?? null
 );
 
 export const getPublicNavigationAriaCurrent = (item, pathname) => (

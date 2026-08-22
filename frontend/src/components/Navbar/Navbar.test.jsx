@@ -1,10 +1,15 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useNavigate } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { useCmsNavigation } from '../../features/cmsNavigation/useCmsNavigation';
 import { renderWithProviders } from '../../test/renderWithProviders';
 import styles from './Navbar.module.css';
 import { Navbar } from './Navbar';
+
+vi.mock('../../features/cmsNavigation/useCmsNavigation', () => ({
+  useCmsNavigation: vi.fn(() => []),
+}));
 
 const anonymousAuth = {
   user: null,
@@ -27,6 +32,11 @@ const openMainMenu = async (user) => {
 };
 
 describe('Navbar', () => {
+  beforeEach(() => {
+    useCmsNavigation.mockReset();
+    useCmsNavigation.mockReturnValue([]);
+  });
+
   it('renders the grouped editorial tree, a skip link and a separate anonymous account area', () => {
     renderWithProviders(<Navbar />, { authValue: anonymousAuth });
 
@@ -299,5 +309,57 @@ describe('Navbar', () => {
     )).toBe(true);
 
     rerender(<div />);
+  });
+
+  it('renders an assigned CMS link after structural Club links and closes menus on navigation', async () => {
+    useCmsNavigation.mockReturnValue([
+      { slot: 'club', label: 'Historia', url: '/contenidos/historia', sort_order: 10 },
+    ]);
+    const user = userEvent.setup();
+    renderWithProviders(<Navbar />, { authValue: anonymousAuth });
+
+    await openMainMenu(user);
+    await user.click(screen.getByRole('button', { name: 'Club' }));
+    const clubPanel = screen.getByRole('button', { name: 'Club' })
+      .getAttribute('aria-controls');
+    const clubLinks = within(document.getElementById(clubPanel)).getAllByRole('link');
+
+    expect(clubLinks.map((link) => link.textContent)).toEqual([
+      'Quiénes somos',
+      'Contacto',
+      'Federarse',
+      'Documentos',
+      'Historia',
+    ]);
+    expect(clubLinks[4]).toHaveAttribute('href', '/contenidos/historia');
+
+    await user.click(clubLinks[4]);
+    expect(screen.getByRole('button', { name: 'Abrir menú de navegación' }))
+      .toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('button', { name: 'Club' })).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('marks Club and the exact CMS destination active but ignores unassigned CMS routes', () => {
+    useCmsNavigation.mockReturnValue([
+      { slot: 'club', label: 'Historia', url: '/contenidos/historia', sort_order: 10 },
+    ]);
+
+    const assigned = renderWithProviders(<Navbar />, {
+      route: '/contenidos/historia',
+      authValue: anonymousAuth,
+    });
+
+    expect(screen.getByRole('button', { name: 'Club' })).toHaveClass(styles.navItemActive);
+    expect(screen.getByRole('link', { name: 'Historia', hidden: true }))
+      .toHaveAttribute('aria-current', 'page');
+    assigned.unmount();
+
+    renderWithProviders(<Navbar />, {
+      route: '/contenidos/no-asignada',
+      authValue: anonymousAuth,
+    });
+
+    expect(screen.getByRole('button', { name: 'Club' })).not.toHaveClass(styles.navItemActive);
+    expect(screen.queryByRole('link', { name: 'Historia', hidden: true })).toBeInTheDocument();
   });
 });

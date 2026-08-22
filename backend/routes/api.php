@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\ChampionshipController;
 use App\Http\Controllers\Api\V1\ChampionshipRankingController;
 use App\Http\Controllers\Api\V1\ChampionshipRegistrationController;
+use App\Http\Controllers\Api\V1\CmsNavigationController;
 use App\Http\Controllers\Api\V1\CmsPageController;
 use App\Http\Controllers\Api\V1\ContactConfigController;
 use App\Http\Controllers\Api\V1\ContactRequestController;
@@ -59,6 +60,7 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/cms/pages', [CmsPageController::class, 'index']);
     Route::get('/cms/pages/{slug}', [CmsPageController::class, 'show']);
+    Route::get('/cms-navigation', CmsNavigationController::class);
 
     Route::get('/contact/config', ContactConfigController::class);
     Route::post('/contact-requests', [ContactRequestController::class, 'store'])
