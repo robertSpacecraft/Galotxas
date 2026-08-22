@@ -7,6 +7,7 @@ use App\Enums\CmsPageStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CmsPage extends Model
 {
@@ -29,6 +30,11 @@ class CmsPage extends Model
     public function blocks()
     {
         return $this->hasMany(CmsBlock::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function navigationItems(): HasMany
+    {
+        return $this->hasMany(CmsNavigationItem::class);
     }
 
     public function scopePublished(Builder $query): Builder

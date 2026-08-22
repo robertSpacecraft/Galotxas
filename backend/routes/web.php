@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\CategoryTeamController;
 use App\Http\Controllers\Admin\ChampionshipController as AdminChampionshipController;
 use App\Http\Controllers\Admin\ChampionshipRegistrationController as AdminChampionshipRegistrationController;
 use App\Http\Controllers\Admin\CmsBlockController;
+use App\Http\Controllers\Admin\CmsNavigationItemController;
 use App\Http\Controllers\Admin\CmsPageController;
 use App\Http\Controllers\Admin\ContactRequestController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -70,6 +71,19 @@ Route::prefix('admin')->group(function () {
             ->name('admin.cms-pages.blocks.update');
         Route::delete('/cms/pages/{cmsPage}/blocks/{cmsBlock}', [CmsBlockController::class, 'destroy'])
             ->name('admin.cms-pages.blocks.destroy');
+
+        Route::get('/cms-navigation', [CmsNavigationItemController::class, 'index'])
+            ->name('admin.cms-navigation.index');
+        Route::get('/cms-navigation/create', [CmsNavigationItemController::class, 'create'])
+            ->name('admin.cms-navigation.create');
+        Route::post('/cms-navigation', [CmsNavigationItemController::class, 'store'])
+            ->name('admin.cms-navigation.store');
+        Route::get('/cms-navigation/{cmsNavigationItem}/edit', [CmsNavigationItemController::class, 'edit'])
+            ->name('admin.cms-navigation.edit');
+        Route::put('/cms-navigation/{cmsNavigationItem}', [CmsNavigationItemController::class, 'update'])
+            ->name('admin.cms-navigation.update');
+        Route::delete('/cms-navigation/{cmsNavigationItem}', [CmsNavigationItemController::class, 'destroy'])
+            ->name('admin.cms-navigation.destroy');
 
         // Noticias
         Route::get('/news-articles/{newsArticle}/image', [NewsArticleController::class, 'image'])
