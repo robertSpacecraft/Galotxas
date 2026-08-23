@@ -35,14 +35,19 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
   consume.
 - Sigue siendo requisito previo ineludible para futuras imágenes del CMS.
 
-### 7F.2C — Patrocinadores/colaboradores administrables (Flujo principal aceptado en staging)
+### 7F.2C — Patrocinadores/colaboradores administrables
 - El nombre histórico “Banners administrables” se especializa sin reescribir la historia: no existe entidad Banner, campaña, placement o plataforma publicitaria.
 - Sponsor gestiona en Blade nombre, logo, web HTTPS opcional, orden, activación y ventana temporal; todos los efectivos aparecen simultáneamente en una rejilla discreta antes del footer.
 - API y Resources son cerrados; el object key permanece privado y el serving usa la infraestructura de ADR-043 con autorización previa.
 - React renderiza `null` en vacío/error/contrato inválido y omite cuenta, token y 404. Los enlaces usan `rel="sponsored noopener noreferrer"`.
 - Implementación y regresión automática completadas en develop.
-- **Validado manualmente en staging**: migración aplicada correctamente, alta administrativa, almacenamiento real en media-staging, render público antes del footer, múltiples patrocinadores simultáneos, orden (sort_order), sustitución de logo, cleanup de sustitución y desactivar/reactivar.
-- **Gates secundarios diferidos**: ventanas temporales (starts_at/ends_at), persistencia tras redeploy, borrado con cleanup, revisión dedicada 320 px y revisión de accesibilidad. El flujo principal se considera aceptado para permitir el avance hacia 7F.2E.
+- **Estado**: implementada, promovida a staging y completamente aceptada de manera manual. 7F.2C cerrada.
+- **Validado manualmente en staging**: el flujo base superó la migración y prueba inicial. Todos los gates secundarios pospuestos han sido validados exitosamente:
+  - **Temporalidad**: `starts_at` (inclusivo) y `ends_at` (exclusivo) controlan efectivamente la aparición sin re-guardado.
+  - **Persistencia**: redeploy no rompe el serving ni los registros; el logo se sirve del bucket correctamente.
+  - **Borrado**: limpieza física confirmada tras la eliminación administrativa.
+  - **Responsive**: franja adaptada y legible a 320 px sin scroll horizontal ni traslapes.
+  - **Accesibilidad**: orden de tabulación lógico, foco visible y comportamiento `Enter` adecuado sin foco muerto.
 
 ### 7F.2D — Foto de perfil privada de Usuario (Flujo principal aceptado en staging tras hotfix)
 - **Modelo/Privacidad**: Reutiliza User.profile_photo_path sin exponer key/URL en APIs públicas. Aplica a menores y adultos; no amplía public_competition_identity. Fallback visual por iniciales.
@@ -123,7 +128,7 @@ El ciclo de desarrollo deberá seguir la pauta:
 `desarrollo → tests dirigidos → regresión completa → staging → smoke → beta/pruebas manuales → aceptación del nuevo baseline → producción`.
 
 ## 9. Relación con 7F Producción y 7G
-El despliegue en Producción (7F) queda **suspendido** hasta la compleción y validación estricta de toda la Fase 7F.2 en Staging. 7F.2A y 7F.2B ya se cerraron allí; 7F.2C y 7F.2D conservan gates secundarios; 7F.2E y 7F.2F están cerradas y aceptadas en staging. El cierre del gap de Copa debe superar staging. El cierre del MVP (7G) ocurrirá posteriormente. La deuda técnica de post-MVP descrita en el roadmap (p. ej. aplicación móvil, pasarela de pago, migración auth) sigue fuera del alcance.
+El despliegue en Producción (7F) queda **suspendido** hasta la compleción y validación estricta de toda la Fase 7F.2 en Staging. 7F.2A, 7F.2B y 7F.2C ya se cerraron allí; 7F.2D conserva gates secundarios; 7F.2E y 7F.2F están cerradas y aceptadas en staging. El cierre del gap de Copa debe superar staging. El cierre del MVP (7G) ocurrirá posteriormente. La deuda técnica de post-MVP descrita en el roadmap (p. ej. aplicación móvil, pasarela de pago, migración auth) sigue fuera del alcance.
 
 ## 10. Checklist observable
 - [x] 7F.2A implementado y validado automáticamente en `develop`.
@@ -131,7 +136,7 @@ El despliegue en Producción (7F) queda **suspendido** hasta la compleción y va
 - [x] 7F.2B.1 núcleo local, runtime, normalización, storage y probe implementados y validados.
 - [x] 7F.2B infraestructura multimedia S3 implementada, validada (persistencia tras redeploy) y gate superado.
 - [x] 7F.2C patrocinadores funcionales y regresión automática en `develop`.
-- [ ] 7F.2C completar programación, redeploy, borrado y revisión móvil/accesible en staging.
+- [x] 7F.2C completar programación, redeploy, borrado y revisión móvil/accesible en staging.
 - [x] 7F.2D foto privada de usuario gestionable y regresión local en `develop`.
 - [x] 7F.2D flujo principal aceptado manualmente en staging tras hotfix.
 - [ ] 7F.2D completar gates secundarios diferidos en staging.

@@ -1643,11 +1643,9 @@ Seguimiento manual real de 7F.2C en staging, 2026-08-16:
 - validados migración, alta administrativa, objeto real, render frontend,
   múltiples colaboradores, orden, reemplazo con cleanup y
   desactivación/reactivación;
-- no ejecutados todavía: ventanas temporales, persistencia tras redeploy,
-  borrado con cleanup y revisión móvil/accesible.
+- posteriormente (2026-08-23) ejecutados con éxito: ventanas temporales (automáticas, starts inclusivo, ends exclusivo), persistencia tras redeploy, borrado físico verificado y revisión responsive 320 px / accesible.
 
-El bloque continúa abierto; la evidencia parcial no se presenta como
-aceptación completa.
+7F.2C queda completamente aceptada en staging y cerrada.
 
 ## PRIVATE-USER-PROFILE-PHOTO-1 — Foto privada de Usuario
 

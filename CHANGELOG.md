@@ -65,7 +65,7 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - Se aplica explícitamente `migrate --force` con éxito y se acepta manualmente
   en staging todo el flujo técnico/funcional de Noticias, cerrando 7F.2E.
   Este cierre dio paso a 7F.2F (Navegación CMS administrable).
-- Se acepta en staging el flujo funcional de Sponsor (Fase 7F.2C); migración, alta administrativa, almacenamiento real, render público y desactivar/reactivar confirmados. Cierres secundarios (redeploy, borrado, programación temporal y accesibilidad) quedan diferidos.
+- Se acepta en staging el flujo funcional de Sponsor (Fase 7F.2C); migración, alta administrativa, almacenamiento real, render público y desactivar/reactivar confirmados. Se validaron manualmente los gates secundarios diferidos (redeploy, borrado físico de imagen, programación temporal excluyente y accesibilidad responsive 320 px). 7F.2C queda completamente aceptada y cerrada.
 - Se acepta manualmente en staging el flujo funcional de avatar privado de 7F.2D (upload, serving, replace, delete); gates secundarios (redeploy, cleanup riguroso y accesibilidad) quedan diferidos.
 - Se documentan como mejoras futuras (post-MVP) los patrocinios contextuales (campeonatos y pistas) y el perfil público deportivo opcional de jugador. Ninguna altera 7F.2E (Noticias) ni 7F.2F (Menú CMS).
 

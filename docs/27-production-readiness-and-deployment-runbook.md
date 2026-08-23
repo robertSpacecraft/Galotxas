@@ -678,7 +678,7 @@ aceptación humana de 7F.2F se consideran completados.
 - para aceptar 7F.2C: crear dos Sponsors de prueba, comprobar orden, HTTPS y
   rejilla pre-footer; reemplazar logo y verificar cleanup; probar fechas,
   desactivación y 320 px; redeploy y confirmar persistencia; borrar ambos y
-  verificar objetos ausentes;
+  verificar objetos ausentes; (Aceptación superada y bloque cerrado).
 - para aceptar 7F.2D: ejecutar primero la consulta legacy; iniciar sesión con
   una cuenta sin depender de `Player`; subir una imagen real y comprobar
   objeto privado, `/me` sin key y foto visible mediante `200` desde la API, sin
@@ -708,9 +708,8 @@ E2E, seeders ni cuentas con password por defecto.
 - backup, restore, RTO, rollback rehearsal y monitor continuo no están
   acreditados;
 - HSTS/CSP, otros uploads de features, worker y scheduler continúan aplazados;
-  7F.2C aún debe validar ventanas, redeploy, borrado y revisión
-  móvil/accesible; 7F.2D conserva gates secundarios; la configuración multimedia
-  productiva sigue abierta;
+  7F.2D conserva gates secundarios; la configuración multimedia productiva sigue
+  abierta;
 - la SPA mantiene metadata client-side y la respuesta HTTP de rutas React no
   constituye SSR;
 - el token Bearer continúa en `localStorage`, según la decisión vigente;
