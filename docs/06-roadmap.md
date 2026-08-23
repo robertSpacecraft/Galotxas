@@ -61,7 +61,7 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 43. **Fase 7F.2C — Patrocinadores/colaboradores administrables:** modelo Sponsor, CRUD Blade, lifecycle privado, API efectiva, serving estable y franja React pre-footer implementados; staging validó el flujo principal, difiriendo temporalidad, redeploy, borrado y revisión móvil/accesible a regresión global.
 44. **Fase 7F.2D — Foto de perfil privada de Usuario:** referencia User.profile_photo_path endurecida, API propia, serving privado backend (200 OK) resolviendo CORS de S3 y UI accesible en Mi Panel implementados; staging validó el flujo principal tras hotfix, difiriendo cleanup manual, redeploy y accesibilidad a regresión global.
 45. **Fase 7F.2E — Noticias:** `NewsArticle` dedicado, administración Blade, publicación efectiva, lifecycle de portada, API paginada, listado/detalle React, Navbar, SEO article y E2E implementados; migración aplicada manualmente y flujo aceptado en staging. 7F.2E cerrada.
-46. **Fase 7F.2F — Navegación CMS administrable en `develop`:** placements dedicados con slot Club único, administración Blade, publicación efectiva desde `CmsPage`, API cerrada y composición React structural-first/fail-soft implementados y validados localmente; staging pendiente.
+46. **Fase 7F.2F — Navegación CMS administrable:** placements dedicados con slot Club único, administración Blade, publicación efectiva desde `CmsPage`, API cerrada y composición React structural-first/fail-soft implementados; migración y flujo completo aceptados manualmente en staging. 7F.2F cerrada.
 47. **Cierre del gap preproducción de Copa en `develop`:** fases y stages explícitos, resultados comunes a Liga/Copa caracterizados, validación administrativa coherente, generación segura de Final/3.º-4.º, contrato público con ganador oficial, cuadro React y E2E completo implementados y validados localmente; aceptación en staging pendiente.
 48. **Refinamiento público de Copa y rankings en `develop`:** vista dedicada `/categories/{id}/cup`, navegación contextual de cuatro destinos y Schedule reservado a Liga; categoría y Mi Panel excluyen Copa, mientras campeonato, temporada e histórico incluyen sus partidos validados sin bonus. Validación local completa superada; aceptación en staging pendiente.
 
@@ -74,16 +74,16 @@ Se incorpora la **Fase 7F.2** de refinamiento preproducción, re-evaluando capac
 
 Antes de iniciar 7F.2A se ha cerrado su prerrequisito de dominio: el reparto base de rankings es `3-0` cuando quien pierde suma menos de 8 juegos y `2-1` cuando suma 8 o más, siempre con tres puntos totales. Los cuatro cálculos backend y Mi Panel consumen una única regla, con regresión de dobles y generación de copa. Esta corrección no inicia ni completa 7F.2A y no vuelve a sembrar copas ya generadas.
 
-7F.2A está cerrada en staging (aceptación superada el 2026-08-15). 7F.2B está cerrada en staging tras superar las pruebas de persistencia. 7F.2C y 7F.2D tienen su flujo principal aceptado en staging; sus gates secundarios quedan diferidos. 7F.2E ha sido cerrada y aceptada manualmente en staging. 7F.2F y el cierre técnico del gap de Copa están implementados y validados localmente, pendientes de smoke y aceptación humana en staging. La corrección de reparto de puntos que actuaba como prerrequisito se verificó manualmente en staging el 2026-08-15, sin que esa evidencia se considere aceptación de 7F.2A.
+7F.2A está cerrada en staging (aceptación superada el 2026-08-15). 7F.2B está cerrada en staging tras superar las pruebas de persistencia. 7F.2C y 7F.2D tienen su flujo principal aceptado en staging; sus gates secundarios quedan diferidos. 7F.2E ha sido cerrada y aceptada manualmente en staging. 7F.2F ha superado la migración y ha sido aceptada manualmente en staging. El cierre técnico del gap de Copa está implementado y validado localmente, pendiente de smoke y aceptación humana en staging. La corrección de reparto de puntos que actuaba como prerrequisito se verificó manualmente en staging el 2026-08-15, sin que esa evidencia se considere aceptación de 7F.2A.
 
 ## Fase 7 abierta — bloques parcialmente completados / bloqueados
 
 1. **Fase 7F (Pendientes de Staging y Producción):** configuración de SMTP real (bloqueado en Hobby), identidad pública completa de menores y reset de contraseña (dependen de SMTP), y ejecución de backup/restore/rollback en staging (aplazado).
-2. **Fase 7F.2 — Refinamiento preproducción:** 7F.2A y 7F.2B están cerradas en staging; los flujos principales de 7F.2C y 7F.2D están aceptados allí con cierres secundarios diferidos; 7F.2E está cerrada y aceptada manualmente en staging. 7F.2F y el cierre del gap de Copa están completos sólo en local y deben superar staging.
+2. **Fase 7F.2 — Refinamiento preproducción:** 7F.2A y 7F.2B están cerradas en staging; los flujos principales de 7F.2C y 7F.2D están aceptados allí con cierres secundarios diferidos; 7F.2E y 7F.2F están cerradas y aceptadas manualmente en staging. El cierre del gap de Copa está completo sólo en local y debe superar staging.
 
 ## Fase 7 abierta — bloques pendientes
 
-1. **Fase 7F.2 — Refinamiento preproducción y ampliación controlada del alcance:** flujos principales de 7F.2C y 7F.2D aceptados en staging; 7F.2E cerrada allí; 7F.2F y Copa implementados y validados localmente pero pendientes de staging. El antiguo gap funcional de Copa deja de estar pendiente en `develop`, sin que ello constituya aceptación del baseline productivo.
+1. **Fase 7F.2 — Refinamiento preproducción y ampliación controlada del alcance:** flujos principales de 7F.2C y 7F.2D aceptados en staging; 7F.2E y 7F.2F cerradas allí; Copa implementado y validado localmente pero pendiente de staging. El antiguo gap funcional de Copa deja de estar pendiente en `develop`, sin que ello constituya aceptación del baseline productivo.
 2. **Fase 7F (Producción):** tras completar validaciones y smoke de staging, desplegar producción inicialmente noindex y con Contacto, Escuela, identidad de menores y scheduler cerrados, activándolos de uno en uno sólo tras sus gates.
 3. **Fase 7G — Validación y cierre del MVP:** ejecutar regresión, recorridos críticos, QA responsive/multibrowser priorizada, smoke y aceptación humana antes de tag/release.
 
@@ -260,6 +260,7 @@ Estas capacidades son válidas, pero no bloquean el candidato actual:
 - aplicación móvil y API administrativa consolidada;
 - **Patrocinios Contextuales**: asociación de patrocinadores con campeonatos o pistas temporales, manteniendo la identidad física inmutable;
 - **Perfil Público Deportivo**: ficha pública opcional (requiere autorización explícita e independiente para foto, alias y palmarés, fail-closed por defecto).
+- **Borrado administrativo de páginas CMS**: borrado o retirada con política de integridad, referencias, bloques, navegación, SEO, URLs publicadas, posibles aliases y seguridad (trazabilidad, soft delete vs delete real).
 
 ---
 

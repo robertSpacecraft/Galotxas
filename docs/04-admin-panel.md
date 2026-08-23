@@ -72,6 +72,7 @@ La ruta `/admin/cms/pages` centraliza la gestión básica de páginas públicas 
 - Desde el detalle de una página permite gestionar sus bloques CMS.
 - Las páginas institucionales recomendadas para el MVP usan los slugs `prensa-media`, `nosotros`, `federaciones`, `academy`, `documentos` y `federarse`.
 - En entornos de desarrollo puede crearse una base mínima no destructiva con `php artisan db:seed --class=InstitutionalCmsPageSeeder`.
+- **Limitación actual (Deuda P1)**: No existe borrado administrativo de páginas `CmsPage` una vez creadas. Si una página no debe mostrarse, se pasa a borrador o se retira su placement de navegación. La futura solución de borrado deberá auditar integridad referencial, bloques, páginas reservadas y URLs publicadas (soft delete vs hard delete).
 
 Estos slugs y sus enlaces pertenecen a la estructura pública legada. En particular, `academy` no define el nombre público futuro de Escuela de Galotxas. La auditoría decidirá el destino de cada página sin borrar o migrar contenido en esta fase.
 

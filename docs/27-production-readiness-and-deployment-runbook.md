@@ -625,8 +625,8 @@ ejecutado (como evidenció el error 500 inicial por la ausencia de la tabla `new
 
 ## Gate de staging de Navegación CMS 7F.2F
 
-Este checklist queda documentado para la futura promoción; no se ha ejecutado
-en staging. Debe realizarse sobre datos temporales y sin seeders editoriales:
+Este checklist queda documentado para la futura promoción. Se ha ejecutado
+con éxito en staging sobre datos temporales y sin seeders editoriales:
 
 1. ejecutar `php artisan migrate:status`;
 2. ejecutar `php artisan migrate --force`;
@@ -655,8 +655,9 @@ en staging. Debe realizarse sobre datos temporales y sin seeders editoriales:
 24. eliminar placements y devolver/eliminar páginas temporales según las
     capacidades seguras disponibles.
 
-`deploy SUCCESS != migrations applied`: 7F.2F no se acepta hasta acreditar
-explícitamente los pasos de migración y el recorrido funcional posterior.
+`deploy SUCCESS != migrations applied`: 7F.2F ha acreditado explícitamente los
+pasos de migración y el recorrido funcional en staging. Este gate y la
+aceptación humana de 7F.2F se consideran completados.
 
 ## Smoke no destructivo post-deploy
 
@@ -708,8 +709,7 @@ E2E, seeders ni cuentas con password por defecto.
   acreditados;
 - HSTS/CSP, otros uploads de features, worker y scheduler continúan aplazados;
   7F.2C aún debe validar ventanas, redeploy, borrado y revisión
-  móvil/accesible; 7F.2D conserva gates secundarios; 7F.2F debe aplicar su
-  migración y superar aceptación de staging; la configuración multimedia
+  móvil/accesible; 7F.2D conserva gates secundarios; la configuración multimedia
   productiva sigue abierta;
 - la SPA mantiene metadata client-side y la respuesta HTTP de rutas React no
   constituye SSR;

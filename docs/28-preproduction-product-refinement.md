@@ -77,7 +77,7 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
 - **Deuda P1 (sin reabrir 7F.2E)**: Sitemap dinámico runtime de slugs, metadata client-side, sin SSR/prerender dinámico.
 
 ### 7F.2F — Navegación CMS administrable
-- **Estado**: implementada y validada localmente; pendiente de aceptación en staging.
+- **Estado**: implementada, promovida y aceptada manualmente en staging. 7F.2F cerrada.
 - `CmsNavigationItem` usa un único slot DB/PHP `club`, nace inactivo, relaciona
   una página una sola vez y deriva siempre `/contenidos/{slug}`.
 - Blade administra página, etiqueta, orden y activación sin URL manual. Las
@@ -90,8 +90,9 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
   el árbol. Error, vacío o payload inválido conserva navegación estructural.
 - Home, footer, Cuenta, Legal, Noticias, Competición y Aprende quedan fuera;
   `/contenidos/:slug` sigue `noindex` y el sitemap no cambia.
-- ADR-045 registra la decisión. La migración, redeploy y checklist de 24 pasos
-  deben completarse en staging antes de aceptar el bloque.
+- ADR-045 registra la decisión.
+- **Validado manualmente en staging**: el flujo funcional completo ha sido probado con éxito (crear página CMS temporal, publicarla, acceder a ruta, crear placement inactivo, activarlo, verificar aparición y navegación en Club, retiro y eliminación del placement con desaparición exitosa en frontend). Comportamiento fail-closed y navegación estructural preservados.
+- **Hallazgo no bloqueante / Deuda P1**: El CMS no dispone actualmente de borrado administrativo de páginas `CmsPage`. No invalida la fase porque el placement de navegación sí puede eliminarse y la página retirarse. La futura solución auditará páginas reservadas, bloques, navegación, SEO, URLs, aliases e integridad referencial, sin inventar soft delete en este momento.
 
 ### 7F.2 (GAP) — Flujo de Copa y Resultados
 - **Estado**: corregido y validado localmente tras 7F.2F; pendiente de smoke y aceptación humana en staging. Continúa bloqueando Producción hasta superar ese gate.
@@ -122,7 +123,7 @@ El ciclo de desarrollo deberá seguir la pauta:
 `desarrollo → tests dirigidos → regresión completa → staging → smoke → beta/pruebas manuales → aceptación del nuevo baseline → producción`.
 
 ## 9. Relación con 7F Producción y 7G
-El despliegue en Producción (7F) queda **suspendido** hasta la compleción y validación estricta de toda la Fase 7F.2 en Staging. 7F.2A y 7F.2B ya se cerraron allí; 7F.2C y 7F.2D conservan gates secundarios; 7F.2E está cerrada y aceptada en staging; 7F.2F sólo está cerrada localmente. El cierre del MVP (7G) ocurrirá posteriormente. La deuda técnica de post-MVP descrita en el roadmap (p. ej. aplicación móvil, pasarela de pago, migración auth) sigue fuera del alcance.
+El despliegue en Producción (7F) queda **suspendido** hasta la compleción y validación estricta de toda la Fase 7F.2 en Staging. 7F.2A y 7F.2B ya se cerraron allí; 7F.2C y 7F.2D conservan gates secundarios; 7F.2E y 7F.2F están cerradas y aceptadas en staging. El cierre del gap de Copa debe superar staging. El cierre del MVP (7G) ocurrirá posteriormente. La deuda técnica de post-MVP descrita en el roadmap (p. ej. aplicación móvil, pasarela de pago, migración auth) sigue fuera del alcance.
 
 ## 10. Checklist observable
 - [x] 7F.2A implementado y validado automáticamente en `develop`.
@@ -137,7 +138,7 @@ El despliegue en Producción (7F) queda **suspendido** hasta la compleción y va
 - [x] 7F.2E noticias navegables y regresión local completa.
 - [x] 7F.2E migración, storage real y aceptación humana en staging.
 - [x] 7F.2F enlaces de menú CMS implementados y validados localmente.
-- [ ] 7F.2F migración, smoke, redeploy y aceptación humana en staging.
+- [x] 7F.2F migración, smoke, redeploy y aceptación humana en staging.
 - [x] Gap de Copa implementado y validado localmente de extremo a extremo.
 - [x] Copa separada en vista pública propia y contrato de rankings reforzado localmente.
 - [ ] Flujo de Copa aceptado manualmente en staging.
@@ -157,3 +158,8 @@ Las siguientes propuestas han sido concebidas durante la Fase 7F.2 pero **NO** f
 - **Ficha Pública**: Espacio opcional para mostrar nombre, apodo, palmarés, categorías y estadísticas.
 - **Privacidad y Menores**: Requerirá consentimientos independientes, trato diferenciado para menores (fail-closed) y un sistema de alias.
 - **Fotografía**: La foto de perfil privada (7F.2D) **NO** se reutilizará automáticamente; publicarla exigirá una autorización explícita separada.
+
+### 11.3 Borrado administrativo de páginas CMS
+- **Política de integridad**: Capacidad de borrado/retirada administrativa de `CmsPage` evaluando referencias, bloques asociados, `CmsNavigationItem`, URLs publicadas, posibles aliases/fachadas, SEO y seguridad.
+- **Trazabilidad**: Definir estrategia definitiva (soft delete vs delete real).
+- **Alcance actual**: No implementar ahora. No inventar soft delete sin política general. Las páginas reservadas deberán estar auditadas y protegidas en la solución futura.

@@ -17,8 +17,12 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - La cobertura 7F.2F incluye constraints, permisos, payloads manipulados,
   publicación y N+1; contrato/servicio/hook/composición/Navbar; y E2E temporal
   Blade→API→React con 320 px, teclado, ciclo editorial y cleanup. ADR-045 y el
-  checklist de staging documentan la decisión. El bloque está validado sólo en
-  local y pendiente de aceptación en staging.
+  checklist documentan la decisión. Migración aplicada y flujo completo aceptado
+  manualmente en staging, cerrando 7F.2F.
+- Se documenta como mejora futura (P1) el borrado/retirada administrativa de
+  páginas CMS con política de integridad, referencias, bloques, navegación y
+  seguridad (soft delete vs hard delete). No invalida 7F.2F porque el placement
+  puede eliminarse y la página retirarse.
 
 - Se cierra localmente el gap preproducción de Copa: la caracterización confirma
   persistencia correcta por admin, reportes coincidentes y conflictos; la única
