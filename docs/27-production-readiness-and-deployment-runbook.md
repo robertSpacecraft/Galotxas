@@ -67,7 +67,7 @@ ausencia de migraciones en cada arranque.
 | `testing` | PHPUnit | MariaDB `galotxas_testing` en `tmpfs` | Factories; mailer `array` | No aplica |
 | `e2e` | Relato Playwright | MariaDB `galotxas_e2e` en `tmpfs` | `E2ESmokeSeeder` y direcciones `.test` | Dos builds locales controlados |
 | `staging` | Ensayo de release | MariaDB staging persistente y separada | Sin datos reales; mailer no real | `noindex, nofollow` |
-| `production` | Servicio público | MariaDB productiva persistente | Datos reales revisados; SMTP sólo tras gate | Cerrada en el primer deploy |
+| `production` | Servicio público | MariaDB productiva persistente | Datos reales revisados; correo HTTPS sólo tras gate | Cerrada en el primer deploy |
 
 Prohibiciones comunes:
 
@@ -97,7 +97,7 @@ Prohibiciones comunes:
 | CMS | Páginas staging recreadas manualmente y aprobadas | Recrear y aprobar en producción |
 | Legal/Knowledge | Hashes validados y activos en staging | Validar hashes en producción |
 | SEO | Staging validado como no indexable (`robots.txt`) | Activar indexación en producción posterior |
-| Contacto/Escuela/menores | Capacidades validadas con fail-closed y flag global; persistencia staging probada | SMTP real, flujo menores completo en staging |
+| Contacto/Escuela/menores | Capacidades validadas con fail-closed y flag global; persistencia staging probada | Correo real, flujo menores completo en staging |
 | Queue/scheduler | Cola síncrona, ningún worker/cron productivo | Diseñar y ensayar purgas antes de activar |
 | Logs/storage | `stderr`; `media_s3` y bucket privado de staging validados; Sponsor es el primer consumidor en `develop` | Crear bucket privado productivo aislado y aceptar 7F.2C en staging antes de promoción |
 | Backups/restore/rollback | **Aplazado por decisión operativa** (backup nativo bloqueado por plan) | Contratar Pro para backup nativo, o ensayar backup manual en staging |
@@ -366,9 +366,163 @@ ejecutar un seeder general.
 
 ## Correo y migración del canal anterior
 
-El contrato futuro usa Laravel Mail estándar. Laravel 12 configura el SMTP de
-puerto 587 con `MAIL_SCHEME=smtp`; Symfony Mailer negocia STARTTLS cuando el
-servidor lo ofrece. La verificación manual debe acreditar TLS antes de activar:
+### Auditoría 7G.1A del reset y del runtime
+
+El flujo actual de recuperación está completo a nivel de aplicación, pero no
+dispone de un transporte operativo en Railway Hobby:
+
+1. `POST /api/v1/auth/forgot-password` usa `ForgotPasswordRequest`, normaliza
+   el correo y valida `required|email`;
+2. `AuthController::forgotPassword()` llama al broker `users` mediante
+   `Password::sendResetLink()` y devuelve siempre el mismo `200` para una
+   cuenta existente o inexistente;
+3. `User` no sobrescribe la notificación: usa
+   `Illuminate\Auth\Notifications\ResetPassword`, canal `mail`, sin
+   `ShouldQueue` y, por tanto, envío síncrono;
+4. `AppServiceProvider` construye
+   `FRONTEND_URL/reset-password?token=...&email=...`;
+5. el broker guarda en `password_reset_tokens` un hash del token, sustituye el
+   anterior para el mismo correo, expira a los 60 minutos y limita la emisión
+   de otro token durante 60 segundos;
+6. las dos rutas de password comparten además `throttle:auth.password`, cinco
+   peticiones por minuto para la clave correo normalizado más IP;
+7. `POST /api/v1/auth/reset-password` valida token, correo, contraseña mínima
+   de ocho caracteres y confirmación; el broker comprueba usuario/token,
+   persiste la contraseña mediante el cast `hashed`, rota `remember_token`,
+   elimina el token y emite `PasswordReset`;
+8. el reset no revoca los personal access tokens Sanctum ya emitidos.
+
+La cobertura existente comprueba respuesta genérica y ausencia de notificación
+para un correo desconocido, generación de la notificación estándar, reset
+válido, login posterior, token inválido, confirmación y los dos límites HTTP.
+No comprueba todavía la URL exacta del mensaje, token expirado, rechazo de
+reutilización, contenido/idioma del correo, fallo del transporte ni que el
+preflight exija correo aunque las flags opcionales estén cerradas. Tampoco hay
+un test React dedicado a `/reset-password`; el smoke E2E sólo visita
+`/forgot-password`.
+
+El controlador ignora deliberadamente los estados `INVALID_USER` y
+`RESET_THROTTLED`, preservando la respuesta genérica. Una excepción del
+transporte, en cambio, se propaga hoy sólo para una cuenta existente y podría
+producir un `500` diferenciable; además, el token ya creado queda sujeto al
+throttle del broker. La implementación debe fijar y probar una política de
+fallo no enumerable, observable mediante logs saneados y sin token, API key o
+correo completo.
+
+El mailer `log` tampoco es un baseline seguro para una ruta de reset accesible:
+`LogTransport` serializa el mensaje completo a nivel `debug`, incluido el
+correo y la URL con token. Staging deberá usar `array` mientras no esté abierta
+la ventana Resend y deberá comprobarse que no conserva trazas anteriores con
+tokens. Esta auditoría no limpia logs ni modifica el entorno desplegado.
+
+### Transports realmente disponibles antes de 7G.1A
+
+`config/mail.php` enumera más drivers de los que las dependencias instaladas
+permiten usar. El inventario de `composer.lock`, clases cargables y la imagen
+Alpine de producción da este resultado:
+
+| Transport | Estado real del repositorio |
+|---|---|
+| `smtp` | Disponible mediante `symfony/mailer`, pero Railway Free/Trial/Hobby bloquea SMTP saliente. |
+| `log` y `array` | Disponibles y no entregan correo real. `log` vuelca mensaje y token de reset, por lo que no es seguro para staging; PHPUnit usa `array`, que no escribe el mensaje al log. |
+| `sendmail` | La clase Symfony y la entrada de configuración existen, pero la imagen no instala `/usr/sbin/sendmail`; no es operativo. |
+| `ses` | El SDK AWS está instalado transitivamente por Flysystem S3 y hay configuración base, pero no existe contrato de credenciales/identidad SES ni evidencia operativa. No se debe convertir una dependencia transitiva en decisión de infraestructura implícita. |
+| `resend` | Existen las entradas en `mail.php` y `services.php`; falta `resend/resend-php`, por lo que todavía no es cargable. |
+| `postmark` | Existen las entradas de configuración; faltan `symfony/postmark-mailer` y `symfony/http-client`. |
+| `mailgun` | Faltan entrada propia en `mailers`, configuración de servicio y `symfony/mailgun-mailer`/`symfony/http-client`. |
+| SendGrid | No existe transport, configuración ni SDK. Requeriría `sendgrid/sendgrid` y adaptación propia al canal Mail de Laravel. |
+| `failover` / `roundrobin` | La composición está presente, pero no crea capacidad nueva: `failover` termina en `log` si SMTP falla y `roundrobin` referencia Postmark no instalado. Ninguna acredita entrega. |
+
+### Decisión 7G.1A: Resend por API HTTPS
+
+Railway exige servicios transaccionales por API HTTPS en Free, Trial y Hobby y
+[señala Resend como opción recomendada](https://docs.railway.com/networking/outbound-networking#email-delivery).
+Laravel 12 ofrece un
+[transport oficial de Resend](https://laravel.com/docs/12.x/mail#resend-driver)
+con una única dependencia, `resend/resend-php`. Frente a las alternativas:
+
+| Opción | Integración y prueba | Coste orientativo auditado | Decisión |
+|---|---|---|---|
+| **Resend** | Transport oficial Laravel; el repo ya tiene mailer y `RESEND_API_KEY`. Permite key sólo de envío restringida al dominio, SPF/DKIM y destinatarios de prueba. No tiene sandbox de producción: `resend.dev` sólo entrega al propietario hasta verificar dominio. | Free: 3.000 mensajes/mes y 100/día; Pro desde 20 USD/mes. | **Seleccionada** por cambio mínimo, seguridad de credencial, ausencia de aprobación productiva y rollback simple al mailer anterior. |
+| **Postmark** | Transport oficial Laravel con dos paquetes; sandbox black-hole, token de test y streams transaccionales. | Free de desarrollo: 100 mensajes/mes sin caducidad; Basic desde 15 USD/mes. | **Alternativa** si la prueba de entrega/operación de Resend no supera el gate. |
+| Mailgun | Transport oficial Laravel con dos paquetes y nueva configuración; sandbox limitado a destinatarios autorizados y test mode. | Free: 100/día; Basic desde 15 USD/mes. | Válida, pero añade más configuración que Resend y no mejora el ajuste actual. |
+| SendGrid | API HTTPS y SDK PHP oficial, pero Laravel 12 no aporta un transport SendGrid nativo. | Trial: 100/día durante 60 días; Essentials desde 19,95 USD/mes. | Descartada para este P0 por adaptación propia, mayor lock-in y coste de mantenimiento. |
+
+Fuentes de precio y pruebas consultadas el 23-08-2026:
+[Resend](https://resend.com/docs/knowledge-base/what-is-resend-pricing),
+[Postmark](https://postmarkapp.com/pricing),
+[Mailgun](https://www.mailgun.com/pricing/) y
+[SendGrid](https://www.twilio.com/en-us/products/email-api/pricing). El precio
+no sustituye la prueba de alta, dominio, entrega y condiciones aplicables a la
+cuenta real.
+
+La selección no es irreversible: queda condicionada a la prueba de staging.
+No se ha creado cuenta, instalado paquete, cambiado DNS, cargado secret ni
+enviado correo en 7G.1A. Si Resend no supera el gate, Postmark puede sustituirlo
+sin cambiar el broker, los endpoints, la notificación o el frontend.
+
+### Contrato propuesto para la implementación
+
+Variables no secretas comunes:
+
+```text
+MAIL_MAILER=resend
+MAIL_FROM_ADDRESS=notificaciones@galotxesmonover.es
+MAIL_FROM_NAME="Club Galotxes Monòver"
+FRONTEND_URL=<origen HTTPS exacto del frontend del entorno>
+```
+
+Secret por entorno, almacenado sólo en el panel de Railway:
+
+```text
+RESEND_API_KEY=<key distinta por entorno, sending-only y restringida al dominio>
+```
+
+`MAIL_SCHEME`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME` y `MAIL_PASSWORD` no
+forman parte del contrato Resend. Staging usará `MAIL_MAILER=array` fuera de la
+ventana controlada; durante el gate usará `resend`, una key propia, un
+remitente aprobado del dominio verificado y sólo buzones controlados. Producción
+usará otra key y el remitente institucional. Las DNS exactas serán únicamente
+las generadas para el dominio real, con revisión para preservar MX y acreditar
+SPF, DKIM y DMARC; no se inventan registros en el repositorio.
+
+Contacto continúa con `CONTACT_FORM_ENABLED=false` y
+`CONTACT_NOTIFICATION_ENABLED=false`. Cuando se autorice, su override
+`CONTACT_NOTIFICATION_MAILER` deberá ser `resend` o quedar vacío para heredar
+el default. Escuela no tiene correo propio de confirmación: sólo el flujo
+opcional de identidad de menores usa el mailer por defecto, y sus dos flags
+siguen cerradas.
+
+### Cambios y gate pendientes de implementación
+
+El bloque posterior deberá:
+
+1. instalar y fijar `resend/resend-php` en Composer;
+2. actualizar los tres ejemplos de entorno sin credenciales reales;
+3. cambiar `DeploymentReadinessService`, hoy acoplado a SMTP DonDominio y
+   ejecutado sólo para Contacto/identidad, para exigir siempre el transport
+   HTTPS y una key no vacía mientras reset forme parte del MVP;
+4. preservar la respuesta genérica y tratar de forma no enumerable los fallos
+   del proveedor con observabilidad saneada;
+5. añadir tests de URL frontend exacta, expiración, reutilización, fallo de
+   transport, preflight, allowlist de configuración y ausencia de secretos;
+6. ejecutar el test backend completo con mail fake/`array` y sin red;
+7. en staging, solicitar un reset para una cuenta controlada, acreditar API
+   HTTPS, aceptación y entrega, From, enlace al frontend de staging, reset,
+   login nuevo, invalidez del token usado y logs saneados; probar también el
+   fallo/revocación de key sin enumerar cuentas;
+8. ejecutar en producción un único smoke no destructivo con cuenta controlada,
+   rotación aprobada y revisión de proveedor/logs.
+
+Hasta completar estos pasos, la solución está seleccionada y lista para
+implementación/prueba, pero el P0 sigue abierto.
+
+### Contrato SMTP anterior, ahora bloqueado
+
+El contrato de 7F.1 usaba Laravel Mail estándar con SMTP DonDominio en puerto
+587 y STARTTLS. Se conserva aquí como referencia de rollback para un entorno
+que permita SMTP, pero **no es ejecutable en Railway Hobby** ni es el contrato
+seleccionado para cerrar el P0:
 
 ```text
 MAIL_MAILER=smtp
@@ -408,8 +562,9 @@ determinista de Legal.
 
 ## Contacto, Escuela e identidad de menores
 
-En el primer despliegue los tres frentes están apagados. Tras configurar SMTP
-y datos reales se activan de uno en uno:
+En el primer despliegue los tres frentes están apagados. Tras implementar y
+probar el correo HTTPS seleccionado y cargar datos reales se activan de uno en
+uno:
 
 1. Contacto: aviso vigente, destinatario, persistencia, antispam, From,
    Reply-To, envío y reintento en staging; activar primero formulario y decidir
@@ -705,7 +860,9 @@ E2E, seeders ni cuentas con password por defecto.
 
 - no existen todavía proyectos, DNS, TLS o recursos externos de producción
   configurados; los equivalentes de staging sí existen y fueron validados;
-- SMTP saliente está bloqueado por el plan Railway Hobby; entrega, rebotes, SPF, DKIM, DMARC y aliases no están probados;
+- SMTP saliente está bloqueado por el plan Railway Hobby; Resend HTTPS está
+  seleccionado pero no implementado y entrega, rebotes, SPF, DKIM, DMARC y
+  aliases no están probados;
 - el correo anterior sigue siendo el canal Legal vigente;
 - CMS y datos reales de Escuela no están cargados en producción;
 - backup, restore, RTO, rollback rehearsal y monitor continuo no están

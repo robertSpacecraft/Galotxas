@@ -65,10 +65,11 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 47. **Cierre del gap preproducción de Copa en `develop`:** fases y stages explícitos, resultados comunes a Liga/Copa caracterizados, validación administrativa coherente, generación segura de Final/3.º-4.º, contrato público con ganador oficial, cuadro React y E2E completo implementados y validados localmente; aceptación en staging pendiente.
 48. **Refinamiento público de Copa y rankings en `develop`:** vista dedicada `/categories/{id}/cup`, navegación contextual de cuatro destinos y Schedule reservado a Liga; categoría y Mi Panel excluyen Copa, mientras campeonato, temporada e histórico incluyen sus partidos validados sin bonus. Validación local completa superada; aceptación en staging pendiente.
 49. **Fase 7G.0 — Auditoría y preparación del cierre final:** baseline, vigencia de evidencias, matriz staging/producción, flags, restricciones de proveedor, regresión 7F.2, Go/No-Go y gates 7G.1–7G.7 documentados sin ejecutar Copa, suites, staging, producción, migraciones, flags, tag o release. 7G queda preparada, no iniciada en su gate irreversible y no cerrada.
+50. **Fase 7G.1A — Auditoría del P0 de correo/password-reset:** flujo Laravel/React, tokens, límites, tests, mailers, lock, runtime y preflight auditados; Resend por API HTTPS seleccionado y Postmark conservado como alternativa. La solución queda lista para implementación/prueba, sin proveedor, dependencia, secret, DNS, entorno o envío modificado y con el P0 todavía abierto.
 
 La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fases 7A, 7B, 7E y 7F.1, los bloques 7C.0–7C.2 y 7D.1–7D.3 están completados; 7C y 7D quedan cerradas.
 
-**Fase 7F (Staging)** ha sido validada mediante *smoke test global y aceptación humana*: Vercel/Railway/MariaDB separados para staging, configuración de DNS/TLS, CMS verificado, API, Legal, Contacto (formulario/persistencia) y Escuela (inscripciones, permisos) validados. El envío **SMTP real desde Railway queda BLOQUEADO por el plan Railway Hobby** (requiere Pro o proveedor HTTPS alternativo, pospuesto); por tanto, la notificación real de Contacto, el flujo completo de identidad de menores (token/confirmación) y la recuperación de contraseña por correo quedan pendientes. La verificación de backups/restore/rollback en staging queda **aplazada / no ejecutada por decisión operativa** (el backup nativo de volúmenes también está bloqueado por el plan Railway Hobby; no se ensaya por ahora la alternativa manual ni el rollback de aplicación). Se ha registrado una posible mejora de UX para `/aprende-a-jugar` (no bloqueante).
+**Fase 7F (Staging)** ha sido validada mediante *smoke test global y aceptación humana*: Vercel/Railway/MariaDB separados para staging, configuración de DNS/TLS, CMS verificado, API, Legal, Contacto (formulario/persistencia) y Escuela (inscripciones, permisos) validados. El envío **SMTP real desde Railway queda BLOQUEADO por el plan Railway Hobby**; 7G.1A ha seleccionado Resend por API HTTPS, pendiente de implementación y prueba extremo a extremo. Por tanto, la notificación real de Contacto, el flujo completo de identidad de menores (token/confirmación) y la recuperación de contraseña por correo siguen pendientes. La verificación de backups/restore/rollback en staging queda **aplazada / no ejecutada por decisión operativa** (el backup nativo de volúmenes también está bloqueado por el plan Railway Hobby; no se ensaya por ahora la alternativa manual ni el rollback de aplicación). Se ha registrado una posible mejora de UX para `/aprende-a-jugar` (no bloqueante).
 
 7F (Producción), Fase 7 y el MVP siguen abiertos. No se ha realizado publicación productiva ni migración editorial definitiva.
 Se incorpora la **Fase 7F.2** de refinamiento preproducción, re-evaluando capacidades como noticias, foto de usuario, multimedia persistente y rankings.
@@ -79,7 +80,7 @@ Antes de iniciar 7F.2A se ha cerrado su prerrequisito de dominio: el reparto bas
 
 ## Fase 7 abierta — bloques parcialmente completados / bloqueados
 
-1. **Fase 7F (Pendientes de Staging y Producción):** configuración de SMTP real (bloqueado en Hobby), identidad pública completa de menores y reset de contraseña (dependen de SMTP), y ejecución de backup/restore/rollback en staging (aplazado).
+1. **Fase 7F (Pendientes de Staging y Producción):** implementar y probar Resend por API HTTPS para reset de contraseña; mantener cerrada la identidad pública completa de menores hasta su gate; y ejecutar backup/restore/rollback en staging (aplazado). SMTP continúa bloqueado en Hobby y no es la solución seleccionada.
 2. **Fase 7F.2 — Refinamiento preproducción:** 7F.2A, 7F.2B y 7F.2C están cerradas en staging; 7F.2D está aceptada completamente en staging y cerrada; 7F.2E y 7F.2F están cerradas y aceptadas manualmente en staging. El cierre del gap de Copa está completo sólo en local y debe superar staging.
 
 ## Fase 7 abierta — bloques pendientes
@@ -124,7 +125,7 @@ deportivas volátiles permanecen `noindex`. Redirects permanentes, retirada del
 legado, metadata por respuesta para bots sin JavaScript, limpieza de código
 huérfano y migración de `academy`, Prensa y Federaciones permanecen en bloques
 posteriores. El dominio y las URLs canónicas están decididos y centralizados,
-el entorno de staging ha sido desplegado y validado, salvo el bloque de backup/restore/rollback (aplazado) y el envío SMTP real (bloqueado por Railway Hobby, afectando a Contacto, menores y contraseñas); el backup nativo de volúmenes también está bloqueado por el plan Railway Hobby, pero
+el entorno de staging ha sido desplegado y validado, salvo el bloque de backup/restore/rollback (aplazado) y el correo real (SMTP bloqueado por Railway Hobby; Resend HTTPS seleccionado en 7G.1A, aún sin implementar ni probar, afectando a Contacto, menores y contraseñas); el backup nativo de volúmenes también está bloqueado por el plan Railway Hobby, pero
 el despliegue, indexación productiva y activación de funciones operativas reales
 siguen sin activar hasta finalizar 7F y 7G.
 

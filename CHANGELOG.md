@@ -6,6 +6,12 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Fase 7G.1A audita extremo a extremo el reset de contraseña y el runtime de
+  correo, confirma el bloqueo SMTP de Railway Hobby y selecciona Resend por
+  API HTTPS, con Postmark como alternativa. Se documentan contrato de
+  variables, cambios y gates pendientes sin integrar proveedor, instalar
+  dependencias, cargar secrets, tocar entornos ni cerrar el P0.
+
 - Se prepara documentalmente Fase 7G mediante
   `MVP-FINAL-GATE-READINESS-1`: baseline reconciliado, vigencia de evidencias,
   matriz staging/producción, flags, restricciones de proveedor, checklist de
