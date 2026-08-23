@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   InvalidCategoryScheduleResponseError,
   normalizeCategorySchedule,
+  selectCategoryCupRounds,
+  selectCategoryLeagueRounds,
 } from './categoryScheduleContract';
 
 const match = (overrides = {}) => ({
@@ -65,5 +67,14 @@ describe('categoryScheduleContract', () => {
   it('rejects a non-collection response', () => {
     expect(() => normalizeCategorySchedule(null))
       .toThrow(InvalidCategoryScheduleResponseError);
+  });
+
+  it('selects league and cup rounds by exact structural metadata', () => {
+    const league = round({ id: 1, type: 'league', phase: 'league', stage: 'matchday' });
+    const cup = round({ id: 2, type: 'cup', phase: 'cup', stage: 'final' });
+    const legacyCup = round({ id: 3, type: 'cup', phase: null, stage: null, name: 'Final Copa' });
+
+    expect(selectCategoryLeagueRounds([league, cup, legacyCup])).toEqual([league]);
+    expect(selectCategoryCupRounds([league, cup, legacyCup])).toEqual([cup]);
   });
 });

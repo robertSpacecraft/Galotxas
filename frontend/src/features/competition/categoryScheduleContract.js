@@ -86,3 +86,17 @@ export const normalizeCategorySchedule = (data) => {
 
   return data.map(normalizeRound).filter(Boolean);
 };
+
+export const selectCategoryLeagueRounds = (rounds) => (
+  Array.isArray(rounds) ? rounds.filter((round) => round?.type === 'league') : []
+);
+
+export const selectCategoryCupRounds = (rounds) => (
+  Array.isArray(rounds)
+    ? rounds.filter((round) => (
+      round?.type === 'cup'
+      && round?.phase === 'cup'
+      && CUP_STAGES.has(round?.stage)
+    ))
+    : []
+);

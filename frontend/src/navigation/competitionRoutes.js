@@ -34,6 +34,12 @@ export const getCategorySchedulePath = (categoryId) => {
   return identifier ? `/categories/${identifier}/schedule` : null;
 };
 
+export const getCategoryCupPath = (categoryId) => {
+  const identifier = encodeRouteIdentifier(categoryId);
+
+  return identifier ? `/categories/${identifier}/cup` : null;
+};
+
 export const getMatchDetailPath = (matchId) => {
   const identifier = encodeRouteIdentifier(matchId);
 

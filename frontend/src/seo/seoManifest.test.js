@@ -57,6 +57,7 @@ describe('public SEO route manifest', () => {
     '/categories/20',
     '/categories/20/standings',
     '/categories/20/schedule',
+    '/categories/20/cup',
     '/matches/30',
     '/rankings',
     '/contenidos',

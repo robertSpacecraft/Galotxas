@@ -250,6 +250,15 @@ export const resolveSeoRoute = (pathname) => {
     );
   }
 
+  if (/^\/categories\/[^/]+\/cup$/.test(normalizedPathname)) {
+    return dynamicRoute(
+      'category-cup',
+      'Copa',
+      'Consulta el cuadro público de Copa de una categoría.',
+      seoRouteClassifications.noindexPublic,
+    );
+  }
+
   if (/^\/categories\/[^/]+$/.test(normalizedPathname)) {
     return dynamicRoute(
       'category-detail',

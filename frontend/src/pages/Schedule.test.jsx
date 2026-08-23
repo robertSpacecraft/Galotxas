@@ -22,6 +22,9 @@ const schedule = [
   {
     id: 21,
     name: 'Jornada 1',
+    type: 'league',
+    phase: 'league',
+    stage: 'matchday',
     matches: [
       {
         id: 101,
@@ -38,6 +41,9 @@ const schedule = [
   {
     id: 22,
     name: 'Jornada 2',
+    type: 'league',
+    phase: 'league',
+    stage: 'matchday',
     matches: [
       {
         id: 102,
@@ -119,7 +125,7 @@ describe('Schedule', () => {
     expect(screen.queryByText('98')).not.toBeInTheDocument();
   });
 
-  it('separates cup stages and highlights the official cup champion', async () => {
+  it('keeps exact cup rounds out of Calendario y resultados', async () => {
     championshipsService.getCategory.mockResolvedValue(category);
     championshipsService.getCategorySchedule.mockResolvedValue([
       {
@@ -130,27 +136,14 @@ describe('Schedule', () => {
         stage: 'semifinal',
         matches: [schedule[0].matches[0]],
       },
-      {
-        id: 32,
-        name: 'Final',
-        type: 'cup',
-        phase: 'cup',
-        stage: 'final',
-        matches: [{
-          ...schedule[0].matches[0],
-          id: 110,
-          winner_entry: { entry_type: 'player', public_display_name: 'Pilotari Visitante' },
-        }],
-      },
     ]);
 
     renderSchedule();
 
-    expect(await screen.findByRole('heading', { name: 'Copa', level: 2 })).toBeInTheDocument();
-    expect(screen.getByText('Campeón de Copa').nextElementSibling)
-      .toHaveTextContent('Pilotari Visitante');
-    expect(screen.getByText('Tercer y cuarto puesto pendiente de generación')).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Semifinales', level: 2 })).not.toBeInTheDocument();
+    expect(await screen.findByText('Todavía no hay jornadas configuradas para esta categoría.'))
+      .toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Copa' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Pilotari Local')).not.toBeInTheDocument();
   });
 
   it('keeps the schedule usable with safe fallbacks when context or values are missing', async () => {
@@ -159,6 +152,9 @@ describe('Schedule', () => {
       {
         id: 23,
         name: null,
+        type: 'league',
+        phase: 'league',
+        stage: 'matchday',
         matches: [{ id: null, status: null, scheduled_date: null, venue: null }],
       },
     ]);

@@ -9,6 +9,7 @@ import { schoolService } from './features/school/schoolService';
 import { sponsorService } from './features/sponsors/sponsorService';
 import App, {
   ClubRoute,
+  CupRoute,
   KnowledgeRoute,
   LegalRoute,
   NewsRoute,
@@ -21,6 +22,8 @@ vi.mock('./api/championships', () => ({
     getChampionships: vi.fn(),
     getAllTimeRanking: vi.fn(),
     getSeasonRanking: vi.fn(),
+    getCategory: vi.fn(),
+    getCategorySchedule: vi.fn(),
   },
 }));
 
@@ -70,6 +73,12 @@ describe('App public routes', () => {
     championshipsService.getChampionships.mockResolvedValue([]);
     championshipsService.getAllTimeRanking.mockResolvedValue([]);
     championshipsService.getSeasonRanking.mockResolvedValue([]);
+    championshipsService.getCategory.mockResolvedValue({
+      id: 12,
+      name: 'Categoría de prueba',
+      championship: { name: 'Campeonato de prueba', season: { name: 'Temporada de prueba' } },
+    });
+    championshipsService.getCategorySchedule.mockResolvedValue([]);
     cmsService.getPublishedPages.mockResolvedValue([]);
     cmsService.getPageBySlug.mockImplementation((slug) => Promise.resolve({
       slug,
@@ -176,6 +185,31 @@ describe('App public routes', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Cargando Noticias');
     expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
     expect(screen.queryByText('Página no encontrada')).not.toBeInTheDocument();
+  });
+
+  it('uses the accessible Cup fallback without a false H1 or 404', () => {
+    const PendingPage = lazy(() => new Promise(() => {}));
+
+    render(
+      <CupRoute>
+        <PendingPage />
+      </CupRoute>,
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando Copa');
+    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
+    expect(screen.queryByText('Página no encontrada')).not.toBeInTheDocument();
+  });
+
+  it('registers the lazy category Cup route with its neutral empty state', async () => {
+    openAppAt('/categories/12/cup');
+
+    expect(await screen.findByRole('heading', { name: 'Copa de Categoría de prueba', level: 1 }))
+      .toBeInTheDocument();
+    expect(screen.getByText('Todavía no hay una Copa generada para esta categoría.'))
+      .toBeInTheDocument();
+    expect(championshipsService.getCategory).toHaveBeenCalledWith('12');
+    expect(championshipsService.getCategorySchedule).toHaveBeenCalledWith('12');
   });
 
   it('renders the functional tournament list without the legacy placeholder', async () => {

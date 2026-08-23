@@ -49,6 +49,8 @@ describe('CategoryDetail', () => {
       .toHaveAttribute('href', '/categories/12/standings');
     expect(screen.getByRole('link', { name: 'Calendario y resultados' }))
       .toHaveAttribute('href', '/categories/12/schedule');
+    expect(screen.getByRole('link', { name: 'Copa' }))
+      .toHaveAttribute('href', '/categories/12/cup');
     expect(screen.getByRole('link', { name: 'Resumen' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByText('Temporada 2026 · Torneo RC')).toBeInTheDocument();
     expect(screen.getByText('Activa')).toBeInTheDocument();

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import {
+  getCategoryCupPath,
   getCategoryDetailPath,
   getCategorySchedulePath,
   getCategoryStandingsPath,
@@ -21,6 +22,11 @@ const buildItems = (categoryId) => [
     id: 'schedule',
     label: 'Calendario y resultados',
     to: getCategorySchedulePath(categoryId),
+  },
+  {
+    id: 'cup',
+    label: 'Copa',
+    to: getCategoryCupPath(categoryId),
   },
 ];
 

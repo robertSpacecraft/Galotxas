@@ -292,7 +292,22 @@ test('completa Liga, semifinales, conflicto, finales y campeón público de Copa
     expect(publicFinal).not.toHaveProperty('validated_by');
 
     await page.goto(`/categories/${category.id}/schedule`);
-    await expect(page.getByRole('heading', { name: 'Copa', exact: true, level: 2 })).toBeVisible();
+    await expect(page.getByRole('heading', {
+      name: `Calendario y resultados de ${category.name}`,
+      level: 1,
+    })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Copa', exact: true, level: 2 })).toHaveCount(0);
+    await expect(page.getByText(names.first).first()).toBeVisible();
+
+    const cupNavigationLink = page.getByRole('link', { name: 'Copa', exact: true });
+    await cupNavigationLink.focus();
+    await expect(cupNavigationLink).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(new RegExp(`/categories/${category.id}/cup$`));
+    await expect(page.getByRole('heading', { name: `Copa de ${category.name}`, level: 1 }))
+      .toBeVisible();
+    await expect(page.getByRole('link', { name: 'Copa', exact: true }))
+      .toHaveAttribute('aria-current', 'page');
     await expect(page.getByRole('heading', { name: 'Semifinales', exact: true, level: 3 })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Final', exact: true, level: 3 })).toBeVisible();
     await expect(page.getByRole('heading', {
@@ -301,6 +316,17 @@ test('completa Liga, semifinales, conflicto, finales y campeón público de Copa
       level: 3,
     })).toBeVisible();
     await expect(page.getByText('Campeón de Copa').locator('..')).toContainText(names.first);
+
+    await page.getByRole('link', { name: 'Ver detalle de Final' }).click();
+    await expect(page).toHaveURL(new RegExp(`/matches/${publicFinal.id}$`));
+    await expect(page.getByRole('heading', {
+      name: `Partido: ${names.first} contra ${names.second}`,
+      level: 1,
+    })).toBeAttached();
+
+    await page.goto(`/categories/${category.id}/cup`);
+    await expect(page.getByRole('heading', { name: `Copa de ${category.name}`, level: 1 }))
+      .toBeVisible();
 
     await page.setViewportSize({ width: 320, height: 900 });
     await expect.poll(() => page.evaluate(

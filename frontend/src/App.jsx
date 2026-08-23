@@ -40,6 +40,7 @@ const ClubPage = lazy(() => import('./features/club/ClubPage'));
 const LegalPage = lazy(() => import('./features/legal/LegalPage'));
 const NewsIndexPage = lazy(() => import('./features/news/NewsIndexPage'));
 const NewsDetailPage = lazy(() => import('./features/news/NewsDetailPage'));
+const CupPage = lazy(() => import('./pages/Cup/CupPage'));
 const PublicIdentityConfirmationPage = lazy(
   () => import('./features/publicIdentity/PublicIdentityConfirmationPage'),
 );
@@ -76,6 +77,12 @@ export const LegalRoute = ({ children }) => (
 
 export const NewsRoute = ({ children }) => (
   <Suspense fallback={<RouteLoading label="Cargando Noticias" />}>
+    {children}
+  </Suspense>
+);
+
+export const CupRoute = ({ children }) => (
+  <Suspense fallback={<RouteLoading label="Cargando Copa" />}>
     {children}
   </Suspense>
 );
@@ -167,6 +174,10 @@ const AppContent = () => {
           <Route path="/categories/:categoryId" element={<CategoryDetail />} />
           <Route path="/categories/:categoryId/standings" element={<StandingsPage />} />
           <Route path="/categories/:categoryId/schedule" element={<SchedulePage />} />
+          <Route
+            path="/categories/:categoryId/cup"
+            element={<CupRoute><CupPage /></CupRoute>}
+          />
           <Route path="/matches/:matchId" element={<MatchDetails />} />
           <Route path="/contenidos" element={<CmsPageIndex />} />
           <Route path="/contenidos/:slug" element={<CmsPage />} />

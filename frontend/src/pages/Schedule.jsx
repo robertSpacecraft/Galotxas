@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { championshipsService } from '../api/championships';
 import { CategoryNavigation } from '../components/Competition/CategoryNavigation';
-import { CupBracket } from '../components/Competition/CupBracket';
 import MatchCard from '../components/MatchCard';
 import { PageMetadata } from '../components/PublicLanding/PageMetadata';
+import { selectCategoryLeagueRounds } from '../features/competition/categoryScheduleContract';
 import {
   getCategoryDetailPath,
   TOURNAMENTS_PATH,
@@ -43,8 +43,9 @@ export default function Schedule() {
     }
 
     if (scheduleResult.status === 'fulfilled' && Array.isArray(scheduleResult.value)) {
-      setSchedule(scheduleResult.value);
-      setStatus(scheduleResult.value.length > 0 ? 'content' : 'empty');
+      const leagueRounds = selectCategoryLeagueRounds(scheduleResult.value);
+      setSchedule(leagueRounds);
+      setStatus(leagueRounds.length > 0 ? 'content' : 'empty');
     } else {
       setSchedule([]);
       setStatus('error');
@@ -64,12 +65,6 @@ export default function Schedule() {
   const seasonName = category?.championship?.season?.name;
   const backPath = category ? getCategoryDetailPath(categoryId) : TOURNAMENTS_PATH;
   const backLabel = category ? 'Volver a la categoría' : 'Volver a Torneos';
-  const cupRounds = schedule.filter((round) => (
-    round?.type === 'cup'
-    && round?.phase === 'cup'
-    && ['semifinal', 'final', 'third_place'].includes(round?.stage)
-  ));
-  const leagueRounds = schedule.filter((round) => round?.type !== 'cup' && round?.phase !== 'cup');
 
   return (
     <div className="page-container">
@@ -107,31 +102,28 @@ export default function Schedule() {
         <p className={styles.emptySchedule}>Todavía no hay jornadas configuradas para esta categoría.</p>
       ) : null}
       {status === 'content' ? (
-        <>
-          {leagueRounds.map((round, roundIndex) => (
-            <section key={round.id || `${categoryId}-${roundIndex}`} className={styles.roundSection}>
-              <h2 className={styles.roundTitle}>{round.name || `Jornada ${roundIndex + 1}`}</h2>
-              {Array.isArray(round.matches) && round.matches.length > 0 ? (
-                <div className={styles.matchesGrid}>
-                  {round.matches.map((match, matchIndex) => (
-                    <MatchCard
-                      key={match.id || `${round.id || roundIndex}-${matchIndex}`}
-                      match={match}
-                      translateStatus={getMatchStatusLabel}
-                      officialScoresOnly
-                      publicIdentityOnly
-                      showDetailLabel
-                      showVenue
-                    />
-                  ))}
-                </div>
-              ) : (
-                <p className={styles.emptyMessage}>No hay partidos programados en esta jornada.</p>
-              )}
-            </section>
-          ))}
-          <CupBracket rounds={cupRounds} />
-        </>
+        schedule.map((round, roundIndex) => (
+          <section key={round.id || `${categoryId}-${roundIndex}`} className={styles.roundSection}>
+            <h2 className={styles.roundTitle}>{round.name || `Jornada ${roundIndex + 1}`}</h2>
+            {Array.isArray(round.matches) && round.matches.length > 0 ? (
+              <div className={styles.matchesGrid}>
+                {round.matches.map((match, matchIndex) => (
+                  <MatchCard
+                    key={match.id || `${round.id || roundIndex}-${matchIndex}`}
+                    match={match}
+                    translateStatus={getMatchStatusLabel}
+                    officialScoresOnly
+                    publicIdentityOnly
+                    showDetailLabel
+                    showVenue
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className={styles.emptyMessage}>No hay partidos programados en esta jornada.</p>
+            )}
+          </section>
+        ))
       ) : null}
     </div>
   );

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  getCategoryCupPath,
   COMPETITION_PATH,
   getCategoryDetailPath,
   getCategorySchedulePath,
@@ -16,6 +17,7 @@ describe('competitionRoutes', () => {
     expect(getCategoryDetailPath(7)).toBe('/categories/7');
     expect(getCategoryStandingsPath(7)).toBe('/categories/7/standings');
     expect(getCategorySchedulePath(7)).toBe('/categories/7/schedule');
+    expect(getCategoryCupPath(7)).toBe('/categories/7/cup');
     expect(getMatchDetailPath(15)).toBe('/matches/15');
     expect([COMPETITION_PATH, TOURNAMENTS_PATH, RANKINGS_PATH]).toEqual([
       '/competicion',
@@ -29,6 +31,7 @@ describe('competitionRoutes', () => {
     expect(getCategoryDetailPath(null)).toBeNull();
     expect(getCategoryStandingsPath(undefined)).toBeNull();
     expect(getCategorySchedulePath('')).toBeNull();
+    expect(getCategoryCupPath('')).toBeNull();
     expect(getMatchDetailPath(null)).toBeNull();
   });
 });
