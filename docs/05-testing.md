@@ -1732,8 +1732,7 @@ Validación local final de 7F.2E, 2026-08-21:
 La ejecución local no acreditaba migración, object storage S3, persistencia tras
 redeploy, cleanup remoto, metadata sobre dominio real ni aprobación editorial
 de imágenes. Posteriormente, la migración y el flujo técnico/funcional principal
-se aceptaron manualmente en staging; los gates secundarios diferidos conservan
-su seguimiento propio.
+se aceptaron completamente en staging y la fase está cerrada.
 
 ## CMS-NAVIGATION-CONTROLLED-SLOT-1 — Fase 7F.2F
 

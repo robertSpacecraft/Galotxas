@@ -708,7 +708,7 @@ E2E, seeders ni cuentas con password por defecto.
 - backup, restore, RTO, rollback rehearsal y monitor continuo no están
   acreditados;
 - HSTS/CSP, otros uploads de features, worker y scheduler continúan aplazados;
-  7F.2D conserva gates secundarios; la configuración multimedia productiva sigue
+  7F.2D está aceptada completamente en staging y cerrada; la configuración multimedia productiva sigue
   abierta;
 - la SPA mantiene metadata client-side y la respuesta HTTP de rutas React no
   constituye SSR;
