@@ -173,6 +173,12 @@ Un resultado administrativo sólo admite tanteos con estado `submitted` o
 `under_review` se rechaza en validación en vez de descartarlos silenciosamente.
 El campeón de Copa es el `winner_entry` oficial de una Final validada, nunca un
 cálculo de React a partir del marcador.
+
+La experiencia pública separa las dos fases sin alterar este dominio común:
+`/categories/{id}/schedule` presenta exclusivamente las rondas de Liga y
+`/categories/{id}/cup` presenta el cuadro de Copa. Una ronda sólo pertenece a
+la vista de Copa cuando declara conjuntamente `type=cup`, `phase=cup` y un
+`stage` admitido; ni el nombre ni el orden permiten inferir una Copa legada.
 ## Reprogramación
 
 El backend dispone de un workflow independiente para proponer y confirmar reprogramaciones:
@@ -220,6 +226,12 @@ Todo partido validado distribuye exactamente tres puntos de clasificación. Si q
 Los rankings de categoría aplican esos puntos a la entrada competitiva. Los rankings agregados de campeonato, temporada e histórico parten del mismo reparto base, lo distribuyen entre jugadores según la contribución ya definida para individuales o roles de dobles y aplican después el multiplicador del nivel de categoría para obtener los puntos ponderados. Mi Panel reutiliza el ranking de categoría y no mantiene una fórmula propia.
 
 El alcance de rondas no cambia con esta regla: categoría agrega únicamente rondas de liga, mientras campeonato, temporada e histórico agregan todos los partidos validados de su ámbito. Los rankings se calculan dinámicamente desde `game_matches`, por lo que los resultados históricos reflejan la regla vigente en la siguiente consulta y no requieren migración ni backfill.
+
+Por tanto, una Copa validada no altera la clasificación de categoría ni Mi
+Panel, que reutiliza ese cálculo de Liga, pero sí contribuye a los agregados de
+campeonato, temporada e histórico. Semifinal, Final, tercer puesto y título de
+campeón no conceden bonus: se conserva exactamente el reparto base, la
+contribución individual o de dobles y el multiplicador de nivel ya definidos.
 
 La generación de semifinales de copa consume el orden actual del ranking de categoría. Los cruces ya generados están persistidos y no se vuelven a sembrar automáticamente cuando cambia el cálculo; cualquier regeneración debe ser una decisión operativa explícita.
 

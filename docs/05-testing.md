@@ -391,6 +391,40 @@ identidades quedaron aisladas en el seeder E2E; la repetición dirigida y la
 suite completa posterior finalizaron sin fallos. Los recursos temporales se
 eliminaron al terminar.
 
+### CUP-PUBLIC-VIEW-1 — Vista dedicada y alcance de rankings
+
+El refinamiento posterior separa la presentación sin cambiar el endpoint de
+schedule ni las reglas deportivas:
+
+- navegación de categoría en orden Resumen, Clasificación, Calendario y
+  resultados, Copa, con un único `aria-current="page"`;
+- helper, ruta diferida y montaje de `/categories/{id}/cup`;
+- loading, error/retry, vacío, semifinales parciales o completas,
+  Final/3.º-4.º y campeón oficial en `CupPage`;
+- selección exacta por `type`, `phase` y `stage`, sin inferencias por nombre u
+  orden para datos legados ambiguos;
+- regresión de Schedule limitada a rondas `type=league`, conservando contexto,
+  `MatchCard` y estados remotos;
+- categoría y Mi Panel congelados sobre Liga; campeonato, temporada e
+  histórico incluyen Copa validada con los puntos y multiplicador comunes,
+  sin bonus por fase o título;
+- E2E Liga → Copa por teclado, navegación activa, cuadro completo, enlace al
+  detalle de partido y reflow a 320 px con cleanup.
+
+Validación local final de CUP-PUBLIC-VIEW-1, 2026-08-23:
+
+- ranking backend dirigido: 15 tests y 178 aserciones;
+- backend completo sobre MariaDB aislada: 557 tests y 4.314 aserciones;
+- frontend dirigido de ruta, navegación, CupPage, Schedule, cuadro y SEO: 128
+  tests en 9 archivos;
+- frontend completo: 659 tests en 93 archivos;
+- E2E dirigido de Copa: 1 escenario Chromium;
+- E2E completo: 68 escenarios Chromium en 3,1 minutos;
+- Composer estricto, Pint dirigido, `php -l`, ESLint, Legal, Knowledge, SEO,
+  build Vite y `git diff --check`: correctos.
+
+La aceptación manual en staging permanece pendiente.
+
 ## Rankings deterministas
 
 RANK-1 incorpora cobertura Feature para:

@@ -88,10 +88,11 @@ separada; Prensa y Federaciones no se publican como enlaces vacíos.
 | `/legal/aviso-legal`, `/legal/privacidad`, `/legal/cookies` | `features/legal/LegalPage.jsx` diferida | Público | `public-legal.json`, generado desde `legal/` | Footer y navegación legal interna | Tres rutas exactas; versión, fecha y metadatos. `/legal` y descendientes desconocidos usan wildcard. Sin API, CMS o Knowledge. |
 | `/nosotros` | `pages/Nosotros/Nosotros.jsx` | Público | Contenido estático en React | Ningún enlace interno actual localizado | Duplicada y heredada; conserva contenido único como material de migración. |
 | `/torneos` | `pages/Torneos/TournamentList.jsx` | Público | `GET /championships` y `GET /seasons` | Landing de Competición, Mi Panel, detalles | Funcional secundaria. Distingue carga, error con retry y vacío filtrado; cada tarjeta tiene una única acción al detalle. |
-| `/torneos/:championshipId` | `pages/Torneos/TournamentDetail.jsx` | Público; acciones de inscripción autenticadas | Campeonato, ranking e inscripción desde API | Tarjetas de torneo, Mi Panel, regreso desde categoría | Funcional secundaria. Campeonato y ranking tienen disponibilidad independiente; las categorías enlazan sus tres vistas reales. |
+| `/torneos/:championshipId` | `pages/Torneos/TournamentDetail.jsx` | Público; acciones de inscripción autenticadas | Campeonato, ranking e inscripción desde API | Tarjetas de torneo, Mi Panel, regreso desde categoría | Funcional secundaria. Campeonato y ranking tienen disponibilidad independiente; las tarjetas enlazan resumen, clasificación y calendario, y desde la navegación local de categoría se accede también a Copa. |
 | `/categories/:categoryId` | `pages/Torneos/CategoryDetail.jsx` | Público | Detalle de categoría | Detalle de torneo y navegación contextual | Resumen de entidad y padres. No descarga ni duplica standings o schedule. |
 | `/categories/:categoryId/standings` | `pages/Standings.jsx` | Público | Categoría y clasificación | Navegación cruzada desde schedule; `CategoryCard` no montada | Funcional secundaria. Tiene navegación local, pero su otro consumidor localizado pertenece a una Home huérfana. |
-| `/categories/:categoryId/schedule` | `pages/Schedule.jsx` | Público | Categoría y jornadas/calendario | Navegación cruzada desde standings; smoke E2E | Funcional secundaria. Distingue carga, error, vacío y contenido. |
+| `/categories/:categoryId/schedule` | `pages/Schedule.jsx` | Público | Categoría y rondas de Liga del calendario | Navegación local de categoría; smoke E2E | Funcional secundaria. Distingue carga, error, vacío y contenido y no renderiza Copa. |
+| `/categories/:categoryId/cup` | `pages/Cup/CupPage.jsx` diferida | Público | Categoría y rondas estructurales de Copa del schedule común | Navegación local de categoría | Vista dedicada con carga, error/retry, vacío, semifinales, Final, 3.º/4.º y campeón oficial; no infiere datos legados ambiguos. |
 | `/matches/:matchId` | `pages/MatchDetails.jsx` | Público; workflow ampliado para participante autenticado | Partido público y, con sesión, workflow de resultado | Tarjetas de partido y acciones pendientes | Funcional secundaria. Regresa a categoría si existe contexto o a `/torneos`; el backend responde 404 si la rama no es pública para un visitante. |
 | `/rankings` | `pages/Rankings/Rankings.jsx` | Público | Rankings histórico, por temporada, campeonato y categoría mediante los endpoints deportivos existentes | Disclosure y bloque histórico de Competición | Centro funcional con cuatro pestañas accesibles, selectores jerárquicos, orden backend, invalidación de respuestas obsoletas y estados recuperables. |
 | `/contenidos` | `pages/CmsPageIndex/CmsPageIndex.jsx` | Público | `GET /cms/pages` | Acceso directo y enlaces heredados externos | Técnica y heredada. Lista toda página publicable, sin agrupación por área pública. |
@@ -136,11 +137,11 @@ paneles cerrados usan `hidden`.
 |---|---|---|
 | Canónicas implementadas | `/`, `/competicion`, `/aprende-a-jugar`, `/aprende-a-jugar/manual`, `/escuela` | Inicio, Competición y las tres hijas futuras de Aprende ya tienen experiencias funcionales. |
 | Canónicas Club implementadas | `/club/quienes-somos`, `/club/contacto`, `/club/federarse`, `/club/documentos` | Registradas en 7C.2 sobre CMS publicado y descubribles desde Navbar/footer en 7D.1. |
-| Funcionales secundarias | `/torneos`, `/torneos/:championshipId`, `/categories/:categoryId`, sus rutas de standings/schedule, `/matches/:matchId`, `/rankings` | Conservar rutas y contratos. Relacionarlas semánticamente con Competición. |
+| Funcionales secundarias | `/torneos`, `/torneos/:championshipId`, `/categories/:categoryId`, sus rutas de standings/schedule/cup, `/matches/:matchId`, `/rankings` | Conservar rutas y contratos. Relacionarlas semánticamente con Competición. |
 | Cuenta | `/login`, `/register`, `/forgot-password`, `/reset-password`, `/player` | Conservar separadas del menú editorial. |
 | Técnica heredada | `/contenidos`, `/contenidos/:slug` | Retirar del primer nivel cuando existan destinos canónicos, pero mantener acceso y CMS hasta completar la migración. |
 | Duplicada | `/nosotros` y `/contenidos/nosotros` | Elegir CMS como fuente futura; conservar ambas hasta migración y paridad verificadas. |
-| Vistas complementarias | `/categories/:id` frente a `/categories/:id/standings` y `/schedule` | Resumen de entidad y colecciones completas quedan separados y conectados sin redirects. |
+| Vistas complementarias | `/categories/:id` frente a `/categories/:id/standings`, `/schedule` y `/cup` | Resumen, clasificación, Liga y Copa quedan separados y conectados sin redirects. |
 | Sin consumidor interno | `/nosotros` | Mantener por contenido, posibles marcadores y migración; medir antes de retirar. |
 | Rota latente | `/dashboard` como destino de una rama no usada de `ProtectedRoute` | Corregir o eliminar sólo en una fase de código; no afecta al contrato público activo. |
 | Fallback/error React | `*` | Implementado como vista accesible; la respuesta HTTP 404 del hosting sigue pendiente. |
@@ -345,9 +346,9 @@ La landing `/competicion` dispone de dependencias funcionales suficientes y la A
 | Listado de campeonatos | `GET /api/v1/championships` | `/torneos` |
 | Detalle de campeonato | `GET /api/v1/championships/{id}` | `/torneos/:championshipId` y carga de categorías del ámbito Categoría de `/rankings` |
 | Ranking de campeonato | `GET /api/v1/championships/{id}/ranking` | Detalle de torneo y ámbito Campeonato de `/rankings` |
-| Detalle de categoría | `GET /api/v1/categories/{id}` | Resumen, standings y schedule como contexto |
+| Detalle de categoría | `GET /api/v1/categories/{id}` | Resumen, standings, schedule y Copa como contexto |
 | Clasificación | `GET /api/v1/categories/{id}/standings` | Ruta dedicada de standings y ámbito Categoría de `/rankings` |
-| Calendario y resultados | `GET /api/v1/categories/{id}/schedule` | Ruta dedicada de schedule |
+| Calendario común | `GET /api/v1/categories/{id}/schedule` | Schedule selecciona Liga y la ruta dedicada Copa selecciona eliminatorias por metadatos estructurales |
 | Partido | `GET /api/v1/matches/{id}` | Detalle de partido |
 | Ranking de temporada | `GET /api/v1/seasons/{id}/ranking` | Ámbito Temporada de `/rankings` |
 | Ranking histórico | `GET /api/v1/rankings/all-time` | Landing y `/rankings` |
@@ -365,7 +366,7 @@ forma determinista sus hijos y las respuestas tardías no pueden sobrescribir
 la selección vigente. Cada ámbito distingue carga, error con reintento, vacío
 y contenido. React no ordena filas, renumera posiciones ni calcula puntos.
 
-Fase 4C centraliza las raíces y generadores reutilizados en `competitionRoutes`, añade `CategoryNavigation` a resumen, standings y schedule y fija retornos deterministas: Torneos ← Campeonato ← Categoría ← Clasificación/Calendario ← Partido. El detalle de categoría consume sólo su entidad; standings y schedule cargan en paralelo su contexto y colección, mantienen datos parciales válidos y ofrecen retry. Ninguna vista renumera posiciones o recalcula valores deportivos.
+Fase 4C centraliza las raíces y generadores reutilizados en `competitionRoutes`; el refinamiento de Copa amplía después `CategoryNavigation` a Resumen, Clasificación, Calendario y resultados y Copa. Schedule selecciona exclusivamente rondas `type=league`; CupPage exige `type=cup`, `phase=cup` y un stage admitido sobre el mismo endpoint, carga en paralelo contexto y colección y ofrece estados recuperables. Ninguna vista renumera posiciones, calcula puntos, infiere una Copa por nombre/orden o deriva al campeón desde el tanteo.
 
 ## 17. Requisitos de accesibilidad
 

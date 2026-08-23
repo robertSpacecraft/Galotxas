@@ -106,7 +106,7 @@ Las lecturas deportivas públicas aplican visibilidad efectiva antes de filtros 
 
 Los listados conservan orden, filtros, campos y envelopes. Un acceso directo que no cumpla la jerarquía responde `404`; `is_public` no se serializa en ningún Resource público. El estado operativo no participa en esta decisión, por lo que los estados públicos admitidos anteriormente continúan admitidos.
 
-### Calendario y cuadro público de Copa
+### Calendario público común para Liga y Copa
 
 `GET /api/v1/categories/{category}/schedule` continúa siendo el único contrato
 público de calendario de categoría. Las rondas se ordenan por `order` e `id` y
@@ -134,6 +134,12 @@ No se publican `winner_entry_id`, `submitted_by`, `validated_by`, reportes ni
 datos internos de jugador o equipo. El frontend reconoce las fases de Copa por
 `stage`, omite de forma cerrada cualquier stage desconocido y obtiene el
 campeón únicamente de `winner_entry` de la Final validada.
+
+Este endpoint común alimenta dos vistas React distintas sin ampliar el
+contrato API: `/categories/{category}/schedule` selecciona sólo
+`type=league`, mientras `/categories/{category}/cup` exige conjuntamente
+`type=cup`, `phase=cup` y un stage `semifinal`, `final` o `third_place`. El
+frontend no infiere rondas legadas por `name` u `order`.
 
 ### Rutas autenticadas
 
@@ -405,7 +411,9 @@ El alcance de rondas es deliberadamente distinto: la clasificación de
 categoría considera sólo `Round.type=league`, mientras campeonato, temporada e
 histórico consideran todos los partidos validados de su ámbito, incluidos los
 de Copa. La inclusión de Copa en los agregados no es un defecto ni debe
-corregirse añadiendo un filtro de Liga.
+corregirse añadiendo un filtro de Liga. Tampoco existe un bonus por semifinal,
+Final, tercer puesto o título: cada partido de Copa validado aplica el mismo
+reparto base, contribución por jugador y multiplicador de nivel.
 
 ---
 

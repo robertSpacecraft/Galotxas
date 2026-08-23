@@ -98,9 +98,9 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
 - **Caracterización**: el supuesto defecto general de persistencia no se reprodujo. La escritura directa Blade, los reportes coincidentes y la resolución de conflictos ya persistían y reaparecían correctamente en admin. Sí se reprodujo el descarte silencioso de tanteos combinados con `scheduled`, corregido mediante validación común a Liga y Copa.
 - **Backend**: semifinal, Final y tercer puesto registran `phase=cup` y stages explícitos; Final/3.º-4.º exigen exactamente dos semifinales validadas, con tanteos completos y sin empate, conservan los emparejamientos correctos y nacen sin programación manual inventada.
 - **API**: el schedule existente publica fases, stages y `winner_entry` oficial allowlisted, con orden estable, tanteos sólo validados, precarga de relaciones y ausencia de trazabilidad privada. No se crea endpoint nuevo.
-- **Frontend**: `/categories/{id}/schedule` separa Liga y Copa, muestra semifinales, estados pendientes, Final, tercer puesto y campeón desde `winner_entry`; un stage desconocido se omite de forma cerrada. No se calcula el ganador en React.
-- **Regresión**: pruebas backend, contrato/frontend y un E2E aislado cubren Liga completa, ambos workflows de semifinal, resolución Blade, generación, programación, resultados, campeón y 320 px con cleanup. El gate local final completa 554 tests backend y 4.259 aserciones, 644 tests frontend y 68 escenarios Chromium.
-- La inclusión de partidos de Copa en rankings agregados de campeonato, temporada e histórico es el contrato aprobado; sólo el ranking de categoría permanece limitado a Liga.
+- **Frontend**: `/categories/{id}/schedule` queda reservado a Liga y la nueva ruta diferida `/categories/{id}/cup` presenta semifinales, estados pendientes, Final, tercer puesto y campeón desde `winner_entry`. La navegación local ofrece Resumen, Clasificación, Calendario y resultados y Copa; un stage desconocido o una Copa legada sin `phase/stage` se omite de forma cerrada. No se calcula el ganador en React.
+- **Regresión**: pruebas backend, contrato/frontend y un E2E aislado cubren Liga completa, ambos workflows de semifinal, resolución Blade, generación, programación, resultados, navegación por teclado, enlace al partido, campeón y 320 px con cleanup. El gate local refinado completa 557 tests backend y 4.314 aserciones, 659 tests frontend y 68 escenarios Chromium.
+- La inclusión de partidos de Copa en rankings agregados de campeonato, temporada e histórico es el contrato aprobado; el ranking de categoría y Mi Panel permanecen limitados a Liga. No existe bonus por semifinal, Final, tercer puesto o campeón.
 
 ## 6. Dependencias y decisiones
 - **Decisiones cerradas**: Sustitución parcial de la navegación de Competición (ADR-042); obligatoriedad de almacenamiento de objetos (sin sistema de archivos efímero) para persistencia; utilización de `User.profile_photo_path` para fotos de perfil; `NewsArticle` dedicado y separado del CMS/prensa-media (ADR-044).
@@ -139,6 +139,7 @@ El despliegue en Producción (7F) queda **suspendido** hasta la compleción y va
 - [x] 7F.2F enlaces de menú CMS implementados y validados localmente.
 - [ ] 7F.2F migración, smoke, redeploy y aceptación humana en staging.
 - [x] Gap de Copa implementado y validado localmente de extremo a extremo.
+- [x] Copa separada en vista pública propia y contrato de rankings reforzado localmente.
 - [ ] Flujo de Copa aceptado manualmente en staging.
 - [ ] Promoción a Staging y nueva aceptación humana (beta) superadas. (7F.2A verificada el 2026-08-15)
 

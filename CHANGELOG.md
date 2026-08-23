@@ -28,12 +28,17 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
   generación valida exactamente dos semifinales oficiales sin empate, conserva
   ganadores/perdedores, nace sin programación y sigue siendo idempotente.
 - El schedule público existente añade fase, stage y `winner_entry` allowlisted,
-  orden estable y tanteos sólo oficiales. React incorpora un cuadro accesible y
-  responsive con pendientes y campeón derivado exclusivamente del ganador
-  backend. La regresión incluye contrato, rankings y E2E completo con cleanup.
+  orden estable y tanteos sólo oficiales. React incorpora la ruta diferida
+  `/categories/{id}/cup`, navegación contextual de cuatro vistas y un cuadro
+  accesible y responsive con pendientes y campeón derivado exclusivamente del
+  ganador backend. `Calendario y resultados` queda reservado a Liga.
+- El frontend selecciona Copa únicamente mediante `type=cup`, `phase=cup` y un
+  stage admitido, sin inferir datos legados por nombre u orden. La clasificación
+  de categoría y Mi Panel excluyen Copa; campeonato, temporada e histórico
+  incluyen partidos de Copa validados con el reparto común y sin bonus.
 - La implementación de Copa queda validada localmente y pendiente de aceptación
-  en staging; la regresión final completa 554 tests backend, 644 frontend y 68
-  E2E, sin anunciar todavía su cierre productivo.
+  en staging; la regresión refinada completa 557 tests backend con 4.314
+  aserciones, 659 frontend y 68 E2E, sin anunciar todavía su cierre productivo.
 
 - Fase 7F.2E implementa Noticias como dominio editorial dedicado: modelo y
   migración `news_articles`, administración Blade, borrador/programación,
