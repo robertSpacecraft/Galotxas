@@ -157,9 +157,9 @@ class RankingServicesTest extends TestCase
         $this->assertSame(1, $ranking[1]['points']);
     }
 
-    public function test_category_uses_only_league_matches_while_aggregate_rankings_use_all_validated_rounds(): void
+    public function test_category_ranking_uses_only_league_matches_for_all_statistics(): void
     {
-        [$category, $leagueRound, $entries, $players] = $this->createSinglesCategory(['Liga A', 'Liga B']);
+        [$category, $leagueRound, $entries] = $this->createSinglesCategory(['Liga A', 'Liga B']);
         $cupRound = Round::factory()->create([
             'category_id' => $category->id,
             'type' => 'cup',
@@ -171,25 +171,54 @@ class RankingServicesTest extends TestCase
         $this->createValidatedMatch($cupRound, $entries[1], $entries[0], 10, 8);
 
         $categoryRows = $this->categoryRanking($category)->keyBy('entry_id');
-        $championshipRows = app(BuildChampionshipRankingService::class)
+
+        $this->assertSame(3, $categoryRows[$entries[0]->id]['points']);
+        $this->assertSame(1, $categoryRows[$entries[0]->id]['played']);
+        $this->assertSame(1, $categoryRows[$entries[0]->id]['wins']);
+        $this->assertSame(0, $categoryRows[$entries[0]->id]['losses']);
+        $this->assertSame(10, $categoryRows[$entries[0]->id]['games_for']);
+        $this->assertSame(7, $categoryRows[$entries[0]->id]['games_against']);
+        $this->assertSame(3, $categoryRows[$entries[0]->id]['games_diff']);
+        $this->assertSame(0, $categoryRows[$entries[1]->id]['points']);
+        $this->assertSame(1, $categoryRows[$entries[1]->id]['played']);
+        $this->assertSame(0, $categoryRows[$entries[1]->id]['wins']);
+        $this->assertSame(1, $categoryRows[$entries[1]->id]['losses']);
+        $this->assertSame(7, $categoryRows[$entries[1]->id]['games_for']);
+        $this->assertSame(10, $categoryRows[$entries[1]->id]['games_against']);
+        $this->assertSame(-3, $categoryRows[$entries[1]->id]['games_diff']);
+    }
+
+    public function test_championship_ranking_includes_validated_cup_matches_without_a_bonus(): void
+    {
+        [$category, $players] = $this->createValidatedCupRankingScenario();
+
+        $rows = app(BuildChampionshipRankingService::class)
             ->build($category->championship)
             ->keyBy('player_id');
-        $seasonRows = app(BuildSeasonRankingService::class)
+
+        $this->assertCupMatchRankingContribution($rows, $players);
+    }
+
+    public function test_season_ranking_includes_validated_cup_matches_without_a_bonus(): void
+    {
+        [$category, $players] = $this->createValidatedCupRankingScenario();
+
+        $rows = app(BuildSeasonRankingService::class)
             ->build($category->championship->season)
             ->keyBy('player_id');
-        $allTimeRows = app(BuildAllTimeRankingService::class)
+
+        $this->assertCupMatchRankingContribution($rows, $players);
+    }
+
+    public function test_all_time_ranking_includes_validated_cup_matches_without_a_bonus(): void
+    {
+        [, $players] = $this->createValidatedCupRankingScenario();
+
+        $rows = app(BuildAllTimeRankingService::class)
             ->build()
             ->keyBy('player_id');
 
-        $this->assertSame(3, $categoryRows[$entries[0]->id]['points']);
-        $this->assertSame(0, $categoryRows[$entries[1]->id]['points']);
-
-        foreach ([$championshipRows, $seasonRows, $allTimeRows] as $rows) {
-            $this->assertSame(4.0, $rows[$players[0]->id]['raw_points']);
-            $this->assertSame(2.0, $rows[$players[1]->id]['raw_points']);
-            $this->assertSame(2, $rows[$players[0]->id]['played']);
-            $this->assertSame(2, $rows[$players[1]->id]['played']);
-        }
+        $this->assertCupMatchRankingContribution($rows, $players);
     }
 
     public function test_all_time_win_rate_is_returned_on_zero_to_one_hundred_scale(): void
@@ -286,6 +315,13 @@ class RankingServicesTest extends TestCase
     {
         [$category, $round, $entries, $players] = $this->createSinglesCategory(['Mi jugador', 'Rival']);
         $this->createValidatedMatch($round, $entries[0], $entries[1], 10, 8);
+        $cupRound = Round::factory()->create([
+            'category_id' => $category->id,
+            'type' => 'cup',
+            'phase' => 'cup',
+            'stage' => 'final',
+        ]);
+        $this->createValidatedMatch($cupRound, $entries[1], $entries[0], 10, 0);
         Sanctum::actingAs($players[0]->user);
 
         $this->getJson('/api/v1/me/rankings')
@@ -298,6 +334,9 @@ class RankingServicesTest extends TestCase
             ->assertJsonPath('data.0.wins', 1)
             ->assertJsonPath('data.0.losses', 0)
             ->assertJsonPath('data.0.points', 2)
+            ->assertJsonPath('data.0.games_for', 10)
+            ->assertJsonPath('data.0.games_against', 8)
+            ->assertJsonPath('data.0.games_diff', 2)
             ->assertJsonMissingPath('data.0.entry');
 
         Sanctum::actingAs($players[1]->user);
@@ -305,9 +344,52 @@ class RankingServicesTest extends TestCase
         $this->getJson('/api/v1/me/rankings')
             ->assertOk()
             ->assertJsonPath('data.0.position', 2)
+            ->assertJsonPath('data.0.played', 1)
             ->assertJsonPath('data.0.wins', 0)
             ->assertJsonPath('data.0.losses', 1)
-            ->assertJsonPath('data.0.points', 1);
+            ->assertJsonPath('data.0.points', 1)
+            ->assertJsonPath('data.0.games_for', 8)
+            ->assertJsonPath('data.0.games_against', 10)
+            ->assertJsonPath('data.0.games_diff', -2);
+    }
+
+    /**
+     * @return array{Category, array<int, Player>}
+     */
+    private function createValidatedCupRankingScenario(): array
+    {
+        [$category, , $entries, $players] = $this->createSinglesCategory(['Copa A', 'Copa B']);
+        $cupRound = Round::factory()->create([
+            'category_id' => $category->id,
+            'type' => 'cup',
+            'phase' => 'cup',
+            'stage' => 'final',
+        ]);
+
+        $this->createValidatedMatch($cupRound, $entries[0], $entries[1], 8, 10);
+
+        return [$category, $players];
+    }
+
+    private function assertCupMatchRankingContribution($rows, array $players): void
+    {
+        $this->assertSame(1, $rows[$players[0]->id]['played']);
+        $this->assertSame(0, $rows[$players[0]->id]['wins']);
+        $this->assertSame(1, $rows[$players[0]->id]['losses']);
+        $this->assertSame(1.0, $rows[$players[0]->id]['raw_points']);
+        $this->assertSame(8.0, $rows[$players[0]->id]['games_for']);
+        $this->assertSame(10.0, $rows[$players[0]->id]['games_against']);
+        $this->assertSame(-2.0, $rows[$players[0]->id]['games_diff']);
+        $this->assertEqualsWithDelta(1.35, $rows[$players[0]->id]['weighted_points'], 0.00001);
+
+        $this->assertSame(1, $rows[$players[1]->id]['played']);
+        $this->assertSame(1, $rows[$players[1]->id]['wins']);
+        $this->assertSame(0, $rows[$players[1]->id]['losses']);
+        $this->assertSame(2.0, $rows[$players[1]->id]['raw_points']);
+        $this->assertSame(10.0, $rows[$players[1]->id]['games_for']);
+        $this->assertSame(8.0, $rows[$players[1]->id]['games_against']);
+        $this->assertSame(2.0, $rows[$players[1]->id]['games_diff']);
+        $this->assertEqualsWithDelta(2.70, $rows[$players[1]->id]['weighted_points'], 0.00001);
     }
 
     /**
