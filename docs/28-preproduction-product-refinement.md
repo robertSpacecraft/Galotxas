@@ -59,7 +59,10 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
   - **Hotfix**: El serving privado S3 ahora streamea la imagen a través de Laravel (200 OK) evitando el redirect, mientras Sponsor conserva su redirect 302 a presigned URL.
   - Validación local automática del hotfix: 501 tests backend, 550 tests frontend, 65 tests E2E y análisis estático superados.
 - **Validado manualmente en staging**: UI visible en Mi Panel, upload real hacia media-staging, hotfix desplegado resolviendo CORS, renderizado correcto de la foto, replace y delete básicos operativos.
-- **Gates secundarios diferidos**: cleanup exhaustivo post-replace/delete, persistencia post-redeploy, revisión móvil/accesible y revisión de logs. El flujo principal se considera aceptado.
+- **Gates secundarios cerrados en staging**: cleanup post-replace/delete,
+  persistencia post-redeploy, revisión móvil/accesible y revisión de logs
+  completados. El bloque está aceptado y no requiere repetir escrituras en la
+  regresión global salvo que un cambio o una incidencia invalide esa evidencia.
 
 ### 7F.2E — Noticias
 - **Estado**: implementada, promovida y aceptada manualmente en staging. 7F.2E cerrada.
@@ -147,7 +150,12 @@ El despliegue en Producción (7F) queda **suspendido** hasta la compleción y va
 - [x] Gap de Copa implementado y validado localmente de extremo a extremo.
 - [x] Copa separada en vista pública propia y contrato de rankings reforzado localmente.
 - [ ] Flujo de Copa aceptado manualmente en staging.
-- [ ] Promoción a Staging y nueva aceptación humana (beta) superadas. (7F.2A verificada el 2026-08-15)
+- [ ] Regresión global final de 7F.2 y aceptación humana del baseline integrado
+      superadas después de aceptar Copa.
+
+La preparación y el orden del gate posterior se documentan en
+`29-mvp-final-acceptance-and-production-gate.md`. 7G permanece sin cerrar y no
+se ha iniciado su gate irreversible.
 
 
 ## 11. Mejoras futuras (Post-MVP)

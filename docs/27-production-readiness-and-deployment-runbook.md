@@ -7,7 +7,9 @@ crear proyectos. Tras la ejecución manual parcial de 7F, el entorno de **stagin
 desplegado y validado (proyectos en Vercel/Railway, base de datos MariaDB, DNS
 personalizado, dominios canónicos de staging). 
 El despliegue a **producción** permanece pendiente.
-Fase 7, 7F (completa), 7G y el MVP permanecen abiertos.
+Fase 7, 7F de producción, 7G y el MVP permanecen abiertos. La preparación 7G.0
+reconcilia el gate final en `29-mvp-final-acceptance-and-production-gate.md`;
+no acredita ninguna acción productiva.
 
 La primera publicación está deliberadamente cerrada:
 
@@ -701,7 +703,8 @@ E2E, seeders ni cuentas con password por defecto.
 
 ## Riesgos y gates abiertos
 
-- no existen todavía proyectos, DNS, TLS o recursos externos configurados;
+- no existen todavía proyectos, DNS, TLS o recursos externos de producción
+  configurados; los equivalentes de staging sí existen y fueron validados;
 - SMTP saliente está bloqueado por el plan Railway Hobby; entrega, rebotes, SPF, DKIM, DMARC y aliases no están probados;
 - el correo anterior sigue siendo el canal Legal vigente;
 - CMS y datos reales de Escuela no están cargados en producción;
@@ -713,7 +716,11 @@ E2E, seeders ni cuentas con password por defecto.
 - la SPA mantiene metadata client-side y la respuesta HTTP de rutas React no
   constituye SSR;
 - el token Bearer continúa en `localStorage`, según la decisión vigente;
-- 7G debe validar aceptación final antes de tag/release.
+- Copa debe aceptarse antes de reconciliar el candidato en 7G.1; la regresión
+  global final 7F.2 constituye 7G.2 y debe cerrarse antes de preparar
+  producción;
+- 7G debe validar aceptación final antes de tag/release, conforme al gate
+  ordenado de `29-mvp-final-acceptance-and-production-gate.md`.
 
 ## Criterio de cierre de 7F.1
 

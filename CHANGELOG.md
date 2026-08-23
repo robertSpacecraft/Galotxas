@@ -6,6 +6,13 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Se prepara documentalmente Fase 7G mediante
+  `MVP-FINAL-GATE-READINESS-1`: baseline reconciliado, vigencia de evidencias,
+  matriz staging/producción, flags, restricciones de proveedor, checklist de
+  regresión 7F.2, Go/No-Go y gates 7G.1–7G.7. No se acepta Copa, no se ejecuta
+  la regresión global ni se inicia producción, migraciones, flags, tag o
+  release; 7G permanece abierta.
+
 - Fase 7F.2F incorpora `CmsNavigationItem` con slot DB/PHP único `club`,
   constraint página/slot, activación privada por defecto, relación cascade y
   administración Blade separada; las cuatro fachadas estructurales Club son

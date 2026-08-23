@@ -1693,11 +1693,13 @@ Sponsor público y de su preview Blade. Resultados locales del hotfix:
 - Composer estricto, Pint dirigido, `php -l`, ESLint, build Vite e imagen
   Docker de producción: correctos.
 
-La ejecución local no acredita referencias legacy reales, serving S3 tras el
+La ejecución local no acreditaba referencias legacy reales, serving S3 tras el
 nuevo despliegue, persistencia tras redeploy ni cleanup remoto. El CORS exacto
 GET/HEAD del bucket ya fue comprobado, pero la lectura del avatar deja de
-depender de él porque el navegador recibe el binario desde la API. 7F.2D
-continúa abierta hasta repetir sus gates en staging.
+depender de él porque el navegador recibe el binario desde la API. El
+seguimiento posterior completó esos gates en staging; 7F.2D está aceptada y
+cerrada. Su evidencia específica se reutiliza en 7G y no sustituye la regresión
+integrada final.
 
 ## NEWS-EDITORIAL-PUBLIC-1 — Fase 7F.2E
 
@@ -1768,8 +1770,27 @@ Validación local final de 7F.2F, 2026-08-22:
   ESLint, Legal, Knowledge, SEO, build Vite e imagen Docker de producción:
   correctos.
 
-Estado: 7F.2F implementada y validada localmente; pendiente de aceptación en
-staging.
+El seguimiento posterior aplicó la migración y aceptó manualmente en staging el
+recorrido completo; 7F.2F está cerrada. La regresión global final debe comprobar
+su integración sin repetir innecesariamente las escrituras ya acreditadas.
+
+## MVP-FINAL-GATE-READINESS-1 — Preparación de la aceptación final
+
+7G.0 es un bloque documental y no añade ejecución funcional. El contrato de
+`29-mvp-final-acceptance-and-production-gate.md` distingue:
+
+- aceptación específica vigente de 7F.2A–7F.2F;
+- aceptación de Copa y regresión global 7F.2 todavía pendientes;
+- suites completas que deben repetirse sobre el hash candidato;
+- smoke integrado de staging y smoke productivo no destructivo;
+- evidencias propias de configuración, migraciones, media, correo,
+  backup/restore y rollback que staging no puede acreditar por producción;
+- QA manual responsive, accesible y multibrowser priorizada;
+- cero P0, Go/No-Go humano y tag/release sólo tras aceptación.
+
+No se ejecutan suites, Docker, migraciones o datos durante 7G.0. Las cifras de
+tests previas conservan valor histórico, pero no se presentan como resultado
+del candidato final.
 
 # 11. Evolución
 

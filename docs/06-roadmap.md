@@ -64,6 +64,7 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 46. **Fase 7F.2F — Navegación CMS administrable:** placements dedicados con slot Club único, administración Blade, publicación efectiva desde `CmsPage`, API cerrada y composición React structural-first/fail-soft implementados; migración y flujo completo aceptados manualmente en staging. 7F.2F cerrada.
 47. **Cierre del gap preproducción de Copa en `develop`:** fases y stages explícitos, resultados comunes a Liga/Copa caracterizados, validación administrativa coherente, generación segura de Final/3.º-4.º, contrato público con ganador oficial, cuadro React y E2E completo implementados y validados localmente; aceptación en staging pendiente.
 48. **Refinamiento público de Copa y rankings en `develop`:** vista dedicada `/categories/{id}/cup`, navegación contextual de cuatro destinos y Schedule reservado a Liga; categoría y Mi Panel excluyen Copa, mientras campeonato, temporada e histórico incluyen sus partidos validados sin bonus. Validación local completa superada; aceptación en staging pendiente.
+49. **Fase 7G.0 — Auditoría y preparación del cierre final:** baseline, vigencia de evidencias, matriz staging/producción, flags, restricciones de proveedor, regresión 7F.2, Go/No-Go y gates 7G.1–7G.7 documentados sin ejecutar Copa, suites, staging, producción, migraciones, flags, tag o release. 7G queda preparada, no iniciada en su gate irreversible y no cerrada.
 
 La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fases 7A, 7B, 7E y 7F.1, los bloques 7C.0–7C.2 y 7D.1–7D.3 están completados; 7C y 7D quedan cerradas.
 
@@ -85,7 +86,7 @@ Antes de iniciar 7F.2A se ha cerrado su prerrequisito de dominio: el reparto bas
 
 1. **Fase 7F.2 — Refinamiento preproducción y ampliación controlada del alcance:** 7F.2C, 7F.2E y 7F.2F cerradas en staging; 7F.2D aceptada completamente en staging y cerrada; Copa implementado y validado localmente pero pendiente de staging. El antiguo gap funcional de Copa deja de estar pendiente en `develop`, sin que ello constituya aceptación del baseline productivo.
 2. **Fase 7F (Producción):** tras completar validaciones y smoke de staging, desplegar producción inicialmente noindex y con Contacto, Escuela, identidad de menores y scheduler cerrados, activándolos de uno en uno sólo tras sus gates.
-3. **Fase 7G — Validación y cierre del MVP:** ejecutar regresión, recorridos críticos, QA responsive/multibrowser priorizada, smoke y aceptación humana antes de tag/release.
+3. **Fase 7G — Validación y cierre del MVP:** contrato ejecutable preparado en `29-mvp-final-acceptance-and-production-gate.md`; quedan por ejecutar regresión, recorridos críticos, QA responsive/multibrowser priorizada, gates productivos, smoke y aceptación humana antes de tag/release.
 
 Las autorizaciones de imágenes para web, redes sociales y archivo histórico
 permanecen como un frente independiente posterior, todavía sin numeración
@@ -138,13 +139,16 @@ QA-FIX-1, RC-HARDEN-1 y MVP-RC-1 conservan su valor histórico. Sin embargo, la
 auditoría 7A amplía el criterio desde “candidato técnico” a “aplicación pública
 y funcionalmente completa”: el MVP completo **todavía no está completado**.
 
-Permanecen P0 la activación productiva de Contacto y correo saliente, los gates
-operativos de la autorización de menores, las imágenes, configuración y
-privacidad productiva de Escuela,
-despliegue Railway/Vercel/MariaDB y validación de recorridos críticos. La
+Permanecen P0 el correo saliente necesario para recuperar contraseñas, la
+aceptación de Copa y la regresión integrada 7F.2, los gates productivos de
+contenido, imágenes, privacidad y operación, el despliegue
+Railway/Vercel/MariaDB y la validación de recorridos críticos. Contacto,
+inscripción School, identidad de menores y scheduler pueden iniciar cerrados;
+activarlos sin su gate sí sería bloqueante. La
 definición observable y priorización se encuentran en
 `14-mvp-parity-audit.md`; el contrato, las plantillas y gates de implementación
-están en `15-mvp-editorial-and-navigation-contract.md`.
+están en `15-mvp-editorial-and-navigation-contract.md`, y la reconciliación
+operativa vigente en `29-mvp-final-acceptance-and-production-gate.md`.
 
 La ausencia de edición avanzada de perfil, resumen directo de equipo e interfaz
 React de reprogramación continúa como P1 y no bloquea por sí misma el MVP.
