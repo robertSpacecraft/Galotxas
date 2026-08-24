@@ -100,7 +100,7 @@ Prohibiciones comunes:
 | Contacto/Escuela/menores | Capacidades validadas con fail-closed y flag global; persistencia staging probada | Correo real, flujo menores completo en staging |
 | Queue/scheduler | Cola síncrona, ningún worker/cron productivo | Diseñar y ensayar purgas antes de activar |
 | Logs/storage | `stderr`; `media_s3` y bucket privado de staging validados; Sponsor es el primer consumidor en `develop` | Crear bucket privado productivo aislado y aceptar 7F.2C en staging antes de promoción |
-| Backups/restore/rollback | Estrategia reconciliada con Railway el 2026-08-24; no ensayada | Ejecutar el drill controlado, medir RTO y asignar responsable antes del Go |
+| Backups/restore/rollback | Restore aislado ensayado en 7G.1D (PASS, RTO 5m27s) | Validar media y rollback rehearsal antes del Go productivo |
 
 ## Variables y secretos
 
@@ -726,7 +726,7 @@ Valores a aprobar, no SLA de proveedor:
 - propiedad: una persona responsable de operación y una suplente revisan el
   último backup, reciben fallos, autorizan restore y registran cada ensayo.
 
-El RPO/RTO sólo pasan de objetivo a evidencia después del drill. Si el tiempo
+El RPO/RTO sólo pasan de objetivo a evidencia después del drill. El drill 7G.1D arrojó un RTO de 5 min 27 s (cumpliendo el objetivo de 4 h para núcleo read-only). El RTO para reapertura de escrituras sigue sin medirse. Si el tiempo
 observado supera el objetivo, se ajusta el procedimiento o se registra un
 `NO-GO`; no se corrige la cifra retrospectivamente para declarar éxito.
 
@@ -831,8 +831,7 @@ Los siguientes pasos ya se han validado en staging:
 10. Contacto y Escuela probados en ventana controlada con `log`, validando persistencia y fail-closed; el SMTP real desde Railway está BLOQUEADO por el plan Hobby, por lo que la notificación de Contacto, el reset de contraseña y el ciclo de identidad pública de menores siguen pendientes.
 
 Pasos **Pendientes / Aplazados** en staging:
-11. **Ejecutar el restore lógico aislado obligatorio, medir RTO y ensayar el
-    rollback coordinado.** La auditoría 7G.1C corrigió que el backup nativo NO está disponible en Hobby, por lo que el P0 se resuelve validando la exportación lógica y recuperación. La estrategia está corregida, pero ningún restore se ha ejecutado aún (pendiente 7G.1D).
+11. **Ensayar el rollback coordinado.** La fase 7G.1D ejecutó y validó con éxito el restore lógico aislado de staging con RTO de 5m27s, cerrando el P0 de recuperación de base de datos para este entorno.
     programado de volumen no está documentado como exclusivo de Pro; la
     estrategia está reconciliada, pero ningún backup o restore se ejecutó en
     este bloque.
@@ -989,7 +988,7 @@ E2E, seeders ni cuentas con password por defecto.
   sus propios dominios, aliases, logs y keys independientes;
 - el correo anterior sigue siendo el canal Legal vigente;
 - CMS y datos reales de Escuela no están cargados en producción;
-- backup, restore, RTO, rollback rehearsal y monitor continuo no están
+- rollback rehearsal y monitor continuo no están
   acreditados;
 - HSTS/CSP, otros uploads de features, worker y scheduler continúan aplazados;
   7F.2D está aceptada completamente en staging y cerrada; la configuración multimedia productiva sigue

@@ -1848,6 +1848,21 @@ de migraciones y conteos, smoke controlado, RTO observado y rollback rehearsal.
 Hasta entonces el estado es **estrategia corregida forward-only y lista para ensayo
 controlado**, no “backup probado”.
 
+## BACKUP-RECOVERY-DRILL-1 — Restore lógico aislado 7G.1D
+
+Ejecutado y validado el 2026-08-24 como prueba operativa sin alterar el entorno productivo o de staging activo.
+
+**Evidencia validada (PASS):**
+- **Origen:** MariaDB de staging (`galotxas_staging`, 40 tablas, 125 constraints, ~2.3 MB) exportada usando `mariadb-dump` (`--single-transaction --quick --skip-lock-tables`).
+- **Destino:** Instancia Docker MariaDB temporal (aislada, puerto loopback).
+- **Proceso:** Dump lógico comprimido (gzip 31 KB) y con SHA-256 (`84243b3be0efdc557fb93ecf1bc4565331492c3470f57269767ca33e1a314f5a`).
+- **Comparación:** Migraciones, conteos, foreign keys y checksum de tablas idénticos.
+- **RTO observado:** 5 minutos 27 segundos hasta la validación aplicativa (cumple objetivo read-only de 4h).
+- **Aislamiento:** Railway no se modificó, los secrets no se expusieron, y los recursos temporales fueron destruidos.
+
+El P0 de capacidad de recuperación MariaDB queda **cerrado para staging**. Producción sigue pendiente de su propio gate predeploy, y la recuperación de media (Bucket) requiere verificación independiente.
+
+
 # 11. Evolución
 
 La cobertura de pruebas debe crecer junto con el proyecto.

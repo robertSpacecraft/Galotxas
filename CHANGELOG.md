@@ -6,6 +6,8 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- **RESTORE DRILL 7G.1D:** PASS técnico obtenido en el restore lógico aislado de la MariaDB de staging. Se valida el uso de un dump lógico (con checksum SHA-256) restaurado sobre una base de datos efímera y comprobado estructuralmente, obteniendo un RTO de pared de 5 minutos 27 segundos. Se cierra el P0 de recuperación MariaDB para el entorno de staging sin modificar infraestructura ni usar snapshots nativos. Producción y media se mantienen como gates productivos pendientes.
+
 - **CORRECCIÓN FORWARD-ONLY 7G.1C:** Se verifica operativamente en el workspace que Railway Hobby restringe los backups nativos y PITR al plan Pro (`maxBackupsCount = 0`). La documentación se corrige para desestimar cualquier expectativa de "snapshot nativo" predeploy. La estrategia vigente se apoya en dumps lógicos portables con compresión, cifrado, checksum, copia externa y prueba de restore aislado; Media (Buckets) se gestiona de manera completamente independiente con su propio inventario y copia externa. Esta corrección no muta entornos ni dependencias.
 
 - Fase 7G.1C reconcilia el P0 de backup/restore con la documentación oficial
@@ -307,6 +309,8 @@ El primer candidato MVP continúa pendiente de revisión humana, commit de prepa
 ## 0.1.0-rc.1 — pendiente de publicación
 
 ### Added
+
+- **RESTORE DRILL 7G.1D:** PASS técnico obtenido en el restore lógico aislado de la MariaDB de staging. Se valida el uso de un dump lógico (con checksum SHA-256) restaurado sobre una base de datos efímera y comprobado estructuralmente, obteniendo un RTO de pared de 5 minutos 27 segundos. Se cierra el P0 de recuperación MariaDB para el entorno de staging sin modificar infraestructura ni usar snapshots nativos. Producción y media se mantienen como gates productivos pendientes.
 
 - **CORRECCIÓN FORWARD-ONLY 7G.1C:** Se verifica operativamente en el workspace que Railway Hobby restringe los backups nativos y PITR al plan Pro (`maxBackupsCount = 0`). La documentación se corrige para desestimar cualquier expectativa de "snapshot nativo" predeploy. La estrategia vigente se apoya en dumps lógicos portables con compresión, cifrado, checksum, copia externa y prueba de restore aislado; Media (Buckets) se gestiona de manera completamente independiente con su propio inventario y copia externa. Esta corrección no muta entornos ni dependencias.
 

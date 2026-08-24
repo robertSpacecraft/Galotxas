@@ -14,7 +14,7 @@ release.
 el P0 de correo/password-reset queda pendiente sólo de la infraestructura de
 producción (dominio/secret/smoke test).**
 
-**7G.1C ha reconciliado la estrategia forward-only con la ausencia comprobada de backups nativos en Hobby. El P0 de recuperación no está cerrado: falta validar el mecanismo de dump lógico/media y el restore aislado (7G.1D).**
+**El P0 de capacidad de recuperación de MariaDB está cerrado para staging tras el PASS operativo de 7G.1D (restore lógico aislado verificado en 5 min 27 s). Producción y media siguen pendientes de su propio gate predeploy.**
 
 Son prerrequisitos inmediatos todavía pendientes:
 
@@ -103,7 +103,7 @@ commit candidato sin omisiones, fallos, skips nuevos o residuos.
 | Smoke global anterior a 7F.2 | Caducado para el baseline ampliado | Repetir después de aceptar Copa. |
 | Validación local de Copa: 557 backend, 659 frontend y 68 E2E | Vigente como evidencia local del bloque | No sustituye staging; repetir sólo como parte de la regresión automática final del candidato. |
 | DNS, TLS, DB, media, CMS y correo de staging | No acredita producción | Obtener evidencia propia del entorno productivo. |
-| Backup, restore y rollback de staging | No ejecutados; la estrategia 7G.1C sólo es documental | Ejecutar el drill aislado y el rehearsal antes del Go. |
+| Backup, restore y rollback de staging | Restore lógico aislado verificado en 7G.1D (PASS, RTO: 5 min 27 s) | Rollback rehearsal pendiente antes del Go productivo. |
 | Cualquier resultado basado en fixtures o `E2ESmokeSeeder` | Válido sólo para test/E2E | No promover datos, cuentas ni credenciales a producción. |
 
 ## 3. Baseline reconciliado
@@ -119,7 +119,7 @@ commit candidato sin omisiones, fallos, skips nuevos o residuos.
 | Contacto | Persistencia/formulario/notificación implementados y fail-closed | El formulario y su notificación pueden permanecer cerrados; el canal institucional publicado debe ser válido. |
 | Auth y recuperación de contraseña | Implementados | Entrega de correo real extremo a extremo bajo el contrato MVP vigente. |
 | Railway, Vercel, MariaDB, dominios, CORS, headers y health | Acreditados en staging | Recursos, secretos, migraciones y smoke propios de producción. |
-| Backup, restore y rollback | Estrategia en capas auditada y runbook reconciliado; ensayos no ejecutados | Restore lógico aislado, RTO observado y rollback rehearsal antes del Go productivo. |
+| Backup, restore y rollback | Restore lógico aislado verificado (7G.1D); media no validado | Rollback rehearsal y prueba final en producción antes del Go. |
 | Admin bootstrap, logs y observabilidad mínima | Capacidad preparada | Ejecutar bootstrap seguro, asignar responsable y acreditar revisión/alerta mínima. |
 
 ## 4. Matriz staging frente a producción
@@ -165,7 +165,7 @@ y después del cambio. La primera producción usa el perfil fail-closed.
 | Restricción | Clasificación | Consecuencia y tratamiento admitido |
 |---|---|---|
 | Railway Hobby bloquea SMTP saliente | Bloqueante del correo requerido por auth; las features con flag pueden permanecer apagadas | 7G.1B validó Resend HTTPS extremo a extremo en staging con éxito. Antes del Go deben verificarse dominios productivos, cargar keys y probar el reset final. Apagar Contacto/School/identidad no resuelve el reset. |
-| Railway limita los backups nativos de volúmenes y PITR exclusivamente al plan Pro (`maxBackupsCount = 0` comprobado en este workspace) | Corrige la premisa documental errónea; evita un upgrade innecesario a Pro y no cierra el P0 | El MVP se apoya 100% en mecanismos externos: dump lógico cifrado portátil, copia independiente de media y restore comprobado. Mientras no se complete 7G.1D, recuperación sigue siendo P0. |
+| Railway limita los backups nativos de volúmenes y PITR exclusivamente al plan Pro (`maxBackupsCount = 0` comprobado en este workspace) | Corrige la premisa documental errónea; evita un upgrade innecesario a Pro y derivó en el PASS 7G.1D | El MVP se apoya 100% en mecanismos externos. Staging cerró su P0 de DB con RTO 5 min 27 s. Producción y media continúan pendientes de su propio gate predeploy. |
 | Monitor externo persistente ausente | Gate operativo manual; la ausencia de un SaaS concreto no es por sí sola P0 | Sí bloquea el Go carecer de responsable, revisión de `/up`/plataforma/DB/backups y canal de escalado mínimo. Automatización adicional puede quedar post-MVP. |
 | Scheduler no desplegado | Capacidad que puede permanecer desactivada | Las purgas se operan manualmente con dry-run y evidencia hasta un bloque posterior. |
 
@@ -222,7 +222,7 @@ ni modificado Railway de producción. Por ello el P0 no se
 cierra: la validación real en staging fue exitosa, falta repetir el proceso en el entorno productivo con secret y dominio finales, y, después,
 el smoke productivo de su gate correspondiente.
 
-### 6.3 Estado de la auditoría de recuperación 7G.1C
+### 6.3 Estado de la recuperación (7G.1C / 7G.1D)
 
 **CORRECCIÓN OPERATIVA 2026-08-24:** Aunque la documentación pública de Railway era ambigua, la verificación efectiva en este workspace Hobby demuestra que `maxBackupsCount = 0`. La interfaz indica: *“Backups and point-in-time recovery (PITR) are only available for customers on the Pro plan.”* Por lo tanto, en el entorno actual NO hay backup nativo ni manual, NO hay PITR y NO se puede exigir un snapshot nativo predeploy.
 
@@ -241,7 +241,7 @@ como objetivos (no SLA, pendientes de medición): RPO 24 h, RTO 4 h para núcleo
 controlado y 8 h para reabrir escrituras, retención lógica de 30 diarios y 3 mensuales,
 y retención de media mínimo 30 días, con responsable y suplente.
 
-7G.1C auditó la documentación, corrigió la estrategia y preparó el gate 7G.1D ("restore lógico aislado validado en staging"). El P0 continúa abierto hasta demostrar el restore aislado, medir RTO y preparar el mecanismo productivo.
+7G.1D completó el "restore lógico aislado validado en staging" con resultado PASS. El ensayo generó un dump lógico consistente (SHA-256: 84243b3be0efdc557fb93ecf1bc4565331492c3470f57269767ca33e1a314f5a), restauró en una DB Docker efímera y aislada, superó las verificaciones estructurales (conteos, migraciones, foreign keys) y validó un RTO de 5 min 27 s (cumpliendo el objetivo read-only de 4h). El P0 de capacidad de recuperación MariaDB se declara CERRADO para staging. Producción sigue pendiente de su propio gate predeploy (dump cifrado, copia separada) y el recovery de media sigue siendo un requisito pendiente e independiente. El RTO para reapertura de escrituras (8 h) no se acreditó en este drill.
 
 ## 7. Regresión global final de 7F.2 preparada
 
@@ -395,7 +395,7 @@ La subdivisión siguiente formaliza el orden operativo sin cambiar el alcance de
 - [ ] Suites completas verdes sobre el hash exacto.
 - [ ] Árbol limpio y `develop`, `origin/develop` y candidato reconciliados.
 - [ ] Migraciones identificadas, ensayadas y orden de aplicación aprobado.
-- [ ] Backup válido, copia separada, restore aislado y RTO observado.
+- [ ] Producción: dump lógico cifrado pre-migración, media verificado, rollback forward-fix definido.
 - [ ] Rollback de frontend/backend/esquema disponible y ensayado.
 - [ ] Bootstrap del administrador seguro, idempotente y sin credenciales demo.
 - [ ] Recursos, dominios, TLS, CORS, sesiones, headers y health productivos.
