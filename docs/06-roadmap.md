@@ -145,7 +145,7 @@ auditoría 7A amplía el criterio desde “candidato técnico” a “aplicació
 y funcionalmente completa”: el MVP completo **todavía no está completado**.
 
 Permanecen P0 el correo saliente necesario para recuperar contraseñas, la
-aceptación de Copa y la regresión integrada 7F.2, los gates productivos de
+regresión global integrada 7G.2, los gates productivos de
 contenido, imágenes, privacidad y operación, el despliegue
 Railway/Vercel/MariaDB y la validación de recorridos críticos. Contacto,
 inscripción School, identidad de menores y scheduler pueden iniciar cerrados;
@@ -188,7 +188,7 @@ React de reprogramación continúa como P1 y no bloquea por sí misma el MVP.
 - generación de liga, copa, final y tercer puesto;
 - flujo completo de Copa con stages explícitos, resultados compartidos,
   cuadro público y campeón derivado del ganador oficial de la Final
-  (CUP-FLOW-1, pendiente de aceptación en staging);
+  (CUP-FLOW-1, aceptación humana completada en staging);
 - gestión Blade de pistas y seeder explícito no destructivo (VENUE-1);
 - generación reproducible con pistas configuradas, capacidad controlada y rollback atómico (SCHEDULE-1);
 - rankings de categoría, campeonato, temporada e histórico;
