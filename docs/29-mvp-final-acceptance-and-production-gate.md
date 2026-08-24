@@ -18,7 +18,7 @@ producción (dominio/secret/smoke test).**
 
 Son prerrequisitos inmediatos todavía pendientes:
 
-1. aceptar humanamente el flujo completo de Copa en staging;
+1. (CERRADO) aceptar humanamente el flujo completo de Copa en staging;
 2. ejecutar después la regresión global final de 7F.2 sobre el baseline
    integrado.
 
@@ -52,7 +52,7 @@ runbooks operativos ni reescribir la historia del candidato antiguo.
 
 ### 2.1 Prerrequisitos obligatorios para producción y cierre
 
-- Copa aceptada en staging sobre el código actualmente candidato.
+- [x] Copa aceptada en staging sobre el código actualmente candidato.
 - Regresión global final de 7F.2 y aceptación humana del baseline integrado.
 - Commit candidato único identificado, árbol limpio y `develop` reconciliada
   con `origin/develop`.
@@ -111,7 +111,7 @@ commit candidato sin omisiones, fallos, skips nuevos o residuos.
 | Área | Estado real | Gate restante |
 |---|---|---|
 | Navegación, rankings, Liga, resultados, conflictos, standings y visibilidad | Cerrado; requiere regresión integrada | Smoke global final de 7F.2. |
-| Copa y vista dedicada | Implementada y validada localmente | Aceptación humana en staging; después, regresión global. |
+| Copa y vista dedicada | Aceptación humana completada en staging (flujo completo verificado) | Pendiente de regresión global final (7G.2). |
 | CMS, navegación CMS, Noticias, Knowledge, Club y Legal | Cerrado en sus bloques | Regresión integrada, contenido real y aprobación humana de lo publicado. |
 | Bucket y núcleo multimedia, Sponsors, avatar y portadas de Noticias | Cerrado en staging | Configuración y probe propios de producción; derechos de imágenes reales. |
 | Escuela de lectura | Implementada | Programa, niveles, horarios, ubicación y contacto reales revisados en producción. |
@@ -126,7 +126,7 @@ commit candidato sin omisiones, fallos, skips nuevos o residuos.
 
 | Gate | Staging | Producción | ¿Bloquea 7G? | Evidencia exigida |
 |---|---|---|---|---|
-| Copa | Escritura y aceptación humana completas | Sólo lectura/smoke no destructivo | Sí, antes de 7G.2 | Acta del recorrido y ausencia de regresión. |
+| Copa | Escritura y aceptación humana completadas en staging | Sólo lectura/smoke no destructivo | Sí, antes de 7G.2 | Acta del recorrido y ausencia de regresión. |
 | Regresión global 7F.2 | Obligatoria tras Copa | No se ejecuta la suite E2E contra producción | Sí | Suites del candidato y checklist de recorridos firmado. |
 | Configuración | `deploy:check`, aislamiento y flags cerradas | Preflight con URLs, CORS, secretos y recursos propios | Sí | Salidas saneadas de ambos preflights. |
 | Migraciones | Estado y migraciones ensayados | `migrate:status`, backup previo y `migrate --force` manual | Sí | Lista prevista, salida antes/después y decisor. |
@@ -329,6 +329,8 @@ La subdivisión siguiente formaliza el orden operativo sin cambiar el alcance de
 - **Responsable:** producto, QA, privacidad y operación.
 
 ### 7G.3 — Auditoría de configuración productiva
+
+*ESTADO ACTUAL: Auditoría preparatoria realizada (NO-GO). La fase 7G.3 formal sigue ABIERTA porque 7G.2 (regresión global) aún no está cerrada formalmente y quedan gates productivos pendientes.*
 
 - **Entrada:** 7G.2 verde; recursos productivos creados pero sin tráfico real.
 - **Acciones:** revisar secretos, URLs, CORS, DB, migraciones, media, correo,

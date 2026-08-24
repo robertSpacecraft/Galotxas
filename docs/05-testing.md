@@ -1780,7 +1780,7 @@ su integración sin repetir innecesariamente las escrituras ya acreditadas.
 `29-mvp-final-acceptance-and-production-gate.md` distingue:
 
 - aceptación específica vigente de 7F.2A–7F.2F;
-- aceptación de Copa y regresión global 7F.2 todavía pendientes;
+- aceptación humana de Copa superada; regresión global 7F.2 todavía pendiente;
 - suites completas que deben repetirse sobre el hash candidato;
 - smoke integrado de staging y smoke productivo no destructivo;
 - evidencias propias de configuración, migraciones, media, correo,
@@ -1859,6 +1859,23 @@ Ejecutado y validado el 2026-08-24 como prueba operativa sin alterar el entorno 
 - **Comparación:** Migraciones, conteos, foreign keys y checksum de tablas idénticos.
 - **RTO observado:** 5 minutos 27 segundos hasta la validación aplicativa (cumple objetivo read-only de 4h).
 - **Aislamiento:** Railway no se modificó, los secrets no se expusieron, y los recursos temporales fueron destruidos.
+
+## PRE-PRODUCTION-AUDIT-2 — Auditoría preparatoria de configuración 7G.3
+
+Ejecutada operativamente y documentada el 2026-08-24.
+
+**Evidencia validada:**
+- **Railway Production:** Proyecto `Galotxas Production` existe. `mariadb-production` (11.4) pre-provisionada exitosamente. `backend-production` existe, pero con 0 deployments.
+- **Vercel Production:** Proyecto `galotxas` PENDIENTE ESPERADO / NO CREADO.
+- **APP_KEY:** Corregida operativamente en Railway a una clave Laravel válida (formato base64, adecuada para AES-256) sin efectuar deployment. Pendiente de validación runtime mediante preflight tras el primer deployment.
+- **Variables productivas:**
+  - `APP_FAKER_LOCALE` ausente (no bloqueante, dev-only).
+  - `SESSION_DOMAIN` ausente (fallback host-only válido para admin bajo api).
+  - `CONTACT_NOTIFICATION_MAILER` ausente (fallback al mailer global válido).
+  - `MEDIA_*` configuradas en Railway pero faltan en `.env.production.example` (P1).
+
+**Resultado:** NO-GO. La auditoría 7G.3 se considera preparatoria y permanece **abierta**, ya que la regresión global 7G.2 todavía está pendiente y faltan deployments reales, DNS y domains.
+
 
 El P0 de capacidad de recuperación MariaDB queda **cerrado para staging**. Producción sigue pendiente de su propio gate predeploy, y la recuperación de media (Bucket) requiere verificación independiente.
 

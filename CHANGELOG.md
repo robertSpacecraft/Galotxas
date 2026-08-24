@@ -6,6 +6,10 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- **AUDITORÍA PREPARATORIA 7G.3:** Se realizó la verificación de pre-producción (NO-GO, permanece abierta). Se constató la creación de la infraestructura backend en Railway (`mariadb-production` activa, `backend-production` pre-provisionada sin despliegues). Se corrigió operativamente la `APP_KEY` a una clave Laravel válida (formato base64, adecuada para AES-256) sin efectuar deployment. El proyecto Vercel productivo permanece PENDIENTE ESPERADO / NO CREADO.
+- **COPA STAGING PASS:** Aceptación humana completa y exitosa del flujo y visualización de Copa en el entorno de staging. Se documentan dos mejoras UX de Copa como P1 post-MVP (no bloqueantes). Queda pendiente la regresión global final 7G.2.
+
+
 - **RESTORE DRILL 7G.1D:** PASS técnico obtenido en el restore lógico aislado de la MariaDB de staging. Se valida el uso de un dump lógico (con checksum SHA-256) restaurado sobre una base de datos efímera y comprobado estructuralmente, obteniendo un RTO de pared de 5 minutos 27 segundos. Se cierra el P0 de recuperación MariaDB para el entorno de staging sin modificar infraestructura ni usar snapshots nativos. Producción y media se mantienen como gates productivos pendientes.
 
 - **CORRECCIÓN FORWARD-ONLY 7G.1C:** Se verifica operativamente en el workspace que Railway Hobby restringe los backups nativos y PITR al plan Pro (`maxBackupsCount = 0`). La documentación se corrige para desestimar cualquier expectativa de "snapshot nativo" predeploy. La estrategia vigente se apoya en dumps lógicos portables con compresión, cifrado, checksum, copia externa y prueba de restore aislado; Media (Buckets) se gestiona de manera completamente independiente con su propio inventario y copia externa. Esta corrección no muta entornos ni dependencias.
@@ -309,6 +313,10 @@ El primer candidato MVP continúa pendiente de revisión humana, commit de prepa
 ## 0.1.0-rc.1 — pendiente de publicación
 
 ### Added
+
+- **AUDITORÍA PREPARATORIA 7G.3:** Se realizó la verificación de pre-producción (NO-GO, permanece abierta). Se constató la creación de la infraestructura backend en Railway (`mariadb-production` activa, `backend-production` pre-provisionada sin despliegues). Se corrigió operativamente la `APP_KEY` a una clave Laravel válida (formato base64, adecuada para AES-256) sin efectuar deployment. El proyecto Vercel productivo permanece PENDIENTE ESPERADO / NO CREADO.
+- **COPA STAGING PASS:** Aceptación humana completa y exitosa del flujo y visualización de Copa en el entorno de staging. Se documentan dos mejoras UX de Copa como P1 post-MVP (no bloqueantes). Queda pendiente la regresión global final 7G.2.
+
 
 - **RESTORE DRILL 7G.1D:** PASS técnico obtenido en el restore lógico aislado de la MariaDB de staging. Se valida el uso de un dump lógico (con checksum SHA-256) restaurado sobre una base de datos efímera y comprobado estructuralmente, obteniendo un RTO de pared de 5 minutos 27 segundos. Se cierra el P0 de recuperación MariaDB para el entorno de staging sin modificar infraestructura ni usar snapshots nativos. Producción y media se mantienen como gates productivos pendientes.
 

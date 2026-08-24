@@ -85,8 +85,8 @@ Prohibiciones comunes:
 | Área | Situación actual tras ejecución parcial 7F | Gate manual pendiente |
 |---|---|---|
 | URL frontend/API | Dominios de staging activos y validados con TLS | Asignar dominios de producción y comprobar TLS |
-| Vercel | Proyecto `galotxas-staging` vinculado y desplegado | Crear proyecto producción |
-| Railway | Servicios backend y MariaDB activos para staging | Crear servicios de producción |
+| Vercel | Proyecto `galotxas-staging` vinculado y desplegado | PENDIENTE ESPERADO / NO CREADO |
+| Railway | Servicios backend y MariaDB activos para staging | `backend-production` (0 deploys) y `mariadb-production` (11.4, SUCCESS) pre-provisionados |
 | MariaDB | DB de staging operativa, migraciones completadas | Crear DB producción, activar política en capas y acreditar restore aislado |
 | CORS | Origen exacto, sin patrones, wildcard o cookies CORS | Cargar el origen real de cada entorno |
 | Auth | Sanctum Bearer existente; contratos 401/403/419 intactos | Smoke HTTPS de registro/login/logout/reset |
@@ -843,7 +843,8 @@ La aceptación humana de staging queda completada. Staging ha quedado devuelto a
 
 Orden manual:
 
-1. crear Vercel, Railway backend y MariaDB sin conectar todavía el dominio;
+1. crear Vercel (pendiente), Railway backend (creado, 0 deploys) y MariaDB (creada 11.4) sin conectar todavía el dominio;
+   *Nota 7G.3: `APP_KEY` de producción ha sido corregida operativamente a una clave Laravel válida (formato base64, adecuada para AES-256) sin deployment. Estado: RESUELTA a nivel de configuración/formato; pendiente de validación runtime mediante preflight tras el primer deployment. `APP_FAKER_LOCALE` ausente (no bloqueante). `SESSION_DOMAIN` ausente (fallback host-only). `CONTACT_NOTIFICATION_MAILER` ausente (fallback global). Variables `MEDIA_*` configuradas en Railway pero P1 de documentar en `.env.production.example`.*
 2. cargar variables/secrets con todos los interruptores cerrados;
 3. ejecutar preflight y construir artefactos; aceptar antes de migrar sólo el
    bloqueo backend esperado por esquema pendiente;

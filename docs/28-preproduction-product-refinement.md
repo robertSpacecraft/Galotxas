@@ -114,6 +114,11 @@ Las siguientes capacidades pasan a formar parte de los requisitos preproducción
 - **Backend**: semifinal, Final y tercer puesto registran `phase=cup` y stages explícitos; Final/3.º-4.º exigen exactamente dos semifinales validadas, con tanteos completos y sin empate, conservan los emparejamientos correctos y nacen sin programación manual inventada.
 - **API**: el schedule existente publica fases, stages y `winner_entry` oficial allowlisted, con orden estable, tanteos sólo validados, precarga de relaciones y ausencia de trazabilidad privada. No se crea endpoint nuevo.
 - **Frontend**: `/categories/{id}/schedule` queda reservado a Liga y la nueva ruta diferida `/categories/{id}/cup` presenta semifinales, estados pendientes, Final, tercer puesto y campeón desde `winner_entry`. La navegación local ofrece Resumen, Clasificación, Calendario y resultados y Copa; un stage desconocido o una Copa legada sin `phase/stage` se omite de forma cerrada. No se calcula el ganador en React.
+
+### Mejoras UX de Copa (P1 No Bloqueantes)
+- **P1-UX-COPA-1 (Resumen final de categoría)**: Mostrar podio de Liga y campeón/subcampeón de Copa en la vista de Resumen cuando una categoría haya concluido. Pendiente de definir semántica y acción administrativa para "Finalizar campeonato".
+- **P1-UX-COPA-2 (Presentación del campeón)**: En `/categories/{id}/cup`, mejorar la jerarquía visual del bloque del campeón para que no parezca un botón interactivo y adquiera semántica de resultado final, sin romper accesibilidad.
+
 - **Regresión**: pruebas backend, contrato/frontend y un E2E aislado cubren Liga completa, ambos workflows de semifinal, resolución Blade, generación, programación, resultados, navegación por teclado, enlace al partido, campeón y 320 px con cleanup. El gate local refinado completa 557 tests backend y 4.314 aserciones, 659 tests frontend y 68 escenarios Chromium.
 - La inclusión de partidos de Copa en rankings agregados de campeonato, temporada e histórico es el contrato aprobado; el ranking de categoría y Mi Panel permanecen limitados a Liga. No existe bonus por semifinal, Final, tercer puesto o campeón.
 
@@ -137,7 +142,7 @@ El ciclo de desarrollo deberá seguir la pauta:
 `desarrollo → tests dirigidos → regresión completa → staging → smoke → beta/pruebas manuales → aceptación del nuevo baseline → producción`.
 
 ## 9. Relación con 7F Producción y 7G
-El despliegue en Producción (7F) queda **suspendido** hasta la compleción y validación estricta de toda la Fase 7F.2 en Staging. 7F.2A, 7F.2B y 7F.2C ya se cerraron allí; 7F.2D está aceptada completamente en staging y cerrada; 7F.2E y 7F.2F están cerradas y aceptadas en staging. El cierre del gap de Copa debe superar staging. El cierre del MVP (7G) ocurrirá posteriormente. La deuda técnica de post-MVP descrita en el roadmap (p. ej. aplicación móvil, pasarela de pago, migración auth) sigue fuera del alcance.
+El despliegue en Producción (7F) queda **suspendido** hasta la compleción y validación estricta de toda la Fase 7F.2 en Staging. 7F.2A, 7F.2B y 7F.2C ya se cerraron allí; 7F.2D está aceptada completamente en staging y cerrada; 7F.2E y 7F.2F están cerradas y aceptadas en staging. El cierre del gap de Copa ha superado la aceptación humana completa en staging. El cierre del MVP (7G) ocurrirá posteriormente. La deuda técnica de post-MVP descrita en el roadmap (p. ej. aplicación móvil, pasarela de pago, migración auth) sigue fuera del alcance.
 
 ## 10. Checklist observable
 - [x] 7F.2A implementado y validado automáticamente en `develop`.
@@ -155,7 +160,7 @@ El despliegue en Producción (7F) queda **suspendido** hasta la compleción y va
 - [x] 7F.2F migración, smoke, redeploy y aceptación humana en staging.
 - [x] Gap de Copa implementado y validado localmente de extremo a extremo.
 - [x] Copa separada en vista pública propia y contrato de rankings reforzado localmente.
-- [ ] Flujo de Copa aceptado manualmente en staging.
+- [x] Flujo de Copa aceptado manualmente en staging.
 - [ ] Regresión global final de 7F.2 y aceptación humana del baseline integrado
       superadas después de aceptar Copa.
 
