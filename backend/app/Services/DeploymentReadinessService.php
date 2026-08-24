@@ -114,7 +114,7 @@ class DeploymentReadinessService
             'El disco debe ser local y storage/bootstrap/cache deben ser escribibles.'
         );
 
-        $this->checkFeatureFlags($checks, $allowLiveFeatures);
+        $this->checkFeatureFlags($checks, $allowLiveFeatures, $isProduction);
 
         return $checks;
     }
@@ -203,8 +203,11 @@ class DeploymentReadinessService
     }
 
     /** @param list<array{name: string, passed: bool, detail: string}> $checks */
-    private function checkFeatureFlags(array &$checks, bool $allowLiveFeatures): void
-    {
+    private function checkFeatureFlags(
+        array &$checks,
+        bool $allowLiveFeatures,
+        bool $isProduction
+    ): void {
         $contactEnabled = (bool) config('contact.form_enabled');
         $contactNotificationEnabled = (bool) config('contact.notification.enabled');
         $schoolEnabled = (bool) config('school.enrollment_enabled');
@@ -240,9 +243,10 @@ class DeploymentReadinessService
             'Debe permanecer apagado hasta desplegar y validar una ejecución separada.'
         );
 
-        if ($contactNotificationEnabled || $identityNotificationEnabled) {
-            $this->checkMail($checks);
-        }
+        $this->checkMail(
+            $checks,
+            $isProduction || $contactNotificationEnabled || $identityNotificationEnabled
+        );
     }
 
     /** @param list<array{name: string, passed: bool, detail: string}> $checks */
@@ -306,28 +310,31 @@ class DeploymentReadinessService
     }
 
     /** @param list<array{name: string, passed: bool, detail: string}> $checks */
-    private function checkMail(array &$checks): void
+    private function checkMail(array &$checks, bool $realMailRequired): void
     {
-        $smtp = config('mail.mailers.smtp');
-        $password = is_array($smtp) ? trim((string) ($smtp['password'] ?? '')) : '';
-        $username = is_array($smtp) ? trim((string) ($smtp['username'] ?? '')) : '';
+        $mailer = (string) config('mail.default');
+        $resend = config('mail.mailers.resend');
+        $resendKey = trim((string) config('services.resend.key'));
+        $fromAddress = trim((string) config('mail.from.address'));
+        $fromName = trim((string) config('mail.from.name'));
 
-        $valid = config('mail.default') === 'smtp'
-            && is_array($smtp)
-            && ($smtp['host'] ?? null) === 'smtp.dondominio.com'
-            && (int) ($smtp['port'] ?? 0) === 587
-            && ($smtp['scheme'] ?? null) === 'smtp'
-            && $username !== ''
-            && $password !== ''
-            && config('mail.from.address') === 'notificaciones@galotxesmonover.es'
-            && config('contact.notification.to') === 'info@galotxesmonover.es'
-            && config('contact.notification.reply_to_mode') === 'requester';
+        $valid = ! $realMailRequired && $mailer === 'array';
+
+        if ($mailer === 'resend') {
+            $valid = is_array($resend)
+                && ($resend['transport'] ?? null) === 'resend'
+                && $resendKey !== ''
+                && filter_var($fromAddress, FILTER_VALIDATE_EMAIL) !== false
+                && $fromName !== '';
+        }
 
         $this->add(
             $checks,
             'Correo saliente',
             $valid,
-            'SMTP debe estar completo y ajustado al contrato DonDominio aprobado.'
+            $realMailRequired
+                ? 'Resend debe disponer de API key, remitente y nombre configurados.'
+                : 'Staging seguro debe usar array, o Resend completo durante su gate controlado.'
         );
     }
 

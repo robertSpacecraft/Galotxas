@@ -2,24 +2,25 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Concerns\ApiResponse;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\CreateMyPlayerProfileRequest;
+use App\Http\Requests\Api\ForgotPasswordRequest;
+use App\Http\Requests\Api\RegisterUserRequest;
+use App\Http\Requests\Api\ResetPasswordRequest;
 use App\Http\Requests\Api\UpdateMyPlayerProfileRequest;
 use App\Http\Resources\MeResource;
 use App\Http\Resources\PlayerProfileResource;
+use App\Models\Player;
+use App\Models\User;
+use App\Services\PasswordResetLinkService;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use App\Enums\UserRole;
-use App\Http\Requests\Api\RegisterUserRequest;
-use App\Models\User;
-use App\Http\Requests\Api\CreateMyPlayerProfileRequest;
-use App\Models\Player;
-use Illuminate\Support\Str;
-use App\Http\Requests\Api\ForgotPasswordRequest;
-use App\Http\Requests\Api\ResetPasswordRequest;
-use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -63,16 +64,16 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $user = \App\Models\User::query()
+        $user = User::query()
             ->with('player.user')
             ->where('email', $validated['email'])
             ->first();
 
-        if (!$user || !Hash::check($validated['password'], $user->password)) {
+        if (! $user || ! Hash::check($validated['password'], $user->password)) {
             return $this->errorResponse('Credenciales incorrectas.', [], 401);
         }
 
-        if (!$user->active) {
+        if (! $user->active) {
             return $this->errorResponse('El usuario está inactivo.', [], 403);
         }
 
@@ -112,7 +113,7 @@ class AuthController extends Controller
     {
         $user = $request->user()->load('player.user');
 
-        if (!$user->player) {
+        if (! $user->player) {
             return $this->errorResponse('El usuario autenticado no tiene un perfil de jugador asociado.');
         }
 
@@ -167,7 +168,7 @@ class AuthController extends Controller
     ): JsonResponse {
         $user = $request->user()->load('player.user');
 
-        if (!$user->player) {
+        if (! $user->player) {
             return $this->errorResponse('El usuario autenticado no tiene un perfil de jugador asociado.');
         }
 
@@ -187,11 +188,11 @@ class AuthController extends Controller
         );
     }
 
-    public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
-    {
-        Password::sendResetLink([
-            'email' => $request->validated('email'),
-        ]);
+    public function forgotPassword(
+        ForgotPasswordRequest $request,
+        PasswordResetLinkService $passwordResetLinks
+    ): JsonResponse {
+        $passwordResetLinks->send($request->validated('email'));
 
         return $this->successResponse(
             null,
@@ -231,11 +232,11 @@ class AuthController extends Controller
 
     private function resolvePlayerSlugBase(?string $nickname, User $user): string
     {
-        if (!empty($nickname)) {
+        if (! empty($nickname)) {
             return $nickname;
         }
 
-        $fullName = trim(($user->name ?? '') . ' ' . ($user->lastname ?? ''));
+        $fullName = trim(($user->name ?? '').' '.($user->lastname ?? ''));
 
         if ($fullName !== '') {
             return $fullName;
@@ -256,11 +257,11 @@ class AuthController extends Controller
         $counter = 1;
 
         while (
-        Player::when($ignorePlayerId, fn ($query) => $query->where('id', '!=', $ignorePlayerId))
-            ->where('slug', $slug)
-            ->exists()
+            Player::when($ignorePlayerId, fn ($query) => $query->where('id', '!=', $ignorePlayerId))
+                ->where('slug', $slug)
+                ->exists()
         ) {
-            $slug = $originalSlug . '-' . $counter;
+            $slug = $originalSlug.'-'.$counter;
             $counter++;
         }
 

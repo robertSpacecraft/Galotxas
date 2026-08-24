@@ -3,7 +3,9 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Mail\Transport\ResendTransport;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class ProductionReadinessTest extends TestCase
@@ -59,8 +61,20 @@ class ProductionReadinessTest extends TestCase
 
         $this->assertSame(0, $exitCode, $output);
         $this->assertStringContainsString('Preflight backend válido', $output);
+        $this->assertStringContainsString('Correo saliente', $output);
         $this->assertStringNotContainsString((string) config('app.key'), $output);
         $this->assertStringNotContainsString('database-secret', $output);
+        $this->assertStringNotContainsString('re_test_deployment_secret', $output);
+    }
+
+    public function test_resend_transport_is_loadable_without_sending_a_real_message(): void
+    {
+        config()->set('services.resend.key', 're_test_transport_secret');
+        Mail::forgetMailers();
+
+        $transport = Mail::mailer('resend')->getSymfonyTransport();
+
+        $this->assertInstanceOf(ResendTransport::class, $transport);
     }
 
     public function test_deploy_check_fails_closed_for_unsafe_urls_debug_cors_or_flags(): void
@@ -79,7 +93,61 @@ class ProductionReadinessTest extends TestCase
         $this->assertStringContainsString('Preflight bloqueado', $output);
     }
 
-    public function test_deploy_check_requires_complete_mail_only_when_notifications_are_active(): void
+    public function test_deploy_check_accepts_array_as_the_safe_staging_mail_baseline(): void
+    {
+        $this->configureValidStaging();
+
+        $exitCode = Artisan::call('deploy:check');
+        $output = Artisan::output();
+
+        $this->assertSame(0, $exitCode, $output);
+        $this->assertStringContainsString('Correo saliente', $output);
+        $this->assertStringContainsString('Preflight backend válido', $output);
+    }
+
+    public function test_deploy_check_rejects_log_as_the_staging_mail_baseline(): void
+    {
+        $this->configureValidStaging();
+        config()->set('mail.default', 'log');
+
+        $exitCode = Artisan::call('deploy:check');
+
+        $this->assertSame(1, $exitCode);
+        $this->assertStringContainsString('Correo saliente', Artisan::output());
+    }
+
+    public function test_deploy_check_requires_a_complete_resend_gate_in_staging(): void
+    {
+        $this->configureValidStaging();
+        config()->set('mail.default', 'resend');
+
+        $exitCode = Artisan::call('deploy:check');
+
+        $this->assertSame(1, $exitCode);
+        $this->assertStringContainsString('Correo saliente', Artisan::output());
+
+        config()->set('services.resend.key', 're_test_staging_secret');
+        config()->set('mail.from.address', 'staging@galotxesmonover.es');
+
+        $exitCode = Artisan::call('deploy:check');
+        $output = Artisan::output();
+
+        $this->assertSame(0, $exitCode, $output);
+        $this->assertStringNotContainsString('re_test_staging_secret', $output);
+    }
+
+    public function test_deploy_check_requires_resend_in_production_with_closed_optional_features(): void
+    {
+        $this->configureValidProduction();
+        config()->set('mail.default', 'array');
+
+        $exitCode = Artisan::call('deploy:check');
+
+        $this->assertSame(1, $exitCode);
+        $this->assertStringContainsString('Correo saliente', Artisan::output());
+    }
+
+    public function test_deploy_check_keeps_live_feature_dependencies_fail_closed(): void
     {
         $this->configureValidProduction();
         config()->set('public_identity.authorization_enabled', true);
@@ -90,7 +158,7 @@ class ProductionReadinessTest extends TestCase
         $this->assertStringContainsString('Flujo de identidad de menores', Artisan::output());
 
         config()->set('public_identity.notification_enabled', true);
-        config()->set('mail.default', 'log');
+        config()->set('services.resend.key', '');
 
         $exitCode = Artisan::call('deploy:check', ['--allow-live-features' => true]);
 
@@ -155,5 +223,23 @@ class ProductionReadinessTest extends TestCase
         config()->set('public_identity.authorization_enabled', false);
         config()->set('public_identity.notification_enabled', false);
         config()->set('deployment.scheduler_enabled', false);
+        config()->set('mail.default', 'resend');
+        config()->set('services.resend.key', 're_test_deployment_secret');
+        config()->set('mail.from.address', 'notificaciones@galotxesmonover.es');
+        config()->set('mail.from.name', 'Club Galotxes Monòver');
+    }
+
+    private function configureValidStaging(): void
+    {
+        $this->configureValidProduction();
+
+        config()->set('app.env', 'staging');
+        config()->set('app.url', 'https://api-staging.galotxesmonover.es');
+        config()->set('app.frontend_url', 'https://staging.galotxesmonover.es');
+        config()->set('cors.allowed_origins', ['https://staging.galotxesmonover.es']);
+        config()->set('mail.default', 'array');
+        config()->set('services.resend.key', '');
+        config()->set('mail.from.address', 'no-reply@staging.invalid');
+        config()->set('mail.from.name', 'Club Galotxes Monòver (staging)');
     }
 }
