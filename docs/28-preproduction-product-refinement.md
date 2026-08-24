@@ -13,8 +13,7 @@ Tras validar exhaustivamente el baseline en staging, han surgido necesidades de 
 
 Seguimiento 7G.1C (2026-08-24): la segunda restricción conserva valor como
 fotografía de la premisa operativa de entonces, pero ya no es el contrato
-vigente. Railway documenta actualmente backups manuales y programados de
-volúmenes sin reservarlos a Pro. El P0 no se cierra: falta el restore lógico
+vigente. La verificación operativa demuestra que Railway restringe backups nativos y PITR al plan Pro. El P0 no se cierra: falta el restore lógico
 aislado, el rollback rehearsal y la copia independiente de media definida en
 el runbook 27.
 

@@ -14,9 +14,7 @@ release.
 el P0 de correo/password-reset queda pendiente sólo de la infraestructura de
 producción (dominio/secret/smoke test).**
 
-**7G.1C ha reconciliado la estrategia de backup/restore con las capacidades
-actuales de Railway. El P0 de recuperación no está cerrado: falta ejecutar el
-restore lógico aislado, medir RTO y ensayar el rollback descrito en el runbook.**
+**7G.1C ha reconciliado la estrategia forward-only con la ausencia comprobada de backups nativos en Hobby. El P0 de recuperación no está cerrado: falta validar el mecanismo de dump lógico/media y el restore aislado (7G.1D).**
 
 Son prerrequisitos inmediatos todavía pendientes:
 
@@ -135,7 +133,7 @@ commit candidato sin omisiones, fallos, skips nuevos o residuos.
 | DNS/TLS | Dominios de staging ya separados | Apex, `www`, API, certificados y MX preservados | Sí | Resolución, HTTPS, redirect y ausencia de mixed content. |
 | Contenido | Datos ficticios/temporales o copia manual controlada | CMS, School, Legal, Noticias y Sponsors reales, sin seeders demo | Sí | Revisión editorial y funcional por rutas. |
 | Media | Bucket `media-staging` y persistencia acreditados | Bucket/credenciales/política productivos y probe con cleanup | Sí | Probe, serving, persistencia y ausencia de key pública. |
-| Backup/restore | Restore lógico obligatorio sobre destino temporal; restore nativo sólo sobre servicio desechable | Snapshot manual y dump lógico del estado previo a migrar; schedules y política de media activos | Sí | Checksum, destino separado, conteos/migraciones, RTO, responsable y resultado. |
+| Backup/restore | Restore lógico obligatorio sobre destino temporal. El plan Hobby no dispone de backup nativo. | Dump lógico consistente del estado previo a migrar; estado/copia de media según aplique | Sí | Checksum, cifrado (si aplica), copia externa verificada, restore aislado validado, RTO medido. |
 | Rollback | Rehearsal sin afectar producción | Artefactos anteriores y compatibilidad de esquema verificadas | Sí | Parte de ensayo y plan específico del release. |
 | Correo | Prueba real cuando el proveedor lo permita | Reset extremo a extremo; otras notificaciones según flags | Sí para reset; no para capacidades cerradas | Entrega, TLS, From/Reply-To y logs saneados. |
 | Smoke | Integrado y con escrituras controladas | Mínimo y no destructivo | Sí | Checklist, hora, hash y responsable. |
@@ -167,7 +165,7 @@ y después del cambio. La primera producción usa el perfil fail-closed.
 | Restricción | Clasificación | Consecuencia y tratamiento admitido |
 |---|---|---|
 | Railway Hobby bloquea SMTP saliente | Bloqueante del correo requerido por auth; las features con flag pueden permanecer apagadas | 7G.1B validó Resend HTTPS extremo a extremo en staging con éxito. Antes del Go deben verificarse dominios productivos, cargar keys y probar el reset final. Apagar Contacto/School/identidad no resuelve el reset. |
-| Railway permite backups manuales y programados de volúmenes sin documentarlos como exclusivos de Pro | Corrige la premisa histórica; no cierra por sí solo el P0 | Pro se cita específicamente para el backup automático previo a Image Auto Update. El MVP combina snapshot nativo, dump cifrado fuera del proyecto y copia independiente de media; mientras no se ensaye el restore lógico y rollback, recuperación sigue siendo P0. |
+| Railway limita los backups nativos de volúmenes y PITR exclusivamente al plan Pro (`maxBackupsCount = 0` comprobado en este workspace) | Corrige la premisa documental errónea; evita un upgrade innecesario a Pro y no cierra el P0 | El MVP se apoya 100% en mecanismos externos: dump lógico cifrado portátil, copia independiente de media y restore comprobado. Mientras no se complete 7G.1D, recuperación sigue siendo P0. |
 | Monitor externo persistente ausente | Gate operativo manual; la ausencia de un SaaS concreto no es por sí sola P0 | Sí bloquea el Go carecer de responsable, revisión de `/up`/plataforma/DB/backups y canal de escalado mínimo. Automatización adicional puede quedar post-MVP. |
 | Scheduler no desplegado | Capacidad que puede permanecer desactivada | Las purgas se operan manualmente con dry-run y evidencia hasta un bloque posterior. |
 
@@ -226,35 +224,24 @@ el smoke productivo de su gate correspondiente.
 
 ### 6.3 Estado de la auditoría de recuperación 7G.1C
 
-Consulta oficial Railway del 2026-08-24: los servicios con volumen disponen de
-backup manual y schedules Daily/Weekly/Monthly sin una restricción publicada
-para Hobby. Pro aporta específicamente el backup previo a Image Auto Update;
-los snapshots ordinarios son incrementales y se facturan al precio del
-volumen. El restore crea un volumen nuevo, conserva el anterior desmontado,
-queda staged hasta Deploy y sólo funciona en el mismo project + environment.
+**CORRECCIÓN OPERATIVA 2026-08-24:** Aunque la documentación pública de Railway era ambigua, la verificación efectiva en este workspace Hobby demuestra que `maxBackupsCount = 0`. La interfaz indica: *“Backups and point-in-time recovery (PITR) are only available for customers on the Pro plan.”* Por lo tanto, en el entorno actual NO hay backup nativo ni manual, NO hay PITR y NO se puede exigir un snapshot nativo predeploy.
+
+La estrategia se corrige para no depender del proveedor:
 
 La recuperación MVP queda separada en tres capas:
 
-1. snapshot nativo diario/semanal/mensual y manual predeploy para el volumen
-   MariaDB;
-2. dump lógico diario, comprimido, con SHA-256, cifrado y almacenado fuera del
-   proyecto;
-3. inventario y copia independiente de los objetos privados, porque Railway
-   Buckets no ofrece actualmente backup, versionado ni lifecycle y el snapshot
-   MariaDB sólo conserva sus keys.
+1. dump lógico consistente de MariaDB (con SHA-256, compresión, cifrado y copia externa verificada);
+2. inventario y copia independiente de los objetos privados (avatares, portadas, logos), ya que MariaDB sólo guarda sus referencias y Railway Buckets no ofrece object versioning, lifecycle ni backup;
+3. runbook de restore aislado y rollback forward-fix definido y ensayado.
 
 La imagen Laravel no contiene `mariadb-dump`; el drill debe usar un cliente
 MariaDB 11.4 controlado y verificar su versión. El restore lógico hacia una DB
-temporal aislada de staging es obligatorio antes del Go. El restore nativo se
-ensaya únicamente sobre un servicio desechable, nunca sobre la DB activa. Se
-proponen RPO 24 h, RTO 4 h para núcleo controlado y 8 h para reabrir escrituras,
-retención lógica de 30 diarios y 3 mensuales y responsable con suplente. Son
-objetivos pendientes de aprobación y medición, no SLA.
+temporal aislada de staging es obligatorio antes del Go. Se proponen
+como objetivos (no SLA, pendientes de medición): RPO 24 h, RTO 4 h para núcleo
+controlado y 8 h para reabrir escrituras, retención lógica de 30 diarios y 3 mensuales,
+y retención de media mínimo 30 días, con responsable y suplente.
 
-7G.1C no creó backups, no tocó buckets, DB o entornos y no ejecutó rollback.
-El estado máximo es **estrategia de backup/restore reconciliada y lista para
-ensayo controlado**; recuperación continúa como P0 hasta aportar el acta del
-drill, el RTO observado y el responsable.
+7G.1C auditó la documentación, corrigió la estrategia y preparó el gate 7G.1D ("restore lógico aislado validado en staging"). El P0 continúa abierto hasta demostrar el restore aislado, medir RTO y preparar el mecanismo productivo.
 
 ## 7. Regresión global final de 7F.2 preparada
 
@@ -457,7 +444,7 @@ sin su gate o publicar una promesa funcional que dependa de ella.
   más amplia; 7G conserva una revisión humana priorizada mínima.
 - Automatización y alertas del dump lógico y la copia de media, además del
   scheduler, después de validar el restore y la operación controlada; los
-  schedules nativos de volumen no sustituyen esas capas.
+  schedules nativos de volumen (inexistentes en este workspace) no sustituyen esas capas.
 
 ### P2 — evolución
 

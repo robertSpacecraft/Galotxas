@@ -638,40 +638,14 @@ Consulta realizada el **2026-08-24** sobre documentación oficial:
 - [Image Auto Updates](https://docs.railway.com/deployments/image-auto-updates);
 - [Storage Buckets](https://docs.railway.com/storage-buckets).
 
-La documentación vigente describe los backups manuales y los schedules
-Daily/Weekly/Monthly como capacidades de los servicios con volumen y no publica
-una restricción que los reserve a Pro. Hobby dispone de volúmenes, por lo que
-la afirmación anterior de que el backup nativo estaba bloqueado por el plan
-queda obsoleta. Esto reconcilia el contrato documental; no acredita todavía
-que el panel de staging se haya configurado o ensayado.
+**CORRECCIÓN 2026-08-24:** La verificación operativa demuestra que Railway restringe los backups nativos y PITR al plan Pro (`maxBackupsCount = 0`). La documentación pública era ambigua. Esta restricción cierra la posibilidad de utilizar backups nativos o snapshots en el plan Hobby. El MVP dependerá íntegramente de la recuperación mediante dump lógico portable.
 
-Contrato actual de Railway:
+Contrato de Railway verificado para este workspace Hobby:
 
-1. el backup manual y los schedules están disponibles para volúmenes; Daily se
-   conserva 6 días, Weekly un mes y Monthly tres meses, y pueden combinarse;
-2. la capacidad específicamente documentada para Pro es crear automáticamente
-   un backup de todos los volúmenes antes de aplicar un Image Auto Update; no
-   debe confundirse con el schedule ordinario;
-3. los snapshots son incrementales Copy-on-Write y se factura sólo su tamaño
-   exclusivo al mismo precio que los volúmenes, actualmente 0,15 USD/GB-mes,
-   prorrateado por minuto;
-4. un backup manual está limitado al 50 % de la capacidad total del volumen;
-   Railway recomienda ampliar capacidad o solicitar soporte si los datos
-   superan ese umbral. Hobby publica 5 GB de volumen por servicio; Pro parte de
-   50 GB y permite ampliar de forma autoservicio hasta 1 TB;
-5. restaurar crea un volumen con el timestamp del backup, montado en la misma
-   ruta. El volumen anterior conserva su nombre y sus datos, pero queda
-   desmontado. El cambio se presenta como staged y sólo se aplica al pulsar
-   Deploy, lo que redespliega el servicio;
-6. el restore sólo puede realizarse dentro del mismo proyecto y environment;
-   no sirve para transportar el snapshot a un destino aislado distinto;
-7. restaurar elimina los backups más nuevos que el punto elegido, aunque
-   conserva los anteriores. Hacer wipe del volumen elimina todos sus backups;
-   el tamaño incremental mostrado puede llevar unas horas de retraso;
-8. un servicio admite un único volumen, no puede usar réplicas con volumen y
-   un redeploy con volumen implica una pequeña indisponibilidad. La retención
-   del volumen anterior no equivale a un botón de rollback ya acreditado: la
-   vuelta a montarlo debe ensayarse como otro cambio explícito y revisado.
+1. La interfaz indica: "Backups and point-in-time recovery (PITR) are only available for customers on the Pro plan."
+2. El límite efectivo del workspace es `maxBackupsCount = 0`.
+3. Por tanto, no se pueden crear backups nativos (ni manuales, ni programados) para volúmenes en el plan Hobby.
+4. Cualquier mención a `snapshot` o restore nativo dentro del entorno Hobby queda descartada para este proyecto.
 
 ## Arquitectura recuperable de Galotxas
 
@@ -694,7 +668,10 @@ logs. Esta auditoría no añade el binario ni el automatismo.
 
 La combinación mínima propuesta para el MVP es:
 
-### Capa 1 — snapshot nativo del volumen MariaDB
+### Capa 1 — (Descartada) snapshot nativo del volumen MariaDB
+
+- (No aplicable) Railway Hobby restringe esta capacidad al plan Pro.
+- La exigencia de "snapshot nativo predeploy" queda eliminada.
 
 - activar schedules Daily, Weekly y Monthly con la retención propia de Railway;
 - crear un backup manual inmediatamente antes de cualquier migración con
@@ -760,7 +737,7 @@ Antes de cualquier `php artisan migrate --force` productivo:
 1. fijar hash candidato, entorno, operador, ventana y rollback compatible;
 2. ejecutar preflight y `php artisan migrate:status`, guardando sólo salida
    saneada y la lista exacta de migraciones pendientes;
-3. comprobar estado, uso y capacidad del volumen; crear un snapshot nativo
+3. comprobar estado, uso y capacidad del volumen (snapshot nativo no aplicable en Hobby);
    manual y esperar a que figure completo;
 4. generar el dump lógico con cliente compatible, comprimirlo, validar que es
    legible y no vacío, calcular SHA-256 y cifrarlo;
@@ -784,7 +761,7 @@ Se comparan dos ensayos, siempre sin E2E seeders, `migrate:fresh`, `db:wipe` o
 
 | Opción | Procedimiento seguro | Verificación y vuelta atrás |
 |---|---|---|
-| Restore nativo Railway | Usar un servicio MariaDB desechable dentro de staging, con datos sintéticos no personales; crear backup, solicitar restore, revisar el staged change y desplegar sólo ese servicio. No restaurar el volumen de la DB activa de staging. | Confirmar volumen nuevo montado, original retenido/desmontado, marker esperado, redeploy y pérdida de backups posteriores. Ensayar como cambio aparte volver a montar el volumen original; destruir únicamente los recursos temporales identificados. |
+| Restore nativo Railway | (No aplicable en Hobby) | (No aplicable en Hobby) |
 | Restore lógico aislado | Tomar un dump de staging, copiarlo con checksum a una MariaDB temporal separada y sin tráfico, importar con cliente compatible y nunca cambiar `DB_*` del servicio activo. | Verificar checksum, migraciones, constraints, conteos agregados por dominio, object keys sin descargar media, `deploy:check` y smoke de lectura controlado. Registrar duración y destruir sólo el destino temporal y sus credenciales. |
 
 El **restore lógico aislado es el ensayo obligatorio antes del Go**: acredita
@@ -810,7 +787,7 @@ distintas:
 | Frontend Vercel | Defecto crítico sólo cliente: promover el deployment inmutable anterior y repetir smoke. | Hash/deployment anterior, hora, rutas y resultado del smoke. | Incompatibilidad con API o caché; operación con revisión frontend, 30 min. |
 | Backend Railway | Error crítico de API/admin: redeploy anterior sólo si sigue siendo compatible con el esquema; si no, forward fix. | Hash/deployment, `migrate:status`, logs saneados y smoke. | Código anterior incompatible; operación + responsable técnico, 60 min. |
 | DB sin migración | Corrupción o borrado: congelar escrituras, preservar el estado actual, restaurar primero en destino aislado y decidir cutover. | Snapshot/dump/checksum, conteos, RPO perdido y RTO observado. | Pérdida de cambios posteriores y sesiones/tokens revividos; decisión conjunta, objetivo 4 h. |
-| DB tras migración forward-only | Priorizar release compatible o migración correctiva. Sólo ante daño irreversible coordinar artefacto anterior con restore del backup predeploy. Nunca ejecutar `migrate:rollback` por reflejo. | Matriz código/esquema, backup predeploy, migraciones y aprobación. | Pérdida de escrituras posteriores; técnico + operación + producto, decisión durante la ventana y recuperación objetivo 4–8 h. |
+| DB tras migración forward-only | Priorizar release compatible o migración correctiva. Sólo ante daño irreversible coordinar artefacto anterior con restore del dump lógico predeploy. Nunca ejecutar `migrate:rollback` por reflejo. | Matriz código/esquema, dump lógico predeploy, migraciones y aprobación. | Pérdida de escrituras posteriores; técnico + operación + producto, decisión durante la ventana y recuperación objetivo 4–8 h. |
 | Media | Objeto ausente/corrupto: restaurar sólo la versión afectada desde la copia independiente y reconciliarla con su key DB. | Inventario, SHA-256 si existe, tipo, privacidad y serving Laravel. | Desalineación DB/objeto o exposición; operación + dueño editorial/privacidad, objetivo 4 h por objeto. |
 
 `php artisan down` se usa sólo cuando una migración incompatible o una
@@ -855,7 +832,7 @@ Los siguientes pasos ya se han validado en staging:
 
 Pasos **Pendientes / Aplazados** en staging:
 11. **Ejecutar el restore lógico aislado obligatorio, medir RTO y ensayar el
-    rollback coordinado.** La auditoría 7G.1C confirmó que el backup manual y
+    rollback coordinado.** La auditoría 7G.1C corrigió que el backup nativo NO está disponible en Hobby, por lo que el P0 se resuelve validando la exportación lógica y recuperación. La estrategia está corregida, pero ningún restore se ha ejecutado aún (pendiente 7G.1D).
     programado de volumen no está documentado como exclusivo de Pro; la
     estrategia está reconciliada, pero ningún backup o restore se ejecutó en
     este bloque.
@@ -872,8 +849,8 @@ Orden manual:
 3. ejecutar preflight y construir artefactos; aceptar antes de migrar sólo el
    bloqueo backend esperado por esquema pendiente;
 4. acreditar previamente el restore drill de staging y, si ya existe
-   información productiva, completar el gate predeploy con snapshot nativo,
-   dump lógico portable y copia vigente de media;
+   información productiva, completar el gate predeploy con dump lógico consistente,
+   compresión, checksum y cifrado;
 5. migrar MariaDB manualmente;
 6. crear administrador;
 7. validar `/up`, API y admin en URLs de proveedor;

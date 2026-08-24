@@ -1836,9 +1836,7 @@ runbook y comprueba por inspección:
 - referencias de media en MariaDB frente a objetos privados en el bucket;
 - ausencia de `mariadb-dump` en la imagen productiva Laravel y necesidad de un
   cliente MariaDB 11.4 controlado para el futuro dump;
-- backups manuales/programados de volumen disponibles sin restricción Hobby
-  publicada, restore limitado al mismo project + environment y backup
-  pre-Image Auto Update específicamente documentado para Pro;
+- limitación efectiva comprobada en este workspace: Railway restringe backups nativos y PITR al plan Pro (`maxBackupsCount = 0`);
 - ausencia actual de snapshots, backups, versionado y lifecycle en Railway
   Buckets.
 
@@ -1847,7 +1845,7 @@ La validación de este bloque se limita a revisión del diff documental,
 DB, bucket, staging o producción. El test que podrá cerrar el P0 es operativo:
 restore de un dump con checksum hacia una MariaDB temporal aislada, comparación
 de migraciones y conteos, smoke controlado, RTO observado y rollback rehearsal.
-Hasta entonces el estado es **estrategia reconciliada y lista para ensayo
+Hasta entonces el estado es **estrategia corregida forward-only y lista para ensayo
 controlado**, no “backup probado”.
 
 # 11. Evolución
