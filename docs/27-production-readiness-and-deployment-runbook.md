@@ -861,8 +861,9 @@ E2E, seeders ni cuentas con password por defecto.
 - no existen todavía proyectos, DNS, TLS o recursos externos de producción
   configurados; los equivalentes de staging sí existen y fueron validados;
 - SMTP saliente está bloqueado por el plan Railway Hobby; Resend HTTPS está
-  integrado y validado localmente, pero dominio, secret, entrega, rebotes,
-  SPF, DKIM, DMARC y aliases no están probados;
+  integrado y se ha validado operativamente con éxito extremo a extremo en staging
+  (dominio, SPF, DKIM, DMARC p=none, entrega de reset). Para producción faltan
+  sus propios dominios, aliases, logs y keys independientes;
 - el correo anterior sigue siendo el canal Legal vigente;
 - CMS y datos reales de Escuela no están cargados en producción;
 - backup, restore, RTO, rollback rehearsal y monitor continuo no están

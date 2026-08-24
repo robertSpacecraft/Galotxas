@@ -9,9 +9,10 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - Fase 7G.1B integra el transport oficial de Resend para Laravel 12, prepara
   producción con `resend` y staging seguro con `array`, endurece el preflight
   y hace no enumerable el fallo de entrega con invalidación del token y log
-  saneado. La regresión backend local queda verde sin secret, DNS, Railway,
-  envío real ni activación de Contacto, Escuela o identidad; el P0 permanece
-  abierto hasta el reset extremo a extremo controlado en staging.
+  saneado. La validación extrema a extremo en staging se ha cerrado operativamente
+  con éxito tras comprobar entrega, flujo de reset y limpieza en log.
+  El baseline seguro staging quedó restaurado y el P0 de correo queda pendiente
+  de llave y smoke test productivo.
 
 - Fase 7G.1A audita extremo a extremo el reset de contraseña y el runtime de
   correo, confirma el bloqueo SMTP de Railway Hobby y selecciona Resend por

@@ -1820,9 +1820,11 @@ Validación local de 7G.1B, 2026-08-24:
 - no hubo llamada real a Resend, secret, DNS, Railway, staging, producción ni
   base de desarrollo.
 
-Esta evidencia acredita la integración local, no la entrega. El P0 permanece
-abierto hasta configurar dominio/remitente y secret propios, ejecutar el reset
-extremo a extremo en una ventana controlada de staging y revisar los logs.
+Esta evidencia acreditaba la integración local. Posteriormente, la validación
+extremo a extremo en staging se cerró operativamente con éxito (dominio,
+entrega, reset y logs verificados sin filtraciones). El baseline seguro
+`array` de staging quedó restaurado. El P0 de correo queda pendiente únicamente
+de su configuración y llaves para el entorno de producción.
 
 # 11. Evolución
 
