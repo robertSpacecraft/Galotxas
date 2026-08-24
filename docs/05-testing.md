@@ -1792,6 +1792,38 @@ No se ejecutan suites, Docker, migraciones o datos durante 7G.0. Las cifras de
 tests previas conservan valor histórico, pero no se presentan como resultado
 del candidato final.
 
+## PASSWORD-RESET-RESEND-LOCAL-1 — Integración local de Resend
+
+7G.1B añade el SDK oficial de Resend y cobertura MariaDB del contrato completo
+de recuperación: respuesta no enumerable, URL frontend exacta, token válido,
+ausencia de token para cuentas desconocidas, eliminación tras reset,
+expiración, reutilización, throttle del broker y rate limiting HTTP. El fallo
+forzado del transporte devuelve el mismo contrato público, elimina el token
+emitido y registra sólo `failure_code`, sin correo, token, API key o mensaje
+del proveedor.
+
+`ProductionReadinessTest` carga el transport real sin enviar, acepta `array`
+sólo como baseline seguro de staging, rechaza `log`, exige key y remitente para
+un gate Resend, y rechaza `array` en producción aunque Contacto, Escuela,
+identidad de menores y scheduler continúen cerrados.
+
+Validación local de 7G.1B, 2026-08-24:
+
+- password reset, preflight y rate limiting dirigidos: 26 tests y 147
+  aserciones;
+- backend completo mediante el runner MariaDB aislado: 566 tests y 4.350
+  aserciones;
+- Composer estricto y auditoría: correctos, sin advisories tras actualizar
+  los parches transitivos de Guzzle y CommonMark;
+- Pint y cinco comprobaciones `php -l`: correctos;
+- no se ejecutó frontend porque no cambió su contrato ni su código;
+- no hubo llamada real a Resend, secret, DNS, Railway, staging, producción ni
+  base de desarrollo.
+
+Esta evidencia acredita la integración local, no la entrega. El P0 permanece
+abierto hasta configurar dominio/remitente y secret propios, ejecutar el reset
+extremo a extremo en una ventana controlada de staging y revisar los logs.
+
 # 11. Evolución
 
 La cobertura de pruebas debe crecer junto con el proyecto.

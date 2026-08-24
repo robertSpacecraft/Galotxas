@@ -95,6 +95,12 @@ El inventario siguiente corresponde a `backend/routes/api.php` y a la salida de 
 
 Los cuatro endpoints de autenticación públicos están limitados a cinco intentos por minuto según email/IP o IP, conforme al limiter concreto. Las rutas públicas de lectura no usan ese limiter sensible.
 
+`POST /auth/forgot-password` conserva exactamente el mismo `200` genérico para
+cuentas existentes, inexistentes y fallos del transporte de correo. Un fallo de
+entrega invalida el token recién emitido y genera únicamente evidencia interna
+saneada, sin correo, token, credencial ni detalle del proveedor en la respuesta
+o el contexto del log.
+
 Las lecturas deportivas públicas aplican visibilidad efectiva antes de filtros y serialización:
 
 - `/seasons` exige `season.is_public` y filtra campeonatos y categorías anidados por toda su jerarquía;

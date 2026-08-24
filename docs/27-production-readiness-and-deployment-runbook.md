@@ -493,29 +493,29 @@ el default. Escuela no tiene correo propio de confirmación: sólo el flujo
 opcional de identidad de menores usa el mailer por defecto, y sus dos flags
 siguen cerradas.
 
-### Cambios y gate pendientes de implementación
+### Implementación local 7G.1B y gates restantes
 
-El bloque posterior deberá:
+7G.1B completa localmente los seis primeros pasos: fija
+`resend/resend-php` 1.10.0, configura los ejemplos seguros, sustituye el
+contrato SMTP del preflight, mantiene el `200` no enumerable ante fallo,
+invalida el token no entregado, registra sólo un `failure_code` saneado y
+cubre URL, tokens, expiración, reutilización, límites, transport y preflight.
+El transport oficial se carga sin envío y la suite completa pasa sobre
+MariaDB aislada. Staging usa `MAIL_MAILER=array` fuera de la ventana Resend y
+producción no acepta `array` mientras el reset forme parte del MVP.
 
-1. instalar y fijar `resend/resend-php` en Composer;
-2. actualizar los tres ejemplos de entorno sin credenciales reales;
-3. cambiar `DeploymentReadinessService`, hoy acoplado a SMTP DonDominio y
-   ejecutado sólo para Contacto/identidad, para exigir siempre el transport
-   HTTPS y una key no vacía mientras reset forme parte del MVP;
-4. preservar la respuesta genérica y tratar de forma no enumerable los fallos
-   del proveedor con observabilidad saneada;
-5. añadir tests de URL frontend exacta, expiración, reutilización, fallo de
-   transport, preflight, allowlist de configuración y ausencia de secretos;
-6. ejecutar el test backend completo con mail fake/`array` y sin red;
-7. en staging, solicitar un reset para una cuenta controlada, acreditar API
+Quedan dos gates manuales:
+
+1. en staging, solicitar un reset para una cuenta controlada, acreditar API
    HTTPS, aceptación y entrega, From, enlace al frontend de staging, reset,
    login nuevo, invalidez del token usado y logs saneados; probar también el
    fallo/revocación de key sin enumerar cuentas;
-8. ejecutar en producción un único smoke no destructivo con cuenta controlada,
+2. en producción, ejecutar un único smoke no destructivo con cuenta controlada,
    rotación aprobada y revisión de proveedor/logs.
 
-Hasta completar estos pasos, la solución está seleccionada y lista para
-implementación/prueba, pero el P0 sigue abierto.
+No se ha creado cuenta, cargado secret, cambiado DNS, verificado dominio,
+modificado Railway ni enviado correo real. Hasta completar el primer gate, la
+integración está validada sólo localmente y el P0 sigue abierto.
 
 ### Contrato SMTP anterior, ahora bloqueado
 
@@ -861,8 +861,8 @@ E2E, seeders ni cuentas con password por defecto.
 - no existen todavía proyectos, DNS, TLS o recursos externos de producción
   configurados; los equivalentes de staging sí existen y fueron validados;
 - SMTP saliente está bloqueado por el plan Railway Hobby; Resend HTTPS está
-  seleccionado pero no implementado y entrega, rebotes, SPF, DKIM, DMARC y
-  aliases no están probados;
+  integrado y validado localmente, pero dominio, secret, entrega, rebotes,
+  SPF, DKIM, DMARC y aliases no están probados;
 - el correo anterior sigue siendo el canal Legal vigente;
 - CMS y datos reales de Escuela no están cargados en producción;
 - backup, restore, RTO, rollback rehearsal y monitor continuo no están

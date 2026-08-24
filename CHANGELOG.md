@@ -6,6 +6,13 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Fase 7G.1B integra el transport oficial de Resend para Laravel 12, prepara
+  producción con `resend` y staging seguro con `array`, endurece el preflight
+  y hace no enumerable el fallo de entrega con invalidación del token y log
+  saneado. La regresión backend local queda verde sin secret, DNS, Railway,
+  envío real ni activación de Contacto, Escuela o identidad; el P0 permanece
+  abierto hasta el reset extremo a extremo controlado en staging.
+
 - Fase 7G.1A audita extremo a extremo el reset de contraseña y el runtime de
   correo, confirma el bloqueo SMTP de Railway Hobby y selecciona Resend por
   API HTTPS, con Postmark como alternativa. Se documentan contrato de
@@ -231,6 +238,10 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 - Los headings compilados disponen de deep links estables que funcionan tanto en navegación SPA como tras recarga directa.
 
 ### Changed
+
+- Composer incorpora `resend/resend-php` 1.10.0 y actualiza Guzzle y CommonMark
+  a sus parches compatibles tras detectar advisories nuevos; la auditoría del
+  lock vuelve a quedar sin vulnerabilidades conocidas.
 
 - `aria-current="page"` queda reservado a coincidencias exactas; los descendientes mantienen el estado visual de su rama. Legal y activación productiva de Contacto permanecen pendientes de 7D.2, sin enlaces vacíos ni nuevas rutas.
 - La carga editorial local de Club se mantiene manual y fuera del repositorio; cada entorno debe revisar y publicar sus páginas, mientras `/nosotros` y `/contenidos/:slug` se conservan hasta acreditar paridad y 7D.2 permanece pendiente.

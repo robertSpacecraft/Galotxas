@@ -10,8 +10,9 @@ está cerrada.** No se ha desplegado producción, cambiado DNS, activado flags,
 enviado correo real, ejecutado migraciones productivas ni creado un tag o una
 release.
 
-**P0 de correo/password-reset auditado y con una solución concreta
-seleccionada, pendiente de implementación y prueba extremo a extremo.**
+**Resend está integrado y validado localmente; el P0 de correo/password-reset
+sigue pendiente de dominio/secret y prueba extremo a extremo controlada en
+staging.**
 
 Son prerrequisitos inmediatos todavía pendientes:
 
@@ -150,7 +151,7 @@ se comprueban las diferencias propias de infraestructura y datos reales.
 | `PUBLIC_IDENTITY_AUTHORIZATION_ENABLED` | `false` | Aviso vigente, vinculación, tokens, revisión, revocación, privacidad y operación completas. | Sí | Los menores permanecen anónimos de forma fail-closed; la decisión debe aprobarse antes de publicar identidades reales. |
 | `PUBLIC_IDENTITY_NOTIFICATION_ENABLED` | `false` | Autorización activa y correo real probado. | Sí | No se activa de forma independiente ni es necesaria si autorización sigue cerrada. |
 | `DEPLOYMENT_SCHEDULER_ENABLED` | `false` | Dry-runs, backup, holds, ejecución manual, ensayo staging y proceso Railway separado supervisado. | Sí | Las purgas quedan manuales con responsable y calendario; no se finge automatización. |
-| `MAIL_MAILER` | `resend` seleccionado para producción, todavía no implementado; `array` en staging fuera del gate | SDK fijado, key sending-only por entorno, dominio/remitente verificados, preflight, fallo no enumerable y entrega extremo a extremo. | No para el contrato actual de recuperación de contraseña | Aunque las cinco capacidades opcionales sigan cerradas, `forgot/reset-password` requiere correo real y sigue siendo P0 operativo hasta implementar y probar Resend. `log` no es seguro aquí porque registra el mensaje y el token. |
+| `MAIL_MAILER` | `resend` integrado para producción; `array` en staging fuera del gate | Key sending-only por entorno, dominio/remitente verificados y entrega extremo a extremo. | No para el contrato actual de recuperación de contraseña | SDK, preflight y fallo no enumerable están validados localmente, pero `forgot/reset-password` sigue siendo P0 hasta la prueba real. `log` no es seguro porque registra el mensaje y el token. |
 
 La activación de una capacidad no se deduce de que el código exista. Cada flag
 se decide y verifica por separado con `deploy:check --allow-live-features` antes
@@ -160,7 +161,7 @@ y después del cambio. La primera producción usa el perfil fail-closed.
 
 | Restricción | Clasificación | Consecuencia y tratamiento admitido |
 |---|---|---|
-| Railway Hobby bloquea SMTP saliente | Bloqueante del correo requerido por auth; las features con flag pueden permanecer apagadas | 7G.1A selecciona Resend por API HTTPS y Postmark como alternativa. Antes del Go deben implementarse el SDK/config/preflight, verificarse dominio y remitente y probarse el reset real. Apagar Contacto/School/identidad no resuelve el reset. |
+| Railway Hobby bloquea SMTP saliente | Bloqueante del correo requerido por auth; las features con flag pueden permanecer apagadas | 7G.1B integra SDK/config/preflight de Resend por API HTTPS. Antes del Go deben verificarse dominio y remitente, cargarse el secret por entorno y probarse el reset real. Apagar Contacto/School/identidad no resuelve el reset. |
 | Backup nativo no disponible en Hobby | No obliga a cambiar de plan si se ejecuta el workaround documentado | El dump lógico cifrado, copia separada y restore aislado del runbook son aceptables. Mientras no se ensayen, backup/restore siguen siendo P0. |
 | Monitor externo persistente ausente | Gate operativo manual; la ausencia de un SaaS concreto no es por sí sola P0 | Sí bloquea el Go carecer de responsable, revisión de `/up`/plataforma/DB/backups y canal de escalado mínimo. Automatización adicional puede quedar post-MVP. |
 | Scheduler no desplegado | Capacidad que puede permanecer desactivada | Las purgas se operan manualmente con dry-run y evidencia hasta un bloque posterior. |
@@ -171,7 +172,8 @@ humana previa y documentación separada.
 
 ### 6.1 Estado de la decisión de correo 7G.1A
 
-La auditoría del flujo y del lock concluye:
+Esta fotografía histórica corresponde a la auditoría anterior a la
+implementación 7G.1B. La auditoría del flujo y del lock concluyó:
 
 - el Password Broker, los dos endpoints, el token hash de 60 minutos, la URL
   React y la respuesta genérica ya existen;
@@ -200,6 +202,22 @@ dependencias, creado cuenta, cargado credenciales, cambiado DNS, enviado
 mensajes ni tocado staging/producción. El detalle, comparación, contrato de
 variables y plan de prueba están en
 `27-production-readiness-and-deployment-runbook.md`.
+
+### 6.2 Estado de la implementación local 7G.1B
+
+El SDK oficial `resend/resend-php` 1.10.0 está fijado y el transport Laravel se
+carga sin realizar envíos. `deploy:check` acepta `array` sólo como baseline
+seguro de staging, rechaza `log`, valida Resend completo durante el gate y lo
+exige en producción aun con flags opcionales cerradas. El fallo síncrono de
+entrega conserva el mismo `200`, invalida el token emitido y deja únicamente
+un código de fallo saneado.
+
+La regresión local completa sobre MariaDB aislada pasa y Composer no presenta
+advisories. Contacto, Escuela, identidad y scheduler siguen cerrados. No se ha
+creado cuenta Resend, configurado secret, cambiado DNS, verificado dominio,
+modificado Railway, tocado producción ni enviado correo. Por ello el P0 no se
+cierra: falta el recorrido extremo a extremo controlado en staging y, después,
+el smoke productivo de su gate correspondiente.
 
 ## 7. Regresión global final de 7F.2 preparada
 
