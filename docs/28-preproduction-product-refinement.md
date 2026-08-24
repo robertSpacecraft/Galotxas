@@ -11,6 +11,13 @@ Tras validar exhaustivamente el baseline en staging, han surgido necesidades de 
 - La Fase 7F original (Staging) ha cumplido sus validaciones, salvo restricciones de proveedor (SMTP Hobby y backups nativos bloqueados).
 - Producción no está desplegada y el MVP sigue abierto.
 
+Seguimiento 7G.1C (2026-08-24): la segunda restricción conserva valor como
+fotografía de la premisa operativa de entonces, pero ya no es el contrato
+vigente. Railway documenta actualmente backups manuales y programados de
+volúmenes sin reservarlos a Pro. El P0 no se cierra: falta el restore lógico
+aislado, el rollback rehearsal y la copia independiente de media definida en
+el runbook 27.
+
 ## 4. No reescritura histórica
 Las decisiones de las fases 7A, 7B y 7D relativas a Competición, Prensa y Multimedia (que postergaban estos aspectos) se mantienen como registro válido de su momento. Este documento no invalida esa historia; actúa como addendum vinculante de promoción de alcance. El baseline de staging aceptado sigue siendo válido y requerirá una **nueva validación** tras incorporar estos bloques.
 

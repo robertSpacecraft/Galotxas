@@ -1826,6 +1826,30 @@ entrega, reset y logs verificados sin filtraciones). El baseline seguro
 `array` de staging quedó restaurado. El P0 de correo queda pendiente únicamente
 de su configuración y llaves para el entorno de producción.
 
+## BACKUP-RECOVERY-AUDIT-1 — Reconciliación documental 7G.1C
+
+7G.1C no modifica runtime ni acredita una recuperación. La auditoría, fechada
+el 2026-08-24, contrasta la documentación oficial actual de Railway con el
+runbook y comprueba por inspección:
+
+- MariaDB como persistencia de dominio, CMS, operación, sesiones y caché;
+- referencias de media en MariaDB frente a objetos privados en el bucket;
+- ausencia de `mariadb-dump` en la imagen productiva Laravel y necesidad de un
+  cliente MariaDB 11.4 controlado para el futuro dump;
+- backups manuales/programados de volumen disponibles sin restricción Hobby
+  publicada, restore limitado al mismo project + environment y backup
+  pre-Image Auto Update específicamente documentado para Pro;
+- ausencia actual de snapshots, backups, versionado y lifecycle en Railway
+  Buckets.
+
+La validación de este bloque se limita a revisión del diff documental,
+`git diff --check` y estado Git. No se ejecutan suites, Docker, backup, restore,
+DB, bucket, staging o producción. El test que podrá cerrar el P0 es operativo:
+restore de un dump con checksum hacia una MariaDB temporal aislada, comparación
+de migraciones y conteos, smoke controlado, RTO observado y rollback rehearsal.
+Hasta entonces el estado es **estrategia reconciliada y lista para ensayo
+controlado**, no “backup probado”.
+
 # 11. Evolución
 
 La cobertura de pruebas debe crecer junto con el proyecto.

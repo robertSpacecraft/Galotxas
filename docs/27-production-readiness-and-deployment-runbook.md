@@ -87,7 +87,7 @@ Prohibiciones comunes:
 | URL frontend/API | Dominios de staging activos y validados con TLS | Asignar dominios de producción y comprobar TLS |
 | Vercel | Proyecto `galotxas-staging` vinculado y desplegado | Crear proyecto producción |
 | Railway | Servicios backend y MariaDB activos para staging | Crear servicios de producción |
-| MariaDB | DB de staging operativa, migraciones completadas | Crear DB producción, **backups y restore test (aplazados)** |
+| MariaDB | DB de staging operativa, migraciones completadas | Crear DB producción, activar política en capas y acreditar restore aislado |
 | CORS | Origen exacto, sin patrones, wildcard o cookies CORS | Cargar el origen real de cada entorno |
 | Auth | Sanctum Bearer existente; contratos 401/403/419 intactos | Smoke HTTPS de registro/login/logout/reset |
 | Sesión Blade | Cookie Secure/HttpOnly/SameSite y driver DB en ejemplos | Validar admin detrás del proxy |
@@ -100,7 +100,7 @@ Prohibiciones comunes:
 | Contacto/Escuela/menores | Capacidades validadas con fail-closed y flag global; persistencia staging probada | Correo real, flujo menores completo en staging |
 | Queue/scheduler | Cola síncrona, ningún worker/cron productivo | Diseñar y ensayar purgas antes de activar |
 | Logs/storage | `stderr`; `media_s3` y bucket privado de staging validados; Sponsor es el primer consumidor en `develop` | Crear bucket privado productivo aislado y aceptar 7F.2C en staging antes de promoción |
-| Backups/restore/rollback | **Aplazado por decisión operativa** (backup nativo bloqueado por plan) | Contratar Pro para backup nativo, o ensayar backup manual en staging |
+| Backups/restore/rollback | Estrategia reconciliada con Railway el 2026-08-24; no ensayada | Ejecutar el drill controlado, medir RTO y asignar responsable antes del Go |
 
 ## Variables y secretos
 
@@ -321,7 +321,8 @@ explícitamente con los comandos inferiores).* En una DB vacía o una release co
 1. ejecutar los dos preflight con flags cerradas; antes de la primera
    migración el backend puede bloquear exclusivamente por repositorio o
    migraciones pendientes, y cualquier otro bloqueo detiene la operación;
-2. tomar backup cuando ya exista información;
+2. completar el gate predeploy de snapshot nativo, dump lógico y media cuando
+   ya exista información;
 3. activar maintenance sólo si la migración o compatibilidad lo exige;
 4. ejecutar `php artisan migrate:status`;
 5. revisar la lista exacta;
@@ -361,8 +362,9 @@ CMS vive en MariaDB. Un redeploy de aplicación no borra páginas. No se crea
 8. publicar una página cada vez tras aprobación;
 9. repetir la carga en producción, sin copiar la DB de staging.
 
-El backup diario protege esta persistencia editorial. Ningún deploy debe
-ejecutar un seeder general.
+La política en capas de MariaDB protege esta persistencia editorial; el bucket
+multimedia se recupera por separado. Ningún deploy debe ejecutar un seeder
+general.
 
 ## Correo y migración del canal anterior
 
@@ -626,68 +628,199 @@ No se modifica DNS durante 7F.1. Cuando existan los proyectos:
 No se inventan IP, CNAME, MX, selector DKIM ni política SPF: se copian del
 panel vigente de cada proveedor.
 
-## Runbook de backup
+## Capacidades vigentes de Railway para recuperación
 
-Política mínima: dump lógico diario, unos 30 días de retención y una copia
-separada de la DB productiva. La copia no puede vivir únicamente en el mismo
-servicio o volumen. Si sale del proveedor se cifra antes de transferirla.
+Consulta realizada el **2026-08-24** sobre documentación oficial:
 
-Para cada backup:
+- [Backups de volúmenes](https://docs.railway.com/volumes/backups);
+- [límites y caveats de volúmenes](https://docs.railway.com/volumes/reference);
+- [precios](https://docs.railway.com/pricing);
+- [Image Auto Updates](https://docs.railway.com/deployments/image-auto-updates);
+- [Storage Buckets](https://docs.railway.com/storage-buckets).
 
-1. identificar entorno, release y hora UTC sin incluir PII en el nombre;
-2. ejecutar `mariadb-dump` con transacción consistente, triggers y rutinas,
-   obteniendo credenciales desde un mecanismo protegido, no la línea de
-   comandos ni Git;
-3. comprobar salida no vacía y exit code;
-4. generar SHA-256;
-5. cifrar cuando la copia abandone Railway;
-6. mover a almacenamiento separado de acceso restringido;
-7. registrar fecha, tamaño, checksum y resultado, no contenido;
-8. aplicar retención aproximada de 30 días sólo tras confirmar que existe una
-   copia reciente válida;
-9. alertar por ausencia, fallo, crecimiento anómalo o falta de espacio.
+La documentación vigente describe los backups manuales y los schedules
+Daily/Weekly/Monthly como capacidades de los servicios con volumen y no publica
+una restricción que los reserve a Pro. Hobby dispone de volúmenes, por lo que
+la afirmación anterior de que el backup nativo estaba bloqueado por el plan
+queda obsoleta. Esto reconcilia el contrato documental; no acredita todavía
+que el panel de staging se haya configurado o ensayado.
 
-Un backup no está acreditado hasta superar un restore test. RPO candidato:
-hasta 24 horas, coherente con la frecuencia diaria pero todavía no garantizado.
-El RTO se mide en el ensayo y requiere aprobación; no se promete un valor sin
-evidencia.
+Contrato actual de Railway:
 
-## Runbook de restore
+1. el backup manual y los schedules están disponibles para volúmenes; Daily se
+   conserva 6 días, Weekly un mes y Monthly tres meses, y pueden combinarse;
+2. la capacidad específicamente documentada para Pro es crear automáticamente
+   un backup de todos los volúmenes antes de aplicar un Image Auto Update; no
+   debe confundirse con el schedule ordinario;
+3. los snapshots son incrementales Copy-on-Write y se factura sólo su tamaño
+   exclusivo al mismo precio que los volúmenes, actualmente 0,15 USD/GB-mes,
+   prorrateado por minuto;
+4. un backup manual está limitado al 50 % de la capacidad total del volumen;
+   Railway recomienda ampliar capacidad o solicitar soporte si los datos
+   superan ese umbral. Hobby publica 5 GB de volumen por servicio; Pro parte de
+   50 GB y permite ampliar de forma autoservicio hasta 1 TB;
+5. restaurar crea un volumen con el timestamp del backup, montado en la misma
+   ruta. El volumen anterior conserva su nombre y sus datos, pero queda
+   desmontado. El cambio se presenta como staged y sólo se aplica al pulsar
+   Deploy, lo que redespliega el servicio;
+6. el restore sólo puede realizarse dentro del mismo proyecto y environment;
+   no sirve para transportar el snapshot a un destino aislado distinto;
+7. restaurar elimina los backups más nuevos que el punto elegido, aunque
+   conserva los anteriores. Hacer wipe del volumen elimina todos sus backups;
+   el tamaño incremental mostrado puede llevar unas horas de retraso;
+8. un servicio admite un único volumen, no puede usar réplicas con volumen y
+   un redeploy con volumen implica una pequeña indisponibilidad. La retención
+   del volumen anterior no equivale a un botón de rollback ya acreditado: la
+   vuelta a montarlo debe ensayarse como otro cambio explícito y revisado.
 
-Nunca se restaura primero encima de producción:
+## Arquitectura recuperable de Galotxas
 
-1. activar maintenance o bloquear escrituras si el incidente lo exige;
-2. preservar un backup de la DB actual, incluso dañada;
-3. verificar checksum, cifrado, fecha y cadena de custodia;
-4. crear una MariaDB temporal aislada;
-5. restaurar allí el dump con cliente compatible;
-6. ejecutar `migrate:status` y `deploy:check` contra la DB temporal;
-7. comparar migraciones y conteos agregados sin volcar PII en logs;
-8. ejecutar smoke de lectura y flujos controlados;
-9. documentar duración, incidencias y resultado;
-10. decidir humanamente si se promueve, se corrige hacia delante o se aborta;
-11. sólo con aprobación, ventana y rollback preservar/cambiar el destino
-    productivo;
-12. retirar de forma segura la DB temporal y su acceso al finalizar.
+Un snapshot del volumen MariaDB no es un backup completo del sistema:
 
-Staging debe completar al menos un restore test antes de la apertura definitiva.
+| Capa | Incluye | No incluye / observaciones |
+|---|---|---|
+| MariaDB | Usuarios, players y tokens; Temporadas, Campeonatos, Categorías, equipos, inscripciones, partidos, resultados y rankings derivados; CMS, bloques y navegación; metadatos de Noticias y Sponsors; Escuela, contacto y autorizaciones; sesiones, password resets, caché y tablas de jobs. | Sólo conserva las object keys de media, no los binarios. Restaurar también puede reintroducir sesiones, tokens o caché antiguos y exige una decisión explícita de invalidación/limpieza antes del cutover. |
+| Bucket privado `media_s3` | Avatares, logos de Sponsors, portadas de Noticias y futuros objetos multimedia. | Es independiente del volumen MariaDB. Railway Buckets no ofrece actualmente snapshots/backups, object versioning, object lock ni lifecycle; la ventana de dos días para recuperar un bucket eliminado no recupera un objeto borrado individualmente. |
+| Git y configuración de plataforma | Git conserva código, migraciones, `knowledge/`, `legal/`, docs y ejemplos de configuración sin secrets. | Variables reales, secrets, DNS y ajustes de Vercel/Railway requieren inventario operativo separado y no deben copiarse a Git ni al dump. |
+
+La imagen productiva del backend no instala `mariadb-dump`. El dump lógico no
+puede darse por disponible dentro del contenedor Laravel: el operador debe
+usar un cliente MariaDB 11.4 compatible y controlado —por ejemplo, una imagen
+cliente de un solo uso o una estación operativa aprobada—, comprobar primero
+`mariadb-dump --version` y mantener las credenciales fuera del comando y de los
+logs. Esta auditoría no añade el binario ni el automatismo.
+
+## Estrategia de backup en capas
+
+La combinación mínima propuesta para el MVP es:
+
+### Capa 1 — snapshot nativo del volumen MariaDB
+
+- activar schedules Daily, Weekly y Monthly con la retención propia de Railway;
+- crear un backup manual inmediatamente antes de cualquier migración con
+  esquema o intervención destructiva, comprobando antes el límite del 50 %;
+- registrar entorno, volumen, timestamp, estado completo y tamaño, sin datos o
+  credenciales;
+- conservar el snapshot como recuperación rápida dentro del mismo project y
+  environment, no como copia portable ni como único backup.
+
+### Capa 2 — dump lógico MariaDB portable
+
+- generar diariamente un dump consistente con cliente 11.4 verificado,
+  transacción única para tablas transaccionales, triggers, rutinas, eventos y
+  binarios seguros;
+- comprobar exit code y salida no vacía, comprimir, validar el archivo
+  comprimido y generar SHA-256;
+- cifrar antes de abandonar Railway y copiar a almacenamiento restringido
+  fuera del servicio y del proyecto productivo;
+- conservar, como propuesta inicial, 30 copias diarias y tres cierres
+  mensuales; eliminar una copia sólo después de acreditar otra reciente;
+- alertar por ausencia, fallo, checksum, crecimiento anómalo o falta de espacio.
+
+### Capa 3 — copia independiente de media
+
+- inventariar diariamente las keys referenciadas por MariaDB y los objetos del
+  bucket, sin publicar nombres, URLs firmadas ni PII;
+- copiar los objetos a un destino independiente con versionado o namespaces
+  fechados y retención mínima de 30 días; Railway Buckets no puede aportar por
+  sí mismo ese versionado o lifecycle;
+- conservar tamaño y SHA-256 cuando la herramienta pueda calcularlo; no tratar
+  el ETag de un multipart como checksum criptográfico;
+- ensayar la recuperación de al menos un objeto y reconciliar key, bytes,
+  tipo, privacidad y ruta Laravel. Si el bucket productivo estuviera vacío,
+  registrar el inventario cero y completar el ensayo antes del primer upload
+  real.
+
+El gate por defecto exige las tres capas cuando existan objetos. Aceptar
+temporalmente el riesgo de media sin copia requiere un `GO` humano explícito,
+fechado y limitado; no queda implícito por la durabilidad del bucket.
+
+## RPO, RTO y propiedad propuestos
+
+Valores a aprobar, no SLA de proveedor:
+
+- RPO: **24 horas** para MariaDB y media; backup manual adicional inmediatamente
+  antes de una migración con esquema;
+- RTO: **4 horas** para recuperar el núcleo en modo controlado/read-only y
+  **8 horas** para reabrir todos los flujos de escritura, medidos desde la
+  declaración del incidente dentro de una ventana con responsable disponible;
+- retención: schedules nativos 6 días/1 mes/3 meses, dump lógico 30 diarios y
+  3 mensuales, copia de media mínima de 30 días;
+- propiedad: una persona responsable de operación y una suplente revisan el
+  último backup, reciben fallos, autorizan restore y registran cada ensayo.
+
+El RPO/RTO sólo pasan de objetivo a evidencia después del drill. Si el tiempo
+observado supera el objetivo, se ajusta el procedimiento o se registra un
+`NO-GO`; no se corrige la cifra retrospectivamente para declarar éxito.
+
+## Gate predeploy con cambios de esquema
+
+Antes de cualquier `php artisan migrate --force` productivo:
+
+1. fijar hash candidato, entorno, operador, ventana y rollback compatible;
+2. ejecutar preflight y `php artisan migrate:status`, guardando sólo salida
+   saneada y la lista exacta de migraciones pendientes;
+3. comprobar estado, uso y capacidad del volumen; crear un snapshot nativo
+   manual y esperar a que figure completo;
+4. generar el dump lógico con cliente compatible, comprimirlo, validar que es
+   legible y no vacío, calcular SHA-256 y cifrarlo;
+5. copiar el artefacto fuera del servicio/proyecto y volver a verificar el
+   checksum sobre la copia almacenada;
+6. registrar timestamp UTC, hash candidato, migraciones, tamaño, checksum,
+   retención, ubicación lógica y responsable, nunca secrets o contenido;
+7. confirmar el último inventario/copia de media cuando la release pueda
+   modificar referencias u objetos;
+8. obtener aprobación humana. Sólo entonces ejecutar una vez
+   `php artisan migrate --force`.
+
+Una DB completamente vacía puede registrar “sin datos que preservar”, pero no
+permite saltarse el restore drill previo al Go ni la activación de la política
+para los siguientes cambios.
+
+## Restore drill obligatorio en staging
+
+Se comparan dos ensayos, siempre sin E2E seeders, `migrate:fresh`, `db:wipe` o
+`migrate:reset`:
+
+| Opción | Procedimiento seguro | Verificación y vuelta atrás |
+|---|---|---|
+| Restore nativo Railway | Usar un servicio MariaDB desechable dentro de staging, con datos sintéticos no personales; crear backup, solicitar restore, revisar el staged change y desplegar sólo ese servicio. No restaurar el volumen de la DB activa de staging. | Confirmar volumen nuevo montado, original retenido/desmontado, marker esperado, redeploy y pérdida de backups posteriores. Ensayar como cambio aparte volver a montar el volumen original; destruir únicamente los recursos temporales identificados. |
+| Restore lógico aislado | Tomar un dump de staging, copiarlo con checksum a una MariaDB temporal separada y sin tráfico, importar con cliente compatible y nunca cambiar `DB_*` del servicio activo. | Verificar checksum, migraciones, constraints, conteos agregados por dominio, object keys sin descargar media, `deploy:check` y smoke de lectura controlado. Registrar duración y destruir sólo el destino temporal y sus credenciales. |
+
+El **restore lógico aislado es el ensayo obligatorio antes del Go**: acredita
+el contenido real del artefacto portable y evita que la restricción nativa de
+mismo environment obligue a intervenir la DB activa. El ensayo nativo sobre
+servicio desechable se recomienda en la misma ventana para acreditar el flujo
+staged, el redeploy y la recuperación del volumen anterior, pero no sustituye
+al lógico.
+
+Un backup no queda acreditado hasta que el drill lógico termine con checksum,
+conteos, migraciones, seguridad de sesiones/tokens, duración y responsable. No
+se promueve el destino temporal. Un restore productivo posterior exige además
+preservar el estado actual, bloquear escrituras cuando corresponda y decisión
+humana explícita.
 
 ## Runbook de rollback y maintenance
 
-Frontend: promover o restaurar el deployment Vercel anterior y repetir el
-smoke. Backend: usar el deployment Railway anterior sólo si su código es
-compatible con el esquema ya migrado. La DB no recibe `migrate:rollback`
-automático; se prefiere una migración correctiva. Restore es el último recurso
-y sigue el runbook anterior.
+Rollback de aplicación, restore de datos y corrección de esquema son acciones
+distintas:
+
+| Superficie | Trigger y acción | Evidencia | Riesgo, responsable y límite objetivo |
+|---|---|---|---|
+| Frontend Vercel | Defecto crítico sólo cliente: promover el deployment inmutable anterior y repetir smoke. | Hash/deployment anterior, hora, rutas y resultado del smoke. | Incompatibilidad con API o caché; operación con revisión frontend, 30 min. |
+| Backend Railway | Error crítico de API/admin: redeploy anterior sólo si sigue siendo compatible con el esquema; si no, forward fix. | Hash/deployment, `migrate:status`, logs saneados y smoke. | Código anterior incompatible; operación + responsable técnico, 60 min. |
+| DB sin migración | Corrupción o borrado: congelar escrituras, preservar el estado actual, restaurar primero en destino aislado y decidir cutover. | Snapshot/dump/checksum, conteos, RPO perdido y RTO observado. | Pérdida de cambios posteriores y sesiones/tokens revividos; decisión conjunta, objetivo 4 h. |
+| DB tras migración forward-only | Priorizar release compatible o migración correctiva. Sólo ante daño irreversible coordinar artefacto anterior con restore del backup predeploy. Nunca ejecutar `migrate:rollback` por reflejo. | Matriz código/esquema, backup predeploy, migraciones y aprobación. | Pérdida de escrituras posteriores; técnico + operación + producto, decisión durante la ventana y recuperación objetivo 4–8 h. |
+| Media | Objeto ausente/corrupto: restaurar sólo la versión afectada desde la copia independiente y reconciliarla con su key DB. | Inventario, SHA-256 si existe, tipo, privacidad y serving Laravel. | Desalineación DB/objeto o exposición; operación + dueño editorial/privacidad, objetivo 4 h por objeto. |
 
 `php artisan down` se usa sólo cuando una migración incompatible o una
 intervención exige bloquear escrituras. `/up` continúa disponible para la
-plataforma. Antes se valida acceso de consola; después se ejecutan migración,
-preflight y smoke, y sólo entonces `php artisan up`. Un fallo de código sin
-cambio de esquema se resuelve normalmente promoviendo la release anterior.
+plataforma. Antes se valida acceso de consola; después se ejecutan preflight y
+smoke, y sólo entonces `php artisan up`.
 
-El parte de rollback registra release, migraciones aplicadas, hora, motivo,
-decisor, resultado y próximos pasos, sin copiar secrets o datos personales.
+El parte registra release, migraciones, timestamp, trigger, decisor, acción,
+duración, pérdida asumida, resultado y próximos pasos, sin secrets, dumps,
+object keys ni datos personales.
 
 ## Observabilidad mínima
 
@@ -721,7 +854,11 @@ Los siguientes pasos ya se han validado en staging:
 10. Contacto y Escuela probados en ventana controlada con `log`, validando persistencia y fail-closed; el SMTP real desde Railway está BLOQUEADO por el plan Hobby, por lo que la notificación de Contacto, el reset de contraseña y el ciclo de identidad pública de menores siguen pendientes.
 
 Pasos **Pendientes / Aplazados** en staging:
-11. **Ejecutar backup, restore a DB temporal y rollback (El backup nativo está bloqueado por requerir cuenta Railway Pro. La alternativa de backup manual y el rollback de aplicación se posponen por decisión operativa).**
+11. **Ejecutar el restore lógico aislado obligatorio, medir RTO y ensayar el
+    rollback coordinado.** La auditoría 7G.1C confirmó que el backup manual y
+    programado de volumen no está documentado como exclusivo de Pro; la
+    estrategia está reconciliada, pero ningún backup o restore se ejecutó en
+    este bloque.
 12. **Ejecutar smoke completo global y aceptación humana para cerrar la fase 7F staging (COMPLETADO).** *(Nota: Se ha registrado una observación de UX no bloqueante en `/aprende-a-jugar` para 7G o posterior).*
 
 La aceptación humana de staging queda completada. Staging ha quedado devuelto a un estado seguro (`CONTACT_FORM_ENABLED=false`, `SCHOOL_ENROLLMENT_ENABLED=false`, etc.). Nunca se enviaron correos a usuarios reales.
@@ -734,26 +871,33 @@ Orden manual:
 2. cargar variables/secrets con todos los interruptores cerrados;
 3. ejecutar preflight y construir artefactos; aceptar antes de migrar sólo el
    bloqueo backend esperado por esquema pendiente;
-4. migrar MariaDB manualmente;
-5. crear administrador;
-6. validar `/up`, API y admin en URLs de proveedor;
-7. configurar DNS sin alterar MX y esperar TLS válido;
-8. desplegar frontend noindex y validar canonical/metadata/robots;
-9. recrear CMS en borrador y publicar tras revisión;
-10. comprobar backup y completar restore test;
-11. ejecutar smoke no destructivo;
-12. obtener aceptación humana;
-13. activar indexación en una release separada;
-14. activar Contacto, Escuela, identidad/notificaciones y scheduler, uno por
+4. acreditar previamente el restore drill de staging y, si ya existe
+   información productiva, completar el gate predeploy con snapshot nativo,
+   dump lógico portable y copia vigente de media;
+5. migrar MariaDB manualmente;
+6. crear administrador;
+7. validar `/up`, API y admin en URLs de proveedor;
+8. configurar DNS sin alterar MX y esperar TLS válido;
+9. desplegar frontend noindex y validar canonical/metadata/robots;
+10. recrear CMS en borrador y publicar tras revisión;
+11. activar schedules nativos, verificar la copia lógica/media y registrar su
+    responsable;
+12. ejecutar smoke no destructivo;
+13. obtener aceptación humana;
+14. activar indexación en una release separada;
+15. activar Contacto, Escuela, identidad/notificaciones y scheduler, uno por
     uno y sólo después de sus gates.
 
 No se considera 7F cerrada hasta completar y evidenciar esas acciones.
 
 ## Gate de staging de Noticias 7F.2E
 
-7F.2E ha superado su aceptación manual en staging. Su gate (ya ejecutado con éxito) requería el siguiente checklist:
+7F.2E ha superado su aceptación funcional manual en staging. Su checklist se
+ejecutó con la salvedad de recuperación que se explicita en el punto 1:
 
-1. completar backup y preflight del entorno según este runbook;
+1. preflight completado; el backup previo permaneció aplazado bajo la premisa
+   entonces vigente y no se acepta retrospectivamente como evidencia de
+   recovery;
 2. revisar `php artisan migrate:status` antes de cambiar el esquema;
 3. ejecutar explícitamente `php artisan migrate --force`;
 4. repetir `migrate:status` y confirmar la nueva migración;
@@ -779,6 +923,8 @@ No se considera 7F cerrada hasta completar y evidenciar esas acciones.
 
 Un deploy marcado como `SUCCESS` no acredita que la migración se haya
 ejecutado (como evidenció el error 500 inicial por la ausencia de la tabla `news_articles`, resuelto al aplicar `migrate --force`). Este gate y la aceptación humana de 7F.2E se consideran completados.
+La salvedad del backup no reabre la feature, pero permanece dentro del P0
+transversal de recuperación que debe ensayarse antes del Go.
 
 ## Gate de staging de Navegación CMS 7F.2F
 

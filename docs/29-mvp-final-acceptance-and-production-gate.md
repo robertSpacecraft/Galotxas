@@ -14,6 +14,10 @@ release.
 el P0 de correo/password-reset queda pendiente sólo de la infraestructura de
 producción (dominio/secret/smoke test).**
 
+**7G.1C ha reconciliado la estrategia de backup/restore con las capacidades
+actuales de Railway. El P0 de recuperación no está cerrado: falta ejecutar el
+restore lógico aislado, medir RTO y ensayar el rollback descrito en el runbook.**
+
 Son prerrequisitos inmediatos todavía pendientes:
 
 1. aceptar humanamente el flujo completo de Copa en staging;
@@ -100,7 +104,8 @@ commit candidato sin omisiones, fallos, skips nuevos o residuos.
 | Suites completas anteriores a los commits de Copa | Caducada como aceptación del candidato final | Repetir sobre el commit reconciliado. |
 | Smoke global anterior a 7F.2 | Caducado para el baseline ampliado | Repetir después de aceptar Copa. |
 | Validación local de Copa: 557 backend, 659 frontend y 68 E2E | Vigente como evidencia local del bloque | No sustituye staging; repetir sólo como parte de la regresión automática final del candidato. |
-| DNS, TLS, DB, media, CMS, backup, restore y correo de staging | No acredita producción | Obtener evidencia propia del entorno productivo. |
+| DNS, TLS, DB, media, CMS y correo de staging | No acredita producción | Obtener evidencia propia del entorno productivo. |
+| Backup, restore y rollback de staging | No ejecutados; la estrategia 7G.1C sólo es documental | Ejecutar el drill aislado y el rehearsal antes del Go. |
 | Cualquier resultado basado en fixtures o `E2ESmokeSeeder` | Válido sólo para test/E2E | No promover datos, cuentas ni credenciales a producción. |
 
 ## 3. Baseline reconciliado
@@ -116,7 +121,7 @@ commit candidato sin omisiones, fallos, skips nuevos o residuos.
 | Contacto | Persistencia/formulario/notificación implementados y fail-closed | El formulario y su notificación pueden permanecer cerrados; el canal institucional publicado debe ser válido. |
 | Auth y recuperación de contraseña | Implementados | Entrega de correo real extremo a extremo bajo el contrato MVP vigente. |
 | Railway, Vercel, MariaDB, dominios, CORS, headers y health | Acreditados en staging | Recursos, secretos, migraciones y smoke propios de producción. |
-| Backup, restore y rollback | Runbooks existentes, ensayos aplazados | Restore aislado y rollback rehearsal antes del Go productivo. |
+| Backup, restore y rollback | Estrategia en capas auditada y runbook reconciliado; ensayos no ejecutados | Restore lógico aislado, RTO observado y rollback rehearsal antes del Go productivo. |
 | Admin bootstrap, logs y observabilidad mínima | Capacidad preparada | Ejecutar bootstrap seguro, asignar responsable y acreditar revisión/alerta mínima. |
 
 ## 4. Matriz staging frente a producción
@@ -130,7 +135,7 @@ commit candidato sin omisiones, fallos, skips nuevos o residuos.
 | DNS/TLS | Dominios de staging ya separados | Apex, `www`, API, certificados y MX preservados | Sí | Resolución, HTTPS, redirect y ausencia de mixed content. |
 | Contenido | Datos ficticios/temporales o copia manual controlada | CMS, School, Legal, Noticias y Sponsors reales, sin seeders demo | Sí | Revisión editorial y funcional por rutas. |
 | Media | Bucket `media-staging` y persistencia acreditados | Bucket/credenciales/política productivos y probe con cleanup | Sí | Probe, serving, persistencia y ausencia de key pública. |
-| Backup/restore | Al menos un restore test aislado | Backup del estado previo a migrar y política activa | Sí | Checksum, destino separado, restore, duración y resultado. |
+| Backup/restore | Restore lógico obligatorio sobre destino temporal; restore nativo sólo sobre servicio desechable | Snapshot manual y dump lógico del estado previo a migrar; schedules y política de media activos | Sí | Checksum, destino separado, conteos/migraciones, RTO, responsable y resultado. |
 | Rollback | Rehearsal sin afectar producción | Artefactos anteriores y compatibilidad de esquema verificadas | Sí | Parte de ensayo y plan específico del release. |
 | Correo | Prueba real cuando el proveedor lo permita | Reset extremo a extremo; otras notificaciones según flags | Sí para reset; no para capacidades cerradas | Entrega, TLS, From/Reply-To y logs saneados. |
 | Smoke | Integrado y con escrituras controladas | Mínimo y no destructivo | Sí | Checklist, hora, hash y responsable. |
@@ -162,7 +167,7 @@ y después del cambio. La primera producción usa el perfil fail-closed.
 | Restricción | Clasificación | Consecuencia y tratamiento admitido |
 |---|---|---|
 | Railway Hobby bloquea SMTP saliente | Bloqueante del correo requerido por auth; las features con flag pueden permanecer apagadas | 7G.1B validó Resend HTTPS extremo a extremo en staging con éxito. Antes del Go deben verificarse dominios productivos, cargar keys y probar el reset final. Apagar Contacto/School/identidad no resuelve el reset. |
-| Backup nativo no disponible en Hobby | No obliga a cambiar de plan si se ejecuta el workaround documentado | El dump lógico cifrado, copia separada y restore aislado del runbook son aceptables. Mientras no se ensayen, backup/restore siguen siendo P0. |
+| Railway permite backups manuales y programados de volúmenes sin documentarlos como exclusivos de Pro | Corrige la premisa histórica; no cierra por sí solo el P0 | Pro se cita específicamente para el backup automático previo a Image Auto Update. El MVP combina snapshot nativo, dump cifrado fuera del proyecto y copia independiente de media; mientras no se ensaye el restore lógico y rollback, recuperación sigue siendo P0. |
 | Monitor externo persistente ausente | Gate operativo manual; la ausencia de un SaaS concreto no es por sí sola P0 | Sí bloquea el Go carecer de responsable, revisión de `/up`/plataforma/DB/backups y canal de escalado mínimo. Automatización adicional puede quedar post-MVP. |
 | Scheduler no desplegado | Capacidad que puede permanecer desactivada | Las purgas se operan manualmente con dry-run y evidencia hasta un bloque posterior. |
 
@@ -218,6 +223,38 @@ creado cuenta Resend productiva, configurado secret, cambiado DNS, verificado do
 ni modificado Railway de producción. Por ello el P0 no se
 cierra: la validación real en staging fue exitosa, falta repetir el proceso en el entorno productivo con secret y dominio finales, y, después,
 el smoke productivo de su gate correspondiente.
+
+### 6.3 Estado de la auditoría de recuperación 7G.1C
+
+Consulta oficial Railway del 2026-08-24: los servicios con volumen disponen de
+backup manual y schedules Daily/Weekly/Monthly sin una restricción publicada
+para Hobby. Pro aporta específicamente el backup previo a Image Auto Update;
+los snapshots ordinarios son incrementales y se facturan al precio del
+volumen. El restore crea un volumen nuevo, conserva el anterior desmontado,
+queda staged hasta Deploy y sólo funciona en el mismo project + environment.
+
+La recuperación MVP queda separada en tres capas:
+
+1. snapshot nativo diario/semanal/mensual y manual predeploy para el volumen
+   MariaDB;
+2. dump lógico diario, comprimido, con SHA-256, cifrado y almacenado fuera del
+   proyecto;
+3. inventario y copia independiente de los objetos privados, porque Railway
+   Buckets no ofrece actualmente backup, versionado ni lifecycle y el snapshot
+   MariaDB sólo conserva sus keys.
+
+La imagen Laravel no contiene `mariadb-dump`; el drill debe usar un cliente
+MariaDB 11.4 controlado y verificar su versión. El restore lógico hacia una DB
+temporal aislada de staging es obligatorio antes del Go. El restore nativo se
+ensaya únicamente sobre un servicio desechable, nunca sobre la DB activa. Se
+proponen RPO 24 h, RTO 4 h para núcleo controlado y 8 h para reabrir escrituras,
+retención lógica de 30 diarios y 3 mensuales y responsable con suplente. Son
+objetivos pendientes de aprobación y medición, no SLA.
+
+7G.1C no creó backups, no tocó buckets, DB o entornos y no ejecutó rollback.
+El estado máximo es **estrategia de backup/restore reconciliada y lista para
+ensayo controlado**; recuperación continúa como P0 hasta aportar el acta del
+drill, el RTO observado y el responsable.
 
 ## 7. Regresión global final de 7F.2 preparada
 
@@ -418,8 +455,9 @@ sin su gate o publicar una promesa funcional que dependa de ella.
   SSR/prerender.
 - Matriz automatizada con navegadores adicionales y auditoría de accesibilidad
   más amplia; 7G conserva una revisión humana priorizada mínima.
-- Automatización de backup, alertas y scheduler después de validar su operación
-  manual.
+- Automatización y alertas del dump lógico y la copia de media, además del
+  scheduler, después de validar el restore y la operación controlada; los
+  schedules nativos de volumen no sustituyen esas capas.
 
 ### P2 — evolución
 

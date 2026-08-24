@@ -6,6 +6,16 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- Fase 7G.1C reconcilia el P0 de backup/restore con la documentación oficial
+  vigente de Railway: snapshots manuales y programados de volumen disponibles
+  sin restricción Hobby publicada, backup pre-Image Auto Update específico de
+  Pro, restore staged en el mismo project/environment y límites/coste actuales.
+- Se documenta la arquitectura recuperable MariaDB/bucket/Git, una estrategia
+  de snapshot nativo + dump lógico cifrado fuera del proyecto + copia
+  independiente de media, el gate predeploy, RPO/RTO propuestos y rollback por
+  superficie. No se creó backup ni se ejecutó restore; el P0 permanece abierto
+  hasta el drill lógico aislado y el rollback rehearsal.
+
 - Fase 7G.1B integra el transport oficial de Resend para Laravel 12, prepara
   producción con `resend` y staging seguro con `array`, endurece el preflight
   y hace no enumerable el fallo de entrega con invalidación del token y log
