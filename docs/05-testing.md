@@ -1860,12 +1860,20 @@ Ejecutado y validado el 2026-08-24 como prueba operativa sin alterar el entorno 
 - **RTO observado:** 5 minutos 27 segundos hasta la validación aplicativa (cumple objetivo read-only de 4h).
 - **Aislamiento:** Railway no se modificó, los secrets no se expusieron, y los recursos temporales fueron destruidos.
 
-## GLOBAL-REGRESSION-AUDIT-1 — Regresión global final 7G.2 (Pendiente de repetición)
+## GLOBAL-REGRESSION-AUDIT-1 — Regresión global final 7G.2 (CERRADA / PASS)
 
-- Se confirmó que el supuesto `P0-STAGING-NEWS-DETAIL` fue un FALSO POSITIVO del smoke test debido al uso manual de un slug erróneo. El detalle de Noticias funciona correctamente en staging.
-- Los advisories de npm detectados han sido REMEDIADOS en `develop` (actualización de `react-router-dom` a `7.18.2`), volviendo a dejar `npm audit` y `npm audit --omit=dev` en 0 vulnerabilidades.
-- El hallazgo `7G.2-SITEMAP-HTTP` (fallback SPA devolviendo HTTP 200 en lugar de 404 estricto) queda CERRADO / REMEDIADO Y VALIDADO EN VERCEL STAGING. El routing ha sido ajustado para excluir ficheros del fallback (`/((?!.*\.[^/]+$).*)`), y los smoke tests verifican HTTP 404 y `x-vercel-error: NOT_FOUND`.
-- **Resultado:** PENDIENTE. 7G.2 queda pendiente de repetición final del gate global sobre el candidato actual. No existen hallazgos técnicos conocidos pendientes derivados de la ejecución anterior.
+Ejecutada operativamente sobre el candidato `develop` (HEAD: `e2b299cfd7e6d9fa1d59d15d09d177605bcb35ba`) desplegado en Vercel Staging (deployment `dpl_Dq9f93bjpQvMMZD9CfLaChrXVLZz`) y en Railway Staging.
+
+**Evidencia validada (PASS):**
+- **Backend:** Laravel 566 tests / 4.350 aserciones (PASS). PHP lint 0 errores. Composer audit 0 advisories (`--no-dev` inclusive).
+- **Frontend:** Vitest 93 archivos / 660 tests (PASS), `npm audit` 0 vulnerabilidades. E2E: 68/68 PASS. Checks de Knowledge, SEO y Legal (PASS).
+- **Noticias:** Falso positivo histórico descartado. Listing, transporte programático de slugs y detail validado en staging con status 200 y renderizado correcto.
+- **Sitemap / SEO:** Hallazgo `7G.2-SITEMAP-HTTP` CERRADO / REMEDIADO. `/sitemap.xml` devuelve HTTP 404 estricto sin caer en fallback SPA. `/robots.txt` devuelve HTTP 200 con `Disallow: /`. Rutas sin extensión mantienen el fallback a SPA.
+- **Railway Provider:** Evidencia pendiente por CLI cerrada externamente en modo read-only. Despliegue exitoso con ID `73f12e56...` del commit `dfa5f34...`. El healthcheck `/up` fue exitoso y el HTTP access log no registra 5xx ni `upstreamErrors`. (Los posteriores commits son puramente frontend/docs por lo que Railway hizo SKIPPED).
+- **Flags/Privacidad:** Todo cerrado fail-safe. Escuela, contactos y avatares protegidos y/o requeridos bajo token.
+- **Copa:** Navegación en semi, finales, etc validado (sin regresión). UX de resumen y presentación del campeón permanecen como P1 post-MVP (no bloqueantes).
+
+- **Resultado:** PASS / CERRADO. No existen P0 abiertos. El gate se considera cerrado sobre el candidato actual. El bit de ejecución en `backend/scripts/run-tests.sh` ha sido registrado como P1 técnico.
 
 ## PRE-PRODUCTION-AUDIT-2 — Auditoría preparatoria de configuración 7G.3
 
@@ -1881,7 +1889,7 @@ Ejecutada operativamente y documentada el 2026-08-24.
   - `CONTACT_NOTIFICATION_MAILER` ausente (fallback al mailer global válido).
   - `MEDIA_*` configuradas en Railway pero faltan en `.env.production.example` (P1).
 
-**Resultado:** NO-GO. La auditoría 7G.3 se considera preparatoria y permanece **abierta**, ya que la regresión global 7G.2 todavía está pendiente y faltan deployments reales, DNS y domains.
+**Resultado:** SIGUIENTE GATE. La auditoría 7G.3 se considera preparatoria y permanece **abierta**, ya que faltan deployments reales, DNS y domains. 7G.2 ha concluido con PASS.
 
 
 El P0 de capacidad de recuperación MariaDB queda **cerrado para staging**. Producción sigue pendiente de su propio gate predeploy, y la recuperación de media (Bucket) requiere verificación independiente.

@@ -111,7 +111,7 @@ commit candidato sin omisiones, fallos, skips nuevos o residuos.
 | Área | Estado real | Gate restante |
 |---|---|---|
 | Navegación, rankings, Liga, resultados, conflictos, standings y visibilidad | Cerrado; requiere regresión integrada | Smoke global final de 7F.2. |
-| Copa y vista dedicada | Aceptación humana completada en staging (flujo completo verificado) | Pendiente de regresión global final (7G.2). |
+| Copa y vista dedicada | Aceptación humana completada en staging (flujo completo verificado) | Regresión global final 7G.2 = PASS. |
 | CMS, navegación CMS, Noticias, Knowledge, Club y Legal | Cerrado en sus bloques | Regresión integrada, contenido real y aprobación humana de lo publicado. |
 | Bucket y núcleo multimedia, Sponsors, avatar y portadas de Noticias | Cerrado en staging | Configuración y probe propios de producción; derechos de imágenes reales. |
 | Escuela de lectura | Implementada | Programa, niveles, horarios, ubicación y contacto reales revisados en producción. |
@@ -126,7 +126,7 @@ commit candidato sin omisiones, fallos, skips nuevos o residuos.
 
 | Gate | Staging | Producción | ¿Bloquea 7G? | Evidencia exigida |
 |---|---|---|---|---|
-| Copa | Escritura y aceptación humana completadas en staging | Sólo lectura/smoke no destructivo | Sí, antes de 7G.2 | Acta del recorrido y ausencia de regresión. |
+| Copa | Escritura y aceptación humana completadas en staging | Sólo lectura/smoke no destructivo | Sí (Cerrado en 7G.2) | Acta del recorrido y ausencia de regresión. |
 | Regresión global 7F.2 | Obligatoria tras Copa | No se ejecuta la suite E2E contra producción | Sí | Suites del candidato y checklist de recorridos firmado. |
 | Configuración | `deploy:check`, aislamiento y flags cerradas | Preflight con URLs, CORS, secretos y recursos propios | Sí | Salidas saneadas de ambos preflights. |
 | Migraciones | Estado y migraciones ensayados | `migrate:status`, backup previo y `migrate --force` manual | Sí | Lista prevista, salida antes/después y decisor. |
@@ -319,7 +319,7 @@ La subdivisión siguiente formaliza el orden operativo sin cambiar el alcance de
 
 ### 7G.2 — Regresión global final de staging
 
-*ESTADO ACTUAL: PENDIENTE DE REPETICIÓN GLOBAL. El supuesto `P0-STAGING-NEWS-DETAIL` fue un falso positivo, los advisories npm están remediados en `develop`, y el hallazgo `/sitemap.xml` está CERRADO / REMEDIADO Y VALIDADO. 7G.2 queda pendiente de repetir el gate global completo sobre el candidato actual.*
+*ESTADO ACTUAL: PASS / CERRADO. La regresión global sobre el candidato actual en staging (Vercel y Railway) superó todos los criterios (backend, frontend, SEO, privacy, QA visual). No se identificaron P0 ni bloqueos vigentes (todos los hallazgos previos, como sitemap, han sido resueltos).*
 
 - **Entrada:** candidato de 7G.1 desplegado en staging con flags cerradas.
 - **Acciones:** ejecutar el checklist de la sección 7 y la QA priorizada.
@@ -332,7 +332,7 @@ La subdivisión siguiente formaliza el orden operativo sin cambiar el alcance de
 
 ### 7G.3 — Auditoría de configuración productiva
 
-*ESTADO ACTUAL: Auditoría preparatoria realizada (NO-GO). La fase 7G.3 formal sigue ABIERTA porque 7G.2 (regresión global) aún no está cerrada formalmente y quedan gates productivos pendientes.*
+*ESTADO ACTUAL: ABIERTA / SIGUIENTE GATE. La regresión global 7G.2 ha sido completada (PASS), permitiendo la transición a este gate para la auditoría y despliegue real de la configuración productiva.*
 
 - **Entrada:** 7G.2 verde; recursos productivos creados pero sin tráfico real.
 - **Acciones:** revisar secretos, URLs, CORS, DB, migraciones, media, correo,
