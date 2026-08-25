@@ -658,11 +658,52 @@ Un snapshot del volumen MariaDB no es un backup completo del sistema:
 | Git y configuración de plataforma | Git conserva código, migraciones, `knowledge/`, `legal/`, docs y ejemplos de configuración sin secrets. | Variables reales, secrets, DNS y ajustes de Vercel/Railway requieren inventario operativo separado y no deben copiarse a Git ni al dump. |
 
 La imagen productiva del backend no instala `mariadb-dump`. El dump lógico no
-puede darse por disponible dentro del contenedor Laravel: el operador debe
-usar un cliente MariaDB 11.4 compatible y controlado —por ejemplo, una imagen
-cliente de un solo uso o una estación operativa aprobada—, comprobar primero
-`mariadb-dump --version` y mantener las credenciales fuera del comando y de los
-logs. Esta auditoría no añade el binario ni el automatismo.
+puede darse por disponible dentro del contenedor Laravel. La automatización
+versionada usa una imagen efímera separada en `backend/backup/`, con cliente
+MariaDB 11.4, restic y rclone, y mantiene las credenciales fuera de argumentos
+y logs. El job no forma parte del runtime web ni restaura automáticamente.
+
+### Job externo de backup preparado en 7G.3
+
+La prueba manual de producción acreditó un snapshot restic cifrado con dump y
+media, restauración aislada, SHA-256 idéntico para el dump, importación en una
+MariaDB 11.4 efímera y `restic check` sin errores. Sobre esa evidencia se
+versiona un job no interactivo, todavía **no desplegado ni programado**, con el
+siguiente contrato:
+
+- ejecución por defecto: `/usr/local/bin/galotxas-backup backup`;
+- comprobación sin snapshot nuevo: `/usr/local/bin/galotxas-backup check`;
+- configuración rclone, cliente MariaDB y password-file restic temporales con
+  permisos `0600` y limpieza mediante `trap` en éxito, error o señal;
+- dump con transacción única, rutinas, triggers, eventos y binarios seguros;
+- copia completa del bucket privado, admitiendo inventario vacío;
+- manifiesto técnico sin credenciales con fecha UTC, tamaños, recuento de
+  media y SHA-256 del dump;
+- snapshot y retención con agrupación estable `host,tags`, además de filtros
+  por ese host/tag, para que los paths temporales aleatorios formen un único
+  conjunto automatizado de 14 diarios, 8 semanales y 12 mensuales;
+- `forget --prune` únicamente después de crear el snapshot y fallo observable
+  si la retención no concluye;
+- el snapshot manual `7G.3-pre-migration` conserva host/tag distintos y queda
+  fuera de la selección y retención del job automatizado;
+- ninguna operación de restore contra producción.
+
+Los nombres y defaults no sensibles están inventariados en
+`backend/backup/.env.example`. Credenciales DB de backup, S3, OAuth de Google y
+password restic se cargarán exclusivamente como secrets/references del servicio
+efímero. Desplegar el servicio, vincular referencias, elegir schedule y ejecutar
+el primer backup automatizado siguen siendo pasos manuales posteriores; este
+cambio no cierra 7G.3.
+
+Existe además un gate previo de OAuth: la aplicación propia `Galotxas Backup`
+está configurada como External + Testing. Google documenta que, al solicitar
+scopes distintos de identidad básica como Drive, los refresh tokens emitidos en
+Testing caducan a los siete días. El token actual no es una credencial
+productiva definitiva. Antes de desplegar o programar el job, el operador debe,
+si Google lo permite para este uso, pasar la aplicación a `In production`,
+revocar la concesión de Testing, autorizarla de nuevo y guardar como secret el
+nuevo token. La referencia canónica es la sección
+[Refresh token expiration de Google OAuth 2.0](https://developers.google.com/identity/protocols/oauth2#expiration).
 
 ## Estrategia de backup en capas
 

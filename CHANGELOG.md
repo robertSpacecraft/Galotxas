@@ -6,6 +6,15 @@ Este archivo registra los cambios relevantes de Galotxas. La estructura sigue de
 
 ### Added
 
+- **AUTOMATIZACIÓN DE BACKUP 7G.3 PREPARADA:** Se añade una imagen efímera
+  independiente del backend web con cliente MariaDB 11.4, rclone y restic; dump
+  consistente, copia de media, manifiesto no sensible, configuración temporal
+  `0600`, limpieza garantizada, modo `check` y retención 14/8/12 agrupada por
+  `host,tags`. El modo S3 path-style es obligatorio y explícito. La solución se
+  valida localmente con mocks e imagen real, pero no se despliega, programa ni
+  conecta a secrets o recursos productivos; el paso de OAuth External + Testing
+  a una concesión productiva renovada sigue siendo un gate y 7G.3 permanece
+  NO-GO.
 - **AUDITORÍA PREPARATORIA 7G.3:** Se realizó la verificación de pre-producción (NO-GO, permanece abierta). Se constató la creación de la infraestructura backend en Railway (`mariadb-production` activa, `backend-production` pre-provisionada sin despliegues). Se corrigió operativamente la `APP_KEY` a una clave Laravel válida (formato base64, adecuada para AES-256) sin efectuar deployment. El proyecto Vercel productivo permanece PENDIENTE ESPERADO / NO CREADO.
 - **COPA STAGING PASS:** Aceptación humana completa y exitosa del flujo y visualización de Copa en el entorno de staging. Se documentan dos mejoras UX de Copa como P1 post-MVP (no bloqueantes). Queda pendiente la regresión global final 7G.2.
 
