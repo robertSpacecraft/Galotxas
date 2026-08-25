@@ -319,7 +319,7 @@ La subdivisión siguiente formaliza el orden operativo sin cambiar el alcance de
 
 ### 7G.2 — Regresión global final de staging
 
-*ESTADO ACTUAL: EN CURSO / NO-GO. El supuesto `P0-STAGING-NEWS-DETAIL` fue un falso positivo (slug erróneo manual) y los advisories npm están remediados en `develop`. 7G.2 sigue ABIERTO y bloqueado por el hallazgo del contrato HTTP de `/sitemap.xml` (devuelve HTTP 200 en lugar de 404 estricto para slugs desconocidos).*
+*ESTADO ACTUAL: PENDIENTE DE REPETICIÓN GLOBAL. El supuesto `P0-STAGING-NEWS-DETAIL` fue un falso positivo, los advisories npm están remediados en `develop`, y el hallazgo `/sitemap.xml` está CERRADO / REMEDIADO Y VALIDADO. 7G.2 queda pendiente de repetir el gate global completo sobre el candidato actual.*
 
 - **Entrada:** candidato de 7G.1 desplegado en staging con flags cerradas.
 - **Acciones:** ejecutar el checklist de la sección 7 y la QA priorizada.

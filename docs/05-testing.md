@@ -1860,11 +1860,12 @@ Ejecutado y validado el 2026-08-24 como prueba operativa sin alterar el entorno 
 - **RTO observado:** 5 minutos 27 segundos hasta la validación aplicativa (cumple objetivo read-only de 4h).
 - **Aislamiento:** Railway no se modificó, los secrets no se expusieron, y los recursos temporales fueron destruidos.
 
-## GLOBAL-REGRESSION-AUDIT-1 — Regresión global final 7G.2 (En curso)
+## GLOBAL-REGRESSION-AUDIT-1 — Regresión global final 7G.2 (Pendiente de repetición)
 
 - Se confirmó que el supuesto `P0-STAGING-NEWS-DETAIL` fue un FALSO POSITIVO del smoke test debido al uso manual de un slug erróneo. El detalle de Noticias funciona correctamente en staging.
 - Los advisories de npm detectados han sido REMEDIADOS en `develop` (actualización de `react-router-dom` a `7.18.2`), volviendo a dejar `npm audit` y `npm audit --omit=dev` en 0 vulnerabilidades.
-- **Resultado:** NO-GO. 7G.2 permanece ABIERTO únicamente por el hallazgo sobre el contrato HTTP de `/sitemap.xml` (devuelve 200 SPA shell en lugar de 404 estricto para rutas no definidas). Queda pendiente su tratamiento y la repetición del gate global.
+- El hallazgo `7G.2-SITEMAP-HTTP` (fallback SPA devolviendo HTTP 200 en lugar de 404 estricto) queda CERRADO / REMEDIADO Y VALIDADO EN VERCEL STAGING. El routing ha sido ajustado para excluir ficheros del fallback (`/((?!.*\.[^/]+$).*)`), y los smoke tests verifican HTTP 404 y `x-vercel-error: NOT_FOUND`.
+- **Resultado:** PENDIENTE. 7G.2 queda pendiente de repetición final del gate global sobre el candidato actual. No existen hallazgos técnicos conocidos pendientes derivados de la ejecución anterior.
 
 ## PRE-PRODUCTION-AUDIT-2 — Auditoría preparatoria de configuración 7G.3
 
