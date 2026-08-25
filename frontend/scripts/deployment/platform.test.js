@@ -19,11 +19,41 @@ describe('contrato Vercel', () => {
     expect(packageJson.engines.node).toBe('22.x');
   });
 
-  it('mantiene deep links SPA y redirige www al apex permanentemente', () => {
-    expect(vercel.rewrites).toContainEqual({
-      source: '/(.*)',
+  it('mantiene deep links SPA sin capturar recursos con extensión', () => {
+    const spaFallback = vercel.rewrites.find(({ destination }) => destination === '/index.html');
+
+    expect(spaFallback).toEqual({
+      source: '/((?!.*\\.[^/]+$).*)',
       destination: '/index.html',
     });
+
+    const spaFallbackPattern = new RegExp(`^${spaFallback.source}$`);
+
+    for (const pathname of [
+      '/',
+      '/noticias',
+      '/noticias/cronica-de-la-final',
+      '/categories/2',
+      '/contenidos/nosotros',
+      '/aprende-a-jugar/manual/reglamento/reglamento',
+      '/ruta-react-inexistente',
+    ]) {
+      expect(spaFallbackPattern.test(pathname), pathname).toBe(true);
+    }
+
+    for (const pathname of [
+      '/sitemap.xml',
+      '/robots.txt',
+      '/nonexistent.xml',
+      '/favicon.ico',
+      '/assets/recurso-inexistente.js',
+      '/imagen.png',
+    ]) {
+      expect(spaFallbackPattern.test(pathname), pathname).toBe(false);
+    }
+  });
+
+  it('redirige www al apex permanentemente', () => {
     expect(vercel.redirects).toContainEqual(expect.objectContaining({
       destination: 'https://galotxesmonover.es/:path*',
       permanent: true,

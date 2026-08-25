@@ -162,8 +162,10 @@ test.describe('SEO, indexación y accesibilidad pública', () => {
     ].join('\n'));
 
     const sitemap = await page.request.get(new URL('/sitemap.xml', page.url()).href);
-    expect(sitemap.ok()).toBe(true);
+    expect(sitemap.status()).toBe(200);
+    expect(sitemap.headers()['content-type']).toContain('application/xml');
     const sitemapXml = await sitemap.text();
+    expect(sitemapXml).toMatch(/^<\?xml version="1\.0" encoding="UTF-8"\?>/);
     expect((sitemapXml.match(/<url>/g) ?? [])).toHaveLength(53);
     expect(sitemapXml).toContain('<loc>https://example.test/legal/privacidad</loc>');
     expect(sitemapXml).toContain(
@@ -179,6 +181,7 @@ test.describe('SEO, indexación y accesibilidad pública', () => {
     expect(await disabledRobots.text()).toBe('User-agent: *\nDisallow: /\n');
     const disabledSitemap = await page.request.get(`${disabledBase}/sitemap.xml`);
     expect(disabledSitemap.status()).toBe(404);
+    expect(disabledSitemap.headers()['content-type'] ?? '').not.toContain('text/html');
   });
 
   test('skip link, foco SPA, announcer y disclosures funcionan con teclado', async ({ page }) => {
