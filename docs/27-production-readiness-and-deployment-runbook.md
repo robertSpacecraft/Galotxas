@@ -764,7 +764,7 @@ Valores a aprobar, no SLA de proveedor:
   declaración del incidente dentro de una ventana con responsable disponible;
 - retención: schedules nativos 6 días/1 mes/3 meses, dump lógico 30 diarios y
   3 mensuales, copia de media mínima de 30 días;
-- propiedad: una persona responsable de operación y una suplente revisan el
+- propiedad: una persona responsable de operación (mantenedor único sin suplente, política de congelación de cambios ante ausencia) revisa el
   último backup, reciben fallos, autorizan restore y registran cada ensayo.
 
 El RPO/RTO sólo pasan de objetivo a evidencia después del drill. El drill 7G.1D arrojó un RTO de 5 min 27 s (cumpliendo el objetivo de 4 h para núcleo read-only). El RTO para reapertura de escrituras sigue sin medirse. Si el tiempo
@@ -785,7 +785,7 @@ Antes de cualquier `php artisan migrate --force` productivo:
 5. copiar el artefacto fuera del servicio/proyecto y volver a verificar el
    checksum sobre la copia almacenada;
 6. registrar timestamp UTC, hash candidato, migraciones, tamaño, checksum,
-   retención, ubicación lógica y responsable, nunca secrets o contenido;
+   retención, ubicación lógica y mantenedor, nunca secrets o contenido;
 7. confirmar el último inventario/copia de media cuando la release pueda
    modificar referencias u objetos;
 8. obtener aprobación humana. Sólo entonces ejecutar una vez

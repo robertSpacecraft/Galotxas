@@ -13,7 +13,7 @@ release.
 **La infraestructura de correo productivo (Resend) está acreditada y preparada en 7G.3: dominio verificado, DKIM/SPF activos, y API key de producción configurada en Railway (`backend-production`).
 El envío real (entrega extremo a extremo) queda pendiente como requisito del smoke productivo (7G.6) una vez desplegado el backend.**
 
-**La capacidad de recuperación manual de producción está acreditada y cerrada. Además, el subbloque OAuth/Google Drive y la infraestructura del job en Railway han sido resueltos y validados: la app "Galotxas Backup" está 'En producción' (scope exclusivo `drive.file`); usuario MariaDB dedicado creado; servicio `backup-production` configurado (secretos, cron UTC) y verificado (check, primer backup supervisado, snapshot restaurado y validado), con alertas activas. El P0 de source/autodeploy ha sido CERRADO mediante una política deliberadamente manual: `backend-production` se ha conectado a GitHub (`main`) con autodeploy desactivado, y `backup-production` opera sin source (source-less) desplegándose manualmente vía CLI desde el commit aprobado. Toda publicación productiva requerirá acción humana explícita. Sin embargo, el P0 global de backup/recovery sigue abierto. El automatismo de backup (job 7G.3) permanece NO-GO pendiente de: ensayo de rollback/forward-fix, designación de ownership y revalidación verde del hash final. El restore automático sigue prohibido.**
+**La capacidad de recuperación manual de producción está acreditada y cerrada. Además, el subbloque OAuth/Google Drive y la infraestructura del job en Railway han sido resueltos y validados: la app "Galotxas Backup" está 'En producción' (scope exclusivo `drive.file`); usuario MariaDB dedicado creado; servicio `backup-production` configurado (secretos, cron UTC) y verificado (check, primer backup supervisado, snapshot restaurado y validado), con alertas activas. El P0 de source/autodeploy ha sido CERRADO mediante una política deliberadamente manual: `backend-production` se ha conectado a GitHub (`main`) con autodeploy desactivado, y `backup-production` opera sin source (source-less) desplegándose manualmente vía CLI desde el commit aprobado. Toda publicación productiva requerirá acción humana explícita. Sin embargo, el P0 global de backup/recovery sigue abierto. El automatismo de backup (job 7G.3) permanece NO-GO pendiente de: ensayo de rollback/forward-fix y revalidación verde del hash final. El P0 de ownership ha sido cerrado aprobándose una política de mantenedor único (bus factor 1 declarado como riesgo residual), congelando despliegues y operaciones privilegiadas ante indisponibilidad. El restore automático sigue prohibido.**
 
 Son prerrequisitos restantes para completar la Fase 7G (cierres y despliegue productivo):
 
@@ -59,8 +59,8 @@ runbooks operativos ni reescribir la historia del candidato antiguo.
   staging.
 - Backup utilizable, restore aislado acreditado y rollback compatible con las
   migraciones del candidato.
-- Responsable humano de producto, operación, contenido y privacidad con
-  decisión registrada.
+- Política operativa de mantenedor único registrada, asumiendo el bus factor 1
+  y la congelación de cambios ante indisponibilidad.
 
 ### 2.2 Evidencia automática
 
@@ -117,7 +117,7 @@ commit candidato sin omisiones, fallos, skips nuevos o residuos.
 | Contacto | Persistencia/formulario/notificación implementados y fail-closed | El formulario y su notificación pueden permanecer cerrados; el canal institucional publicado debe ser válido. |
 | Auth y recuperación de contraseña | Implementados; infraestructura productiva configurada. | Entrega de correo real extremo a extremo diferida al smoke productivo (7G.6). |
 | Railway, Vercel, MariaDB, dominios, CORS, headers y health | Acreditados en staging | Recursos, secretos, migraciones y smoke propios de producción. |
-| Backup, restore y rollback | Restore lógico aislado de staging (7G.1D) y drill manual de producción completados. Subbloque OAuth/Google Drive y configuración de infraestructura en Railway validados: usuario DB dedicado, secretos, check, primer backup y restore exitosos, alertas y cron UTC. Automatismo de backup (job 7G.3) operativo desde despliegue manual sin source conectado (decisión productiva). | Rollback rehearsal, ownership y prueba final antes del Go. |
+| Backup, restore y rollback | Restore lógico aislado de staging (7G.1D) y drill manual de producción completados. Subbloque OAuth/Google Drive y configuración de infraestructura en Railway validados: usuario DB dedicado, secretos, check, primer backup y restore exitosos, alertas y cron UTC. Automatismo de backup (job 7G.3) operativo desde despliegue manual sin source conectado (decisión productiva). | Rollback rehearsal y prueba final antes del Go. |
 | Admin bootstrap, logs y observabilidad mínima | Capacidad preparada | Ejecutar bootstrap seguro, asignar responsable y acreditar revisión/alerta mínima. |
 
 ## 4. Matriz staging frente a producción
@@ -136,7 +136,7 @@ commit candidato sin omisiones, fallos, skips nuevos o residuos.
 | Correo | Prueba real cuando el proveedor lo permita | Reset extremo a extremo; otras notificaciones según flags | Sí para reset; no para capacidades cerradas | Entrega, TLS, From/Reply-To y logs saneados. |
 | Smoke | Integrado y con escrituras controladas | Mínimo y no destructivo | Sí | Checklist, hora, hash y responsable. |
 | Indexación | Siempre `noindex, nofollow` | Primera publicación `initial` también noindex; cambio `live` separado y aprobado | La decisión sí; activarla de inmediato no | Preflight, `robots`, sitemap y decisión registrada. |
-| Observabilidad | Revisión manual de plataforma | `/up`, errores, DB, backup y responsable/alerta mínima | Sí si no hay propietario o detección mínima | Checklist y canal de escalado. |
+| Observabilidad | Revisión manual de plataforma | `/up`, errores, DB, backup y responsable/alerta mínima | Sí si no hay propietario o detección mínima | Checklist y política operativa de indisponibilidad. |
 
 Las suites, seeders y cuentas E2E sólo se usan en el entorno aislado. En
 producción no se repiten flujos destructivos para “demostrar” lo ya cubierto;
@@ -235,7 +235,7 @@ MariaDB 11.4 controlado y verificar su versión. El restore lógico hacia una DB
 temporal aislada de staging es obligatorio antes del Go. Se proponen
 como objetivos (no SLA, pendientes de medición): RPO 24 h, RTO 4 h para núcleo
 controlado y 8 h para reabrir escrituras, retención lógica de 30 diarios y 3 mensuales,
-y retención de media mínimo 30 días, con responsable y suplente.
+y retención de media mínimo 30 días, bajo política de mantenedor único (sin suplente, riesgo documentado).
 
 7G.1D completó el "restore lógico aislado validado en staging" con resultado PASS. El ensayo generó un dump lógico consistente (SHA-256: 84243b3be0efdc557fb93ecf1bc4565331492c3470f57269767ca33e1a314f5a), restauró en una DB Docker efímera y aislada, superó las verificaciones estructurales (conteos, migraciones, foreign keys) y validó un RTO de 5 min 27 s (cumpliendo el objetivo read-only de 4h). El P0 de capacidad de recuperación MariaDB se declara CERRADO para staging. Producción sigue pendiente de su propio gate predeploy (dump cifrado, copia separada) y el recovery de media sigue siendo un requisito pendiente e independiente. El RTO para reapertura de escrituras (8 h) no se acreditó en este drill.
 
@@ -328,7 +328,7 @@ La subdivisión siguiente formaliza el orden operativo sin cambiar el alcance de
 
 ### 7G.3 — Auditoría de configuración productiva
 
-*ESTADO ACTUAL: ABIERTA / NO-GO. La regresión global 7G.2 ha sido completada (PASS). El subbloque OAuth y la operativa del job en Railway han sido validados. El control de source/autodeploy se ha cerrado con una política manual explícita (backend con autodeploy desactivado, backup sin source conectado). La infraestructura y configuración de correo productivo (Resend) está preparada y validada. Siguen pendientes ownership, rehearsal de rollback y validación del hash final.*
+*ESTADO ACTUAL: ABIERTA / NO-GO. La regresión global 7G.2 ha sido completada (PASS). El subbloque OAuth y la operativa del job en Railway han sido validados. El control de source/autodeploy se ha cerrado con una política manual explícita (backend con autodeploy desactivado, backup sin source conectado). La infraestructura y configuración de correo productivo (Resend) está preparada y validada. El ownership operativo se ha cerrado bajo una política de mantenedor único (bus factor 1). Siguen pendientes rehearsal de rollback y validación del hash final.*
 
 - **Entrada:** 7G.2 verde; recursos productivos creados pero sin tráfico real.
 - **Acciones:** revisar secretos, URLs, CORS, DB, migraciones, media, correo,
