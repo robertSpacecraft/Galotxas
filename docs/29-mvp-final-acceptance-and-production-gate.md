@@ -14,7 +14,7 @@ release.
 el P0 de correo/password-reset queda pendiente sólo de la infraestructura de
 producción (dominio/secret/smoke test).**
 
-**La capacidad de recuperación manual de producción está acreditada y cerrada (incluyendo dump lógico, snapshot restic cifrado en Google Drive, copia de media y restauración aislada correcta). Además, el subbloque OAuth/Google Drive se ha resuelto y validado: la app "Galotxas Backup" está 'En producción' y se ha validado localmente el nuevo repositorio de destino limitado estrictamente al alcance `drive.file` (`galotxes-backup-drivefile/production`), corrigiéndose también el script para imponer dicha restricción (commit `934f2dab0eaa0f2ead4c8c0a9f4266cd0dfe81b1`). El antiguo repositorio `galotxes-backup/production` y su snapshot manual `7G.3-pre-migration` quedan intactos y fuera de la retención automática. Sin embargo, el P0 global de backup/recovery sigue abierto. El automatismo de backup (job 7G.3) permanece NO-GO pendiente de: desplegar y configurar el job de backup en Railway con el nuevo token operativo y secret references seguras; crear usuario MariaDB dedicado con privilegios mínimos; ejecutar el modo `check` desde el job real; primer backup automatizado supervisado, programación UTC y observabilidad/alertas por fallo. El restore automático sigue prohibido.**
+**La capacidad de recuperación manual de producción está acreditada y cerrada (incluyendo dump lógico, snapshot restic cifrado en Google Drive, copia de media y restauración aislada correcta). Además, el subbloque OAuth/Google Drive y la infraestructura del job en Railway han sido resueltos y validados: la app "Galotxas Backup" está 'En producción' con scope exclusivo `drive.file` (`galotxes-backup-drivefile/production`); se ha creado el usuario MariaDB dedicado con privilegios mínimos; el servicio de Railway `backup-production` ha sido configurado con sus secretos, programado en UTC y verificado con un `check` real y el primer backup supervisado (snapshot `b7225bfc` restaurado y validado estructuralmente), estando activas las alertas en la plataforma. Sin embargo, el P0 global de backup/recovery sigue abierto. El automatismo de backup (job 7G.3) permanece NO-GO pendiente de: establecer y auditar el source/autodeploy permanente del job (el primer despliegue fue manual desde `develop`), ensayo de rollback/forward-fix y designación de ownership. El restore automático sigue prohibido.**
 
 Son prerrequisitos restantes para completar la Fase 7G (cierres y despliegue productivo):
 
@@ -118,7 +118,7 @@ commit candidato sin omisiones, fallos, skips nuevos o residuos.
 | Contacto | Persistencia/formulario/notificación implementados y fail-closed | El formulario y su notificación pueden permanecer cerrados; el canal institucional publicado debe ser válido. |
 | Auth y recuperación de contraseña | Implementados | Entrega de correo real extremo a extremo bajo el contrato MVP vigente. |
 | Railway, Vercel, MariaDB, dominios, CORS, headers y health | Acreditados en staging | Recursos, secretos, migraciones y smoke propios de producción. |
-| Backup, restore y rollback | Restore lógico aislado de staging (7G.1D) y drill manual de producción completados (dump lógico, snapshot restic cifrado, copia de media e importación limpia). Subbloque OAuth/Google Drive resuelto (app publicada, autorización y repositorio nuevo con scope `drive.file` validados localmente, script corregido). Automatismo de backup preparado (job 7G.3). | Guardar token OAuth operativo, desplegar y configurar job en Railway, usuario DB de backup, primer backup automático, alertas, rollback rehearsal y prueba final antes del Go. |
+| Backup, restore y rollback | Restore lógico aislado de staging (7G.1D) y drill manual de producción completados. Subbloque OAuth/Google Drive y configuración de infraestructura en Railway validados: usuario DB dedicado, secretos, check, primer backup y restore exitosos, alertas y cron UTC. Automatismo de backup (job 7G.3) operativo desde despliegue manual. | Source/autodeploy permanente del job, rollback rehearsal y prueba final antes del Go. |
 | Admin bootstrap, logs y observabilidad mínima | Capacidad preparada | Ejecutar bootstrap seguro, asignar responsable y acreditar revisión/alerta mínima. |
 
 ## 4. Matriz staging frente a producción
@@ -331,7 +331,7 @@ La subdivisión siguiente formaliza el orden operativo sin cambiar el alcance de
 
 ### 7G.3 — Auditoría de configuración productiva
 
-*ESTADO ACTUAL: ABIERTA / NO-GO. La regresión global 7G.2 ha sido completada (PASS) y el subbloque de la automatización OAuth/Google Drive ha sido resuelto y validado localmente con el scope seguro `drive.file`. Siguen pendientes el despliegue del job, secretos operativos, usuario BD dedicado, programación, monitorización y demás P0 de configuración productiva.*
+*ESTADO ACTUAL: ABIERTA / NO-GO. La regresión global 7G.2 ha sido completada (PASS). El subbloque de la automatización OAuth y el bloque operativo del job en Railway (usuario BD dedicado, secretos, check, primer backup, cron, alertas) han sido validados con éxito desde un despliegue manual. Siguen pendientes el mecanismo permanente de autodeploy del job, correo productivo, ownership, rehearsal de rollback y demás P0 de configuración productiva.*
 
 - **Entrada:** 7G.2 verde; recursos productivos creados pero sin tráfico real.
 - **Acciones:** revisar secretos, URLs, CORS, DB, migraciones, media, correo,
@@ -426,7 +426,7 @@ Go/No-Go.
 - Correo real extremo a extremo para recuperación de contraseña.
 - Recursos/configuración productivos, migraciones, contenido real y media
   persistente verificados.
-- Operación automatizada de backup (configuración en Railway, usuario dedicado, secretos, primer backup validado), restore manual acreditado, rollback rehearsal y observabilidad/alertas mínimas.
+- Operación automatizada de backup productiva (despliegue manual operativo, primer backup validado, configuración de alertas, autodeploy pendiente), restore manual acreditado, rollback rehearsal y observabilidad mínima.
 - Aprobación de Legal, privacidad, identidad y derechos de cada imagen real
   publicada.
 - Smoke productivo, observabilidad mínima, decisión humana y trazabilidad del
