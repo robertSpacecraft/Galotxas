@@ -14,18 +14,17 @@ release.
 el P0 de correo/password-reset queda pendiente sólo de la infraestructura de
 producción (dominio/secret/smoke test).**
 
-**El P0 de capacidad de recuperación de MariaDB está cerrado para staging tras el PASS operativo de 7G.1D (restore lógico aislado verificado en 5 min 27 s). Producción y media siguen pendientes de su propio gate predeploy.**
+**La capacidad de recuperación manual de producción está acreditada y cerrada (incluyendo dump lógico, snapshot restic cifrado en Google Drive, copia de media y restauración aislada correcta). Sin embargo, el P0 global de backup/recovery sigue abierto. El automatismo de backup (job 7G.3) está versionado y validado localmente, pero su operación permanece NO-GO pendiente de: OAuth (revocar Testing, pasar app a 'In production' si Google lo permite, guardar secret de Railway); usuario MariaDB dedicado con privilegios mínimos, secret references, despliegue/programación del job, primer check, primer backup automatizado supervisado, horario y alertas mínimas. Aparte, el snapshot manual `7G.3-pre-migration` usa host/tag distintos y queda expresamente fuera de la selección/retención automática. El restore automático está prohibido.**
 
-Son prerrequisitos inmediatos todavía pendientes:
+Son prerrequisitos restantes para completar la Fase 7G (cierres y despliegue productivo):
 
-1. (CERRADO) aceptar humanamente el flujo completo de Copa en staging;
-2. ejecutar después la regresión global final de 7F.2 sobre el baseline
-   integrado.
+- La configuración de recursos y credenciales finales de producción.
+- El despliegue de los automatismos de operación (backup) y sus secrets.
+- El smoke productivo final post-despliegue.
 
-7F.2A–7F.2F conservan sus aceptaciones específicas de staging. Esa evidencia
-no acredita el refinamiento posterior de Copa ni sustituye la regresión
-integrada. Producción y el cierre del MVP siguen además sujetos a los gates
-operativos y humanos descritos aquí.
+(La regresión global final de 7F.2 sobre el baseline integrado ya fue ejecutada y CERRADA exitosamente en 7G.2).
+
+7F.2A–7F.2F conservan sus aceptaciones específicas como evidencia histórica. La regresión global integrada ya fue ejecutada y CERRADA en 7G.2. El despliegue de Producción y el cierre del MVP siguen sujetos a los gates operativos (7G.3+) y humanos descritos aquí.
 
 ## 1. Contrato de 7G encontrado
 
@@ -53,7 +52,7 @@ runbooks operativos ni reescribir la historia del candidato antiguo.
 ### 2.1 Prerrequisitos obligatorios para producción y cierre
 
 - [x] Copa aceptada en staging sobre el código actualmente candidato.
-- Regresión global final de 7F.2 y aceptación humana del baseline integrado.
+- [x] Regresión global final de 7F.2 y aceptación humana del baseline integrado (PASS en 7G.2).
 - Commit candidato único identificado, árbol limpio y `develop` reconciliada
   con `origin/develop`.
 - Cero P0 técnicos, operativos, editoriales, legales o de privacidad.
@@ -98,10 +97,10 @@ commit candidato sin omisiones, fallos, skips nuevos o residuos.
 |---|---|---|
 | Aceptaciones específicas 7F.2A–7F.2F en staging | Vigente para cada feature | No repetir escrituras destructivas salvo fallo, cambio en esa superficie o duda sobre cleanup/persistencia. |
 | Persistencia S3 de 7F.2B y gates remotos de Sponsor, avatar y Noticias | Vigente en staging | Reutilizar; hacer sólo probes y lectura integrada no destructiva en el smoke final. No proyectarla a producción. |
-| Legal, Knowledge, CMS base, CORS, auth, administración y `noindex` ya aceptados en staging | Vigente como evidencia histórica de staging | Revalidar por smoke integrado; no rehacer toda la carga editorial temporal. |
-| Suites completas anteriores a los commits de Copa | Caducada como aceptación del candidato final | Repetir sobre el commit reconciliado. |
-| Smoke global anterior a 7F.2 | Caducado para el baseline ampliado | Repetir después de aceptar Copa. |
-| Validación local de Copa: 557 backend, 659 frontend y 68 E2E | Vigente como evidencia local del bloque | No sustituye staging; repetir sólo como parte de la regresión automática final del candidato. |
+| Legal, Knowledge, CMS base, CORS, auth, administración y `noindex` ya aceptados en staging | Evidencia histórica revalidada y cerrada en 7G.2 | Producción requerirá únicamente su propio smoke no destructivo; no re-ejecutar carga editorial temporal. |
+| Suites completas anteriores a los commits de Copa | Evidencia anterior sustituida por 7G.2 | No reutilizar; la regresión global 7G.2 es la evidencia vigente. |
+| Smoke global anterior a 7F.2 | Evidencia anterior sustituida por 7G.2 | No reutilizar; la ejecución final 7G.2 es la evidencia vigente. |
+| Validación local de Copa: 557 backend, 659 frontend y 68 E2E | Evidencia histórica local absorbida por 7G.2 | Sustituida por la regresión integrada 7G.2; repetir sólo si un cambio posterior la invalida. |
 | DNS, TLS, DB, media, CMS y correo de staging | No acredita producción | Obtener evidencia propia del entorno productivo. |
 | Backup, restore y rollback de staging | Restore lógico aislado verificado en 7G.1D (PASS, RTO: 5 min 27 s) | Rollback rehearsal pendiente antes del Go productivo. |
 | Cualquier resultado basado en fixtures o `E2ESmokeSeeder` | Válido sólo para test/E2E | No promover datos, cuentas ni credenciales a producción. |
@@ -110,16 +109,16 @@ commit candidato sin omisiones, fallos, skips nuevos o residuos.
 
 | Área | Estado real | Gate restante |
 |---|---|---|
-| Navegación, rankings, Liga, resultados, conflictos, standings y visibilidad | Cerrado; requiere regresión integrada | Smoke global final de 7F.2. |
-| Copa y vista dedicada | Aceptación humana completada en staging (flujo completo verificado) | Regresión global final 7G.2 = PASS. |
-| CMS, navegación CMS, Noticias, Knowledge, Club y Legal | Cerrado en sus bloques | Regresión integrada, contenido real y aprobación humana de lo publicado. |
+| Navegación, rankings, Liga, resultados, conflictos, standings y visibilidad | Cerrado; regresión integrada superada (PASS en 7G.2) | CERRADO. |
+| Copa y vista dedicada | Aceptación humana completada en staging (flujo completo verificado) | CERRADO en 7G.2. |
+| CMS, navegación CMS, Noticias, Knowledge, Club y Legal | Cerrado en sus bloques (Regresión integrada PASS en 7G.2) | Contenido real productivo y aprobación humana de lo publicado. |
 | Bucket y núcleo multimedia, Sponsors, avatar y portadas de Noticias | Cerrado en staging | Configuración y probe propios de producción; derechos de imágenes reales. |
 | Escuela de lectura | Implementada | Programa, niveles, horarios, ubicación y contacto reales revisados en producción. |
 | Inscripción School | Implementada y fail-closed | Puede permanecer cerrada en la primera producción; abrirla exige gate operativo propio. |
 | Contacto | Persistencia/formulario/notificación implementados y fail-closed | El formulario y su notificación pueden permanecer cerrados; el canal institucional publicado debe ser válido. |
 | Auth y recuperación de contraseña | Implementados | Entrega de correo real extremo a extremo bajo el contrato MVP vigente. |
 | Railway, Vercel, MariaDB, dominios, CORS, headers y health | Acreditados en staging | Recursos, secretos, migraciones y smoke propios de producción. |
-| Backup, restore y rollback | Restore lógico aislado verificado (7G.1D); media no validado | Rollback rehearsal y prueba final en producción antes del Go. |
+| Backup, restore y rollback | Restore lógico aislado de staging (7G.1D) y drill manual de producción completados (dump lógico, snapshot restic cifrado en Google Drive, copia de media e importación limpia en DB efímera). Automatismo preparado (job 7G.3). | Guardar token OAuth operativo, desplegar job de backup automatizado, rollback rehearsal y prueba automatizada final antes del Go. |
 | Admin bootstrap, logs y observabilidad mínima | Capacidad preparada | Ejecutar bootstrap seguro, asignar responsable y acreditar revisión/alerta mínima. |
 
 ## 4. Matriz staging frente a producción
@@ -127,7 +126,7 @@ commit candidato sin omisiones, fallos, skips nuevos o residuos.
 | Gate | Staging | Producción | ¿Bloquea 7G? | Evidencia exigida |
 |---|---|---|---|---|
 | Copa | Escritura y aceptación humana completadas en staging | Sólo lectura/smoke no destructivo | Sí (Cerrado en 7G.2) | Acta del recorrido y ausencia de regresión. |
-| Regresión global 7F.2 | Obligatoria tras Copa | No se ejecuta la suite E2E contra producción | Sí | Suites del candidato y checklist de recorridos firmado. |
+| Regresión global 7F.2 | PASS (Cerrado en 7G.2) | No se ejecuta la suite E2E contra producción | Sí (Cerrado en 7G.2) | Suites del candidato y checklist firmados en 7G.2. |
 | Configuración | `deploy:check`, aislamiento y flags cerradas | Preflight con URLs, CORS, secretos y recursos propios | Sí | Salidas saneadas de ambos preflights. |
 | Migraciones | Estado y migraciones ensayados | `migrate:status`, backup previo y `migrate --force` manual | Sí | Lista prevista, salida antes/después y decisor. |
 | DNS/TLS | Dominios de staging ya separados | Apex, `www`, API, certificados y MX preservados | Sí | Resolución, HTTPS, redirect y ausencia de mixed content. |
@@ -395,11 +394,11 @@ La subdivisión siguiente formaliza el orden operativo sin cambiar el alcance de
 
 ## 9. Checklist Go/No-Go
 
-- [ ] 7F.2 completa: Copa y regresión global final aceptadas.
-- [ ] Suites completas verdes sobre el hash exacto.
+- [x] 7F.2 completa: Copa y regresión global final aceptadas (7G.2 PASS).
+- [ ] Suites completas verdes sobre el hash final exacto.
 - [ ] Árbol limpio y `develop`, `origin/develop` y candidato reconciliados.
 - [ ] Migraciones identificadas, ensayadas y orden de aplicación aprobado.
-- [ ] Producción: dump lógico cifrado pre-migración, media verificado, rollback forward-fix definido.
+- [ ] Producción: snapshot externo cifrado pre-migración que incluya dump lógico consistente y media verificada, rollback forward-fix definido.
 - [ ] Rollback de frontend/backend/esquema disponible y ensayado.
 - [ ] Bootstrap del administrador seguro, idempotente y sin credenciales demo.
 - [ ] Recursos, dominios, TLS, CORS, sesiones, headers y health productivos.
@@ -422,12 +421,12 @@ Go/No-Go.
 
 ### P0 — bloquea el cierre bajo el contrato vigente
 
-- Aceptación humana de Copa y regresión global final de 7F.2.
-- Regresión automática del hash candidato y cero defectos críticos.
+- (CERRADO en 7G.2) Aceptación humana de Copa y regresión global final de 7F.2.
+- Regresión automática del hash final exacto candidato a producción y cero defectos críticos (el baseline integrado 7F.2 está CERRADO en 7G.2, pero el hash final aún requiere validación).
 - Correo real extremo a extremo para recuperación de contraseña.
 - Recursos/configuración productivos, migraciones, contenido real y media
   persistente verificados.
-- Backup con restore aislado, rollback rehearsal y responsable operativo.
+- Operación automatizada de backup (snapshot externo con dump lógico/media, usuario dedicado, secretos), restore manual acreditado, rollback rehearsal y observabilidad/alertas mínimas.
 - Aprobación de Legal, privacidad, identidad y derechos de cada imagen real
   publicada.
 - Smoke productivo, observabilidad mínima, decisión humana y trazabilidad del
@@ -446,10 +445,6 @@ sin su gate o publicar una promesa funcional que dependa de ella.
   SSR/prerender.
 - Matriz automatizada con navegadores adicionales y auditoría de accesibilidad
   más amplia; 7G conserva una revisión humana priorizada mínima.
-- Automatización y alertas del dump lógico y la copia de media, además del
-  scheduler, después de validar el restore y la operación controlada; los
-  schedules nativos de volumen (inexistentes en este workspace) no sustituyen esas capas.
-
 ### P2 — evolución
 
 - Patrocinios contextuales y perfil deportivo público opcional.
