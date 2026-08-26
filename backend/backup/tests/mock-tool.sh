@@ -43,6 +43,12 @@ assert_secret_files() {
   [[ -f "${RESTIC_PASSWORD_FILE:?}" ]]
   [[ "$(stat -c '%a' "${RCLONE_CONFIG}")" == "600" ]]
   [[ "$(stat -c '%a' "${RESTIC_PASSWORD_FILE}")" == "600" ]]
+  grep -Fxq 'scope = drive.file' "${RCLONE_CONFIG}"
+
+  if grep -Fxq 'scope = drive' "${RCLONE_CONFIG}"; then
+    printf 'Generated rclone config widened the Google Drive scope.\n' >&2
+    exit 96
+  fi
 }
 
 assert_no_secret_arguments() {

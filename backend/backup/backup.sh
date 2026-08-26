@@ -191,7 +191,7 @@ prepare_runtime_files() {
     printf 'client_id = %s\n' "${BACKUP_GDRIVE_CLIENT_ID}"
     printf 'client_secret = %s\n' "${BACKUP_GDRIVE_CLIENT_SECRET}"
     printf 'token = %s\n' "${BACKUP_GDRIVE_TOKEN}"
-    printf 'scope = drive\n'
+    printf 'scope = drive.file\n'
   } > "${RCLONE_CONFIG}"
 
   chmod 0600 "${RCLONE_CONFIG}" "${RESTIC_PASSWORD_FILE}"

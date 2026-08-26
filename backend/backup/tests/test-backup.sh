@@ -5,6 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 BACKUP_DIR="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 BACKUP_SCRIPT="${BACKUP_DIR}/backup.sh"
+ENV_EXAMPLE="${BACKUP_DIR}/.env.example"
 MOCK_TOOL="${SCRIPT_DIR}/mock-tool.sh"
 TEMP_DIR="$(mktemp -d)"
 MOCK_BIN="${TEMP_DIR}/bin"
@@ -61,7 +62,7 @@ run_check_mode() {
     BACKUP_GDRIVE_CLIENT_SECRET=gdrive-secret-sentinel \
     BACKUP_GDRIVE_TOKEN='{"access_token":"oauth-secret-sentinel","refresh_token":"refresh-secret-sentinel"}' \
     BACKUP_RESTIC_PASSWORD=restic-secret-sentinel \
-    BACKUP_RESTIC_REPOSITORY=rclone:gdrive-galotxes-backup:galotxes-backup/production \
+    BACKUP_RESTIC_REPOSITORY=rclone:gdrive-galotxes-backup:galotxes-backup-drivefile/production \
     "${BACKUP_SCRIPT}" check
 }
 
@@ -92,12 +93,25 @@ run_backup_mode() {
     BACKUP_GDRIVE_CLIENT_SECRET=gdrive-secret-sentinel \
     BACKUP_GDRIVE_TOKEN='{"access_token":"oauth-secret-sentinel","refresh_token":"refresh-secret-sentinel"}' \
     BACKUP_RESTIC_PASSWORD=restic-secret-sentinel \
-    BACKUP_RESTIC_REPOSITORY=rclone:gdrive-galotxes-backup:galotxes-backup/production \
+    BACKUP_RESTIC_REPOSITORY=rclone:gdrive-galotxes-backup:galotxes-backup-drivefile/production \
     "${BACKUP_SCRIPT}" backup
 }
 
 bash -n "${BACKUP_SCRIPT}" "${MOCK_TOOL}" "$0"
 pass "shell syntax is valid"
+
+grep -Fxq \
+  'BACKUP_GDRIVE_REMOTE_NAME=gdrive-galotxes-backup' \
+  "${ENV_EXAMPLE}" \
+  || fail "the canonical Google Drive remote name changed"
+grep -Fxq \
+  'BACKUP_RESTIC_REPOSITORY=rclone:gdrive-galotxes-backup:galotxes-backup-drivefile/production' \
+  "${ENV_EXAMPLE}" \
+  || fail "the example does not target the drive.file repository"
+if grep -Fq 'gdrive-galotxes-backup-drivefile-test' "${ENV_EXAMPLE}"; then
+  fail "the temporary validation remote was versioned"
+fi
+pass "the example targets the new repository with the canonical remote"
 
 reset_mock_state
 set +e
