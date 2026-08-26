@@ -14,7 +14,7 @@ release.
 el P0 de correo/password-reset queda pendiente sólo de la infraestructura de
 producción (dominio/secret/smoke test).**
 
-**La capacidad de recuperación manual de producción está acreditada y cerrada (incluyendo dump lógico, snapshot restic cifrado en Google Drive, copia de media y restauración aislada correcta). Sin embargo, el P0 global de backup/recovery sigue abierto. El automatismo de backup (job 7G.3) está versionado y validado localmente, pero su operación permanece NO-GO pendiente de: OAuth (revocar Testing, pasar app a 'In production' si Google lo permite, guardar secret de Railway); usuario MariaDB dedicado con privilegios mínimos, secret references, despliegue/programación del job, primer check, primer backup automatizado supervisado, horario y alertas mínimas. Aparte, el snapshot manual `7G.3-pre-migration` usa host/tag distintos y queda expresamente fuera de la selección/retención automática. El restore automático está prohibido.**
+**La capacidad de recuperación manual de producción está acreditada y cerrada (incluyendo dump lógico, snapshot restic cifrado en Google Drive, copia de media y restauración aislada correcta). Además, el subbloque OAuth/Google Drive se ha resuelto y validado: la app "Galotxas Backup" está 'En producción' y se ha validado localmente el nuevo repositorio de destino limitado estrictamente al alcance `drive.file` (`galotxes-backup-drivefile/production`), corrigiéndose también el script para imponer dicha restricción (commit `934f2dab0eaa0f2ead4c8c0a9f4266cd0dfe81b1`). El antiguo repositorio `galotxes-backup/production` y su snapshot manual `7G.3-pre-migration` quedan intactos y fuera de la retención automática. Sin embargo, el P0 global de backup/recovery sigue abierto. El automatismo de backup (job 7G.3) permanece NO-GO pendiente de: desplegar y configurar el job de backup en Railway con el nuevo token operativo y secret references seguras; crear usuario MariaDB dedicado con privilegios mínimos; ejecutar el modo `check` desde el job real; primer backup automatizado supervisado, programación UTC y observabilidad/alertas por fallo. El restore automático sigue prohibido.**
 
 Son prerrequisitos restantes para completar la Fase 7G (cierres y despliegue productivo):
 
@@ -118,7 +118,7 @@ commit candidato sin omisiones, fallos, skips nuevos o residuos.
 | Contacto | Persistencia/formulario/notificación implementados y fail-closed | El formulario y su notificación pueden permanecer cerrados; el canal institucional publicado debe ser válido. |
 | Auth y recuperación de contraseña | Implementados | Entrega de correo real extremo a extremo bajo el contrato MVP vigente. |
 | Railway, Vercel, MariaDB, dominios, CORS, headers y health | Acreditados en staging | Recursos, secretos, migraciones y smoke propios de producción. |
-| Backup, restore y rollback | Restore lógico aislado de staging (7G.1D) y drill manual de producción completados (dump lógico, snapshot restic cifrado en Google Drive, copia de media e importación limpia en DB efímera). Automatismo preparado (job 7G.3). | Guardar token OAuth operativo, desplegar job de backup automatizado, rollback rehearsal y prueba automatizada final antes del Go. |
+| Backup, restore y rollback | Restore lógico aislado de staging (7G.1D) y drill manual de producción completados (dump lógico, snapshot restic cifrado, copia de media e importación limpia). Subbloque OAuth/Google Drive resuelto (app publicada, autorización y repositorio nuevo con scope `drive.file` validados localmente, script corregido). Automatismo de backup preparado (job 7G.3). | Guardar token OAuth operativo, desplegar y configurar job en Railway, usuario DB de backup, primer backup automático, alertas, rollback rehearsal y prueba final antes del Go. |
 | Admin bootstrap, logs y observabilidad mínima | Capacidad preparada | Ejecutar bootstrap seguro, asignar responsable y acreditar revisión/alerta mínima. |
 
 ## 4. Matriz staging frente a producción
@@ -331,7 +331,7 @@ La subdivisión siguiente formaliza el orden operativo sin cambiar el alcance de
 
 ### 7G.3 — Auditoría de configuración productiva
 
-*ESTADO ACTUAL: ABIERTA / SIGUIENTE GATE. La regresión global 7G.2 ha sido completada (PASS), permitiendo la transición a este gate para la auditoría y despliegue real de la configuración productiva.*
+*ESTADO ACTUAL: ABIERTA / NO-GO. La regresión global 7G.2 ha sido completada (PASS) y el subbloque de la automatización OAuth/Google Drive ha sido resuelto y validado localmente con el scope seguro `drive.file`. Siguen pendientes el despliegue del job, secretos operativos, usuario BD dedicado, programación, monitorización y demás P0 de configuración productiva.*
 
 - **Entrada:** 7G.2 verde; recursos productivos creados pero sin tráfico real.
 - **Acciones:** revisar secretos, URLs, CORS, DB, migraciones, media, correo,
@@ -426,7 +426,7 @@ Go/No-Go.
 - Correo real extremo a extremo para recuperación de contraseña.
 - Recursos/configuración productivos, migraciones, contenido real y media
   persistente verificados.
-- Operación automatizada de backup (snapshot externo con dump lógico/media, usuario dedicado, secretos), restore manual acreditado, rollback rehearsal y observabilidad/alertas mínimas.
+- Operación automatizada de backup (configuración en Railway, usuario dedicado, secretos, primer backup validado), restore manual acreditado, rollback rehearsal y observabilidad/alertas mínimas.
 - Aprobación de Legal, privacidad, identidad y derechos de cada imagen real
   publicada.
 - Smoke productivo, observabilidad mínima, decisión humana y trazabilidad del
