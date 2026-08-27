@@ -101,7 +101,7 @@ commit candidato sin omisiones, fallos, skips nuevos o residuos.
 | Smoke global anterior a 7F.2 | Evidencia anterior sustituida por 7G.2 | No reutilizar; la ejecución final 7G.2 es la evidencia vigente. |
 | Validación local de Copa: 557 backend, 659 frontend y 68 E2E | Evidencia histórica local absorbida por 7G.2 | Sustituida por la regresión integrada 7G.2; repetir sólo si un cambio posterior la invalida. |
 | DNS, TLS, DB, media, CMS y correo de staging | No acredita producción | Obtener evidencia propia del entorno productivo. |
-| Backup, restore y rollback de staging | Restore lógico aislado verificado en 7G.1D (PASS, RTO: 5 min 27 s) | Rollback rehearsal pendiente antes del Go productivo. |
+| Backup, restore y rollback de staging | Restore lógico aislado verificado en 7G.1D (PASS, RTO: 5 min 27 s) | Rollback rehearsal no ejecutado por excepción humana. |
 | Cualquier resultado basado en fixtures o `E2ESmokeSeeder` | Válido sólo para test/E2E | No promover datos, cuentas ni credenciales a producción. |
 
 ## 3. Baseline reconciliado
@@ -117,7 +117,7 @@ commit candidato sin omisiones, fallos, skips nuevos o residuos.
 | Contacto | Persistencia/formulario/notificación implementados y fail-closed | El formulario y su notificación pueden permanecer cerrados; el canal institucional publicado debe ser válido. |
 | Auth y recuperación de contraseña | Implementados; infraestructura productiva configurada. | Entrega de correo real extremo a extremo diferida al smoke productivo (7G.6). |
 | Railway, Vercel, MariaDB, dominios, CORS, headers y health | Acreditados en staging | Recursos, secretos, migraciones y smoke propios de producción. |
-| Backup, restore y rollback | Restore lógico aislado de staging (7G.1D) y drill manual de producción completados. Subbloque OAuth/Google Drive y configuración de infraestructura en Railway validados: usuario DB dedicado, secretos, check, primer backup y restore exitosos, alertas y cron UTC. Automatismo de backup (job 7G.3) operativo desde despliegue manual sin source conectado (decisión productiva). | Rollback rehearsal y prueba final antes del Go. |
+| Backup, restore y rollback | Restore lógico aislado de staging (7G.1D) y drill manual de producción completados. Subbloque OAuth/Google Drive y configuración de infraestructura en Railway validados: usuario DB dedicado, secretos, check, primer backup y restore exitosos, alertas y cron UTC. Automatismo de backup (job 7G.3) operativo desde despliegue manual sin source conectado (decisión productiva). | Rollback rehearsal no ejecutado por excepción. Prueba final antes del Go. |
 | Admin bootstrap, logs y observabilidad mínima | Capacidad preparada | Ejecutar bootstrap seguro, asignar responsable y acreditar revisión/alerta mínima. |
 
 ## 4. Matriz staging frente a producción
@@ -328,7 +328,7 @@ La subdivisión siguiente formaliza el orden operativo sin cambiar el alcance de
 
 ### 7G.3 — Auditoría de configuración productiva
 
-*ESTADO ACTUAL: ABIERTA / NO-GO. La regresión global 7G.2 ha sido completada (PASS). El subbloque OAuth y la operativa del job en Railway han sido validados. El control de source/autodeploy se ha cerrado con una política manual explícita (backend con autodeploy desactivado, backup sin source conectado). La infraestructura y configuración de correo productivo (Resend) está preparada y validada. El ownership operativo se ha cerrado bajo una política de mantenedor único (bus factor 1). Siguen pendientes rehearsal de rollback y validación del hash final.*
+*ESTADO ACTUAL: CERRADO CON EXCEPCIÓN. La regresión global 7G.2 ha sido completada (PASS). El subbloque OAuth y la operativa del job en Railway han sido validados. El control de source/autodeploy se ha cerrado con una política manual explícita. La infraestructura y configuración de correo productivo (Resend) está preparada y validada. El ownership operativo se ha cerrado (bus factor 1). El rehearsal de rollback NO fue ejecutado (riesgo residual aceptado) y el hash final ha sido validado (0b78552612231a9bfd450e96bf258f66c3192586).*
 
 - **Entrada:** 7G.2 verde; recursos productivos creados pero sin tráfico real.
 - **Acciones:** revisar secretos, URLs, CORS, DB, migraciones, media, correo,
@@ -423,7 +423,7 @@ Go/No-Go.
 - Correo real extremo a extremo para recuperación de contraseña (diferido al smoke productivo 7G.6).
 - Recursos/configuración productivos, migraciones, contenido real y media
   persistente verificados.
-- Operación automatizada de backup productiva (despliegue manual source-less operativo, primer backup validado, alertas configuradas), restore manual acreditado, rollback rehearsal y observabilidad mínima.
+- Operación automatizada de backup productiva (despliegue manual source-less operativo, primer backup validado, alertas configuradas), restore manual acreditado, observabilidad mínima (Rollback rehearsal no ejecutado por excepción).
 - Aprobación de Legal, privacidad, identidad y derechos de cada imagen real
   publicada.
 - Smoke productivo, observabilidad mínima, decisión humana y trazabilidad del
@@ -468,4 +468,4 @@ dispongan de evidencia para el mismo candidato y no quede ningún P0.
 
 Hasta entonces, el estado oficial es:
 
-**7G preparada y auditada; NO iniciada en su gate irreversible y NO cerrada.**
+**7G.3 cerrada con excepción humana documentada. 7G.4 pendiente.**

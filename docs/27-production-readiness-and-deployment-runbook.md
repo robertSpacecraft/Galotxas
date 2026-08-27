@@ -100,7 +100,7 @@ Prohibiciones comunes:
 | Contacto/Escuela/menores | Capacidades validadas con fail-closed y flag global; persistencia staging probada | Correo real, flujo menores completo en staging |
 | Queue/scheduler | Cola síncrona, ningún worker/cron productivo | Diseñar y ensayar purgas antes de activar |
 | Logs/storage | `stderr`; `media_s3` y bucket privado de staging validados; Sponsor es el primer consumidor en `develop` | Crear bucket privado productivo aislado y aceptar 7F.2C en staging antes de promoción |
-| Backups/restore/rollback | Restore aislado ensayado en 7G.1D (PASS, RTO 5m27s) | Validar media y rollback rehearsal antes del Go productivo |
+| Backups/restore/rollback | Restore aislado ensayado en 7G.1D (PASS, RTO 5m27s) | Validar media (rollback rehearsal no ejecutado por decisión humana) |
 
 ## Variables y secretos
 
@@ -872,7 +872,7 @@ Los siguientes pasos ya se han validado en staging:
 10. Contacto y Escuela probados en ventana controlada con `log`, validando persistencia y fail-closed; el SMTP real desde Railway está BLOQUEADO por el plan Hobby, por lo que la notificación de Contacto, el reset de contraseña y el ciclo de identidad pública de menores siguen pendientes.
 
 Pasos **Pendientes / Aplazados** en staging:
-11. **Ensayar el rollback coordinado.** La fase 7G.1D ejecutó y validó con éxito el restore lógico aislado de staging con RTO de 5m27s, cerrando el P0 de recuperación de base de datos para este entorno.
+11. **Ensayar el rollback coordinado.** El rollback rehearsal remoto (7G.3) **NO FUE EJECUTADO** por decisión humana explícita del mantenedor (excepción aceptada para la primera publicación). La fase 7G.1D ejecutó y validó con éxito el restore lógico aislado de staging con RTO de 5m27s, cerrando el P0 de recuperación de base de datos para este entorno.
     programado de volumen no está documentado como exclusivo de Pro; la
     estrategia está reconciliada, pero ningún backup o restore se ejecutó en
     este bloque.
@@ -1030,7 +1030,7 @@ E2E, seeders ni cuentas con password por defecto.
   sus propios dominios, aliases, logs y keys independientes;
 - el correo anterior sigue siendo el canal Legal vigente;
 - CMS y datos reales de Escuela no están cargados en producción;
-- rollback rehearsal y monitor continuo no están
+- monitor continuo no está
   acreditados;
 - HSTS/CSP, otros uploads de features, worker y scheduler continúan aplazados;
   7F.2D está aceptada completamente en staging y cerrada; la configuración multimedia productiva sigue
