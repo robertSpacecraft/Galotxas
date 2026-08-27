@@ -5,10 +5,7 @@
 Este documento registra `MVP-FINAL-GATE-READINESS-1`, la auditoría 7G.0 y el
 contrato ejecutable de Fase 7G.
 
-**7G está preparada y auditada; no se ha iniciado su gate irreversible y no
-está cerrada.** No se ha desplegado producción, cambiado DNS, activado flags,
-enviado correo real, ejecutado migraciones productivas ni creado un tag o una
-release.
+**7G se encuentra en su fase final (7G.7 EN CURSO).** Producción ha sido desplegada exitosamente (7G.5 PASS) y el smoke productivo se ha completado (7G.6 PASS). El autodeploy desde `main` a producción sigue pendiente como acción manual (DESACTIVADO). Aún **no está cerrada** la fase 7G, por lo que todavía no debe activarse indexación/live, ni activar flags de operación pendientes, ni crearse un tag o una release.
 
 **La infraestructura de correo productivo (Resend) está acreditada y preparada en 7G.3: dominio verificado, DKIM/SPF activos, y API key de producción configurada en Railway (`backend-production`).
 El envío real (entrega extremo a extremo) queda pendiente como requisito del smoke productivo (7G.6) una vez desplegado el backend.**
@@ -343,6 +340,8 @@ La subdivisión siguiente formaliza el orden operativo sin cambiar el alcance de
 
 ### 7G.4 — Go/No-Go humano
 
+*ESTADO ACTUAL: PASS / CERRADO. Se registró GO explícito a producción (7G.4).*
+
 - **Entrada:** 7G.1–7G.3 completos y checklist de la sección 9 sin bloqueos.
 - **Acciones:** aceptar o rechazar expresamente riesgos, contenido, ventana,
   responsables y plan de vuelta atrás. Un P0 produce siempre `NO-GO`.
@@ -352,6 +351,8 @@ La subdivisión siguiente formaliza el orden operativo sin cambiar el alcance de
 - **Responsable:** propietario del producto y responsable operativo.
 
 ### 7G.5 — Despliegue productivo controlado
+
+*ESTADO ACTUAL: PASS / CERRADO. Se ejecutó exitosamente el despliegue productivo en Railway y Vercel desde `main` en el commit `ec8aba5e29bbc7b5b8d2b361ed12591ba79f1130`.*
 
 - **Entrada:** `GO` vigente para el mismo hash y ventana.
 - **Acciones:** seguir el orden exacto del runbook: flags cerradas, backup,
@@ -365,6 +366,8 @@ La subdivisión siguiente formaliza el orden operativo sin cambiar el alcance de
 - **Responsable:** operación ejecuta; técnico y producto permanecen disponibles.
 
 ### 7G.6 — Smoke productivo mínimo
+
+*ESTADO ACTUAL: PASS / CERRADO. Se superó el smoke validando Home, API `/up`, Admin login, páginas CMS recreadas manualmente, Noticias, Legal, Escuela. El correo real (Resend) funcionó para la recuperación de contraseña extremo a extremo y el registro/sesión fue exitoso.*
 
 - **Entrada:** 7G.5 estable y logs disponibles.
 - **Acciones:** smoke no destructivo de web/API/admin/auth, contenido real,
@@ -392,23 +395,23 @@ La subdivisión siguiente formaliza el orden operativo sin cambiar el alcance de
 ## 9. Checklist Go/No-Go
 
 - [x] 7F.2 completa: Copa y regresión global final aceptadas (7G.2 PASS).
-- [ ] Suites completas verdes sobre el hash final exacto.
-- [ ] Árbol limpio y `develop`, `origin/develop` y candidato reconciliados.
-- [ ] Migraciones identificadas, ensayadas y orden de aplicación aprobado.
-- [ ] Producción: snapshot externo cifrado pre-migración que incluya dump lógico consistente y media verificada, rollback forward-fix definido.
-- [ ] Rollback de frontend/backend/esquema disponible y ensayado.
-- [ ] Bootstrap del administrador seguro, idempotente y sin credenciales demo.
-- [ ] Recursos, dominios, TLS, CORS, sesiones, headers y health productivos.
-- [ ] MariaDB y media persistente productivas preparadas y probadas.
-- [ ] Cada flag tiene valor y responsable explícitos; todas parten cerradas.
-- [ ] Correo real permite reset; las capacidades dependientes no aprobadas
+- [x] Suites completas verdes sobre el hash final exacto.
+- [x] Árbol limpio y `develop`, `origin/develop` y candidato reconciliados.
+- [x] Migraciones identificadas, ensayadas y orden de aplicación aprobado.
+- [x] Producción: snapshot externo cifrado pre-migración que incluya dump lógico consistente y media verificada, rollback forward-fix definido.
+- [ ] Rollback de frontend/backend/esquema disponible y ensayado. (Excepción documentada: rollback rehearsal remoto NO EJECUTADO y riesgo aceptado para la primera publicación).
+- [x] Bootstrap del administrador seguro, idempotente y sin credenciales demo.
+- [x] Recursos, dominios, TLS, CORS, sesiones, headers y health productivos.
+- [x] MariaDB y media persistente productivas preparadas y probadas.
+- [x] Cada flag tiene valor y responsable explícitos; todas parten cerradas.
+- [x] Correo real permite reset; las capacidades dependientes no aprobadas
       permanecen cerradas.
-- [ ] Legal, privacidad, identidad, copyright e imágenes publicadas aprobados.
-- [ ] CMS, Noticias, Sponsor y School contienen datos reales revisados; no hay
+- [x] Legal, privacidad, identidad, copyright e imágenes publicadas aprobados.
+- [x] CMS, Noticias, Sponsor y School contienen datos reales revisados; no hay
       fixtures, seeders demo, placeholders o secretos.
-- [ ] Logs, backup, DB, health, alertas/canal mínimo y guardia humana definidos.
-- [ ] Navegadores/viewports prioritarios y limitaciones aceptados.
-- [ ] Responsable de producto y operación registran `GO` para el mismo hash.
+- [x] Logs, backup, DB, health, alertas/canal mínimo y guardia humana definidos.
+- [x] Navegadores/viewports prioritarios y limitaciones aceptados.
+- [x] Responsable de producto y operación registran `GO` para el mismo hash.
 
 Una excepción no convierte una comprobación fallida en verde. Si altera el
 alcance observable del MVP, debe aprobarse y versionarse antes de un nuevo
@@ -418,16 +421,8 @@ Go/No-Go.
 
 ### P0 — bloquea el cierre bajo el contrato vigente
 
-- (CERRADO en 7G.2) Aceptación humana de Copa y regresión global final de 7F.2.
-- Regresión automática del hash final exacto candidato a producción y cero defectos críticos (el baseline integrado 7F.2 está CERRADO en 7G.2, pero el hash final aún requiere validación).
-- Correo real extremo a extremo para recuperación de contraseña (diferido al smoke productivo 7G.6).
-- Recursos/configuración productivos, migraciones, contenido real y media
-  persistente verificados.
-- Operación automatizada de backup productiva (despliegue manual source-less operativo, primer backup validado, alertas configuradas), restore manual acreditado, observabilidad mínima (Rollback rehearsal no ejecutado por excepción).
-- Aprobación de Legal, privacidad, identidad y derechos de cada imagen real
-  publicada.
-- Smoke productivo, observabilidad mínima, decisión humana y trazabilidad del
-  release.
+- Cierre formal documental del MVP (7G.7), creación del tag/release, y decisión explícita de indexación/live (la cual sigue pendiente).
+*(Nota: El hash final exacto, correo real E2E, recursos productivos, migraciones, contenido real, media, legal, privacidad, derechos de imagen, smoke productivo y observabilidad mínima ya están validados y CERRADOS en subfases anteriores de 7G).*
 
 Las flags de Contacto, inscripción School, identidad de menores y scheduler no
 son P0 por el mero hecho de permanecer en `false`. Sí sería P0 abrir cualquiera
@@ -442,6 +437,7 @@ sin su gate o publicar una promesa funcional que dependa de ella.
   SSR/prerender.
 - Matriz automatizada con navegadores adicionales y auditoría de accesibilidad
   más amplia; 7G conserva una revisión humana priorizada mínima.
+- Verificación/confirmación de correo tras registro (mejora no bloqueante).
 ### P2 — evolución
 
 - Patrocinios contextuales y perfil deportivo público opcional.
@@ -462,10 +458,15 @@ rollback disponible.
 
 ## 12. Criterio de cierre
 
-Preparar este documento no inicia 7G.5, no acepta Copa, no ejecuta la regresión
-global y no reduce los P0 operativos. 7G sólo podrá cerrarse cuando 7G.1–7G.7
-dispongan de evidencia para el mismo candidato y no quede ningún P0.
+El estado actual del MVP y del gate de producción es el siguiente:
 
-Hasta entonces, el estado oficial es:
+- **7G.4:** CLOSED (GO explícito registrado).
+- **7G.5:** PASS / CLOSED (Despliegue productivo completado).
+- **7G.6:** PASS / CLOSED (Smoke productivo mínimo completado).
+- **7G.7:** EN CURSO (Gate de cierre documental, tag y release).
+- El MVP **todavía no está cerrado**.
+- Todavía **no se han creado** el tag ni la release.
+- Producción continúa en estado `initial` + `noindex`.
+- El autodeploy `main` → producción sigue pendiente y **NO debe activarse en esta tarea**.
 
-**7G.3 cerrada con excepción humana documentada. 7G.4 pendiente.**
+La fase 7G sólo podrá declararse cerrada cuando la etapa 7G.7 disponga de evidencia para el mismo candidato y no quede ningún P0 pendiente.

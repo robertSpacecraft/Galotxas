@@ -84,14 +84,13 @@ Antes de iniciar 7F.2A se ha cerrado su prerrequisito de dominio: el reparto bas
 
 ## Fase 7 abierta — bloques parcialmente completados / bloqueados
 
-1. **Fase 7F (Pendientes de Producción):** configurar dominio/remitente y secret propios y realizar smoke test productivo para reset de contraseña; mantener cerrada la identidad pública completa de menores hasta su gate; y ejecutar el rollback rehearsal de la estrategia en staging. SMTP continúa bloqueado en Hobby y no es la solución seleccionada.
-2. **Fase 7F.2 — Refinamiento preproducción:** 7F.2A, 7F.2B y 7F.2C están cerradas en staging; 7F.2D está aceptada completamente en staging y cerrada; 7F.2E y 7F.2F están cerradas y aceptadas manualmente en staging. El cierre del gap de Copa superó su aceptación humana en staging y la regresión global 7G.2 sobre el candidato `e2b299c` ha sido superada. 7G.2 queda CERRADA / PASS.
+1. **Fase 7F (Pendientes de Producción):** Completado el despliegue productivo `initial` + `noindex` (7G.5 PASS/CLOSED) y el smoke productivo mínimo (7G.6 PASS/CLOSED). Dominio y correo configurados (Resend HTTPS). Identidad pública de menores, Escuela y Contacto siguen cerrados. Excepción humana documentada para el rollback rehearsal en lugar de su ejecución.
+2. **Fase 7F.2 — Refinamiento preproducción:** Todo el bloque de refinamiento ha sido aceptado y la regresión global 7G.2 ha sido aprobada (PASS / CERRADO).
 
 ## Fase 7 abierta — bloques pendientes
 
-1. **Fase 7F.2 — Refinamiento preproducción y ampliación controlada del alcance:** Todo el bloque de refinamiento ha sido aceptado y la regresión global 7G.2 ha sido aprobada.
-2. **Fase 7F (Producción):** tras completar validaciones y smoke de staging, desplegar producción inicialmente noindex y con Contacto, Escuela, identidad de menores y scheduler cerrados, activándolos de uno en uno sólo tras sus gates.
-3. **Fase 7G — Validación y cierre del MVP:** contrato ejecutable preparado en `29-mvp-final-acceptance-and-production-gate.md`; 7G.2 = PASS / CERRADO, 7G.3 cerrada con excepción humana documentada, 7G.4 pendiente. Quedan por superar gates productivos, smoke y aceptación humana antes de tag/release.
+1. **Fase 7F (Producción):** Despliegue productivo completado con éxito (`initial` + `noindex`). Queda pendiente activar el autodeploy de producción desde `main`. La indexación, Contacto, Escuela, identidad de menores y scheduler siguen cerrados, a la espera de activarlos de uno en uno sólo tras sus gates. Queda documentada la mejora post-MVP (P1, no bloqueante) de verificación de correo tras registro.
+2. **Fase 7G — Validación y cierre del MVP:** contrato ejecutable preparado en `29-mvp-final-acceptance-and-production-gate.md`; 7G.2 = PASS / CERRADO, 7G.3 cerrada con excepción humana documentada, 7G.4 GO PRODUCCIÓN explícito / CERRADO, 7G.5 Despliegue productivo PASS / CERRADO, 7G.6 Smoke productivo PASS / CERRADO, 7G.7 EN CURSO (pendiente aceptación humana y tag/release).
 
 Las autorizaciones de imágenes para web, redes sociales y archivo histórico
 permanecen como un frente independiente posterior, todavía sin numeración
@@ -129,9 +128,8 @@ deportivas volátiles permanecen `noindex`. Redirects permanentes, retirada del
 legado, metadata por respuesta para bots sin JavaScript, limpieza de código
 huérfano y migración de `academy`, Prensa y Federaciones permanecen en bloques
 posteriores. El dominio y las URLs canónicas están decididos y centralizados,
-el entorno de staging ha sido desplegado y validado, salvo el bloque de backup/restore/rollback (restore aislado validado en 7G.1D, rollback rehearsal no ejecutado por excepción humana) y el correo real (SMTP bloqueado por Railway Hobby; Resend HTTPS integrado y probado en staging en 7G.1B, aún pendiente de configuración y prueba productiva, afectando a Contacto, menores y contraseñas); Railway restringe en este workspace los backups nativos de volúmenes al plan Pro (maxBackupsCount = 0), por lo que la estrategia recae íntegramente en el dump lógico portable y la copia independiente de media, y
-el despliegue, indexación productiva y activación de funciones operativas reales
-siguen sin activar hasta finalizar 7F y 7G.
+el entorno de staging ha sido desplegado y validado, salvo el bloque de backup/restore/rollback (restore aislado validado en 7G.1D, rollback rehearsal no ejecutado por excepción humana). El correo real ha sido validado extremo a extremo en producción con éxito en 7G.6. Railway restringe en este workspace los backups nativos de volúmenes al plan Pro (maxBackupsCount = 0), por lo que la estrategia recae íntegramente en el dump lógico portable y la copia independiente de media.
+El despliegue productivo ha sido completado (`initial` + `noindex`), aunque la indexación y la activación de funciones operativas reales (Contacto, inscripción, autodeploy de producción desde main) siguen pendientes de activarse tras finalizar 7G.7.
 
 Este programa no altera por sí solo el proceso operativo de revisión y publicación del candidato descrito más abajo. Antes de iniciar un bloque funcional debe reconciliarse su calendario con el candidato y con cualquier corrección P0/P1.
 
@@ -144,16 +142,16 @@ QA-FIX-1, RC-HARDEN-1 y MVP-RC-1 conservan su valor histórico. Sin embargo, la
 auditoría 7A amplía el criterio desde “candidato técnico” a “aplicación pública
 y funcionalmente completa”: el MVP completo **todavía no está completado**.
 
-Permanecen P0 el correo saliente necesario para recuperar contraseñas, la
+El P0 de correo saliente necesario para recuperar contraseñas, la
 regresión global integrada 7G.2, los gates productivos de
 contenido, imágenes, privacidad y operación, el despliegue
-Railway/Vercel/MariaDB y la validación de recorridos críticos. Contacto,
-inscripción School, identidad de menores y scheduler pueden iniciar cerrados;
-activarlos sin su gate sí sería bloqueante. La
+Railway/Vercel/MariaDB y la validación de recorridos críticos han sido completados (7G.2, 7G.4, 7G.5 y 7G.6 están CERRADOS). Contacto,
+inscripción School, identidad de menores y scheduler inician cerrados;
+activarlos sin su gate sí sería bloqueante. El autodeploy desde `main` a producción sigue pendiente como acción manual. La
 definición observable y priorización se encuentran en
 `14-mvp-parity-audit.md`; el contrato, las plantillas y gates de implementación
 están en `15-mvp-editorial-and-navigation-contract.md`, y la reconciliación
-operativa vigente en `29-mvp-final-acceptance-and-production-gate.md`.
+operativa vigente en `29-mvp-final-acceptance-and-production-gate.md` (Fase 7G.7 EN CURSO).
 
 La ausencia de edición avanzada de perfil, resumen directo de equipo e interfaz
 React de reprogramación continúa como P1 y no bloquea por sí misma el MVP.

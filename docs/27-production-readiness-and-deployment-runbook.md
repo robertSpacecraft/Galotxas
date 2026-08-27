@@ -6,10 +6,8 @@
 crear proyectos. Tras la ejecución manual parcial de 7F, el entorno de **staging** está
 desplegado y validado (proyectos en Vercel/Railway, base de datos MariaDB, DNS
 personalizado, dominios canónicos de staging). 
-El despliegue a **producción** permanece pendiente.
-Fase 7, 7F de producción, 7G y el MVP permanecen abiertos. La preparación 7G.0
-reconcilia el gate final en `29-mvp-final-acceptance-and-production-gate.md`;
-no acredita ninguna acción productiva.
+El despliegue a **producción** ha sido ejecutado exitosamente en Railway y Vercel (7G.5 PASS/CLOSED), partiendo del commit `ec8aba5e29bbc7b5b8d2b361ed12591ba79f1130`. Se ha superado el smoke productivo mínimo (7G.6 PASS/CLOSED). La fase 7G.7 se encuentra EN CURSO.
+Fase 7 y el MVP permanecen abiertos pendientes del cierre documental y aceptación final (7G.7). El autodeploy de `main` a producción sigue pendiente como acción manual (DESACTIVADO por política de primera publicación).
 
 La primera publicación está deliberadamente cerrada:
 
@@ -84,23 +82,23 @@ Prohibiciones comunes:
 
 | Área | Situación actual tras ejecución parcial 7F | Gate manual pendiente |
 |---|---|---|
-| URL frontend/API | Dominios de staging activos y validados con TLS | Asignar dominios de producción y comprobar TLS |
-| Vercel | Proyecto `galotxas-staging` vinculado y desplegado | PENDIENTE ESPERADO / NO CREADO |
-| Railway | Servicios backend y MariaDB activos para staging | `backend-production` (0 deploys) y `mariadb-production` (11.4, SUCCESS) pre-provisionados |
-| MariaDB | DB de staging operativa, migraciones completadas | Crear DB producción, activar política en capas y acreditar restore aislado |
-| CORS | Origen exacto, sin patrones, wildcard o cookies CORS | Cargar el origen real de cada entorno |
-| Auth | Sanctum Bearer existente; contratos 401/403/419 intactos | Smoke HTTPS de registro/login/logout/reset |
-| Sesión Blade | Cookie Secure/HttpOnly/SameSite y driver DB en ejemplos | Validar admin detrás del proxy |
-| Proxy/HTTPS | `TRUSTED_PROXIES` y cabeceras Traefik | Verificar cadena Railway y URL generada |
-| Salud | `/up` mínimo, independiente de DB; readiness CLI | Monitor externo y ejecución preflight |
-| Admin | `admin:create` interactivo e idempotente | Crear la primera cuenta por consola |
-| CMS | Páginas staging recreadas manualmente y aprobadas | Recrear y aprobar en producción |
-| Legal/Knowledge | Hashes validados y activos en staging | Validar hashes en producción |
-| SEO | Staging validado como no indexable (`robots.txt`) | Activar indexación en producción posterior |
-| Contacto/Escuela/menores | Capacidades validadas con fail-closed y flag global; persistencia staging probada | Correo real, flujo menores completo en staging |
+| URL frontend/API | Dominios de staging activos y validados con TLS | Dominios y TLS productivos validados (PASS) |
+| Vercel | Proyecto `galotxas-staging` vinculado y desplegado | Frontend productivo READY (PASS) |
+| Railway | Servicios backend y MariaDB activos para staging | `backend-production` desplegado exitosamente (PASS) |
+| MariaDB | DB de staging operativa, migraciones completadas | DB productiva operativa, migraciones aplicadas manualmente (PASS) |
+| CORS | Origen exacto, sin patrones, wildcard o cookies CORS | Validado en producción (PASS) |
+| Auth | Sanctum Bearer existente; contratos 401/403/419 intactos | Registro y reset de password validados extremo a extremo en producción (PASS) |
+| Sesión Blade | Cookie Secure/HttpOnly/SameSite y driver DB en ejemplos | Admin productivo login validado (PASS) |
+| Proxy/HTTPS | `TRUSTED_PROXIES` y cabeceras Traefik | Validado en producción (PASS) |
+| Salud | `/up` mínimo, independiente de DB; readiness CLI | `/up` verificado en producción (PASS) |
+| Admin | `admin:create` interactivo e idempotente | Cuenta admin productiva creada (PASS) |
+| CMS | Páginas staging recreadas manualmente y aprobadas | Páginas CMS del Club y Noticias recreadas manualmente en producción (PASS) |
+| Legal/Knowledge | Hashes validados y activos en staging | Legal y Escuela productivas verificadas (PASS) |
+| SEO | Staging validado como no indexable (`robots.txt`) | Producción permanece `noindex` deliberadamente (PASS) |
+| Contacto/Escuela/menores | Capacidades validadas con fail-closed y flag global | Correo real (Resend) validado en producción para reset password |
 | Queue/scheduler | Cola síncrona, ningún worker/cron productivo | Diseñar y ensayar purgas antes de activar |
-| Logs/storage | `stderr`; `media_s3` y bucket privado de staging validados; Sponsor es el primer consumidor en `develop` | Crear bucket privado productivo aislado y aceptar 7F.2C en staging antes de promoción |
-| Backups/restore/rollback | Restore aislado ensayado en 7G.1D (PASS, RTO 5m27s) | Validar media (rollback rehearsal no ejecutado por decisión humana) |
+| Logs/storage | `stderr`; `media_s3` y bucket privado de staging validados | `media:probe --temporary-url` PASS en producción |
+| Backups/restore/rollback | Restore aislado ensayado en 7G.1D (PASS) | Backup automatizado validado en 7G.3. Excepción humana de rollback rehearsal documentada (PASS) |
 
 ## Variables y secretos
 
@@ -880,9 +878,11 @@ Pasos **Pendientes / Aplazados** en staging:
 
 La aceptación humana de staging queda completada. Staging ha quedado devuelto a un estado seguro (`CONTACT_FORM_ENABLED=false`, `SCHOOL_ENROLLMENT_ENABLED=false`, etc.). Nunca se enviaron correos a usuarios reales.
 
-## Primer despliegue y aceptación de producción
+## Primer despliegue y aceptación de producción (EJECUTADO)
 
-Orden manual:
+*ESTADO ACTUAL: DESPLIEGUE CONTROLADO (7G.5) Y SMOKE (7G.6) COMPLETADOS Y CERRADOS (PASS). El despliegue inicial productivo en Railway y Vercel se ha realizado con éxito (commit ec8aba...). El autodeploy de producción conectado a la rama `main` de GitHub permanece DESACTIVADO deliberadamente por política de primera publicación, quedando como pendiente operativo a futuro. Fase 7G.7 EN CURSO.*
+
+Orden manual histórico de ejecución:
 
 1. crear Vercel (pendiente), Railway backend (creado, 0 deploys) y MariaDB (creada 11.4) sin conectar todavía el dominio;
    *Nota 7G.3: `APP_KEY` de producción ha sido corregida operativamente a una clave Laravel válida (formato base64, adecuada para AES-256) sin deployment. Estado: RESUELTA a nivel de configuración/formato; pendiente de validación runtime mediante preflight tras el primer deployment. `APP_FAKER_LOCALE` ausente (no bloqueante). `SESSION_DOMAIN` ausente (fallback host-only). `CONTACT_NOTIFICATION_MAILER` ausente (fallback global). Variables `MEDIA_*` configuradas en Railway pero P1 de documentar en `.env.production.example`.*
