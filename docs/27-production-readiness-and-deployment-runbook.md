@@ -7,7 +7,7 @@ crear proyectos. Tras la ejecución manual parcial de 7F, el entorno de **stagin
 desplegado y validado (proyectos en Vercel/Railway, base de datos MariaDB, DNS
 personalizado, dominios canónicos de staging). 
 El despliegue a **producción** ha sido ejecutado exitosamente en Railway y Vercel (7G.5 PASS/CLOSED), partiendo del commit `ec8aba5e29bbc7b5b8d2b361ed12591ba79f1130`. Se ha superado el smoke productivo mínimo (7G.6 PASS/CLOSED). La fase 7G.7 se encuentra EN CURSO.
-Fase 7 y el MVP permanecen abiertos pendientes del cierre documental y aceptación final (7G.7). El autodeploy de `main` a producción sigue pendiente como acción manual (DESACTIVADO por política de primera publicación).
+Fase 7 y el MVP permanecen abiertos pendientes del cierre documental y aceptación final (7G.7). Al intentar abrir temporalmente la indexación en producción se detectó un bloqueo SEO estático; la corrección técnica está validada localmente pero pendiente de despliegue, por lo que producción se volvió a cerrar y se encuentra en estado `live` + `indexing=false`. El autodeploy de `main` a producción sigue pendiente como acción manual (DESACTIVADO por política de primera publicación).
 
 La primera publicación está deliberadamente cerrada:
 
@@ -94,7 +94,7 @@ Prohibiciones comunes:
 | Admin | `admin:create` interactivo e idempotente | Cuenta admin productiva creada (PASS) |
 | CMS | Páginas staging recreadas manualmente y aprobadas | Páginas CMS del Club y Noticias recreadas manualmente en producción (PASS) |
 | Legal/Knowledge | Hashes validados y activos en staging | Legal y Escuela productivas verificadas (PASS) |
-| SEO | Staging validado como no indexable (`robots.txt`) | Producción permanece `noindex` deliberadamente (PASS) |
+| SEO | Staging validado como no indexable (`robots.txt`) | Producción permanece en `live` + `indexing=false` tras detectar bloqueo SEO estático; corrección local validada pendiente de despliegue. |
 | Contacto/Escuela/menores | Capacidades validadas con fail-closed y flag global | Correo real (Resend) validado en producción para reset password |
 | Queue/scheduler | Cola síncrona, ningún worker/cron productivo | Diseñar y ensayar purgas antes de activar |
 | Logs/storage | `stderr`; `media_s3` y bucket privado de staging validados | `media:probe --temporary-url` PASS en producción |
@@ -867,7 +867,7 @@ Los siguientes pasos ya se han validado en staging:
 7. Legal, Knowledge y hashes validados con scripts en staging;
 8. API, CORS exacto, proxy, HTTPS, auth y administración validados sobre dominio real;
 9. robots `noindex, nofollow` y ausencia de sitemap confirmados en staging;
-10. Contacto y Escuela probados en ventana controlada con `log`, validando persistencia y fail-closed; el SMTP real desde Railway está BLOQUEADO por el plan Hobby, por lo que la notificación de Contacto, el reset de contraseña y el ciclo de identidad pública de menores siguen pendientes.
+10. Contacto y Escuela probados en ventana controlada con `log`, validando persistencia y fail-closed; el SMTP real desde Railway está BLOQUEADO por el plan Hobby, por lo que la notificación de Contacto y el ciclo de identidad pública de menores siguen pendientes (el reset de contraseña fue validado exitosamente a posteriori en producción 7G.6).
 
 Pasos **Pendientes / Aplazados** en staging:
 11. **Ensayar el rollback coordinado.** El rollback rehearsal remoto (7G.3) **NO FUE EJECUTADO** por decisión humana explícita del mantenedor (excepción aceptada para la primera publicación). La fase 7G.1D ejecutó y validó con éxito el restore lógico aislado de staging con RTO de 5m27s, cerrando el P0 de recuperación de base de datos para este entorno.
