@@ -151,8 +151,13 @@ test.describe('SEO, indexación y accesibilidad pública', () => {
   });
 
   test('robots y sitemap responden según la configuración de build', async ({ page }) => {
-    await page.goto('/');
-    const enabledRobots = await page.request.get(new URL('/robots.txt', page.url()).href);
+    const enabledHome = await page.request.get('/');
+    expect(enabledHome.ok()).toBe(true);
+    const enabledHtml = await enabledHome.text();
+    expect(enabledHtml).not.toMatch(/<meta[^>]+name=["']robots["'][^>]*>/i);
+    expect(enabledHtml).not.toContain('galotxas-public-seo-robots');
+
+    const enabledRobots = await page.request.get('/robots.txt');
     expect(enabledRobots.ok()).toBe(true);
     expect(await enabledRobots.text()).toBe([
       'User-agent: *',
@@ -161,7 +166,7 @@ test.describe('SEO, indexación y accesibilidad pública', () => {
       '',
     ].join('\n'));
 
-    const sitemap = await page.request.get(new URL('/sitemap.xml', page.url()).href);
+    const sitemap = await page.request.get('/sitemap.xml');
     expect(sitemap.status()).toBe(200);
     expect(sitemap.headers()['content-type']).toContain('application/xml');
     const sitemapXml = await sitemap.text();
@@ -176,6 +181,10 @@ test.describe('SEO, indexación y accesibilidad pública', () => {
     expect(sitemapXml).not.toContain('/rankings</loc>');
 
     const disabledBase = `http://127.0.0.1:${noindexFrontendPort}`;
+    const disabledHome = await page.request.get(`${disabledBase}/`);
+    expect(disabledHome.ok()).toBe(true);
+    expect(await disabledHome.text())
+      .toContain('<meta name="robots" content="noindex, nofollow" />');
     const disabledRobots = await page.request.get(`${disabledBase}/robots.txt`);
     expect(disabledRobots.ok()).toBe(true);
     expect(await disabledRobots.text()).toBe('User-agent: *\nDisallow: /\n');

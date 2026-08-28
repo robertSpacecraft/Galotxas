@@ -6,6 +6,9 @@ import {
   seoRouteClassifications,
 } from '../../src/seo/seoManifest.js';
 
+const initialRobotsMarker = '<!-- galotxas-public-seo-robots -->';
+const closedInitialRobotsMeta = '<meta name="robots" content="noindex, nofollow" />';
+
 const sortByPath = (left, right) => (
   left.path < right.path ? -1 : left.path > right.path ? 1 : 0
 );
@@ -87,6 +90,16 @@ export const createRobotsTxt = (config) => {
     `Sitemap: ${joinPublicUrl(config.siteUrl, '/sitemap.xml')}`,
     '',
   ].join('\n');
+};
+
+export const renderInitialHtmlSeo = (html, config) => {
+  const parts = html.split(initialRobotsMarker);
+
+  if (parts.length !== 2) {
+    throw new Error('index.html debe contener exactamente un marcador SEO inicial.');
+  }
+
+  return parts.join(config.indexingEnabled ? '' : closedInitialRobotsMeta);
 };
 
 export const createSitemapXml = (config, artifacts) => {

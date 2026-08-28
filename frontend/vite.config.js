@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 import { configDefaults } from 'vitest/config'
 import publicKnowledge from './src/generated/knowledge/public-knowledge.json' with { type: 'json' }
 import publicLegal from './src/generated/legal/public-legal.json' with { type: 'json' }
-import { createSeoAssets } from './scripts/seo/assets.js'
+import { createSeoAssets, renderInitialHtmlSeo } from './scripts/seo/assets.js'
 import { createPublicSiteConfig } from './src/seo/seoConfig.js'
 
 const frontendRoot = path.dirname(fileURLToPath(import.meta.url))
@@ -19,6 +19,9 @@ const publicSeoAssetsPlugin = (config) => {
 
   return {
     name: 'galotxas-public-seo-assets',
+    transformIndexHtml(html) {
+      return renderInitialHtmlSeo(html, config)
+    },
     configureServer(server) {
       server.middlewares.use((request, response, next) => {
         const pathname = new URL(request.url ?? '/', 'http://vite.local').pathname

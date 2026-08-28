@@ -1,22 +1,32 @@
 // @vitest-environment node
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import publicKnowledge from '../../src/generated/knowledge/public-knowledge.json';
 import publicLegal from '../../src/generated/legal/public-legal.json';
 import { createPublicSiteConfig } from '../../src/seo/seoConfig.js';
 import { checkPublicSeo } from './check.js';
-import { createRobotsTxt, createSeoAssets, createSitemapEntries } from './assets.js';
+import {
+  createRobotsTxt,
+  createSeoAssets,
+  createSitemapEntries,
+  renderInitialHtmlSeo,
+} from './assets.js';
 
 const artifacts = {
   knowledgeArtifact: publicKnowledge,
   legalArtifact: publicLegal,
 };
+const indexHtml = readFileSync(new URL('../../index.html', import.meta.url), 'utf8');
 
 describe('public SEO assets', () => {
   it('fails closed without a public URL and does not create a sitemap', () => {
     const config = createPublicSiteConfig({});
     const assets = createSeoAssets(config, artifacts);
+    const html = renderInitialHtmlSeo(indexHtml, config);
 
     expect(config).toEqual({ indexingEnabled: false, siteUrl: null });
+    expect(html).toContain('<meta name="robots" content="noindex, nofollow" />');
+    expect(html).not.toContain('galotxas-public-seo-robots');
     expect(assets.robots).toBe('User-agent: *\nDisallow: /\n');
     expect(assets.sitemap).toBeNull();
   });
@@ -42,8 +52,12 @@ describe('public SEO assets', () => {
     const first = createSeoAssets(config, artifacts);
     const second = createSeoAssets(config, artifacts);
     const entries = createSitemapEntries(artifacts);
+    const html = renderInitialHtmlSeo(indexHtml, config);
 
     expect(first).toEqual(second);
+    expect(html).not.toMatch(/<meta[^>]+name=["']robots["'][^>]*>/i);
+    expect(html).not.toContain('noindex');
+    expect(html).not.toContain('galotxas-public-seo-robots');
     expect(first.robots).toContain('Sitemap: https://example.test/sitemap.xml');
     expect(first.sitemap).toContain('<loc>https://example.test/</loc>');
     expect(first.sitemap).toContain('<loc>https://example.test/legal/privacidad</loc>');
