@@ -64,33 +64,32 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 46. **Fase 7F.2F — Navegación CMS administrable:** placements dedicados con slot Club único, administración Blade, publicación efectiva desde `CmsPage`, API cerrada y composición React structural-first/fail-soft implementados; migración y flujo completo aceptados manualmente en staging. 7F.2F cerrada.
 47. **Cierre del gap preproducción de Copa en `develop`:** fases y stages explícitos, resultados comunes a Liga/Copa caracterizados, validación administrativa coherente, generación segura de Final/3.º-4.º, contrato público con ganador oficial, cuadro React y E2E completo implementados, validados localmente y con aceptación humana completada en staging.
 48. **Refinamiento público de Copa y rankings en `develop`:** vista dedicada `/categories/{id}/cup`, navegación contextual de cuatro destinos y Schedule reservado a Liga; categoría y Mi Panel excluyen Copa, mientras campeonato, temporada e histórico incluyen sus partidos validados sin bonus. Aceptación humana en staging completada.
-49. **Fase 7G.0 — Auditoría y preparación del cierre final:** baseline, vigencia de evidencias, matriz staging/producción, flags, restricciones de proveedor, regresión 7F.2, Go/No-Go y gates 7G.1–7G.7 documentados sin ejecutar Copa, suites, staging, producción, migraciones, flags, tag o release. 7G queda preparada, no iniciada en su gate irreversible y no cerrada.
-50. **Fase 7G.1A — Auditoría del P0 de correo/password-reset:** flujo Laravel/React, tokens, límites, tests, mailers, lock, runtime y preflight auditados; Resend por API HTTPS seleccionado y Postmark conservado como alternativa. La solución queda lista para implementación/prueba, sin proveedor, dependencia, secret, DNS, entorno o envío modificado y con el P0 todavía abierto.
-51. **Fase 7G.1B — Integración de Resend/password-reset:** SDK oficial fijado, preflight Resend/`array` fail-closed, fallo de transporte no enumerable, token fallido invalidado y regresión backend completa. Validación extrema a extremo completada operativamente con éxito en staging; baseline restaurado a `array`. El P0 continúa abierto pendiente sólo de la configuración productiva.
-52. **Fase 7G.1C — Auditoría de backup, restore y rollback:** capacidades actuales de Railway, arquitectura MariaDB/bucket/Git, estrategia de tres capas, gate predeploy, restore lógico aislado, RPO/RTO y rollback por superficie reconciliados documentalmente. No se ejecutaron operaciones; el P0 sigue abierto hasta el ensayo controlado.
-53. **Fase 7G.1D — Restore lógico aislado de staging:** drill documentado validando la extracción, compresión (gzip), checksum SHA-256 (no cifrado) y restauración limpia de MariaDB con RTO de 5m27s, cerrando el P0 de DB para staging sin usar features bloqueadas. Producción y Media pendientes.
-54. **Fase 7G.3 — Preparación de backup y auditoría de configuración productiva:** Se preparó la automatización de backup con `galotxas-backup`. El subbloque de infraestructura productiva en Railway ha sido superado operativamente: la app OAuth `Galotxas Backup` está 'En producción' con acceso restringido al repositorio `galotxes-backup-drivefile/production` usando exclusivamente `drive.file`. Se configuró el servicio `backup-production`, se le inyectaron las secret references operativas y el token, y se creó el usuario MariaDB `galotxas_backup` de mínimo privilegio. La operación final ha sido validada con la ejecución exitosa de su modo `check`, el primer backup productivo automático supervisado, validación de integridad SHA-256 de su restauración (con DB vacía pre-migraciones), programación en cron UTC, y alertas activas en Railway. El P0 de control de source/autodeploy de producción se ha CERRADO adoptando una política deliberadamente manual: `backend-production` se conectó a GitHub (rama `main`, root `/backend`) con autodeploy desactivado, y `backup-production` se mantiene source-less sin integración GitHub, validado mediante `railway up` manual sobre un árbol limpio. Todo despliegue requerirá acción humana explícita. El antiguo repositorio permanece preservado. El gate 7G.3 cerró con excepción humana (rollback remoto NO ejecutado) y el hash exacto validado `0b78552612231a9bfd450e96bf258f66c3192586` para entrar a 7G.4 (cerrado posteriormente con GO explícito). El P0 de ownership ha sido cerrado asumiendo un mantenedor único sin suplente y congelación de cambios ante indisponibilidad (bus factor 1 declarado). La infraestructura y configuración de Resend productivo está preparada y validada, y la prueba real de entrega extremo a extremo se superó exitosamente en el smoke productivo post-despliegue (7G.6). El proyecto Vercel productivo está creado pero inerte.
+49. **Fase 7G.0 — Auditoría y preparación del cierre final:** baseline, vigencia de evidencias, matriz staging/producción, flags, restricciones de proveedor, regresión 7F.2, Go/No-Go y gates 7G.1–7G.7 documentados sin ejecutar Copa, suites, staging, producción, migraciones, flags, tag o release. En aquel bloque, 7G quedó preparada, sin iniciar su gate irreversible y todavía abierta.
+50. **Fase 7G.1A — Auditoría del P0 de correo/password-reset:** flujo Laravel/React, tokens, límites, tests, mailers, lock, runtime y preflight auditados; Resend por API HTTPS seleccionado y Postmark conservado como alternativa. La solución quedó lista para implementación/prueba, sin proveedor, dependencia, secret, DNS, entorno o envío modificado; el P0 permaneció abierto al cerrar aquel bloque.
+51. **Fase 7G.1B — Integración de Resend/password-reset:** SDK oficial fijado, preflight Resend/`array` fail-closed, fallo de transporte no enumerable, token fallido invalidado y regresión backend completa. Validación extrema a extremo completada operativamente con éxito en staging; baseline restaurado a `array`. El P0 permaneció abierto entonces sólo por la configuración productiva.
+52. **Fase 7G.1C — Auditoría de backup, restore y rollback:** capacidades actuales de Railway, arquitectura MariaDB/bucket/Git, estrategia de tres capas, gate predeploy, restore lógico aislado, RPO/RTO y rollback por superficie reconciliados documentalmente. No se ejecutaron operaciones; el P0 permaneció abierto en aquel bloque hasta el ensayo controlado posterior.
+53. **Fase 7G.1D — Restore lógico aislado de staging:** drill documentado validando la extracción, compresión (gzip), checksum SHA-256 (no cifrado) y restauración limpia de MariaDB con RTO de 5m27s, cerrando el P0 de DB para staging sin usar features bloqueadas. Producción y Media quedaron entonces pendientes de sus gates propios.
+54. **Fase 7G.3 — Preparación de backup y auditoría de configuración productiva:** Se preparó la automatización de backup con `galotxas-backup`. El subbloque de infraestructura productiva en Railway fue superado operativamente: la app OAuth `Galotxas Backup` pasó a 'En producción' con acceso restringido al repositorio `galotxes-backup-drivefile/production` usando exclusivamente `drive.file`. Se configuró el servicio `backup-production`, se le inyectaron las secret references operativas y el token, y se creó el usuario MariaDB `galotxas_backup` de mínimo privilegio. La operación se validó con la ejecución exitosa de su modo `check`, el primer backup productivo automático supervisado, validación de integridad SHA-256 de su restauración (con DB vacía pre-migraciones), programación en cron UTC y alertas activas en Railway. El P0 de control de source/autodeploy se cerró en ese gate con una política deliberadamente manual: `backend-production` quedó conectado a GitHub (`main`, root `/backend`) con autodeploy desactivado y `backup-production` source-less, validado mediante `railway up` manual. Esa fue la situación histórica de 7G.3; posteriormente se activó el autodeploy de `main` para `backend-production`. El antiguo repositorio permanece preservado. El gate 7G.3 cerró con excepción humana (rollback remoto NO ejecutado) y el hash exacto validado `0b78552612231a9bfd450e96bf258f66c3192586` para entrar a 7G.4. El P0 de ownership se cerró asumiendo un mantenedor único sin suplente y congelación de cambios ante indisponibilidad (bus factor 1 declarado). La infraestructura y configuración de Resend productivo quedó preparada y la prueba real de entrega extremo a extremo se superó en el smoke productivo 7G.6. El proyecto Vercel productivo quedó inerte al cierre de 7G.3 y fue desplegado después en 7G.5.
+55. **Fase 7G.7 — Cierre final y publicación estable:** autorización humana concedida, tag anotado remoto `v0.1.0` verificado en `30a22844697e403d699926c2a5a0193f78a5bc71` y [GitHub Release `Galotxas MVP 0.1.0`](https://github.com/robertSpacecraft/Galotxas/releases/tag/v0.1.0) publicada. 7G.7 queda PASS/CERRADO; Fase 7G y el MVP quedan CERRADOS/PUBLICADOS. El hash `0b78552612231a9bfd450e96bf258f66c3192586` mantiene su significado histórico de 7G.3 y el rollback rehearsal remoto conserva la excepción humana NO EJECUTADA.
 
 La Fase 2B queda completa con los subbloques 2B.1–2B.5. Las fases 3A–3C, 4A–4C, 5A–5C y 6A–6C.1 completan respectivamente las fases 3, 4, 5 y 6. Fases 7A, 7B, 7E y 7F.1, los bloques 7C.0–7C.2 y 7D.1–7D.3 están completados; 7C y 7D quedan cerradas.
 
-**Fase 7F (Staging)** ha sido validada mediante *smoke test global y aceptación humana*: Vercel/Railway/MariaDB separados para staging, configuración de DNS/TLS, CMS verificado, API, Legal, Contacto (formulario/persistencia) y Escuela (inscripciones, permisos) validados. El envío **SMTP real desde Railway queda BLOQUEADO por el plan Railway Hobby**; 7G.1B integra Resend por API HTTPS y ha validado operativamente en staging la recuperación de contraseñas. En 7G.3 se configuró y validó la infraestructura productiva (dominio verificado, SPF/DKIM, API key separada en Railway). La prueba real controlada (smoke productivo 7G.6) para la recuperación de contraseña fue superada exitosamente. Las notificaciones reales de Contacto y menores siguen pendientes. El restore lógico de staging se completó exitosamente (PASS) durante 7G.1D (RTO 5m27s). 7G.1C corrige la premisa histórica comprobando operativamente que Railway restringe los backups nativos a Pro; la estrategia en capas externa está lista, pero falta el rollback rehearsal. 7G.1D validó operativamente el restore lógico aislado de MariaDB para staging cerrando su P0 (RTO ~5.5m), el rollback rehearsal no fue ejecutado (excepción humana aprobada). El gate productivo y el probe de media productiva ya fueron superados (PASS); lo pendiente ahora es completar 7G.7 (commit documental, validación del hash final de release, autorización humana y tag/release). Se ha registrado una posible mejora de UX para `/aprende-a-jugar` (no bloqueante).
+**Fase 7F (Staging)** ha sido validada mediante *smoke test global y aceptación humana*: Vercel/Railway/MariaDB separados para staging, configuración de DNS/TLS, CMS verificado, API, Legal, Contacto (formulario/persistencia) y Escuela (inscripciones, permisos) validados. El envío **SMTP real desde Railway queda BLOQUEADO por el plan Railway Hobby**; 7G.1B integra Resend por API HTTPS y ha validado operativamente en staging la recuperación de contraseñas. En 7G.3 se configuró y validó la infraestructura productiva (dominio verificado, SPF/DKIM, API key separada en Railway). La prueba real controlada (smoke productivo 7G.6) para la recuperación de contraseña fue superada exitosamente. Las notificaciones reales de Contacto y menores siguen pendientes. El restore lógico de staging se completó exitosamente (PASS) durante 7G.1D (RTO 5m27s). 7G.1C corrige la premisa histórica comprobando operativamente que Railway restringe los backups nativos a Pro; la estrategia en capas externa está lista. El rollback rehearsal remoto no fue ejecutado y conserva la excepción humana aprobada, sin convertirse en PASS. El gate productivo, el probe de media y 7G.7 ya están cerrados. Se ha registrado una posible mejora de UX para `/aprende-a-jugar` (no bloqueante).
 
-7F (Producción), Fase 7 y el MVP siguen abiertos. No se ha realizado publicación productiva ni migración editorial definitiva.
+7F (Producción), Fase 7G y el MVP están cerrados. La release estable `v0.1.0`
+está publicada y producción permanece operativa; las capacidades funcionales
+cerradas por flag y las prioridades P1/P2 continúan como trabajo post-MVP.
 Se incorpora la **Fase 7F.2** de refinamiento preproducción, re-evaluando capacidades como noticias, foto de usuario, multimedia persistente y rankings.
 
 Antes de iniciar 7F.2A se ha cerrado su prerrequisito de dominio: el reparto base de rankings es `3-0` cuando quien pierde suma menos de 8 juegos y `2-1` cuando suma 8 o más, siempre con tres puntos totales. Los cuatro cálculos backend y Mi Panel consumen una única regla, con regresión de dobles y generación de copa. Esta corrección no inicia ni completa 7F.2A y no vuelve a sembrar copas ya generadas.
 
 7F.2A está cerrada en staging (aceptación superada el 2026-08-15). 7F.2B está cerrada en staging tras superar las pruebas de persistencia. 7F.2C ha superado todos sus gates secundarios diferidos y está completamente aceptada en staging. 7F.2D está aceptada completamente en staging y cerrada. 7F.2E y 7F.2F han sido cerradas y aceptadas manualmente en staging. El cierre técnico del gap de Copa está implementado, validado localmente y aceptado manualmente en staging. La corrección de reparto de puntos que actuaba como prerrequisito se verificó manualmente en staging el 2026-08-15, sin que esa evidencia se considere aceptación de 7F.2A.
 
-## Fase 7 abierta — bloques parcialmente completados / bloqueados
+## Fase 7 cerrada — estado operativo
 
-1. **Fase 7F (Pendientes de Producción):** Completado el despliegue productivo (7G.5 PASS/CLOSED) y el smoke productivo mínimo (7G.6 PASS/CLOSED). Producción se encuentra `live` + `indexing=true` con el fix SEO desplegado y validado, autodeploy activado y backup operando sobre contenido real. Dominio y correo configurados (Resend HTTPS). Identidad pública de menores, Escuela y Contacto siguen cerrados. Excepción humana documentada para el rollback rehearsal en lugar de su ejecución.
+1. **Fase 7F (Producción):** Despliegue productivo y smoke completados (7G.5 y 7G.6 PASS/CLOSED). Producción se encuentra `live` + `indexing=true` con fix SEO validado, autodeploy activo y backup cifrado de DB+media acreditado sobre contenido real. Dominio y correo Resend están configurados. Identidad pública de menores, inscripción de Escuela y Contacto siguen cerrados por sus flags y requieren gates propios si se activan. El rollback rehearsal remoto conserva su excepción humana histórica.
 2. **Fase 7F.2 — Refinamiento preproducción:** Todo el bloque de refinamiento ha sido aceptado y la regresión global 7G.2 ha sido aprobada (PASS / CERRADO).
-
-## Fase 7 abierta — bloques pendientes
-
-1. **Fase 7F (Producción):** Despliegue productivo completado con éxito. Producción se encuentra `live` + `indexing=true` (fix SEO desplegado, sitemap abierto y autodeploy de `main` activado). Contacto, Escuela, identidad de menores y scheduler siguen cerrados, a la espera de activarlos de uno en uno sólo tras sus gates. Queda documentada la mejora post-MVP (P1, no bloqueante) de verificación de correo tras registro.
-2. **Fase 7G — Validación y cierre del MVP:** contrato ejecutable preparado en `29-mvp-final-acceptance-and-production-gate.md`; 7G.2 = PASS / CERRADO, 7G.3 cerrada con excepción humana documentada, 7G.4 GO PRODUCCIÓN explícito / CERRADO, 7G.5 Despliegue productivo PASS / CERRADO, 7G.6 Smoke productivo PASS / CERRADO, 7G.7 EN CURSO (pendiente commit documental, push a main, verificación del hash final de release, aceptación humana y tag/release).
+3. **Fase 7G — Validación y cierre del MVP:** 7G.2 = PASS/CERRADO; 7G.3 = CERRADO con la excepción histórica del rollback rehearsal no ejecutado; 7G.4 = GO PRODUCCIÓN/CERRADO; 7G.5 = PASS/CERRADO; 7G.6 = PASS/CERRADO; 7G.7 = PASS/CERRADO. Fase 7G y el MVP están cerrados y `v0.1.0` está publicada.
 
 Las autorizaciones de imágenes para web, redes sociales y archivo histórico
 permanecen como un frente independiente posterior, todavía sin numeración
@@ -129,7 +128,7 @@ legado, metadata por respuesta para bots sin JavaScript, limpieza de código
 huérfano y migración de `academy`, Prensa y Federaciones permanecen en bloques
 posteriores. El dominio y las URLs canónicas están decididos y centralizados,
 el entorno de staging ha sido desplegado y validado, salvo el bloque de backup/restore/rollback (restore aislado validado en 7G.1D, rollback rehearsal no ejecutado por excepción humana). El correo real ha sido validado extremo a extremo en producción con éxito en 7G.6. Railway restringe en este workspace los backups nativos de volúmenes al plan Pro (maxBackupsCount = 0), por lo que la estrategia recae íntegramente en el dump lógico portable y la copia independiente de media.
-El despliegue productivo ha sido completado y se encuentra `live` + `indexing=true`. La corrección SEO estática fue desplegada y validada operativamente. El autodeploy de producción desde main ya está activado. La activación de otras funciones operativas reales (Contacto, inscripción) siguen pendientes de activarse tras finalizar 7G.7.
+El despliegue productivo ha sido completado y se encuentra `live` + `indexing=true`. La corrección SEO estática fue desplegada y validada operativamente. El autodeploy de producción desde `main` está activo. La activación de otras funciones operativas reales (Contacto, inscripción) permanece como trabajo post-MVP sujeto a sus gates propios, no al cierre ya completado de 7G.7.
 
 Este programa no altera por sí solo el proceso operativo de revisión y publicación del candidato descrito más abajo. Antes de iniciar un bloque funcional debe reconciliarse su calendario con el candidato y con cualquier corrección P0/P1.
 
@@ -138,9 +137,10 @@ Este programa no altera por sí solo el proceso operativo de revisión y publica
 # Estado del MVP completo
 
 El núcleo técnico del candidato anterior está implementado y QA-MVP-1,
-QA-FIX-1, RC-HARDEN-1 y MVP-RC-1 conservan su valor histórico. Sin embargo, la
-auditoría 7A amplía el criterio desde “candidato técnico” a “aplicación pública
-y funcionalmente completa”: el MVP completo **todavía no está completado**.
+QA-FIX-1, RC-HARDEN-1 y MVP-RC-1 conservan su valor histórico. La auditoría 7A
+amplió el criterio desde “candidato técnico” a “aplicación pública y
+funcionalmente completa”; ese criterio está satisfecho y el MVP está
+**CERRADO/PUBLICADO** como `v0.1.0`.
 
 El P0 de correo saliente necesario para recuperar contraseñas, la
 regresión global integrada 7G.2, los gates productivos de
@@ -151,7 +151,8 @@ activarlos sin su gate sí sería bloqueante. El autodeploy desde `main` a produ
 definición observable y priorización se encuentran en
 `14-mvp-parity-audit.md`; el contrato, las plantillas y gates de implementación
 están en `15-mvp-editorial-and-navigation-contract.md`, y la reconciliación
-operativa vigente en `29-mvp-final-acceptance-and-production-gate.md` (Fase 7G.7 EN CURSO).
+operativa final está en `29-mvp-final-acceptance-and-production-gate.md`
+(Fase 7G.7 PASS/CERRADO).
 
 La ausencia de edición avanzada de perfil, resumen directo de equipo e interfaz
 React de reprogramación continúa como P1 y no bloquea por sí misma el MVP.
@@ -238,17 +239,19 @@ React de reprogramación continúa como P1 y no bloquea por sí misma el MVP.
 
 ---
 
-# Siguiente paso del candidato y de Fase 7
+# Release estable y continuidad post-MVP
 
-MVP-RC-1 queda como instantánea histórica preparada y no publicada. El orden de
-publicación anterior queda condicionado por los P0 descubiertos en 7A. No se
-debe crear el tag o la release hasta completar Fase 7G.
+MVP-RC-1 queda como instantánea histórica. La autorización humana fue
+concedida y la release estable
+[`v0.1.0`](https://github.com/robertSpacecraft/Galotxas/releases/tag/v0.1.0)
+se publicó con el tag anotado remoto en
+`30a22844697e403d699926c2a5a0193f78a5bc71`. El hash
+`0b78552612231a9bfd450e96bf258f66c3192586` sigue siendo únicamente el baseline
+técnico histórico de 7G.3. Los commits documentales posteriores a la
+publicación no forman parte del contenido de `v0.1.0`.
 
-1. revisión humana y eventual merge documental de 7A;
-2. cierre de decisiones y contenido en 7B;
-3. ejecutar manualmente 7F conforme al runbook; 7D, 7E y la preparación técnica 7F.1 ya están cerradas;
-4. cierre de aceptación en 7G;
-5. sólo entonces, preparación del nuevo candidato, tag y publicación.
+Las prioridades de las secciones siguientes constituyen continuidad post-MVP
+y no reabren Fase 7G ni bloquean la release publicada.
 
 ---
 

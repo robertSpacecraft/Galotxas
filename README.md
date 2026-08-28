@@ -2,11 +2,23 @@
 
 Plataforma web para la gestión y visualización de competiciones de Galotxas.
 
-## Estado del candidato
+## Estado de la release
 
-El MVP funcional fue preparado inicialmente como candidato propuesto `v0.1.0-rc.1` (histórico). La evidencia, alcance, limitaciones y checklist se encuentran en [docs/09-release-candidate.md](docs/09-release-candidate.md).
+El MVP está cerrado y publicado como release estable
+[`v0.1.0`](https://github.com/robertSpacecraft/Galotxas/releases/tag/v0.1.0).
+La autorización humana fue concedida y el tag anotado remoto fija la release en
+`30a22844697e403d699926c2a5a0193f78a5bc71`. Fase 7G, incluida 7G.7, está
+cerrada.
 
-El proyecto se encuentra actualmente desplegado y operativo en producción pública (Vercel, Railway, MariaDB) con indexación abierta, backups y correo real configurados. La promoción a versión estable `v0.1.0` sigue pendiente de autorización humana expresa.
+El hash `0b78552612231a9bfd450e96bf258f66c3192586` conserva exclusivamente su
+significado histórico como baseline técnico validado en 7G.3; no es el hash de
+la release. Cualquier reconciliación documental posterior a la publicación es
+post-release y no forma parte del contenido etiquetado como `v0.1.0`.
+
+El proyecto está desplegado y operativo en producción pública (Vercel,
+Railway y MariaDB) con indexación abierta, backups y correo real configurados.
+El candidato propuesto `v0.1.0-rc.1` se conserva como instantánea histórica en
+[docs/09-release-candidate.md](docs/09-release-candidate.md).
 
 ## Arquitectura
 

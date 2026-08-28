@@ -3,15 +3,34 @@
 ## Estado y alcance
 
 `PRODUCTION-READINESS-1` preparó el repositorio para staging y producción sin
-crear proyectos. Tras la ejecución manual parcial de 7F, el entorno de **staging** está
-desplegado y validado (proyectos en Vercel/Railway, base de datos MariaDB, DNS
-personalizado, dominios canónicos de staging). 
-El despliegue a **producción** ha sido ejecutado exitosamente en Railway y Vercel (7G.5 PASS/CLOSED), partiendo del commit `ec8aba5e29bbc7b5b8d2b361ed12591ba79f1130`. Se ha superado el smoke productivo mínimo (7G.6 PASS/CLOSED). La fase 7G.7 se encuentra EN CURSO.
-Fase 7 y el MVP permanecen abiertos pendientes del cierre documental y aceptación final (7G.7). Producción se encuentra en estado `live` + `indexing=true` tras el despliegue del fix SEO. El sitemap está abierto, el Search Console verificado y el autodeploy de `main` a producción activado. El backup productivo sobre contenido real ya ha sido acreditado.
+crear proyectos. Staging quedó desplegado y validado en Vercel, Railway y
+MariaDB con recursos y dominios separados. El despliegue productivo de 7G.5 y
+el smoke de 7G.6 finalizaron con PASS/CLOSED; 7G.7 también queda PASS/CERRADO.
+Fase 7G y el MVP están cerrados y publicados como release estable
+[`v0.1.0`](https://github.com/robertSpacecraft/Galotxas/releases/tag/v0.1.0),
+cuyo tag anotado remoto apunta a
+`30a22844697e403d699926c2a5a0193f78a5bc71`.
 
-La primera publicación está deliberadamente cerrada:
+Producción se encuentra `live` + `indexing=true`. El fix SEO está desplegado;
+el sitemap ofrece 53 URLs; Search Console lo registra como correcto con 53 URLs
+descubiertas, sin afirmar que todas estén indexadas; Home está indexada y las
+URLs públicas seleccionadas superaron la prueba en vivo y se enviaron a
+indexación. `/login` mantiene `noindex,nofollow`, no hay acciones manuales ni
+problemas de seguridad registrados y `SportsClub` valida con 0 errores y
+0 warnings. PageSpeed obtuvo 96/100/100/100 en móvil y 100/100/100/100 en
+escritorio.
 
-- `VITE_PUBLIC_INDEXING_ENABLED=false`;
+Vercel producción despliega automáticamente `main`, Vercel staging despliega
+`develop` y Railway `backend-production` despliega automáticamente `main`. Los
+Ignored Build Steps de ambos proyectos Vercel impiden generaciones cruzadas.
+El push documental `30a228...` fue correctamente `SKIPPED` por Railway al no
+contener cambios en `backend/**`. El backup cifrado de DB+media posterior al
+contenido productivo y el reset real mediante Resend están acreditados.
+
+El despliegue inicial partió con indexación y capacidades sensibles cerradas.
+Tras la apertura aprobada, la indexación está activa; estas capacidades
+funcionales continúan cerradas y sólo podrán abrirse con sus gates propios:
+
 - `CONTACT_FORM_ENABLED=false`;
 - `CONTACT_NOTIFICATION_ENABLED=false`;
 - `SCHOOL_ENROLLMENT_ENABLED=false`;
@@ -19,8 +38,9 @@ La primera publicación está deliberadamente cerrada:
 - `PUBLIC_IDENTITY_NOTIFICATION_ENABLED=false`;
 - `DEPLOYMENT_SCHEDULER_ENABLED=false`.
 
-Este documento es el contrato operativo; no acredita que se hayan ejecutado
-sus pasos manuales.
+Las secciones de runbook conservan el contrato y el orden histórico; por sí
+solas no acreditan una ejecución. Los estados finales y evidencias de cierre
+registrados al inicio sí recogen la ejecución aprobada de 7G.5–7G.7.
 
 ## Identidad y destinos aprobados
 
@@ -80,11 +100,11 @@ Prohibiciones comunes:
 
 ## Inventario de preparación
 
-| Área | Situación actual tras ejecución parcial 7F | Gate manual pendiente |
+| Área | Staging | Producción y cierre |
 |---|---|---|
 | URL frontend/API | Dominios de staging activos y validados con TLS | Dominios y TLS productivos validados (PASS) |
-| Vercel | Proyecto `galotxas-staging` vinculado y desplegado | Frontend productivo READY (PASS) |
-| Railway | Servicios backend y MariaDB activos para staging | `backend-production` desplegado exitosamente (PASS) |
+| Vercel | Proyecto `galotxas-staging` vinculado a `develop` y desplegado | Frontend productivo READY, autodeploy de `main` activo y filtros de build cruzado validados (PASS) |
+| Railway | Servicios backend y MariaDB activos para staging | `backend-production` desplegado con autodeploy de `main` activo (PASS) |
 | MariaDB | DB de staging operativa, migraciones completadas | DB productiva operativa, migraciones aplicadas manualmente (PASS) |
 | CORS | Origen exacto, sin patrones, wildcard o cookies CORS | Validado en producción (PASS) |
 | Auth | Sanctum Bearer existente; contratos 401/403/419 intactos | Registro y reset de password validados extremo a extremo en producción (PASS) |
@@ -98,7 +118,7 @@ Prohibiciones comunes:
 | Contacto/Escuela/menores | Capacidades validadas con fail-closed y flag global | Correo real (Resend) validado en producción para reset password |
 | Queue/scheduler | Cola síncrona, ningún worker/cron productivo | Diseñar y ensayar purgas antes de activar |
 | Logs/storage | `stderr`; `media_s3` y bucket privado de staging validados | `media:probe --temporary-url` PASS en producción |
-| Backups/restore/rollback | Restore aislado ensayado en 7G.1D (PASS) | Backup automatizado validado en 7G.3. Excepción humana de rollback rehearsal documentada (PASS) |
+| Backups/restore/rollback | Restore aislado ensayado en 7G.1D (PASS) | Backup cifrado DB+media acreditado; rollback rehearsal remoto NO EJECUTADO por excepción humana histórica, sin reclasificarlo como PASS |
 
 ## Variables y secretos
 
@@ -493,7 +513,7 @@ el default. Escuela no tiene correo propio de confirmación: sólo el flujo
 opcional de identidad de menores usa el mailer por defecto, y sus dos flags
 siguen cerradas.
 
-### Implementación local 7G.1B y gates restantes
+### Implementación local 7G.1B y gates históricos
 
 7G.1B completa localmente los seis primeros pasos: fija
 `resend/resend-php` 1.10.0, configura los ejemplos seguros, sustituye el
@@ -504,7 +524,7 @@ El transport oficial se carga sin envío y la suite completa pasa sobre
 MariaDB aislada. Staging usa `MAIL_MAILER=array` fuera de la ventana Resend y
 producción no acepta `array` mientras el reset forme parte del MVP.
 
-Quedan dos gates manuales:
+Al cerrar 7G.1B quedaban dos gates manuales:
 
 1. en staging, solicitar un reset para una cuenta controlada, acreditar API
    HTTPS, aceptación y entrega, From, enlace al frontend de staging, reset,
@@ -513,9 +533,11 @@ Quedan dos gates manuales:
 2. en producción, ejecutar un único smoke no destructivo con cuenta controlada,
    rotación aprobada y revisión de proveedor/logs.
 
-No se ha creado cuenta, cargado secret, cambiado DNS, verificado dominio,
-modificado Railway ni enviado correo real. Hasta completar el primer gate, la
-integración está validada sólo localmente y el P0 sigue abierto.
+En aquel bloque no se creó cuenta, cargó secret, cambió DNS, verificó dominio,
+modificó Railway ni envió correo real. La integración estaba validada sólo
+localmente y el P0 permanecía abierto. Ambos gates se completaron después: la
+infraestructura productiva quedó acreditada y el reset real mediante Resend
+superó el smoke 7G.6.
 
 ### Contrato SMTP anterior, ahora bloqueado
 
@@ -871,16 +893,17 @@ Los siguientes pasos ya se han validado en staging:
 
 Pasos **Pendientes / Aplazados** en staging:
 11. **Ensayar el rollback coordinado.** El rollback rehearsal remoto (7G.3) **NO FUE EJECUTADO** por decisión humana explícita del mantenedor (excepción aceptada para la primera publicación). La fase 7G.1D ejecutó y validó con éxito el restore lógico aislado de staging con RTO de 5m27s, cerrando el P0 de recuperación de base de datos para este entorno.
-    programado de volumen no está documentado como exclusivo de Pro; la
-    estrategia está reconciliada, pero ningún backup o restore se ejecutó en
-    este bloque.
 12. **Ejecutar smoke completo global y aceptación humana para cerrar la fase 7F staging (COMPLETADO).** *(Nota: Se ha registrado una observación de UX no bloqueante en `/aprende-a-jugar` para 7G o posterior).*
 
 La aceptación humana de staging queda completada. Staging ha quedado devuelto a un estado seguro (`CONTACT_FORM_ENABLED=false`, `SCHOOL_ENROLLMENT_ENABLED=false`, etc.). Nunca se enviaron correos a usuarios reales.
 
 ## Primer despliegue y aceptación de producción (EJECUTADO)
 
-*ESTADO ACTUAL: DESPLIEGUE CONTROLADO (7G.5) Y SMOKE (7G.6) COMPLETADOS Y CERRADOS (PASS). El despliegue inicial productivo en Railway y Vercel se ha realizado con éxito (commit ec8aba...). El autodeploy de producción conectado a la rama `main` de GitHub ha sido ACTIVADO operativamente. Fase 7G.7 EN CURSO (pendiente de commit documental, promoción a main, validación del hash final de release, autorización humana y creación del tag).*
+*ESTADO FINAL: DESPLIEGUE CONTROLADO (7G.5), SMOKE (7G.6) Y CIERRE
+DOCUMENTAL (7G.7) COMPLETADOS Y CERRADOS (PASS). La autorización humana fue
+concedida y `v0.1.0` se publicó en
+`30a22844697e403d699926c2a5a0193f78a5bc71`. El autodeploy de producción desde
+`main` está activo en Vercel y Railway; staging despliega `develop` en Vercel.*
 
 Orden manual histórico de ejecución:
 
@@ -906,7 +929,10 @@ Orden manual histórico de ejecución:
 15. activar Contacto, Escuela, identidad/notificaciones y scheduler, uno por
     uno y sólo después de sus gates.
 
-No se considera 7F cerrada hasta completar y evidenciar esas acciones.
+Este orden histórico no consideraba 7F cerrada hasta completar y evidenciar
+esas acciones. Los gates de despliegue y smoke quedaron satisfechos en
+7G.5–7G.7; las capacidades que permanecen tras flags cerradas conservan sus
+gates propios como trabajo post-MVP.
 
 ## Gate de staging de Noticias 7F.2E
 
@@ -1020,35 +1046,30 @@ aceptación humana de 7F.2F se consideran completados.
 Las escrituras de aceptación se realizan primero en staging. Producción no usa
 E2E, seeders ni cuentas con password por defecto.
 
-## Riesgos y gates abiertos
+## Riesgos y trabajo post-MVP
 
-- no existen todavía proyectos, DNS, TLS o recursos externos de producción
-  configurados; los equivalentes de staging sí existen y fueron validados;
-- SMTP saliente está bloqueado por el plan Railway Hobby; Resend HTTPS está
-  integrado y se ha validado operativamente con éxito extremo a extremo en staging
-  (dominio, SPF, DKIM, DMARC p=none, entrega de reset). Para producción faltan
-  sus propios dominios, aliases, logs y keys independientes;
-- el correo anterior sigue siendo el canal Legal vigente;
-- CMS y datos reales de Escuela no están cargados en producción;
-- monitor continuo no está
-  acreditados;
-- HSTS/CSP, otros uploads de features, worker y scheduler continúan aplazados;
-  7F.2D está aceptada completamente en staging y cerrada; la configuración multimedia productiva sigue
-  abierta;
+No quedan P0 abiertos para `v0.1.0`. Permanecen como riesgos aceptados o trabajo
+posterior, sin bloquear la release publicada:
+
+- el rollback rehearsal remoto de 7G.3 NO FUE EJECUTADO por excepción humana
+  histórica; esta excepción no es un PASS y la estrategia DB sigue siendo
+  forward-only;
+- Contacto, inscripción de Escuela, identidad pública de menores y scheduler
+  permanecen cerrados y requieren gates propios antes de activarse;
+- HSTS/CSP, otros uploads, worker y scheduler continúan aplazados;
 - la SPA mantiene metadata client-side y la respuesta HTTP de rutas React no
   constituye SSR;
 - el token Bearer continúa en `localStorage`, según la decisión vigente;
-- Copa debe aceptarse antes de reconciliar el candidato en 7G.1; la regresión
-  global final 7F.2 constituye 7G.2 y debe cerrarse antes de preparar
-  producción;
-- 7G debe validar aceptación final antes de tag/release, conforme al gate
-  ordenado de `29-mvp-final-acceptance-and-production-gate.md`.
+- las prioridades P1/P2 de
+  `29-mvp-final-acceptance-and-production-gate.md` permanecen post-MVP.
 
 ## Criterio de cierre de 7F.1
 
-7F.1 sólo puede marcarse técnicamente completada cuando tests backend/frontend,
+7F.1 sólo podía marcarse técnicamente completada cuando tests backend/frontend,
 lint, builds normal y production-like noindex, SEO, Legal, Knowledge, hashes,
 estatutos, E2E, imagen Railway, cachés, Pint, `php -l` y `git diff --check`
-pasen sin modificar `frontend/dist`, `knowledge/`, `legal/`, datos locales o
-servicios externos. Ese cierre no equivale a un despliegue y mantiene 7F,
-Fase 7 y MVP abiertos.
+pasaran sin modificar `frontend/dist`, `knowledge/`, `legal/`, datos locales o
+servicios externos. Ese cierre técnico no equivalía por sí solo a un
+despliegue. El despliegue, 7G.7 y el MVP quedaron cerrados posteriormente; esta
+reconciliación documental post-release no forma parte del contenido etiquetado
+como `v0.1.0`.

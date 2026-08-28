@@ -1,5 +1,15 @@
 # Candidato MVP — Galotxas 0.1.0 RC1
 
+> **Vigencia histórica.** Este documento conserva la instantánea del RC1 y sus
+> checklists tal como se prepararon; las referencias internas a acciones
+> pendientes describen aquel momento y no el estado actual. El MVP estable
+> [`v0.1.0`](https://github.com/robertSpacecraft/Galotxas/releases/tag/v0.1.0)
+> fue autorizado y publicado posteriormente con el tag anotado remoto en
+> `30a22844697e403d699926c2a5a0193f78a5bc71`. El hash
+> `0b78552612231a9bfd450e96bf258f66c3192586` corresponde sólo a la validación
+> técnica histórica de 7G.3. Cualquier reconciliación documental posterior no
+> forma parte del contenido etiquetado como `v0.1.0`.
+
 ## Estado
 
 **Clasificación: RC PREPARADO CON LIMITACIONES.**
@@ -393,4 +403,10 @@ Cumplir estos criterios permite considerar `v0.1.0`; no implica ni recomienda au
 
 **Nota de seguimiento posterior (Fase 7F.2):** Tras la aceptación de staging, ciertas decisiones (como el modelo de navegación en Competición y el aplazamiento de noticias y multimedia persistente) han sido promovidas o refinadas en la Fase 7F.2. Ver `docs/28-preproduction-product-refinement.md` y `ADR-042`.
 
-**Nota de seguimiento posterior (Producción 7G):** Este documento refleja el estado inicial del RC. En agosto de 2026, el MVP superó las fases 7G.4-7G.6, siendo desplegado de manera exitosa en producción (`live` + `indexing=true`), con configuración completa de correo, autodeploy y backups. Este documento conserva su valor histórico y su contenido no debe interpretarse como el estado productivo actual.
+**Nota de seguimiento posterior (Producción 7G):** Este documento refleja el
+estado inicial del RC. En agosto de 2026, el MVP superó 7G.4–7G.7, quedó
+cerrado y se publicó como release estable `v0.1.0` en
+`30a22844697e403d699926c2a5a0193f78a5bc71`. Producción permanece
+`live` + `indexing=true`, con correo, autodeploy y backups operativos. Este
+documento conserva su valor histórico y su contenido no debe interpretarse
+como el estado productivo actual.
