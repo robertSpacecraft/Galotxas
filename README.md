@@ -4,12 +4,9 @@ Plataforma web para la gestión y visualización de competiciones de Galotxas.
 
 ## Estado del candidato
 
-El MVP funcional está preparado como candidato propuesto `v0.1.0-rc.1`, todavía sin tag ni publicación. La evidencia, alcance, limitaciones y checklist se encuentran en [docs/09-release-candidate.md](docs/09-release-candidate.md).
+El MVP funcional fue preparado inicialmente como candidato propuesto `v0.1.0-rc.1` (histórico). La evidencia, alcance, limitaciones y checklist se encuentran en [docs/09-release-candidate.md](docs/09-release-candidate.md).
 
-El candidato no equivale a un despliegue de producción. El repositorio ya
-incluye la configuración y los runbooks para Vercel, Railway y MariaDB, pero
-los proyectos externos, DNS, TLS, backups, correo real y aceptación operativa
-siguen pendientes.
+El proyecto se encuentra actualmente desplegado y operativo en producción pública (Vercel, Railway, MariaDB) con indexación abierta, backups y correo real configurados. La promoción a versión estable `v0.1.0` sigue pendiente de autorización humana expresa.
 
 ## Arquitectura
 
@@ -146,9 +143,8 @@ Los datos reales, el correo y la activación productiva siguen siendo gates de
 7F. El contrato está en
 [docs/26-school-operational-readiness.md](docs/26-school-operational-readiness.md).
 
-La indexación pública está desactivada por defecto. El primer despliegue usará
-el dominio canónico con `VITE_PUBLIC_INDEXING_ENABLED=false`; activarla exige
-aceptación humana y una release posterior separada:
+La indexación pública se encuentra activada. El despliegue en producción usa
+el dominio canónico con `VITE_PUBLIC_INDEXING_ENABLED=true`:
 
 ~~~bash
 cd frontend

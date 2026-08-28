@@ -392,3 +392,5 @@ Cumplir estos criterios permite considerar `v0.1.0`; no implica ni recomienda au
 ---
 
 **Nota de seguimiento posterior (Fase 7F.2):** Tras la aceptación de staging, ciertas decisiones (como el modelo de navegación en Competición y el aplazamiento de noticias y multimedia persistente) han sido promovidas o refinadas en la Fase 7F.2. Ver `docs/28-preproduction-product-refinement.md` y `ADR-042`.
+
+**Nota de seguimiento posterior (Producción 7G):** Este documento refleja el estado inicial del RC. En agosto de 2026, el MVP superó las fases 7G.4-7G.6, siendo desplegado de manera exitosa en producción (`live` + `indexing=true`), con configuración completa de correo, autodeploy y backups. Este documento conserva su valor histórico y su contenido no debe interpretarse como el estado productivo actual.

@@ -5,7 +5,7 @@
 Este documento registra `MVP-FINAL-GATE-READINESS-1`, la auditoría 7G.0 y el
 contrato ejecutable de Fase 7G.
 
-**7G se encuentra en su fase final (7G.7 EN CURSO).** Producción ha sido desplegada exitosamente (7G.5 PASS) y el smoke productivo se ha completado (7G.6 PASS). El autodeploy desde `main` a producción sigue pendiente como acción manual (DESACTIVADO). Aún **no está cerrada** la fase 7G. Al intentar abrir la indexación se detectó un bloqueo SEO por noindex estático, lo que obligó a devolver producción al estado seguro de `live` + `indexing=false` (robots cerrado); la corrección técnica está validada localmente y pendiente de despliegue antes de reabrir y completar 7G. Todavía no deben crearse tag o release.
+**7G se encuentra en su fase final (7G.7 EN CURSO).** Producción ha sido desplegada exitosamente (7G.5 PASS) y el smoke productivo se ha completado (7G.6 PASS). Producción se encuentra en estado `live` + `indexing=true` con fix SEO, sitemap abierto, Search Console verificado y autodeploy ACTIVADO. Aún **no está cerrada** la fase 7G (7G.7 EN CURSO), pendiente de: commit documental, push a `main`, verificación del hash final de release, autorización humana, tag `v0.1.0` y GitHub Release final. Todavía no deben crearse tag o release.
 
 **La infraestructura de correo productivo (Resend) está acreditada y preparada en 7G.3: dominio verificado, DKIM/SPF activos, y API key de producción configurada en Railway (`backend-production`).
 El envío real (entrega extremo a extremo) ha sido validado exitosamente durante el smoke productivo (7G.6), comprobándose la recepción del correo y la efectividad del reset.**
@@ -325,7 +325,7 @@ La subdivisión siguiente formaliza el orden operativo sin cambiar el alcance de
 
 ### 7G.3 — Auditoría de configuración productiva
 
-*ESTADO ACTUAL: CERRADO CON EXCEPCIÓN. La regresión global 7G.2 ha sido completada (PASS). El subbloque OAuth y la operativa del job en Railway han sido validados. El control de source/autodeploy se ha cerrado con una política manual explícita. La infraestructura y configuración de correo productivo (Resend) está preparada y validada. El ownership operativo se ha cerrado (bus factor 1). El rehearsal de rollback NO fue ejecutado (riesgo residual aceptado) y el hash final ha sido validado (0b78552612231a9bfd450e96bf258f66c3192586).*
+*ESTADO ACTUAL: CERRADO CON EXCEPCIÓN. La regresión global 7G.2 ha sido completada (PASS). El subbloque OAuth y la operativa del job en Railway han sido validados. El control de source/autodeploy se ha cerrado con una política manual explícita. La infraestructura y configuración de correo productivo (Resend) está preparada y validada. El ownership operativo se ha cerrado (bus factor 1). El rehearsal de rollback NO fue ejecutado (riesgo residual aceptado) y el hash histórico ha sido validado (0b78552612231a9bfd450e96bf258f66c3192586).*
 
 - **Entrada:** 7G.2 verde; recursos productivos creados pero sin tráfico real.
 - **Acciones:** revisar secretos, URLs, CORS, DB, migraciones, media, correo,
@@ -395,7 +395,7 @@ La subdivisión siguiente formaliza el orden operativo sin cambiar el alcance de
 ## 9. Checklist Go/No-Go
 
 - [x] 7F.2 completa: Copa y regresión global final aceptadas (7G.2 PASS).
-- [x] Suites completas verdes sobre el hash final exacto.
+- [x] Suites completas verdes sobre el hash histórico validado (0b78552612231a9bfd450e96bf258f66c3192586).
 - [x] Árbol limpio y `develop`, `origin/develop` y candidato reconciliados.
 - [x] Migraciones identificadas, ensayadas y orden de aplicación aprobado.
 - [x] Producción: snapshot externo cifrado pre-migración que incluya dump lógico consistente y media verificada, rollback forward-fix definido.
@@ -421,8 +421,8 @@ Go/No-Go.
 
 ### P0 — bloquea el cierre bajo el contrato vigente
 
-- Cierre formal documental del MVP (7G.7), creación del tag/release, y decisión explícita de indexación/live (la cual sigue pendiente).
-*(Nota: El hash final exacto, correo real E2E, recursos productivos, migraciones, contenido real, media, legal, privacidad, derechos de imagen, smoke productivo y observabilidad mínima ya están validados y CERRADOS en subfases anteriores de 7G).*
+- Cierre formal documental del MVP (7G.7). El flujo pendiente es: 1) finalizar esta reconciliación, 2) commit documental, 3) push/promoción a `main`, 4) verificar el hash final de release, 5) autorización humana expresa, 6) tag `v0.1.0` y 7) GitHub Release final. 7G.7 sigue EN CURSO hasta completar todo eso.
+*(Nota: La publicación productiva `live` + `indexing=true`, el autodeploy, correo real E2E, backup productivo de contenido real, recursos productivos, migraciones, media, legal, privacidad, derechos de imagen, smoke productivo y observabilidad mínima ya están validados y CERRADOS en subfases anteriores de 7G).*
 
 Las flags de Contacto, inscripción School, identidad de menores y scheduler no
 son P0 por el mero hecho de permanecer en `false`. Sí sería P0 abrir cualquiera
@@ -466,7 +466,7 @@ El estado actual del MVP y del gate de producción es el siguiente:
 - **7G.7:** EN CURSO (Gate de cierre documental, tag y release).
 - El MVP **todavía no está cerrado**.
 - Todavía **no se han creado** el tag ni la release.
-- Producción continúa en estado `live` + `indexing=false` (se detectó un bloqueo SEO por noindex estático al intentar abrir indexación; corrección validada localmente y pendiente de despliegue productivo).
-- El autodeploy `main` → producción sigue pendiente y **NO debe activarse en esta tarea**.
+- Producción está en estado `live` + `indexing=true` (bloqueo SEO corregido y validado, sitemap abierto).
+- El autodeploy `main` → producción ya se encuentra activado operativamente.
 
 La fase 7G sólo podrá declararse cerrada cuando la etapa 7G.7 disponga de evidencia para el mismo candidato y no quede ningún P0 pendiente.
