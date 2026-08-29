@@ -1894,6 +1894,36 @@ Ejecutada operativamente y documentada el 2026-08-24.
 
 El P0 de capacidad de recuperación MariaDB queda **cerrado para staging**. Producción sigue pendiente de su propio gate predeploy, y la recuperación de media (Bucket) requiere verificación independiente.
 
+## HOME-HERO-6B-1 — Cierre local, staging y producción (CLOSED / PASS)
+
+Ejecutado el 2026-08-29 sobre el candidato funcional
+`c9fd7bda8f4128420ae94a282bc2c8755cb90db2`:
+
+- frontend unit/integration: 92 archivos y 659 tests, todos PASS;
+- ESLint y build Vite: PASS, incluidos los checks Legal y SEO;
+- E2E dirigido sobre navegación/Home, smoke MVP, SEO/accesibilidad y Legal:
+  39/39 escenarios Chromium PASS;
+- E2E completo mediante el runner Docker aislado del repositorio: 68/68
+  escenarios Chromium PASS, con contenedores, red y volumen temporal retirados;
+- aceptación humana local: PASS;
+- Vercel staging: deployment
+  `dpl_Hzj9wgfY6g7fhMffFbFwd27NKJPs`, rama `develop`, SHA candidato,
+  `READY`, con aceptación humana explícita desktop y mobile;
+- Vercel producción: deployment
+  `dpl_DqsQ7suVVNRmLYY3quJosqZ3irnJ`, rama `main`, SHA candidato, `READY`;
+- Railway producción: deployment
+  `58e021d0-bcbd-4dbd-aee3-40d44df6d81c` `SKIPPED`, conforme al filtro por
+  ausencia de cambios en `backend/**`;
+- smoke productivo read-only en 1440 × 900 y 390 × 844: HTTP 200, H1 exacto,
+  variante WebP propia de cada breakpoint, overlay y CTA correctos, navegación
+  a `/competicion` y `/aprende-a-jugar`, sin overflow, errores JS/consola,
+  requests a los assets PNG retirados ni descarga cruzada desktop/mobile;
+- SEO básico productivo: canonical de Home, `index, follow`, título y meta
+  presentes, `robots.txt` y sitemap HTTP 200 sin regresión.
+
+El bloque 6.B queda CLOSED/PASS. Esta instantánea no modifica ni reinterpreta
+las evidencias históricas de 7G o de `v0.1.0`.
+
 
 # 11. Evolución
 

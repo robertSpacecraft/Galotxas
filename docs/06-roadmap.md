@@ -273,10 +273,16 @@ considera cerrado únicamente porque funcione en local.
 
 ## Orden oficial de implementación
 
-### 1. 6.B — Hero fotográfico de Home: auditoría, selección e integración hasta producción
+### 1. 6.B — Hero fotográfico de Home (IMPLEMENTADO / CERRADO / PASS)
 
-Este es el **primer bloque oficial de implementación post-MVP**. Antes de tocar
-código, Codex realizará una auditoría específica para determinar:
+**Estado 2026-08-29:** 6.B fue aceptado humanamente en local y en staging,
+promovido mediante fast-forward a `main` y validado en producción con smoke
+desktop 1440 × 900 y mobile 390 × 844. El deployment productivo de Vercel para
+`c9fd7bda8f4128420ae94a282bc2c8755cb90db2` quedó `READY`; Railway omitió
+correctamente el build al no existir cambios en `backend/**`.
+
+Este fue el **primer bloque oficial de implementación post-MVP**. Antes de
+modificar código se realizó una auditoría específica para determinar:
 
 - qué imagen hero existe actualmente en el repositorio y dónde está ubicada;
 - si Home la referencia realmente mediante import, URL, `background-image` u
@@ -290,9 +296,9 @@ código, Codex realizará una auditoría específica para determinar:
 - si el asset actual debe conservarse, sustituirse o eliminarse;
 - qué imagen será finalmente la canónica del hero.
 
-No se asumirá que el asset existente es correcto. Tras la auditoría, la
-selección definitiva de imagen será una decisión humana con el usuario. Sólo
-después se seguirá este recorrido:
+No se asumió que el asset existente fuera correcto. Tras la auditoría, la
+selección definitiva fue una decisión humana con el usuario. El recorrido
+cerrado fue:
 
 1. definir con el usuario la imagen correcta;
 2. implementar el hero en local;
@@ -308,8 +314,15 @@ después se seguirá este recorrido:
 10. ejecutar smoke en producción;
 11. cerrar con reconciliación documental.
 
-6.B no adelanta el rediseño global Liquid Glass. El hero resultante será una de
-las superficies de referencia del piloto posterior de 5.6.
+La implementación usa `<picture>` con variantes WebP responsive desktop y
+mobile, mantiene el tratamiento azul mediante overlay CSS, preserva el H1
+`Galotxes en Monóvar` y los dos CTA existentes, y retira los PNG y el componente
+`Hero` heredados que habían quedado huérfanos. 6.B no adelanta el rediseño
+global Liquid Glass; el hero resultante será una de las superficies de
+referencia del piloto posterior de 5.6.
+
+Con 6.B cerrado, el siguiente bloque oficial pendiente es **6.A — Agrupar
+CMS/Páginas y Navegación CMS en admin**.
 
 ### 2. 6.A — Agrupar CMS/Páginas y Navegación CMS en admin
 

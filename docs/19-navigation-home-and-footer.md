@@ -123,11 +123,17 @@ noticias ficticias y las tarjetas de Prensa/Federaciones sin destino.
 
 ## 14. Imagen
 
-Home no incorpora imagen en 7D.1. El archivo permitido se indicó como
-`/media/club/club-actividad.jpg`, pero el repositorio sólo contiene
-`club-actividad.JPG`. Para no renombrar, duplicar o publicar una URL sensible a
-mayúsculas distinta del contrato, se opta por una composición sin imagen. No se
-modifica ningún asset.
+Desde el cierre de 6.B, Home incorpora un hero fotográfico mediante `<picture>`
+y dos imports WebP versionados: `hero-desktop.webp` y `hero-mobile.webp`. El
+source mobile se activa hasta 800 px y cada viewport descarga únicamente su
+variante. La fotografía es decorativa (`aria-hidden="true"`, `alt=""`); mantiene
+dimensiones intrínsecas, `object-fit: cover` y prioridad alta sin añadir una
+petición editorial ni convertir React en fuente CMS.
+
+El tratamiento azul y la legibilidad del H1, introducción y CTA se resuelven
+con un overlay CSS no interactivo. Los anteriores `galotxas_hero.png`,
+`hero.png` y el componente `Hero` sin consumidor se retiraron para conservar
+una única implementación canónica.
 
 ## 15. Footer
 
