@@ -72,7 +72,7 @@ test.describe.serial('smoke narrativo del MVP', () => {
     const assertNoConsoleErrors = watchCriticalConsoleErrors(page);
 
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'Galotxas en Monóvar' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Galotxes en Monóvar' })).toBeVisible();
     const editorialNavigation = page.getByRole('list', { name: 'Navegación editorial' });
     const accountArea = page.getByRole('group', { name: 'Cuenta' });
 
@@ -808,7 +808,7 @@ test.describe.serial('smoke narrativo del MVP', () => {
 
     await page.getByRole('link', { name: 'Volver a Inicio' }).click();
     await expect(page).toHaveURL(/\/$/);
-    await expect(page.getByRole('heading', { name: 'Galotxas en Monóvar' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Galotxes en Monóvar' })).toBeVisible();
     await expect(page.locator('meta[name="robots"]')).toHaveCount(1);
     await expect(page.locator('meta[name="robots"]'))
       .toHaveAttribute('content', 'index, follow');

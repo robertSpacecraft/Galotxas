@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 const canonicalPages = [
-  ['/', '/', 'Galotxas en Monóvar'],
+  ['/', '/', 'Galotxes en Monóvar'],
   ['/competicion', '/competicion', 'Competición'],
   ['/noticias', '/noticias', 'Noticias'],
   ['/aprende-a-jugar', '/aprende-a-jugar', 'Aprende a jugar'],

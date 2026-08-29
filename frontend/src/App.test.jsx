@@ -249,7 +249,7 @@ describe('App public routes', () => {
   it('keeps Home inside a single main landmark', async () => {
     openAppAt('/');
 
-    expect(await screen.findByRole('heading', { name: 'Galotxas en Monóvar' }))
+    expect(await screen.findByRole('heading', { name: 'Galotxes en Monóvar' }))
       .toBeInTheDocument();
     expect(screen.getAllByRole('main')).toHaveLength(1);
     expect(screen.getByRole('main')).toHaveAttribute('id', 'main-content');
@@ -272,7 +272,7 @@ describe('App public routes', () => {
 
     expect(await screen.findByRole('heading', { name: 'Colaboradores', level: 2 }))
       .toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Galotxas en Monóvar', level: 1 }))
+    expect(screen.getByRole('heading', { name: 'Galotxes en Monóvar', level: 1 }))
       .toBeInTheDocument();
     const sponsorSection = screen.getByRole('heading', { name: 'Colaboradores' }).closest('section');
     expect(sponsorSection.nextElementSibling).toBe(screen.getByRole('contentinfo'));

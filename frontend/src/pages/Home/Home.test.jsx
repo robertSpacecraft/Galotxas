@@ -9,7 +9,7 @@ describe('Home', () => {
   it('uses the approved truthful interface copy and four useful journeys', () => {
     renderWithProviders(<Home />);
 
-    expect(screen.getByRole('heading', { name: 'Galotxas en Monóvar', level: 1 }))
+    expect(screen.getByRole('heading', { name: 'Galotxes en Monóvar', level: 1 }))
       .toBeInTheDocument();
     expect(screen.getByText(
       'Consulta las competiciones, aprende las reglas y conoce la Escuela de Galotxas y la actividad del Club Galotxes Monòver.',
@@ -27,6 +27,17 @@ describe('Home', () => {
     expect(screen.queryByText('Academy', { exact: true })).not.toBeInTheDocument();
     expect(screen.queryByText(/Prensa|Federaciones|plataforma oficial/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
+
+    const heroPicture = document.querySelector('picture');
+    const mobileSource = heroPicture?.querySelector('source');
+    const heroImage = heroPicture?.querySelector('img');
+
+    expect(heroPicture).toHaveAttribute('aria-hidden', 'true');
+    expect(mobileSource).toHaveAttribute('media', '(max-width: 800px)');
+    expect(mobileSource).toHaveAttribute('srcset', expect.stringContaining('hero-mobile'));
+    expect(heroImage).toHaveAttribute('src', expect.stringContaining('hero-desktop'));
+    expect(heroImage).toHaveAttribute('alt', '');
+    expect(heroImage).toHaveAttribute('fetchpriority', 'high');
   });
 
   it('links every call to action to an existing canonical destination', () => {

@@ -96,7 +96,7 @@ test.describe('navegación agrupada, Home y footer', () => {
   test('Home ofrece sólo recorridos reales y el footer global usa rutas y redes confirmadas', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page.getByRole('heading', { name: 'Galotxas en Monóvar', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Galotxes en Monóvar', level: 1 })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Ver competición' }).first())
       .toHaveAttribute('href', '/competicion');
     await expect(page.getByRole('link', { name: 'Aprender a jugar' }))

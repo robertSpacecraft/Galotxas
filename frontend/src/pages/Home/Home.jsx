@@ -3,6 +3,8 @@ import { PageMetadata } from '../../components/PublicLanding/PageMetadata';
 import {
   getPublicNavigationChild,
 } from '../../navigation/publicNavigation';
+import heroDesktop from '../../assets/home/hero-desktop.webp';
+import heroMobile from '../../assets/home/hero-mobile.webp';
 import styles from './Home.module.css';
 
 const homeDestinations = Object.freeze({
@@ -22,8 +24,26 @@ export const Home = () => (
     />
 
     <section className={styles.hero} aria-labelledby="home-title">
+      <picture className={styles.heroMedia} aria-hidden="true">
+        <source
+          media="(max-width: 800px)"
+          srcSet={heroMobile}
+          width="1122"
+          height="1402"
+        />
+        <img
+          className={styles.heroImage}
+          src={heroDesktop}
+          alt=""
+          width="1774"
+          height="887"
+          fetchPriority="high"
+          decoding="async"
+        />
+      </picture>
+      <div className={styles.heroOverlay} aria-hidden="true" />
       <div className={styles.heroContent}>
-        <h1 id="home-title" className={styles.title}>Galotxas en Monóvar</h1>
+        <h1 id="home-title" className={styles.title}>Galotxes en Monóvar</h1>
         <p className={styles.introduction}>
           Consulta las competiciones, aprende las reglas y conoce la Escuela de Galotxas y la
           actividad del Club Galotxes Monòver.

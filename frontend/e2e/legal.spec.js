@@ -119,7 +119,7 @@ test.describe('páginas legales versionadas', () => {
     await expect(page.getByLabel('Nombre', { exact: false })).toHaveCount(0);
 
     for (const [path, heading] of [
-      ['/', 'Galotxas en Monóvar'],
+      ['/', 'Galotxes en Monóvar'],
       ['/aprende-a-jugar', 'Aprende a jugar'],
       ['/club/quienes-somos', 'Quiénes somos E2E'],
       ['/login', 'Acceso Jugadores'],
