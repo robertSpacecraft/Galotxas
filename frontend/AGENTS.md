@@ -96,6 +96,10 @@ Los estilos generales se documentan en:
 
 No introducir librerías CSS nuevas sin decisión expresa.
 
+Las decisiones de i18n, temas y lenguaje visual del frontend React no se
+extienden automáticamente al panel administrativo Blade. `/admin` conserva su
+idioma y su interfaz propios salvo una decisión explícita posterior.
+
 ---
 
 # API

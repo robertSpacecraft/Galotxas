@@ -255,14 +255,201 @@ y no reabren Fase 7G ni bloquean la release publicada.
 
 ---
 
-# Post-MVP funcional
+# Plan definitivo de implementación post-MVP
 
-Estas capacidades son válidas, pero no bloquean el candidato actual:
+Este plan fue aprobado el 2026-08-29. Ordena capacidades futuras de menor a
+mayor complejidad o riesgo y respeta sus dependencias. Una gate arquitectónica
+aprobada no equivale a una funcionalidad implementada, y ningún bloque se
+considera cerrado únicamente porque funcione en local.
 
-- interfaz React para solicitar y confirmar reprogramaciones;
-- edición completa del perfil desde React;
+## Capacidades fuera del backlog independiente
+
+- **5.5 — Multimedia persistente:** ya está implementada y validada. Los
+  bloques futuros deben reutilizar o extender esa infraestructura; no se
+  reabre como una implementación nueva.
+- **6.E — 404:** ya existe un fallback React. Sólo volverá al backlog si se
+  aprueba expresamente su rediseño; la respuesta HTTP de hosting continúa como
+  una cuestión distinta donde corresponda.
+
+## Orden oficial de implementación
+
+### 1. 6.B — Hero fotográfico de Home: auditoría, selección e integración hasta producción
+
+Este es el **primer bloque oficial de implementación post-MVP**. Antes de tocar
+código, Codex realizará una auditoría específica para determinar:
+
+- qué imagen hero existe actualmente en el repositorio y dónde está ubicada;
+- si Home la referencia realmente mediante import, URL, `background-image` u
+  otro mecanismo;
+- si existe un asset o enlace roto y si Vite lo incluye en el build;
+- si el comportamiento observado se debe a ruta, importación, estilos, caché o
+  a que la imagen existente no es la correcta;
+- qué variantes y assets relacionados existen;
+- qué sucede en local, en el build y en producción;
+- si hay diferencias entre source y `dist`;
+- si el asset actual debe conservarse, sustituirse o eliminarse;
+- qué imagen será finalmente la canónica del hero.
+
+No se asumirá que el asset existente es correcto. Tras la auditoría, la
+selección definitiva de imagen será una decisión humana con el usuario. Sólo
+después se seguirá este recorrido:
+
+1. definir con el usuario la imagen correcta;
+2. implementar el hero en local;
+3. preservar fotografía real, integración en el fondo azul actual, tratamiento
+   CSS u overlay cuando proceda, zona de texto despejada, responsive,
+   accesibilidad y rendimiento;
+4. validar localmente;
+5. commit;
+6. push a `develop`;
+7. validar en staging;
+8. obtener aceptación humana;
+9. push o merge a `main`;
+10. ejecutar smoke en producción;
+11. cerrar con reconciliación documental.
+
+6.B no adelanta el rediseño global Liquid Glass. El hero resultante será una de
+las superficies de referencia del piloto posterior de 5.6.
+
+### 2. 6.A — Agrupar CMS/Páginas y Navegación CMS en admin
+
+Cambio pequeño y localizado del panel Blade. No está relacionado con Liquid
+Glass ni i18n y no modifica la frontera visual o lingüística de `/admin`.
+
+### 3. 6.F — Campeones de Liga y Copa
+
+Definir primero el backend como fuente de verdad. Antes de representar el
+campeón en React se cerrarán cuándo existe, Liga, Copa, categorías, estados
+incompletos y contrato público. React no lo inferirá de forma inconsistente.
+
+### 4. 6.C — Imágenes de Temporadas, Campeonatos y Categorías
+
+Estado parcial actual: `Season` no dispone todavía del mismo contrato;
+`Championship` y `Category` ya disponen de `image_path`. El bloque reutilizará
+la multimedia persistente existente y no rehacerá almacenamiento. Añadir la
+capacidad a `Season` puede requerir migración y, por tanto, gates adicionales
+de base de datos, backup y staging.
+
+### 5. 5.7 — Hardening P1/P2 vigente
+
+Comenzará con una auditoría actual y se dividirá en microbloques, no en una
+bolsa heredada única. Entre la deuda todavía identificada están la edición
+avanzada o completa de perfil, el resumen directo de equipo y la interfaz React
+de reprogramaciones, además de lo que siga vigente tras contrastar el estado
+real. No se reabrirán tareas ya absorbidas por el MVP.
+
+### 6. 5.1 — Consolidación restante de Knowledge
+
+Toda ampliación respetará la gate i18n: castellano canónico y traducción
+valenciana vinculada. No es necesario implementar primero todo 6.H, pero no se
+adoptarán estructuras que hagan inviable ese modelo.
+
+### 7. 5.4 — Arquitectura final de navegación y páginas
+
+Consolidará páginas y navegación pública todavía pendientes. Será compatible
+con la futura rama `/va/`, pero no introducirá el selector de idioma salvo que
+6.H se adelante mediante decisión explícita.
+
+### 8. 5.2 — Evolución del Manual interactivo
+
+El Manual ya existe y no se reconstruirá desde cero. Evolucionarán experiencia,
+contenido y multimedia sobre la arquitectura Knowledge vigente, preservando
+desde el diseño el futuro contrato bilingüe.
+
+### 9. 5.3 — Evolución de Escuela de Galotxas
+
+Escuela ya dispone de dominio, administración y experiencia pública
+significativa. El bloque evolucionará el sistema existente; no se tratará como
+una sección nueva.
+
+### 10. 5.6 — Sistema visual Liquid Glass
+
+Aplicará ADR-047 y `frontend/FRONTEND_STYLE.md` desde la rama
+`feature/liquid-glass`, con piloto previo en Home/Navbar/hero,
+Competición/clasificación y Mi Panel/navegación móvil. No tocará `/admin` y no
+implementará dark antes de que exista aceptación humana de la dirección Light.
+
+### 11. 6.G — Dark mode
+
+Se construirá sobre los tokens consolidados por 5.6. Ofrecerá exactamente
+`system`, `light` y `dark`, sólo en React. El panel Blade continuará sin cambios.
+
+### 12. 6.H — Valenciano / i18n
+
+Implementará ADR-046 en el frontend React. `/admin` seguirá en castellano, sin
+selector y sin rediseño. Antes de fijar tablas, contratos o proyecciones se
+auditarán UI, rutas, CMS, Noticias, Knowledge, Legal y SEO para servir
+traducciones vinculadas sin duplicar fuentes.
+
+### 13. 6.D — Sistema general de correo y notificaciones
+
+Se mantiene como el bloque de mayor complejidad. Reutilizará Resend, ya
+operativo como infraestructura de entrega, sin confundirlo con un sistema
+funcional completo. Orden interno recomendado:
+
+1. núcleo común de notificaciones;
+2. verificación de registro y bienvenida;
+3. confirmación de participación;
+4. notificaciones básicas de competición;
+5. movimientos de ranking;
+6. newsletter al final.
+
+## Gates transversales
+
+### Gate i18n
+
+Cerrada arquitectónicamente el 2026-08-29, no implementada. Condiciona
+Knowledge, navegación, CMS público, SEO, Manual y Escuela. Castellano es la
+fuente; `/va/` será el prefijo valenciano y ADR-046 conserva el contrato.
+
+### Gate visual
+
+Cerrada arquitectónicamente el 2026-08-29, no implementada. Los valores finales
+de blur, opacidad y sombra siguen sujetos al piloto. ADR-047 y
+`frontend/FRONTEND_STYLE.md` conservan la decisión.
+
+### Frontera de administración
+
+El panel administrativo queda deliberadamente fuera de ambas gates:
+
+```text
+i18n frontend  → no traduce admin
+Liquid Glass   → no rediseña admin
+Dark mode      → no afecta admin
+```
+
+## Workflow obligatorio de cada bloque
+
+```text
+Definición con usuario
+→ auditoría específica de Codex
+→ implementación local
+→ tests locales
+→ revisión humana local
+→ commit
+→ develop
+→ staging
+→ aceptación humana
+→ main
+→ smoke producción
+→ reconciliación documental
+```
+
+Se añadirán gates específicos cuando existan migraciones, almacenamiento,
+correo, infraestructura, cambios SEO u operaciones irreversibles. En 6.B la
+auditoría del asset y de su renderizado actual precederá expresamente a la
+selección humana de la imagen definitiva.
+
+---
+
+# Backlog complementario post-MVP
+
+Estas capacidades y deudas siguen siendo válidas, pero no sustituyen el orden
+oficial anterior ni bloquean la release publicada. Edición de perfil,
+reprogramaciones y notificaciones ya están absorbidas por 5.7 y 6.D y no se
+repiten aquí:
+
 - pagos online;
-- notificaciones;
 - sugerencia o asignación automática de categoría;
 - formularios públicos institucionales o de federación con privacidad y antispam;
 - SEO y ordenación editorial avanzados del CMS;

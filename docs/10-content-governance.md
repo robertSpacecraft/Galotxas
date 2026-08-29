@@ -77,6 +77,55 @@ Se utilizará para el Manual, Reglamento, Conceptos, terminología y otros conte
 
 La normalización técnica sólo puede cambiar estructura expresamente autorizada, nunca reformular reglas, términos o referencias. Las revisiones editoriales futuras deberán ser conscientes, actualizar `ultima_revision` y revisar la versión conforme al alcance semántico del cambio. Un documento `Vigente` sólo puede referenciar otro documento `Vigente`; un borrador permanece en el artefacto canónico, pero ni él ni sus metadatos, rutas o referencias pueden entrar en la proyección o el bundle.
 
+### 4.4. Gobernanza multilingüe aprobada para 6.H
+
+Esta arquitectura fue aprobada el 2026-08-29 y todavía no está implementada.
+El castellano (`es`) continúa siendo la fuente primaria y por defecto. El
+valenciano (`ca-valencia`) será una traducción derivada, vinculada y revisable,
+no una segunda fuente editorial independiente.
+
+El flujo editorial aprobado es:
+
+```text
+fuente castellana
+→ IA genera borrador valenciano
+→ validación y revisión
+→ traducción persistida o versionada
+→ React sirve contenido ya traducido
+```
+
+La IA se utilizará como herramienta de authoring, nunca como traducción runtime
+en el navegador, llamada por cambio de idioma o improvisación en cada render.
+La revisión será proporcional al riesgo; Reglamento, Legal y contenido sensible
+mantendrán una gate humana reforzada. Una futura Skill o agente especializado
+de traducción deberá conservar terminología, nombres propios, estructura,
+relaciones e IDs, no inventar información y hacer explícitas las dudas. Esa
+herramienta no se crea en este bloque.
+
+La gobernanza por fuente queda así:
+
+| Área | Fuente castellana | Traducción valenciana futura | Regla de gobierno |
+|---|---|---|---|
+| UI React | Catálogo de interfaz React | Catálogo i18n vinculado | React localiza la interfaz mediante infraestructura específica; no mediante condicionales dispersos. |
+| Dominio deportivo | Laravel y sus contratos | Sólo presentación lingüística cuando proceda | No se traducen nombres propios ni se trasladan reglas deportivas a React. |
+| CMS institucional | Registro administrable correspondiente | Traducción vinculada al mismo contenido | No se duplica el cuerpo en JSX; persistencia y API se decidirán tras auditoría 6.H. |
+| Noticias | `NewsArticle` | Traducción vinculada a la noticia fuente | Se conserva un único dominio editorial; el esquema concreto queda pendiente de 6.H. |
+| Knowledge | Documento canónico identificado y versionado | Traducción vinculada a ID + versión | No se crean dos corpus equivalentes; un cambio semántico puede dejar la traducción desactualizada. |
+| Legal | Fuente versionada en `legal/` | Traducción vinculada y revisada | Requiere revisión humana reforzada y no se infiere vigencia jurídica. |
+| Contenido aún no traducido | Fuente castellana vigente | Puede no existir temporalmente | No se publica una versión valenciana cuyo cuerpo principal siga en castellano. |
+
+El fallback técnico de UI podrá ser `ca-valencia → es`, pero las validaciones
+deberán detectar claves ausentes. Una página o noticia podrá mantenerse sólo en
+castellano y no será obligatorio traducir retrospectivamente todo el histórico
+para lanzar la funcionalidad.
+
+Blade continuará siendo la interfaz administrativa oficial, en castellano y
+con su diseño actual. Que Laravel almacene o sirva traducciones no convierte
+`/admin` en bilingüe ni autoriza un selector allí. Tampoco se crearán copias
+manuales en seeders, CMS, Knowledge o componentes React para eludir la fuente
+canónica. ADR-046 fija la decisión; la auditoría de 6.H definirá los contratos
+concretos sin anticipar ahora tablas o migraciones.
+
 ## 5. Arquitectura pública aprobada
 
 Fase 7B contrata cuatro controles editoriales:

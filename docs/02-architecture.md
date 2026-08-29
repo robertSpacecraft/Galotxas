@@ -86,6 +86,20 @@ Responsabilidades:
 
 Toda decisión deportiva pertenece al backend.
 
+## Frontera de interfaz aprobada para el post-MVP
+
+La internacionalización y la evolución visual aprobadas para el post-MVP
+pertenecen a la interfaz pública y autenticada React. React resolverá la
+localización de interfaz y los temas Light/Dark/System; esto no lo convierte en
+fuente de contenido ni impide que Laravel persista o sirva en el futuro
+traducciones de CMS, Noticias u otras fuentes públicas.
+
+El panel administrativo continúa siendo Laravel/Blade, exclusivamente en
+castellano y con su diseño actual. No participa en el selector de idioma, en
+Liquid Glass ni en Light/Dark/System salvo decisión explícita posterior. Estas
+capacidades están aprobadas arquitectónicamente, pero todavía no están
+implementadas; ADR-046 y ADR-047 conservan el detalle.
+
 ## Base de datos
 
 MariaDB es el único motor soportado por el proyecto.

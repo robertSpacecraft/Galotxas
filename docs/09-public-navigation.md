@@ -31,6 +31,42 @@ Las fases 3B, 3C, 4A–4C y 5B–5C modifican únicamente compilación/frontend,
 9. El backend decide publicación, visibilidad y reglas deportivas antes de serializar; el frontend no filtra borradores ni reconstruye visibilidad efectiva.
 10. Las rutas autenticadas de participantes pueden mostrar información propia aunque su rama deportiva no forme parte de la experiencia pública, conforme al contrato backend actual.
 
+## 2.1. Arquitectura bilingüe aprobada para 6.H
+
+Esta gate fue aprobada el 2026-08-29, pero no describe rutas disponibles hoy.
+El inventario de las secciones siguientes continúa reflejando únicamente el
+router vigente.
+
+- El castellano (`es`) es el idioma fuente y por defecto. Sus URLs actuales se
+  conservan sin prefijo: `/`, `/noticias`, `/aprende-a-jugar` y
+  `/aprende-a-jugar/manual`, entre otras.
+- El valenciano se identifica internamente como `ca-valencia` cuando proceda y
+  usará el prefijo público `/va/`: `/va/`, `/va/noticias`,
+  `/va/aprende-a-jugar` y `/va/aprende-a-jugar/manual`.
+- `va` es un prefijo de URL, no el código lingüístico interno. No se migrará el
+  castellano a `/es/`.
+- En la primera implementación bilingüe se compartirán los slugs. Por ejemplo,
+  `/noticias/nueva-web` y `/va/noticias/nueva-web` identificarán versiones
+  lingüísticas equivalentes. Traducir slugs queda como evolución opcional.
+- Navbar desktop y móvil incorporarán un selector explícito `ES | VA`, o una
+  alternativa accesible `Castellano / Valencià`. Una bandera nunca será el
+  único identificador. El selector navegará a la ruta equivalente cuando esa
+  traducción exista y no habrá redirección automática basada sólo en el idioma
+  del navegador.
+- Cada versión publicada exigirá canonical propio, `hreflang`, equivalencia
+  castellano/valenciano, `x-default` cuando corresponda y sitemap coherente. No
+  se publicará como valenciana una página cuyo contenido principal continúe en
+  castellano.
+- Una página o noticia podrá existir temporalmente sólo en castellano; el
+  lanzamiento bilingüe no exige traducir todo el histórico.
+- `/admin` queda fuera del contrato i18n: Blade continuará en castellano y sin
+  selector. La persistencia futura de traducciones administrables podrá vivir
+  en backend sin convertir la interfaz administrativa en bilingüe.
+
+ADR-046 contiene la decisión completa. El contrato técnico de equivalencias,
+fallbacks y SEO se cerrará durante la auditoría de implementación de 6.H sin
+duplicar CMS, Noticias o Knowledge en JSX.
+
 ## 3. Arquitectura de información de primer nivel
 
 El contrato vigente tras ADR-042 es:

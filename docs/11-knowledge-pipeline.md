@@ -281,7 +281,33 @@ Los fallos usan un código estable y, cuando corresponde, `sourcePath`, ID y ele
 
 Los enlaces de tabla de contenidos conservan los IDs ya compilados, incluida su desambiguación, y el montaje diferido resuelve el fragmento tanto en navegación SPA como en carga directa. El código sólo solicita foco programático cuando el usuario activa un enlace del índice; una carga normal no lo fuerza. Las rutas de Aprende se importan con `React.lazy` y comparten un `Suspense` accesible: `public-knowledge.json`, repositorio y renderer no aparecen en el chunk inicial. Un grupo o slug inválido renderiza la 404 existente sin redirección o filtración editorial; un error de descarga de chunk no se transforma en documento inexistente. El `outputPath` canónico continúa siendo una identidad lógica, no una promesa de URL.
 
-## 19. Límites y deuda aplazada
+## 19. Extensión multilingüe aprobada, no implementada
+
+La gate i18n aprobada el 2026-08-29 conserva el castellano como corpus canónico
+de Reglamento y Conceptos. No crea otro Knowledge equivalente y no modifica en
+este bloque front matter, compilador, artefactos JSON, documentos fuente ni
+consumo React.
+
+El contrato futuro deberá cumplir estas invariantes:
+
+- los IDs canónicos permanecen estables;
+- cada traducción valenciana se vincula al ID y a la versión exacta del
+  documento castellano del que deriva;
+- el castellano sigue siendo la fuente semántica primaria;
+- un cambio semántico de versión puede marcar la traducción asociada como
+  pendiente o desactualizada hasta nueva revisión;
+- el pipeline validará la sincronía entre fuente, versión y traducción antes de
+  publicar;
+- React recibirá una proyección lingüística validada, nunca dos fuentes
+  editoriales independientes ni una traducción runtime.
+
+La ubicación física, los metadatos adicionales, la forma de la proyección y la
+migración de esquema se decidirán en la auditoría de 6.H. No se añaden ahora
+campos especulativos ni se altera el esquema v1. ADR-046 y
+`10-content-governance.md` conservan respectivamente la decisión y la
+gobernanza transversal.
+
+## 20. Límites y deuda aplazada
 
 - no existe colección de Historia, Instalaciones independiente o Escuela;
 - «Véase también» por título no es todavía relación estructural;
@@ -290,7 +316,7 @@ Los enlaces de tabla de contenidos conservan los IDs ya compilados, incluida su 
 - no se modifica contenido deportivo ni se resuelven denominaciones pendientes.
 - Historia, Escuela, búsqueda, filtros, multimedia y nuevas colecciones requieren bloques y fuentes aprobados posteriores; 5C no los introduce.
 
-## 20. Criterios de aceptación
+## 21. Criterios de aceptación
 
 5A se considera completada cuando los 40 documentos pasan validación, dos compilaciones producen los mismos bytes, el artefacto versionado coincide con el corpus, los archivos técnicos y referencias históricas allowlisted quedan excluidos, referencias y seguridad fallan de forma explícita, y la suite frontend, lint y build continúan correctos sin nuevas rutas, backend o dependencias.
 

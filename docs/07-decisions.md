@@ -1935,3 +1935,172 @@ Consecuencias:
 - Añadir cualquier slot futuro requiere una decisión y migración explícitas.
 - 7F.2F queda implementada y validada localmente; no se considera aceptada ni
   cerrada en staging hasta aplicar migración y ejecutar su checklist manual.
+
+---
+
+# ADR-046 — Internacionalización frontend castellano/valenciano
+
+Estado: Aceptada
+
+Fecha: 2026-08-29
+
+Contexto:
+- La experiencia pública y autenticada React debe poder ofrecer castellano y
+  valenciano sin romper las URLs castellanas ya publicadas ni convertir React
+  en fuente editorial.
+- La interfaz, el contenido administrable, el dominio deportivo y Knowledge
+  tienen autoridades distintas; una única estrategia de strings no puede
+  sustituir esos contratos.
+- La traducción runtime introduce inconsistencias terminológicas, dependencia
+  externa, latencia, baja trazabilidad y una base SEO no reproducible.
+- El panel administrativo Blade es una interfaz independiente, actualmente en
+  castellano, y no necesita localizarse para servir contenido público
+  traducido.
+
+Decisión:
+- Limitar la experiencia localizada al frontend público y autenticado React.
+  `/admin` continuará en Blade, exclusivamente en castellano, sin selector y
+  sin rediseño derivado de i18n.
+- Mantener castellano (`es`) como idioma fuente y por defecto. Sus URLs
+  actuales seguirán sin prefijo; no se migrarán a `/es/...`.
+- Identificar el valenciano como `ca-valencia` cuando proceda y usar `/va/`
+  como prefijo público. El prefijo `va` no sustituye al código lingüístico.
+- Conservar inicialmente los mismos slugs en ambos idiomas. Traducir slugs será
+  una evolución opcional posterior.
+- Incorporar en Navbar desktop y móvil un selector explícito `ES | VA`, o una
+  alternativa accesible equivalente. Una bandera no será el único
+  identificador. El cambio navegará a la ruta equivalente cuando exista y no
+  se redirigirá automáticamente sólo por el idioma del navegador.
+- Usar infraestructura i18n específica para la UI React, con agrupaciones o
+  namespaces coherentes y fallback técnico `ca-valencia → es`; las
+  validaciones deberán detectar claves ausentes. `react-i18next`/i18next es la
+  solución recomendada para la futura implementación, no una dependencia
+  incorporada por esta decisión documental.
+- Generar traducciones antes de servirlas: fuente castellana → borrador de IA
+  → validación/revisión → traducción persistida o versionada → consumo React.
+  La IA forma parte del authoring, nunca del runtime público.
+- Mantener `knowledge/` como única fuente canónica de Reglamento y Conceptos.
+  Una traducción valenciana futura se vinculará al ID y versión castellanos; un
+  cambio semántico podrá marcarla como desactualizada.
+- Mantener CMS, Noticias, Legal y cada dominio en su fuente vigente. La
+  auditoría de 6.H decidirá la persistencia y API concretas para traducciones
+  administrables sin duplicarlas en JSX y sin hacer bilingüe el panel Blade.
+- No traducir nombres propios ni convertir la presentación lingüística en
+  autoridad deportiva.
+- Exigir URL independiente, canonical propio, `hreflang`, equivalencia entre
+  idiomas, `x-default` cuando corresponda y sitemap coherente. Una versión no
+  será publicable como valenciana si su contenido principal sigue en
+  castellano.
+- Permitir que una pieza exista temporalmente sólo en castellano; el primer
+  lanzamiento no exige traducir retrospectivamente todo el histórico.
+- Aprobar conceptualmente una futura Skill o agente Codex especializado en
+  traducción, sujeto a terminología, IDs, estructura, ausencia de invenciones,
+  incertidumbres explícitas y revisión humana reforzada en Reglamento, Legal y
+  contenido sensible. No se crea con este ADR.
+
+Alternativas descartadas:
+- Google Translate embebido o traducción automática en el navegador;
+- llamadas a Google, LLM u otro proveedor cada vez que cambia el idioma;
+- traducción improvisada durante cada render;
+- migrar castellano a `/es/` sin beneficio funcional;
+- traducir slugs como requisito inicial;
+- duplicar CMS o Knowledge en JSX para evitar cambios futuros de backend;
+- localizar o rediseñar el panel Blade como consecuencia de la gate React.
+
+Consecuencias:
+- 6.H deberá comenzar con una auditoría de UI, rutas, CMS, Noticias, Knowledge,
+  Legal, SEO y persistencia antes de fijar estructuras concretas.
+- Navegación, Manual, Escuela, CMS público y nuevas decisiones de Knowledge
+  deberán preservar desde ahora la compatibilidad con castellano canónico y
+  traducción valenciana vinculada.
+- Los contratos de equivalencia, sincronía y publicación requerirán pruebas
+  específicas y revisión proporcional al riesgo.
+- Esta ADR cierra la gate arquitectónica, pero no implementa `/va/`, selector,
+  traducciones, persistencia, SEO multilingüe ni dependencia alguna.
+
+---
+
+# ADR-047 — Sistema visual frontend Liquid Glass y temas
+
+Estado: Aceptada
+
+Fecha: 2026-08-29
+
+Contexto:
+- El frontend React necesita una dirección visual coherente para las superficies
+  públicas y autenticadas, con profundidad y jerarquía sin sacrificar datos
+  densos, accesibilidad o rendimiento.
+- Light, dark y los materiales visuales deben compartir un sistema de tokens;
+  una conversión aislada a dark sobre estilos heredados multiplicaría
+  excepciones.
+- El panel administrativo Blade es una interfaz independiente y no forma parte
+  del rediseño de producto React.
+
+Decisión:
+- Adoptar para React un lenguaje inspirado en Liquid Glass, no un clon literal
+  de iOS, orientado a profundidad, separación entre contenido y controles,
+  ligereza, jerarquía, movimiento contenido, legibilidad e identidad propia.
+- Reservar glass principalmente para navegación, controles, filtros,
+  selectores, toolbars, menús, overlays, modales, acciones flotantes y elementos
+  sobre imágenes. Tablas, clasificaciones, formularios largos, textos,
+  noticias y listados densos usarán superficies Content estables. Evitar
+  glass-on-glass salvo decisión deliberada.
+- Estructurar tokens en tres niveles: primitivos, semánticos y materiales. Los
+  componentes consumirán semántica y no conocerán light/dark directamente.
+  Los materiales serán específicos (`glass-regular`, `glass-elevated`,
+  `glass-clear`, bordes, highlights, sombras y blur), sin una clase `.glass`
+  genérica indiscriminada.
+- Mantener como referencias iniciales calibrables `#003366`, `#005EA8` y
+  `#58A6FF`, junto con neutros light `#F8F9FA`, `#1F2937`, `#4B5563` y
+  `#DBE3EB`. Las bandas iniciales de Content y Glass, la escala de spacing,
+  radios, blur, motion y tipografía se conservan en
+  `frontend/FRONTEND_STYLE.md`; no son valores ópticos definitivos antes del
+  piloto.
+- Ofrecer exactamente `system`, `light` y `dark`, con `system` como default
+  dinámico y persistencia local de la preferencia explícita. Tema y contexto
+  permanecerán separados para público/autenticado. La implementación evitará
+  cuando sea razonable el flash de tema incorrecto.
+- Resolver la base con CSS y progressive enhancement. `backdrop-filter` no será
+  requisito funcional: sin soporte o cuando la accesibilidad lo exija se usará
+  una superficie más opaca con borde y sombra.
+- Preservar contraste, teclado, `focus-visible`, áreas táctiles, estados no
+  dependientes sólo del color, `prefers-reduced-motion`, `prefers-contrast`,
+  reducción de transparencia y fallback sin blur. Disabled seguirá legible y
+  loading no alterará innecesariamente la geometría ni duplicará acciones.
+- Evitar Canvas, WebGL, shaders, refracción física y librerías externas de
+  animación como base. No animar blur durante scroll, aplicar filtros grandes
+  full-screen ni multiplicar superficies glass, especialmente en móvil.
+- Implementar en este orden: normalizar tokens; separar primitivos, semánticos
+  y materiales; construir Liquid Glass en light; migrar componentes
+  estructurales; validar la dirección; cerrar valores; crear equivalentes dark;
+  añadir selector Light/Dark/System; validar ambos temas; retirar estilos
+  heredados obsoletos. No convertir primero toda la web actual a dark.
+- Iniciar 5.6 desde `develop` en la rama `feature/liquid-glass`. Antes de migrar
+  toda la web, pilotar Home + Navbar + hero, Competición/clasificación y Mi
+  Panel + navegación móvil. Comparar rendimiento antes/después.
+- Exigir aceptación humana de la dirección visual. Sin ella, abandonar la rama
+  sin modificar `develop`; con ella, completar revisión, integración, staging y
+  promoción mediante el workflow normal.
+- Excluir absolutamente `/admin`: Blade conserva diseño, idioma y tema actuales
+  y no recibe Liquid Glass ni selector Light/Dark/System.
+
+Alternativas descartadas:
+- clonar visualmente iOS o añadir una webfont sólo para imitarlo;
+- aplicar cristal indiscriminado a contenido denso o usar glass-on-glass por
+  defecto;
+- crear una clase `.glass` genérica sin taxonomía;
+- hacer primero una conversión global a dark sobre los estilos actuales;
+- basar el efecto en Canvas, WebGL, shaders o una librería de animación;
+- extender el rediseño al panel administrativo Blade.
+
+Consecuencias:
+- 5.6 consolidará primero el sistema visual light y su piloto; 6.G añadirá dark
+  y el selector sobre los tokens ya validados.
+- Blur, opacidades y sombras finales permanecerán abiertos hasta probar fondo
+  claro, oscuro, fotografía, scroll/contenido dinámico y móvil.
+- La validación futura deberá cubrir accesibilidad, responsive, rendimiento,
+  estados interactivos y los cuatro cruces público/autenticado con light/dark.
+- Home y su hero serán una superficie de referencia del piloto, pero el primer
+  bloque 6.B no adelanta el rediseño global.
+- Esta ADR cierra la gate arquitectónica; no implementa estilos, tokens, temas,
+  selector, rama experimental ni cambios en Blade.
