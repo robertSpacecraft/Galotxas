@@ -100,6 +100,14 @@ textarea {
     text-decoration: underline;
 }
 
+.nav-link.active {
+    color: #fff;
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-thickness: 0.15rem;
+    text-underline-offset: 0.25rem;
+}
+
 .navbar-toggler {
     display: none;
     margin-left: auto;
@@ -169,6 +177,12 @@ textarea {
 .dropdown-item:hover,
 .dropdown-item:focus-visible {
     background: #eef2f7;
+}
+
+.dropdown-item.active {
+    background: #e7f1ff;
+    color: #084298;
+    font-weight: 700;
 }
 
 .dropdown-divider {

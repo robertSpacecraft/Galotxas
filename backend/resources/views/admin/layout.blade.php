@@ -11,6 +11,12 @@
 </head>
 <body>
 
+@php
+    $cmsPagesActive = request()->routeIs('admin.cms-pages.*');
+    $cmsNavigationActive = request()->routeIs('admin.cms-navigation.*');
+    $cmsActive = $cmsPagesActive || $cmsNavigationActive;
+@endphp
+
 <nav class="navbar navbar-expand-lg admin-navbar mb-4">
     <div class="container-fluid">
         <a class="navbar-brand fw-bold" href="/admin">Galotxas Admin</a>
@@ -115,11 +121,41 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.rankings.history') }}">Ranking histórico</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('admin.cms-pages.index') }}">CMS/Páginas</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('admin.cms-navigation.index') }}">Navegación CMS</a>
+                <li class="nav-item dropdown">
+                    <button
+                        class="nav-link dropdown-toggle{{ $cmsActive ? ' active' : '' }}"
+                        type="button"
+                        id="cmsAdminDropdown"
+                        data-admin-dropdown
+                        aria-controls="cmsAdminMenu"
+                        aria-expanded="{{ $cmsActive ? 'true' : 'false' }}"
+                    >
+                        CMS
+                    </button>
+                    <ul
+                        class="dropdown-menu{{ $cmsActive ? ' show' : '' }}"
+                        id="cmsAdminMenu"
+                        aria-labelledby="cmsAdminDropdown"
+                    >
+                        <li>
+                            <a
+                                class="dropdown-item{{ $cmsPagesActive ? ' active' : '' }}"
+                                href="{{ route('admin.cms-pages.index') }}"
+                                @if ($cmsPagesActive) aria-current="page" @endif
+                            >
+                                Páginas
+                            </a>
+                        </li>
+                        <li>
+                            <a
+                                class="dropdown-item{{ $cmsNavigationActive ? ' active' : '' }}"
+                                href="{{ route('admin.cms-navigation.index') }}"
+                                @if ($cmsNavigationActive) aria-current="page" @endif
+                            >
+                                Navegación
+                            </a>
+                        </li>
+                    </ul>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.news-articles.index') }}">Noticias</a>
