@@ -56,7 +56,16 @@ La ruta `/admin/registration-requests` centraliza la gestión operativa del fluj
 - Preselecciona la categoría sugerida cuando pertenece al campeonato.
 - Si el campeonato no tiene categorías, ofrece enlaces para crearlas o gestionarlas.
 
-### Páginas CMS
+### CMS
+
+La navegación administrativa agrupa `Páginas` y `Navegación` bajo el botón
+desplegable `CMS`. El padre sólo organiza el menú y no introduce una ruta
+nueva. Las rutas existentes se conservan y el hijo correspondiente permanece
+activo en toda su familia (`admin.cms-pages.*` o
+`admin.cms-navigation.*`). El control comunica el despliegue mediante
+`aria-expanded` y el destino activo mediante `aria-current="page"`.
+
+#### Páginas
 
 La ruta `/admin/cms/pages` centraliza la gestión básica de páginas públicas CMS.
 
@@ -76,7 +85,7 @@ La ruta `/admin/cms/pages` centraliza la gestión básica de páginas públicas 
 
 Estos slugs y sus enlaces pertenecen a la estructura pública legada. En particular, `academy` no define el nombre público futuro de Escuela de Galotxas. La auditoría decidirá el destino de cada página sin borrar o migrar contenido en esta fase.
 
-### Navegación CMS
+#### Navegación
 
 `/admin/cms-navigation` administra placements separados de las páginas. El
 único slot del MVP es Club y el índice muestra como referencia inmutable sus

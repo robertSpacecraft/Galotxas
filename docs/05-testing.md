@@ -1924,6 +1924,28 @@ Ejecutado el 2026-08-29 sobre el candidato funcional
 El bloque 6.B queda CLOSED/PASS. Esta instantánea no modifica ni reinterpreta
 las evidencias históricas de 7G o de `v0.1.0`.
 
+## ADMIN-CMS-MENU-6A-1 — Cierre local, staging y producción (CLOSED / PASS)
+
+Ejecutado sobre el candidato funcional
+`a46a406e03741e08f3d3931a5fc552063efe8c4e`:
+
+- `AdminCmsMenuTest` verifica el grupo desplegable `CMS`, sus hijos `Páginas`
+  y `Navegación`, el estado activo de todas sus rutas descendientes,
+  `aria-expanded`, `aria-current="page"` y la ausencia de activación desde
+  otras secciones del admin;
+- suite backend segura: 571 tests y 4.524 assertions, todos PASS;
+- `git diff --check`: PASS;
+- aceptación humana local, staging y producción: PASS, con comportamiento
+  estable y correcto.
+
+Durante la validación local, `/admin/cms-navigation` falló inicialmente porque
+la MariaDB local conservaba tres migraciones históricas pendientes. La ruta
+funcionó tras aplicar esas migraciones existentes. La incidencia no procedía
+de 6.A y no requirió crear una migración nueva.
+
+El bloque sólo reorganiza el menú Blade y añade su cobertura de regresión. No
+crea rutas, modelos, controladores, API, lógica de dominio ni migraciones.
+
 
 # 11. Evolución
 

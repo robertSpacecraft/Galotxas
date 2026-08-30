@@ -321,13 +321,26 @@ mobile, mantiene el tratamiento azul mediante overlay CSS, preserva el H1
 global Liquid Glass; el hero resultante será una de las superficies de
 referencia del piloto posterior de 5.6.
 
-Con 6.B cerrado, el siguiente bloque oficial pendiente es **6.A — Agrupar
-CMS/Páginas y Navegación CMS en admin**.
+Tras 6.B se ejecutó 6.A, que también queda cerrado según el apartado
+siguiente.
 
-### 2. 6.A — Agrupar CMS/Páginas y Navegación CMS en admin
+### 2. 6.A — Agrupar CMS/Páginas y Navegación CMS en admin (CERRADO / PASS)
 
-Cambio pequeño y localizado del panel Blade. No está relacionado con Liquid
-Glass ni i18n y no modifica la frontera visual o lingüística de `/admin`.
+Cambio pequeño y localizado del panel Blade, completado en el commit funcional
+`a46a406e03741e08f3d3931a5fc552063efe8c4e`. El menú agrupa `Páginas` y
+`Navegación` bajo el desplegable `CMS`, sin ruta propia para el padre y sin
+alterar las rutas ni los comportamientos existentes. Las familias
+`admin.cms-pages.*` y `admin.cms-navigation.*` mantienen estados activos
+accesibles mediante `aria-expanded` y `aria-current="page"`.
+
+No se añadieron modelos, controladores, API, lógica de dominio ni migraciones.
+La suite backend segura pasó con 571 tests y 4.524 assertions, y la aceptación
+humana fue PASS en local, staging y producción. 6.A queda formalmente cerrado.
+No está relacionado con Liquid Glass ni i18n y no modifica la frontera visual
+o lingüística de `/admin`.
+
+Con 6.A cerrado, el siguiente bloque oficial es **6.F — Campeones de Liga y
+Copa**.
 
 ### 3. 6.F — Campeones de Liga y Copa
 
