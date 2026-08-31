@@ -61,7 +61,7 @@ export default function Standings() {
   const championshipName = category?.championship?.name;
   const seasonName = category?.championship?.season?.name;
   const backPath = category ? getCategoryDetailPath(categoryId) : TOURNAMENTS_PATH;
-  const backLabel = category ? 'Volver a la categoría' : 'Volver a Torneos';
+  const backLabel = category ? 'Volver a la categoría' : 'Volver a Campeonatos';
 
   return (
     <div className="page-container">

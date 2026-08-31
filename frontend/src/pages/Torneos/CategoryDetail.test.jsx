@@ -77,7 +77,7 @@ describe('CategoryDetail', () => {
     });
 
     expect(await screen.findByRole('alert')).toHaveTextContent('No se ha podido cargar la categoría.');
-    expect(screen.getByRole('link', { name: '← Volver a Torneos' }))
+    expect(screen.getByRole('link', { name: '← Volver a Campeonatos' }))
       .toHaveAttribute('href', '/torneos');
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
     expect(await screen.findByRole('heading', { name: 'Individual absoluta' })).toBeInTheDocument();

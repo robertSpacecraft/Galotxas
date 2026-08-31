@@ -25,15 +25,18 @@ const SeasonDates = ({ startDate, endDate }) => {
   );
 };
 
-export const CompetitionSeason = ({ season }) => {
+export const CompetitionSeason = ({ season, appearance = 'current' }) => {
   const titleId = `competition-season-${season.id}-title`;
   const championships = Array.isArray(season.championships) ? season.championships : [];
   const championshipsLabel = championships.length === 1
     ? '1 campeonato'
     : `${championships.length} campeonatos`;
+  const appearanceClass = appearance === 'upcoming'
+    ? styles.seasonUpcoming
+    : styles.seasonCurrent;
 
   return (
-    <section className={styles.season} aria-labelledby={titleId}>
+    <section className={`${styles.season} ${appearanceClass}`} aria-labelledby={titleId}>
       <header className={styles.seasonHeader}>
         <div>
           <p className={styles.seasonEyebrow}>Temporada</p>
@@ -58,7 +61,7 @@ export const CompetitionSeason = ({ season }) => {
           ))}
         </div>
       ) : (
-        <p className={styles.localEmpty}>Esta temporada todavía no tiene campeonatos disponibles.</p>
+        <p className={styles.localEmpty}>Esta temporada no tiene campeonatos públicos disponibles.</p>
       )}
     </section>
   );

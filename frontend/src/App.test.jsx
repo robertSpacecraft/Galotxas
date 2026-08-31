@@ -215,7 +215,7 @@ describe('App public routes', () => {
   it('renders the functional tournament list without the legacy placeholder', async () => {
     openAppAt('/torneos');
 
-    expect(await screen.findByRole('heading', { name: 'Torneos', level: 1 })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Campeonatos', level: 1 })).toBeInTheDocument();
     expect(screen.queryByText(/En construcción/)).not.toBeInTheDocument();
   });
 

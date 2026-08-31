@@ -51,7 +51,7 @@ describe('MatchDetails', () => {
       .toHaveAttribute('href', '/categories/4/schedule');
   });
 
-  it('allows a failed direct access to retry or return to Torneos', async () => {
+  it('allows a failed direct access to retry or return to Campeonatos', async () => {
     const user = userEvent.setup();
     matchesService.getMatch
       .mockRejectedValueOnce(new Error('Unavailable'))
@@ -69,7 +69,7 @@ describe('MatchDetails', () => {
     });
 
     expect(await screen.findByRole('alert')).toHaveTextContent('No se ha podido cargar el partido.');
-    expect(screen.getByRole('link', { name: '← Volver a Torneos' }))
+    expect(screen.getByRole('link', { name: '← Volver a Campeonatos' }))
       .toHaveAttribute('href', '/torneos');
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
     expect(await screen.findByRole('heading', { name: 'Partido: Local RC contra Visitante RC' }))

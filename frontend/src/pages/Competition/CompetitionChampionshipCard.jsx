@@ -37,8 +37,12 @@ export const CompetitionChampionshipCard = ({ championship }) => {
         ) : null}
       </dl>
       {detailPath ? (
-        <Link to={detailPath} className={styles.championshipLink}>
-          Ver detalle de {championship.name}
+        <Link
+          to={detailPath}
+          className={styles.championshipLink}
+          aria-label={`Ver campeonato: ${championship.name}`}
+        >
+          Ver campeonato
         </Link>
       ) : null}
     </article>

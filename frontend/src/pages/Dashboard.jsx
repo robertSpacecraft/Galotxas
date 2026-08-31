@@ -524,7 +524,7 @@ export default function Dashboard() {
                     ) : (
                         <div className={styles.emptyState}>
                             <p>Aún no te has inscrito a ningún torneo.</p>
-                            <Link to="/torneos" className={styles.actionBtn} style={{ display: 'inline-block', textDecoration: 'none' }}>Ver Torneos Disponibles</Link>
+                            <Link to="/torneos" className={styles.actionBtn} style={{ display: 'inline-block', textDecoration: 'none' }}>Ver campeonatos disponibles</Link>
                         </div>
                     )}
                 </div>

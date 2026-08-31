@@ -98,7 +98,7 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await editorialNavigation.getByRole('link', { name: 'Vista general' }).click();
     await expect(page).toHaveURL(/\/competicion$/);
     await expect(page.getByRole('heading', { name: 'Competición', level: 1 })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Temporadas y campeonatos', level: 2 }))
+    await expect(page.getByRole('heading', { name: 'Temporada en curso', level: 2 }))
       .toBeVisible();
     await expect(page.getByRole('heading', { name: 'Temporada E2E 2026', level: 3 }))
       .toBeVisible();
@@ -114,16 +114,17 @@ test.describe.serial('smoke narrativo del MVP', () => {
       .toBeVisible();
     await expect(page.getByRole('link', { name: 'Ver ranking completo' }))
       .toHaveAttribute('href', '/rankings');
-    await expect(page.getByRole('heading', { name: 'Explora los campeonatos', level: 2 })).toBeVisible();
-    await expect(page.getByRole('navigation', { name: 'Acceso principal de Competición' }).getByRole('link'))
-      .toHaveCount(1);
+    await expect(page.getByRole('heading', { name: 'Explora los campeonatos', level: 2 }))
+      .toHaveCount(0);
+    await expect(page.getByRole('link', { name: 'Ver todos los campeonatos' }))
+      .toHaveAttribute('href', '/torneos');
     await expect(page).toHaveTitle('Competición | Club Galotxes Monòver');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       'content',
       'Consulta temporadas y campeonatos públicos, calendarios, resultados y clasificaciones de Galotxas.',
     );
 
-    await page.getByRole('link', { name: 'Ver detalle de Campeonato Individual E2E' }).click();
+    await page.getByRole('link', { name: 'Ver campeonato: Campeonato Individual E2E' }).click();
     await expect(page).toHaveURL(/\/torneos\/\d+$/);
     await expect(page.getByRole('heading', { name: 'Campeonato Individual E2E', level: 1 }))
       .toBeVisible();
@@ -131,7 +132,7 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await competitionButton.click();
     await editorialNavigation.getByRole('link', { name: 'Campeonatos' }).click();
     await expect(page).toHaveURL(/\/torneos$/);
-    await expect(page.getByRole('heading', { name: 'Torneos', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Campeonatos', level: 1 })).toBeVisible();
 
     await competitionButton.click();
     await editorialNavigation.getByRole('link', { name: 'Rankings' }).click();
@@ -172,7 +173,7 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await expect(page.getByLabel('Correo Electrónico')).toBeVisible();
 
     await page.goto('/torneos');
-    await expect(page.getByRole('heading', { name: 'Torneos', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Campeonatos', level: 1 })).toBeVisible();
     await expect(page.getByText(/En construcción/)).toHaveCount(0);
 
     await page.goto('/contenidos');
@@ -393,31 +394,28 @@ test.describe.serial('smoke narrativo del MVP', () => {
     await expect(season).toBeVisible();
     await expect(championship).toBeVisible();
 
-    for (const width of [320, 375, 768, 1024, 1280, 1440]) {
+    for (const width of [320, 390, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 900 });
 
-      const destinations = page.getByRole('navigation', { name: 'Acceso principal de Competición' });
-      const destinationLinks = destinations.getByRole('link');
+      const globalTournamentLink = page.getByRole('link', { name: 'Ver todos los campeonatos' });
+      await expect(globalTournamentLink).toBeVisible();
 
-      await expect(destinationLinks).toHaveCount(1);
-      await expect(destinations.getByRole('link', { name: /Torneos/ })).toBeVisible();
+      const layoutState = await globalTournamentLink.evaluate((link) => {
+        const rect = link.getBoundingClientRect();
 
-      const layoutState = await destinationLinks.evaluateAll((links) => ({
-        cardsAreLegible: links.every((link) => {
-          const rect = link.getBoundingClientRect();
-
-          return rect.width > 0
+        return {
+          actionIsLegible: rect.width > 0
             && rect.height >= 44
             && rect.left >= 0
             && rect.right <= document.documentElement.clientWidth + 0.5
-            && link.scrollWidth <= link.clientWidth;
-        }),
-        hasHorizontalOverflow:
-          document.documentElement.scrollWidth > document.documentElement.clientWidth,
-      }));
+            && link.scrollWidth <= link.clientWidth,
+          hasHorizontalOverflow:
+            document.documentElement.scrollWidth > document.documentElement.clientWidth,
+        };
+      });
 
       expect(layoutState, `Landing de Competición a ${width}px`).toEqual({
-        cardsAreLegible: true,
+        actionIsLegible: true,
         hasHorizontalOverflow: false,
       });
 
@@ -439,15 +437,12 @@ test.describe.serial('smoke narrativo del MVP', () => {
     const accountLink = page
       .getByRole('group', { name: 'Cuenta' })
       .getByRole('link', { name: 'Iniciar sesión' });
-    const primaryTournamentLink = page
-      .getByRole('navigation', { name: 'Acceso principal de Competición' })
-      .getByRole('link', { name: /Torneos/ });
     const championshipLink = page
-      .getByRole('link', { name: 'Ver detalle de Campeonato Individual E2E' });
+      .getByRole('link', { name: 'Ver campeonato: Campeonato Individual E2E' });
+    const globalTournamentLink = page
+      .getByRole('link', { name: 'Ver todos los campeonatos' });
 
     await accountLink.focus();
-    await page.keyboard.press('Tab');
-    await expect(primaryTournamentLink).toBeFocused();
     await page.keyboard.press('Tab');
     await expect(championshipLink).toBeFocused();
     await expect(championshipLink.locator('a, button, input, select, textarea')).toHaveCount(0);
@@ -459,6 +454,9 @@ test.describe.serial('smoke narrativo del MVP', () => {
     });
 
     expect(focusStyle).toEqual({ outlineStyle: 'solid', outlineWidth: '3px' });
+    await page.keyboard.press('Tab');
+    await expect(globalTournamentLink).toBeFocused();
+    await championshipLink.focus();
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/\/torneos\/\d+$/);
 
@@ -489,7 +487,7 @@ test.describe.serial('smoke narrativo del MVP', () => {
     const competitionNavigation = page.getByRole('list', { name: 'Navegación editorial' });
     await competitionNavigation.getByRole('button', { name: 'Competición' }).click();
     await competitionNavigation.getByRole('link', { name: 'Vista general' }).click();
-    await page.getByRole('link', { name: 'Ver detalle de Campeonato Individual E2E' }).click();
+    await page.getByRole('link', { name: 'Ver campeonato: Campeonato Individual E2E' }).click();
     await expect(page.getByRole('heading', { name: 'Campeonato Individual E2E' })).toBeVisible();
     publicChampionshipPath = new URL(page.url()).pathname;
     await expect(page.getByRole('link', { name: 'Clasificación' }))

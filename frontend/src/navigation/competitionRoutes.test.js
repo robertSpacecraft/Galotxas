@@ -7,6 +7,7 @@ import {
   getCategoryStandingsPath,
   getChampionshipDetailPath,
   getMatchDetailPath,
+  getTournamentsSeasonPath,
   RANKINGS_PATH,
   TOURNAMENTS_PATH,
 } from './competitionRoutes';
@@ -19,6 +20,7 @@ describe('competitionRoutes', () => {
     expect(getCategorySchedulePath(7)).toBe('/categories/7/schedule');
     expect(getCategoryCupPath(7)).toBe('/categories/7/cup');
     expect(getMatchDetailPath(15)).toBe('/matches/15');
+    expect(getTournamentsSeasonPath(7)).toBe('/torneos?season_id=7');
     expect([COMPETITION_PATH, TOURNAMENTS_PATH, RANKINGS_PATH]).toEqual([
       '/competicion',
       '/torneos',
@@ -33,5 +35,8 @@ describe('competitionRoutes', () => {
     expect(getCategorySchedulePath('')).toBeNull();
     expect(getCategoryCupPath('')).toBeNull();
     expect(getMatchDetailPath(null)).toBeNull();
+    expect(getTournamentsSeasonPath('temporada estiu'))
+      .toBe('/torneos?season_id=temporada%20estiu');
+    expect(getTournamentsSeasonPath(null)).toBeNull();
   });
 });

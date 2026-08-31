@@ -10,6 +10,12 @@ export const COMPETITION_PATH = '/competicion';
 export const TOURNAMENTS_PATH = '/torneos';
 export const RANKINGS_PATH = '/rankings';
 
+export const getTournamentsSeasonPath = (seasonId) => {
+  const identifier = encodeRouteIdentifier(seasonId);
+
+  return identifier ? `${TOURNAMENTS_PATH}?season_id=${identifier}` : null;
+};
+
 export const getChampionshipDetailPath = (championshipId) => {
   const identifier = encodeRouteIdentifier(championshipId);
 

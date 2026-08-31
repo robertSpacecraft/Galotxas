@@ -56,7 +56,7 @@ export const CategoryDetail = () => {
           title="Categoría"
           description="Consulta el resumen de una categoría pública de Galotxas."
         />
-        <Link to={TOURNAMENTS_PATH} className={styles.backLink}>← Volver a Torneos</Link>
+        <Link to={TOURNAMENTS_PATH} className={styles.backLink}>← Volver a Campeonatos</Link>
         <h1 className={styles.title}>Detalle de la categoría</h1>
         {status === 'loading' ? (
           <p className={styles.loading} role="status">Cargando categoría…</p>

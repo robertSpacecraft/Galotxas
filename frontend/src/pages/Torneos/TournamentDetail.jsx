@@ -145,7 +145,7 @@ export const TournamentDetail = () => {
           title="Campeonato"
           description="Consulta el detalle de un campeonato público de Galotxas."
         />
-        <Link to={TOURNAMENTS_PATH} className={styles.backLink}>← Volver a Torneos</Link>
+        <Link to={TOURNAMENTS_PATH} className={styles.backLink}>← Volver a Campeonatos</Link>
         <h1 className={styles.title}>Detalle del campeonato</h1>
         {tournamentStatus === 'loading' ? (
           <p className={styles.loading} role="status">Cargando campeonato…</p>
@@ -188,7 +188,7 @@ export const TournamentDetail = () => {
         title="Campeonato"
         description="Consulta las categorías, la clasificación y los datos públicos del campeonato."
       />
-      <Link to={TOURNAMENTS_PATH} className={styles.backLink}>← Volver a Torneos</Link>
+      <Link to={TOURNAMENTS_PATH} className={styles.backLink}>← Volver a Campeonatos</Link>
 
       <header className={styles.detailHeader}>
         <div className={styles.headerInfo}>

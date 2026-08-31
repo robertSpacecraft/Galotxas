@@ -80,7 +80,7 @@ export default function MatchDetails() {
                     title="Partido"
                     description="Consulta el detalle de un partido público de Galotxas."
                 />
-                <Link to={TOURNAMENTS_PATH} className={styles.backLink}>← Volver a Torneos</Link>
+                <Link to={TOURNAMENTS_PATH} className={styles.backLink}>← Volver a Campeonatos</Link>
                 <div className={styles.error} role="alert">
                     <p>{error}</p>
                     <button type="button" className={styles.retryButton} onClick={fetchMatch}>
@@ -102,7 +102,7 @@ export default function MatchDetails() {
     const category = match.round?.category;
     const championship = category?.championship;
     const backTarget = getCategorySchedulePath(category?.id) || TOURNAMENTS_PATH;
-    const backLabel = category?.id ? 'Volver al calendario de la categoría' : 'Volver a Torneos';
+    const backLabel = category?.id ? 'Volver al calendario de la categoría' : 'Volver a Campeonatos';
     const homeName = getPublicCompetitionDisplayName(match.home_entry);
     const awayName = getPublicCompetitionDisplayName(match.away_entry);
 

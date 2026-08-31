@@ -83,7 +83,7 @@ const staticRoutes = [
   route({
     id: 'tournaments',
     path: '/torneos',
-    title: 'Torneos',
+    title: 'Campeonatos',
     description: 'Consulta los campeonatos públicos y sus recorridos deportivos.',
     classification: seoRouteClassifications.noindexPublic,
     canonicalPath: null,
