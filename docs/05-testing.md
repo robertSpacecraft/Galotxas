@@ -1946,6 +1946,70 @@ de 6.A y no requirió crear una migración nueva.
 El bloque sólo reorganiza el menú Blade y añade su cobertura de regresión. No
 crea rutas, modelos, controladores, API, lógica de dominio ni migraciones.
 
+## COMPETITION-HIERARCHY-6F2-1 — Jerarquía de `/competicion` (CLOSED / PASS)
+
+Ejecutado sobre el commit funcional
+`1cf5e687e482b31c7bfedd3e6f97ae2e87c2ccd4`:
+
+- frontend completo: 93 archivos y 676 tests;
+- ESLint y build Vite, incluidos Legal y SEO: correctos;
+- smoke público focalizado: 19/19;
+- responsive, navegación con `season_id`, recarga, limpieza de parámetros
+  inválidos y preservación de parámetros ajenos: validados;
+- staging: deployment Vercel `dpl_EMW8HiK8JZpKbUM4BS9vgjorYUMb` del SHA
+  exacto, CI correcto, recorrido con datos reales, navegación
+  campeonato/categoría y aceptación humana completados;
+- producción: deployment Vercel `dpl_EnbVBGwXNXnh71taXu3EB2HUydKA`
+  `READY`, rutas `/competicion` y `/torneos` HTTP 200, estados vacíos,
+  responsive y consola/runtime verificados; `/competicion` conserva
+  `index, follow` y canonical, mientras `/torneos` aplica `noindex, follow`
+  sin canonical conforme al manifiesto.
+
+La regresión E2E global observada durante aquel ciclo quedó en **67/68**. El
+único fallo corresponde al dropdown Blade del CMS administrativo, que puede
+interceptar la acción `Crear bloque`; 6.F.2 no modificó administración y el
+hallazgo continúa como deuda independiente abierta. No se reescribe esa
+instantánea como 68/68.
+
+El dataset productivo devolvía colecciones vacías en `/seasons`,
+`/championships` y `/rankings/all-time`. Por ello no se repitieron allí los
+recorridos dependientes de temporada, campeonato, categoría, clasificación,
+calendario y Copa que sí fueron acreditados automática y humanamente en
+staging. Cuando existan datos deportivos productivos reales deberá ejecutarse
+un smoke operativo diferido de `/competicion`, `/torneos?season_id=...`,
+campeonato, categoría, clasificación, calendario y Copa. La ausencia actual
+de dataset es una limitación operativa, no un defecto conocido ni una reapertura
+automática de 6.F.2.
+
+## DASHBOARD-MOBILE-NAVIGATION-P1-1 — Navegación responsive de Mi Panel (CLOSED / PASS)
+
+Ejecutado sobre el commit funcional
+`09dc4b51f2eecd8155f31b1bbd3e8d880af285a7`:
+
+- Dashboard dirigido: 5/5;
+- E2E focalizado: 1/1;
+- frontend completo: 93 archivos y 680 tests;
+- ESLint, build Vite y `git diff --check`: correctos;
+- matriz responsive: 320, 360, 390, 430, 600, 768, 1024 y 1440 px;
+- reflow equivalente al 200 %, ausencia de overflow y pestaña activa visible;
+- teclado: flechas, Home y End mueven sólo el foco; Enter, espacio y clic
+  activan; mover el foco no dispara endpoints.
+
+Staging (`dpl_9MzJFtGvyDWMWcNGUgQ8DsW4Rntq`) y producción
+(`dpl_GupeKTTu5FXbcnYiKDyQnNu49NeN`) desplegaron el SHA exacto con Vercel
+`READY` y checks de Railway correctos. Los smokes Chromium focalizados pasaron
+1/1 en cada entorno usando fixtures y APIs privadas interceptadas, sin
+escrituras reales ni errores de consola o runtime. Foto, datos de usuario,
+perfil de jugador y los cinco paneles se mantuvieron presentes; las mutaciones
+reales de formularios, foto y datos no se ejecutaron deliberadamente. Esta
+limitación no destructiva del smoke no es un defecto conocido del microbloque.
+
+### Deuda E2E global independiente: admin CMS (abierta)
+
+La instantánea 67/68 del ciclo de 6.F.2 conserva abierto el fallo del dropdown
+Blade que puede interceptar `Crear bloque`. Es independiente tanto de 6.F.2
+como de Mi Panel y ninguno de los dos bloques modificó el panel administrativo.
+
 
 # 11. Evolución
 

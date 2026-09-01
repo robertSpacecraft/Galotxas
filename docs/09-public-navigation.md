@@ -114,7 +114,7 @@ separada; Prensa y Federaciones no se publican como enlaces vacíos.
 | Ruta | Componente | Acceso | Fuente de datos | Enlaces entrantes verificados | Estado y comportamiento sin datos |
 |---|---|---|---|---|---|
 | `/` | `pages/Home/Home.jsx` | Público | Estructura y copy de interfaz en React | Logo, Navbar | `h1` aprobado, dos CTAs y cuatro recorridos con destinos reales; sin carga remota o Knowledge. |
-| `/competicion` | `pages/Competition/CompetitionPage.jsx` | Público | `GET /seasons` y `GET /rankings/all-time` mediante servicios y hooks | Navbar y Home | Canónica y cerrada en 4C. Prioriza propósito, Torneos, temporadas/campeonatos y ranking histórico, sin duplicar el acceso a Rankings. |
+| `/competicion` | `pages/Competition/CompetitionPage.jsx` | Público | `GET /seasons` y `GET /rankings/all-time` mediante servicios y hooks | Navbar y Home | Canónica. Prioriza temporadas `active` y sus campeonatos, separa `planned`, limita el histórico a tres `finished` y conserva ranking histórico y CTA a todos los campeonatos. |
 | `/aprende-a-jugar` | `pages/Learn/LearnPage.jsx` diferida | Público | Copy breve de interfaz y recuentos derivados del repositorio público | Disclosure Aprende y Home | Landing funcional con 40 documentos, cuatro colecciones y acceso al Manual, sin placeholders de Historia, Escuela, cursos o vídeos. |
 | `/aprende-a-jugar/manual` | `pages/Learn/ManualPage.jsx` diferida | Público | Repositorio local sobre `public-knowledge.json` | Landing y contexto de documentos | Agrupa cuatro colecciones, ofrece anchors locales y enlaza 40 documentos en orden canónico. |
 | `/aprende-a-jugar/manual/reglamento/:slug` | `pages/Learn/KnowledgeDocumentPage.jsx` diferida | Público | Repositorio Knowledge, headings y bloques seguros | Manual, vecinos y referencias | Detalle con contexto, tabla de contenidos, deep links y vecinos de Reglamento; slug ausente o no público conserva URL y muestra la 404. |
@@ -123,7 +123,7 @@ separada; Prensa y Federaciones no se publican como enlaces vacíos.
 | `/club/quienes-somos`, `/club/contacto`, `/club/federarse`, `/club/documentos` | `features/club/ClubPage.jsx` diferida | Público | Página CMS publicada del slug cerrado; Contacto suma config y POST condicionados | Disclosure Club, Home y footer | Fachadas funcionales con carga, error/retry, 404, inválido y vacío. `/club` y descendientes desconocidos usan wildcard. |
 | `/legal/aviso-legal`, `/legal/privacidad`, `/legal/cookies` | `features/legal/LegalPage.jsx` diferida | Público | `public-legal.json`, generado desde `legal/` | Footer y navegación legal interna | Tres rutas exactas; versión, fecha y metadatos. `/legal` y descendientes desconocidos usan wildcard. Sin API, CMS o Knowledge. |
 | `/nosotros` | `pages/Nosotros/Nosotros.jsx` | Público | Contenido estático en React | Ningún enlace interno actual localizado | Duplicada y heredada; conserva contenido único como material de migración. |
-| `/torneos` | `pages/Torneos/TournamentList.jsx` | Público | `GET /championships` y `GET /seasons` | Landing de Competición, Mi Panel, detalles | Funcional secundaria. Distingue carga, error con retry y vacío filtrado; cada tarjeta tiene una única acción al detalle. |
+| `/torneos` | `pages/Torneos/TournamentList.jsx` | Público | `GET /championships` y `GET /seasons` | Landing de Competición, Mi Panel, detalles | Explorador/archivo compatible. Distingue carga, error con retry y vacío filtrado; sincroniza `season_id` con la URL, preserva parámetros ajenos y cada tarjeta tiene una única acción al detalle. |
 | `/torneos/:championshipId` | `pages/Torneos/TournamentDetail.jsx` | Público; acciones de inscripción autenticadas | Campeonato, ranking e inscripción desde API | Tarjetas de torneo, Mi Panel, regreso desde categoría | Funcional secundaria. Campeonato y ranking tienen disponibilidad independiente; las tarjetas enlazan resumen, clasificación y calendario, y desde la navegación local de categoría se accede también a Copa. |
 | `/categories/:categoryId` | `pages/Torneos/CategoryDetail.jsx` | Público | Detalle de categoría | Detalle de torneo y navegación contextual | Resumen de entidad y padres. No descarga ni duplica standings o schedule. |
 | `/categories/:categoryId/standings` | `pages/Standings.jsx` | Público | Categoría y clasificación | Navegación cruzada desde schedule; `CategoryCard` no montada | Funcional secundaria. Tiene navegación local, pero su otro consumidor localizado pertenece a una Home huérfana. |
@@ -137,7 +137,7 @@ separada; Prensa y Federaciones no se publican como enlaces vacíos.
 | `/register` | `pages/Register.jsx` | Público/anónimo | Auth y perfil API | Login | Ruta de cuenta. Tras éxito fuerza navegación a `/player`. |
 | `/forgot-password` | `pages/ForgotPassword.jsx` | Público/anónimo | Auth API | Login y reset inválido | Ruta de cuenta. |
 | `/reset-password` | `pages/ResetPassword.jsx` | Público/anónimo | Query `email` y `token`; Auth API | Enlace enviado por correo | Ruta de cuenta con entrada externa prevista. Usa `h2`, no `h1`, y redirige a login tras éxito. |
-| `/player` | `pages/Dashboard.jsx` dentro de `ProtectedRoute` | Autenticado | Endpoints `/me`, perfil, inscripciones, partidos, calendario, rankings y acciones | Zona de cuenta, login, registro e inscripción | Mi Panel. El visitante se redirige a `/login`; no pertenece al menú editorial. |
+| `/player` | `pages/Dashboard.jsx` dentro de `ProtectedRoute` | Autenticado | Endpoints `/me`, perfil, inscripciones, partidos, calendario, rankings y acciones | Zona de cuenta, login, registro e inscripción | Mi Panel. El visitante se redirige a `/login`; cinco pestañas accesibles mantienen visibles Resumen, Inscripciones, Partidos, Calendario y Rankings sin scroll horizontal oculto. |
 | `*` | `pages/NotFound/NotFoundPage.jsx` | Público | Estructura local | Cualquier URL React no reconocida | Fallback accesible con `h1` y enlaces de recuperación; no redirige ni cambia el estado HTTP inicial del documento SPA. |
 
 No existe ruta React administrativa. El panel administrador es Blade bajo `/admin`.
@@ -404,6 +404,14 @@ y contenido. React no ordena filas, renumera posiciones ni calcula puntos.
 
 Fase 4C centraliza las raíces y generadores reutilizados en `competitionRoutes`; el refinamiento de Copa amplía después `CategoryNavigation` a Resumen, Clasificación, Calendario y resultados y Copa. Schedule selecciona exclusivamente rondas `type=league`; CupPage exige `type=cup`, `phase=cup` y un stage admitido sobre el mismo endpoint, carga en paralelo contexto y colección y ofrece estados recuperables. Ninguna vista renumera posiciones, calcula puntos, infiere una Copa por nombre/orden o deriva al campeón desde el tanteo.
 
+6.F.2 refina posteriormente la jerarquía sin cambiar rutas ni dominio. Todas
+las temporadas `active` se muestran como foco principal con sus campeonatos;
+las `planned` quedan en un bloque secundario y el histórico compacto limita a
+tres las `finished`, enlazadas al explorador mediante `season_id`. Si no existe
+temporada actual o próxima, la finalizada más reciente actúa sólo como
+referencia neutral. `/torneos` conserva compatibilidad, recarga y parámetros
+ajenos; un ID inválido se retira conforme al contrato implementado.
+
 ## 17. Requisitos de accesibilidad
 
 ### Estado tras 3B
@@ -425,6 +433,10 @@ Fase 4C centraliza las raíces y generadores reutilizados en `competitionRoutes`
   único panel activo, y los selectores tienen labels explícitos.
 - Reset Password usa `h2` como encabezado principal.
 - No se ha ejecutado una auditoría automática de contraste; los colores deben validarse, no darse por conformes sólo por inspección.
+- Mi Panel expone `tablist`, cinco `tab` y paneles asociados mediante
+  `aria-selected`, `aria-controls`, `aria-labelledby` y `roving tabindex`.
+  Flechas, Home y End mueven únicamente el foco; Enter, espacio y clic activan
+  y sólo entonces permiten la carga diferida del panel.
 
 ### Resultado de los criterios 3B
 
@@ -445,6 +457,12 @@ Navbar muestra sus dos enlaces en una sola fila por encima de 1024 px y activa e
 Playwright cubre 320, 375, 768, 1024, 1280 y 1440 px con una identidad deliberadamente larga. No detecta desbordamiento horizontal ni solapamiento entre los grupos visibles del Navbar. La futura implementación de los disclosures Aprende/Club deberá repetir esta matriz.
 
 Fase 4C repite esa matriz en landing, listado de Torneos, campeonato, categoría, standings, schedule, partido y Rankings. Las tablas conservan su overflow dentro del contenedor sin provocar overflow documental; tarjetas, acciones y textos largos se adaptan hasta 320 px. El E2E comprueba además foco visible y una ampliación visual del 200 % en la navegación de categoría.
+
+P1-UX-MIPANEL-NAV-MOBILE añade una matriz propia a 320, 360, 390, 430, 600,
+768, 1024 y 1440 px, además de reflow equivalente al 200 %. Las pestañas se
+distribuyen 2+2+1 hasta 480 px, 3+2 entre 481–900 px y en una fila desde 901 px
+cuando cabe, con fallback de wrap seguro. El padding móvil es local de
+Dashboard; no existe scrollbar oculta ni overflow horizontal local o global.
 
 ### Resultado de los criterios 3B
 

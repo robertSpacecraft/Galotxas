@@ -339,14 +339,55 @@ humana fue PASS en local, staging y producción. 6.A queda formalmente cerrado.
 No está relacionado con Liquid Glass ni i18n y no modifica la frontera visual
 o lingüística de `/admin`.
 
-Con 6.A cerrado, el siguiente bloque oficial es **6.F — Campeones de Liga y
-Copa**.
+Con 6.A cerrado se inició **6.F — Campeones de Liga y Copa**.
 
-### 3. 6.F — Campeones de Liga y Copa
+### 3. 6.F — Campeones de Liga y Copa (EN CURSO)
 
 Definir primero el backend como fuente de verdad. Antes de representar el
 campeón en React se cerrarán cuándo existe, Liga, Copa, categorías, estados
 incompletos y contrato público. React no lo inferirá de forma inconsistente.
+
+#### 6.F.2 — Jerarquía de `/competicion` (CLOSED / PASS)
+
+El commit `1cf5e687e482b31c7bfedd3e6f97ae2e87c2ccd4` prioriza las temporadas
+`active`, muestra directamente sus campeonatos, presenta las `planned` como
+bloque secundario y limita el histórico compacto a tres `finished` enlazadas
+mediante `/torneos?season_id={id}`. `/torneos` conserva su URL y función de
+explorador/archivo, sincroniza el filtro con la query y preserva parámetros
+ajenos. La terminología pública principal se normaliza a `Campeonatos`.
+
+El bloque superó validación local, staging con datos y aceptación humana, y
+despliegue productivo. La regresión global de aquel ciclo fue 67/68 por un
+dropdown Blade del admin CMS que intercepta `Crear bloque`; es una deuda
+independiente y permanece abierta. Producción carece actualmente de datos
+deportivos, por lo que el smoke dependiente de temporada, campeonato,
+categoría, clasificación, calendario y Copa queda diferido hasta disponer de
+dataset real. Esta limitación no constituye un defecto conocido de 6.F.2.
+
+#### P1-UX-MIPANEL-NAV-MOBILE (CLOSED / PASS)
+
+El commit `09dc4b51f2eecd8155f31b1bbd3e8d880af285a7` hace visibles los cinco
+destinos de Mi Panel sin scroll horizontal oculto: 2+2+1 hasta 480 px, 3+2
+entre 481–900 px y una fila desde 901 px cuando cabe. La navegación aplica el
+patrón accesible de pestañas, `roving tabindex`, foco visible y activación
+manual, preservando lazy loading, rutas y endpoints. Staging y producción
+quedaron validados automática y humanamente. Los smokes productivos
+interceptaron las APIs privadas y no realizaron mutaciones reales, por diseño
+no destructivo.
+
+#### Siguiente bloque: 6.F.3 — Dominio de resultados oficiales
+
+6.F.3 es el siguiente bloque oficial. Empezará en backend y definirá snapshots
+oficiales persistidos, identidad deportiva congelada, oficialización
+independiente de Liga y Copa y reapertura administrativa trazable con motivo
+obligatorio. `is_public` continuará significando visibilidad, no oficialidad;
+el estado actual de categoría todavía no expresa un cierre oficial. La primera
+versión sólo oficializará cuando el dominio vigente permita un cierre válido,
+sin inventar tanteos para walkover, abandono o descalificación, y mantendrá
+como invariante futura un máximo de una temporada `active`.
+
+Este documento no diseña ni inicia 6.F.3. La presentación React del resultado
+final corresponderá a 6.F.4, después de cerrar el dominio.
 
 ### 4. 6.C — Imágenes de Temporadas, Campeonatos y Categorías
 
