@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { meService } from '../api/me';
@@ -26,6 +26,17 @@ const registrationStatusClasses = {
     approved: styles.statusApproved,
     rejected: styles.statusRejected
 };
+
+const dashboardTabs = Object.freeze([
+    { id: 'resumen', label: 'Resumen' },
+    { id: 'inscripciones', label: 'Mis Inscripciones' },
+    { id: 'partidos', label: 'Mis Partidos' },
+    { id: 'calendario', label: 'Calendario' },
+    { id: 'rankings', label: 'Rankings' }
+]);
+
+const getDashboardTabId = (tabId) => `dashboard-tab-${tabId}`;
+const getDashboardPanelId = (tabId) => `dashboard-panel-${tabId}`;
 
 const getRegistrationStatusLabel = (status) => registrationStatusLabels[status] || status || 'Desconocido';
 
@@ -99,6 +110,8 @@ export default function Dashboard() {
 
     // New States
     const [activeTab, setActiveTab] = useState('resumen');
+    const [focusedTab, setFocusedTab] = useState('resumen');
+    const tabRefs = useRef({});
     
     // Matches
     const [matches, setMatches] = useState([]);
@@ -261,22 +274,80 @@ export default function Dashboard() {
         );
     };
 
+    const activateTab = (tabId) => {
+        setFocusedTab(tabId);
+        setActiveTab(tabId);
+    };
+
+    const focusTab = (tabId) => {
+        setFocusedTab(tabId);
+        tabRefs.current[tabId]?.focus();
+    };
+
+    const handleTabKeyDown = (event, tabIndex) => {
+        let nextIndex = null;
+
+        if (event.key === 'ArrowRight') {
+            nextIndex = (tabIndex + 1) % dashboardTabs.length;
+        } else if (event.key === 'ArrowLeft') {
+            nextIndex = (tabIndex - 1 + dashboardTabs.length) % dashboardTabs.length;
+        } else if (event.key === 'Home') {
+            nextIndex = 0;
+        } else if (event.key === 'End') {
+            nextIndex = dashboardTabs.length - 1;
+        }
+
+        if (nextIndex === null) {
+            return;
+        }
+
+        event.preventDefault();
+        focusTab(dashboardTabs[nextIndex].id);
+    };
+
     return (
-        <div className="page-container">
+        <div className={`page-container ${styles.dashboardPage}`}>
             <h1>Panel de Control</h1>
 
             {isPlayer && (
-                <div className={styles.tabsContainer}>
-                    <button className={`${styles.tabLink} ${activeTab === 'resumen' ? styles.activeTab : ''}`} onClick={() => setActiveTab('resumen')}>Resumen</button>
-                    <button className={`${styles.tabLink} ${activeTab === 'inscripciones' ? styles.activeTab : ''}`} onClick={() => setActiveTab('inscripciones')}>Mis Inscripciones</button>
-                    <button className={`${styles.tabLink} ${activeTab === 'partidos' ? styles.activeTab : ''}`} onClick={() => setActiveTab('partidos')}>Mis Partidos</button>
-                    <button className={`${styles.tabLink} ${activeTab === 'calendario' ? styles.activeTab : ''}`} onClick={() => setActiveTab('calendario')}>Calendario</button>
-                    <button className={`${styles.tabLink} ${activeTab === 'rankings' ? styles.activeTab : ''}`} onClick={() => setActiveTab('rankings')}>Rankings</button>
+                <div
+                    className={styles.tabsContainer}
+                    role="tablist"
+                    aria-label="Secciones de Mi Panel"
+                >
+                    {dashboardTabs.map((tab, index) => (
+                        <button
+                            key={tab.id}
+                            ref={(element) => {
+                                tabRefs.current[tab.id] = element;
+                            }}
+                            type="button"
+                            id={getDashboardTabId(tab.id)}
+                            role="tab"
+                            aria-selected={activeTab === tab.id}
+                            aria-controls={getDashboardPanelId(tab.id)}
+                            tabIndex={focusedTab === tab.id ? 0 : -1}
+                            className={`${styles.tabLink} ${activeTab === tab.id ? styles.activeTab : ''}`}
+                            onClick={() => activateTab(tab.id)}
+                            onFocus={() => setFocusedTab(tab.id)}
+                            onKeyDown={(event) => handleTabKeyDown(event, index)}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
                 </div>
             )}
 
-            {(!isPlayer || activeTab === 'resumen') && (
-                <div className={styles.tabContent}>
+            <div
+                id={isPlayer ? getDashboardPanelId('resumen') : undefined}
+                role={isPlayer ? 'tabpanel' : undefined}
+                aria-labelledby={isPlayer ? getDashboardTabId('resumen') : undefined}
+                tabIndex={isPlayer ? 0 : undefined}
+                hidden={isPlayer && activeTab !== 'resumen'}
+                className={isPlayer ? styles.tabPanel : undefined}
+            >
+                {(!isPlayer || activeTab === 'resumen') && (
+                    <div className={styles.tabContent}>
 
             <div className={styles.dashboardGrid}>
                 {/* User Info Block */}
@@ -490,11 +561,21 @@ export default function Dashboard() {
                     </form>
                 </div>
             )}
-                </div>
-            )}
+                    </div>
+                )}
+            </div>
 
-            {isPlayer && activeTab === 'inscripciones' && (
-                <div className={styles.tabContent}>
+            {isPlayer && (
+                <div
+                    id={getDashboardPanelId('inscripciones')}
+                    role="tabpanel"
+                    aria-labelledby={getDashboardTabId('inscripciones')}
+                    tabIndex={0}
+                    hidden={activeTab !== 'inscripciones'}
+                    className={styles.tabPanel}
+                >
+                    {activeTab === 'inscripciones' && (
+                        <div className={styles.tabContent}>
                     <h2 className={styles.sectionTitle}>Mis Inscripciones a Campeonatos</h2>
                     {regsLoading ? (
                         <p style={{ padding: '1rem', color: 'var(--text-secondary)' }}>Cargando inscripciones...</p>
@@ -527,11 +608,22 @@ export default function Dashboard() {
                             <Link to="/torneos" className={styles.actionBtn} style={{ display: 'inline-block', textDecoration: 'none' }}>Ver campeonatos disponibles</Link>
                         </div>
                     )}
+                        </div>
+                    )}
                 </div>
             )}
 
-            {isPlayer && activeTab === 'partidos' && (
-                <div className={styles.tabContent}>
+            {isPlayer && (
+                <div
+                    id={getDashboardPanelId('partidos')}
+                    role="tabpanel"
+                    aria-labelledby={getDashboardTabId('partidos')}
+                    tabIndex={0}
+                    hidden={activeTab !== 'partidos'}
+                    className={styles.tabPanel}
+                >
+                    {activeTab === 'partidos' && (
+                        <div className={styles.tabContent}>
                     <h2 className={styles.sectionTitle}>Mis Partidos</h2>
                     {matchesLoading ? (
                         <p style={{ padding: '1rem', color: 'var(--text-secondary)' }}>Cargando partidos...</p>
@@ -548,13 +640,35 @@ export default function Dashboard() {
                             <p>No tienes partidos registrados todavía.</p>
                         </div>
                     )}
+                        </div>
+                    )}
                 </div>
             )}
 
-            {isPlayer && activeTab === 'calendario' && renderCalendar()}
+            {isPlayer && (
+                <div
+                    id={getDashboardPanelId('calendario')}
+                    role="tabpanel"
+                    aria-labelledby={getDashboardTabId('calendario')}
+                    tabIndex={0}
+                    hidden={activeTab !== 'calendario'}
+                    className={styles.tabPanel}
+                >
+                    {activeTab === 'calendario' && renderCalendar()}
+                </div>
+            )}
 
-            {isPlayer && activeTab === 'rankings' && (
-                <div className={styles.tabContent}>
+            {isPlayer && (
+                <div
+                    id={getDashboardPanelId('rankings')}
+                    role="tabpanel"
+                    aria-labelledby={getDashboardTabId('rankings')}
+                    tabIndex={0}
+                    hidden={activeTab !== 'rankings'}
+                    className={styles.tabPanel}
+                >
+                    {activeTab === 'rankings' && (
+                        <div className={styles.tabContent}>
                     <h2 className={styles.sectionTitle}>Posición en Rankings</h2>
                     {rankingsLoading ? (
                         <p style={{ padding: '1rem', color: 'var(--text-secondary)' }}>Cargando rankings...</p>
@@ -596,6 +710,8 @@ export default function Dashboard() {
                     ) : (
                         <div className={styles.emptyState}>
                             <p>No tienes datos de ranking registrados todavía en tus categorías activas.</p>
+                        </div>
+                    )}
                         </div>
                     )}
                 </div>

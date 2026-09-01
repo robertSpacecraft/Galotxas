@@ -5,6 +5,10 @@
     margin-top: 2rem;
 }
 
+.dashboardPage {
+    min-width: 0;
+}
+
 @media (max-width: 900px) {
     .dashboardGrid {
         grid-template-columns: 1fr;
@@ -230,46 +234,103 @@
 /* Tabs UI */
 .tabsContainer {
     display: flex;
-    overflow-x: auto;
-    gap: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
     margin-top: 2rem;
     margin-bottom: 2rem;
-    border-bottom: 1px solid var(--surface-border);
-    padding-bottom: 0.1rem;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-
-.tabsContainer::-webkit-scrollbar {
-    display: none;
+    overflow: visible;
 }
 
 .tabLink {
-    padding: 1rem 1.5rem;
-    background: transparent;
-    border: none;
-    border-bottom: 3px solid transparent;
+    display: flex;
+    flex: 0 1 auto;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--surface-border);
+    border-radius: 8px;
     font-weight: 600;
     color: var(--text-secondary);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
     font-size: 1rem;
+    line-height: 1.25;
+    text-align: center;
     white-space: nowrap;
 }
 
 .tabLink:hover {
     color: var(--brand-primary);
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 8px 8px 0 0;
+    background: rgba(88, 166, 255, 0.08);
+    border-color: rgba(88, 166, 255, 0.45);
+}
+
+.tabLink:focus-visible,
+.tabPanel:focus-visible {
+    outline: 3px solid var(--brand-primary);
+    outline-offset: 2px;
 }
 
 .activeTab {
     color: var(--brand-primary);
-    border-bottom-color: var(--brand-primary);
+    background: rgba(88, 166, 255, 0.14);
+    border-color: var(--brand-primary);
+}
+
+.activeTab:hover {
+    background: rgba(88, 166, 255, 0.18);
+    border-color: var(--brand-primary);
+}
+
+.tabPanel {
+    min-width: 0;
 }
 
 .tabContent {
     animation: slideDown 0.3s ease-out;
+}
+
+@media (max-width: 900px) {
+    .tabsContainer {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        align-items: stretch;
+    }
+
+    .tabLink {
+        grid-column: span 2;
+        width: 100%;
+        white-space: normal;
+    }
+
+    .tabLink:nth-child(n + 4) {
+        grid-column: span 3;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboardPage {
+        padding-right: 1rem;
+        padding-left: 1rem;
+    }
+
+    .tabsContainer {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .tabLink,
+    .tabLink:nth-child(n + 4) {
+        grid-column: span 1;
+        min-height: 48px;
+        padding: 0.625rem 0.5rem;
+    }
+
+    .tabLink:last-child {
+        grid-column: 1 / -1;
+    }
 }
 
 /* Empty State */
