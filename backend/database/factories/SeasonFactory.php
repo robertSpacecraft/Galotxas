@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\SeasonStatus;
 use App\Models\Season;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -21,9 +22,16 @@ class SeasonFactory extends Factory
             'name' => 'Temporada '.$this->faker->year(),
             'start_date' => now()->startOfYear()->format('Y-m-d'),
             'end_date' => now()->endOfYear()->format('Y-m-d'),
-            'status' => 'active',
+            'status' => SeasonStatus::PLANNED->value,
             'is_public' => false,
         ];
+    }
+
+    public function active(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => SeasonStatus::ACTIVE->value,
+        ]);
     }
 
     public function publiclyVisible(): static

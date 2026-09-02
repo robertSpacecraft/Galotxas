@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\StoreSeasonRequest;
 use App\Http\Requests\Admin\UpdateSeasonRequest;
 use App\Models\Season;
 use App\Services\Ranking\BuildSeasonRankingService;
+use App\Services\SeasonService;
 
 class SeasonController extends Controller
 {
@@ -27,18 +28,9 @@ class SeasonController extends Controller
         ]);
     }
 
-    public function store(StoreSeasonRequest $request)
+    public function store(StoreSeasonRequest $request, SeasonService $service)
     {
-        $validated = $request->validated();
-
-        $season = new Season([
-            'name' => $validated['name'],
-            'status' => $validated['status'],
-            'start_date' => $validated['start_date'] ?? null,
-            'end_date' => $validated['end_date'] ?? null,
-        ]);
-        $season->is_public = (bool) $validated['is_public'];
-        $season->save();
+        $service->create($request->validated());
 
         return redirect()
             ->route('admin.seasons.index')
@@ -66,18 +58,12 @@ class SeasonController extends Controller
         ]);
     }
 
-    public function update(UpdateSeasonRequest $request, Season $season)
-    {
-        $validated = $request->validated();
-
-        $season->fill([
-            'name' => $validated['name'],
-            'status' => $validated['status'],
-            'start_date' => $validated['start_date'] ?? null,
-            'end_date' => $validated['end_date'] ?? null,
-        ]);
-        $season->is_public = (bool) $validated['is_public'];
-        $season->save();
+    public function update(
+        UpdateSeasonRequest $request,
+        Season $season,
+        SeasonService $service
+    ) {
+        $service->update($season, $request->validated());
 
         return redirect()
             ->route('admin.seasons.index')

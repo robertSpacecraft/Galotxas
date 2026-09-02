@@ -12,6 +12,7 @@ use App\Models\Category;
 use App\Models\Championship;
 use App\Models\Season;
 use App\Models\User;
+use App\Services\SeasonService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -133,6 +134,59 @@ class AdminCompetitionApiTest extends TestCase
 
         $this->deleteJson('/api/v1/admin/seasons/'.$nullableSeason->id)->assertNoContent();
         $this->assertDatabaseMissing('seasons', ['id' => $nullableSeason->id]);
+    }
+
+    public function test_admin_api_enforces_the_same_single_active_season_contract(): void
+    {
+        $this->actingAsAdmin();
+        $active = Season::factory()->active()->create();
+
+        $this->postJson('/api/v1/admin/seasons', [
+            'name' => 'Segunda activa API',
+            'status' => SeasonStatus::ACTIVE->value,
+            'is_public' => false,
+            'start_date' => null,
+            'end_date' => null,
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['status'])
+            ->assertJsonPath('errors.status.0', SeasonService::ACTIVE_CONFLICT_ERROR);
+
+        $planned = Season::factory()->create();
+        $this->putJson('/api/v1/admin/seasons/'.$planned->id, [
+            'name' => $planned->name,
+            'status' => SeasonStatus::ACTIVE->value,
+            'is_public' => false,
+            'start_date' => null,
+            'end_date' => null,
+        ])->assertUnprocessable()
+            ->assertJsonPath('errors.status.0', SeasonService::ACTIVE_CONFLICT_ERROR);
+
+        $this->putJson('/api/v1/admin/seasons/'.$active->id, [
+            'name' => 'Activa API editada',
+            'status' => SeasonStatus::ACTIVE->value,
+            'is_public' => false,
+            'start_date' => null,
+            'end_date' => null,
+        ])->assertOk()
+            ->assertJsonPath('data.name', 'Activa API editada')
+            ->assertJsonPath('data.status', SeasonStatus::ACTIVE->value);
+
+        $this->putJson('/api/v1/admin/seasons/'.$active->id, [
+            'name' => 'Finalizada API',
+            'status' => SeasonStatus::FINISHED->value,
+            'is_public' => false,
+            'start_date' => null,
+            'end_date' => null,
+        ])->assertOk();
+
+        $this->putJson('/api/v1/admin/seasons/'.$planned->id, [
+            'name' => $planned->name,
+            'status' => SeasonStatus::ACTIVE->value,
+            'is_public' => false,
+            'start_date' => null,
+            'end_date' => null,
+        ])->assertOk()
+            ->assertJsonPath('data.status', SeasonStatus::ACTIVE->value);
     }
 
     public function test_active_admin_manages_championships_without_mutating_protected_fields(): void

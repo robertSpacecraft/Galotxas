@@ -6,6 +6,7 @@ use App\Enums\SeasonStatus;
 use App\Models\Championship;
 use App\Models\Season;
 use App\Models\User;
+use App\Services\SeasonService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
@@ -83,6 +84,61 @@ class AdminSeasonTest extends TestCase
             'start_date' => null,
             'end_date' => null,
         ]);
+    }
+
+    public function test_blade_rejects_a_second_active_season_and_releases_the_slot_after_finishing(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $active = Season::factory()->active()->create();
+
+        $this->actingAs($admin)
+            ->post(route('admin.seasons.store'), [
+                'name' => 'Segunda activa',
+                'status' => SeasonStatus::ACTIVE->value,
+                'is_public' => 0,
+                'start_date' => null,
+                'end_date' => null,
+            ])
+            ->assertSessionHasErrors([
+                'status' => SeasonService::ACTIVE_CONFLICT_ERROR,
+            ]);
+
+        $planned = Season::factory()->create(['name' => 'Siguiente temporada']);
+        $this->actingAs($admin)
+            ->put(route('admin.seasons.update', $planned), [
+                'name' => $planned->name,
+                'status' => SeasonStatus::ACTIVE->value,
+                'is_public' => 0,
+                'start_date' => null,
+                'end_date' => null,
+            ])
+            ->assertSessionHasErrors([
+                'status' => SeasonService::ACTIVE_CONFLICT_ERROR,
+            ]);
+
+        $this->actingAs($admin)
+            ->put(route('admin.seasons.update', $active), [
+                'name' => $active->name,
+                'status' => SeasonStatus::FINISHED->value,
+                'is_public' => 0,
+                'start_date' => null,
+                'end_date' => null,
+            ])
+            ->assertRedirect(route('admin.seasons.index'));
+
+        $this->actingAs($admin)
+            ->put(route('admin.seasons.update', $planned), [
+                'name' => $planned->name,
+                'status' => SeasonStatus::ACTIVE->value,
+                'is_public' => 0,
+                'start_date' => null,
+                'end_date' => null,
+            ])
+            ->assertRedirect(route('admin.seasons.index'));
+
+        $this->assertDatabaseMissing('seasons', ['name' => 'Segunda activa']);
+        $this->assertSame(SeasonStatus::FINISHED, $active->fresh()->status);
+        $this->assertSame(SeasonStatus::ACTIVE, $planned->fresh()->status);
     }
 
     public function test_non_admin_user_cannot_open_or_submit_the_creation_form(): void

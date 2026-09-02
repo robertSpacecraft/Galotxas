@@ -19,6 +19,7 @@ class Season extends Model
     ];
 
     protected $hidden = [
+        'active_slot',
         'is_public',
     ];
 

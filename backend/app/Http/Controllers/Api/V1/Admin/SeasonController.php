@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\StoreSeasonRequest;
 use App\Http\Requests\Admin\UpdateSeasonRequest;
 use App\Http\Resources\AdminSeasonResource;
 use App\Models\Season;
+use App\Services\SeasonService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 
@@ -22,18 +23,9 @@ class SeasonController extends Controller
         return $this->successResponse(AdminSeasonResource::collection($seasons));
     }
 
-    public function store(StoreSeasonRequest $request): JsonResponse
+    public function store(StoreSeasonRequest $request, SeasonService $service): JsonResponse
     {
-        $validated = $request->validated();
-
-        $season = new Season([
-            'name' => $validated['name'],
-            'status' => $validated['status'],
-            'start_date' => $validated['start_date'] ?? null,
-            'end_date' => $validated['end_date'] ?? null,
-        ]);
-        $season->is_public = (bool) $validated['is_public'];
-        $season->save();
+        $season = $service->create($request->validated());
 
         return $this->successResponse(
             new AdminSeasonResource($season),
@@ -47,18 +39,12 @@ class SeasonController extends Controller
         return $this->successResponse(new AdminSeasonResource($season));
     }
 
-    public function update(UpdateSeasonRequest $request, Season $season): JsonResponse
-    {
-        $validated = $request->validated();
-
-        $season->fill([
-            'name' => $validated['name'],
-            'status' => $validated['status'],
-            'start_date' => $validated['start_date'] ?? null,
-            'end_date' => $validated['end_date'] ?? null,
-        ]);
-        $season->is_public = (bool) $validated['is_public'];
-        $season->save();
+    public function update(
+        UpdateSeasonRequest $request,
+        Season $season,
+        SeasonService $service
+    ): JsonResponse {
+        $season = $service->update($season, $request->validated());
 
         return $this->successResponse(
             new AdminSeasonResource($season),

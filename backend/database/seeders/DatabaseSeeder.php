@@ -39,7 +39,7 @@ class DatabaseSeeder extends Seeder
         });
 
         // Temporada
-        $season = Season::factory()->publiclyVisible()->create();
+        $season = Season::factory()->active()->publiclyVisible()->create();
 
         // Campeonato individual
         $singlesChampionship = Championship::factory()->publiclyVisible()->create([
