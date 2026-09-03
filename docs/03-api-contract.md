@@ -126,7 +126,7 @@ clasificación estructural `phase` y `stage`:
 Cada partido conserva `home_entry`, `away_entry`, fecha, pista y estado. Los
 tanteos sólo tienen valor público cuando el partido está `validated`; en los
 demás estados son `null`. `winner_entry` también es `null` salvo en un partido
-validado con ganador oficial y, cuando existe, usa exclusivamente la allowlist
+validado con ganador y, cuando existe, usa exclusivamente la allowlist
 de `PublicCompetitionEntryResource`:
 
 ```json
@@ -222,6 +222,21 @@ El endpoint independiente `POST /admin/categories/{category}/entries` administra
 ### Separación respecto al panel Blade
 
 Las rutas `/admin/*` definidas en `routes/web.php` son páginas y formularios web con sesión, CSRF, middleware `auth` e `IsAdmin`. No pertenecen a la API REST, no usan el prefijo `/api/v1` y se documentan en `04-admin-panel.md`.
+
+### Persistencia oficial todavía fuera del contrato API
+
+6.F.3B incorpora modelos y tablas para versionar resultados oficiales por
+categoría y parte, pero no crea endpoints públicos, autenticados o
+administrativos ni añade un Resource. `CategoryPublicResource`, las respuestas
+de categoría, clasificación, calendario, partido y los contratos de Mi Panel
+permanecen sin cambios: no serializan `official_results`, snapshots,
+`source_digest`, `current_slot` ni metadatos de actores.
+
+Los tanteos validados y rankings que ya publica la API continúan representando
+el estado deportivo vivo; no deben confundirse con la historia oficial
+versionada ni se convierten automáticamente en ella. La exposición de una
+versión oficial requerirá un bloque posterior con autorización, proyección de
+identidad, contrato allowlisted y pruebas específicas.
 
 ---
 
@@ -461,7 +476,7 @@ El endpoint no devuelve `CategoryEntry` ni otros modelos Eloquent. Los nombres d
 
 `GET /api/v1/rankings/all-time` devuelve el ranking histórico serializado mediante `AllTimeRankingResource`.
 
-El histórico se recalcula en cada consulta a partir de partidos validados. No existe una columna de puntos ni un backfill asociado al cambio de regla; los resultados almacenados permanecen intactos.
+El ranking histórico vivo se recalcula en cada consulta a partir de partidos validados. No existe una columna de puntos ni un backfill asociado al cambio de regla; los resultados almacenados permanecen intactos. Este cálculo no lee ni reescribe los snapshots oficiales versionados.
 
 El campo `win_rate` utiliza escala `0–100`, no una fracción `0–1`:
 
@@ -554,7 +569,7 @@ La gestión privada del resultado se realiza con endpoints autenticados bajo San
 - si el jugador participa, `match` se serializa mediante `ParticipantMatchResource` y los reportes visibles se serializan mediante `ParticipantMatchResultReportResource`;
 - las respuestas de `submit-result` y `confirm-result` utilizan los mismos Resources seguros del participante.
 
-`ParticipantMatchResource` expone únicamente el partido, participantes visibles, fecha, estado, pista y jerarquía competitiva básica que necesita React. No incluye reportes, emails, responsables internos ni timestamps de trazabilidad. Los tanteos y ganador oficiales solo se incluyen cuando el partido está validado.
+`ParticipantMatchResource` expone únicamente el partido, participantes visibles, fecha, estado, pista y jerarquía competitiva básica que necesita React. No incluye reportes, emails, responsables internos ni timestamps de trazabilidad. Los tanteos y el ganador validados sólo se incluyen cuando el partido está `validated`; no representan una versión oficial de categoría.
 
 `ParticipantMatchResultReportResource` expone solo lado, tanteos, estado y comentario. No incluye `user_id`, `player_id`, email ni objetos de usuario.
 
@@ -573,12 +588,12 @@ React consume este contrato desde la pantalla `/matches/{id}`. El frontend solo 
 
 La respuesta limitada para un usuario autenticado ajeno permite mantener el detalle público y mostrar el mensaje de que solo los participantes pueden gestionar el resultado, sin convertir una consulta pública válida en un cierre de sesión frontend.
 
-Cuando el primer participante envía un resultado, se crea un reporte `submitted`, el partido pasa a `submitted` y todavía no expone tanteo ni ganador oficiales. Cada lado solo puede crear un reporte y no puede sobrescribirlo; en dobles, el reporte de un miembro bloquea también a su compañero.
+Cuando el primer participante envía un resultado, se crea un reporte `submitted`, el partido pasa a `submitted` y todavía no expone tanteo ni ganador validados. Cada lado solo puede crear un reporte y no puede sobrescribirlo; en dobles, el reporte de un miembro bloquea también a su compañero.
 
 El lado rival puede completar el flujo de dos formas:
 
-- `confirm-result` copia el tanteo del reporte contrario y, al coincidir, ambos reportes pasan a `validated`; el partido queda `validated` con tanteo y ganador oficiales;
-- `submit-result` permite declarar su propio tanteo; si difiere, ambos reportes pasan a `conflict`, el partido queda `under_review` y sus campos oficiales permanecen vacíos hasta la resolución administrativa.
+- `confirm-result` copia el tanteo del reporte contrario y, al coincidir, ambos reportes pasan a `validated`; el partido queda `validated` con tanteo y ganador validados;
+- `submit-result` permite declarar su propio tanteo; si difiere, ambos reportes pasan a `conflict`, el partido queda `under_review` y sus campos de tanteo y ganador permanecen vacíos hasta la resolución administrativa.
 
 Solo puede actuar un participante del lado correspondiente. Un usuario sin perfil o ajeno no obtiene datos privados y no puede reportar; el mismo lado no puede confirmar su propio reporte. Los estados `validated`, `cancelled`, `postponed` y `under_review` no admiten nuevos envíos ni confirmaciones.
 

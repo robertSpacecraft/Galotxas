@@ -62,7 +62,7 @@ Este bloque formalizó fuentes de verdad, responsabilidades editoriales, arquite
 44. **Fase 7F.2D — Foto de perfil privada de Usuario:** referencia User.profile_photo_path endurecida, API propia, serving privado backend (200 OK) resolviendo CORS de S3 y UI accesible en Mi Panel implementados; está aceptada completamente en staging y cerrada.
 45. **Fase 7F.2E — Noticias:** `NewsArticle` dedicado, administración Blade, publicación efectiva, lifecycle de portada, API paginada, listado/detalle React, Navbar, SEO article y E2E implementados; migración aplicada manualmente y flujo aceptado en staging. 7F.2E cerrada.
 46. **Fase 7F.2F — Navegación CMS administrable:** placements dedicados con slot Club único, administración Blade, publicación efectiva desde `CmsPage`, API cerrada y composición React structural-first/fail-soft implementados; migración y flujo completo aceptados manualmente en staging. 7F.2F cerrada.
-47. **Cierre del gap preproducción de Copa en `develop`:** fases y stages explícitos, resultados comunes a Liga/Copa caracterizados, validación administrativa coherente, generación segura de Final/3.º-4.º, contrato público con ganador oficial, cuadro React y E2E completo implementados, validados localmente y con aceptación humana completada en staging.
+47. **Cierre del gap preproducción de Copa en `develop`:** fases y stages explícitos, resultados comunes a Liga/Copa caracterizados, validación administrativa coherente, generación segura de Final/3.º-4.º, contrato público con ganador validado del partido, cuadro React y E2E completo implementados, validados localmente y con aceptación humana completada en staging.
 48. **Refinamiento público de Copa y rankings en `develop`:** vista dedicada `/categories/{id}/cup`, navegación contextual de cuatro destinos y Schedule reservado a Liga; categoría y Mi Panel excluyen Copa, mientras campeonato, temporada e histórico incluyen sus partidos validados sin bonus. Aceptación humana en staging completada.
 49. **Fase 7G.0 — Auditoría y preparación del cierre final:** baseline, vigencia de evidencias, matriz staging/producción, flags, restricciones de proveedor, regresión 7F.2, Go/No-Go y gates 7G.1–7G.7 documentados sin ejecutar Copa, suites, staging, producción, migraciones, flags, tag o release. En aquel bloque, 7G quedó preparada, sin iniciar su gate irreversible y todavía abierta.
 50. **Fase 7G.1A — Auditoría del P0 de correo/password-reset:** flujo Laravel/React, tokens, límites, tests, mailers, lock, runtime y preflight auditados; Resend por API HTTPS seleccionado y Postmark conservado como alternativa. La solución quedó lista para implementación/prueba, sin proveedor, dependencia, secret, DNS, entorno o envío modificado; el P0 permaneció abierto al cerrar aquel bloque.
@@ -186,7 +186,7 @@ React de reprogramación continúa como P1 y no bloquea por sí misma el MVP.
 - equipos y participantes competitivos de individuales y dobles;
 - generación de liga, copa, final y tercer puesto;
 - flujo completo de Copa con stages explícitos, resultados compartidos,
-  cuadro público y campeón derivado del ganador oficial de la Final
+  cuadro público y campeón derivado del ganador validado de la Final
   (CUP-FLOW-1, aceptación humana completada en staging);
 - gestión Blade de pistas y seeder explícito no destructivo (VENUE-1);
 - generación reproducible con pistas configuradas, capacidad controlada y rollback atómico (SCHEDULE-1);
@@ -392,14 +392,36 @@ backup/restore, smoke y aceptación humana pasaron en staging y producción. El
 dataset productivo real permanece en cero temporadas; no se crearon datos
 artificiales y esa limitación no bloquea el cierre.
 
-#### Siguiente bloque: 6.F.3B — Persistencia/versionado de resultados oficiales
+#### 6.F.3B — Persistencia/versionado de resultados oficiales (CLOSED / PASS)
 
-6.F.3B es el siguiente microbloque oficial. Incorporará nuevas tablas o
-entidades para la persistencia y el versionado del resultado oficial, su
-lifecycle `official`/`reopened`, snapshots inicialmente vacíos y sus
-constraints, sin acciones administrativas ni presentación React. Este cierre
-no lo diseña de nuevo ni lo inicia; 6.F.3C/D/E y la presentación posterior
-permanecen fuera de alcance.
+El commit funcional `bf698708712a6682fa4a7faf6b8ce22defa1fd98` incorpora el
+agregado `CategoryOfficialResult` y sus snapshots de clasificación de Liga,
+campeón de Copa y partidos. Las versiones son independientes por categoría y
+parte, usan `official`/`reopened`, conservan historia inmutable y limitan a una
+sola versión oficial vigente por parte mediante una columna generada y un
+índice único. No existe estado `draft` ni backfill: ausencia de versión vigente
+significa que la parte no está oficializada.
+
+La persistencia minimiza y separa la identidad histórica de su proyección
+pública, conserva las fuentes sólo como evidencia escalar y protege el
+historial frente a borrados destructivos. La migración fail-closed fue aplicada
+manualmente una vez en staging y producción después de backup y restore
+verificados; ambas dejaron las cuatro tablas a cero. Las suites local y
+dirigida, la regresión backend completa, el smoke y la aceptación humana fueron
+PASS en ambos entornos. La ausencia de datos deportivos en producción limitó
+allí las comprobaciones destructivas, sin bloquear el cierre porque no se
+fabricaron datos y las constraints se validaron en MariaDB aislada y staging.
+
+6.F.3B no incorpora servicios de oficialización/reapertura, cálculo de digest,
+readiness, mutation guards, acción de anonimización, administración, API ni
+React.
+
+#### Siguiente bloque: 6.F.3C — locking común y mutation guards
+
+6.F.3C es el siguiente microbloque oficial. Deberá abordar conceptualmente el
+orden común de locks, la protección de mutaciones base cuando exista una
+versión oficial vigente y la consistencia entre Liga y Copa, preparando los
+servicios posteriores. Este cierre no lo diseña ni lo implementa.
 
 ### 4. 6.C — Imágenes de Temporadas, Campeonatos y Categorías
 
@@ -555,8 +577,9 @@ repiten aquí:
 
 ## Competición y datos
 
-- implementar 6.F.3B+ sin reutilizar `finished` o `cancelled` como oficialidad y aclarar la semántica histórica de `official_ranking`;
-- revisar en bloques separados la consistencia de `Round.phase/stage`, la integridad de `CategoryEntry`, las cascadas destructivas y los resultados sin tanteo por walkover, abandono o descalificación;
+- continuar 6.F.3C+ sin reutilizar `finished` o `cancelled` como oficialidad;
+- aclarar por separado la semántica histórica de `official_ranking`;
+- revisar en bloques separados la consistencia de `Round.phase/stage`, la integridad débil de `CategoryEntry`, las cascadas destructivas heredadas y los resultados sin tanteo por walkover, abandono o descalificación;
 - coordinar disponibilidad de pistas entre categorías distintas;
 - proteger generaciones concurrentes con una estrategia de bloqueo;
 - trasladar la unicidad del nombre de pista, hoy validada en formularios, a una restricción de base de datos;

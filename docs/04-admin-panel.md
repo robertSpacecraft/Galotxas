@@ -467,7 +467,8 @@ Estas etapas representan el ciclo funcional del partido y no implican necesariam
 
 # 11. Resultados
 
-Solo los resultados validados producen efectos oficiales.
+Solo los partidos validados afectan a los cálculos deportivos vivos. Resolver o
+validar uno no crea por sí solo una versión oficial de categoría.
 
 El panel permite:
 
@@ -477,19 +478,32 @@ El panel permite:
 - validar resultados;
 - mantener trazabilidad.
 
-Cuando dos lados reportan tanteos diferentes, el partido queda `under_review` sin resultado oficial. Solo un administrador puede resolverlo indicando un tanteo deportivo válido. La resolución establece `home_score`, `away_score`, ganador, estado `validated` y administrador validador.
+Cuando dos lados reportan tanteos diferentes, el partido queda `under_review` sin resultado validado. Solo un administrador puede resolverlo indicando un tanteo deportivo válido. La resolución establece `home_score`, `away_score`, ganador, estado `validated` y administrador validador.
 
-Los dos reportes originales permanecen en estado `conflict`, con sus autores, comentarios y tanteos intactos. Esta trazabilidad permite auditar qué comunicó cada lado; la resolución no falsifica una confirmación que nunca ocurrió. Tras validarse el partido, el resultado pasa a rankings y demás cálculos oficiales.
+Los dos reportes originales permanecen en estado `conflict`, con sus autores, comentarios y tanteos intactos. Esta trazabilidad permite auditar qué comunicó cada lado; la resolución no falsifica una confirmación que nunca ocurrió. Tras validarse el partido, el resultado pasa a rankings y demás cálculos vivos, sin crear un `CategoryOfficialResult`.
 
 La sección **Conflictos** de la navegación administra este flujo mediante:
 
 - `GET /admin/match-conflicts`: listado exclusivo de partidos `under_review`, con competición, categoría, jornada, participantes, fecha, pista y los dos reportes;
 - `GET /admin/match-conflicts/{gameMatch}`: detalle de contexto y comparación de tanteos, autores y comentarios originales;
-- `POST /admin/match-conflicts/{gameMatch}/resolve`: resolución mediante tanteo oficial local y visitante.
+- `POST /admin/match-conflicts/{gameMatch}/resolve`: resolución mediante tanteo validado local y visitante.
 
 El formulario muestra el objetivo deportivo calculado por el backend —10 en individuales y 12 en dobles— y exige confirmación antes del envío. Los valores negativos, empates, tanteos que incumplen el objetivo y partidos que ya no estén `under_review` se rechazan sin producir cambios parciales. La resolución se ejecuta con transacción y bloqueo de fila para impedir dobles validaciones concurrentes.
 
 El dashboard muestra el número de conflictos pendientes y enlaza al listado. Las vistas no exponen correos electrónicos ni identificadores internos. El modelo actual no dispone de un campo de motivo administrativo, por lo que la trazabilidad se compone del administrador guardado en `validated_by` y de los dos reportes originales inmutables.
+
+## Resultados oficiales de categoría
+
+6.F.3B aporta únicamente la persistencia versionada de resultados oficiales
+de Liga y Copa. El panel Blade no dispone todavía de listado, detalle, acción
+de oficializar, reapertura, anonimización ni borrado para
+`CategoryOfficialResult`; tampoco calcula o rellena `source_digest`.
+
+La resolución administrativa de conflictos de partido descrita arriba sigue
+siendo un flujo distinto y no crea automáticamente una versión oficial de
+categoría. Los servicios de lifecycle, permisos, readiness, locking y mutation
+guards deberán existir antes de incorporar cualquier acción administrativa en
+un bloque posterior.
 
 ---
 

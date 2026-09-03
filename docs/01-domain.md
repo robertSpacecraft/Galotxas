@@ -18,7 +18,8 @@ El dominio deportivo ejecutable de Galotxas se basa en los siguientes principios
 - Las reglas deportivas nunca se implementan en el frontend.
 - La organización de las competiciones corresponde al administrador.
 - La participación de un jugador siempre está supervisada mediante un flujo administrativo.
-- Los rankings únicamente utilizan resultados oficialmente validados.
+- Los rankings vivos únicamente utilizan partidos validados; eso no crea ni
+  sustituye una versión oficial persistida de categoría.
 - La estructura deportiva debe ser consistente y trazable.
 
 ---
@@ -109,7 +110,7 @@ Esta estructura constituye la organización oficial del dominio.
 
 `SeasonStatus` admite `planned`, `active`, `finished` y `cancelled`. Las nuevas temporadas nacen `planned`; el default histórico `pending` ya no forma parte de este contrato. El dominio admite cero o una temporada `active`, pero nunca dos o más. Backend y MariaDB son la fuente de verdad de esta invariante: React no la impone y puede conservar el fallback defensivo de presentación introducido en 6.F.2 sin convertirlo en una regla deportiva del cliente.
 
-Los estados `finished` y `cancelled`, tanto en `Season` como en `Championship`, describen el ciclo administrativo u operativo. No certifican un resultado, no crean un snapshot oficial y no exigen que todos los resultados deportivos existan. En particular, una entidad `cancelled` nunca requiere resultado oficial; `finished` tampoco implica ni garantiza oficialidad y no sustituye el dominio de resultados oficiales previsto desde 6.F.3B.
+Los estados `finished` y `cancelled`, tanto en `Season` como en `Championship`, describen el ciclo administrativo u operativo. No certifican un resultado, no crean un snapshot oficial y no exigen que todos los resultados deportivos existan. En particular, una entidad `cancelled` nunca requiere resultado oficial; `finished` tampoco implica ni garantiza oficialidad y no sustituye el dominio de resultados oficiales persistido desde 6.F.3B.
 
 ## Visibilidad pública de la competición
 
@@ -133,14 +134,15 @@ Ocultar una temporada o un campeonato no modifica automáticamente los flags de 
 
 Los resultados forman parte del dominio deportivo.
 
-Solo los resultados validados tienen efectos oficiales.
+Solo los partidos validados afectan a los cálculos deportivos vivos. Esa
+validación no crea por sí sola un `CategoryOfficialResult`.
 
 El flujo oficial es el siguiente:
 
 1. Un participante de cualquiera de los dos lados envía el primer reporte de un partido `scheduled` y el partido pasa a `submitted`.
-2. El lado rival puede confirmar el mismo tanteo. Ambos reportes pasan a `validated`, el partido pasa a `validated` y se fijan el tanteo y el ganador oficiales.
-3. Si el lado rival comunica un tanteo diferente, ambos reportes pasan a `conflict` y el partido queda `under_review`, sin tanteo ni ganador oficiales.
-4. Un administrador resuelve el conflicto fijando el resultado oficial. Esta operación solo es válida mientras el partido está `under_review`, vuelve a validar las reglas deportivas del tanteo y registra al administrador en `validated_by`.
+2. El lado rival puede confirmar el mismo tanteo. Ambos reportes pasan a `validated`, el partido pasa a `validated` y se fijan el tanteo y el ganador validados del partido.
+3. Si el lado rival comunica un tanteo diferente, ambos reportes pasan a `conflict` y el partido queda `under_review`, sin tanteo ni ganador validados.
+4. Un administrador resuelve el conflicto fijando el resultado validado del partido. Esta operación solo es válida mientras el partido está `under_review`, vuelve a validar las reglas deportivas del tanteo y registra al administrador en `validated_by`.
 
 La resolución administrativa es atómica: bloquea el partido, fija tanteo y ganador, y lo mueve a `validated`. Los dos reportes originales permanecen inmutables en estado `conflict`, incluidos sus autores, comentarios y tanteos, como trazabilidad del desacuerdo. El modelo actual no dispone de un campo adicional para un motivo administrativo.
 
@@ -151,6 +153,62 @@ Los tanteos son enteros no negativos, no admiten empate y deben respetar el obje
 Los estados `validated`, `cancelled`, `postponed` y `under_review` están cerrados al envío o confirmación de nuevos reportes. El proceso de envío, comparación y cambio de estado se ejecuta atómicamente para no dejar reportes o estados parciales ante un error.
 
 Mi Panel resume la intervención que corresponde al jugador en cada partido. Un partido programado sin reporte de su lado genera la acción de enviar resultado; si solo existe el reporte rival, genera la acción de confirmarlo o revisarlo desde el workflow. Cuando el partido está `under_review`, puede aparecer como aviso informativo, pero nunca como acción editable. Los estados `validated`, `cancelled` y `postponed` no generan acciones pendientes.
+
+## Resultado oficial versionado de categoría
+
+6.F.3B incorpora el agregado persistente `CategoryOfficialResult`. Cada versión
+pertenece a una categoría y exactamente una parte de la competición, `league`
+o `cup`:
+
+```text
+Category
+└── CategoryOfficialResult versión N [league | cup]
+    ├── filas de Liga
+    ├── campeón de Copa
+    └── snapshots de partidos
+```
+
+El lifecycle sólo admite `official` y `reopened`; no existe estado `draft`.
+La ausencia de una versión vigente significa que esa parte todavía no es
+oficial. Reabrir una versión conserva su historial y libera el slot vigente
+para que una versión posterior pueda oficializarse: por ejemplo,
+`v1 official → v1 reopened → v2 official`. Liga y Copa son partes
+independientes, por lo que una categoría puede mantener simultáneamente una
+versión oficial de cada una, pero nunca dos versiones oficiales de la misma
+parte.
+
+Una versión de Liga congela la clasificación completa: posición, referencias
+de origen, tipo e identidad de la entrada, partidos jugados, victorias,
+derrotas, puntos, juegos a favor, juegos en contra y diferencia de juegos,
+incluidos valores negativos. Una versión de Copa congela exclusivamente el
+campeón y su entrada, jugador o equipo, partido Final e identidad; 6.F.3B no
+modela subcampeón ni tercer puesto. Ambas partes conservan snapshots de los
+partidos fuente con ronda, `stage`, lados local/visitante, tanteos y ganador.
+Estas fotografías no se recalculan en lectura aunque después cambien los datos
+vivos.
+
+La identidad histórica minimizada se guarda como `display_name_snapshot`; la
+proyección pública separada usa `public_display_name` y queda preparada para
+marcar una anonimización futura mediante `public_anonymized_at`. Los snapshots
+no incorporan DNI, correo, teléfono, dirección, nacimiento, licencia,
+representante, tokens de autenticación, evidencias, notas privadas ni
+fotografía. La acción de anonimizar no forma parte todavía del dominio
+ejecutable.
+
+Los identificadores `source_*` aportan trazabilidad probatoria, no una
+dependencia destructiva con los registros vivos. El historial impide borrar su
+categoría —y, transitivamente, sus ancestros—; eliminar una cuenta de actor
+conserva la versión y el nombre snapshot aunque el identificador pase a
+`NULL`. Los hijos sólo usan `CASCADE` respecto de la eliminación técnica de su
+propia versión. No existe una operación normal de borrado de resultados
+oficiales y 6.F.3B no afirma haber corregido todas las cascadas heredadas del
+dominio competitivo.
+
+La persistencia nace vacía: no hay backfill ni conversión automática de
+partidos validados, rankings dinámicos o estados `finished` en historia
+oficial. Los servicios para oficializar o reabrir, proteger mutaciones base,
+calcular `source_digest`, evaluar readiness e integrar de forma efectiva
+`PublicPlayerIdentityService` pertenecen a bloques posteriores.
 
 
 ## Particularidades de Copa
@@ -177,7 +235,7 @@ no crea duplicados.
 Un resultado administrativo sólo admite tanteos con estado `submitted` o
 `validated`; combinar tanteos con `scheduled`, `postponed`, `cancelled` o
 `under_review` se rechaza en validación en vez de descartarlos silenciosamente.
-El campeón de Copa es el `winner_entry` oficial de una Final validada, nunca un
+El campeón vivo de Copa es el `winner_entry` de una Final validada, nunca un
 cálculo de React a partir del marcador.
 
 La experiencia pública separa las dos fases sin alterar este dominio común:
@@ -231,7 +289,7 @@ Todo partido validado distribuye exactamente tres puntos de clasificación. Si q
 
 Los rankings de categoría aplican esos puntos a la entrada competitiva. Los rankings agregados de campeonato, temporada e histórico parten del mismo reparto base, lo distribuyen entre jugadores según la contribución ya definida para individuales o roles de dobles y aplican después el multiplicador del nivel de categoría para obtener los puntos ponderados. Mi Panel reutiliza el ranking de categoría y no mantiene una fórmula propia.
 
-El alcance de rondas no cambia con esta regla: categoría agrega únicamente rondas de liga, mientras campeonato, temporada e histórico agregan todos los partidos validados de su ámbito. Los rankings se calculan dinámicamente desde `game_matches`, por lo que los resultados históricos reflejan la regla vigente en la siguiente consulta y no requieren migración ni backfill.
+El alcance de rondas no cambia con esta regla: categoría agrega únicamente rondas de liga, mientras campeonato, temporada e histórico agregan todos los partidos validados de su ámbito. Estos rankings vivos se calculan dinámicamente desde `game_matches`, por lo que reflejan la regla vigente en la siguiente consulta y no requieren migración ni backfill. Los snapshots de `CategoryOfficialResult` son otra fuente histórica y nunca se recalculan de este modo.
 
 Por tanto, una Copa validada no altera la clasificación de categoría ni Mi
 Panel, que reutiliza ese cálculo de Liga, pero sí contribuye a los agregados de
@@ -308,7 +366,8 @@ Las siguientes reglas forman parte del comportamiento esperado del sistema:
 - los partidos se disputan entre participantes competitivos;
 - la asignación a categoría siempre la realiza un administrador;
 - la aprobación de la solicitud y el pago son procesos independientes;
-- los rankings utilizan únicamente resultados oficiales;
+- los rankings vivos utilizan únicamente partidos validados y no sustituyen los
+  resultados oficiales versionados;
 - el frontend representa el dominio, pero no lo determina.
 
 ---

@@ -442,8 +442,8 @@ Decisión:
 - Permitir un único reporte inmutable por partido y lado, respaldado por la restricción única de base de datos y por una comprobación explícita con mensaje de dominio.
 - Considerar que el reporte de cualquier miembro de una pareja representa al lado completo.
 - Bloquear la fila del partido y ejecutar dentro de una misma transacción la creación del reporte, la comparación y las transiciones de reportes y partido.
-- Ante coincidencia, validar ambos reportes y publicar el resultado oficial; ante discrepancia, marcar ambos como `conflict`, dejar vacíos los campos oficiales y pasar a `under_review`.
-- Conservar los reportes originales en conflicto cuando un administrador establece el resultado oficial.
+- Ante coincidencia, validar ambos reportes y fijar el resultado vivo del partido; ante discrepancia, marcar ambos como `conflict`, dejar vacíos tanteo y ganador y pasar a `under_review`.
+- Conservar los reportes originales en conflicto cuando un administrador establece el resultado validado del partido; esta operación no crea una versión oficial de categoría.
 
 Consecuencias:
 - Un participante no puede corregir silenciosamente ni sobrescribir una declaración ya enviada; cualquier rectificación requiere intervención administrativa trazable.
@@ -2104,3 +2104,92 @@ Consecuencias:
   bloque 6.B no adelanta el rediseño global.
 - Esta ADR cierra la gate arquitectónica; no implementa estilos, tokens, temas,
   selector, rama experimental ni cambios en Blade.
+
+---
+
+# ADR-048 — Resultados oficiales versionados por categoría y parte
+
+Estado: Aceptada
+
+Fecha: 2026-09-03
+
+Contexto:
+- Los rankings, partidos y ganadores vivos pueden cambiar después de una
+  rectificación; recalcularlos al consultar no ofrece una evidencia histórica
+  estable de qué se oficializó.
+- `finished` y `cancelled` describen ciclos administrativos de temporada y
+  campeonato, no la oficialidad deportiva de Liga o Copa.
+- Una categoría puede completar ambas partes en momentos diferentes y necesita
+  conservar rectificaciones sucesivas sin sobrescribir versiones anteriores.
+- La historia deportiva debe sobrevivir a cambios o bajas en sus fuentes y
+  minimizar los datos personales retenidos.
+
+Decisión:
+- Usar `CategoryOfficialResult` como raíz de un agregado por categoría, parte
+  (`league` o `cup`) y número de versión positivo. El lifecycle admite sólo
+  `official` y `reopened`; no existe `draft` y la ausencia de una versión
+  vigente significa que esa parte no es oficial.
+- Permitir la secuencia `v1 official → v1 reopened → v2 official`, conservando
+  las versiones reabiertas. Liga y Copa pueden tener cada una una versión
+  vigente simultánea, pero nunca dos de la misma parte.
+- Garantizar la secuencia con la unicidad
+  `(category_id, competition_part, version)` y el resultado vigente con
+  `current_slot = IF(status = 'official', 1, NULL)` más la unicidad
+  `(category_id, competition_part, current_slot)` en MariaDB.
+- Congelar en los hijos la clasificación completa de Liga —incluida diferencia
+  de juegos negativa—, únicamente el campeón de Copa con su Final fuente y los
+  partidos que acreditan cada versión con ronda, `stage`, lados, tanteos y
+  ganador. No recalcular snapshots al leer ni modelar todavía subcampeón o
+  tercer puesto.
+- Conservar `source_digest`, fechas, identificadores de actor y nombres snapshot
+  en la raíz. La creación y validación efectiva del digest queda reservada al
+  servicio de oficialización posterior.
+- Mantener identidad histórica interna minimizada en
+  `display_name_snapshot` y una proyección pública separada mediante
+  `public_display_name` y `public_anonymized_at`. Excluir DNI, email, teléfono,
+  dirección, nacimiento, licencia, representante, tokens, evidencias, notas
+  privadas y fotografía. La acción de anonimización no se implementa en este
+  bloque.
+- Tratar los identificadores `source_*` como evidencia escalar sin claves
+  foráneas destructivas hacia entradas, jugadores, equipos, rondas o partidos.
+  Aplicar `RESTRICT` desde resultado a categoría —bloqueando también borrados
+  transitivos de sus ancestros—, `SET NULL` a actores conservando sus nombres y
+  `CASCADE` sólo desde una versión a sus hijos técnicos. No ofrecer una
+  operación normal de borrado de resultados oficiales ni declarar resueltas
+  las cascadas heredadas ajenas al agregado.
+- Mantener constraints para versión, digest, identidades, fuentes y resultados.
+  Excluir `reopened_by_user_id` del `CHECK` de coherencia porque una versión
+  `reopened` debe sobrevivir al borrado del actor mediante `ON DELETE SET NULL`;
+  esa constraint tampoco exige por sí misma que el campo sea nulo en estado
+  `official`. Fecha, nombre y motivo de reapertura sí quedan protegidos. No
+  introducir un trigger: el lifecycle posterior completará la coherencia y la
+  limitación no bloquea este cierre de persistencia.
+- Ejecutar una migración fail-closed: abortar si ya existe cualquiera de las
+  cuatro tablas, preservar esas tablas y limpiar ante fallo sólo las iniciadas
+  y marcadas en la misma ejecución con
+  `galotxas:6f3b:official-results`. No atribuir transaccionalidad al DDL.
+- Crear las tablas vacías, sin backfill ni conversión automática de partidos
+  validados, rankings dinámicos o entidades `finished` a historia oficial.
+
+Alternativas descartadas:
+- usar el estado o ranking vivo como resultado histórico y recalcularlo en cada
+  lectura;
+- reutilizar `Season.finished`, `Championship.finished` o `cancelled` como
+  certificado deportivo;
+- mantener una única fila mutable por categoría o mezclar Liga y Copa en un
+  único slot vigente;
+- crear automáticamente versiones oficiales a partir de datos existentes;
+- enlazar todos los `source_*` mediante borrados en cascada o retener datos
+  personales completos por comodidad;
+- imponer la coherencia restante del actor reabridor mediante trigger en esta
+  fase de persistencia.
+
+Consecuencias:
+- El commit funcional `bf698708712a6682fa4a7faf6b8ce22defa1fd98` deja
+  disponible una base histórica inmutable, versionada y preparada para
+  privacidad, con backfill cero en staging y producción.
+- `CategoryOfficialResult` no es todavía consumible desde Blade, API o React.
+  Tampoco existen servicios de oficialización/reapertura, locks comunes,
+  mutation guards, readiness, cálculo del digest o anonimización ejecutable.
+- El siguiente microbloque oficial es 6.F.3C — locking común y mutation guards;
+  su diseño e implementación quedan fuera de esta decisión de cierre.

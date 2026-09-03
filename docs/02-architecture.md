@@ -245,6 +245,74 @@ MariaDB conserva la invariante incluso ante escrituras concurrentes mediante la 
 
 La defensa completa combina transacción, locks, índice único y traducción de la violación de unicidad a mensaje de dominio. La cobertura automatizada verifica cada capa y simula la traducción del conflicto de base de datos, pero no acredita que se haya ejecutado una carrera temporal real entre dos peticiones. React no reproduce esta integridad y los estados operativos `finished` o `cancelled` de temporada/campeonato continúan separados de cualquier oficialización deportiva futura.
 
+## Persistencia versionada de resultados oficiales
+
+6.F.3B añade un agregado de snapshots encabezado por
+`CategoryOfficialResult`, separado de los partidos y rankings vivos. La tabla
+`category_official_results` identifica `category_id`, `competition_part`,
+`version` y `status`; conserva `officialized_at`,
+`officialized_by_user_id` y `officialized_by_name_snapshot`, además de
+`reopened_at`, `reopened_by_user_id`, `reopened_by_name_snapshot`,
+`reopen_reason` y `source_digest`. La columna técnica generada `current_slot`
+queda oculta de la serialización.
+
+La clave única `(category_id, competition_part, version)` hace estable cada
+secuencia. `current_slot = IF(status = 'official', 1, NULL)` junto con la clave
+única `(category_id, competition_part, current_slot)` permite varios
+históricos `reopened`, pero como máximo una versión `official` vigente de Liga
+y una de Copa por categoría. No existe estado de borrador: una parte sin fila
+vigente sigue siendo no oficial.
+
+El agregado se completa con tres tipos de hijo:
+
+- `category_official_league_rows` congela una clasificación completa:
+  `position`, `source_entry_id`, `source_player_id`, `source_team_id`,
+  `entry_type`, `identity_projection`, `played`, `wins`, `losses`, `points`,
+  `games_for`, `games_against` y `games_diff`, que admite negativos;
+- `category_official_cup_winners` congela sólo al campeón con sus fuentes de
+  entrada/jugador/equipo, `entry_type`, identidad y `source_final_match_id`, sin
+  modelar subcampeón ni tercer puesto;
+- `category_official_result_match_snapshots` congela
+  `source_game_match_id`, `source_round_id`, `stage`, `home_entry_id`,
+  `away_entry_id`, tanteos y `winner_entry_id`.
+
+La lectura histórica consume esos valores persistidos y no vuelve a calcular
+el resultado desde modelos vivos. `display_name_snapshot` conserva la
+identidad histórica interna mínima, mientras `public_display_name` y
+`public_anonymized_at` separan la futura proyección pública y su anonimización.
+El esquema excluye identificadores civiles, contacto, nacimiento, licencia,
+representación, autenticación, evidencias privadas, notas y fotografía.
+
+Los campos `source_*` son evidencia escalar y deliberadamente no tienen claves
+foráneas hacia entradas, jugadores, equipos, partidos o rondas. La relación
+desde el resultado hacia `Category` usa `RESTRICT`, por lo que el historial
+también detiene borrados transitivos de campeonato o temporada. Las referencias
+a los usuarios actores usan `SET NULL` y conservan los nombres snapshot. Sólo
+los hijos técnicos usan `CASCADE` al eliminar su versión; no existe todavía una
+operación de aplicación para borrar una versión oficial y las cascadas legadas
+ajenas a este agregado no se consideran corregidas.
+
+La migración es fail-closed ante colisiones: aborta y preserva el estado si
+cualquiera de las cuatro tablas ya existe. Cada tabla nueva se marca con
+`galotxas:6f3b:official-results`; ante un fallo parcial sólo se eliminan, en
+orden inverso, tablas iniciadas y marcadas por esa misma ejecución. Esto evita
+depender de una atomicidad DDL que no se atribuye a MariaDB. La migración no
+hace backfill y deja las cuatro tablas vacías.
+
+Los `CHECK` protegen versiones, digest, identidad, fuentes y resultados. El
+`CHECK` de reapertura no usa `reopened_by_user_id` para exigir coherencia de
+estado porque una versión `reopened` debe sobrevivir al borrado del actor
+mediante `ON DELETE SET NULL`; por ello tampoco impone desde esa constraint su
+nulidad cuando el estado es `official`. Fecha, nombre y motivo de reapertura sí
+quedan protegidos. No se añade un trigger: el servicio de lifecycle posterior
+completará esa garantía y esta limitación no se considera un defecto del cierre
+de persistencia.
+
+Este bloque aporta sólo persistencia y relaciones Eloquent. No implementa los
+servicios de oficialización/reapertura, locks o mutation guards, cálculo del
+digest, readiness, acción de anonimización, administración Blade, endpoints o
+Resources API ni presentación React.
+
 ## Arquitectura CMS pública
 
 La primera base backend del CMS público sigue el mismo patrón general del proyecto:
@@ -422,7 +490,7 @@ Los rankings de campeonato, temporada e histórico mantienen sus criterios agreg
 
 El envío se ejecuta dentro de una transacción MariaDB y bloquea la fila del partido con `lockForUpdate`. La restricción única por partido y lado, junto con la comprobación de dominio, impide que un mismo jugador o su compañero sobrescriban el reporte existente. Crear el segundo reporte, comparar ambos y validar el partido o marcar el conflicto constituye una única operación atómica.
 
-Una coincidencia valida ambos reportes y publica el resultado oficial. Una discrepancia conserva ambos como `conflict`, limpia cualquier tanteo oficial y mueve el partido a `under_review`.
+Una coincidencia valida ambos reportes y fija el resultado vivo del partido; no crea una versión oficial de categoría. Una discrepancia conserva ambos como `conflict`, limpia cualquier tanteo validado y mueve el partido a `under_review`.
 
 La interfaz Blade de conflictos entra por `Admin\MatchConflictController`: lista y carga exclusivamente partidos `under_review`, mientras `ResolveMatchConflictRequest` autoriza al administrador activo y valida la forma básica del tanteo. Tanto este controlador como el endpoint administrativo existente delegan la resolución en `MatchResultService`. El servicio abre una transacción, bloquea la fila del partido, vuelve a comprobar el estado y las reglas deportivas, fija tanteo, ganador y `validated_by`, y finalmente cambia el estado a `validated`. Los `MatchResultReport` se consultan para la revisión, pero nunca se reescriben durante la resolución.
 

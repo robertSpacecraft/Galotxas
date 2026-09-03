@@ -213,7 +213,7 @@ El seeder aborta salvo que coincidan simultáneamente `APP_ENV=e2e` y `DB_DATABA
 
 La suite es serial de forma deliberada: representa un único smoke narrativo sobre dos partidos sembrados, primero valida un resultado coincidente, después provoca una discrepancia y finalmente la resuelve desde el panel Blade. El estado inicial siempre procede de una base temporal nueva y se destruye al finalizar; nunca depende de IDs manuales ni de datos de desarrollo.
 
-E2E-1 cubre navegación pública y móvil, CTA principal, calendario público con jornadas y partidos, CMS, login real, bloques y acciones de Mi Panel, confirmación coincidente, discrepancia no editable, acceso real del administrador al panel Blade, revisión y resolución del conflicto, resultado oficial actualizado y ranking histórico. Dobles queda fuera del smoke porque dispone de cobertura Feature específica.
+E2E-1 cubre navegación pública y móvil, CTA principal, calendario público con jornadas y partidos, CMS, login real, bloques y acciones de Mi Panel, confirmación coincidente, discrepancia no editable, acceso real del administrador al panel Blade, revisión y resolución del conflicto, resultado validado actualizado y ranking histórico vivo. Dobles queda fuera del smoke porque dispone de cobertura Feature específica.
 
 ## DEPS-1 — Auditoría y actualización controlada
 
@@ -499,7 +499,7 @@ Las pruebas de integración se ejecutan exclusivamente sobre la instancia MariaD
 - rechazo sin cambios de negativos, empates, objetivos inválidos, estados no revisables y segundos intentos;
 - rollback completo ante un fallo de persistencia provocado después de actualizar el partido dentro de la transacción.
 
-`AdminDashboardTest` verifica el contador y el acceso a la sección desde el dashboard. El smoke Playwright valida el recorrido real desde la discrepancia comunicada por los jugadores hasta su resolución administrativa y la publicación del resultado oficial.
+`AdminDashboardTest` verifica el contador y el acceso a la sección desde el dashboard. El smoke Playwright valida el recorrido real desde la discrepancia comunicada por los jugadores hasta su resolución administrativa y la publicación del resultado validado del partido; no crea historia oficial de categoría.
 
 ## Área Privada "Mi Panel"
 - datos del usuario autenticado;
@@ -2020,6 +2020,65 @@ En staging, el preflight encontró dos temporadas —una `active`, una `planned`
 En producción, el preflight real fue cero temporadas, cero activas y cero estados inválidos; la migración quedó pendiente tras desplegar el código sobre el esquema anterior coherente. Antes de aplicarla se creó el snapshot restic `b4043cb7823e23727e581dcb3732aceac5e8897995433323870d92a3550e282b`, se completó `restic check` y el dump se restauró aisladamente sobre MariaDB 11.4 con integridad verificada. La única ejecución efectiva y manual quedó en el batch 2, con default, columna generada e índice correctos y datos de negocio idénticos antes y después. `/up` y `/api/v1/seasons` respondieron `200`, el payload vacío fue correcto, `active_slot` no se serializó y no aparecieron `SQLSTATE` ni respuestas `5xx`. La validación humana fue PASS.
 
 El dataset productivo continúa con cero temporadas. Por ello no se fabricaron registros para editar una activa, intentar una segunda o liberar su slot en producción. Esta limitación de datos no bloquea 6.F.3A: los flujos se validaron localmente y en staging, y la integridad del esquema se verificó también en producción. El dump lógico de staging y el snapshot productivo permanecen retenidos conforme al gate de migración.
+
+## CATEGORY-OFFICIAL-RESULT-PERSISTENCE-6F3B-1 — Persistencia versionada (CLOSED / PASS)
+
+Ejecutado sobre el commit funcional
+`bf698708712a6682fa4a7faf6b8ce22defa1fd98`:
+
+- dominio y persistencia de 6.F.3B: 28 tests y 173 aserciones;
+- migración focalizada: 4 tests y 92 aserciones;
+- regresión backend dirigida: 129 tests y 1.245 aserciones;
+- suite backend completa: 613 tests y 4.755 aserciones;
+- Pint sobre el scope modificado, `php -l` y `git diff --check`: PASS.
+
+La cobertura verifica el lifecycle `official`/`reopened`, secuencias de versión,
+convivencia de una versión vigente de Liga y otra de Copa, unicidad del slot por
+parte, clasificación completa con diferencia negativa, campeón único, snapshots
+de partido inmutables, minimización de identidad y ausencia de campos sensibles.
+También acredita `RESTRICT` para la categoría y sus ancestros, `SET NULL` de
+actores conservando nombres snapshot, independencia de las fuentes vivas y
+`CASCADE` limitado a los hijos técnicos de una versión.
+
+La migración se prueba explícitamente ante tabla preexistente y fallo parcial:
+una colisión aborta sin alterar ni borrar la tabla encontrada; la limpieza sólo
+alcanza tablas iniciadas en esa ejecución que conservan el marcador
+`galotxas:6f3b:official-results`. No se atribuye transaccionalidad al DDL de
+MariaDB.
+
+En staging, el preflight registró 2 categorías, 10 entradas, 49 partidos, 40
+tablas, 43 migraciones y 59 claves foráneas, con cero filas en las cuatro tablas
+objetivo porque todavía no existían. Se generó el dump lógico consistente
+`galotxas-staging-pre-6f3b-20260903T051039Z.sql.gz`, se verificó y se restauró
+aisladamente sobre MariaDB 11.4.10 con checksum correcto. La migración se aplicó
+manualmente una única vez en el batch 6: el esquema pasó a 44 tablas y 65 claves
+foráneas, y las cuatro tablas nuevas quedaron a cero. El smoke confirmó que la
+API y `CategoryPublicResource` seguían sin cambios, sin `current_slot`,
+`officialResults` ni interfaz de oficialización. La aceptación humana fue PASS.
+
+En producción, el preflight real registró 0 categorías, 0 entradas, 0 partidos,
+40 tablas, 43 migraciones y 59 claves foráneas, también con cero filas objetivo.
+Antes de migrar se creó el snapshot restic
+`f79338f9b5b1be2118ce775cbb494eab2fd8b7ac6ecd6bc9a3dd58ee9b970c9a`, con tag
+`galotxas-pre-6f3b`; `restic check` y la restauración aislada sobre MariaDB
+11.4.10 validaron su integridad. La única ejecución manual quedó en el batch 3,
+con 44 tablas, 65 claves foráneas y backfill cero. `/up` respondió `200`; las
+rutas públicas reales respondieron `200` o `404` según el dataset vacío, sin
+endpoint de resultados oficiales, serialización accidental, `SQLSTATE` ni
+respuestas `5xx`. `deploy:check` y la aceptación humana fueron PASS.
+
+El dataset productivo vacío impidió verificar allí mediante datos reales los
+snapshots, mutaciones de fuentes o el bloqueo `RESTRICT`; no se insertaron,
+alteraron ni borraron registros artificiales. La limitación no bloquea 6.F.3B:
+las constraints y relaciones se probaron en MariaDB aislada, el staging con
+datos no se mutó, ambos esquemas quedaron verificados y el backfill fue cero.
+El dump de staging y el snapshot productivo permanecen retenidos conforme al
+gate; su revisión futura seguirá la política normal de retención.
+
+Quedan fuera de este cierre los servicios de oficialización y reapertura, los
+mutation guards y locks comunes, el cálculo de `source_digest`, readiness,
+integración efectiva con `PublicPlayerIdentityService`, acción de anonimización,
+administración Blade, API y presentación React.
 
 ### Deuda E2E global independiente: admin CMS (abierta)
 
