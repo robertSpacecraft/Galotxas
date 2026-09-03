@@ -237,6 +237,14 @@ Las escrituras reutilizan los Form Requests de Blade cuando el contrato coincide
 
 `AdminSeasonResource`, `AdminChampionshipResource` y `AdminCategoryResource` delimitan las respuestas de este contexto y exponen `is_public` junto con los datos administrativos necesarios. Los Resources públicos permanecen independientes, no incluyen ese flag y reciben exclusivamente consultas ya filtradas. Esta separación evita que la capacidad administrativa de consultar entidades privadas debilite la visibilidad efectiva pública.
 
+## Integridad del ciclo de vida de temporadas
+
+`SeasonService` centraliza la creación, actualización y cambio de estado de temporadas para el panel Blade y la API administrativa. Ejecuta la escritura en transacción, bloquea las filas de temporadas para serializar el precheck y convierte el conflicto de persistencia conocido en un error de validación sobre `status`. El `FormRequest` repite un precheck temprano para ofrecer feedback comprensible, pero no es la defensa definitiva.
+
+MariaDB conserva la invariante incluso ante escrituras concurrentes mediante la columna generada almacenada `active_slot = IF(status = 'active', 1, NULL)` y el índice único `seasons_one_active_unique`. Los múltiples `NULL` permiten cero o varias temporadas no activas; el único valor `1` limita el sistema a una sola `Season` activa. El default de `status` es `planned`, coherente con `SeasonStatus`; `active_slot` permanece oculto en la serialización del modelo.
+
+La defensa completa combina transacción, locks, índice único y traducción de la violación de unicidad a mensaje de dominio. La cobertura automatizada verifica cada capa y simula la traducción del conflicto de base de datos, pero no acredita que se haya ejecutado una carrera temporal real entre dos peticiones. React no reproduce esta integridad y los estados operativos `finished` o `cancelled` de temporada/campeonato continúan separados de cualquier oficialización deportiva futura.
+
 ## Arquitectura CMS pública
 
 La primera base backend del CMS público sigue el mismo patrón general del proyecto:

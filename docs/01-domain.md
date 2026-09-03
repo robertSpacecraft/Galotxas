@@ -105,6 +105,12 @@ Temporada
 
 Esta estructura constituye la organización oficial del dominio.
 
+## Ciclo de vida de temporada y oficialidad
+
+`SeasonStatus` admite `planned`, `active`, `finished` y `cancelled`. Las nuevas temporadas nacen `planned`; el default histórico `pending` ya no forma parte de este contrato. El dominio admite cero o una temporada `active`, pero nunca dos o más. Backend y MariaDB son la fuente de verdad de esta invariante: React no la impone y puede conservar el fallback defensivo de presentación introducido en 6.F.2 sin convertirlo en una regla deportiva del cliente.
+
+Los estados `finished` y `cancelled`, tanto en `Season` como en `Championship`, describen el ciclo administrativo u operativo. No certifican un resultado, no crean un snapshot oficial y no exigen que todos los resultados deportivos existan. En particular, una entidad `cancelled` nunca requiere resultado oficial; `finished` tampoco implica ni garantiza oficialidad y no sustituye el dominio de resultados oficiales previsto desde 6.F.3B.
+
 ## Visibilidad pública de la competición
 
 Temporadas, campeonatos y categorías disponen de una visibilidad pública declarada mediante `is_public`. Esta propiedad representa la intención administrativa de que la entidad pueda formar parte de la experiencia pública y es independiente de su estado operativo, sus fechas, la apertura de inscripciones, el calendario o los resultados.

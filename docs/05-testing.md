@@ -2004,6 +2004,23 @@ perfil de jugador y los cinco paneles se mantuvieron presentes; las mutaciones
 reales de formularios, foto y datos no se ejecutaron deliberadamente. Esta
 limitación no destructiva del smoke no es un defecto conocido del microbloque.
 
+## SEASON-ACTIVE-LIFECYCLE-6F3A-1 — Temporada activa única (CLOSED / PASS)
+
+Ejecutado sobre el commit funcional
+`dc517f1635817ad63c60dd9ab8e0e1b493ff1624`:
+
+- regresión dirigida: 36 tests y 260 aserciones;
+- suite backend completa: 585 tests y 4.582 aserciones;
+- Pint sobre el scope modificado, `php -l` y `git diff --check`: PASS;
+- cero o una temporada `active`, default `planned`, liberación del slot y rechazo de una segunda activa cubiertos en servicio, Blade, API administrativa y constraint MariaDB;
+- la traducción de la violación unique se prueba de forma controlada; no se ejecutó ni se acredita una carrera temporal real entre peticiones.
+
+En staging, el preflight encontró dos temporadas —una `active`, una `planned` y ninguna inválida— con la migración pendiente. Se tomó un dump lógico consistente, se verificó su SHA-256 y se restauró completamente sobre MariaDB 11.4. La migración se aplicó manualmente una sola vez en el batch 5; confirmó default `planned`, `active_slot` generado e índice único, sin cambios silenciosos en los datos de negocio. El smoke permitió editar la temporada activa sin cambiar su estado, rechazó una segunda activa también por API administrativa con `422`, mantuvo correctos `/up` y `/api/v1/seasons` y no expuso `active_slot`. La validación humana fue PASS.
+
+En producción, el preflight real fue cero temporadas, cero activas y cero estados inválidos; la migración quedó pendiente tras desplegar el código sobre el esquema anterior coherente. Antes de aplicarla se creó el snapshot restic `b4043cb7823e23727e581dcb3732aceac5e8897995433323870d92a3550e282b`, se completó `restic check` y el dump se restauró aisladamente sobre MariaDB 11.4 con integridad verificada. La única ejecución efectiva y manual quedó en el batch 2, con default, columna generada e índice correctos y datos de negocio idénticos antes y después. `/up` y `/api/v1/seasons` respondieron `200`, el payload vacío fue correcto, `active_slot` no se serializó y no aparecieron `SQLSTATE` ni respuestas `5xx`. La validación humana fue PASS.
+
+El dataset productivo continúa con cero temporadas. Por ello no se fabricaron registros para editar una activa, intentar una segunda o liberar su slot en producción. Esta limitación de datos no bloquea 6.F.3A: los flujos se validaron localmente y en staging, y la integridad del esquema se verificó también en producción. El dump lógico de staging y el snapshot productivo permanecen retenidos conforme al gate de migración.
+
 ### Deuda E2E global independiente: admin CMS (abierta)
 
 La instantánea 67/68 del ciclo de 6.F.2 conserva abierto el fallo del dropdown

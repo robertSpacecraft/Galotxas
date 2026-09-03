@@ -190,10 +190,13 @@ Las únicas transiciones son `planned → completed` y `planned → cancelled`; 
 La ruta `/admin/seasons` centraliza el CRUD Blade de temporadas.
 
 - El formulario gestiona los campos reales `name`, `status`, `is_public`, `start_date` y `end_date`.
-- El nombre y el estado son obligatorios; el estado se valida contra los casos reales de `SeasonStatus`.
+- El nombre y el estado son obligatorios; `SeasonStatus` admite `planned`, `active`, `finished` y `cancelled`, y la creación propone `planned` como default.
 - Las fechas de inicio y fin son opcionales y se editan mediante controles HTML `date`.
 - Cuando se informan ambas fechas, la fecha de fin debe ser igual o posterior a la fecha de inicio.
-- La creación y actualización reciben exclusivamente datos validados y persisten explícitamente los cuatro campos, incluidos los valores nulos al limpiar las fechas.
+- La creación y actualización reciben exclusivamente datos validados, comparten `SeasonService` con la API administrativa y persisten explícitamente los cuatro campos, incluidos los valores nulos al limpiar las fechas.
+- Puede no existir ninguna temporada activa o existir una sola. El panel rechaza crear o activar una segunda `active` con un error sobre el estado; editar la activa actual está permitido y pasarla a `planned`, `finished` o `cancelled` libera el slot para otra temporada.
+- El precheck del formulario mejora el feedback, mientras la transacción, los locks y la restricción única de MariaDB conservan la integridad final.
+- `finished` y `cancelled` son estados administrativos/operativos. No certifican un resultado oficial: cancelar nunca lo exige y finalizar no implica ni garantiza que exista.
 - La edición presenta el estado casteado correcto y da prioridad a `old()` después de un error de validación.
 - El listado conserva la presentación de estado y fechas, y el acceso requiere una sesión de administrador activo.
 - El checkbox «Visible públicamente» se envía siempre como booleano, crea temporadas privadas por defecto y se presenta por separado del estado como Pública o Privada.
@@ -244,7 +247,7 @@ Las rutas `/admin/championships/{championship}/categories/*` y `/admin/categorie
 
 ### Correspondencia con la API administrativa
 
-Los formularios Blade no han cambiado en la Fase 2B.5. La API administrativa de temporadas, campeonatos y categorías reutiliza sus mismas reglas de campos, enums, fechas y jerarquía de visibilidad mediante Form Requests. Ambos canales persisten únicamente atributos validados y asignan `is_public` de forma explícita.
+Los formularios Blade no cambiaron en la Fase 2B.5. La API administrativa de temporadas, campeonatos y categorías reutiliza sus mismas reglas de campos, enums, fechas y jerarquía de visibilidad mediante Form Requests. Ambos canales persisten únicamente atributos validados y asignan `is_public` de forma explícita. Desde 6.F.3A, las escrituras de temporadas comparten además `SeasonService` y el mismo rechazo de una segunda temporada activa.
 
 La API mantiene acceso a registros privados y no aplica scopes públicos. `image_path` continúa fuera de los formularios y del payload API, se conserva al editar y requiere un bloque multimedia futuro para administrarse. La creación API plana de una categoría exige el campeonato existente; las actualizaciones, igual que Blade, no permiten cambiar esa relación.
 

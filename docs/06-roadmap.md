@@ -375,19 +375,31 @@ quedaron validados automática y humanamente. Los smokes productivos
 interceptaron las APIs privadas y no realizaron mutaciones reales, por diseño
 no destructivo.
 
-#### Siguiente bloque: 6.F.3 — Dominio de resultados oficiales
+#### 6.F.3A — Ciclo de vida de temporada activa única (CLOSED / PASS)
 
-6.F.3 es el siguiente bloque oficial. Empezará en backend y definirá snapshots
-oficiales persistidos, identidad deportiva congelada, oficialización
-independiente de Liga y Copa y reapertura administrativa trazable con motivo
-obligatorio. `is_public` continuará significando visibilidad, no oficialidad;
-el estado actual de categoría todavía no expresa un cierre oficial. La primera
-versión sólo oficializará cuando el dominio vigente permita un cierre válido,
-sin inventar tanteos para walkover, abandono o descalificación, y mantendrá
-como invariante futura un máximo de una temporada `active`.
+El commit funcional `dc517f1635817ad63c60dd9ab8e0e1b493ff1624`
+alinea `SeasonStatus` y el default de persistencia con `planned`, `active`,
+`finished` y `cancelled`. `SeasonService` centraliza las escrituras Blade y API
+administrativa; MariaDB garantiza mediante `active_slot` generado e índice
+único que cero o una temporada activa son estados válidos y dos o más no lo
+son. React no aplica esta integridad y puede conservar el fallback defensivo de
+6.F.2.
 
-Este documento no diseña ni inicia 6.F.3. La presentación React del resultado
-final corresponderá a 6.F.4, después de cerrar el dominio.
+Los estados `finished` y `cancelled` de `Season` y `Championship` son
+administrativos/operativos: no equivalen a un resultado oficial, no crean un
+snapshot y no exigen que todos los resultados existan. La migración manual,
+backup/restore, smoke y aceptación humana pasaron en staging y producción. El
+dataset productivo real permanece en cero temporadas; no se crearon datos
+artificiales y esa limitación no bloquea el cierre.
+
+#### Siguiente bloque: 6.F.3B — Persistencia/versionado de resultados oficiales
+
+6.F.3B es el siguiente microbloque oficial. Incorporará nuevas tablas o
+entidades para la persistencia y el versionado del resultado oficial, su
+lifecycle `official`/`reopened`, snapshots inicialmente vacíos y sus
+constraints, sin acciones administrativas ni presentación React. Este cierre
+no lo diseña de nuevo ni lo inicia; 6.F.3C/D/E y la presentación posterior
+permanecen fuera de alcance.
 
 ### 4. 6.C — Imágenes de Temporadas, Campeonatos y Categorías
 
@@ -543,6 +555,8 @@ repiten aquí:
 
 ## Competición y datos
 
+- implementar 6.F.3B+ sin reutilizar `finished` o `cancelled` como oficialidad y aclarar la semántica histórica de `official_ranking`;
+- revisar en bloques separados la consistencia de `Round.phase/stage`, la integridad de `CategoryEntry`, las cascadas destructivas y los resultados sin tanteo por walkover, abandono o descalificación;
 - coordinar disponibilidad de pistas entre categorías distintas;
 - proteger generaciones concurrentes con una estrategia de bloqueo;
 - trasladar la unicidad del nombre de pista, hoy validada en formularios, a una restricción de base de datos;
@@ -550,6 +564,8 @@ repiten aquí:
 
 ## Mantenibilidad
 
+- resolver por separado el aviso pendiente de Railway Config as Code sin mezclarlo con el dominio deportivo;
+- mantener documentada la incompatibilidad histórica del rollback global y su estrategia DB forward-only;
 - dividir `frontend/src/pages/Dashboard.jsx` por responsabilidades;
 - reducir responsabilidades del `Api\V1\MatchController`;
 - limpiar rutas/componentes heredados y duplicados sin alterar el contrato;
@@ -558,6 +574,7 @@ repiten aquí:
 
 ## Calidad
 
+- resolver la deuda E2E 67/68 del dropdown del CMS administrativo, independiente de 6.F.2 y 6.F.3A;
 - decidir si aporta valor una métrica porcentual de cobertura frontend;
 - ampliar E2E a navegadores adicionales cuando el riesgo de compatibilidad lo justifique;
 - extender el smoke más allá del relato crítico sin convertirlo en sustituto de Feature tests.
