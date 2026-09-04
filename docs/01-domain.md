@@ -206,9 +206,43 @@ dominio competitivo.
 
 La persistencia nace vacía: no hay backfill ni conversión automática de
 partidos validados, rankings dinámicos o estados `finished` en historia
-oficial. Los servicios para oficializar o reabrir, proteger mutaciones base,
-calcular `source_digest`, evaluar readiness e integrar de forma efectiva
-`PublicPlayerIdentityService` pertenecen a bloques posteriores.
+oficial. Los servicios para oficializar o reabrir, calcular `source_digest`,
+evaluar readiness e integrar de forma efectiva `PublicPlayerIdentityService`
+pertenecen a bloques posteriores.
+
+## Protección de la evidencia oficial vigente
+
+6.F.3C protege los datos vivos que sirven de fuente a un resultado oficial
+vigente. Un resultado histórico ya `reopened` no congela las mutaciones
+ordinarias, aunque continúa impidiendo el borrado de su categoría y ancestros
+por la integridad histórica.
+
+La matriz de protección es deliberadamente asimétrica:
+
+- un cambio de resultado o estructura de Liga se bloquea si la categoría tiene
+  un resultado oficial vigente de Liga o de Copa, porque el cuadro de Copa
+  depende del ranking y del seeding de Liga;
+- una mutación de semifinal o Final de Copa se bloquea cuando existe un
+  resultado oficial vigente de Copa; un oficial únicamente de Liga no impide
+  construir la Copa;
+- altas, bajas y cambios en participantes, inscripciones, equipos o miembros se
+  bloquean ante un oficial vigente de cualquiera de las dos partes;
+- el tercer puesto no forma parte del resultado oficial v1 y puede cambiar sólo
+  cuando se identifica estructuralmente de forma inequívoca; cualquier partido
+  cuya clasificación sea ambigua falla de forma cerrada ante un oficial
+  vigente.
+
+La protección abarca marcador, ganador, estado y validación del partido,
+fecha, hora, pista, rondas y estructura, generación o regeneración de Liga y
+Copa cuando corresponda, composición de participantes, borrados de la
+jerarquía y cambios del tipo de campeonato que alteren sus reglas. No existe
+bypass administrativo, force-delete de un oficial ni reapertura en 6.F.3C.
+
+Los estados administrativos de temporada y campeonato —incluidos `finished` y
+`cancelled`—, la visibilidad pública, el contenido editorial, el nombre vivo de
+equipos y la identidad, perfil o fotografía actuales de jugadores permanecen
+separados de la evidencia snapshot y pueden seguir modificándose. Estas
+ediciones no oficializan, reabren ni recalculan un resultado deportivo.
 
 
 ## Particularidades de Copa

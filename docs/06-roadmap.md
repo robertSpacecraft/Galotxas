@@ -416,12 +416,33 @@ fabricaron datos y las constraints se validaron en MariaDB aislada y staging.
 readiness, mutation guards, acción de anonimización, administración, API ni
 React.
 
-#### Siguiente bloque: 6.F.3C — locking común y mutation guards
+#### 6.F.3C — Locking común y mutation guards (CLOSED / PASS)
 
-6.F.3C es el siguiente microbloque oficial. Deberá abordar conceptualmente el
-orden común de locks, la protección de mutaciones base cuando exista una
-versión oficial vigente y la consistencia entre Liga y Copa, preparando los
-servicios posteriores. Este cierre no lo diseña ni lo implementa.
+El commit funcional `82d5c35b3c1b20fe6595c4d25f775298b765a154`
+establece un mutex por categoría y un orden determinista de locks sobre la
+categoría, los oficiales vigentes —Liga antes que Copa—, rondas, partidos,
+entradas y equipos. Los writers de resultados, estructura y participantes
+aplican una matriz común: Liga queda protegida ante un oficial de Liga o Copa,
+las fases decisivas de Copa ante un oficial de Copa y los participantes ante
+cualquiera de las dos partes. Los casos ambiguos fallan cerrados, el tercer
+puesto inequívoco permanece fuera de v1 y los borrados combinan precheck con
+`RESTRICT`, sin bypass administrativo.
+
+Las suites focal, dirigida y completa, las comprobaciones de calidad y la
+aceptación automática y humana pasaron localmente, en staging y en producción.
+No hubo migración. Producción conserva a cero las nueve tablas deportivas
+implicadas y no se fabricaron fixtures; esa limitación no bloquea un guard
+condicionado acreditado en MariaDB aislada. 6.F.3C no oficializa, no reabre, no
+calcula el digest y no incorpora UI ni contrato público de resultado oficial.
+
+#### Siguiente bloque: 6.F.3D — Oficialización y reapertura de Liga
+
+6.F.3D es el siguiente microbloque oficial y continúa pendiente de
+Definition/Audit. Implementará la readiness, creación de snapshot, digest y
+reapertura de Liga reutilizando exactamente el mutex por `Category` de 6.F.3C.
+Después seguirán, sin estar iniciados, 6.F.3E para Copa, 6.F.3F para Blade e
+historial administrativo, 6.F.3G para el API público `official-results` y
+6.F.4 para la presentación final en React.
 
 ### 4. 6.C — Imágenes de Temporadas, Campeonatos y Categorías
 
@@ -577,7 +598,7 @@ repiten aquí:
 
 ## Competición y datos
 
-- continuar 6.F.3C+ sin reutilizar `finished` o `cancelled` como oficialidad;
+- continuar 6.F.3D+ sin reutilizar `finished` o `cancelled` como oficialidad;
 - aclarar por separado la semántica histórica de `official_ranking`;
 - revisar en bloques separados la consistencia de `Round.phase/stage`, la integridad débil de `CategoryEntry`, las cascadas destructivas heredadas y los resultados sin tanteo por walkover, abandono o descalificación;
 - coordinar disponibilidad de pistas entre categorías distintas;

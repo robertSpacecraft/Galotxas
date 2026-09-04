@@ -2075,10 +2075,58 @@ datos no se mutó, ambos esquemas quedaron verificados y el backfill fue cero.
 El dump de staging y el snapshot productivo permanecen retenidos conforme al
 gate; su revisión futura seguirá la política normal de retención.
 
-Quedan fuera de este cierre los servicios de oficialización y reapertura, los
-mutation guards y locks comunes, el cálculo de `source_digest`, readiness,
-integración efectiva con `PublicPlayerIdentityService`, acción de anonimización,
-administración Blade, API y presentación React.
+Quedaron fuera del cierre de 6.F.3B los servicios de oficialización y
+reapertura, los mutation guards y locks comunes, el cálculo de `source_digest`,
+readiness, integración efectiva con `PublicPlayerIdentityService`, acción de
+anonimización, administración Blade, API y presentación React. La sección
+siguiente registra los guards incorporados posteriormente por 6.F.3C.
+
+## OFFICIAL-RESULT-MUTATION-GUARDS-6F3C-1 — Locking común y protección (CLOSED / PASS)
+
+Ejecutado sobre el commit funcional
+`82d5c35b3c1b20fe6595c4d25f775298b765a154`:
+
+- suite focal de 6.F.3C: 39 tests y 218 aserciones;
+- regresión backend dirigida: 168 tests y 1.265 aserciones;
+- suite backend completa: 641 tests y 4.844 aserciones;
+- Pint sobre el diff funcional, `php -l` de los archivos afectados y
+  `git diff --check`: PASS.
+
+La cobertura valida el mutex por categoría, el orden estable Liga antes que
+Copa y la secuencia posterior de rondas, partidos, entradas y equipos dentro
+de la misma transacción. Verifica la matriz Liga/Copa/participantes, el tercer
+puesto inequívoco, el fallo cerrado de partidos ambiguos, los writers de
+resultado y calendario, la generación de Liga y Copa, la composición de
+participantes, los borrados y el cambio de tipo de campeonato. También prueba
+que una historia `reopened` no bloquea mutaciones ordinarias pero conserva
+`RESTRICT` para el borrado, que Blade presenta el mensaje de dominio, que la
+API devuelve `409` con `{message, data:null}` y que el dato no cambia tras el
+rechazo.
+
+La aceptación humana local fue PASS para el funcionamiento normal sin oficial,
+el bloqueo de partido y participantes, la dependencia del oficial de Copa
+respecto de Liga, la protección de generación/regeneración de Copa, los cambios
+administrativos permitidos y el feedback Blade. Staging completó despliegue,
+smoke y aceptación humana con datos antes/después intactos y sin crear fixtures
+oficiales. Producción completó despliegue Railway, healthcheck `/up`, smoke HTTP,
+ausencia de nuevos `5xx`, invariante de datos y aceptación humana; Vercel quedó
+`READY` con Legal, SEO y build correctos.
+
+El dataset productivo real registró cero filas en `seasons`, `championships`,
+`categories`, `category_entries`, `game_matches`, `category_official_results`,
+`category_official_league_rows`, `category_official_cup_winners` y
+`category_official_result_match_snapshots`. No se fabricaron datos para probar
+allí un bloqueo condicionado; la matriz queda acreditada localmente sobre
+MariaDB aislada y el smoke remoto no destructivo no invalida el cierre. Tampoco
+se acredita aún una carrera E2E writer frente a officialize/reopen: los
+servicios que permitirán probarla pertenecen a 6.F.3D y 6.F.3E.
+
+Pint global no fue PASS: permanecen 23 incidencias preexistentes fuera del
+scope, aunque el diff funcional sí pasó. Chromium no arrancó en el host de
+automatización productivo por ausencia de `libnspr4`; el smoke HTTP y la
+validación humana productiva sí fueron PASS. Los avisos npm de Vercel —uno
+moderado y uno alto— son preexistentes e independientes de este cambio
+backend-only.
 
 ### Deuda E2E global independiente: admin CMS (abierta)
 

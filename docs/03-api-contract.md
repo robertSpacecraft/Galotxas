@@ -223,20 +223,37 @@ El endpoint independiente `POST /admin/categories/{category}/entries` administra
 
 Las rutas `/admin/*` definidas en `routes/web.php` son páginas y formularios web con sesión, CSRF, middleware `auth` e `IsAdmin`. No pertenecen a la API REST, no usan el prefijo `/api/v1` y se documentan en `04-admin-panel.md`.
 
-### Persistencia oficial todavía fuera del contrato API
+### Resultados oficiales y conflictos de mutación
 
-6.F.3B incorpora modelos y tablas para versionar resultados oficiales por
-categoría y parte, pero no crea endpoints públicos, autenticados o
-administrativos ni añade un Resource. `CategoryPublicResource`, las respuestas
-de categoría, clasificación, calendario, partido y los contratos de Mi Panel
-permanecen sin cambios: no serializan `official_results`, snapshots,
-`source_digest`, `current_slot` ni metadatos de actores.
+6.F.3B incorporó modelos y tablas para versionar resultados oficiales por
+categoría y parte. 6.F.3C protege los writers existentes, pero no crea
+endpoints públicos, autenticados o administrativos ni añade un Resource de
+resultados oficiales. `CategoryPublicResource`, las respuestas de categoría,
+clasificación, calendario, partido y los contratos de Mi Panel permanecen sin
+cambios: no serializan `official_results`, snapshots, `source_digest`,
+`current_slot` ni metadatos de actores.
+
+Cuando una escritura JSON intenta modificar evidencia protegida por un
+resultado oficial vigente, o borrar una jerarquía que conserva historia
+oficial, la API responde `409 Conflict` con el envelope estable:
+
+```json
+{
+  "message": "No se puede modificar este dato porque la categoría tiene un resultado oficial vigente. Reabre primero el resultado oficial correspondiente.",
+  "data": null
+}
+```
+
+El mensaje de borrado histórico cambia para describir esa causa, pero conserva
+el mismo código y shape. No es un error de validación `422` ni existe bypass
+administrativo; la operación se revierte sin mutación parcial.
 
 Los tanteos validados y rankings que ya publica la API continúan representando
 el estado deportivo vivo; no deben confundirse con la historia oficial
-versionada ni se convierten automáticamente en ella. La exposición de una
-versión oficial requerirá un bloque posterior con autorización, proyección de
-identidad, contrato allowlisted y pruebas específicas.
+versionada ni se convierten automáticamente en ella. Aún no existe
+`GET /api/v1/categories/{category}/official-results`: su futura incorporación
+requerirá autorización, proyección de identidad, contrato allowlisted y pruebas
+específicas.
 
 ---
 

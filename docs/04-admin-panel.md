@@ -247,7 +247,7 @@ Las rutas `/admin/championships/{championship}/categories/*` y `/admin/categorie
 
 ### Correspondencia con la API administrativa
 
-Los formularios Blade no cambiaron en la Fase 2B.5. La API administrativa de temporadas, campeonatos y categorías reutiliza sus mismas reglas de campos, enums, fechas y jerarquía de visibilidad mediante Form Requests. Ambos canales persisten únicamente atributos validados y asignan `is_public` de forma explícita. Desde 6.F.3A, las escrituras de temporadas comparten además `SeasonService` y el mismo rechazo de una segunda temporada activa.
+Los formularios Blade no cambiaron en la Fase 2B.5. La API administrativa de temporadas, campeonatos y categorías reutiliza sus mismas reglas de campos, enums, fechas y jerarquía de visibilidad mediante Form Requests. Ambos canales persisten únicamente atributos validados y asignan `is_public` de forma explícita. Desde 6.F.3A, las escrituras de temporadas comparten además `SeasonService` y el mismo rechazo de una segunda temporada activa. Desde 6.F.3C, Blade y API comparten también los guards de evidencia oficial y la protección de borrado de la jerarquía.
 
 La API mantiene acceso a registros privados y no aplica scopes públicos. `image_path` continúa fuera de los formularios y del payload API, se conserva al editar y requiere un bloque multimedia futuro para administrarse. La creación API plana de una categoría exige el campeonato existente; las actualizaciones, igual que Blade, no permiten cambiar esa relación.
 
@@ -494,16 +494,33 @@ El dashboard muestra el número de conflictos pendientes y enlaza al listado. La
 
 ## Resultados oficiales de categoría
 
-6.F.3B aporta únicamente la persistencia versionada de resultados oficiales
-de Liga y Copa. El panel Blade no dispone todavía de listado, detalle, acción
-de oficializar, reapertura, anonimización ni borrado para
-`CategoryOfficialResult`; tampoco calcula o rellena `source_digest`.
+6.F.3C protege desde los flujos Blade actuales la evidencia asociada a un
+resultado oficial vigente. Quedan bloqueados, según la parte oficial afectada:
+
+- marcador, ganador, estado, validación, fecha, hora y pista de partidos;
+- generación, regeneración o eliminación de estructura de Liga y de las fases
+  decisivas de Copa;
+- altas, bajas y composición de inscripciones, participantes, equipos y sus
+  miembros;
+- cambio de tipo de campeonato y borrados de categoría, campeonato o temporada
+  que afecten historia oficial.
+
+El panel vuelve a la pantalla anterior sin aplicar cambios y muestra el mensaje
+de dominio: «No se puede modificar este dato porque la categoría tiene un
+resultado oficial vigente. Reabre primero el resultado oficial
+correspondiente.». No hay bypass administrativo ni force-delete.
+
+Continúan permitidos los estados administrativos de temporada y campeonato,
+`is_public`, nombres y demás metadatos editoriales, el nombre vivo de equipo y
+la identidad, perfil o fotografía actuales del jugador. Esos cambios no
+alteran el snapshot oficial. El tercer puesto queda fuera de v1 y sólo se
+modifica cuando el backend lo identifica inequívocamente.
 
 La resolución administrativa de conflictos de partido descrita arriba sigue
 siendo un flujo distinto y no crea automáticamente una versión oficial de
-categoría. Los servicios de lifecycle, permisos, readiness, locking y mutation
-guards deberán existir antes de incorporar cualquier acción administrativa en
-un bloque posterior.
+categoría. El panel Blade aún no dispone de listado o historial de
+`CategoryOfficialResult`, acción de oficializar, reapertura, anonimización ni
+borrado, y tampoco calcula o rellena `source_digest`.
 
 ---
 

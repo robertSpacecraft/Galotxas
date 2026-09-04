@@ -308,10 +308,52 @@ quedan protegidos. No se añade un trigger: el servicio de lifecycle posterior
 completará esa garantía y esta limitación no se considera un defecto del cierre
 de persistencia.
 
-Este bloque aporta sólo persistencia y relaciones Eloquent. No implementa los
+El alcance de 6.F.3B aportó sólo persistencia y relaciones Eloquent. No incluyó
 servicios de oficialización/reapertura, locks o mutation guards, cálculo del
 digest, readiness, acción de anonimización, administración Blade, endpoints o
 Resources API ni presentación React.
+
+## Locking común y mutation guards de resultados oficiales
+
+6.F.3C incorpora una única disciplina de concurrencia para los writers que
+pueden alterar la evidencia viva. `OfficialResultLockService` adquiere el
+mutex por categoría y devuelve un `OfficialResultLock` con la categoría y sus
+resultados vigentes. Para varias categorías ordena por identificador y, dentro
+de cada una, bloquea los resultados de Liga antes que los de Copa. Sus métodos
+de lock sólo pueden invocarse dentro de una transacción activa.
+
+El orden completo y obligatorio es:
+
+1. `Category`;
+2. `CategoryOfficialResult` vigente, con `league` antes que `cup`;
+3. `Round`;
+4. `GameMatch`;
+5. `CategoryEntry` y `Team`.
+
+Todos esos locks y la escritura protegida comparten la misma transacción.
+`OfficialResultMutationGuard` clasifica el impacto antes de mutar: Liga y
+participantes consultan ambas partes oficiales, mientras semifinal y Final de
+Copa dependen de la parte Copa. El tercer puesto inequívoco queda fuera de v1;
+un `Round` o partido que no pueda clasificarse con certeza usa la protección
+de ambas partes y falla de forma cerrada.
+
+`OfficialResultProtectedDeletionService` aplica el mismo orden a los borrados
+de categoría, campeonato y temporada. Un oficial vigente activa el guard; una
+versión histórica `reopened` activa un precheck específico y la clave foránea
+`RESTRICT` permanece como última defensa. No existe un bypass de administrador,
+un force-delete ni una operación normal que elimine historia oficial.
+
+`ChampionshipMutationService` centraliza la actualización de campeonato: sólo
+cuando cambia `type` adquiere los locks de todas sus categorías y protege el
+cambio de reglas; estado, visibilidad y metadatos admitidos siguen siendo
+mutables. Los writers de resultados, calendario, generación de Liga/Copa y
+composición de participantes reutilizan los mismos servicios en lugar de
+implementar prechecks aislados.
+
+6.F.3C no crea ni reabre resultados oficiales y tampoco calcula
+`source_digest`. Los servicios de 6.F.3D y 6.F.3E deberán adquirir exactamente
+el mismo mutex `Category` antes de oficializar o reabrir; sólo entonces podrá
+acreditarse una carrera E2E real entre esos servicios y los writers actuales.
 
 ## Arquitectura CMS pública
 

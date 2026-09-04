@@ -2188,8 +2188,69 @@ Consecuencias:
 - El commit funcional `bf698708712a6682fa4a7faf6b8ce22defa1fd98` deja
   disponible una base histórica inmutable, versionada y preparada para
   privacidad, con backfill cero en staging y producción.
-- `CategoryOfficialResult` no es todavía consumible desde Blade, API o React.
-  Tampoco existen servicios de oficialización/reapertura, locks comunes,
-  mutation guards, readiness, cálculo del digest o anonimización ejecutable.
-- El siguiente microbloque oficial es 6.F.3C — locking común y mutation guards;
-  su diseño e implementación quedan fuera de esta decisión de cierre.
+- En el cierre de 6.F.3B, `CategoryOfficialResult` no era consumible desde
+  Blade, API o React y todavía no existían servicios de lifecycle, locks
+  comunes, mutation guards, readiness, cálculo del digest o anonimización
+  ejecutable. ADR-049 registra la protección incorporada después por 6.F.3C.
+
+---
+
+# ADR-049 — La evidencia oficial comparte un mutex por categoría
+
+Estado: Aceptada
+
+Fecha: 2026-09-04
+
+Contexto:
+- Un snapshot oficial dejaría de ser fiable si un writer pudiera alterar su
+  ranking, partidos fuente o participantes mientras se crea, permanece vigente
+  o se reabre.
+- Liga y Copa comparten categoría, participantes y parte de la estructura; el
+  cuadro de Copa depende además del ranking y del seeding de Liga.
+- Los distintos controladores y servicios necesitan evitar prechecks
+  incompatibles y órdenes de locks que introduzcan carreras o deadlocks.
+
+Decisión:
+- Usar `Category` como mutex común de cualquier operación que pueda mutar o
+  congelar evidencia oficial. Adquirir después los resultados vigentes en
+  orden estable `league` antes que `cup`, seguidos de `Round`, `GameMatch`,
+  `CategoryEntry` y `Team`, todo dentro de una misma transacción.
+- Centralizar esa disciplina en `OfficialResultLockService` y
+  `OfficialResultLock`, y la matriz de impacto en
+  `OfficialResultMutationGuard`. No admitir su uso fuera de una transacción.
+- Bloquear cambios de resultado o estructura de Liga ante un oficial vigente
+  de Liga o Copa, por la dependencia del cuadro de Copa; bloquear semifinal y
+  Final ante un oficial de Copa; bloquear participantes ante cualquiera de las
+  dos partes.
+- Excluir el tercer puesto del resultado oficial v1 y permitir su mutación sólo
+  si su clasificación estructural es inequívoca. Ante fase, tipo o `stage`
+  ambiguos, consultar ambas partes y fallar de forma cerrada.
+- Proteger borrados de categoría y ancestros mediante un precheck comprensible,
+  manteniendo `RESTRICT` como defensa última incluso para historia `reopened`.
+  No introducir bypass administrativo, force-delete ni borrado normal de
+  versiones oficiales.
+- Mantener fuera del bloqueo los estados administrativos de temporada y
+  campeonato, visibilidad y metadatos no deportivos, nombres vivos de equipo e
+  identidad, perfil o fotografía actuales del jugador. No confundir estas
+  mutaciones con la evidencia snapshot.
+- Exigir que los futuros servicios de oficialización y reapertura de Liga y
+  Copa adquieran exactamente el mismo mutex `Category` antes de evaluar,
+  congelar o liberar una versión.
+
+Alternativas descartadas:
+- comprobar la existencia de un oficial sin bloquear su categoría;
+- usar un orden de locks distinto en cada writer;
+- considerar independientes Liga y Copa pese a la dependencia de seeding;
+- permitir por defecto un partido que no pueda clasificarse estructuralmente;
+- añadir un bypass de administrador o depender sólo del error `RESTRICT` de la
+  base de datos.
+
+Consecuencias:
+- El commit funcional `82d5c35b3c1b20fe6595c4d25f775298b765a154`
+  protege los writers actuales y devuelve feedback de dominio uniforme en
+  Blade y API, sin migración nueva.
+- 6.F.3C no crea, oficializa ni reabre resultados; tampoco añade historial
+  Blade, endpoint público, presentación React, cálculo runtime de
+  `source_digest` o anonimización final.
+- La carrera E2E writer frente a officialize/reopen sólo podrá acreditarse
+  cuando 6.F.3D y 6.F.3E incorporen esos servicios sobre el mismo mutex.
