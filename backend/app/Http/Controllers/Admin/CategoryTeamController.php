@@ -3,17 +3,24 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\ChampionshipType;
+use App\Enums\OfficialResultMutationImpact;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\CategoryEntry;
 use App\Models\Team;
+use App\Services\OfficialResultLockService;
+use App\Services\OfficialResultMutationGuard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class CategoryTeamController extends Controller
 {
-    public function store(Request $request, Category $category)
-    {
+    public function store(
+        Request $request,
+        Category $category,
+        OfficialResultMutationGuard $mutationGuard,
+        OfficialResultLockService $locks,
+    ) {
         $category->loadMissing('championship');
 
         if ($category->championship->type !== ChampionshipType::DOUBLES) {
@@ -26,36 +33,50 @@ class CategoryTeamController extends Controller
             'back_player_id' => ['required', 'exists:players,id', 'different:front_player_id'],
         ]);
 
-        $registeredPlayerIds = $category->registrations()
-            ->where('status', 'approved')
-            ->pluck('player_id');
-
         $frontPlayerId = (int) $validated['front_player_id'];
         $backPlayerId = (int) $validated['back_player_id'];
 
-        if (
-            !$registeredPlayerIds->contains($frontPlayerId) ||
-            !$registeredPlayerIds->contains($backPlayerId)
-        ) {
-            return back()->with('error', 'Los jugadores del equipo deben estar inscritos en la categoría');
-        }
+        $error = DB::transaction(function () use (
+            $validated,
+            $category,
+            $frontPlayerId,
+            $backPlayerId,
+            $mutationGuard,
+            $locks,
+        ): ?string {
+            $categoryLock = $mutationGuard->lockAndGuard(
+                $category,
+                OfficialResultMutationImpact::PARTICIPANTS
+            );
+            $locks->lockRoundsAndMatches([$categoryLock->category->id]);
+            $locks->lockEntriesAndTeams([$categoryLock->category->id]);
 
-        $alreadyAssignedIds = DB::table('team_members')
-            ->join('teams', 'teams.id', '=', 'team_members.team_id')
-            ->where('teams.category_id', $category->id)
-            ->pluck('team_members.player_id');
+            $registeredPlayerIds = $categoryLock->category->registrations()
+                ->where('status', 'approved')
+                ->pluck('player_id');
 
-        if (
-            $alreadyAssignedIds->contains($frontPlayerId) ||
-            $alreadyAssignedIds->contains($backPlayerId)
-        ) {
-            return back()->with('error', 'Uno o ambos jugadores ya pertenecen a otro equipo de esta categoría');
-        }
+            if (
+                ! $registeredPlayerIds->contains($frontPlayerId) ||
+                ! $registeredPlayerIds->contains($backPlayerId)
+            ) {
+                return 'Los jugadores del equipo deben estar inscritos en la categoría';
+            }
 
-        DB::transaction(function () use ($validated, $category, $frontPlayerId, $backPlayerId) {
+            $alreadyAssignedIds = DB::table('team_members')
+                ->join('teams', 'teams.id', '=', 'team_members.team_id')
+                ->where('teams.category_id', $categoryLock->category->id)
+                ->pluck('team_members.player_id');
+
+            if (
+                $alreadyAssignedIds->contains($frontPlayerId) ||
+                $alreadyAssignedIds->contains($backPlayerId)
+            ) {
+                return 'Uno o ambos jugadores ya pertenecen a otro equipo de esta categoría';
+            }
+
             $teamName = $validated['name'];
 
-            if (!$teamName) {
+            if (! $teamName) {
                 $frontRegistration = $category->registrations()
                     ->with('player.user')
                     ->where('player_id', $frontPlayerId)
@@ -70,12 +91,12 @@ class CategoryTeamController extends Controller
                 $backPlayer = $backRegistration?->player;
 
                 $frontName = $frontPlayer?->nickname
-                    ?: trim(($frontPlayer?->user?->name ?? '') . ' ' . ($frontPlayer?->user?->lastname ?? ''));
+                    ?: trim(($frontPlayer?->user?->name ?? '').' '.($frontPlayer?->user?->lastname ?? ''));
 
                 $backName = $backPlayer?->nickname
-                    ?: trim(($backPlayer?->user?->name ?? '') . ' ' . ($backPlayer?->user?->lastname ?? ''));
+                    ?: trim(($backPlayer?->user?->name ?? '').' '.($backPlayer?->user?->lastname ?? ''));
 
-                $teamName = 'Equipo ' . $frontName . ' / ' . $backName;
+                $teamName = 'Equipo '.$frontName.' / '.$backName;
             }
 
             $team = Team::create([
@@ -94,13 +115,23 @@ class CategoryTeamController extends Controller
                 'player_id' => null,
                 'status' => 'approved',
             ]);
+
+            return null;
         });
+
+        if ($error !== null) {
+            return back()->with('error', $error);
+        }
 
         return back()->with('success', 'Equipo creado correctamente');
     }
 
-    public function destroy(Category $category, Team $team)
-    {
+    public function destroy(
+        Category $category,
+        Team $team,
+        OfficialResultMutationGuard $mutationGuard,
+        OfficialResultLockService $locks,
+    ) {
         $category->loadMissing('championship');
 
         if ($team->category_id !== $category->id) {
@@ -111,7 +142,14 @@ class CategoryTeamController extends Controller
             return back()->with('error', 'Esta acción solo aplica a categorías de dobles');
         }
 
-        DB::transaction(function () use ($category, $team) {
+        DB::transaction(function () use ($category, $team, $mutationGuard, $locks) {
+            $categoryLock = $mutationGuard->lockAndGuard(
+                $category,
+                OfficialResultMutationImpact::PARTICIPANTS
+            );
+            $locks->lockRoundsAndMatches([$categoryLock->category->id]);
+            $locks->lockEntriesAndTeams([$categoryLock->category->id]);
+
             CategoryEntry::where('category_id', $category->id)
                 ->where('entry_type', 'team')
                 ->where('team_id', $team->id)

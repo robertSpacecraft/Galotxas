@@ -3,34 +3,45 @@
 namespace App\Services;
 
 use App\Enums\GameMatchStatus;
+use App\Enums\OfficialResultMutationImpact;
 use App\Models\Category;
 use App\Models\GameMatch;
 use App\Models\Round;
 use App\Services\Ranking\BuildCategoryRankingService;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 class GenerateCupService
 {
     public function __construct(
-        private readonly BuildCategoryRankingService $rankingService
+        private readonly BuildCategoryRankingService $rankingService,
+        private readonly OfficialResultMutationGuard $mutationGuard,
+        private readonly OfficialResultLockService $locks,
     ) {}
 
     public function generateSemifinals(Category $category): void
     {
-        $ranking = $this->rankingService->build($category);
+        DB::transaction(function () use ($category): void {
+            $categoryLock = $this->mutationGuard->lockAndGuard(
+                $category,
+                OfficialResultMutationImpact::CUP_DECISIVE
+            );
+            $structure = $this->locks->lockRoundsAndMatches([$categoryLock->category->id]);
+            $this->locks->lockEntriesAndTeams([$categoryLock->category->id]);
 
-        if ($ranking->count() < 4) {
-            throw new RuntimeException('No hay suficientes participantes para generar la copa. Se necesitan al menos 4.');
-        }
+            $ranking = $this->rankingService->build($categoryLock->category);
 
-        $top4 = $ranking->take(4)->values();
+            if ($ranking->count() < 4) {
+                throw new RuntimeException('No hay suficientes participantes para generar la copa. Se necesitan al menos 4.');
+            }
 
-        DB::transaction(function () use ($category, $top4) {
-            $this->deleteCup($category);
+            $top4 = $ranking->take(4)->values();
+
+            $this->deleteCupRounds($structure['rounds']);
 
             $semiRound = Round::create([
-                'category_id' => $category->id,
+                'category_id' => $categoryLock->category->id,
                 'name' => 'Semifinales',
                 'order' => 100,
                 'type' => 'cup',
@@ -62,25 +73,27 @@ class GenerateCupService
 
     public function deleteCup(Category $category): void
     {
-        DB::transaction(function () use ($category) {
-            $cupRounds = Round::query()
-                ->where('category_id', $category->id)
-                ->where('type', 'cup')
-                ->get();
+        DB::transaction(function () use ($category): void {
+            $categoryLock = $this->mutationGuard->lockAndGuard(
+                $category,
+                OfficialResultMutationImpact::CUP_DECISIVE
+            );
+            $structure = $this->locks->lockRoundsAndMatches([$categoryLock->category->id]);
 
-            foreach ($cupRounds as $round) {
-                $round->matches()->delete();
-                $round->delete();
-            }
+            $this->deleteCupRounds($structure['rounds']);
         });
     }
 
     public function generateFinals(Category $category): void
     {
-        DB::transaction(function () use ($category) {
+        DB::transaction(function () use ($category): void {
+            $categoryLock = $this->mutationGuard->lockAndGuard(
+                $category,
+                OfficialResultMutationImpact::CUP_DECISIVE
+            );
+            $structure = $this->locks->lockRoundsAndMatches([$categoryLock->category->id]);
 
-            $semiRound = Round::query()
-                ->where('category_id', $category->id)
+            $semiRound = $structure['rounds']
                 ->where('type', 'cup')
                 ->where('phase', 'cup')
                 ->where('stage', 'semifinal')
@@ -90,9 +103,10 @@ class GenerateCupService
                 throw new RuntimeException('No existen semifinales.');
             }
 
-            $matches = $semiRound->matches()
-                ->orderBy('id')
-                ->get();
+            $matches = $structure['matches']
+                ->where('round_id', $semiRound->id)
+                ->sortBy('id')
+                ->values();
 
             if ($matches->count() !== 2) {
                 throw new RuntimeException('Las semifinales no están correctamente definidas.');
@@ -126,12 +140,11 @@ class GenerateCupService
             }
 
             // eliminar finales existentes si las hubiera
-            $existingFinals = Round::query()
-                ->where('category_id', $category->id)
+            $existingFinals = $structure['rounds']
                 ->where('type', 'cup')
                 ->where('phase', 'cup')
                 ->whereIn('stage', ['final', 'third_place'])
-                ->get();
+                ->values();
 
             foreach ($existingFinals as $round) {
                 $round->matches()->delete();
@@ -140,7 +153,7 @@ class GenerateCupService
 
             // FINAL
             $finalRound = Round::create([
-                'category_id' => $category->id,
+                'category_id' => $categoryLock->category->id,
                 'name' => 'Final',
                 'order' => 200,
                 'type' => 'cup',
@@ -159,7 +172,7 @@ class GenerateCupService
 
             // 3º y 4º
             $thirdRound = Round::create([
-                'category_id' => $category->id,
+                'category_id' => $categoryLock->category->id,
                 'name' => '3º y 4º',
                 'order' => 201,
                 'type' => 'cup',
@@ -176,5 +189,16 @@ class GenerateCupService
                 'status' => 'scheduled',
             ]);
         });
+    }
+
+    /**
+     * @param  Collection<int, Round>  $rounds
+     */
+    private function deleteCupRounds(Collection $rounds): void
+    {
+        foreach ($rounds->where('type', 'cup')->sortBy('id') as $round) {
+            $round->matches()->delete();
+            $round->delete();
+        }
     }
 }

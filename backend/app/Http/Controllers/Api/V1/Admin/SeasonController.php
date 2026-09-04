@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\StoreSeasonRequest;
 use App\Http\Requests\Admin\UpdateSeasonRequest;
 use App\Http\Resources\AdminSeasonResource;
 use App\Models\Season;
+use App\Services\OfficialResultProtectedDeletionService;
 use App\Services\SeasonService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -52,9 +53,11 @@ class SeasonController extends Controller
         );
     }
 
-    public function destroy(Season $season): Response
-    {
-        $season->delete();
+    public function destroy(
+        Season $season,
+        OfficialResultProtectedDeletionService $deletions,
+    ): Response {
+        $deletions->deleteSeason($season);
 
         return response()->noContent();
     }

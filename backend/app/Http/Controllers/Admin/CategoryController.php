@@ -14,6 +14,7 @@ use App\Models\ChampionshipRegistrationRequest;
 use App\Models\Venue;
 use App\Services\GenerateCupService;
 use App\Services\GenerateLeagueScheduleService;
+use App\Services\OfficialResultProtectedDeletionService;
 use App\Services\Ranking\BuildCategoryRankingService;
 use Illuminate\Support\Str;
 use Throwable;
@@ -195,11 +196,13 @@ class CategoryController extends Controller
             ->with('success', 'Categoría actualizada');
     }
 
-    public function destroy(Category $category)
-    {
+    public function destroy(
+        Category $category,
+        OfficialResultProtectedDeletionService $deletions,
+    ) {
         $championship = $category->championship;
 
-        $category->delete();
+        $deletions->deleteCategory($category);
 
         return redirect()
             ->route('admin.championships.categories', $championship)

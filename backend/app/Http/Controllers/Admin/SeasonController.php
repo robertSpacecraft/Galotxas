@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreSeasonRequest;
 use App\Http\Requests\Admin\UpdateSeasonRequest;
 use App\Models\Season;
+use App\Services\OfficialResultProtectedDeletionService;
 use App\Services\Ranking\BuildSeasonRankingService;
 use App\Services\SeasonService;
 
@@ -70,9 +71,11 @@ class SeasonController extends Controller
             ->with('success', 'Temporada actualizada.');
     }
 
-    public function destroy(Season $season)
-    {
-        $season->delete();
+    public function destroy(
+        Season $season,
+        OfficialResultProtectedDeletionService $deletions,
+    ) {
+        $deletions->deleteSeason($season);
 
         return redirect()
             ->route('admin.seasons.index')

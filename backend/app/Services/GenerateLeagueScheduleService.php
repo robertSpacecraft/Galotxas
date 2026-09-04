@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\OfficialResultMutationImpact;
 use App\Models\Category;
-use App\Models\CategoryEntry;
 use App\Models\GameMatch;
 use App\Models\Round;
 use App\Models\Venue;
@@ -14,6 +14,11 @@ use RuntimeException;
 
 class GenerateLeagueScheduleService
 {
+    public function __construct(
+        private readonly OfficialResultMutationGuard $mutationGuard,
+        private readonly OfficialResultLockService $locks,
+    ) {}
+
     /**
      * Genera la fase de liga para una categoría:
      * - rounds tipo league
@@ -22,54 +27,52 @@ class GenerateLeagueScheduleService
      */
     public function generate(Category $category): void
     {
-        $category->loadMissing('championship');
+        DB::transaction(function () use ($category): void {
+            $categoryLock = $this->mutationGuard->lockAndGuard(
+                $category,
+                OfficialResultMutationImpact::LEAGUE_STRUCTURE
+            );
+            $lockedCategory = $categoryLock->category;
+            $lockedCategory->load('championship');
 
-        $entries = CategoryEntry::query()
-            ->where('category_id', $category->id)
-            ->where('status', 'approved')
-            ->orderBy('id')
-            ->get();
+            $structure = $this->locks->lockRoundsAndMatches([$lockedCategory->id]);
+            $participants = $this->locks->lockEntriesAndTeams([$lockedCategory->id]);
 
-        if ($entries->count() < 2) {
-            throw new RuntimeException('No hay suficientes participantes aprobados para generar la liga.');
-        }
+            $entries = $participants['entries']
+                ->where('status', 'approved')
+                ->sortBy('id')
+                ->values();
 
-        $existingLeagueRounds = Round::query()
-            ->where('category_id', $category->id)
-            ->where('type', 'league')
-            ->exists();
+            if ($entries->count() < 2) {
+                throw new RuntimeException('No hay suficientes participantes aprobados para generar la liga.');
+            }
 
-        if ($existingLeagueRounds) {
-            throw new RuntimeException('La categoría ya tiene jornadas de liga generadas.');
-        }
+            $leagueRoundIds = $structure['rounds']
+                ->where('type', 'league')
+                ->modelKeys();
 
-        $existingMatches = GameMatch::query()
-            ->whereHas('round', function ($query) use ($category) {
-                $query->where('category_id', $category->id)
-                    ->where('type', 'league');
-            })
-            ->exists();
+            if ($leagueRoundIds !== []) {
+                throw new RuntimeException('La categoría ya tiene jornadas de liga generadas.');
+            }
 
-        if ($existingMatches) {
-            throw new RuntimeException('La categoría ya tiene partidos de liga generados.');
-        }
+            if ($structure['matches']->whereIn('round_id', $leagueRoundIds)->isNotEmpty()) {
+                throw new RuntimeException('La categoría ya tiene partidos de liga generados.');
+            }
 
-        $venueIds = $this->resolveVenueIds();
+            $venueIds = $this->resolveVenueIds();
 
-        if (empty($venueIds)) {
-            throw new RuntimeException('No hay pistas configuradas. Crea al menos una pista desde el panel de administración antes de generar la liga.');
-        }
+            if ($venueIds === []) {
+                throw new RuntimeException('No hay pistas configuradas. Crea al menos una pista desde el panel de administración antes de generar la liga.');
+            }
 
-        $pairingsByRound = $this->buildRoundRobinPairings($entries);
-
-        DB::transaction(function () use ($category, $pairingsByRound, $venueIds) {
-            $startDate = $this->resolveGenerationStartDate($category);
+            $pairingsByRound = $this->buildRoundRobinPairings($entries);
+            $startDate = $this->resolveGenerationStartDate($lockedCategory);
 
             foreach ($pairingsByRound as $roundIndex => $roundPairings) {
                 $roundNumber = $roundIndex + 1;
 
                 $round = Round::create([
-                    'category_id' => $category->id,
+                    'category_id' => $lockedCategory->id,
                     'name' => 'Jornada '.$roundNumber,
                     'order' => $roundNumber,
                     'type' => 'league',

@@ -11,6 +11,8 @@ use App\Http\Requests\Admin\UpdateChampionshipRequest;
 use App\Models\Championship;
 use App\Models\ChampionshipRegistrationRequest;
 use App\Models\Season;
+use App\Services\ChampionshipMutationService;
+use App\Services\OfficialResultProtectedDeletionService;
 use App\Services\Ranking\BuildChampionshipRankingService;
 use Illuminate\Support\Str;
 
@@ -105,36 +107,26 @@ class ChampionshipController extends Controller
         ]);
     }
 
-    public function update(UpdateChampionshipRequest $request, Championship $championship)
-    {
+    public function update(
+        UpdateChampionshipRequest $request,
+        Championship $championship,
+        ChampionshipMutationService $mutations,
+    ) {
         $validated = $request->validated();
-
-        $championship->fill([
-            'season_id' => $validated['season_id'],
-            'name' => $validated['name'],
-            'slug' => Str::slug($validated['name']),
-            'description' => $validated['description'] ?? null,
-            'type' => $validated['type'],
-            'start_date' => $validated['start_date'] ?? null,
-            'end_date' => $validated['end_date'] ?? null,
-            'status' => $validated['status'],
-            'registration_status' => $validated['registration_status'],
-            'registration_starts_at' => $validated['registration_starts_at'] ?? null,
-            'registration_ends_at' => $validated['registration_ends_at'] ?? null,
-        ]);
-        $championship->is_public = (bool) $validated['is_public'];
-        $championship->save();
+        $mutations->update($championship, $validated);
 
         return redirect()
             ->route('admin.seasons.championships', $validated['season_id'])
             ->with('success', 'Campeonato actualizado correctamente.');
     }
 
-    public function destroy(Championship $championship)
-    {
+    public function destroy(
+        Championship $championship,
+        OfficialResultProtectedDeletionService $deletions,
+    ) {
         $season = $championship->season;
 
-        $championship->delete();
+        $deletions->deleteChampionship($championship);
 
         return redirect()
             ->route('admin.seasons.championships', $season)

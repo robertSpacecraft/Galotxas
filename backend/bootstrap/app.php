@@ -1,5 +1,7 @@
 <?php
 
+use App\Exceptions\OfficialResultHistoryDeletionBlockedException;
+use App\Exceptions\OfficialResultMutationBlockedException;
 use App\Http\Controllers\LivenessController;
 use App\Http\Middleware\AddSecurityHeaders;
 use Illuminate\Foundation\Application;
@@ -39,5 +41,17 @@ return Application::configure(basePath: dirname(__DIR__))
         }
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (
+            OfficialResultMutationBlockedException|OfficialResultHistoryDeletionBlockedException $exception,
+            Request $request
+        ) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $exception->getMessage(),
+                    'data' => null,
+                ], 409);
+            }
+
+            return back()->with('error', $exception->getMessage());
+        });
     })->create();

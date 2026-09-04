@@ -3,18 +3,25 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\ChampionshipType;
+use App\Enums\OfficialResultMutationImpact;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\CategoryEntry;
 use App\Models\CategoryRegistration;
 use App\Models\ChampionshipRegistrationRequest;
+use App\Services\OfficialResultLockService;
+use App\Services\OfficialResultMutationGuard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class CategoryRegistrationController extends Controller
 {
-    public function store(Request $request, Category $category)
-    {
+    public function store(
+        Request $request,
+        Category $category,
+        OfficialResultMutationGuard $mutationGuard,
+        OfficialResultLockService $locks,
+    ) {
         $category->loadMissing('championship');
 
         $validated = $request->validate([
@@ -29,7 +36,7 @@ class CategoryRegistrationController extends Controller
             ->where('status', 'approved')
             ->exists();
 
-        if (!$hasApprovedChampionshipRequest) {
+        if (! $hasApprovedChampionshipRequest) {
             return back()->with('error', 'El jugador no tiene una solicitud aprobada en este campeonato.');
         }
 
@@ -54,7 +61,16 @@ class CategoryRegistrationController extends Controller
             return back()->with('error', 'El jugador ya está asignado a otra categoría de este campeonato.');
         }
 
-        DB::transaction(function () use ($category, $playerId) {
+        DB::transaction(function () use ($category, $playerId, $mutationGuard, $locks) {
+            if ($category->championship->type === ChampionshipType::SINGLES) {
+                $categoryLock = $mutationGuard->lockAndGuard(
+                    $category,
+                    OfficialResultMutationImpact::PARTICIPANTS
+                );
+                $locks->lockRoundsAndMatches([$categoryLock->category->id]);
+                $locks->lockEntriesAndTeams([$categoryLock->category->id]);
+            }
+
             CategoryRegistration::create([
                 'category_id' => $category->id,
                 'player_id' => $playerId,
@@ -76,8 +92,12 @@ class CategoryRegistrationController extends Controller
         return back()->with('success', 'Jugador inscrito correctamente en la categoría.');
     }
 
-    public function destroy(Category $category, CategoryRegistration $registration)
-    {
+    public function destroy(
+        Category $category,
+        CategoryRegistration $registration,
+        OfficialResultMutationGuard $mutationGuard,
+        OfficialResultLockService $locks,
+    ) {
         $category->loadMissing('championship');
 
         if ($registration->category_id !== $category->id) {
@@ -98,8 +118,21 @@ class CategoryRegistrationController extends Controller
             }
         }
 
-        DB::transaction(function () use ($category, $registration, $playerId) {
+        DB::transaction(function () use (
+            $category,
+            $registration,
+            $playerId,
+            $mutationGuard,
+            $locks,
+        ) {
             if ($category->championship->type === ChampionshipType::SINGLES) {
+                $categoryLock = $mutationGuard->lockAndGuard(
+                    $category,
+                    OfficialResultMutationImpact::PARTICIPANTS
+                );
+                $locks->lockRoundsAndMatches([$categoryLock->category->id]);
+                $locks->lockEntriesAndTeams([$categoryLock->category->id]);
+
                 CategoryEntry::where('category_id', $category->id)
                     ->where('entry_type', 'player')
                     ->where('player_id', $playerId)

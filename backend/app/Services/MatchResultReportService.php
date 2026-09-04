@@ -17,7 +17,8 @@ use InvalidArgumentException;
 class MatchResultReportService
 {
     public function __construct(
-        protected MatchResultService $matchResultService
+        protected MatchResultService $matchResultService,
+        private readonly OfficialResultMutationGuard $mutationGuard,
     ) {}
 
     public function submitReport(
@@ -33,19 +34,15 @@ class MatchResultReportService
             throw new InvalidArgumentException('El usuario autenticado no tiene un perfil de jugador asociado.');
         }
 
-        $this->matchResultService->validateScores(
-            $match,
-            $homeScore,
-            $awayScore,
-            GameMatchStatus::SUBMITTED->value
-        );
-
         return DB::transaction(function () use ($match, $user, $player, $homeScore, $awayScore, $comment) {
-            /** @var GameMatch $lockedMatch */
-            $lockedMatch = GameMatch::query()
-                ->whereKey($match->id)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $lockedMatch = $this->mutationGuard->lockAndGuardMatch($match);
+
+            $this->matchResultService->validateScores(
+                $lockedMatch,
+                $homeScore,
+                $awayScore,
+                GameMatchStatus::SUBMITTED->value
+            );
 
             $lockedMatch->load([
                 'homeEntry.player',

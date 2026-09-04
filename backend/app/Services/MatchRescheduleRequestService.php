@@ -17,6 +17,10 @@ use InvalidArgumentException;
 
 class MatchRescheduleRequestService
 {
+    public function __construct(
+        private readonly OfficialResultMutationGuard $mutationGuard,
+    ) {}
+
     public function submitRequest(
         GameMatch $match,
         User $user,
@@ -27,11 +31,11 @@ class MatchRescheduleRequestService
     ): MatchRescheduleRequest {
         $player = $user->player;
 
-        if (!$player) {
+        if (! $player) {
             throw new InvalidArgumentException('El usuario autenticado no tiene un perfil de jugador asociado.');
         }
 
-        $requestedDateTime = Carbon::createFromFormat('Y-m-d H:i', $scheduledDate . ' ' . $scheduledTime);
+        $requestedDateTime = Carbon::createFromFormat('Y-m-d H:i', $scheduledDate.' '.$scheduledTime);
 
         return DB::transaction(function () use ($match, $user, $player, $requestedDateTime, $venueId, $comment) {
             /** @var GameMatch $lockedMatch */
@@ -108,16 +112,12 @@ class MatchRescheduleRequestService
     ): MatchRescheduleRequest {
         $player = $user->player;
 
-        if (!$player) {
+        if (! $player) {
             throw new InvalidArgumentException('El usuario autenticado no tiene un perfil de jugador asociado.');
         }
 
         return DB::transaction(function () use ($match, $user, $player) {
-            /** @var GameMatch $lockedMatch */
-            $lockedMatch = GameMatch::query()
-                ->whereKey($match->id)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $lockedMatch = $this->mutationGuard->lockAndGuardMatch($match);
 
             $lockedMatch->load([
                 'homeEntry.player',
@@ -213,7 +213,7 @@ class MatchRescheduleRequestService
 
     protected function entryContainsPlayer(?CategoryEntry $entry, Player $player): bool
     {
-        if (!$entry) {
+        if (! $entry) {
             return false;
         }
 
@@ -238,7 +238,7 @@ class MatchRescheduleRequestService
     ): void {
         $championshipId = $match->round?->category?->championship_id;
 
-        if (!$championshipId) {
+        if (! $championshipId) {
             throw new InvalidArgumentException('No se ha podido determinar el campeonato del partido.');
         }
 

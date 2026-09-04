@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\OfficialResultMutationImpact;
 use App\Enums\PlayerGender;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StorePlayerRequest;
 use App\Http\Requests\Admin\UpdatePlayerRequest;
+use App\Models\Category;
 use App\Models\Player;
 use App\Models\User;
+use App\Services\OfficialResultLockService;
+use App\Services\OfficialResultMutationGuard;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class PlayerController extends Controller
@@ -124,9 +129,35 @@ class PlayerController extends Controller
             ->with('success', 'Jugador actualizado correctamente.');
     }
 
-    public function destroy(Player $player)
-    {
-        $player->delete();
+    public function destroy(
+        Player $player,
+        OfficialResultMutationGuard $mutationGuard,
+        OfficialResultLockService $locks,
+    ) {
+        DB::transaction(function () use ($player, $mutationGuard, $locks): void {
+            $categoryIds = Category::query()
+                ->where(function ($query) use ($player): void {
+                    $query->whereHas(
+                        'entries',
+                        fn ($entryQuery) => $entryQuery->where('player_id', $player->id)
+                    )->orWhereHas(
+                        'teams.players',
+                        fn ($playerQuery) => $playerQuery->where('players.id', $player->id)
+                    );
+                })
+                ->orderBy('id')
+                ->pluck('id');
+
+            $mutationGuard->lockAndGuardCategories(
+                $categoryIds,
+                OfficialResultMutationImpact::PARTICIPANTS
+            );
+            $locks->lockRoundsAndMatches($categoryIds);
+            $locks->lockEntriesAndTeams($categoryIds);
+
+            $lockedPlayer = Player::query()->lockForUpdate()->findOrFail($player->id);
+            $lockedPlayer->delete();
+        });
 
         return redirect()
             ->route('admin.players.index')
@@ -135,11 +166,11 @@ class PlayerController extends Controller
 
     private function resolveSlugBase(?string $nickname, User $user): string
     {
-        if (!empty($nickname)) {
+        if (! empty($nickname)) {
             return $nickname;
         }
 
-        $fullName = trim(($user->name ?? '') . ' ' . ($user->lastname ?? ''));
+        $fullName = trim(($user->name ?? '').' '.($user->lastname ?? ''));
 
         if ($fullName !== '') {
             return $fullName;
@@ -160,11 +191,11 @@ class PlayerController extends Controller
         $counter = 1;
 
         while (
-        Player::when($ignorePlayerId, fn ($query) => $query->where('id', '!=', $ignorePlayerId))
-            ->where('slug', $slug)
-            ->exists()
+            Player::when($ignorePlayerId, fn ($query) => $query->where('id', '!=', $ignorePlayerId))
+                ->where('slug', $slug)
+                ->exists()
         ) {
-            $slug = $originalSlug . '-' . $counter;
+            $slug = $originalSlug.'-'.$counter;
             $counter++;
         }
 

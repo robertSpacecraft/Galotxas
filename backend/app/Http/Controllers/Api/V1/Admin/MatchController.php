@@ -117,32 +117,16 @@ class MatchController extends Controller
         GameMatch $gameMatch,
         MatchResultService $matchResultService
     ): JsonResponse {
-        if ($gameMatch->home_score === null || $gameMatch->away_score === null) {
-            return $this->errorResponse('No se puede validar un partido sin tanteo oficial.');
-        }
-
         try {
-            $matchResultService->validateScores(
+            $gameMatch = $matchResultService->validateExistingResult(
                 $gameMatch,
-                $gameMatch->home_score,
-                $gameMatch->away_score,
-                GameMatchStatus::VALIDATED->value
+                $request->user()
             );
         } catch (InvalidArgumentException $exception) {
             return $this->errorResponse($exception->getMessage());
         }
 
-        $gameMatch->update([
-            'winner_entry_id' => $matchResultService->resolveWinnerEntryId(
-                $gameMatch,
-                (int) $gameMatch->home_score,
-                (int) $gameMatch->away_score
-            ),
-            'status' => GameMatchStatus::VALIDATED->value,
-            'validated_by' => $request->user()->id,
-        ]);
-
-        $gameMatch->refresh()->load([
+        $gameMatch->load([
             'homeEntry.player',
             'homeEntry.team.players',
             'awayEntry.player',
