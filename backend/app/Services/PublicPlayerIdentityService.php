@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\OfficialIdentityProjection;
 use App\Enums\PublicIdentityAuthorizationMode;
 use App\Models\CategoryEntry;
 use App\Models\Player;
@@ -13,18 +14,24 @@ class PublicPlayerIdentityService
     public const NEUTRAL_LABEL = 'Participante';
 
     public function __construct(
-        private readonly PublicIdentityAuthorizationService $authorizationService
+        private readonly PublicIdentityAuthorizationService $authorizationService,
+        private readonly UnicodeTextService $text,
     ) {}
 
     public function displayName(Player $player, ?CarbonInterface $asOf = null): string
     {
+        return $this->resolve($player, $asOf)->displayName;
+    }
+
+    public function resolve(Player $player, ?CarbonInterface $asOf = null): ResolvedPublicIdentity
+    {
         if ($player->birth_date === null || ! $player->relationLoaded('user')) {
-            return self::NEUTRAL_LABEL;
+            return $this->anonymous();
         }
 
         if (! $this->isAdult($player, $asOf)) {
             if (! $player->relationLoaded('publicIdentityAuthorizations')) {
-                return self::NEUTRAL_LABEL;
+                return $this->anonymous();
             }
 
             $authorization = $player->publicIdentityAuthorizations->first(
@@ -36,32 +43,46 @@ class PublicPlayerIdentityService
             );
 
             if ($authorization === null) {
-                return self::NEUTRAL_LABEL;
+                return $this->anonymous();
             }
 
             return match ($authorization->mode) {
-                PublicIdentityAuthorizationMode::ALIAS => $this->alias($player),
-                PublicIdentityAuthorizationMode::NAME_INITIAL => $this->nameInitial($player),
-                PublicIdentityAuthorizationMode::ANONYMOUS => self::NEUTRAL_LABEL,
+                PublicIdentityAuthorizationMode::ALIAS => $this->aliasProjection($player),
+                PublicIdentityAuthorizationMode::NAME_INITIAL => $this->nameInitialProjection($player),
+                PublicIdentityAuthorizationMode::ANONYMOUS => $this->anonymous(),
             };
         }
 
-        return $this->alias($player, $this->nameInitial($player));
+        $alias = $this->normalizedAlias($player);
+
+        return $alias !== ''
+            ? new ResolvedPublicIdentity(OfficialIdentityProjection::ALIAS, $alias)
+            : $this->nameInitialProjection($player);
     }
 
     public function entryDisplayName(CategoryEntry $entry, ?CarbonInterface $asOf = null): string
     {
+        return $this->resolveEntry($entry, $asOf)->displayName;
+    }
+
+    public function resolveEntry(
+        CategoryEntry $entry,
+        ?CarbonInterface $asOf = null,
+    ): ResolvedPublicIdentity {
         if ($entry->entry_type === 'player' && $entry->relationLoaded('player') && $entry->player) {
-            return $this->displayName($entry->player, $asOf);
+            return $this->resolve($entry->player, $asOf);
         }
 
         if ($entry->entry_type === 'team' && $entry->relationLoaded('team') && $entry->team) {
-            $name = $this->normalize($entry->team->name);
+            $name = $this->text->squish($entry->team->name);
 
-            return $name !== '' ? $name : 'Equipo';
+            return new ResolvedPublicIdentity(
+                OfficialIdentityProjection::TEAM_NAME,
+                $name !== '' ? $name : 'Equipo',
+            );
         }
 
-        return self::NEUTRAL_LABEL;
+        return $this->anonymous();
     }
 
     private function isAdult(Player $player, ?CarbonInterface $asOf): bool
@@ -78,27 +99,38 @@ class PublicPlayerIdentityService
         return $birthDate->lessThanOrEqualTo($referenceDate->subYears(18));
     }
 
-    private function normalize(?string $value): string
+    private function aliasProjection(Player $player): ResolvedPublicIdentity
     {
-        return preg_replace('/\s+/u', ' ', trim((string) $value)) ?? '';
+        $alias = $this->normalizedAlias($player);
+
+        return $alias !== ''
+            ? new ResolvedPublicIdentity(OfficialIdentityProjection::ALIAS, $alias)
+            : $this->anonymous();
     }
 
-    private function alias(Player $player, string $fallback = self::NEUTRAL_LABEL): string
+    private function nameInitialProjection(Player $player): ResolvedPublicIdentity
     {
-        $nickname = $this->normalize($player->nickname);
+        $name = $this->text->squish($player->user?->name);
+        $lastname = $this->text->squish($player->user?->lastname);
 
-        return $nickname !== '' ? $nickname : $fallback;
+        return $name !== '' && $lastname !== ''
+            ? new ResolvedPublicIdentity(
+                OfficialIdentityProjection::NAME_INITIAL,
+                $name.' '.mb_strtoupper(mb_substr($lastname, 0, 1)).'.',
+            )
+            : $this->anonymous();
     }
 
-    private function nameInitial(Player $player): string
+    private function normalizedAlias(Player $player): string
     {
-        $name = $this->normalize($player->user?->name);
-        $lastname = $this->normalize($player->user?->lastname);
+        return $this->text->squish($player->nickname);
+    }
 
-        if ($name === '' || $lastname === '') {
-            return self::NEUTRAL_LABEL;
-        }
-
-        return $name.' '.mb_strtoupper(mb_substr($lastname, 0, 1)).'.';
+    private function anonymous(): ResolvedPublicIdentity
+    {
+        return new ResolvedPublicIdentity(
+            OfficialIdentityProjection::ANONYMOUS,
+            self::NEUTRAL_LABEL,
+        );
     }
 }

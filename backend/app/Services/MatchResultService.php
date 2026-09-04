@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Enums\ChampionshipType;
 use App\Enums\GameMatchStatus;
 use App\Models\GameMatch;
 use App\Models\User;
@@ -12,17 +11,20 @@ use InvalidArgumentException;
 
 class MatchResultService
 {
+    private readonly MatchScoreRulesService $scoreRules;
+
     public function __construct(
         private readonly OfficialResultMutationGuard $mutationGuard,
-    ) {}
+        ?MatchScoreRulesService $scoreRules = null,
+    ) {
+        $this->scoreRules = $scoreRules ?? new MatchScoreRulesService;
+    }
 
     public function getTargetScore(GameMatch $match): int
     {
         $match->loadMissing('round.category.championship');
 
-        return $match->round->category->championship->type === ChampionshipType::DOUBLES
-            ? 12
-            : 10;
+        return $this->scoreRules->targetScore($match->round->category->championship->type);
     }
 
     public function validateScores(GameMatch $match, ?int $homeScore, ?int $awayScore, string $status): void
@@ -41,27 +43,12 @@ class MatchResultService
             throw new InvalidArgumentException('El estado del partido no es válido.');
         }
 
-        if ($homeScore === null || $awayScore === null) {
-            throw new InvalidArgumentException('Debes indicar ambos tanteos para guardar un resultado.');
-        }
-
-        if ($homeScore < 0 || $awayScore < 0) {
-            throw new InvalidArgumentException('Los tanteos no pueden ser negativos.');
-        }
-
-        $targetScore = $this->getTargetScore($match);
-
-        if ($homeScore === $awayScore) {
-            throw new InvalidArgumentException('No puede haber empate en Galotxas.');
-        }
-
-        if ($homeScore !== $targetScore && $awayScore !== $targetScore) {
-            throw new InvalidArgumentException("Uno de los dos equipos/jugadores debe alcanzar {$targetScore} juegos.");
-        }
-
-        if ($homeScore > $targetScore || $awayScore > $targetScore) {
-            throw new InvalidArgumentException("No se pueden superar los {$targetScore} juegos.");
-        }
+        $match->loadMissing('round.category.championship');
+        $this->scoreRules->validate(
+            $match->round->category->championship->type,
+            $homeScore,
+            $awayScore,
+        );
     }
 
     public function resolveWinnerEntryId(GameMatch $match, int $homeScore, int $awayScore): int

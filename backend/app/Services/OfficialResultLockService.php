@@ -7,8 +7,11 @@ use App\Models\Category;
 use App\Models\CategoryEntry;
 use App\Models\CategoryOfficialResult;
 use App\Models\GameMatch;
+use App\Models\Player;
+use App\Models\PublicIdentityAuthorization;
 use App\Models\Round;
 use App\Models\Team;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -114,7 +117,7 @@ class OfficialResultLockService
     /**
      * Lock participant composition only after rounds and matches have been locked.
      *
-     * @return array{entries: EloquentCollection<int, CategoryEntry>, teams: EloquentCollection<int, Team>}
+     * @return array{entries: EloquentCollection<int, CategoryEntry>, teams: EloquentCollection<int, Team>, team_members: Collection<int, object>}
      */
     public function lockEntriesAndTeams(iterable $categoryIds): array
     {
@@ -128,7 +131,11 @@ class OfficialResultLockService
             ->all();
 
         if ($ids === []) {
-            return ['entries' => new EloquentCollection, 'teams' => new EloquentCollection];
+            return [
+                'entries' => new EloquentCollection,
+                'teams' => new EloquentCollection,
+                'team_members' => new Collection,
+            ];
         }
 
         /** @var EloquentCollection<int, CategoryEntry> $entries */
@@ -147,7 +154,91 @@ class OfficialResultLockService
             ->lockForUpdate()
             ->get();
 
-        return ['entries' => $entries, 'teams' => $teams];
+        $teamMembers = $teams->isEmpty()
+            ? new Collection
+            : DB::table('team_members')
+                ->whereIn('team_id', $teams->modelKeys())
+                ->orderBy('team_id')
+                ->orderBy('player_id')
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get();
+
+        return ['entries' => $entries, 'teams' => $teams, 'team_members' => $teamMembers];
+    }
+
+    /**
+     * Lock only identity sources, after the competition rows and teams.
+     *
+     * @param  iterable<int>  $playerIds
+     */
+    public function lockIdentitySources(
+        iterable $playerIds,
+        User|int $actor,
+    ): OfficialResultIdentityLock {
+        $this->assertInsideTransaction();
+
+        $ids = collect($playerIds)
+            ->map(static fn ($id): int => (int) $id)
+            ->filter(static fn (int $id): bool => $id > 0)
+            ->unique()
+            ->sort()
+            ->values();
+        $actorId = (int) ($actor instanceof User ? $actor->getKey() : $actor);
+
+        /** @var EloquentCollection<int, PublicIdentityAuthorization> $authorizations */
+        $authorizations = $ids->isEmpty()
+            ? new EloquentCollection
+            : PublicIdentityAuthorization::query()
+                ->whereIn('player_id', $ids->all())
+                ->orderBy('player_id')
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get();
+
+        /** @var EloquentCollection<int, Player> $players */
+        $players = $ids->isEmpty()
+            ? new EloquentCollection
+            : Player::query()
+                ->whereKey($ids->all())
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get();
+
+        $userIds = $players->pluck('user_id')
+            ->push($actorId)
+            ->map(static fn ($id): int => (int) $id)
+            ->filter(static fn (int $id): bool => $id > 0)
+            ->unique()
+            ->sort()
+            ->values();
+
+        /** @var EloquentCollection<int, User> $users */
+        $users = $userIds->isEmpty()
+            ? new EloquentCollection
+            : User::query()
+                ->whereKey($userIds->all())
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get();
+
+        $usersById = $users->keyBy('id');
+        foreach ($players as $player) {
+            $player->setRelation('user', $usersById->get($player->user_id));
+            $player->setRelation(
+                'publicIdentityAuthorizations',
+                new EloquentCollection(
+                    $authorizations->where('player_id', $player->id)->values()->all()
+                ),
+            );
+        }
+
+        return new OfficialResultIdentityLock(
+            $players,
+            $authorizations,
+            $users,
+            $usersById->get($actorId),
+        );
     }
 
     public function assertInsideTransaction(): void
