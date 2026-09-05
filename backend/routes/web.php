@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\CategoryCompetitionExportController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\CategoryRegistrationController;
 use App\Http\Controllers\Admin\CategoryTeamController;
@@ -286,6 +287,8 @@ Route::prefix('admin')->group(function () {
         Route::post('/championships/{championship}/categories', [AdminCategoryController::class, 'store'])
             ->name('admin.categories.store');
 
+        Route::get('/categories/{category}/export', CategoryCompetitionExportController::class)
+            ->name('admin.categories.export');
         Route::get('/categories/{category}', [AdminCategoryController::class, 'show'])
             ->name('admin.categories.show');
         Route::get('/categories/{category}/edit', [AdminCategoryController::class, 'edit'])

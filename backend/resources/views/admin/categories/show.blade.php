@@ -15,6 +15,19 @@
                         </div>
 
                         <div class="d-flex gap-2">
+                            @if ($hasCompetitionMatches)
+                                <a href="{{ route('admin.categories.export', $category) }}"
+                                   class="btn btn-outline-primary">
+                                    Exportar
+                                </a>
+                            @else
+                                <button type="button"
+                                        class="btn btn-outline-primary"
+                                        disabled
+                                        aria-disabled="true">
+                                    Exportar
+                                </button>
+                            @endif
                             <a href="{{ route('admin.championships.categories', $category->championship) }}"
                                class="btn btn-outline-secondary">
                                 Volver a categorías

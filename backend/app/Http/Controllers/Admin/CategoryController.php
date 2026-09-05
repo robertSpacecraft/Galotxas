@@ -134,6 +134,9 @@ class CategoryController extends Controller
             ->sortBy('order')
             ->values();
 
+        $hasCompetitionMatches = $category->rounds
+            ->contains(fn ($round): bool => $round->matches->isNotEmpty());
+
         $venues = Venue::orderBy('id')->get();
 
         $categoryRanking = $rankingService->build($category);
@@ -148,6 +151,7 @@ class CategoryController extends Controller
             'venues' => $venues,
             'categoryRanking' => $categoryRanking,
             'cupRounds' => $cupRounds,
+            'hasCompetitionMatches' => $hasCompetitionMatches,
         ]);
     }
 
