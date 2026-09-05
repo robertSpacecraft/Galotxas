@@ -206,9 +206,49 @@ dominio competitivo.
 
 La persistencia nace vacía: no hay backfill ni conversión automática de
 partidos validados, rankings dinámicos o estados `finished` en historia
-oficial. Los servicios para oficializar o reabrir, calcular `source_digest`,
-evaluar readiness e integrar de forma efectiva `PublicPlayerIdentityService`
-pertenecen a bloques posteriores.
+oficial. La oficialidad tampoco depende de que `Season.status` o
+`Championship.status` sean `finished`: esos estados continúan siendo
+administrativos y `Category` no dispone de un estado `finished` implícito.
+
+### Oficialización y reapertura de Liga
+
+6.F.3D permite oficializar una Liga exclusivamente cuando su fuente supera una
+readiness fail-closed. Deben existir al menos tres entradas aprobadas y
+coherentes con la modalidad —jugador en individuales o equipo válido de dos
+miembros, delantero y zaguero, en dobles—, y un round robin simple completo y
+estructuralmente inequívoco. Cada emparejamiento aparece una sola vez, nadie se
+enfrenta consigo mismo ni repite jornada, y todos los partidos fuente están
+validados con tanteo y ganador coherentes con las reglas deportivas. Los datos
+legacy o escritos directamente en SQL se vuelven a validar; nunca se inventa
+un tanteo ausente o inválido.
+
+El ranking oficial usa los mismos criterios deportivos que el ranking vivo,
+pero no sus desempates técnicos de presentación. `name` y `entry_id` sólo
+aportan estabilidad visual al listado vivo: si los criterios deportivos no
+resuelven un empate residual, la oficialización se rechaza con
+`unsupported_ranking_tie` en vez de convertir un fallback técnico en decisión
+oficial.
+
+Una oficialización correcta congela en una nueva versión la tabla completa y
+los partidos fuente, el actor y un `source_digest` SHA-256 canónico bajo el
+esquema `league-source-v1`. La identidad pública se resuelve exactamente
+`asOf=officialized_at` y queda congelada como una de las proyecciones `alias`,
+`name_initial`, `anonymous` o `team_name`, separada del nombre histórico
+interno mínimo. Cambios posteriores en nombres, perfiles, autorizaciones o
+fuentes vivas no reescriben la evidencia guardada.
+
+Reabrir exige una versión de Liga vigente, un actor válido y un motivo no vacío
+normalizado. La versión pasa a `reopened`, su `current_slot` generado queda en
+`NULL` y se preservan el digest, los snapshots y todos los metadatos originales
+de oficialización; una oficialización posterior crea la siguiente versión
+contigua mediante `max + 1`. El lifecycle soportado es, por tanto,
+`v1 official → v1 reopened → v2 official`, nunca la sobrescritura de v1.
+
+Una versión vigente de Copa no impide oficializar ni reabrir Liga, porque cada
+parte conserva su propio slot e historia. Sí mantiene bloqueadas tras la
+reapertura las mutaciones vivas de Liga y participantes de las que depende su
+cuadro. 6.F.3D no implementa la oficialización de Copa, anonimización, UI
+Blade, contrato API ni presentación React.
 
 ## Protección de la evidencia oficial vigente
 

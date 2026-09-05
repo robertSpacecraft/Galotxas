@@ -518,9 +518,13 @@ modifica cuando el backend lo identifica inequívocamente.
 
 La resolución administrativa de conflictos de partido descrita arriba sigue
 siendo un flujo distinto y no crea automáticamente una versión oficial de
-categoría. El panel Blade aún no dispone de listado o historial de
-`CategoryOfficialResult`, acción de oficializar, reapertura, anonimización ni
-borrado, y tampoco calcula o rellena `source_digest`.
+categoría. Desde 6.F.3D existen servicios backend para evaluar readiness,
+oficializar y reabrir una Liga, calcular su digest y congelar snapshots, pero
+el panel Blade aún no los expone. No dispone de botones o formularios de
+oficialización/reapertura, listado o historial de `CategoryOfficialResult`,
+acción de anonimización ni borrado. Los writers protegidos mantienen el
+feedback y los bloqueos de 6.F.3C; la UI administrativa y el historial quedan
+reservados a 6.F.3F.
 
 ---
 

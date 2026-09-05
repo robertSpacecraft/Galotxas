@@ -2252,5 +2252,84 @@ Consecuencias:
 - 6.F.3C no crea, oficializa ni reabre resultados; tampoco añade historial
   Blade, endpoint público, presentación React, cálculo runtime de
   `source_digest` o anonimización final.
-- La carrera E2E writer frente a officialize/reopen sólo podrá acreditarse
-  cuando 6.F.3D y 6.F.3E incorporen esos servicios sobre el mismo mutex.
+- 6.F.3D acreditó después las carreras E2E de writer frente a
+  officialize/reopen de Liga sobre este mutex; la cobertura equivalente de Copa
+  continúa reservada a 6.F.3E.
+
+---
+
+# ADR-050 — Oficialización versionada y reproducible de resultados de Liga
+
+Estado: Aceptada
+
+Fecha: 2026-09-05
+
+Contexto:
+- El ranking vivo debe responder a rectificaciones, mientras un resultado
+  oficial necesita conservar exactamente la clasificación y los partidos que
+  se certificaron en un instante.
+- Los fallbacks técnicos de presentación por nombre o identificador aportan un
+  orden estable a la vista viva, pero no constituyen criterios deportivos
+  legítimos para decidir una clasificación oficial.
+- La identidad pública y sus autorizaciones cambian con el tiempo; la evidencia
+  debe ser reproducible sin retener datos personales innecesarios ni depender
+  de las fuentes vivas.
+- ADR-048 define el agregado persistente y ADR-049 el mutex común, pero faltaba
+  decidir el proceso autoritativo que crea y reabre una versión de Liga.
+
+Decisión:
+- Tratar el resultado oficial de Liga como un snapshot persistido y versionado,
+  nunca como un cálculo live durante la lectura. Congelar la clasificación
+  completa y todos los partidos fuente validados dentro de la misma operación.
+- Evaluar readiness de forma fail-closed sobre filas bloqueadas: modalidad,
+  entradas aprobadas, composición de dobles, round robin simple completo,
+  estados, tanteos, ganadores y desempates deportivos deben ser coherentes. No
+  inventar scores ni aceptar un empate residual no resoluble; devolver
+  `unsupported_ranking_tie` cuando sólo quedaría un fallback técnico.
+- Compartir el cálculo deportivo entre ranking vivo y oficial, manteniendo
+  `name` y `entry_id` exclusivamente como recursos de presentación viva.
+- Calcular un digest SHA-256 sobre JSON canónico con esquema versionado
+  `league-source-v1`. Incluir reglas, participantes deportivos, partidos y
+  ranking; excluir identidad editorial, programación, actor y timestamp para
+  que el digest represente la fuente deportiva.
+- Resolver la identidad pública exactamente a fecha `officialized_at` y
+  congelar una proyección mínima `alias`, `name_initial`, `anonymous` o
+  `team_name`, separada del nombre histórico interno. No recalcularla al leer.
+- Mantener el lifecycle `official → reopened → nueva versión official`. La
+  reapertura sólo añade actor, fecha y motivo normalizado a la versión vigente;
+  no cambia su digest, snapshots ni metadatos de oficialización. La nueva
+  versión usa una secuencia contigua `1..N`, mientras MariaDB genera
+  `current_slot` y garantiza un único oficial vigente de Liga.
+- Ejecutar officialize y reopen bajo el mutex `Category` y el orden de ADR-049,
+  extendido con fuentes de identidad y actor después de las filas deportivas.
+  Traducir las colisiones de unicidad conocidas a conflicto de concurrencia de
+  dominio y verificar el agregado antes de confirmar la transacción.
+- Permitir que una Copa oficial vigente coexista con officialize/reopen de Liga
+  porque cada parte tiene su propio slot; tras reabrir Liga, esa Copa sigue
+  bloqueando los writers de Liga y participantes de los que depende su cuadro.
+- Mantener 6.F.3D como capa service-only. La UI Blade y el historial pertenecen
+  a 6.F.3F; el contrato público de resultados oficiales, a 6.F.3G; la
+  oficialización y reapertura de Copa, a 6.F.3E.
+
+Alternativas descartadas:
+- publicar como oficial el ranking calculado en cada lectura;
+- ordenar empates oficiales mediante nombre o identificador técnico;
+- aceptar fuentes incompletas, legacy incoherente o tanteos inferidos;
+- sobrescribir una versión al reabrir o reutilizar su número;
+- resolver identidad con el estado actual en vez de la fecha de oficialización;
+- bloquear sólo la fila del resultado, usar un lock order distinto o tratar la
+  Copa vigente como irrelevante para los writers de Liga;
+- exponer prematuramente endpoints o botones sin contrato y autorización.
+
+Consecuencias:
+- El commit funcional `04231bd1368c10303476efd4b76f4edddf1bb437` implementa
+  un lifecycle de Liga reproducible, trazable y resistente a carreras sin nueva
+  migración ni superficie HTTP/UI.
+- Las siete carreras sobre MariaDB con procesos y conexiones independientes
+  acreditan writer/officialize/reopen y concurrencia entre operaciones del
+  lifecycle sobre el mutex común.
+- La evidencia histórica permanece estable aunque cambien las fuentes vivas o
+  desaparezcan actores; una reapertura habilita una nueva versión sin borrar la
+  anterior.
+- La oficialización de Copa continúa pendiente y deberá reutilizar el agregado,
+  la disciplina de locks y las fronteras de responsabilidad aquí establecidas.

@@ -2117,9 +2117,10 @@ El dataset productivo real registró cero filas en `seasons`, `championships`,
 `category_official_league_rows`, `category_official_cup_winners` y
 `category_official_result_match_snapshots`. No se fabricaron datos para probar
 allí un bloqueo condicionado; la matriz queda acreditada localmente sobre
-MariaDB aislada y el smoke remoto no destructivo no invalida el cierre. Tampoco
-se acredita aún una carrera E2E writer frente a officialize/reopen: los
-servicios que permitirán probarla pertenecen a 6.F.3D y 6.F.3E.
+MariaDB aislada y el smoke remoto no destructivo no invalida el cierre. En el
+cierre de 6.F.3C aún no se acreditaba una carrera E2E writer frente a
+officialize/reopen; 6.F.3D incorporó después esa cobertura para Liga y 6.F.3E
+mantiene pendiente la equivalente de Copa.
 
 Pint global no fue PASS: permanecen 23 incidencias preexistentes fuera del
 scope, aunque el diff funcional sí pasó. Chromium no arrancó en el host de
@@ -2127,6 +2128,64 @@ automatización productivo por ausencia de `libnspr4`; el smoke HTTP y la
 validación humana productiva sí fueron PASS. Los avisos npm de Vercel —uno
 moderado y uno alto— son preexistentes e independientes de este cambio
 backend-only.
+
+## LEAGUE-OFFICIAL-RESULT-LIFECYCLE-6F3D-1 — Oficialización y reapertura de Liga (CLOSED / PASS)
+
+Ejecutado sobre el commit funcional
+`04231bd1368c10303476efd4b76f4edddf1bb437`:
+
+- focales de readiness, lifecycle, identidad, digest y concurrencia: PASS;
+- regresión backend dirigida: 126 tests y 1.067 aserciones;
+- suite backend completa: 675 tests y 5.160 aserciones;
+- siete carreras E2E con procesos y conexiones independientes sobre MariaDB
+  real: PASS;
+- `php -l`, `git diff --check` y Pint del diff funcional: PASS.
+
+La cobertura valida round robin simple normalizado y legacy, participantes
+individuales y dobles, composición de equipos, estados, tanteos y ganadores
+incluso ante escrituras directas, desempates deportivos y rechazo
+`unsupported_ranking_tie`. También verifica que el ranking vivo y el oficial
+comparten cálculo sin convertir `name` o `entry_id` en criterio oficial, las
+cuatro proyecciones de identidad a fecha `officialized_at`, el digest canónico
+`league-source-v1`, actor y motivo normalizados, rollback atómico, historia
+contigua y el lifecycle `v1 official → v1 reopened → v2 official`.
+
+El race harness acredita writer antes/después de officialize, reapertura con y
+sin Copa vigente, officialize/officialize y reopen/reopen. Las carreras
+garantizan un único slot corriente, preservación de evidencia y uso efectivo
+del mutex común por `Category`. Una Copa vigente no bloquea officialize/reopen
+de Liga, pero conserva el guard sobre writers de Liga tras reabrirla.
+
+La validación humana local sobre una categoría controlada pasó las fases de
+readiness incompleta, readiness completa, oficial v1, guard, reapertura,
+rectificación y oficial v2. Se conservaron las filas y snapshots de v1, el
+digest cambió al cambiar la fuente deportiva y no se fijan aquí nombres de
+fixture ni datos personales innecesarios.
+
+Staging desplegó el SHA exacto en Railway
+`2c69d018-d5dc-4016-bb7f-0d7ce6bb4735` y Vercel
+`dpl_6uTzEqsqqnrbCZ53q5diTSd7KSBJ`; migraciones, `deploy:check`, smoke y
+aceptación humana fueron PASS. No hubo muestra PRE porque el autodeploy ya
+había terminado: dos muestras POST conservaron 2 categorías, 10 entradas, 12
+rondas, 49 partidos y cero filas oficiales. No se ejecutó lifecycle remoto.
+
+Producción desplegó Railway
+`76a08be9-ae72-4596-86f6-7f600d96148c` con imagen
+`sha256:1f604b56b3f5f067a91ca2c3207a3c093f8ba87482d9ccee93e85fd2046a96e2`
+y Vercel `dpl_4GEckUK8MmjVChdRFaPF49Qjiu7e`, ambos para el SHA funcional
+exacto. Migraciones, `deploy:check`, smoke frontend/backend/API/admin, logs y
+aceptación humana fueron PASS. Tampoco hubo muestra PRE; dos muestras POST
+iguales conservaron a cero temporadas, campeonatos, categorías, entradas,
+rondas, partidos y las cuatro tablas oficiales. No se ejecutaron migraciones,
+seeders, fixtures, officialize o reopen.
+
+La ausencia de dataset deportivo productivo y de prueba lifecycle remota es
+una limitación de evidencia, no un defecto: el comportamiento queda acreditado
+por MariaDB aislada, las siete carreras y el recorrido humano local. No se
+afirma un delta PRE/POST en staging o producción. Pint global no fue PASS:
+permanecen 23 incidencias preexistentes fuera del scope. Vercel informó dos
+avisos `npm audit` del frontend, independientes de este commit backend-only sin
+cambios de frontend o lockfile.
 
 ### Deuda E2E global independiente: admin CMS (abierta)
 

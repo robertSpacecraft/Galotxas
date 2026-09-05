@@ -226,12 +226,13 @@ Las rutas `/admin/*` definidas en `routes/web.php` son páginas y formularios we
 ### Resultados oficiales y conflictos de mutación
 
 6.F.3B incorporó modelos y tablas para versionar resultados oficiales por
-categoría y parte. 6.F.3C protege los writers existentes, pero no crea
-endpoints públicos, autenticados o administrativos ni añade un Resource de
-resultados oficiales. `CategoryPublicResource`, las respuestas de categoría,
-clasificación, calendario, partido y los contratos de Mi Panel permanecen sin
-cambios: no serializan `official_results`, snapshots, `source_digest`,
-`current_slot` ni metadatos de actores.
+categoría y parte; 6.F.3C protege los writers existentes y 6.F.3D añade los
+servicios internos de readiness, oficialización y reapertura de Liga. Ninguno
+de esos bloques crea endpoints públicos, autenticados o administrativos ni un
+Resource de resultados oficiales. `CategoryPublicResource`, las respuestas de
+categoría, clasificación, calendario, partido y los contratos de Mi Panel
+permanecen sin cambios: no serializan `official_results`, snapshots,
+`source_digest`, `current_slot` ni metadatos de actores.
 
 Cuando una escritura JSON intenta modificar evidencia protegida por un
 resultado oficial vigente, o borrar una jerarquía que conserva historia
@@ -252,8 +253,9 @@ Los tanteos validados y rankings que ya publica la API continúan representando
 el estado deportivo vivo; no deben confundirse con la historia oficial
 versionada ni se convierten automáticamente en ella. Aún no existe
 `GET /api/v1/categories/{category}/official-results`: su futura incorporación
-requerirá autorización, proyección de identidad, contrato allowlisted y pruebas
-específicas.
+en 6.F.3G requerirá autorización, proyección de identidad, contrato allowlisted
+y pruebas específicas. Las operaciones de oficializar y reabrir tampoco tienen
+contrato HTTP; su futura exposición administrativa Blade corresponde a 6.F.3F.
 
 ---
 

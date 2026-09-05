@@ -351,9 +351,54 @@ composición de participantes reutilizan los mismos servicios en lugar de
 implementar prechecks aislados.
 
 6.F.3C no crea ni reabre resultados oficiales y tampoco calcula
-`source_digest`. Los servicios de 6.F.3D y 6.F.3E deberán adquirir exactamente
-el mismo mutex `Category` antes de oficializar o reabrir; sólo entonces podrá
-acreditarse una carrera E2E real entre esos servicios y los writers actuales.
+`source_digest`. 6.F.3D extiende este orden con los locks de las fuentes de
+identidad y del actor después de entradas y equipos para oficializar o reabrir
+Liga. Los futuros servicios de Copa de 6.F.3E deberán adquirir el mismo mutex
+`Category` y respetar la misma disciplina.
+
+## Lifecycle transaccional de resultados oficiales de Liga
+
+6.F.3D añade `EvaluateLeagueOfficializationReadinessService`,
+`OfficializeLeagueResultService` y `ReopenLeagueResultService` como superficie
+de aplicación service-only. No incorpora controller, Form Request, route,
+Blade, Resource API ni consumidor React. `BuildCategoryLeagueTableService` y
+`ResolveMatchBasePointsService` extraen el cálculo deportivo compartido con
+`BuildCategoryRankingService`; los nombres y `entry_id` permanecen únicamente
+como desempates técnicos de la vista viva y no autorizan una posición oficial.
+
+La oficialización abre una transacción y adquiere, en orden, `Category`, los
+resultados vigentes —Liga antes que Copa—, rondas, partidos, entradas, equipos
+y composición, y por último jugadores, autorizaciones de identidad y actor.
+La readiness se repite sobre esas filas bloqueadas, no sobre una lectura previa.
+Valida modalidad, participantes, round robin simple, estados, tanteos,
+ganadores y desempates soportados; cualquier inconsistencia produce códigos
+seguros o una excepción de integridad sin persistencia parcial.
+
+Sobre la misma fuente bloqueada, `OfficialResultIdentitySnapshotService`
+resuelve la proyección pública mediante `PublicPlayerIdentityService` con
+`asOf=officialized_at`. `OfficialResultActorSnapshotService` congela el nombre
+del actor y `OfficialResultSourceDigestService` serializa de forma canónica el
+payload deportivo `league-source-v1` y calcula SHA-256. Identidad editorial,
+horario, pista, actor y hora de oficialización quedan fuera del digest; la
+clasificación y los partidos persistidos se comprueban contra la fuente antes
+de confirmar la transacción.
+
+`OfficializeLeagueResultService` exige una historia íntegra y contigua de
+versiones `reopened`, calcula la siguiente como `max + 1` y deja que MariaDB
+genere `current_slot`; nunca escribe esa columna. `ReopenLeagueResultService`
+normaliza el motivo y modifica exclusivamente estado y metadatos de reapertura,
+verificando después que actor, fecha y digest originales, filas y snapshots no
+hayan cambiado. Las violaciones conocidas de unicidad se traducen a conflicto
+de concurrencia de dominio.
+
+El modelo de carreras usa MariaDB real, procesos PHP y conexiones
+independientes con barreras explícitas. Las siete secuencias ejercitadas cubren
+writer/officialize, writer/reopen, dos oficializaciones y dos reaperturas; el
+mutex garantiza que se persiste la escritura ya confirmada o se bloquea el
+writer posterior, nunca un snapshot intermedio. Un oficial de Copa no bloquea
+el lifecycle de Liga, pero continúa participando en la matriz de guards tras la
+reapertura. ADR-049 conserva la decisión general de locking y ADR-050 la
+decisión estable de snapshot reproducible de Liga.
 
 ## Arquitectura CMS pública
 
