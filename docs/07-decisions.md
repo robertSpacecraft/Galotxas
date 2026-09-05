@@ -2333,3 +2333,61 @@ Consecuencias:
   anterior.
 - La oficialización de Copa continúa pendiente y deberá reutilizar el agregado,
   la disciplina de locks y las fronteras de responsabilidad aquí establecidas.
+
+---
+
+# ADR-051 — Exportación PDF A4 live con overflow fail-closed
+
+Estado: Aceptada
+
+Fecha: 2026-09-05
+
+Contexto:
+- Administración necesita descargar una vista operativa completa de la
+  competición de una categoría sin convertirla en evidencia histórica.
+- Liga y Copa pueden existir por separado o simultáneamente, y los estados y
+  rectificaciones de los partidos deben reflejarse en la siguiente descarga.
+- El requisito de entrega es un PDF binario real, legible y de exactamente una
+  página A4; una segunda página o el recorte silencioso de contenido no son
+  resultados aceptables.
+
+Decisión:
+- Generar desde una ruta web administrativa un PDF A4 portrait con el estado
+  `live` actual de Liga y Copa. No consumir snapshots oficiales ni presentar
+  la descarga como certificado histórico.
+- Separar una transacción corta de lectura y construcción de DTO readonly del
+  renderizado posterior. Resolver la identidad con
+  `PublicPlayerIdentityService` y excluir PII administrativa.
+- Usar directamente Dompdf 3.1.6, con recursos remotos, PHP y JavaScript
+  deshabilitados. Probar en orden los presets `standard`, `compact` y
+  `dense`.
+- Contar las páginas reales después de cada intento y aceptar únicamente una.
+  Si todos los presets desbordan, fallar cerrado sin recortar partidos,
+  nombres o secciones y sin generar una segunda página.
+- Mostrar marcador únicamente para resultados `validated` coherentes;
+  representar `postponed` como «Aplazado» y `cancelled` como «Cancelado»,
+  sin tanteo para los demás estados.
+- Usar temporales request-scoped con cleanup garantizado y devolver el binario
+  sin persistirlo en base de datos, filesystem u object storage.
+
+Alternativas descartadas:
+- generar HTML imprimible o un fichero que no sea un PDF binario real;
+- reutilizar `CategoryOfficialResult` o crear un snapshot persistido para una
+  exportación que debe mostrar el estado vivo;
+- permitir dos páginas, ocultar filas, truncar nombres o reducir
+  indefinidamente la tipografía para forzar el ajuste;
+- usar recursos remotos, ejecutar JavaScript/PHP en el renderer o compartir un
+  directorio temporal mutable entre peticiones;
+- añadir cola, migración, endpoint API público o consumidor React.
+
+Consecuencias:
+- El commit funcional `903eefce4d573f2447a0891dde914bf2a43ff6a9`
+  proporciona la descarga administrativa sin nueva persistencia ni cambios en
+  el contrato API.
+- El page-count es un gate de dominio observable: categorías demasiado densas
+  reciben un error controlado en vez de un documento incompleto.
+- Una descarga posterior puede cambiar si cambian los datos vivos; sólo los
+  resultados oficiales versionados conservan evidencia histórica.
+- Mejorar la separación visual de jornadas y fases queda como deuda no
+  bloqueante, condicionada a mantener una única A4, contenido completo, fixture
+  10/45+4 y legibilidad.

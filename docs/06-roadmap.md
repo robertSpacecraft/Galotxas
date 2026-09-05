@@ -452,6 +452,26 @@ seeders, fixtures u operaciones lifecycle. Producción carece de dataset
 deportivo, por lo que los guards y el lifecycle remoto no se probaron con datos
 reales. El bloque permanece service-only, sin UI o API.
 
+#### 6.F.3D.1 — Exportación PDF de competición por categoría (CLOSED / PASS)
+
+El commit funcional `903eefce4d573f2447a0891dde914bf2a43ff6a9` incorpora
+una descarga administrativa directa del estado `live` de Liga y Copa en un
+PDF A4 portrait de exactamente una página. La exportación usa identidad pública
+sin PII, muestra tanteo sólo para resultados `validated` coherentes, prueba
+tres presets y falla cerrada ante overflow sin recortar contenido. No persiste
+PDFs, no consume snapshots oficiales y no añade migración, cola, API pública o
+React.
+
+Las suites focal, dirigida y completa, la inspección independiente del fixture
+10 participantes/45 Liga/4 Copa, el benchmark y las aceptaciones humanas local,
+staging y producción fueron PASS.
+
+**Mejora visual pendiente no bloqueante:** reforzar la agrupación por jornadas
+y fases en categorías densas mediante un borde superior más marcado,
+separación de fase o solución equivalente de coste vertical casi nulo. La
+mejora deberá conservar exactamente una A4, todo el contenido, el fixture
+10/45+4 y los mínimos de legibilidad; no se implementa en este cierre.
+
 #### Siguiente bloque: 6.F.3E — Oficialización/reapertura de Copa
 
 6.F.3E es el siguiente microbloque oficial y no está iniciado. Extenderá a Copa

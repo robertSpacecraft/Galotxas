@@ -526,6 +526,25 @@ acción de anonimización ni borrado. Los writers protegidos mantienen el
 feedback y los bloqueos de 6.F.3C; la UI administrativa y el historial quedan
 reservados a 6.F.3F.
 
+## Exportación PDF de categoría
+
+El detalle administrativo de una categoría ofrece el botón `Exportar` cuando
+existe al menos un partido. Una pulsación descarga directamente el PDF completo
+mediante la ruta web `admin.categories.export`: no hay modal, selector de
+partes ni alternativa parcial/completa. Si la categoría no tiene partidos, el
+control aparece deshabilitado y no contiene enlace.
+
+La descarga reúne las partes de Liga y Copa que existan, muestra el estado
+`live` y mantiene la proyección pública de identidad sin PII administrativa.
+No oficializa ni reabre resultados, no consulta snapshots oficiales y no
+guarda el archivo generado.
+
+El backend rechaza de forma controlada una categoría sin partidos, una
+estructura ambigua, participantes inválidos, un resultado `validated`
+incoherente o un documento que no cabe en una única página ni siquiera con el
+preset `dense`. En overflow no se recortan partidos o nombres y nunca se
+entrega una segunda página.
+
 ---
 
 # 12. Rankings

@@ -2187,6 +2187,36 @@ permanecen 23 incidencias preexistentes fuera del scope. Vercel informó dos
 avisos `npm audit` del frontend, independientes de este commit backend-only sin
 cambios de frontend o lockfile.
 
+## CATEGORY-COMPETITION-PDF-6F3D1-1 — Exportación PDF administrativa (CLOSED / PASS)
+
+Ejecutado sobre el commit funcional
+`903eefce4d573f2447a0891dde914bf2a43ff6a9`:
+
+- suite focal: 14 tests y 106 aserciones;
+- regresión backend dirigida: 177 tests y 1.384 aserciones;
+- suite backend completa: 689 tests y 5.266 aserciones sobre MariaDB canónica;
+- `composer validate --strict`, `composer audit --locked`,
+  `composer check-platform-reqs`, `php -l`, Pint del diff y
+  `git diff --check`: PASS.
+
+El fixture de referencia contiene 10 participantes, 45 partidos de Liga y 4 de
+Copa —49 en total— y produce exactamente una página A4 portrait con el preset
+`compact`. Poppler y pypdf verificaron de forma independiente una página de
+595,28 × 841,89 puntos, rotación cero y ausencia de JavaScript.
+
+Tres renders del fixture emplearon aproximadamente 0,20 segundos, 76,5 MiB de
+pico y 29 KiB por PDF, dentro de los gates de 5 segundos, 128 MiB y 2 MiB. La
+cobertura incluye autenticación y autorización, descarga y headers, estados,
+resultados incoherentes, estructuras de Liga/Copa, identidad pública, ausencia
+de PII, nombres de archivo, los tres presets, conteo de páginas, overflow
+fail-closed, aislamiento y limpieza de temporales.
+
+La validación humana local pasó con un PDF real de 4 participantes y con el
+fixture 10/45+4: contenido completo, Liga y Copa visibles, legibilidad aceptada
+y una única A4. Staging acreditó descarga real desde administración, PDF
+correcto, smoke general y aceptación humana. Producción completó promoción,
+despliegue técnico, validación funcional del usuario y aceptación humana.
+
 ### Deuda E2E global independiente: admin CMS (abierta)
 
 La instantánea 67/68 del ciclo de 6.F.2 conserva abierto el fallo del dropdown

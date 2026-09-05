@@ -250,6 +250,26 @@ reapertura las mutaciones vivas de Liga y participantes de las que depende su
 cuadro. 6.F.3D no implementa la oficialización de Copa, anonimización, UI
 Blade, contrato API ni presentación React.
 
+## Exportación PDF operativa de categoría
+
+6.F.3D.1 permite descargar desde administración una representación operativa
+del estado `live` actual de una categoría. Liga y Copa se incluyen como partes
+independientes en el mismo PDF; puede existir sólo una de ellas, mientras una
+categoría sin partidos no ofrece la exportación.
+
+El documento sólo muestra tanteo cuando el partido está `validated` y sus
+valores, ganador y modalidad son coherentes con las reglas deportivas.
+`scheduled`, `submitted` y `under_review` no publican marcador;
+`postponed` muestra «Aplazado» y `cancelled`, «Cancelado». La identidad se
+proyecta mediante `PublicPlayerIdentityService` y excluye la PII
+administrativa.
+
+Esta descarga no lee `CategoryOfficialResult` ni sus snapshots, no se
+persiste y no constituye un certificado histórico. Refleja los datos vivos en
+el instante de la petición y puede cambiar tras una rectificación posterior;
+el resultado oficial versionado descrito arriba sigue siendo la única evidencia
+histórica persistida.
+
 ## Protección de la evidencia oficial vigente
 
 6.F.3C protege los datos vivos que sirven de fuente a un resultado oficial

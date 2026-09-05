@@ -400,6 +400,32 @@ el lifecycle de Liga, pero continúa participando en la matriz de guards tras la
 reapertura. ADR-049 conserva la decisión general de locking y ADR-050 la
 decisión estable de snapshot reproducible de Liga.
 
+## Exportación PDF live de competición por categoría
+
+6.F.3D.1 separa la adquisición de datos del renderizado. El controlador web
+administrativo invoca `BuildCategoryCompetitionExportDocumentService`, que
+captura un único `asOf` y ejecuta una transacción corta de lectura para cargar
+la categoría, participantes aprobados y partidos. Dentro de esa transacción
+clasifica de forma fail-closed la estructura de Liga y Copa, proyecta la
+identidad pública y construye los DTO readonly
+`CategoryCompetitionExportDocument` y
+`CategoryCompetitionExportMatchRow`. El HTML y el PDF se renderizan después
+de cerrar la transacción.
+
+`RenderCategoryCompetitionPdfService` usa directamente Dompdf 3.1.6, sin
+wrapper Laravel. Crea una instancia nueva por intento, fija A4 portrait,
+deshabilita recursos remotos, PHP y JavaScript y prueba en orden los presets
+`standard`, `compact` y `dense`. Tras cada render consulta el número real
+de páginas: sólo acepta exactamente una y, si los tres presets desbordan,
+devuelve un error de dominio sin recortar filas, nombres o secciones.
+
+Los temporales de Dompdf son request-scoped, tienen nombre aleatorio y se
+eliminan en `finally`, lo que evita compartir estado mutable entre
+exportaciones concurrentes. El PDF se devuelve como respuesta binaria y no se
+persiste en disco, base de datos u object storage. No intervienen colas,
+migraciones, API pública ni React, y la exportación no consume snapshots de
+`CategoryOfficialResult`.
+
 ## Arquitectura CMS pública
 
 La primera base backend del CMS público sigue el mismo patrón general del proyecto:
