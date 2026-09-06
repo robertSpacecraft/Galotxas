@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\OfficialIdentityProjection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,6 +29,7 @@ class CategoryOfficialCupWinner extends Model
         'source_player_id' => 'integer',
         'source_team_id' => 'integer',
         'source_final_match_id' => 'integer',
+        'identity_projection' => OfficialIdentityProjection::class,
         'public_anonymized_at' => 'immutable_datetime',
     ];
 

@@ -8,6 +8,7 @@ class OfficialResultSourceDigestService
 {
     public function __construct(
         private readonly ResolveMatchBasePointsService $basePoints,
+        private readonly MatchScoreRulesService $scoreRules,
     ) {}
 
     /** @return array<string, mixed> */
@@ -49,6 +50,48 @@ class OfficialResultSourceDigestService
     public function leagueDigest(LeagueOfficializationSource $source): string
     {
         return $this->hashPayload($this->leaguePayload($source));
+    }
+
+    /** @return array<string, mixed> */
+    public function cupPayload(CupOfficializationSource $source): array
+    {
+        return [
+            'schema' => 'cup-source-v1',
+            'competition_part' => 'cup',
+            'category_id' => $source->category->id,
+            'championship_type' => $source->championshipType,
+            'rules' => $this->scoreRules->canonicalRuleset($source->championshipType),
+            'seed' => collect($source->seed)
+                ->sortBy('position')
+                ->map(function (array $entry): array {
+                    $entry['team_members'] = collect($entry['team_members'])
+                        ->sortBy(fn (array $member): string => sprintf(
+                            '%020d|%s',
+                            $member['source_player_id'],
+                            $member['role'],
+                        ))
+                        ->values()
+                        ->all();
+
+                    return $entry;
+                })
+                ->values()
+                ->all(),
+            'matches' => collect($source->matches)
+                ->sortBy(fn (array $match): string => sprintf(
+                    '%d|%020d',
+                    $match['stage'] === 'semifinal' ? 1 : 2,
+                    $match['source_game_match_id'],
+                ))
+                ->values()
+                ->all(),
+            'champion' => $source->champion,
+        ];
+    }
+
+    public function cupDigest(CupOfficializationSource $source): string
+    {
+        return $this->hashPayload($this->cupPayload($source));
     }
 
     /** @param array<string, mixed> $payload */

@@ -20,6 +20,12 @@ class MatchScoreRulesService
             : self::SINGLES_TARGET_SCORE;
     }
 
+    /** @return array{match_target_score: int} */
+    public function canonicalRuleset(ChampionshipType|string $type): array
+    {
+        return ['match_target_score' => $this->targetScore($type)];
+    }
+
     public function validate(
         ChampionshipType|string $type,
         ?int $homeScore,

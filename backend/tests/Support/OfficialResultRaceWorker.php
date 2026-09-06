@@ -6,8 +6,10 @@ use App\Enums\GameMatchStatus;
 use App\Models\GameMatch;
 use App\Models\User;
 use App\Services\MatchResultService;
+use App\Services\OfficializeCupResultService;
 use App\Services\OfficializeLeagueResultService;
 use App\Services\OfficialResultLockService;
+use App\Services\ReopenCupResultService;
 use App\Services\ReopenLeagueResultService;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Console\Kernel;
@@ -83,9 +85,13 @@ try {
             $result = match ($action) {
                 'officialize' => app(OfficializeLeagueResultService::class)
                     ->officialize((int) $categoryId, $actor),
+                'officialize_cup' => app(OfficializeCupResultService::class)
+                    ->officialize((int) $categoryId, $actor),
                 'reopen' => app(ReopenLeagueResultService::class)
                     ->reopen((int) $categoryId, $actor, 'Reapertura concurrente'),
-                'writer' => (function () use ($matchId, $categoryId, $actor) {
+                'reopen_cup' => app(ReopenCupResultService::class)
+                    ->reopen((int) $categoryId, $actor, 'Reapertura Cup concurrente'),
+                'writer', 'cup_writer' => (function () use ($matchId, $categoryId, $actor) {
                     $match = GameMatch::query()->findOrFail((int) $matchId);
 
                     return app(MatchResultService::class)->updateFromAdmin(
@@ -96,6 +102,21 @@ try {
                         GameMatchStatus::VALIDATED->value,
                         10,
                         8,
+                        $actor,
+                    );
+                })(),
+                'seed_writer' => (function () use ($matchId, $categoryId, $actor) {
+                    $match = GameMatch::query()->findOrFail((int) $matchId);
+                    $homeWon = (int) $match->winner_entry_id === (int) $match->home_entry_id;
+
+                    return app(MatchResultService::class)->updateFromAdmin(
+                        $match,
+                        (int) $categoryId,
+                        CarbonImmutable::now()->addDay(),
+                        (int) $match->venue_id,
+                        GameMatchStatus::VALIDATED->value,
+                        $homeWon ? 8 : 10,
+                        $homeWon ? 10 : 8,
                         $actor,
                     );
                 })(),
