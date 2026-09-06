@@ -516,10 +516,43 @@ backend completa, la validación humana local, staging técnico/humano y
 producción técnica/humana fueron PASS. En staging se oficializaron Liga y Copa
 de un campeonato finalizado; producción se validó sin modificar datos reales.
 
-#### Siguiente bloque: 6.F.3G — API pública de resultados oficiales
+#### 6.F.3G — API pública de resultados oficiales (CLOSED / PASS)
 
-Después de 6.F.3G seguirá 6.F.4 para la presentación final en React. 6.F.3
-permanece abierto.
+El commit funcional `527cc4873fbd3565c000ce4dd5967801c7f9768f` incorpora
+`GET /api/v1/categories/{category}/official-results` como lectura pública de
+los snapshots vigentes. Aplica la visibilidad efectiva completa, publica Liga
+y Copa de forma independiente y devuelve `null` para una parte ausente o
+`reopened`, sin histórico ni fallback a rankings, partidos o identidades
+vivas.
+
+La Liga expone versión, fecha y ranking persistido completo; la Copa, versión,
+fecha y campeón. La identidad usa el nombre público congelado y proyecta
+`Participante` de forma fail-closed. Resources con allowlists excluyen fuentes,
+digest, actores y metadatos internos; un agregado oficial incompleto falla
+cerrado con `500` genérico.
+
+Local: 9 tests/84 aserciones focales, 205/2.048 en regresión dirigida y
+757/6.028 en backend completo, además de `php -l`, Pint afectado y
+`git diff --check` PASS. La aceptación humana local comprobó Liga v2 y Copa v2.
+Staging técnico y humano fue PASS con Liga/Copa v1 en categoría 2 y ambas
+partes nulas en categoría 3. Producción desplegó el SHA exacto en Railway y
+Vercel, mantuvo `/up` y las rutas frontend operativas y recibió aceptación
+humana. Al no existir categorías públicas productivas, no se inventó un smoke
+dependiente de datos; el comportamiento queda respaldado por local, staging y
+el despliegue técnico. No hubo migraciones.
+
+#### 6.F.3 — Dominio y publicación de resultados oficiales (CLOSED / PASS)
+
+Con 6.F.3G quedan cerrados y validados los subbloques 6.F.3A–G, incluida la
+exportación 6.F.3D.1: ciclo de temporada, persistencia versionada, mutex y
+guards, lifecycles de Liga y Copa, administración e histórico Blade y contrato
+público read-only. El backend conserva la fuente de verdad y React no calcula
+oficialidad, rankings ni campeones.
+
+#### Siguiente bloque: 6.F.4 — Presentación React del resultado final oficial
+
+6.F.4 consumirá el contrato público cerrado por 6.F.3G sin reconstruir datos
+deportivos ni identidad en frontend.
 
 ### 4. 6.C — Imágenes de Temporadas, Campeonatos y Categorías
 
@@ -675,7 +708,6 @@ repiten aquí:
 
 ## Competición y datos
 
-- continuar 6.F.3G sin reutilizar `finished` o `cancelled` como oficialidad;
 - aclarar por separado la semántica histórica de `official_ranking`;
 - revisar en bloques separados la consistencia de `Round.phase/stage`, la integridad débil de `CategoryEntry`, las cascadas destructivas heredadas y los resultados sin tanteo por walkover, abandono o descalificación;
 - Admin partidos — validar estrictamente fecha y devolver error de formulario
@@ -695,10 +727,14 @@ repiten aquí:
 - limpiar rutas/componentes heredados y duplicados sin alterar el contrato;
 - retirar adaptadores de compatibilidad cuando sus consumidores hayan migrado;
 - mantener auditorías periódicas de npm y Composer.
+- implementar en un bloque propio el pipeline P1 de optimización automática de
+  imágenes.
 
 ## Calidad
 
 - resolver la deuda E2E 67/68 del dropdown del CMS administrativo, independiente de 6.F.2 y 6.F.3A;
+- resolver las 23 incidencias Pint globales preexistentes sin mezclarlas con
+  bloques funcionales cerrados;
 - decidir si aporta valor una métrica porcentual de cobertura frontend;
 - ampliar E2E a navegadores adicionales cuando el riesgo de compatibilidad lo justifique;
 - extender el smoke más allá del relato crítico sin convertirlo en sustituto de Feature tests.

@@ -474,6 +474,39 @@ acción POST. El detalle histórico lee filas, campeón y snapshots persistidos,
 sin reconstruir evidencia desde fuentes vivas. Esta capa no incorpora
 migraciones, API pública, Resources ni consumidor React.
 
+## API pública de resultados oficiales
+
+6.F.3G añade una capa de lectura pública separada de las proyecciones vivas y
+del histórico administrativo. La ruta
+`GET /api/v1/categories/{category}/official-results` resuelve la categoría por
+route model binding y `Api\V1\CategoryOfficialResultController` exige
+`Category::isEffectivelyPublic()` antes de consultar el agregado; una categoría
+o cualquiera de sus ancestros no públicos responde `404`.
+
+`PublicCategoryOfficialResultsService` selecciona únicamente las versiones
+con estado `official` de la categoría y parte, y carga de forma explícita sólo
+`leagueRows` y `cupWinner`. La Liga se ordena por la `position` persistida y la
+Copa conserva un único campeón. No intervienen
+`BuildCategoryRankingService`, `PublicPlayerIdentityService`, entradas,
+jugadores, equipos, partidos o rankings vivos, y la lectura no necesita nuevos
+locks porque no modifica el agregado ni sus fuentes.
+
+La serialización se divide en Resources públicos específicos:
+`PublicCategoryOfficialResultsResource`,
+`PublicOfficialLeagueResultResource`, `PublicOfficialLeagueRowResource`,
+`PublicOfficialCupResultResource` y `PublicOfficialCupWinnerResource`. Sus
+allowlists publican sólo versión, fecha y evidencia pública mínima. El trait
+`ResolvesOfficialSnapshotPublicName` usa el `public_display_name` congelado y
+proyecta `Participante` ante anonimización, `null` o texto vacío, sin fallback
+al nombre interno.
+
+Antes de serializar, el servicio exige filas para una Liga vigente y campeón
+para una Copa vigente, además de rechazar evidencia tipada cruzada. Una
+incoherencia lanza `OfficialResultSourceIntegrityException`; el controlador la
+reporta y responde con un `500` genérico y `data: null`, sin payload parcial ni
+reconstrucción viva. Esta capa no añade migraciones, endpoints de histórico o
+versión, escritura administrativa ni consumidor React.
+
 ## Exportación PDF live de competición por categoría
 
 6.F.3D.1 separa la adquisición de datos del renderizado. El controlador web

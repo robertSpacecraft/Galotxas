@@ -81,6 +81,7 @@ El inventario siguiente corresponde a `backend/routes/api.php` y a la salida de 
 | `GET` | `/championships/{championship}` | `ChampionshipPublicResource` |
 | `GET` | `/championships/{championship}/ranking` | colección `ChampionshipRankingResource` |
 | `GET` | `/categories/{category}` | `CategoryPublicResource` |
+| `GET` | `/categories/{category}/official-results` | `PublicCategoryOfficialResultsResource` con Liga/Copa vigentes o `null` |
 | `GET` | `/categories/{category}/standings` | colección `CategoryRankingResource` |
 | `GET` | `/categories/{category}/schedule` | colección `CategoryScheduleRoundResource` |
 | `GET` | `/matches/{gameMatch}` | `PublicMatchResource` |
@@ -106,7 +107,7 @@ Las lecturas deportivas públicas aplican visibilidad efectiva antes de filtros 
 - `/seasons` exige `season.is_public` y filtra campeonatos y categorías anidados por toda su jerarquía;
 - los listados, detalle y ranking de campeonato exigen campeonato y temporada públicos;
 - el ranking de temporada exige temporada pública y omite partidos de campeonatos o categorías privados;
-- detalle, standings y schedule de categoría exigen categoría, campeonato y temporada públicos;
+- detalle, standings, schedule y resultado oficial de categoría exigen categoría, campeonato y temporada públicos;
 - el detalle de partido exige una categoría y toda su rama pública;
 - el ranking histórico sólo agrega partidos de ramas efectivamente públicas.
 
@@ -225,14 +226,11 @@ Las rutas `/admin/*` definidas en `routes/web.php` son páginas y formularios we
 
 ### Resultados oficiales y conflictos de mutación
 
-6.F.3B incorporó modelos y tablas para versionar resultados oficiales por
-categoría y parte; 6.F.3C protege los writers existentes y 6.F.3D añade los
-servicios internos de readiness, oficialización y reapertura de Liga. Ninguno
-de esos bloques crea endpoints públicos, autenticados o administrativos ni un
-Resource de resultados oficiales. `CategoryPublicResource`, las respuestas de
-categoría, clasificación, calendario, partido y los contratos de Mi Panel
-permanecen sin cambios: no serializan `official_results`, snapshots,
-`source_digest`, `current_slot` ni metadatos de actores.
+6.F.3B–E incorporaron la persistencia versionada, los guards y los lifecycles
+internos de Liga y Copa; 6.F.3F añadió su administración Blade e histórico.
+6.F.3G incorpora una lectura pública dedicada sin modificar
+`CategoryPublicResource`, las respuestas vivas de categoría, clasificación,
+calendario o partido, ni los contratos de Mi Panel.
 
 Cuando una escritura JSON intenta modificar evidencia protegida por un
 resultado oficial vigente, o borrar una jerarquía que conserva historia
@@ -251,11 +249,87 @@ administrativo; la operación se revierte sin mutación parcial.
 
 Los tanteos validados y rankings que ya publica la API continúan representando
 el estado deportivo vivo; no deben confundirse con la historia oficial
-versionada ni se convierten automáticamente en ella. Aún no existe
-`GET /api/v1/categories/{category}/official-results`: su futura incorporación
-en 6.F.3G requerirá autorización, proyección de identidad, contrato allowlisted
-y pruebas específicas. Las operaciones de oficializar y reabrir tampoco tienen
-contrato HTTP; su futura exposición administrativa Blade corresponde a 6.F.3F.
+versionada ni se convierten automáticamente en ella. Las operaciones de
+oficializar y reabrir continúan fuera de la API REST pública y se realizan
+exclusivamente mediante los flujos Blade administrativos de 6.F.3F.
+
+#### Lectura pública del resultado oficial vigente
+
+`GET /api/v1/categories/{category}/official-results` no requiere
+autenticación y aplica la misma visibilidad efectiva que el resto de lecturas
+públicas de categoría. Una categoría inexistente o una rama con categoría,
+campeonato o temporada no públicos responde `404`; los estados operativos no
+alteran esta decisión ni determinan la oficialidad.
+
+La respuesta correcta conserva el envelope común. Cuando no existe ninguna
+parte `official` vigente devuelve:
+
+```json
+{
+  "message": null,
+  "data": {
+    "league": null,
+    "cup": null
+  }
+}
+```
+
+Liga y Copa son independientes. Una parte ausente o cuya última versión está
+`reopened` vale `null` aunque existan ranking o partidos vivos; la otra puede
+seguir publicándose. Si existe una versión vigente de cada parte, el payload es:
+
+```json
+{
+  "message": null,
+  "data": {
+    "league": {
+      "version": 2,
+      "officialized_at": "2026-09-06T10:20:30.000000Z",
+      "ranking": [
+        {
+          "position": 1,
+          "entry_type": "player",
+          "public_display_name": "Pilotari Blau",
+          "played": 9,
+          "wins": 8,
+          "losses": 1,
+          "points": 16,
+          "games_for": 90,
+          "games_against": 54,
+          "games_diff": 36
+        }
+      ]
+    },
+    "cup": {
+      "version": 2,
+      "officialized_at": "2026-09-06T11:21:31.000000Z",
+      "champion": {
+        "entry_type": "player",
+        "public_display_name": "Pilotari Blau"
+      }
+    }
+  }
+}
+```
+
+`ranking` respeta la `position` persistida. No se publican históricos,
+subcampeón, tercero, snapshots de partidos, identificadores `source_*`, digest,
+actor, estado, parte, metadatos de reapertura, `display_name_snapshot` interno
+ni timestamps técnicos. La identidad procede exclusivamente del
+`public_display_name` congelado; `public_anonymized_at` no nulo o un nombre
+público nulo/vacío se proyectan como `Participante` sin consultar identidades
+vivas.
+
+Una Liga oficial sin filas o una Copa oficial sin campeón constituyen un
+agregado corrupto. El endpoint no reconstruye datos ni devuelve una parte
+válida junto a otra corrupta: falla cerrado con `500` y el envelope genérico:
+
+```json
+{
+  "message": "No se ha podido obtener el resultado oficial.",
+  "data": null
+}
+```
 
 ---
 

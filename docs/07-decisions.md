@@ -2511,5 +2511,82 @@ Consecuencias:
   permaneció fuera de la evidencia oficial.
 - Staging permitió oficializar Liga y Copa de un campeonato finalizado.
   Producción se validó manualmente sin modificar datos reales.
-- 6.F.3G incorporará el API público de resultados oficiales y 6.F.4 abordará
-  después su presentación React.
+- 6.F.3G incorporó después el API público de resultados oficiales y 6.F.4
+  abordará su presentación React.
+
+---
+
+# ADR-054 — API pública de resultados oficiales basada en snapshots
+
+Estado: Aceptada
+
+Fecha: 2026-09-06
+
+Contexto:
+- Los rankings y partidos públicos existentes representan el estado deportivo
+  vivo y pueden cambiar tras una rectificación; no son una fuente válida para
+  reproducir lo que se oficializó.
+- Liga y Copa tienen lifecycles, slots vigentes e historias independientes. Una
+  versión `reopened` conserva evidencia histórica, pero deja de ser el resultado
+  oficial público actual.
+- La identidad pública puede cambiar o anonimizarse después de oficializar. La
+  lectura histórica debe respetar la proyección congelada sin consultar
+  jugadores, usuarios o equipos vivos.
+- El contrato público necesita una allowlist menor que el detalle
+  administrativo: no debe exponer fuentes, digest, actores, motivos de
+  reapertura ni evidencia probatoria de partidos.
+
+Decisión:
+- Publicar
+  `GET /api/v1/categories/{category}/official-results` sin autenticación y con
+  la visibilidad efectiva completa de categoría, campeonato y temporada. Una
+  rama privada o inexistente responde `404`; los estados operativos no
+  determinan la oficialidad.
+- Usar como única fuente pública las versiones `official` vigentes y sus hijos
+  persistidos. Resolver Liga y Copa de forma independiente: una parte ausente o
+  `reopened` devuelve `null`, sin fallback a datos vivos ni a la última versión
+  histórica.
+- Publicar para Liga sólo versión, fecha y ranking ordenado por la `position`
+  persistida con tipo, nombre público y estadísticas congeladas. Publicar para
+  Copa sólo versión, fecha y campeón con tipo y nombre público. No ofrecer
+  histórico, subcampeón, tercero o snapshots de partidos en este endpoint.
+- Proyectar la identidad exclusivamente desde `public_display_name`. Ante
+  `public_anonymized_at` no nulo o nombre público nulo/vacío, devolver
+  exactamente `Participante`; nunca usar `display_name_snapshot` interno ni
+  reconstruir identidad desde entidades actuales.
+- Aplicar Resources públicos dedicados con allowlists estrictas que excluyan
+  IDs, `source_*`, digest, actor, estado, parte, metadatos de reapertura y
+  timestamps técnicos.
+- Cargar únicamente `leagueRows` y `cupWinner` mediante un servicio de lectura.
+  Una Liga vigente sin filas, una Copa vigente sin campeón o evidencia tipada
+  incoherente falla cerrada para todo el agregado con `500` genérico y
+  `data: null`, sin payload parcial ni reconstrucción viva.
+- Mantener el endpoint read-only sin nuevos locks. No añadir migraciones,
+  operaciones REST de officialize/reopen, endpoints por versión o histórico ni
+  consumidor React en 6.F.3G.
+
+Alternativas descartadas:
+- reutilizar `CategoryRankingResource`, `PublicCompetitionEntryResource` o
+  servicios vivos para calcular ranking, campeón o identidad durante la
+  lectura;
+- publicar la última versión `reopened` o volver al resultado vivo mientras no
+  exista una nueva versión oficial;
+- serializar directamente modelos Eloquent o ampliar el payload con evidencia
+  y metadatos internos;
+- devolver la parte íntegra de un agregado cuando la otra parte oficial está
+  estructuralmente corrupta;
+- mezclar en el mismo endpoint el histórico, versiones concretas,
+  administración o presentación React.
+
+Consecuencias:
+- El commit funcional `527cc4873fbd3565c000ce4dd5967801c7f9768f` ofrece un
+  contrato público estable y mínimo sobre la misma evidencia reproducible que
+  administra Blade, sin nueva migración.
+- Cambios posteriores en datos vivos o autorizaciones no reescriben el resultado
+  publicado; una anonimización futura puede cerrar la identidad sin filtrar el
+  nombre interno.
+- Local y staging acreditan payloads con datos, privacidad y estados nulos.
+  Producción desplegó el SHA exacto y fue aceptada con la limitación explícita
+  de no disponer de categorías públicas para un smoke dependiente de datos.
+- 6.F.3 queda CLOSED/PASS. 6.F.4 puede consumir este contrato para presentar en
+  React el resultado final oficial sin reproducir reglas deportivas.

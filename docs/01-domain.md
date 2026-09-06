@@ -249,8 +249,9 @@ parte conserva su propio slot e historia. Sí mantiene bloqueadas tras la
 reapertura las mutaciones vivas de Liga y participantes de las que depende su
 cuadro. 6.F.3D no implementó la oficialización de Copa; 6.F.3E la incorpora
 como lifecycle service-only. 6.F.3F incorpora después la administración Blade
-y la lectura histórica; la anonimización, el contrato API público y la
-presentación React continúan fuera de estos bloques.
+y la lectura histórica; 6.F.3G añade después el contrato API público. La
+anonimización ejecutable y la presentación React continúan fuera de estos
+bloques.
 
 ### Oficialización y reapertura de Copa
 
@@ -318,6 +319,36 @@ versión `official` vigente de su parte; esta última condición también se
 verifica dentro del servicio transaccional. Las acciones delegan en los
 servicios de dominio de officialize/reopen existentes. 6.F.3F no añade
 migraciones, API pública, React, anonimización ni borrado de historia.
+
+### Lectura pública del resultado oficial vigente
+
+6.F.3G incorpora
+`GET /api/v1/categories/{category}/official-results` como lectura pública sin
+autenticación. La categoría debe ser efectivamente pública junto con su
+campeonato y temporada; una rama privada o inexistente responde `404`. Los
+estados operativos de esas entidades no crean, sustituyen ni ocultan la
+oficialidad.
+
+Liga y Copa se proyectan de forma independiente y exclusivamente desde su
+versión `official` vigente. Una parte sin versión vigente o cuya última versión
+está `reopened` devuelve `null`, aunque exista clasificación o cuadro vivo. El
+endpoint no publica histórico, no reconstruye resultados desde partidos y no
+recalcula el ranking.
+
+La Liga expone versión, fecha de oficialización y las filas persistidas en el
+orden de `position`, con tipo, identidad pública congelada y estadísticas del
+snapshot. La Copa expone versión, fecha y únicamente el campeón persistido. La
+identidad procede siempre de `public_display_name`; si el snapshot está
+anonimizado o el nombre público es nulo o vacío, la salida es exactamente
+`Participante`, sin recurrir al `display_name_snapshot` interno ni a entidades
+vivas.
+
+Los identificadores y metadatos internos, fuentes, digest, actores, reapertura
+y evidencia de partidos quedan fuera del contrato mediante Resources públicos
+con allowlists. Si una versión oficial vigente carece de las filas de Liga o
+del campeón de Copa obligatorios, la lectura falla cerrada con un `500`
+genérico para todo el agregado y nunca fabrica un payload parcial o un fallback
+vivo.
 
 ## Exportación PDF operativa de categoría
 

@@ -2332,3 +2332,47 @@ consume `Y-m-d H:i`. No se corrigió en 6.F.3F para no mezclar scopes.
 Permanecen vigentes y separadas la mejora visual del PDF de competición, el
 fallo E2E 67/68 del dropdown CMS y las 23 incidencias Pint globales
 preexistentes.
+
+## PUBLIC-OFFICIAL-RESULT-API-6F3G-1 — API pública de resultados oficiales (CLOSED / PASS)
+
+Ejecutado sobre el commit funcional
+`527cc4873fbd3565c000ce4dd5967801c7f9768f`:
+
+- focal del endpoint: 9 tests y 84 aserciones, PASS;
+- regresión backend dirigida: 205 tests y 2.048 aserciones, PASS;
+- suite backend completa: 757 tests y 6.028 aserciones, PASS;
+- `php -l` y Pint sobre el scope afectado: PASS;
+- `git diff --check`: PASS;
+- Pint global no ejecutado; permanecen las 23 incidencias preexistentes fuera
+  del scope.
+
+La cobertura valida el envelope exacto, acceso público sin autenticación,
+visibilidad efectiva de categoría/campeonato/temporada y separación respecto
+de los estados operativos. Acredita Liga y Copa independientes, ausencia de
+resultados, exclusión de versiones `reopened`, secuencia v1 reabierta/v2
+vigente, orden y estadísticas persistidos, identidad pública congelada,
+anonimización fail-closed, ausencia de consultas a fuentes vivas y allowlists
+sin identificadores ni metadatos internos. También verifica que una Liga sin
+filas, una Copa sin campeón o evidencia tipada cruzada producen un `500`
+genérico para todo el agregado sin fallback vivo.
+
+La aceptación humana local fue PASS sobre una categoría con Liga v2 y Copa v2.
+Staging desplegó el SHA funcional exacto en Railway
+`97cad0f2-d37e-4adc-ac57-01b8982488f8`, estado SUCCESS. La aceptación humana
+comprobó la categoría 2 con Liga v1 y Copa v1 y la categoría 3 con
+`league=null` y `cup=null`, sin filtraciones internas.
+
+Producción desplegó el mismo SHA en Railway
+`0e04d8b8-6e52-4162-9103-f20b309fa30f`, estado SUCCESS, con healthcheck `/up`
+PASS, y en Vercel `dpl_6qGwJCwf1ATH4PyjDDLz6dofJtUs`, estado READY. Las rutas
+frontend `/`, `/competicion` y `/torneos` respondieron `200`. No existían
+categorías públicas productivas, por lo que no se fabricaron datos ni se
+atribuyó un smoke dependiente de contenido al endpoint. La aceptación humana
+de producción fue PASS con esa limitación explícita, apoyada en la validación
+funcional local y de staging y en el despliegue técnico del SHA exacto.
+
+6.F.3G no incorpora migraciones. Permanecen abiertas e independientes la
+validación estricta de fecha de partidos, la mejora visual del PDF por
+jornadas/fases manteniendo una A4, el E2E histórico 67/68 del dropdown CMS, las
+23 incidencias Pint globales, el pipeline P1 de optimización automática de
+imágenes y el rollback rehearsal histórico no ejecutado.
