@@ -353,8 +353,8 @@ implementar prechecks aislados.
 6.F.3C no crea ni reabre resultados oficiales y tampoco calcula
 `source_digest`. 6.F.3D extiende este orden con los locks de las fuentes de
 identidad y del actor después de entradas y equipos para oficializar o reabrir
-Liga. Los futuros servicios de Copa de 6.F.3E deberán adquirir el mismo mutex
-`Category` y respetar la misma disciplina.
+Liga. 6.F.3E incorpora los servicios equivalentes de Copa sobre el mismo mutex
+`Category` y la misma disciplina de locks.
 
 ## Lifecycle transaccional de resultados oficiales de Liga
 
@@ -399,6 +399,46 @@ writer posterior, nunca un snapshot intermedio. Un oficial de Copa no bloquea
 el lifecycle de Liga, pero continúa participando en la matriz de guards tras la
 reapertura. ADR-049 conserva la decisión general de locking y ADR-050 la
 decisión estable de snapshot reproducible de Liga.
+
+## Lifecycle transaccional de resultados oficiales de Copa
+
+6.F.3E añade `EvaluateCupOfficializationReadinessService`,
+`OfficializeCupResultService`, `ReopenCupResultService` y
+`CupOfficialResultAggregateValidator` como superficie service-only. No añade
+controller, route, Blade, Resource API ni consumidor React.
+
+La readiness se ejecuta sobre colecciones ya bloqueadas. La clasificación que
+genera los seeds utiliza `BuildCategoryLeagueTableService` sobre entradas y
+partidos de Liga cargados bajo el mutex común; `BuildCategoryRankingService` no
+se usa como autoridad porque su consulta independiente rompería la fotografía
+transaccional. Cada partido de Liga que contribuye a ese seeding y cada partido
+decisivo de Copa se vuelve a validar contra `MatchScoreRulesService` antes de
+congelar evidencia.
+
+El orden conserva la disciplina de ADR-049: categoría, versiones oficiales
+vigentes, rondas, partidos, entradas/equipos, miembros de equipo y, cuando
+corresponde, fuentes de identidad y actor. `OfficializeCupResultService`
+evalúa, congela identidad y fuente, calcula el digest y persiste padre, campeón
+y tres snapshots dentro de una única transacción.
+
+`OfficialResultSourceDigestService` serializa `cup-source-v1` de forma
+determinista. Incluye categoría, modalidad y reglas canónicas, seeds 1–4 con
+sus referencias y composición, semifinales, Final y campeón. Excluye identidad
+presentacional, actor, timestamps, pista, fecha programada, visibilidad,
+metadatos editoriales, estadísticas agregadas de Liga y tercer puesto.
+
+La historia Cup debe ser íntegra y contigua. La siguiente versión se calcula
+como `max + 1` y MariaDB genera `current_slot`; el servicio nunca lo escribe.
+La reapertura sólo cambia estado, actor, fecha y motivo de reapertura y valida
+que campeón, snapshots y digest permanezcan invariantes. Sólo conflictos
+conocidos de unicidad se traducen a concurrencia; no existe reparación
+automática de historia.
+
+La ronda `third_place`, cuando es estructuralmente única, queda fuera del
+agregado oficial v1 y continúa editable con Copa oficial. Liga y Copa usan
+slots e historias independientes, pero el guard común mantiene la dependencia
+de seeding: un Cup oficial sigue protegiendo las mutaciones vivas de Liga y
+participantes que podrían invalidar su cuadro.
 
 ## Exportación PDF live de competición por categoría
 

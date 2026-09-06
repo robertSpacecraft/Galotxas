@@ -2253,8 +2253,8 @@ Consecuencias:
   Blade, endpoint público, presentación React, cálculo runtime de
   `source_digest` o anonimización final.
 - 6.F.3D acreditó después las carreras E2E de writer frente a
-  officialize/reopen de Liga sobre este mutex; la cobertura equivalente de Copa
-  continúa reservada a 6.F.3E.
+  officialize/reopen de Liga sobre este mutex; 6.F.3E incorpora después la
+  cobertura equivalente de Copa sobre la misma disciplina.
 
 ---
 
@@ -2331,8 +2331,9 @@ Consecuencias:
 - La evidencia histórica permanece estable aunque cambien las fuentes vivas o
   desaparezcan actores; una reapertura habilita una nueva versión sin borrar la
   anterior.
-- La oficialización de Copa continúa pendiente y deberá reutilizar el agregado,
-  la disciplina de locks y las fronteras de responsabilidad aquí establecidas.
+- 6.F.3E reutiliza este agregado, la disciplina de locks y las fronteras de
+  responsabilidad para oficializar y reabrir Copa sin alterar el lifecycle de
+  Liga.
 
 ---
 
@@ -2391,3 +2392,59 @@ Consecuencias:
 - Mejorar la separación visual de jornadas y fases queda como deuda no
   bloqueante, condicionada a mantener una única A4, contenido completo, fixture
   10/45+4 y legibilidad.
+
+---
+
+# ADR-052 — Oficialización versionada y reproducible de resultados de Copa
+
+Estado: Aceptada
+
+Fecha: 2026-09-06
+
+Contexto:
+- 6.F.3B creó persistencia genérica para versiones oficiales de Liga y Copa.
+- 6.F.3C estableció el mutex común y los guards de evidencia vigente.
+- 6.F.3D implementó el lifecycle reproducible de Liga.
+- El cuadro de Copa se genera desde el Top 4 de la clasificación viva de Liga y
+  el campeón previo podía derivarse de una Final validada, pero seguía siendo
+  mutable y no constituía historia oficial persistida.
+- El tercer puesto no forma parte del resultado público Cup v1 aprobado.
+
+Decisión:
+- Oficializar Copa mediante un lifecycle independiente
+  `official → reopened → nueva versión`, reutilizando
+  `CategoryOfficialResult` con `competition_part=cup`.
+- Resolver los cuatro seeds desde el estado vivo de Liga bloqueado dentro de la
+  misma transacción, mediante `BuildCategoryLeagueTableService`; una versión
+  oficial de Liga no es precondición ni sustituye esa fuente.
+- Rechazar cualquier empate deportivo no resuelto que afecte al Top 4 o al
+  corte 4.º/5.º; los fallbacks técnicos por nombre o ID no deciden seeds.
+- Exigir exactamente dos semifinales con cruces 1.º–4.º y 2.º–3.º y una Final
+  cuyos participantes sean los ganadores de semifinales. Todos los partidos
+  decisivos deben estar validados y ser íntegros.
+- Permitir cero o una ronda estructural de tercer puesto, excluyéndola de
+  readiness deportiva, campeón, snapshots y digest.
+- Congelar exactamente un campeón y tres snapshots decisivos con identidad
+  minimizada a la fecha de oficialización.
+- Calcular `source_digest` canónico bajo `cup-source-v1` a partir de reglas,
+  seeds/composición, semifinales, Final y campeón, excluyendo identidad
+  presentacional, actor, tiempos, pista, metadatos editoriales, estadísticas
+  agregadas de Liga y tercer puesto.
+- Mantener la disciplina de ADR-049: mutex `Category`, locks ordenados,
+  evaluación sobre datos bloqueados y `current_slot` generado por MariaDB.
+- Reabrir sólo mediante actor válido y motivo no vacío, preservando digest,
+  campeón y snapshots y sin reabrir Liga en cascada.
+
+Consecuencias:
+- El campeón de Copa deja de depender para su historia de una lectura mutable
+  de la Final viva.
+- Liga y Copa pueden tener simultáneamente una versión oficial vigente, pero
+  nunca dos versiones vigentes de la misma parte.
+- Una Copa oficial protege semifinales, Final y las fuentes vivas de
+  Liga/participantes que determinan su seeding; el tercer puesto continúa
+  editable en v1.
+- Reabrir Copa libera sus partidos decisivos, pero no anula bloqueos
+  independientes de una Liga oficial.
+- No existe backfill ni reparación automática de historia.
+- La decisión no incorpora UI Blade, API pública, React ni anonimización
+  ejecutable; esos consumidores permanecen en bloques posteriores.

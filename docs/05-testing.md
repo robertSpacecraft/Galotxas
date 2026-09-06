@@ -2120,7 +2120,7 @@ allí un bloqueo condicionado; la matriz queda acreditada localmente sobre
 MariaDB aislada y el smoke remoto no destructivo no invalida el cierre. En el
 cierre de 6.F.3C aún no se acreditaba una carrera E2E writer frente a
 officialize/reopen; 6.F.3D incorporó después esa cobertura para Liga y 6.F.3E
-mantiene pendiente la equivalente de Copa.
+incorpora la equivalente de Copa sobre el mismo mutex común.
 
 Pint global no fue PASS: permanecen 23 incidencias preexistentes fuera del
 scope, aunque el diff funcional sí pasó. Chromium no arrancó en el host de
@@ -2242,3 +2242,49 @@ También quedan como evolución posterior una métrica porcentual de cobertura f
 ## Mantenimiento
 
 Cuando cambie la estrategia de pruebas, el entorno Docker o el proceso de validación, este documento deberá actualizarse.
+
+---
+
+## CUP-OFFICIAL-RESULT-LIFECYCLE-6F3E-1 — Oficialización y reapertura de Copa (CLOSED / PASS)
+
+Ejecutado sobre el commit funcional
+`cb38f43b7b968e8df936b93a9412ed997b78fd23`:
+
+- focales de readiness, lifecycle, digest y concurrencia: 38 tests y 358
+  aserciones, PASS;
+- carreras Cup con procesos/conexiones independientes y barreras deterministas
+  sobre MariaDB real: 8 tests y 76 aserciones, PASS;
+- regresión backend dirigida: 167 tests y 1.086 aserciones, PASS;
+- suite backend completa: 727 tests y 5.624 aserciones, PASS;
+- revalidación final previa al commit: 90 tests y 657 aserciones, PASS;
+- `php -l`, Pint de los 19 archivos afectados y `git diff --check`: PASS.
+
+La validación humana local recorrió el lifecycle completo con writers y
+generadores reales: NOT READY sin cuadro, generación 1.º–4.º y 2.º–3.º,
+semifinales validadas, Final pendiente, READY con Final validada,
+oficialización v1, bloqueo de Final, tercer puesto editable, reapertura con
+evidencia inmutable, rectificación de Final y oficialización v2 con digest
+distinto. Durante el recorrido permaneció vigente una versión oficial de Liga,
+acreditando la interacción independiente entre ambos lifecycles.
+
+Los snapshots Cup v1 incluyeron exactamente dos semifinales y la Final, nunca
+el tercer puesto. La reapertura conservó digest, campeón y snapshots; v1 quedó
+`reopened/current_slot=NULL` y v2 `official/current_slot=1`.
+
+Staging desplegó el commit exacto en Railway
+`beb128eb-40d1-46d9-a055-5d1d17212b2d` y Vercel
+`dpl_9sCKMkMQ5bs2cSsFJftbgPu2wU9M`. Los recuentos PRE/POST permanecieron
+estables —2 temporadas, 2 campeonatos, 2 categorías, 10 entradas, 12 rondas y
+49 partidos; tablas oficiales a cero—, sin fixtures ni operaciones lifecycle
+remotas. Smoke y aceptación humana: PASS.
+
+Producción desplegó el mismo commit en Railway
+`2c290145-1deb-466e-9a18-6bd1b456c714` con estado SUCCESS y en Vercel
+`dpl_F9xzGC7Micie7qMuLvp1MhqHUPAc` con estado READY. `/`, `/competicion` y
+`/torneos` respondieron 200, el healthcheck backend permaneció operativo y la
+aceptación humana de producción fue PASS. No se fabricaron datos deportivos en
+staging o producción.
+
+Pint global no se declara PASS: permanecen 23 incidencias preexistentes fuera
+del scope. 6.F.3E es backend/service-only y no incorpora migración, UI, API
+pública ni presentación React.

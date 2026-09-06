@@ -474,11 +474,30 @@ mejora deberá conservar exactamente una A4, todo el contenido, el fixture
 
 #### Siguiente bloque: 6.F.3E — Oficialización/reapertura de Copa
 
-6.F.3E es el siguiente microbloque oficial y no está iniciado. Extenderá a Copa
-la oficialización y reapertura sobre el agregado, el mutex y las garantías ya
-establecidas, sin darla por implementada. Después seguirán 6.F.3F para Blade e
-historial administrativo, 6.F.3G para el API público `official-results` y
-6.F.4 para la presentación final en React. 6.F.3 permanece abierto.
+#### 6.F.3E — Oficialización y reapertura de Copa (CLOSED / PASS)
+
+El commit funcional `cb38f43b7b968e8df936b93a9412ed997b78fd23` extiende
+a Copa el lifecycle oficial versionado sobre el agregado y mutex comunes.
+Readiness valida seeds Top 4 deportivos sobre la Liga viva bloqueada, cruces
+1.º–4.º y 2.º–3.º, semifinales y Final decisivas, integridad de tanteos y
+ganadores y coherencia de finalistas. Los desempates técnicos nunca justifican
+un seed oficial.
+
+La oficialización congela un único campeón, exactamente dos semifinales y la
+Final, identidad minimizada y digest `cup-source-v1`. El tercer puesto queda
+fuera de readiness, snapshots y digest y permanece editable. Reabrir preserva
+evidencia y libera el slot para una nueva versión contigua; Liga y Copa
+mantienen slots e historia independientes sin cascadas entre lifecycles.
+
+Local: 727 tests / 5.624 aserciones en suite backend completa, 167 / 1.086 en
+regresión dirigida y 8 / 76 en carreras Cup, además de recorrido humano
+`v1 official → v1 reopened → v2 official`. Staging técnico y humano: PASS.
+Producción técnica y humana: PASS. No hubo migración, fixture remota, UI, API
+pública ni React.
+
+6.F.3F es el siguiente microbloque oficial: Blade e historial administrativo.
+Después seguirá 6.F.3G para el API público `official-results` y 6.F.4 para la
+presentación final en React. 6.F.3 permanece abierto.
 
 ### 4. 6.C — Imágenes de Temporadas, Campeonatos y Categorías
 

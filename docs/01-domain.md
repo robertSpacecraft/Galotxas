@@ -247,8 +247,48 @@ contigua mediante `max + 1`. El lifecycle soportado es, por tanto,
 Una versión vigente de Copa no impide oficializar ni reabrir Liga, porque cada
 parte conserva su propio slot e historia. Sí mantiene bloqueadas tras la
 reapertura las mutaciones vivas de Liga y participantes de las que depende su
-cuadro. 6.F.3D no implementa la oficialización de Copa, anonimización, UI
-Blade, contrato API ni presentación React.
+cuadro. 6.F.3D no implementó la oficialización de Copa; 6.F.3E la incorpora
+como lifecycle service-only. La anonimización, UI Blade, contrato API y
+presentación React continúan fuera de estos bloques.
+
+### Oficialización y reapertura de Copa
+
+6.F.3E extiende el lifecycle oficial versionado a la Copa. La fuente de verdad
+para el seeding es la clasificación de Liga viva calculada sobre el estado
+bloqueado en la propia transacción; no se exige que exista una versión oficial
+de Liga y tampoco se reutiliza como autoridad un ranking que vuelva a consultar
+la base de datos fuera de esos locks.
+
+La readiness exige al menos cuatro entradas aprobadas y coherentes con la
+modalidad, cuatro seeds deportivos inequívocos y una estructura de Copa
+inequívoca: exactamente una ronda de semifinales con dos partidos y una ronda
+Final con un partido. Los cruces deben ser 1.º contra 4.º y 2.º contra 3.º,
+todos los partidos decisivos deben estar `validated`, con tanteo y ganador
+válidos, y los finalistas deben coincidir exactamente con los ganadores de las
+semifinales. Un empate no resuelto que afecte al Top 4 o al corte 4.º/5.º
+impide oficializar; los desempates técnicos por nombre o ID nunca deciden un
+seed oficial.
+
+El tercer puesto es opcional y sólo se reconoce cuando existe como una única
+ronda estructural `third_place`. No decide el campeón, no forma parte de la
+readiness deportiva, no se incluye en snapshots ni en el digest y puede seguir
+editándose aunque exista una Copa oficial vigente. Una estructura ambigua o
+duplicada sí hace fallar la readiness.
+
+Al oficializar se crea una nueva versión `cup` con un único campeón
+minimizado, exactamente tres snapshots —dos semifinales y Final—, actor y un
+`source_digest` SHA-256 canónico `cup-source-v1`. El digest incluye reglas,
+seeds, composición fuente, partidos decisivos y campeón; excluye nombres,
+proyección de identidad, actor, fecha de oficialización, pista, fecha
+programada, metadatos editoriales y tercer puesto.
+
+Reabrir modifica únicamente estado y metadatos de reapertura, libera
+`current_slot` y conserva intactos digest, campeón y snapshots. Una nueva
+oficialización crea la siguiente versión contigua. Una Copa oficial bloquea
+semifinales, Final y las mutaciones de Liga o participantes de las que depende
+su seeding; reabrir Copa libera sus partidos decisivos, salvo cualquier bloqueo
+independiente que continúe imponiendo una Liga oficial. Liga y Copa conservan
+historial y slot propios y no se reabren en cascada.
 
 ## Exportación PDF operativa de categoría
 
