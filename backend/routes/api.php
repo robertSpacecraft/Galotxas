@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\Admin\SeasonController as AdminSeasonController;
 use App\Http\Controllers\Api\V1\AllTimeRankingController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
+use App\Http\Controllers\Api\V1\CategoryOfficialResultController;
 use App\Http\Controllers\Api\V1\ChampionshipController;
 use App\Http\Controllers\Api\V1\ChampionshipRankingController;
 use App\Http\Controllers\Api\V1\ChampionshipRegistrationController;
@@ -53,6 +54,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/championships/{championship}/ranking', ChampionshipRankingController::class);
 
     Route::get('/categories/{category}', [CategoryController::class, 'show']);
+    Route::get('/categories/{category}/official-results', CategoryOfficialResultController::class);
     Route::get('/categories/{category}/standings', [CategoryController::class, 'standings']);
     Route::get('/categories/{category}/schedule', [CategoryController::class, 'schedule']);
 
