@@ -46,6 +46,13 @@
                     @if (session('error'))
                         <div class="alert alert-danger">
                             {{ session('error') }}
+                            @if (session('official_result_issues'))
+                                <ul class="mb-0 mt-2">
+                                    @foreach (session('official_result_issues') as $issue)
+                                        <li>{{ $issue }}</li>
+                                    @endforeach
+                                </ul>
+                            @endif
                         </div>
                     @endif
 
@@ -151,6 +158,8 @@
                 </div>
             </div>
         </div>
+
+        @include('admin.categories._official-results')
 
         {{-- Inscripciones --}}
         <div class="col-12">

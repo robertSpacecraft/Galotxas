@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\OfficialResultCompetitionPart;
 use App\Enums\OfficialResultStatus;
 use App\Exceptions\NoCurrentLeagueOfficialResultException;
+use App\Exceptions\OfficialResultConcurrencyConflictException;
 use App\Exceptions\OfficialResultSourceIntegrityException;
 use App\Models\Category;
 use App\Models\CategoryOfficialResult;
@@ -24,8 +25,13 @@ class ReopenLeagueResultService
         Category|int $category,
         User $actor,
         string $reason,
+        CategoryOfficialResult|int|null $expectedResult = null,
     ): CategoryOfficialResult {
-        return DB::transaction(function () use ($category, $actor, $reason): CategoryOfficialResult {
+        $expectedResultId = $expectedResult instanceof CategoryOfficialResult
+            ? (int) $expectedResult->id
+            : $expectedResult;
+
+        return DB::transaction(function () use ($category, $actor, $reason, $expectedResultId): CategoryOfficialResult {
             $categoryLock = $this->locks->lockCategoryAndCurrentOfficialResults($category);
             $leagueResults = $categoryLock->currentOfficialResults
                 ->filter(fn (CategoryOfficialResult $result): bool => $result->competition_part === OfficialResultCompetitionPart::LEAGUE)
@@ -41,6 +47,10 @@ class ReopenLeagueResultService
 
             /** @var CategoryOfficialResult $result */
             $result = $leagueResults->first();
+            if ($expectedResultId !== null && (int) $result->id !== $expectedResultId) {
+                throw new OfficialResultConcurrencyConflictException;
+            }
+
             $identityLock = $this->locks->lockIdentitySources([], $actor);
             $actorName = $this->actorSnapshots->snapshot($identityLock->actor);
             $normalizedReason = $this->reasons->normalize($reason);

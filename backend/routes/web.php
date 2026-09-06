@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CategoryCompetitionExportController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\CategoryOfficialResultController;
 use App\Http\Controllers\Admin\CategoryRegistrationController;
 use App\Http\Controllers\Admin\CategoryTeamController;
 use App\Http\Controllers\Admin\ChampionshipController as AdminChampionshipController;
@@ -291,6 +292,26 @@ Route::prefix('admin')->group(function () {
             ->name('admin.categories.export');
         Route::get('/categories/{category}', [AdminCategoryController::class, 'show'])
             ->name('admin.categories.show');
+        Route::post(
+            '/categories/{category}/official-results/league/officialize',
+            [CategoryOfficialResultController::class, 'officializeLeague']
+        )->name('admin.categories.official-results.league.officialize');
+        Route::post(
+            '/categories/{category}/official-results/cup/officialize',
+            [CategoryOfficialResultController::class, 'officializeCup']
+        )->name('admin.categories.official-results.cup.officialize');
+        Route::get(
+            '/categories/{category}/official-results/{officialResult}',
+            [CategoryOfficialResultController::class, 'show']
+        )->scopeBindings()->name('admin.categories.official-results.show');
+        Route::get(
+            '/categories/{category}/official-results/{officialResult}/reopen',
+            [CategoryOfficialResultController::class, 'reopenForm']
+        )->scopeBindings()->name('admin.categories.official-results.reopen.form');
+        Route::post(
+            '/categories/{category}/official-results/{officialResult}/reopen',
+            [CategoryOfficialResultController::class, 'reopen']
+        )->scopeBindings()->name('admin.categories.official-results.reopen');
         Route::get('/categories/{category}/edit', [AdminCategoryController::class, 'edit'])
             ->name('admin.categories.edit');
         Route::put('/categories/{category}', [AdminCategoryController::class, 'update'])

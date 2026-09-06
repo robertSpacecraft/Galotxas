@@ -12,6 +12,7 @@ use App\Models\CategoryRegistration;
 use App\Models\Championship;
 use App\Models\ChampionshipRegistrationRequest;
 use App\Models\Venue;
+use App\Services\Admin\CategoryOfficialResultsPresentationService;
 use App\Services\GenerateCupService;
 use App\Services\GenerateLeagueScheduleService;
 use App\Services\OfficialResultProtectedDeletionService;
@@ -67,8 +68,11 @@ class CategoryController extends Controller
             ->with('success', 'Categoría creada');
     }
 
-    public function show(Category $category, BuildCategoryRankingService $rankingService)
-    {
+    public function show(
+        Category $category,
+        BuildCategoryRankingService $rankingService,
+        CategoryOfficialResultsPresentationService $officialResults,
+    ) {
         $category->load([
             'championship.season',
             'registrations.player.user',
@@ -152,6 +156,7 @@ class CategoryController extends Controller
             'categoryRanking' => $categoryRanking,
             'cupRounds' => $cupRounds,
             'hasCompetitionMatches' => $hasCompetitionMatches,
+            'officialResults' => $officialResults->prepare($category),
         ]);
     }
 
