@@ -2288,3 +2288,47 @@ staging o producción.
 Pint global no se declara PASS: permanecen 23 incidencias preexistentes fuera
 del scope. 6.F.3E es backend/service-only y no incorpora migración, UI, API
 pública ni presentación React.
+
+## ADMIN-OFFICIAL-RESULT-HISTORY-6F3F-1 — Administración Blade e histórico (CLOSED / PASS)
+
+Ejecutado sobre el commit funcional
+`a3c4cae6b0f07e08d9afd0f8900169a763a8d918`:
+
+- focal 6.F.3F tras la corrección visual NOT READY: 21 tests y 320
+  aserciones, PASS;
+- suite backend completa final: PASS;
+- `php -l`, Pint del scope afectado y `git diff --check`: PASS.
+
+La cobertura Feature acredita los estados independientes de Liga y Copa:
+current official sin una nueva acción de oficialización; READY con formulario
+POST y confirmación; NOT READY con `disabled`, `aria-disabled="true"`,
+apariencia inactiva y ausencia de formulario POST accionable. También verifica
+autenticación y autorización, ownership categoría/resultado, detalle
+persistido, historial mixto estable, reapertura sólo de la versión vigente,
+motivo obligatorio de hasta 2.000 caracteres y feedback seguro ante cambios de
+readiness o conflictos concurrentes.
+
+La validación humana local recorrió el ciclo completo de Copa: NOT READY,
+semifinales y Final válidas, READY, official v1, bloqueo de Final, tercer puesto
+editable, detalle histórico, reopen v1, rectificación válida de Final y
+official v2. Liga v2 permaneció oficial durante el recorrido; Cup v1 conservó
+la Final original, Cup v2 la corregida y el tercer puesto no apareció en el
+resultado oficial ni en sus snapshots.
+
+En staging se oficializaron correctamente Liga y Copa de un campeonato ya
+finalizado mediante la nueva UI. Producción completó validación técnica y
+humana sin modificar datos reales. El bloque sólo añade administración Blade e
+histórico sobre el dominio existente: no incorpora migración, API pública o
+React.
+
+### Deuda independiente: validación de fecha en admin partidos (abierta)
+
+El formulario administrativo de partidos debe validar estrictamente la fecha
+y devolver un error de formulario en lugar de un `500`. Una fecha con un año
+inválido, por ejemplo `20226`, puede superar la regla genérica `date` y
+provocar después `Carbon\InvalidFormatException` cuando el controlador
+consume `Y-m-d H:i`. No se corrigió en 6.F.3F para no mezclar scopes.
+
+Permanecen vigentes y separadas la mejora visual del PDF de competición, el
+fallo E2E 67/68 del dropdown CMS y las 23 incidencias Pint globales
+preexistentes.

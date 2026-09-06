@@ -519,12 +519,33 @@ modifica cuando el backend lo identifica inequívocamente.
 La resolución administrativa de conflictos de partido descrita arriba sigue
 siendo un flujo distinto y no crea automáticamente una versión oficial de
 categoría. Desde 6.F.3D existen servicios backend para evaluar readiness,
-oficializar y reabrir una Liga, calcular su digest y congelar snapshots, pero
-el panel Blade aún no los expone. No dispone de botones o formularios de
-oficialización/reapertura, listado o historial de `CategoryOfficialResult`,
-acción de anonimización ni borrado. Los writers protegidos mantienen el
-feedback y los bloqueos de 6.F.3C; la UI administrativa y el historial quedan
-reservados a 6.F.3F.
+oficializar y reabrir una Liga, calcular su digest y congelar snapshots;
+6.F.3E añade el lifecycle equivalente de Copa y 6.F.3F los expone en Blade.
+
+El detalle de categoría contiene la card **Resultados oficiales**, con Liga y
+Copa independientes:
+
+- si existe un current official, muestra «Oficial», versión, fecha, actor
+  snapshot y acciones para ver el detalle o iniciar la reapertura; no ofrece
+  una nueva oficialización;
+- sin current official, consulta la readiness del backend;
+- READY ofrece el formulario POST «Oficializar Liga/Copa» con confirmación;
+- NOT READY muestra los motivos seguros en español y un control visual y
+  funcionalmente deshabilitado, sin formulario POST accionable.
+
+Debajo se presenta un histórico compacto con todas las versiones de ambas
+partes. El detalle es read-only y usa exclusivamente datos persistidos: Liga
+muestra ranking snapshot y evidencia de partidos; Copa muestra el campeón
+snapshot y los tres partidos decisivos, sin inventar subcampeón o tercero ni
+resolver identidades desde entidades vivas.
+
+«Reabrir» conduce a una pantalla de confirmación que exige un motivo no vacío
+de hasta 2.000 caracteres. La ruta comprueba que el resultado pertenece a la
+categoría y sigue siendo el current official de su parte; el servicio
+transaccional vuelve a comprobarlo antes de cambiar el estado. Officialize y
+reopen delegan en los servicios de dominio existentes, por lo que Blade no
+duplica guards deportivos. No existe acción de anonimización ni borrado, y
+6.F.3F no añade migraciones, API pública o React.
 
 ## Exportación PDF de categoría
 

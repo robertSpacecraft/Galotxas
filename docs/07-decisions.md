@@ -2448,3 +2448,68 @@ Consecuencias:
 - No existe backfill ni reparación automática de historia.
 - La decisión no incorpora UI Blade, API pública, React ni anonimización
   ejecutable; esos consumidores permanecen en bloques posteriores.
+
+---
+
+# ADR-053 — Administración Blade delegada para resultados oficiales
+
+Estado: Aceptada
+
+Fecha: 2026-09-06
+
+Contexto:
+- 6.F.3B–E ya proporcionan persistencia versionada, mutex, mutation guards,
+  readiness y lifecycle transaccional independientes para Liga y Copa.
+- Administración necesita conocer si cada parte puede oficializarse, crear una
+  versión, consultar toda la evidencia histórica y reabrir la vigente sin
+  reproducir reglas deportivas en Blade.
+- Una lectura histórica no puede reconstruirse desde partidos, rankings o
+  identidades vivas, porque dejaría de representar lo que se oficializó.
+- La reapertura debe actuar únicamente sobre el resultado solicitado mientras
+  continúe siendo el current official de su categoría y parte.
+
+Decisión:
+- Incorporar al detalle administrativo de categoría una card «Resultados
+  oficiales» con estados independientes para Liga y Copa.
+- Presentar el current official con versión, fecha, actor snapshot, detalle y
+  reapertura. Cuando no exista, consumir la readiness real del backend: READY
+  expone un formulario POST con confirmación y NOT READY muestra motivos
+  seguros traducidos al español con un control visual y funcionalmente
+  deshabilitado, sin POST accionable.
+- Centralizar la composición de la vista en
+  `CategoryOfficialResultsPresentationService` y la traducción de issues en
+  `OfficialResultReadinessIssueFormatter`. Blade no calcula reglas deportivas
+  ni duplica guards.
+- Mantener un histórico compacto de todas las versiones. El detalle read-only
+  consume exclusivamente ranking y snapshots persistidos de Liga o campeón y
+  los tres snapshots decisivos de Copa; no inventa subcampeón/tercero ni
+  reconstruye identidades históricas desde entidades vivas.
+- Reabrir mediante una pantalla de confirmación y un motivo obligatorio de
+  hasta 2.000 caracteres. Validar ownership categoría/resultado y que la
+  versión siga siendo el current official tanto en HTTP como dentro del
+  servicio transaccional.
+- Delegar officialize/reopen en los servicios de dominio existentes y traducir
+  sólo excepciones conocidas. No incorporar `catch (Throwable)`.
+- Limitar 6.F.3F a administración Blade e histórico. No añadir migraciones,
+  API pública, Resources, React, anonimización ni borrado de versiones.
+
+Alternativas descartadas:
+- recalcular readiness o replicar guards deportivos en vistas/controladores;
+- renderizar una acción POST habilitada cuando la parte está NOT READY;
+- reconstruir el histórico desde rankings, partidos o identidades actuales;
+- permitir reapertura directa de cualquier versión histórica o confiar sólo
+  en un precheck HTTP fuera de la transacción;
+- mezclar en este bloque el contrato API público o la presentación React.
+
+Consecuencias:
+- El commit funcional `a3c4cae6b0f07e08d9afd0f8900169a763a8d918` ofrece la
+  gestión Blade completa de Liga y Copa sobre el dominio oficial existente,
+  sin migración ni cambio del contrato público.
+- El recorrido humano local acreditó Cup
+  `v1 official → v1 reopened → v2 official` manteniendo Liga v2 oficial y
+  preservando la Final original en v1 y la corregida en v2; el tercer puesto
+  permaneció fuera de la evidencia oficial.
+- Staging permitió oficializar Liga y Copa de un campeonato finalizado.
+  Producción se validó manualmente sin modificar datos reales.
+- 6.F.3G incorporará el API público de resultados oficiales y 6.F.4 abordará
+  después su presentación React.

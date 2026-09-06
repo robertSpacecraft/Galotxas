@@ -248,7 +248,8 @@ Una versión vigente de Copa no impide oficializar ni reabrir Liga, porque cada
 parte conserva su propio slot e historia. Sí mantiene bloqueadas tras la
 reapertura las mutaciones vivas de Liga y participantes de las que depende su
 cuadro. 6.F.3D no implementó la oficialización de Copa; 6.F.3E la incorpora
-como lifecycle service-only. La anonimización, UI Blade, contrato API y
+como lifecycle service-only. 6.F.3F incorpora después la administración Blade
+y la lectura histórica; la anonimización, el contrato API público y la
 presentación React continúan fuera de estos bloques.
 
 ### Oficialización y reapertura de Copa
@@ -289,6 +290,34 @@ semifinales, Final y las mutaciones de Liga o participantes de las que depende
 su seeding; reabrir Copa libera sus partidos decisivos, salvo cualquier bloqueo
 independiente que continúe imponiendo una Liga oficial. Liga y Copa conservan
 historial y slot propios y no se reabren en cascada.
+
+### Administración e histórico Blade
+
+6.F.3F expone el agregado oficial existente en el detalle administrativo de
+categoría mediante la card «Resultados oficiales». Liga y Copa se presentan y
+gestionan de forma independiente. Cuando una parte conserva una versión
+`official` vigente, el panel muestra su estado, versión, fecha, actor snapshot
+y accesos al detalle y a la reapertura; no ofrece una nueva oficialización.
+
+Si no existe una versión vigente, el panel consulta la readiness real del
+backend. El estado READY ofrece una acción POST de oficialización con
+confirmación. El estado NOT READY muestra los motivos seguros traducidos a
+mensajes administrativos en español y un control visual y funcionalmente
+deshabilitado, sin formulario POST accionable. Blade no calcula reglas
+deportivas ni duplica los guards del dominio.
+
+El histórico compacto reúne todas las versiones de Liga y Copa. Cada detalle
+es read-only y consume únicamente evidencia persistida: la Liga presenta su
+ranking snapshot y sus partidos; la Copa, el campeón snapshot y los tres
+partidos decisivos. No se inventan subcampeón o tercero ni se reconstruyen
+identidades históricas desde entidades vivas.
+
+La reapertura usa una pantalla de confirmación y exige un motivo de hasta 2.000
+caracteres. El resultado debe pertenecer a la categoría y continuar siendo la
+versión `official` vigente de su parte; esta última condición también se
+verifica dentro del servicio transaccional. Las acciones delegan en los
+servicios de dominio de officialize/reopen existentes. 6.F.3F no añade
+migraciones, API pública, React, anonimización ni borrado de historia.
 
 ## Exportación PDF operativa de categoría
 

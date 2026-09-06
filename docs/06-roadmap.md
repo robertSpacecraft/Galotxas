@@ -472,8 +472,6 @@ separación de fase o solución equivalente de coste vertical casi nulo. La
 mejora deberá conservar exactamente una A4, todo el contenido, el fixture
 10/45+4 y los mínimos de legibilidad; no se implementa en este cierre.
 
-#### Siguiente bloque: 6.F.3E — Oficialización/reapertura de Copa
-
 #### 6.F.3E — Oficialización y reapertura de Copa (CLOSED / PASS)
 
 El commit funcional `cb38f43b7b968e8df936b93a9412ed997b78fd23` extiende
@@ -495,9 +493,33 @@ regresión dirigida y 8 / 76 en carreras Cup, además de recorrido humano
 Producción técnica y humana: PASS. No hubo migración, fixture remota, UI, API
 pública ni React.
 
-6.F.3F es el siguiente microbloque oficial: Blade e historial administrativo.
-Después seguirá 6.F.3G para el API público `official-results` y 6.F.4 para la
-presentación final en React. 6.F.3 permanece abierto.
+#### 6.F.3F — Administración Blade e histórico de resultados oficiales (CLOSED / PASS)
+
+El commit funcional `a3c4cae6b0f07e08d9afd0f8900169a763a8d918` incorpora
+la card «Resultados oficiales» al detalle administrativo de categoría. Liga y
+Copa se gestionan de forma independiente: current official presenta versión,
+fecha, actor snapshot, detalle y reapertura; sin versión vigente, la UI consume
+la readiness real del backend. READY ofrece el POST de oficialización y NOT
+READY muestra motivos seguros en español con el control visual y
+funcionalmente deshabilitado.
+
+El histórico reúne todas las versiones. Los detalles read-only consumen el
+ranking y partidos persistidos de Liga o el campeón y los tres partidos
+decisivos persistidos de Copa, sin reconstrucciones desde datos vivos. La
+reapertura exige confirmación y motivo de hasta 2.000 caracteres, comprueba
+ownership y que la versión solicitada siga siendo el current official. Las
+acciones delegan en los servicios existentes; no se duplican guards en Blade
+ni se añade migración, API pública o React.
+
+La focal final tras la corrección UI pasó 21 tests y 320 aserciones; la suite
+backend completa, la validación humana local, staging técnico/humano y
+producción técnica/humana fueron PASS. En staging se oficializaron Liga y Copa
+de un campeonato finalizado; producción se validó sin modificar datos reales.
+
+#### Siguiente bloque: 6.F.3G — API pública de resultados oficiales
+
+Después de 6.F.3G seguirá 6.F.4 para la presentación final en React. 6.F.3
+permanece abierto.
 
 ### 4. 6.C — Imágenes de Temporadas, Campeonatos y Categorías
 
@@ -653,9 +675,12 @@ repiten aquí:
 
 ## Competición y datos
 
-- continuar 6.F.3E+ sin reutilizar `finished` o `cancelled` como oficialidad;
+- continuar 6.F.3G sin reutilizar `finished` o `cancelled` como oficialidad;
 - aclarar por separado la semántica histórica de `official_ranking`;
 - revisar en bloques separados la consistencia de `Round.phase/stage`, la integridad débil de `CategoryEntry`, las cascadas destructivas heredadas y los resultados sin tanteo por walkover, abandono o descalificación;
+- Admin partidos — validar estrictamente fecha y devolver error de formulario
+  en lugar de `500`; una fecha con año inválido puede superar `date` y fallar
+  después al consumirse como `Y-m-d H:i`;
 - coordinar disponibilidad de pistas entre categorías distintas;
 - proteger generaciones concurrentes con una estrategia de bloqueo;
 - trasladar la unicidad del nombre de pista, hoy validada en formularios, a una restricción de base de datos;

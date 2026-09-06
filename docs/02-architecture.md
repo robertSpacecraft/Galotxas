@@ -440,6 +440,40 @@ slots e historias independientes, pero el guard común mantiene la dependencia
 de seeding: un Cup oficial sigue protegiendo las mutaciones vivas de Liga y
 participantes que podrían invalidar su cuadro.
 
+## Administración Blade e histórico de resultados oficiales
+
+6.F.3F añade una capa HTTP y de presentación sobre los servicios y la
+persistencia oficiales ya existentes. `CategoryOfficialResultsPresentationService`
+carga el histórico por categoría, identifica por separado el current official
+de Liga y Copa y sólo evalúa
+`EvaluateLeagueOfficializationReadinessService` o
+`EvaluateCupOfficializationReadinessService` cuando la parte no tiene una
+versión vigente. `OfficialResultReadinessIssueFormatter` transforma
+exclusivamente los códigos y contextos seguros del dominio en mensajes
+administrativos en español; no replica reglas deportivas.
+
+`CategoryOfficialResultController` expone POST separados para oficializar
+Liga y Copa, detalle read-only de cualquier versión y el formulario/POST de
+reapertura. Officialize y reopen delegan en los servicios de dominio
+existentes, que vuelven a evaluar sus invariantes bajo el mutex transaccional.
+El controlador traduce únicamente excepciones de dominio conocidas y no usa
+`catch (Throwable)`.
+
+El route model binding se complementa con una comprobación explícita de
+ownership entre categoría y resultado. La reapertura HTTP sólo admite una
+versión que siga en estado `official` para su categoría y parte, y los
+servicios de reapertura vuelven a verificar dentro de la transacción que la
+versión solicitada continúa siendo el current official. El motivo se valida
+mediante `ReopenOfficialResultRequest` como texto obligatorio de hasta 2.000
+caracteres.
+
+Las vistas Blade distinguen tres estados por parte: current official con
+metadatos y acciones de detalle/reapertura; READY con formulario POST y
+confirmación; y NOT READY con motivos seguros y control deshabilitado sin
+acción POST. El detalle histórico lee filas, campeón y snapshots persistidos,
+sin reconstruir evidencia desde fuentes vivas. Esta capa no incorpora
+migraciones, API pública, Resources ni consumidor React.
+
 ## Exportación PDF live de competición por categoría
 
 6.F.3D.1 separa la adquisición de datos del renderizado. El controlador web
