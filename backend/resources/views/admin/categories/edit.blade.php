@@ -17,7 +17,7 @@
 
     <div class="card page-card">
         <div class="card-body">
-            <form method="POST" action="{{ route('admin.categories.update', $category) }}">
+            <form method="POST" enctype="multipart/form-data" action="{{ route('admin.categories.update', $category) }}">
                 @method('PUT')
                 @include('admin.categories._form', ['submitLabel' => 'Guardar cambios'])
             </form>

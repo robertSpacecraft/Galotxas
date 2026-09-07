@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Enums\SeasonStatus;
+use App\Http\Requests\Admin\Concerns\ValidatesCompetitionImage;
 use App\Models\Season;
 use App\Services\SeasonService;
 use Illuminate\Foundation\Http\FormRequest;
@@ -12,6 +13,8 @@ use Illuminate\Validation\Validator;
 
 class StoreSeasonRequest extends FormRequest
 {
+    use ValidatesCompetitionImage;
+
     public function authorize(): bool
     {
         return true;
@@ -20,6 +23,7 @@ class StoreSeasonRequest extends FormRequest
     public function rules(): array
     {
         return [
+            ...$this->competitionImageRules(),
             'name' => ['required', 'string', 'max:255'],
             'status' => ['required', new Enum(SeasonStatus::class)],
             'is_public' => ['required', 'boolean'],

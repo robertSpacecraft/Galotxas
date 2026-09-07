@@ -99,6 +99,8 @@
         <div class="form-text">Si se indican ambas fechas, la fecha de fin no puede ser anterior al inicio.</div>
     </div>
 
+    @include('admin.partials.competition-image', ['entity' => $season])
+
     <div class="col-12 d-flex gap-2 pt-2">
         <button type="submit" class="btn btn-primary">Guardar</button>
         <a href="{{ route('admin.seasons.index') }}" class="btn btn-outline-secondary">Cancelar</a>

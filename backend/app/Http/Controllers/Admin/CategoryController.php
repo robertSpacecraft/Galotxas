@@ -13,11 +13,11 @@ use App\Models\Championship;
 use App\Models\ChampionshipRegistrationRequest;
 use App\Models\Venue;
 use App\Services\Admin\CategoryOfficialResultsPresentationService;
+use App\Services\CategoryMutationService;
 use App\Services\GenerateCupService;
 use App\Services\GenerateLeagueScheduleService;
 use App\Services\OfficialResultProtectedDeletionService;
 use App\Services\Ranking\BuildCategoryRankingService;
-use Illuminate\Support\Str;
 use Throwable;
 
 class CategoryController extends Controller
@@ -47,21 +47,11 @@ class CategoryController extends Controller
         ]);
     }
 
-    public function store(StoreCategoryRequest $request, Championship $championship)
+    public function store(StoreCategoryRequest $request, Championship $championship, CategoryMutationService $mutations)
     {
         $validated = $request->validated();
 
-        $category = new Category([
-            'championship_id' => $championship->id,
-            'name' => $validated['name'],
-            'slug' => Str::slug($validated['name']),
-            'description' => $validated['description'] ?? null,
-            'level' => $validated['level'] ?? null,
-            'gender' => $validated['gender'],
-            'status' => $validated['status'],
-        ]);
-        $category->is_public = (bool) $validated['is_public'];
-        $category->save();
+        $mutations->create($championship, $validated, $request->file('image'));
 
         return redirect()
             ->route('admin.championships.categories', $championship)
@@ -185,20 +175,11 @@ class CategoryController extends Controller
         ]);
     }
 
-    public function update(UpdateCategoryRequest $request, Category $category)
+    public function update(UpdateCategoryRequest $request, Category $category, CategoryMutationService $mutations)
     {
         $validated = $request->validated();
 
-        $category->fill([
-            'name' => $validated['name'],
-            'slug' => Str::slug($validated['name']),
-            'description' => $validated['description'] ?? null,
-            'level' => $validated['level'] ?? null,
-            'gender' => $validated['gender'],
-            'status' => $validated['status'],
-        ]);
-        $category->is_public = (bool) $validated['is_public'];
-        $category->save();
+        $category = $mutations->update($category, $validated, $request->file('image'), $request->boolean('remove_image'));
 
         return redirect()
             ->route('admin.championships.categories', $category->championship)

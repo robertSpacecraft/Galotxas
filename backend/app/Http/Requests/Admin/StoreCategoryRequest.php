@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Enums\CategoryGender;
 use App\Enums\CategoryStatus;
+use App\Http\Requests\Admin\Concerns\ValidatesCompetitionImage;
 use App\Models\Category;
 use App\Models\Championship;
 use Illuminate\Foundation\Http\FormRequest;
@@ -12,6 +13,8 @@ use Illuminate\Validation\Validator;
 
 class StoreCategoryRequest extends FormRequest
 {
+    use ValidatesCompetitionImage;
+
     public function authorize(): bool
     {
         return true;
@@ -20,6 +23,7 @@ class StoreCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
+            ...$this->competitionImageRules(),
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'level' => ['nullable', 'integer', 'min:1', 'max:10'],

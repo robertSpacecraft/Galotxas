@@ -16,7 +16,7 @@
 
         <div class="card page-card">
             <div class="card-body">
-                <form method="POST" action="{{ route('admin.championships.store', $season) }}">
+                <form method="POST" enctype="multipart/form-data" action="{{ route('admin.championships.store', $season) }}">
                     @include('admin.championships._form', [
                         'submitLabel' => 'Crear campeonato',
                         'backSeason' => $season,

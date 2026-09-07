@@ -13,7 +13,7 @@
 
         <div class="card page-card">
             <div class="card-body">
-                <form method="POST" action="{{ route('admin.seasons.store') }}">
+                <form method="POST" enctype="multipart/form-data" action="{{ route('admin.seasons.store') }}">
                     @include('admin.seasons._form')
                 </form>
             </div>

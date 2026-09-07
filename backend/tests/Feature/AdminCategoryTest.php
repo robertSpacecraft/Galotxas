@@ -468,6 +468,7 @@ class AdminCategoryTest extends TestCase
 
         $this->assertSame([
             'id',
+            'image',
             'championship_id',
             'name',
             'slug',

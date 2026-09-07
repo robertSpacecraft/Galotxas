@@ -10,6 +10,7 @@ use App\Http\Requests\Api\Admin\StoreCategoryRequest;
 use App\Http\Resources\AdminCategoryResource;
 use App\Models\Category;
 use App\Models\Championship;
+use App\Services\CategoryMutationService;
 use App\Services\OfficialResultLockService;
 use App\Services\OfficialResultMutationGuard;
 use App\Services\OfficialResultProtectedDeletionService;
@@ -17,7 +18,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
@@ -33,22 +33,12 @@ class CategoryController extends Controller
         return $this->successResponse(AdminCategoryResource::collection($categories));
     }
 
-    public function store(StoreCategoryRequest $request): JsonResponse
+    public function store(StoreCategoryRequest $request, CategoryMutationService $mutations): JsonResponse
     {
         $validated = $request->validated();
         $championship = Championship::query()->findOrFail($validated['championship_id']);
 
-        $category = new Category([
-            'championship_id' => $championship->id,
-            'name' => $validated['name'],
-            'slug' => Str::slug($validated['name']),
-            'description' => $validated['description'] ?? null,
-            'level' => $validated['level'] ?? null,
-            'gender' => $validated['gender'],
-            'status' => $validated['status'],
-        ]);
-        $category->is_public = (bool) $validated['is_public'];
-        $category->save();
+        $category = $mutations->create($championship, $validated);
         $category->load('championship.season');
 
         return $this->successResponse(
@@ -65,20 +55,11 @@ class CategoryController extends Controller
         return $this->successResponse(new AdminCategoryResource($category));
     }
 
-    public function update(UpdateCategoryRequest $request, Category $category): JsonResponse
+    public function update(UpdateCategoryRequest $request, Category $category, CategoryMutationService $mutations): JsonResponse
     {
         $validated = $request->validated();
 
-        $category->fill([
-            'name' => $validated['name'],
-            'slug' => Str::slug($validated['name']),
-            'description' => $validated['description'] ?? null,
-            'level' => $validated['level'] ?? null,
-            'gender' => $validated['gender'],
-            'status' => $validated['status'],
-        ]);
-        $category->is_public = (bool) $validated['is_public'];
-        $category->save();
+        $category = $mutations->update($category, $validated);
         $category->load('championship.season');
 
         return $this->successResponse(

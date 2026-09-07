@@ -13,6 +13,7 @@ class Season extends Model
 
     protected $fillable = [
         'name',
+        'image_path',
         'start_date',
         'end_date',
         'status',

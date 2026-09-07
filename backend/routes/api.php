@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\V1\SeasonController;
 use App\Http\Controllers\Api\V1\SeasonRankingController;
 use App\Http\Controllers\Api\V1\SponsorController;
 use App\Http\Controllers\Api\V1\SponsorLogoController;
+use App\Http\Controllers\CompetitionImageController;
 use App\Http\Middleware\EnsureContactFormIsEnabled;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\IsAdmin;
@@ -47,6 +48,10 @@ Route::prefix('v1')->group(function () {
         ->middleware('throttle:auth.password');
 
     // Public API
+    Route::get('/seasons/{season}/image', [CompetitionImageController::class, 'season'])->name('api.v1.seasons.image');
+    Route::get('/championships/{championship}/image', [CompetitionImageController::class, 'championship'])->name('api.v1.championships.image');
+    Route::get('/categories/{category}/image', [CompetitionImageController::class, 'category'])->name('api.v1.categories.image');
+
     Route::get('/seasons', [SeasonController::class, 'index']);
 
     Route::get('/championships', [ChampionshipController::class, 'index']);

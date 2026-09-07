@@ -573,6 +573,7 @@ class AdminChampionshipTest extends TestCase
 
         $this->assertSame([
             'id',
+            'image',
             'season_id',
             'name',
             'slug',

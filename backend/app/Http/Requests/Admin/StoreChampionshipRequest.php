@@ -5,6 +5,7 @@ namespace App\Http\Requests\Admin;
 use App\Enums\ChampionshipRegistrationStatus;
 use App\Enums\ChampionshipStatus;
 use App\Enums\ChampionshipType;
+use App\Http\Requests\Admin\Concerns\ValidatesCompetitionImage;
 use App\Models\Season;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -13,6 +14,8 @@ use Illuminate\Validation\Validator;
 
 class StoreChampionshipRequest extends FormRequest
 {
+    use ValidatesCompetitionImage;
+
     public function authorize(): bool
     {
         return true;
@@ -21,6 +24,7 @@ class StoreChampionshipRequest extends FormRequest
     public function rules(): array
     {
         return [
+            ...$this->competitionImageRules(),
             'season_id' => ['required', 'integer', 'exists:seasons,id'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],

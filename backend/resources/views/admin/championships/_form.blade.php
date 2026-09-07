@@ -214,6 +214,8 @@
         <div class="form-text">Cada fecha final debe ser igual o posterior a su correspondiente fecha inicial.</div>
     </div>
 
+    @include('admin.partials.competition-image', ['entity' => $championship])
+
     <div class="col-12 d-flex gap-2 pt-2">
         <button type="submit" class="btn btn-primary">{{ $submitLabel }}</button>
         <a href="{{ route('admin.seasons.championships', $backSeason) }}" class="btn btn-outline-secondary">

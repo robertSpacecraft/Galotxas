@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\CompetitionImageService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,6 +15,7 @@ class ChampionshipPublicResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'image' => app(CompetitionImageService::class)->publicImage($this->resource),
             'season_id' => $this->season_id,
             'name' => $this->name,
             'slug' => $this->slug,
@@ -43,6 +45,7 @@ class ChampionshipPublicResource extends JsonResource
                 return $this->categories->map(function ($category) {
                     return [
                         'id' => $category->id,
+                        'image' => app(CompetitionImageService::class)->publicImage($category),
                         'name' => $category->name,
                         'slug' => $category->slug,
                         'level' => $category->level,

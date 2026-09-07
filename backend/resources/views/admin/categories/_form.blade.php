@@ -141,6 +141,8 @@
         </div>
     </div>
 
+    @include('admin.partials.competition-image', ['entity' => $category])
+
     <div class="col-12 d-flex gap-2 pt-2">
         <button type="submit" class="btn btn-primary">{{ $submitLabel }}</button>
         <a href="{{ route('admin.championships.categories', $championship) }}"

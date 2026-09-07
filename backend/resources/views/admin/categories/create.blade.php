@@ -17,7 +17,7 @@
 
     <div class="card page-card">
         <div class="card-body">
-            <form method="POST" action="{{ route('admin.categories.store', $championship) }}">
+            <form method="POST" enctype="multipart/form-data" action="{{ route('admin.categories.store', $championship) }}">
                 @include('admin.categories._form', ['submitLabel' => 'Crear categoría'])
             </form>
         </div>

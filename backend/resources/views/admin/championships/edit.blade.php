@@ -17,7 +17,7 @@
 
         <div class="card page-card">
             <div class="card-body">
-                <form method="POST" action="{{ route('admin.championships.update', $championship) }}">
+                <form method="POST" enctype="multipart/form-data" action="{{ route('admin.championships.update', $championship) }}">
                     @method('PUT')
                     @include('admin.championships._form', [
                         'submitLabel' => 'Guardar cambios',

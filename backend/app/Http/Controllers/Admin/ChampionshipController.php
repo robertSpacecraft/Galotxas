@@ -14,7 +14,6 @@ use App\Models\Season;
 use App\Services\ChampionshipMutationService;
 use App\Services\OfficialResultProtectedDeletionService;
 use App\Services\Ranking\BuildChampionshipRankingService;
-use Illuminate\Support\Str;
 
 class ChampionshipController extends Controller
 {
@@ -41,25 +40,11 @@ class ChampionshipController extends Controller
         ]);
     }
 
-    public function store(StoreChampionshipRequest $request, Season $season)
+    public function store(StoreChampionshipRequest $request, Season $season, ChampionshipMutationService $mutations)
     {
         $validated = $request->validated();
 
-        $championship = new Championship([
-            'season_id' => $validated['season_id'],
-            'name' => $validated['name'],
-            'slug' => Str::slug($validated['name']),
-            'description' => $validated['description'] ?? null,
-            'type' => $validated['type'],
-            'start_date' => $validated['start_date'] ?? null,
-            'end_date' => $validated['end_date'] ?? null,
-            'status' => $validated['status'],
-            'registration_status' => $validated['registration_status'],
-            'registration_starts_at' => $validated['registration_starts_at'] ?? null,
-            'registration_ends_at' => $validated['registration_ends_at'] ?? null,
-        ]);
-        $championship->is_public = (bool) $validated['is_public'];
-        $championship->save();
+        $mutations->create($validated, $request->file('image'));
 
         return redirect()
             ->route('admin.seasons.championships', $validated['season_id'])
@@ -113,7 +98,7 @@ class ChampionshipController extends Controller
         ChampionshipMutationService $mutations,
     ) {
         $validated = $request->validated();
-        $mutations->update($championship, $validated);
+        $mutations->update($championship, $validated, $request->file('image'), $request->boolean('remove_image'));
 
         return redirect()
             ->route('admin.seasons.championships', $validated['season_id'])

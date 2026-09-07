@@ -31,7 +31,7 @@ class SeasonController extends Controller
 
     public function store(StoreSeasonRequest $request, SeasonService $service)
     {
-        $service->create($request->validated());
+        $service->create($request->validated(), $request->file('image'));
 
         return redirect()
             ->route('admin.seasons.index')
@@ -64,7 +64,7 @@ class SeasonController extends Controller
         Season $season,
         SeasonService $service
     ) {
-        $service->update($season, $request->validated());
+        $service->update($season, $request->validated(), $request->file('image'), $request->boolean('remove_image'));
 
         return redirect()
             ->route('admin.seasons.index')

@@ -13,7 +13,7 @@
 
         <div class="card page-card">
             <div class="card-body">
-                <form method="POST" action="{{ route('admin.seasons.update', $season) }}">
+                <form method="POST" enctype="multipart/form-data" action="{{ route('admin.seasons.update', $season) }}">
                     @method('PUT')
                     @include('admin.seasons._form')
                 </form>

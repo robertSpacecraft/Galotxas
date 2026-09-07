@@ -487,6 +487,7 @@ class AdminSeasonTest extends TestCase
 
         $this->assertSame([
             'id',
+            'image',
             'name',
             'slug',
             'status',

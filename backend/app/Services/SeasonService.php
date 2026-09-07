@@ -5,42 +5,48 @@ namespace App\Services;
 use App\Enums\SeasonStatus;
 use App\Models\Season;
 use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 
 class SeasonService
 {
+    public function __construct(private readonly CompetitionImageService $covers) {}
+
     public const ACTIVE_CONFLICT_ERROR =
         'Ya existe una temporada activa. Finalízala, cancélala o pásala a otro estado antes de activar otra.';
 
     /**
      * @param  array<string, mixed>  $attributes
      */
-    public function create(array $attributes): Season
+    public function create(array $attributes, ?UploadedFile $image = null): Season
     {
-        return $this->persist(new Season, $attributes);
+        return $this->persist(new Season, $attributes, $image, false);
     }
 
     /**
      * @param  array<string, mixed>  $attributes
      */
-    public function update(Season $season, array $attributes): Season
+    public function update(Season $season, array $attributes, ?UploadedFile $image = null, bool $removeImage = false): Season
     {
-        return $this->persist($season, $attributes);
+        return $this->persist($season, $attributes, $image, $removeImage);
     }
 
     /**
      * @param  array<string, mixed>  $attributes
      */
-    private function persist(Season $season, array $attributes): Season
+    private function persist(Season $season, array $attributes, ?UploadedFile $image, bool $removeImage): Season
     {
         try {
-            return DB::transaction(function () use ($season, $attributes): Season {
+            return $this->covers->mutate($image, $removeImage, function (?string $newKey) use ($season, $attributes, $removeImage): Season {
                 Season::query()
                     ->select('id')
                     ->orderBy('id')
                     ->lockForUpdate()
                     ->get();
+
+                $season = $season->exists
+                    ? Season::query()->lockForUpdate()->findOrFail($season->getKey())
+                    : clone $season;
 
                 if (
                     $attributes['status'] === SeasonStatus::ACTIVE->value
@@ -64,10 +70,10 @@ class SeasonService
                     'end_date' => $attributes['end_date'] ?? null,
                 ]);
                 $season->is_public = (bool) $attributes['is_public'];
-                $season->save();
+                $this->covers->saveWithImage($season, $newKey, $removeImage);
 
                 return $season->refresh();
-            }, 3);
+            });
         } catch (QueryException $exception) {
             if ($this->isActiveSlotViolation($exception)) {
                 throw ValidationException::withMessages([

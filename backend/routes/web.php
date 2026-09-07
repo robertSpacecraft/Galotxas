@@ -31,6 +31,7 @@ use App\Http\Controllers\Admin\SeasonController as AdminSeasonController;
 use App\Http\Controllers\Admin\SponsorController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\VenueController;
+use App\Http\Controllers\CompetitionImageController;
 use App\Http\Middleware\IsAdmin;
 use Illuminate\Support\Facades\Route;
 
@@ -230,6 +231,10 @@ Route::prefix('admin')->group(function () {
         });
 
         // Temporadas
+        Route::get('/seasons/{season}/image', [CompetitionImageController::class, 'season'])->name('admin.seasons.image');
+        Route::get('/championships/{championship}/image', [CompetitionImageController::class, 'championship'])->name('admin.championships.image');
+        Route::get('/categories/{category}/image', [CompetitionImageController::class, 'category'])->name('admin.categories.image');
+
         Route::get('/seasons', [AdminSeasonController::class, 'index'])->name('admin.seasons.index');
         Route::get('/seasons/create', [AdminSeasonController::class, 'create'])->name('admin.seasons.create');
         Route::post('/seasons', [AdminSeasonController::class, 'store'])->name('admin.seasons.store');
