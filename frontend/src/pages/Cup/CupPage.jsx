@@ -18,16 +18,21 @@ export default function CupPage() {
   const [cupRounds, setCupRounds] = useState([]);
   const [status, setStatus] = useState('loading');
   const [contextError, setContextError] = useState(false);
+  const [officialCup, setOfficialCup] = useState(null);
+  const [officialResultsError, setOfficialResultsError] = useState(false);
 
   const loadCup = useCallback(async () => {
     const requestId = request.current + 1;
     request.current = requestId;
     setStatus('loading');
     setContextError(false);
+    setOfficialCup(null);
+    setOfficialResultsError(false);
 
-    const [categoryResult, scheduleResult] = await Promise.allSettled([
+    const [categoryResult, scheduleResult, officialResultsResult] = await Promise.allSettled([
       championshipsService.getCategory(categoryId),
       championshipsService.getCategorySchedule(categoryId),
+      championshipsService.getCategoryOfficialResults(categoryId),
     ]);
 
     if (request.current !== requestId) {
@@ -48,6 +53,13 @@ export default function CupPage() {
     } else {
       setCupRounds([]);
       setStatus('error');
+    }
+
+    if (officialResultsResult.status === 'fulfilled') {
+      setOfficialCup(officialResultsResult.value?.cup || null);
+    } else {
+      setOfficialCup(null);
+      setOfficialResultsError(true);
     }
   }, [categoryId]);
 
@@ -80,6 +92,24 @@ export default function CupPage() {
       </header>
 
       <CategoryNavigation categoryId={categoryId} currentView="cup" />
+
+      {officialCup ? (
+        <section
+          className={styles.officialChampion}
+          aria-labelledby="official-cup-champion-title"
+        >
+          <p className={styles.officialEyebrow}>Resultado oficial</p>
+          <h2 id="official-cup-champion-title">Campeón de Copa</h2>
+          <p className={styles.officialChampionName}>
+            {officialCup.champion.public_display_name}
+          </p>
+        </section>
+      ) : null}
+      {officialResultsError && (status === 'content' || status === 'empty') ? (
+        <p className={styles.contextWarning} role="status">
+          No se ha podido comprobar el resultado oficial. El cuadro muestra los partidos disponibles.
+        </p>
+      ) : null}
 
       {status === 'loading' ? (
         <p className={styles.stateMessage} role="status">Cargando Copa…</p>

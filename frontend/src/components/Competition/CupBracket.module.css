@@ -16,8 +16,7 @@
 .matchHeader h4,
 .participants p,
 .venue,
-.winner,
-.champion {
+.winner {
   margin: 0;
 }
 
@@ -30,26 +29,6 @@
   text-transform: uppercase;
 }
 
-.champion {
-  display: grid;
-  gap: 0.2rem;
-  width: fit-content;
-  min-width: min(100%, 220px);
-  margin-top: 1.5rem;
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--brand-primary);
-  border-radius: 12px;
-  background: rgba(39, 174, 96, 0.12);
-}
-
-.champion span {
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.champion strong,
 .matchHeader h4,
 .participants strong,
 .winner strong {

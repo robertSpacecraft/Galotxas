@@ -31,6 +31,42 @@
   overflow-wrap: anywhere;
 }
 
+.officialChampion {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid var(--brand-primary);
+  border-radius: 12px;
+  background: rgba(39, 174, 96, 0.12);
+}
+
+.officialEyebrow,
+.officialChampion h2,
+.officialChampionName {
+  margin: 0;
+}
+
+.officialEyebrow {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.officialChampion h2 {
+  margin-top: 0.3rem;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+}
+
+.officialChampionName {
+  margin-top: 0.45rem;
+  color: var(--text-primary);
+  font-size: 1.4rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
 .stateMessage,
 .contextWarning,
 .errorState,

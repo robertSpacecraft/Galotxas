@@ -24,6 +24,7 @@ vi.mock('./api/championships', () => ({
     getSeasonRanking: vi.fn(),
     getCategory: vi.fn(),
     getCategorySchedule: vi.fn(),
+    getCategoryOfficialResults: vi.fn(),
   },
 }));
 
@@ -79,6 +80,7 @@ describe('App public routes', () => {
       championship: { name: 'Campeonato de prueba', season: { name: 'Temporada de prueba' } },
     });
     championshipsService.getCategorySchedule.mockResolvedValue([]);
+    championshipsService.getCategoryOfficialResults.mockResolvedValue({ league: null, cup: null });
     cmsService.getPublishedPages.mockResolvedValue([]);
     cmsService.getPageBySlug.mockImplementation((slug) => Promise.resolve({
       slug,
@@ -210,6 +212,7 @@ describe('App public routes', () => {
       .toBeInTheDocument();
     expect(championshipsService.getCategory).toHaveBeenCalledWith('12');
     expect(championshipsService.getCategorySchedule).toHaveBeenCalledWith('12');
+    expect(championshipsService.getCategoryOfficialResults).toHaveBeenCalledWith('12');
   });
 
   it('renders the functional tournament list without the legacy placeholder', async () => {

@@ -84,7 +84,7 @@ describe('CupBracket', () => {
     expect(screen.queryByText('Campeón de Copa')).not.toBeInTheDocument();
   });
 
-  it('uses the official winner_entry for the cup champion without comparing scores', () => {
+  it('keeps the validated Final winner without proclaiming a Cup champion', () => {
     renderWithProviders(<CupBracket rounds={[
       cupRound('semifinal', [cupMatch()]),
       cupRound('final', [cupMatch({
@@ -99,17 +99,12 @@ describe('CupBracket', () => {
       cupRound('third_place', [cupMatch({ id: 61 })]),
     ]} />);
 
-    expect(screen.getByText('Campeón de Copa').nextElementSibling).toHaveTextContent('Pilotari Roig');
     expect(screen.getByText(/Ganador:/)).toHaveTextContent('Pilotari Roig');
+    expect(screen.queryByText('Campeón de Copa')).not.toBeInTheDocument();
     expect(screen.getByText('Pista: Trinquet Final')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Ver detalle de Final' }))
       .toHaveAttribute('href', '/matches/60');
     expect(screen.getByText(/20 sept 2026/)).toHaveAttribute('datetime', '2026-09-20T19:15:00.000Z');
-    expect(
-      screen.getByRole('heading', { name: 'Tercer y cuarto puesto', level: 3 })
-        .compareDocumentPosition(screen.getByText('Campeón de Copa'))
-        & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
   });
 
   it('does not render an unknown cup stage', () => {

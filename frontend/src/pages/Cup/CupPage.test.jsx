@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { championshipsService } from '../../api/championships';
@@ -9,6 +9,7 @@ vi.mock('../../api/championships', () => ({
   championshipsService: {
     getCategory: vi.fn(),
     getCategorySchedule: vi.fn(),
+    getCategoryOfficialResults: vi.fn(),
   },
 }));
 
@@ -55,6 +56,11 @@ describe('CupPage', () => {
   beforeEach(() => {
     championshipsService.getCategory.mockReset();
     championshipsService.getCategorySchedule.mockReset();
+    championshipsService.getCategoryOfficialResults.mockReset();
+    championshipsService.getCategoryOfficialResults.mockResolvedValue({
+      league: null,
+      cup: null,
+    });
   });
 
   it('shows an accessible loading state while category and schedule are pending', () => {
@@ -171,7 +177,7 @@ describe('CupPage', () => {
       .toHaveAttribute('href', '/matches/60');
   });
 
-  it('announces the official champion only from a validated final winner_entry', async () => {
+  it('does not proclaim a Cup champion from a validated live Final', async () => {
     championshipsService.getCategory.mockResolvedValue(category);
     championshipsService.getCategorySchedule.mockResolvedValue([
       semifinalRound(),
@@ -179,16 +185,67 @@ describe('CupPage', () => {
         status: 'validated',
         home_score: 5,
         away_score: 10,
-        winner_entry: entry('Campeona oficial'),
+        winner_entry: entry('Ganadora de la Final'),
       })]),
       cupRound(33, 'third_place', [cupMatch(61)]),
     ]);
 
     renderCup();
 
-    expect(await screen.findByText('Campeón de Copa')).toBeInTheDocument();
-    expect(screen.getByText('Campeón de Copa').nextElementSibling)
-      .toHaveTextContent('Campeona oficial');
+    expect(await screen.findByText(/Ganador:/)).toHaveTextContent('Ganadora de la Final');
+    expect(screen.queryByText('Campeón de Copa')).not.toBeInTheDocument();
+  });
+
+  it('keeps live Final winner A and presents only snapshot champion B as official', async () => {
+    championshipsService.getCategory.mockResolvedValue(category);
+    championshipsService.getCategorySchedule.mockResolvedValue([
+      semifinalRound(),
+      cupRound(32, 'final', [cupMatch(60, {
+        status: 'validated',
+        home_score: 10,
+        away_score: 6,
+        winner_entry: entry('Jugador A'),
+      })]),
+    ]);
+    championshipsService.getCategoryOfficialResults.mockResolvedValue({
+      league: null,
+      cup: {
+        version: 4,
+        officialized_at: '2026-09-06T11:21:31.000000Z',
+        champion: { entry_type: 'player', public_display_name: 'Jugador B' },
+      },
+    });
+
+    renderCup();
+
+    expect(await screen.findByText(/Ganador:/)).toHaveTextContent('Jugador A');
+    const officialChampion = screen.getByRole('region', { name: 'Campeón de Copa' });
+    expect(within(officialChampion).getByText('Jugador B')).toBeInTheDocument();
+    expect(within(officialChampion).queryByText('Jugador A')).not.toBeInTheDocument();
+    expect(screen.queryByText(/versión 4/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/2026-09-06/)).not.toBeInTheDocument();
+  });
+
+  it('keeps the live bracket without an inferred champion when official-results fails', async () => {
+    championshipsService.getCategory.mockResolvedValue(category);
+    championshipsService.getCategorySchedule.mockResolvedValue([
+      semifinalRound(),
+      cupRound(32, 'final', [cupMatch(60, {
+        status: 'validated',
+        home_score: 10,
+        away_score: 6,
+        winner_entry: entry('Ganadora viva'),
+      })]),
+    ]);
+    championshipsService.getCategoryOfficialResults.mockRejectedValue(new Error('Unavailable'));
+
+    renderCup();
+
+    expect(await screen.findByText(/Ganador:/)).toHaveTextContent('Ganadora viva');
+    expect(screen.getByText(
+      'No se ha podido comprobar el resultado oficial. El cuadro muestra los partidos disponibles.',
+    )).toHaveAttribute('role', 'status');
+    expect(screen.queryByText('Campeón de Copa')).not.toBeInTheDocument();
   });
 
   it('does not infer legacy cup rounds from their name or order', async () => {

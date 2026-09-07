@@ -54,6 +54,12 @@ const matchRow = (page, roundName, rowIndex = 0) => page
   .locator('tbody tr')
   .nth(rowIndex);
 
+const cupOfficialResultPanel = (page) => page
+  .getByRole('heading', { name: 'Resultados oficiales', exact: true })
+  .locator('xpath=../..')
+  .getByRole('heading', { name: 'Copa', exact: true, level: 3 })
+  .locator('xpath=../..');
+
 const saveAdminMatch = async (page, categoryId, roundName, {
   status,
   homeScore = null,
@@ -151,6 +157,15 @@ const setCupVisibility = async (request, fixture, isPublic) => {
 const getSchedule = async (request, categoryId) => {
   const response = await request.get(
     `${backendBaseURL}/api/v1/categories/${categoryId}/schedule`,
+  );
+  expect(response.ok()).toBe(true);
+
+  return (await response.json()).data;
+};
+
+const getOfficialResults = async (request, categoryId) => {
+  const response = await request.get(
+    `${backendBaseURL}/api/v1/categories/${categoryId}/official-results`,
   );
   expect(response.ok()).toBe(true);
 
@@ -291,6 +306,20 @@ test('completa Liga, semifinales, conflicto, finales y campeón público de Copa
     expect(publicFinal).not.toHaveProperty('winner_entry_id');
     expect(publicFinal).not.toHaveProperty('validated_by');
 
+    await page.goto(categoryAdminURL);
+    page.once('dialog', (dialog) => dialog.accept());
+    await cupOfficialResultPanel(page)
+      .getByRole('button', { name: 'Oficializar Copa', exact: true })
+      .click();
+    await expect(page.locator('.alert-success'))
+      .toContainText('Copa oficializada correctamente como v1.');
+
+    const officialResults = await getOfficialResults(request, category.id);
+    expect(officialResults.cup.champion).toEqual({
+      entry_type: 'player',
+      public_display_name: names.first,
+    });
+
     await page.goto(`/categories/${category.id}/schedule`);
     await expect(page.getByRole('heading', {
       name: `Calendario y resultados de ${category.name}`,
@@ -335,6 +364,17 @@ test('completa Liga, semifinales, conflicto, finales y campeón público de Copa
   } finally {
     await loginAdmin(page);
     await page.goto(categoryAdminURL);
+
+    const reopenCupLink = cupOfficialResultPanel(page).getByRole('link', { name: 'Reabrir' });
+    if (await reopenCupLink.count()) {
+      await reopenCupLink.click();
+      await page.getByLabel('Motivo de la reapertura')
+        .fill('Limpieza del escenario E2E de Copa');
+      page.once('dialog', (dialog) => dialog.accept());
+      await page.getByRole('button', { name: 'Confirmar reapertura' }).click();
+      await expect(page.locator('.alert-success')).toContainText('Copa reabierta correctamente');
+    }
+
     const deleteCupButton = page.getByRole('button', { name: 'Eliminar copa' });
 
     if (await deleteCupButton.count()) {

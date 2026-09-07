@@ -87,11 +87,6 @@ export function CupBracket({ rounds = [] }) {
       .map((round) => [round.stage, round]),
   );
   const semifinalRound = roundsByStage.get('semifinal');
-  const finalRound = roundsByStage.get('final');
-  const finalMatch = finalRound?.matches?.[0];
-  const champion = finalMatch?.status === 'validated' && finalMatch?.winner_entry
-    ? getPublicCompetitionDisplayName(finalMatch.winner_entry)
-    : null;
 
   if (roundsByStage.size === 0) return null;
 
@@ -131,12 +126,6 @@ export function CupBracket({ rounds = [] }) {
           );
         })}
       </div>
-      {champion ? (
-        <p className={styles.champion}>
-          <span>Campeón de Copa</span>
-          <strong>{champion}</strong>
-        </p>
-      ) : null}
     </section>
   );
 }

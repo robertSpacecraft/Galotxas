@@ -17,16 +17,21 @@ export default function Standings() {
   const [standings, setStandings] = useState([]);
   const [status, setStatus] = useState('loading');
   const [contextError, setContextError] = useState(false);
+  const [classificationKind, setClassificationKind] = useState('current');
+  const [officialResultsError, setOfficialResultsError] = useState(false);
 
   const loadStandings = useCallback(async () => {
     const requestId = request.current + 1;
     request.current = requestId;
     setStatus('loading');
     setContextError(false);
+    setClassificationKind('current');
+    setOfficialResultsError(false);
 
-    const [categoryResult, standingsResult] = await Promise.allSettled([
+    const [categoryResult, standingsResult, officialResultsResult] = await Promise.allSettled([
       championshipsService.getCategory(categoryId),
       championshipsService.getCategoryStandings(categoryId),
+      championshipsService.getCategoryOfficialResults(categoryId),
     ]);
 
     if (request.current !== requestId) {
@@ -40,8 +45,20 @@ export default function Standings() {
       setContextError(true);
     }
 
-    if (standingsResult.status === 'fulfilled' && Array.isArray(standingsResult.value)) {
+    const officialRanking = officialResultsResult.status === 'fulfilled'
+      && Array.isArray(officialResultsResult.value?.league?.ranking)
+      ? officialResultsResult.value.league.ranking
+      : null;
+
+    setOfficialResultsError(officialResultsResult.status === 'rejected');
+
+    if (officialRanking) {
+      setStandings(officialRanking);
+      setClassificationKind('official');
+      setStatus(officialRanking.length > 0 ? 'content' : 'empty');
+    } else if (standingsResult.status === 'fulfilled' && Array.isArray(standingsResult.value)) {
       setStandings(standingsResult.value);
+      setClassificationKind('current');
       setStatus(standingsResult.value.length > 0 ? 'content' : 'empty');
     } else {
       setStandings([]);
@@ -62,6 +79,9 @@ export default function Standings() {
   const seasonName = category?.championship?.season?.name;
   const backPath = category ? getCategoryDetailPath(categoryId) : TOURNAMENTS_PATH;
   const backLabel = category ? 'Volver a la categoría' : 'Volver a Campeonatos';
+  const classificationTitle = classificationKind === 'official'
+    ? 'Clasificación oficial'
+    : 'Clasificación actual';
 
   return (
     <div className="page-container">
@@ -84,9 +104,17 @@ export default function Standings() {
       {status === 'loading' ? (
         <p className={styles.stateMessage} role="status">Cargando clasificación…</p>
       ) : null}
+      {status !== 'loading' && status !== 'error' ? (
+        <h2 className={styles.sectionTitle}>{classificationTitle}</h2>
+      ) : null}
       {contextError && status !== 'loading' ? (
         <p className={styles.contextWarning} role="status">
           La clasificación está disponible, pero no se ha podido cargar el contexto de la categoría.
+        </p>
+      ) : null}
+      {officialResultsError && (status === 'content' || status === 'empty') ? (
+        <p className={styles.contextWarning} role="status">
+          No se ha podido comprobar el resultado oficial. Se muestra la clasificación actual.
         </p>
       ) : null}
       {status === 'error' ? (

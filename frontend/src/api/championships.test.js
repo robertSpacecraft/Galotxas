@@ -59,3 +59,38 @@ describe('championshipsService.getAllTimeRanking', () => {
     expect(JSON.stringify(consoleError.mock.calls)).not.toContain('private@example.test');
   });
 });
+
+describe('championshipsService.getCategoryOfficialResults', () => {
+  beforeEach(() => {
+    api.get.mockReset();
+  });
+
+  it('reads the official-results envelope from the exact category endpoint', async () => {
+    const officialResults = {
+      league: {
+        version: 2,
+        officialized_at: '2026-09-06T10:20:30.000000Z',
+        ranking: [{ position: 1, public_display_name: 'Pilotari oficial' }],
+      },
+      cup: null,
+    };
+    api.get.mockResolvedValue({ data: { message: null, data: officialResults } });
+
+    await expect(championshipsService.getCategoryOfficialResults(12))
+      .resolves.toEqual(officialResults);
+    expect(api.get).toHaveBeenCalledTimes(1);
+    expect(api.get).toHaveBeenCalledWith('/categories/12/official-results');
+  });
+
+  it('propagates official-results errors without issuing a fallback request', async () => {
+    const error = new Error('Official result unavailable');
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    api.get.mockRejectedValue(error);
+
+    await expect(championshipsService.getCategoryOfficialResults(12)).rejects.toBe(error);
+    expect(api.get).toHaveBeenCalledTimes(1);
+    expect(consoleError).toHaveBeenCalledWith(
+      'No se han podido cargar los resultados oficiales de la categoría 12.',
+    );
+  });
+});

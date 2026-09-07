@@ -396,6 +396,148 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 
+.officialResults {
+  margin-top: 2rem;
+  padding: 2rem;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.officialResultsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 1rem;
+}
+
+.officialResultCard {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid #d7dee8;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.officialResultCard h3,
+.officialPodium,
+.officialResultLabel,
+.officialChampion,
+.officialResultsState,
+.officialResultsWarning {
+  margin: 0;
+}
+
+.officialResultCard h3 {
+  color: #526173;
+  font-size: 1rem;
+}
+
+.officialPodium {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+
+.officialPodium li {
+  display: grid;
+  grid-template-columns: minmax(2.75rem, auto) minmax(0, 1fr);
+  gap: 0.65rem;
+  min-width: 0;
+  align-items: center;
+}
+
+.officialPodiumBadge {
+  display: inline-flex;
+  min-width: 2.75rem;
+  min-height: 2rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #98a3b3;
+  border-radius: 999px;
+  background: #edf1f5;
+  color: #374151;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.officialPodiumBadgeGold {
+  border-color: #d6a700;
+  background: #fff4c2;
+  color: #6b4f00;
+}
+
+.officialPodiumBadgeSilver {
+  border-color: #98a3b3;
+  background: #edf1f5;
+  color: #374151;
+}
+
+.officialPodiumBadgeBronze {
+  border-color: #bd7548;
+  background: #f7e1d2;
+  color: #6f3718;
+}
+
+.officialPodiumName {
+  min-width: 0;
+  color: #2c3e50;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.officialResultLabel {
+  margin-top: 0.75rem;
+  color: #526173;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.officialChampion {
+  margin-top: 0.5rem;
+  color: #2c3e50;
+  font-size: 1.2rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.officialResultLink {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  margin-top: 0.75rem;
+  color: #1f6fa8;
+  font-weight: 700;
+}
+
+.officialResultLink:focus-visible {
+  outline: 3px solid #1f6fa8;
+  outline-offset: 3px;
+}
+
+.officialResultsState,
+.officialResultsWarning {
+  color: #526173;
+  overflow-wrap: anywhere;
+}
+
+.officialResultCard .officialResultsState {
+  margin-top: 0.5rem;
+}
+
+.officialResultsWarning {
+  padding: 0.85rem 1rem;
+  border: 1px solid #d7a22a;
+  border-radius: 8px;
+  background: #fff8e8;
+}
+
 .summaryDetails {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));

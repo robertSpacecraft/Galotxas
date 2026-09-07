@@ -65,6 +65,19 @@ export const championshipsService = {
   },
 
   /**
+   * Get the current official League and Cup results for a category
+   */
+  getCategoryOfficialResults: async (id) => {
+    try {
+      const response = await api.get(`/categories/${id}/official-results`);
+      return response.data.data;
+    } catch (error) {
+      console.error(`No se han podido cargar los resultados oficiales de la categoría ${id}.`);
+      throw error;
+    }
+  },
+
+  /**
    * Get category standings (ranking)
    */
   getCategoryStandings: async (id) => {
