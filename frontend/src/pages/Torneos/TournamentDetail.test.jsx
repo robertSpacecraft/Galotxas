@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { championshipsService } from '../../api/championships';
 import { renderWithProviders } from '../../test/renderWithProviders';
@@ -96,6 +96,59 @@ describe('TournamentDetail', () => {
     expect(screen.getByText('Activa')).toBeInTheDocument();
     expect(screen.getByText('Mixta')).toBeInTheDocument();
     expect(screen.getByText('Nivel 5')).toBeInTheDocument();
+  });
+
+  it('renders the championship cover and only each nested category own cover', async () => {
+    championshipsService.getChampionship.mockResolvedValue({
+      id: 9,
+      image: { url: 'https://api.example.test/api/v1/championships/9/image' },
+      name: 'Torneo RC',
+      type: 'singles',
+      status: 'active',
+      registration_status: 'closed',
+      registration_is_open: false,
+      season: { name: 'Temporada 2026' },
+      categories: [
+        {
+          id: 12,
+          image: { url: 'https://api.example.test/api/v1/categories/12/image' },
+          name: 'Con portada',
+          status: 'active',
+          gender: 'mixed',
+          level: 5,
+        },
+        {
+          id: 13,
+          image: null,
+          name: 'Sin portada',
+          status: 'active',
+          gender: 'mixed',
+          level: 6,
+        },
+      ],
+    });
+    championshipsService.getChampionshipRanking.mockResolvedValue([]);
+
+    renderWithProviders(<TournamentDetail />, {
+      route: '/torneos/9',
+      routePath: '/torneos/:championshipId',
+      authValue: anonymousAuth,
+    });
+
+    await screen.findByRole('heading', { name: 'Torneo RC', level: 1 });
+    const categoryWithCover = screen.getByRole('heading', { name: 'Con portada' })
+      .closest('article');
+    const categoryWithoutCover = screen.getByRole('heading', { name: 'Sin portada' })
+      .closest('article');
+    expect(screen.getAllByRole('presentation').map((image) => image.src)).toEqual([
+      'https://api.example.test/api/v1/championships/9/image',
+      'https://api.example.test/api/v1/categories/12/image',
+    ]);
+    expect(within(categoryWithCover).getByRole('presentation'))
+      .toHaveAttribute('src', 'https://api.example.test/api/v1/categories/12/image');
+    expect(within(categoryWithoutCover).queryByRole('presentation')).not.toBeInTheDocument();
+    expect(within(categoryWithoutCover).getByRole('link', { name: 'Ver categoría' }))
+      .toHaveAttribute('href', '/categories/13');
   });
 
   it('keeps the championship usable when its independent ranking fails', async () => {

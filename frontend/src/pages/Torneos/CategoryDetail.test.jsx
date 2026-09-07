@@ -68,6 +68,63 @@ describe('CategoryDetail', () => {
     expect(championshipsService.getCategorySchedule).not.toHaveBeenCalled();
   });
 
+  it('renders only the category own cover in its primary header', async () => {
+    championshipsService.getCategory.mockResolvedValue({
+      id: 12,
+      image: { url: 'https://api.example.test/api/v1/categories/12/image' },
+      name: 'Individual absoluta',
+      championship: {
+        id: 9,
+        image: { url: 'https://api.example.test/api/v1/championships/9/image' },
+        name: 'Torneo RC',
+        season: {
+          image: { url: 'https://api.example.test/api/v1/seasons/7/image' },
+          name: 'Temporada 2026',
+        },
+      },
+    });
+
+    renderWithProviders(<CategoryDetail />, {
+      route: '/categories/12',
+      routePath: '/categories/:categoryId',
+    });
+
+    await screen.findByRole('heading', { name: 'Individual absoluta', level: 1 });
+    expect(screen.getAllByRole('presentation')).toHaveLength(1);
+    expect(screen.getByRole('presentation'))
+      .toHaveAttribute('src', 'https://api.example.test/api/v1/categories/12/image');
+  });
+
+  it('preserves the category summary without inheriting ancestor covers', async () => {
+    championshipsService.getCategory.mockResolvedValue({
+      id: 12,
+      image: null,
+      name: 'Individual absoluta',
+      championship: {
+        id: 9,
+        image: { url: 'https://api.example.test/api/v1/championships/9/image' },
+        name: 'Torneo RC',
+        season: {
+          image: { url: 'https://api.example.test/api/v1/seasons/7/image' },
+          name: 'Temporada 2026',
+        },
+      },
+    });
+
+    renderWithProviders(<CategoryDetail />, {
+      route: '/categories/12',
+      routePath: '/categories/:categoryId',
+    });
+
+    expect(await screen.findByRole('heading', { name: 'Individual absoluta', level: 1 }))
+      .toBeInTheDocument();
+    expect(screen.queryByRole('presentation')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Datos de la categoría' }))
+      .toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '← Volver al campeonato' }))
+      .toHaveAttribute('href', '/torneos/9');
+  });
+
   it('offers retry and a safe recovery route when direct access fails', async () => {
     const user = userEvent.setup();
     championshipsService.getCategory

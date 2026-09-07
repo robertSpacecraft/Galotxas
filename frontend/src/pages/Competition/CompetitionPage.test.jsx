@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { championshipsService } from '../../api/championships';
@@ -86,6 +86,57 @@ describe('CompetitionPage', () => {
     expectGlobalDestinations();
     expect(championshipsService.getChampionships).not.toHaveBeenCalled();
     expect(document.title).toBe('Competición | Club Galotxes Monòver');
+  });
+
+  it('renders the own covers of a season, its championship and a historical season', async () => {
+    championshipsService.getSeasons.mockResolvedValue([
+      {
+        ...activeSeason,
+        image: { url: 'https://api.example.test/api/v1/seasons/7/image' },
+        championships: [{
+          ...activeSeason.championships[0],
+          image: { url: 'https://api.example.test/api/v1/championships/22/image' },
+        }],
+      },
+      season(5, 'finished', {
+        name: 'Temporada 2025',
+        image: { url: 'https://api.example.test/api/v1/seasons/5/image' },
+      }),
+    ]);
+
+    renderPage();
+
+    const currentSeason = await screen.findByRole('region', { name: 'Temporada 2026' });
+    const championshipCard = screen.getByRole('article', { name: 'Trofeu de Galotxas' });
+    const historicalLink = screen.getByRole('link', {
+      name: 'Ver campeonatos de Temporada 2025',
+    });
+    expect(within(currentSeason).getAllByRole('presentation').map((image) => image.src)).toEqual([
+      'https://api.example.test/api/v1/seasons/7/image',
+      'https://api.example.test/api/v1/championships/22/image',
+    ]);
+    expect(within(championshipCard).getByRole('presentation'))
+      .toHaveAttribute('src', 'https://api.example.test/api/v1/championships/22/image');
+    expect(within(historicalLink).getByRole('presentation'))
+      .toHaveAttribute('src', 'https://api.example.test/api/v1/seasons/5/image');
+  });
+
+  it('preserves season, championship and historical links when their images are absent', async () => {
+    championshipsService.getSeasons.mockResolvedValue([
+      { ...activeSeason, image: null },
+      season(5, 'finished', { name: 'Temporada 2025', image: null }),
+    ]);
+
+    renderPage();
+
+    const currentSeason = await screen.findByRole('region', { name: 'Temporada 2026' });
+    expect(within(currentSeason).queryByRole('presentation')).not.toBeInTheDocument();
+    expect(within(currentSeason).getByRole('heading', { name: 'Temporada 2026' }))
+      .toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Ver campeonato: Trofeu de Galotxas' }))
+      .toHaveAttribute('href', '/torneos/22');
+    expect(screen.getByRole('link', { name: 'Ver campeonatos de Temporada 2025' }))
+      .toHaveAttribute('href', '/torneos?season_id=5');
   });
 
   it('shows every active season without silently choosing one', async () => {

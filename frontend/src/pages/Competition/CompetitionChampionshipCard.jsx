@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { CompetitionCoverImage } from '../../components/Competition/CompetitionCoverImage';
 import { getChampionshipDetailPath } from '../../navigation/competitionRoutes';
 import {
   getChampionshipStatusLabel,
@@ -22,29 +23,32 @@ export const CompetitionChampionshipCard = ({ championship }) => {
 
   return (
     <article className={styles.championshipCard} aria-labelledby={titleId}>
-      <p className={styles.championshipType}>{typeLabel}</p>
-      <h4 id={titleId} className={styles.championshipTitle}>{championship.name}</h4>
-      <dl className={styles.details}>
-        <div className={styles.detail}>
-          <dt>Estado</dt>
-          <dd>{getChampionshipStatusLabel(championship.status)}</dd>
-        </div>
-        {categoriesLabel ? (
+      <CompetitionCoverImage image={championship.image} className={styles.championshipCover} />
+      <div className={styles.championshipCardContent}>
+        <p className={styles.championshipType}>{typeLabel}</p>
+        <h4 id={titleId} className={styles.championshipTitle}>{championship.name}</h4>
+        <dl className={styles.details}>
           <div className={styles.detail}>
-            <dt>Categorías</dt>
-            <dd>{categoriesLabel}</dd>
+            <dt>Estado</dt>
+            <dd>{getChampionshipStatusLabel(championship.status)}</dd>
           </div>
+          {categoriesLabel ? (
+            <div className={styles.detail}>
+              <dt>Categorías</dt>
+              <dd>{categoriesLabel}</dd>
+            </div>
+          ) : null}
+        </dl>
+        {detailPath ? (
+          <Link
+            to={detailPath}
+            className={styles.championshipLink}
+            aria-label={`Ver campeonato: ${championship.name}`}
+          >
+            Ver campeonato
+          </Link>
         ) : null}
-      </dl>
-      {detailPath ? (
-        <Link
-          to={detailPath}
-          className={styles.championshipLink}
-          aria-label={`Ver campeonato: ${championship.name}`}
-        >
-          Ver campeonato
-        </Link>
-      ) : null}
+      </div>
     </article>
   );
 };

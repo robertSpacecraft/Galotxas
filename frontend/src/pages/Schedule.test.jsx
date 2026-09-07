@@ -14,6 +14,7 @@ vi.mock('../api/championships', () => ({
 
 const category = {
   id: 12,
+  image: { url: 'https://api.example.test/api/v1/categories/12/image' },
   name: 'Primera E2E',
   championship: { name: 'Trofeo E2E', season: { name: 'Temporada E2E' } },
 };
@@ -101,6 +102,7 @@ describe('Schedule', () => {
     expect(screen.getByText('Todavía no hay jornadas configuradas para esta categoría.')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Calendario y resultados' }))
       .toHaveAttribute('aria-current', 'page');
+    expect(screen.queryByRole('presentation')).not.toBeInTheDocument();
   });
 
   it('renders the real collection contract with rounds, matches and detail links', async () => {

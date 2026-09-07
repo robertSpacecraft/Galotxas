@@ -13,6 +13,11 @@
   min-width: 0;
 }
 
+.seasonCover {
+  margin-bottom: 1.25rem;
+  border-radius: 10px;
+}
+
 .seasonCurrent {
   padding: 0;
 }
@@ -110,10 +115,24 @@
   min-width: 0;
   flex-direction: column;
   align-items: flex-start;
-  padding: 1.25rem;
   border: 1px solid #d7dee8;
   border-radius: 10px;
   background: #f8fafc;
+  overflow: hidden;
+}
+
+.championshipCover {
+  width: 100%;
+}
+
+.championshipCardContent {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 1.25rem;
 }
 
 .championshipTitle {
@@ -225,15 +244,27 @@
   min-height: 44px;
   height: 100%;
   flex-direction: column;
-  justify-content: center;
-  gap: 0.45rem;
-  padding: 1.15rem;
   border: 1px solid #d7dee8;
   border-radius: 10px;
   background: #ffffff;
   color: #354254;
-  overflow-wrap: anywhere;
+  overflow: hidden;
   text-decoration: none;
+}
+
+.historicalCover {
+  width: 100%;
+}
+
+.historicalContent {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 1.15rem;
+  overflow-wrap: anywhere;
 }
 
 .historicalStatus {

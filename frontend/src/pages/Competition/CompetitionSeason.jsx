@@ -1,3 +1,4 @@
+import { CompetitionCoverImage } from '../../components/Competition/CompetitionCoverImage';
 import { CompetitionChampionshipCard } from './CompetitionChampionshipCard';
 import {
   getCompetitionDateLabel,
@@ -37,6 +38,7 @@ export const CompetitionSeason = ({ season, appearance = 'current' }) => {
 
   return (
     <section className={`${styles.season} ${appearanceClass}`} aria-labelledby={titleId}>
+      <CompetitionCoverImage image={season.image} className={styles.seasonCover} />
       <header className={styles.seasonHeader}>
         <div>
           <p className={styles.seasonEyebrow}>Temporada</p>

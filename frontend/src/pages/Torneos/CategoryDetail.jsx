@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { championshipsService } from '../../api/championships';
 import { CategoryNavigation } from '../../components/Competition/CategoryNavigation';
+import { CompetitionCoverImage } from '../../components/Competition/CompetitionCoverImage';
 import { PageMetadata } from '../../components/PublicLanding/PageMetadata';
 import {
   getCategoryCupPath,
@@ -126,6 +127,11 @@ export const CategoryDetail = () => {
       ) : null}
 
       <header className={styles.detailHeader}>
+        <CompetitionCoverImage
+          image={category.image}
+          className={styles.detailCover}
+          priority
+        />
         <div className={styles.headerInfo}>
           <p className={styles.contextPath}>
             {seasonName ? `${seasonName} · ` : ''}

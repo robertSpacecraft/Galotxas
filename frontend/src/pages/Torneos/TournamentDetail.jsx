@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { championshipsService } from '../../api/championships';
+import { CompetitionCoverImage } from '../../components/Competition/CompetitionCoverImage';
 import { PageMetadata } from '../../components/PublicLanding/PageMetadata';
 import { TournamentRanking } from '../../components/Torneos/TournamentRanking';
 import { useAuth } from '../../hooks/useAuth';
@@ -191,6 +192,11 @@ export const TournamentDetail = () => {
       <Link to={TOURNAMENTS_PATH} className={styles.backLink}>← Volver a Campeonatos</Link>
 
       <header className={styles.detailHeader}>
+        <CompetitionCoverImage
+          image={tournament.image}
+          className={styles.detailCover}
+          priority
+        />
         <div className={styles.headerInfo}>
           <p className={styles.seasonBadge}>{season?.name || 'Temporada no disponible'}</p>
           <h1 className={styles.detailTitle}>{name}</h1>
@@ -233,6 +239,10 @@ export const TournamentDetail = () => {
 
                   return (
                     <article key={category.id} className={styles.categoryCard}>
+                      <CompetitionCoverImage
+                        image={category.image}
+                        className={styles.categoryCover}
+                      />
                       <h3>{category.name}</h3>
                       <dl className={styles.categoryMeta}>
                         <div>

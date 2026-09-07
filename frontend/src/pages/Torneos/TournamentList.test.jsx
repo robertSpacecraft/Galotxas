@@ -67,6 +67,24 @@ describe('TournamentList', () => {
       .toHaveAttribute('href', '/torneos/9');
     expect(screen.getByRole('link', { name: '← Volver a Competición' }))
       .toHaveAttribute('href', '/competicion');
+    expect(within(article).queryByRole('presentation')).not.toBeInTheDocument();
+  });
+
+  it('renders the championship cover from the listing response', async () => {
+    championshipsService.getChampionships.mockResolvedValue([{
+      ...championship,
+      image: { url: 'https://api.example.test/api/v1/championships/9/image' },
+    }]);
+
+    renderList();
+
+    const article = await screen.findByRole('article');
+    expect(within(article).getByRole('presentation'))
+      .toHaveAttribute('src', 'https://api.example.test/api/v1/championships/9/image');
+    expect(within(article).getByRole('heading', { name: 'Campeonato E2E' }))
+      .toBeInTheDocument();
+    expect(within(article).getByRole('link', { name: 'Ver campeonato' }))
+      .toHaveAttribute('href', '/torneos/9');
   });
 
   it('initializes the real season filter from the query and preserves it on render', async () => {

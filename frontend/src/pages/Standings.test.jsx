@@ -15,6 +15,7 @@ vi.mock('../api/championships', () => ({
 
 const category = {
   id: 12,
+  image: { url: 'https://api.example.test/api/v1/categories/12/image' },
   name: 'Individual E2E',
   championship: {
     name: 'Campeonato E2E',
@@ -71,6 +72,7 @@ describe('Standings', () => {
     expect(row).toHaveTextContent('3');
     expect(screen.getByRole('region', { name: 'Tabla de clasificación de Individual E2E' }))
       .toHaveAttribute('tabindex', '0');
+    expect(screen.queryByRole('presentation')).not.toBeInTheDocument();
   });
 
   it('distinguishes an empty classification from a load failure', async () => {

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { CompetitionCoverImage } from '../Competition/CompetitionCoverImage';
 import { getChampionshipDetailPath } from '../../navigation/competitionRoutes';
 import {
   getChampionshipStatusLabel,
@@ -25,6 +26,7 @@ export const TournamentCard = ({ tournament }) => {
 
   return (
     <article className={styles.card}>
+      <CompetitionCoverImage image={tournament.image} className={styles.cover} />
       <div className={styles.cardHeader}>
         <span className={styles.badge}>{getChampionshipTypeLabel(type)}</span>
         {registration_is_open && (
