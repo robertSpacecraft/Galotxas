@@ -128,6 +128,20 @@ La visibilidad efectiva es la conjunción de la rama completa: una temporada exi
 
 Ocultar una temporada o un campeonato no modifica automáticamente los flags de sus descendientes. La rama queda efectivamente privada por su padre, pero los valores propios se conservan. Al restaurar el padre reaparecen únicamente los descendientes que continúan declarados públicos.
 
+## Portadas opcionales de competición
+
+Cada `Season`, `Championship` y `Category` puede tener una única portada
+opcional propia. Las tres referencias son independientes: no existe galería ni
+herencia o fallback automático de Temporada a Campeonato o de Campeonato a
+Categoría. La ausencia de portada no cambia el dominio deportivo, la
+visibilidad ni la presentación previa sin imagen.
+
+`seasons.image_path`, `championships.image_path` y `categories.image_path` son
+nullable y conservan una object key opaca de la multimedia gestionada. La
+incorporación del campo de Temporada fue aditiva y sin backfill. Estas imágenes
+son contenido visual administrativo: no afectan a resultados, rankings,
+snapshots oficiales ni reglas de reapertura.
+
 ---
 
 # 6. Gestión de resultados

@@ -189,7 +189,7 @@ También existen módulos React no montados: `pages/Home.jsx` y `CategoryCard`, 
 | Ruta | Responsabilidad | Fuente de verdad | Contenido inicial mínimo | Subrutas o destinos | Estado actual |
 |---|---|---|---|---|---|
 | `/` | Home pública y puerta de entrada actual | Estructura y copy de interfaz React | `h1`, introducción, dos CTAs y cuatro recorridos reales | Competición, Aprende/Manual, Escuela y Club | Rediseñada en 7D.1 sin peticiones remotas, Knowledge directo ni CMS duplicado. |
-| `/competicion` | Landing funcional de actividad deportiva pública | API pública del dominio Laravel | `h1`, acceso principal, temporadas/campeonatos y preview histórico con estados independientes; sin recalcular reglas | Rama deportiva completa y `/rankings` | Fase 4 completada con 4A–4C. |
+| `/competicion` | Landing funcional de actividad deportiva pública | API pública del dominio Laravel | `h1`, acceso principal, temporadas/campeonatos con portadas opcionales y preview histórico con estados independientes; sin recalcular reglas | Rama deportiva completa y `/rankings` | Fase 4 completada con 4A–4C y portadas de competición incorporadas en 6.C. |
 | `/aprende-a-jugar` | Entrada divulgativa al Manual, Reglamento y Conceptos | Proyección pública compilada desde `knowledge/` | `h1`, resumen derivado, acceso al Manual y recorrido real; no copy editorial duplicado en JSX | `/manual`, `/manual/reglamento/:slug` y `/manual/conceptos/:group/:slug` | Completada en 5C con 40 documentos, contexto, índice, vecinos, fragmentos y carga diferida. |
 | `/escuela` | Escuela permanente, niveles, horarios e inscripción pública | Híbrida: `knowledge/` futuro para pedagogía estable y dominio Laravel específico para operación y solicitudes | `h1`, enlace al Manual, niveles, horarios, ubicaciones, apertura y formulario cuando esté abierto | El MVP no requiere subrutas | Implementada en 6C sobre los contratos 6B.1–6B.4; `academy` permanece independiente. |
 | `/club/quienes-somos` | Presentación institucional | CMS `nosotros` | Identidad, propósito, actividad e imágenes aprobados | Alias futuro de `/nosotros`; `/contenidos/nosotros` se conserva | Fachada implementada; paridad y publicación dependen de cada entorno. |
@@ -411,6 +411,26 @@ tres las `finished`, enlazadas al explorador mediante `season_id`. Si no existe
 temporada actual o próxima, la finalizada más reciente actúa sólo como
 referencia neutral. `/torneos` conserva compatibilidad, recarga y parámetros
 ajenos; un ID inválido se retira conforme al contrato implementado.
+
+6.C incorpora portadas opcionales sin alterar las rutas ni convertir React en
+fuente editorial. Cada nivel consume exclusivamente su descriptor `image`
+propio y no hereda la imagen de su padre. Las superficies aprobadas son:
+
+- Temporada actual/principal, próximas que reutilizan el mismo componente e
+  histórico de `/competicion`;
+- tarjetas de Campeonato en `/competicion` y `/torneos`, y cabecera de
+  `/torneos/:championshipId`;
+- tarjetas de Categoría dentro del detalle de Campeonato y cabecera-resumen de
+  `/categories/:categoryId`.
+
+`/categories/:categoryId/standings`,
+`/categories/:categoryId/schedule` y `/categories/:categoryId/cup` conservan
+su presentación anterior sin portada. El componente común omite markup ante
+`null` o URL inválida, retira una imagen que falla al cargar y reinicia ese
+estado cuando cambia la URL. Mantiene `aspect-ratio`, usa `object-fit: cover`,
+carga lazy por defecto y reserva prioridad eager/high para la presentación
+principal de los detalles. La imagen es decorativa con `alt=""`; React no
+redimensiona, procesa o amplía el fichero en el cliente.
 
 ## 17. Requisitos de accesibilidad
 

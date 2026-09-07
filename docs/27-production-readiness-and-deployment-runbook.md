@@ -674,7 +674,7 @@ Un snapshot del volumen MariaDB no es un backup completo del sistema:
 | Capa | Incluye | No incluye / observaciones |
 |---|---|---|
 | MariaDB | Usuarios, players y tokens; Temporadas, Campeonatos, Categorías, equipos, inscripciones, partidos, resultados y rankings derivados; CMS, bloques y navegación; metadatos de Noticias y Sponsors; Escuela, contacto y autorizaciones; sesiones, password resets, caché y tablas de jobs. | Sólo conserva las object keys de media, no los binarios. Restaurar también puede reintroducir sesiones, tokens o caché antiguos y exige una decisión explícita de invalidación/limpieza antes del cutover. |
-| Bucket privado `media_s3` | Avatares, logos de Sponsors, portadas de Noticias y futuros objetos multimedia. | Es independiente del volumen MariaDB. Railway Buckets no ofrece actualmente snapshots/backups, object versioning, object lock ni lifecycle; la ventana de dos días para recuperar un bucket eliminado no recupera un objeto borrado individualmente. |
+| Bucket privado `media_s3` | Avatares, logos de Sponsors, portadas de Noticias y portadas de Temporadas, Campeonatos y Categorías. | Es independiente del volumen MariaDB. Railway Buckets no ofrece actualmente snapshots/backups, object versioning, object lock ni lifecycle; la ventana de dos días para recuperar un bucket eliminado no recupera un objeto borrado individualmente. |
 | Git y configuración de plataforma | Git conserva código, migraciones, `knowledge/`, `legal/`, docs y ejemplos de configuración sin secrets. | Variables reales, secrets, DNS y ajustes de Vercel/Railway requieren inventario operativo separado y no deben copiarse a Git ni al dump. |
 
 La imagen productiva del backend no instala `mariadb-dump`. El dump lógico no

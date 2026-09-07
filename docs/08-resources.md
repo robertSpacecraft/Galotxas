@@ -204,7 +204,14 @@ contexto administrativo y no reutiliza estos Resources públicos.
 
 ## Inventario de Resources implementados
 
-Los Resources públicos de competición mantienen su forma, nombres, tipos y envelopes. Reciben las entidades y relaciones ya restringidas por las consultas de sus controladores: el Resource serializa, pero no decide por sí mismo si una entidad es pública. Las relaciones anidadas de temporadas y campeonatos llegan filtradas para impedir lazy loading de descendientes privados. `is_public` permanece como detalle interno y no se expone en ninguno de estos Resources ni en los de partidos o rankings.
+Los Resources públicos de competición reciben las entidades y relaciones ya restringidas por las consultas de sus controladores: el Resource serializa, pero no decide por sí mismo si una entidad es pública. Las relaciones anidadas de temporadas y campeonatos llegan filtradas para impedir lazy loading de descendientes privados. `is_public` permanece como detalle interno y no se expone en ninguno de estos Resources ni en los de partidos o rankings.
+
+Desde 6.C, `SeasonResource`, `ChampionshipPublicResource` y
+`CategoryPublicResource` añaden `image`, siempre como `{ "url": "<ruta Laravel
+estable>" }` o `null`. La colección anidada de Campeonatos en Temporada y la de
+Categorías en Campeonato usan el descriptor de su entidad correspondiente; no
+heredan imágenes del padre. Ningún Resource expone `image_path`, disco, bucket,
+object key o URL firmada.
 
 Desde 7D.2B, las entradas de partido/calendario contienen sólo `entry_type` y
 `public_display_name`; standings y rankings usan la misma proyección y omiten
@@ -253,7 +260,7 @@ No existe un Resource específico de partido para administradores. La administra
 
 Los tres Resources administrativos de competición evitan serializar modelos Eloquent completos. `AdminSeasonResource` expone `id`, nombre, estado, `is_public`, fechas y timestamps. `AdminChampionshipResource` añade identificador de temporada, slug, descripción, tipo, estado de inscripción, sus intervalos y una temporada mínima. `AdminCategoryResource` incluye identificador de campeonato, slug, descripción, nivel, género, estado y una jerarquía mínima campeonato-temporada. Los dos últimos también incluyen `is_public` propio y de los padres necesarios para el contexto administrativo.
 
-`image_path` no forma parte de estos contratos porque no es administrable en este bloque. `is_public` aparece únicamente en los Resources de administración; permanece ausente de `SeasonResource`, `ChampionshipPublicResource`, `CategoryPublicResource` y de todos los Resources públicos derivados.
+`image_path` no forma parte de ningún contrato. Los Resources administrativos tampoco incluyen un descriptor de imagen y su API no gestiona ficheros; la subida o retirada se expresa sólo en los formularios Blade. `is_public` aparece únicamente en los Resources de administración y permanece ausente de todos los Resources públicos.
 
 ## Límites de seguridad por contexto
 

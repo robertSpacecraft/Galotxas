@@ -201,6 +201,7 @@ La ruta `/admin/seasons` centraliza el CRUD Blade de temporadas.
 - El listado conserva la presentación de estado y fechas, y el acceso requiere una sesión de administrador activo.
 - El checkbox «Visible públicamente» se envía siempre como booleano, crea temporadas privadas por defecto y se presenta por separado del estado como Pública o Privada.
 - Ocultar una temporada está permitido aunque tenga campeonatos declarados públicos; sus flags no se modifican automáticamente.
+- El formulario admite una portada opcional, muestra un preview privado en edición y permite subirla, sustituirla o retirarla. La ausencia de imagen conserva la presentación anterior.
 
 ### Campeonatos
 
@@ -212,7 +213,7 @@ Las rutas `/admin/championships` y `/admin/seasons/{season}/championships/create
 - La creación y actualización reciben exclusivamente datos validados y persisten de forma explícita todos los campos administrables, incluidos los valores nulos al limpiar campos opcionales.
 - La edición recupera todos los valores persistidos y da prioridad a `old()` después de un error de validación.
 - El `slug` continúa derivándose del nombre. Los identificadores y timestamps permanecen gestionados por Laravel.
-- `image_path` existe en persistencia, pero la gestión multimedia no forma parte de este formulario: no se ofrece entrada ni subida y una actualización conserva el valor previo.
+- El formulario admite una única portada opcional y ofrece preview privado, subida, sustitución y retirada. No expone ni permite escribir directamente `image_path`.
 - No existe un booleano de apertura en la tabla. `registration_is_open` continúa calculándose a partir del estado y las fechas de inscripción y no es un campo editable.
 - El control modifica la visibilidad declarada; la API pública exige además que la temporada asociada sea pública y filtra las categorías privadas.
 - Las opciones de temporada indican si son públicas o privadas. Un campeonato sólo puede marcarse público bajo una temporada pública; mantenerlo privado es válido bajo cualquier temporada.
@@ -229,7 +230,7 @@ Las rutas `/admin/championships/{championship}/categories/*` y `/admin/categorie
 - La creación y actualización reciben exclusivamente datos validados y persisten de forma explícita todos los campos administrables, incluidos los valores nulos al limpiar descripción o nivel.
 - La edición recupera todos los valores persistidos y da prioridad a `old()` después de un error de validación.
 - El `slug` continúa derivándose del nombre y conserva la unicidad por campeonato existente en base de datos.
-- `image_path` existe en persistencia, pero la gestión multimedia no forma parte de este formulario: no se ofrece entrada ni subida y una actualización conserva el valor previo.
+- El formulario admite una única portada opcional y ofrece preview privado, subida, sustitución y retirada. No expone ni permite escribir directamente `image_path`.
 - Las relaciones con inscripciones, participantes, equipos, rondas y partidos no forman parte del formulario y permanecen intactas durante una actualización ordinaria.
 - El control modifica la visibilidad declarada; la API pública exige además que campeonato y temporada sean públicos.
 - El formulario muestra la visibilidad del campeonato y de su temporada. Una categoría sólo puede marcarse pública cuando ambos padres son públicos; puede mantenerse privada bajo cualquier combinación.
@@ -249,7 +250,23 @@ Las rutas `/admin/championships/{championship}/categories/*` y `/admin/categorie
 
 Los formularios Blade no cambiaron en la Fase 2B.5. La API administrativa de temporadas, campeonatos y categorías reutiliza sus mismas reglas de campos, enums, fechas y jerarquía de visibilidad mediante Form Requests. Ambos canales persisten únicamente atributos validados y asignan `is_public` de forma explícita. Desde 6.F.3A, las escrituras de temporadas comparten además `SeasonService` y el mismo rechazo de una segunda temporada activa. Desde 6.F.3C, Blade y API comparten también los guards de evidencia oficial y la protección de borrado de la jerarquía.
 
-La API mantiene acceso a registros privados y no aplica scopes públicos. `image_path` continúa fuera de los formularios y del payload API, se conserva al editar y requiere un bloque multimedia futuro para administrarse. La creación API plana de una categoría exige el campeonato existente; las actualizaciones, igual que Blade, no permiten cambiar esa relación.
+La API mantiene acceso a registros privados y no aplica scopes públicos. Los Form Requests compartidos habilitan `image` y `remove_image` sólo para las rutas Blade; la API administrativa JSON no gestiona ficheros y nunca acepta ni serializa `image_path`. La creación API plana de una categoría exige el campeonato existente; las actualizaciones, igual que Blade, no permiten cambiar esa relación.
+
+### Ciclo común de portadas de competición
+
+Temporadas, Campeonatos y Categorías poseen una portada opcional propia, sin
+galería ni fallback entre niveles. Los tres formularios reutilizan el perfil
+multimedia `banner`; la vista de edición obtiene el preview por las rutas
+autorizadas `/admin/seasons/{season}/image`,
+`/admin/championships/{championship}/image` y
+`/admin/categories/{category}/image`.
+
+Subir y retirar a la vez se rechaza. Una sustitución confirma primero la nueva
+referencia de dominio y sólo después limpia el objeto anterior; un fallo de la
+mutación compensa el objeto recién almacenado. La retirada y el borrado de la
+entidad siguen el mismo criterio post-commit. Las referencias legadas inválidas
+no se sirven ni se borran como objetos gestionados, pero pueden sustituirse o
+limpiarse desde el formulario.
 
 ### Inventario de pantallas implementadas
 
@@ -272,7 +289,7 @@ El panel web actual dispone de estas áreas reales:
 | Rankings | vista del ranking histórico; los demás rankings aparecen en los contextos de temporada, campeonato o categoría |
 | CMS | listado/alta/detalle/edición de páginas y alta/edición/borrado de bloques |
 
-No existen actualmente pantallas Blade específicas para una cola de solicitudes de reprogramación, métricas avanzadas, noticias, subida de archivos o formularios públicos. La fecha y pista de un partido pueden editarse desde la categoría y los conflictos de resultados tienen su flujo propio.
+No existen actualmente pantallas Blade específicas para una cola de solicitudes de reprogramación, métricas avanzadas o formularios públicos. La fecha y pista de un partido pueden editarse desde la categoría y los conflictos de resultados tienen su flujo propio.
 
 ---
 

@@ -77,10 +77,13 @@ El inventario siguiente corresponde a `backend/routes/api.php` y a la salida de 
 | `POST` | `/auth/forgot-password` | mensaje genérico sin enumerar emails |
 | `POST` | `/auth/reset-password` | mensaje controlado o error `422` |
 | `GET` | `/seasons` | colección `SeasonResource` |
+| `GET` | `/seasons/{season}/image` | portada pública efectiva por ruta estable |
 | `GET` | `/championships` | colección `ChampionshipPublicResource` |
 | `GET` | `/championships/{championship}` | `ChampionshipPublicResource` |
+| `GET` | `/championships/{championship}/image` | portada pública efectiva por ruta estable |
 | `GET` | `/championships/{championship}/ranking` | colección `ChampionshipRankingResource` |
 | `GET` | `/categories/{category}` | `CategoryPublicResource` |
+| `GET` | `/categories/{category}/image` | portada pública efectiva por ruta estable |
 | `GET` | `/categories/{category}/official-results` | `PublicCategoryOfficialResultsResource` con Liga/Copa vigentes o `null` |
 | `GET` | `/categories/{category}/standings` | colección `CategoryRankingResource` |
 | `GET` | `/categories/{category}/schedule` | colección `CategoryScheduleRoundResource` |
@@ -216,7 +219,27 @@ Las fechas, descripción y nivel indicados por sus Form Requests son nullable. L
 
 En temporadas, `status` admite `planned`, `active`, `finished` y `cancelled`; la API continúa exigiendo el campo y el default de persistencia es `planned`. Los `POST` y `PUT/PATCH` comparten `SeasonService`: crear o activar una segunda temporada mientras ya existe otra `active` responde `422` con un error de validación en `errors.status`; editar la propia temporada activa sigue permitido y pasarla a otro estado libera la posibilidad de activar otra. La columna técnica `active_slot` no forma parte de ningún Resource o payload API. No se añaden rutas ni se modifica el envelope.
 
-En actualización, `championship_id` no forma parte del contrato de categoría y no puede trasladarla. `id`, timestamps, `image_path`, campos calculados, relaciones deportivas y claves desconocidas no se persisten. Los slugs de campeonato y categoría se derivan del nombre; temporada no dispone de slug. La API conserva cualquier `image_path` existente y nunca lo serializa en estos Resources administrativos porque multimedia permanece fuera del contrato.
+En actualización, `championship_id` no forma parte del contrato de categoría y no puede trasladarla. `id`, timestamps, `image_path`, `image`, `remove_image`, campos calculados, relaciones deportivas y claves desconocidas no se persisten. Los slugs de campeonato y categoría se derivan del nombre; temporada no dispone de slug. La gestión de ficheros pertenece a los formularios Blade y queda fuera de esta API administrativa. Sus Resources tampoco serializan `image_path` ni otra referencia de storage.
+
+### Portadas públicas de competición
+
+`SeasonResource`, `ChampionshipPublicResource` y `CategoryPublicResource`
+exponen su portada propia como `"image": { "url": "<ruta Laravel estable>" }`
+o `"image": null`. `SeasonResource` aplica el mismo descriptor a cada
+Campeonato anidado y `ChampionshipPublicResource` a cada Categoría anidada. No
+existe herencia entre entidades y nunca se serializan `image_path`, bucket,
+disco, key o URL firmada.
+
+Las rutas exactas son:
+
+- `GET /api/v1/seasons/{season}/image`;
+- `GET /api/v1/championships/{championship}/image`;
+- `GET /api/v1/categories/{category}/image`.
+
+La entrega exige visibilidad efectiva de toda la rama. Un registro privado,
+una key ausente o ajena al espacio gestionado y un objeto inexistente responden
+`404`; un fallo del storage responde `503` saneado. El descriptor sólo se
+emite para una key válida y siempre apunta a Laravel, no al bucket.
 
 El `SeasonResource` público heredado conserva una clave `slug`, cuyo valor real es `null` porque `Season` y su tabla no tienen ese atributo. Se mantiene para no introducir una ruptura de contrato sin versionado; añadir, calcular o retirar ese campo es deuda contractual independiente de este endurecimiento administrativo.
 

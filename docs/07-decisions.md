@@ -2660,5 +2660,64 @@ Consecuencias:
 - La normalización visual del fondo de Clasificación, Calendario y resultados y
   Copa permanece abierta y fuera de 6.F.4, preferiblemente antes de Liquid
   Glass.
-- 6.F.4 y 6.F quedan CLOSED/PASS; el siguiente gran bloque post-MVP es 6.C,
-  imágenes de Temporadas, Campeonatos y Categorías.
+- 6.F.4 y 6.F quedaron CLOSED/PASS y dieron paso a 6.C, imágenes de
+  Temporadas, Campeonatos y Categorías, cerrado posteriormente en ADR-056.
+
+# ADR-056 — Portadas de competición independientes con URL pública estable
+
+Estado: Aceptada
+
+Fecha: 2026-09-07
+
+Contexto:
+- Temporadas, Campeonatos y Categorías necesitan identidad visual administrable
+  sin convertir React en fuente editorial ni crear un segundo sistema de
+  archivos.
+- `Championship` y `Category` conservaban un `image_path` legado, mientras
+  `Season` no disponía aún de esa referencia.
+- Las object keys y URLs temporales del bucket son detalles privados e
+  inestables que no deben formar parte del contrato público.
+- Sustituir o eliminar una imagen combina una escritura MariaDB con object
+  storage, que no comparten una transacción atómica.
+
+Decisión:
+- Permitir exactamente una portada opcional propia para cada `Season`,
+  `Championship` y `Category`, sin galería, herencia ni fallback entre niveles.
+- Reutilizar el núcleo multimedia privado con `MediaPurpose::Banner`, perfil
+  `banner` y keys opacas en los tres `image_path`; añadir únicamente
+  `seasons.image_path` como columna nullable sin backfill.
+- Exponer públicamente sólo `image: { "url": "<ruta Laravel estable>" }` o
+  `null`. Cada Resource y relación anidada describe la imagen de su propia
+  entidad; ninguna respuesta revela key, disco, bucket o URL firmada.
+- Servir las tres rutas públicas tras comprobar visibilidad efectiva y reservar
+  las rutas Blade autenticadas para preview administrativo de entidades
+  privadas.
+- Aplicar el ciclo «guardar nuevo → confirmar dominio → limpiar anterior»:
+  compensar el objeto nuevo si falla la mutación, ejecutar el cleanup anterior
+  sólo tras commit y no revertir una mutación confirmada si ese cleanup falla.
+  Una referencia legada inválida no se sirve ni se elimina como media
+  gestionada, pero puede sustituirse o retirarse.
+- Tratar estas portadas como presentación editorial del dominio, sin impacto en
+  rankings, resultados oficiales, snapshots o reaperturas.
+
+Alternativas descartadas:
+- heredar la portada del padre cuando falta la propia: ocultaría la ausencia de
+  una decisión editorial y acoplaría visualmente niveles independientes;
+- serializar `image_path`, una URL S3 o una URL firmada: filtraría persistencia
+  interna o entregaría una referencia temporal;
+- introducir una galería o un uploader CMS nuevo: ampliaría el alcance y
+  duplicaría responsabilidades ya cubiertas por la multimedia común;
+- borrar el objeto previo antes de confirmar MariaDB: podría dejar una
+  referencia vigente sin binario recuperable.
+
+Consecuencias:
+- Blade permite subir, previsualizar, sustituir y retirar la portada de las
+  tres entidades sin aceptar `image_path` directo; la API administrativa JSON
+  conserva su contrato sin ficheros.
+- React puede consumir el descriptor común, ocultar fallos de carga y conservar
+  el diseño previo cuando `image` es `null`, sin procesar o ampliar imágenes.
+- Las mejoras automáticas de variantes responsive, compresión y entrega siguen
+  en el hardening P1 de media y no forman parte del cierre de 6.C.
+- 6.C fue aceptado funcionalmente en local, staging y producción. El dataset
+  productivo no permite recorrer todos los casos dependientes de competición y
+  esa limitación no se presenta como una prueba ejecutada.

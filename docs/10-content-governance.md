@@ -169,6 +169,12 @@ Desde 4B, el preview histórico procede de `GET /api/v1/rankings/all-time` media
 
 Fase 4C cierra el recorrido público sin cambiar fuentes: la landing prioriza Torneos, temporadas y ranking sin accesos duplicados; campeonato, categoría, clasificación, calendario, partido y rankings conservan URLs y contratos. La navegación contextual no convierte datos funcionales en contenido editorial. React presenta etiquetas, fechas y estados remotos, pero Laravel sigue decidiendo posiciones, resultados, visibilidad y reglas. El detalle de categoría no duplica las colecciones de standings o schedule de sus vistas dedicadas.
 
+Desde 6.C, cada Temporada, Campeonato y Categoría puede tener una portada
+opcional propia administrada en Blade y persistida como media privada del
+dominio Laravel. La API entrega sólo una ruta estable o `null` y React se limita
+a presentarla en las superficies aprobadas. No existe herencia entre niveles,
+galería, copia en JSX o `knowledge/`, ni uploader multimedia nuevo en el CMS.
+
 ### Aprende a jugar
 
 Puerta de entrada divulgativa al Manual, Reglamento y Conceptos en su primera versión funcional. Su landing y el Manual cumplen funciones distintas.

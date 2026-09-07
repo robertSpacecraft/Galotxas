@@ -233,7 +233,7 @@ Los listados filtran primero la entidad raíz y restringen el eager loading de c
 
 Los CRUD API de temporadas, campeonatos y categorías se mantienen separados de las consultas públicas aunque compartan modelos y reglas de integridad. Sus rutas planas bajo `/api/v1/admin` requieren Sanctum, usuario activo y rol administrador; no aplican `effectivelyPublic()`, por lo que permiten gestionar registros privados.
 
-Las escrituras reutilizan los Form Requests de Blade cuando el contrato coincide. La creación plana de categorías amplía esas reglas mediante un Request API específico que exige un `championship_id` existente; la actualización no admite ese campo y conserva la relación. Los métodos de escritura de estos tres CRUD trabajan exclusivamente con `validated()`, construyen los atributos permitidos de forma explícita, derivan los slugs existentes del nombre y asignan `is_public` fuera de la asignación masiva. `image_path`, identificadores, timestamps y relaciones deportivas quedan fuera de la whitelist.
+Las escrituras reutilizan los Form Requests de Blade cuando el contrato coincide. La creación plana de categorías amplía esas reglas mediante un Request API específico que exige un `championship_id` existente; la actualización no admite ese campo y conserva la relación. Los métodos de escritura de estos tres CRUD trabajan exclusivamente con `validated()`, construyen los atributos permitidos de forma explícita, derivan los slugs existentes del nombre y asignan `is_public` fuera de la asignación masiva. `image_path`, `image`, `remove_image`, identificadores, timestamps y relaciones deportivas quedan fuera de la whitelist de la API administrativa; los controles multimedia pertenecen sólo a los formularios Blade.
 
 `AdminSeasonResource`, `AdminChampionshipResource` y `AdminCategoryResource` delimitan las respuestas de este contexto y exponen `is_public` junto con los datos administrativos necesarios. Los Resources públicos permanecen independientes, no incluyen ese flag y reciben exclusivamente consultas ya filtradas. Esta separación evita que la capacidad administrativa de consultar entidades privadas debilite la visibilidad efectiva pública.
 
@@ -938,10 +938,11 @@ Backups, restore, DNS, SMTP y activación requieren ejecución humana posterior.
 El contrato y los runbooks se encuentran en
 `27-production-readiness-and-deployment-runbook.md`.
 
-## Multimedia privada de 7F.2B y primer consumidor 7F.2C
+## Multimedia privada de 7F.2B y consumidores funcionales
 
-El backend dispone de una infraestructura común de imágenes cuyo primer
-consumidor funcional es `Sponsor`. `FILESYSTEM_DISK=local` continúa gobernando el
+El backend dispone de una infraestructura común de imágenes, incorporada
+inicialmente para `Sponsor` y reutilizada después por avatares, Noticias y
+portadas de competición. `FILESYSTEM_DISK=local` continúa gobernando el
 filesystem general y `MEDIA_DISK` selecciona de forma independiente uno de
 estos discos privados:
 
@@ -1035,6 +1036,30 @@ metadata `article` y JSON-LD únicamente tras una respuesta válida. El sitemap
 build-time incluye el índice, no consulta Laravel y aplaza como P1 el inventario
 runtime de slugs. 7F.2E fue aceptada en staging tras aplicar explícitamente su
 migración y validar el flujo editorial completo.
+
+### Portadas de competición en 6.C
+
+`CompetitionImageService` aplica el núcleo multimedia existente a una portada
+opcional e independiente de `Season`, `Championship` y `Category`. Usa
+`MediaPurpose::Banner` y el perfil de normalización `banner`; las referencias
+gestionadas de `image_path` son keys opacas bajo `banners/`. Un valor legado
+que no cumple ese contrato no se sirve ni se elimina como media gestionada,
+aunque el administrador puede sustituirlo o limpiarlo con seguridad.
+
+El servicio guarda el objeto nuevo antes de la mutación de dominio, lo compensa
+si ésta falla y elimina la referencia anterior sólo tras el commit. Un fallo de
+cleanup posterior se registra sin revertir la escritura confirmada. El mismo
+orden protege la sustitución, retirada y eliminación de la entidad; no existe
+una transacción ficticia entre MariaDB y el object storage.
+
+Las respuestas públicas contienen exclusivamente `image.url` con una ruta
+Laravel estable o `null`. La entrega exige visibilidad efectiva y resuelve
+local/S3 mediante el servicio común; el preview Blade usa las rutas
+administrativas autenticadas y puede mostrar entidades privadas. React usa el
+descriptor sin persistir ni construir keys, mantiene `aspect-ratio` y
+`object-fit: cover`, carga de forma diferida salvo cabeceras principales y
+oculta la imagen ante URL inválida o error de carga. No procesa, redimensiona,
+amplía ni aplica fallback entre niveles en el cliente.
 
 ### Navegación CMS administrable y acotada en 7F.2F
 

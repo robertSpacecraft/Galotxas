@@ -574,13 +574,30 @@ de Clasificación, Calendario y resultados y Copa, que conservan el fondo oscuro
 heredado frente al Resumen claro. Debe abordarse por separado, preferiblemente
 antes del rediseño Liquid Glass, y no forma parte del cierre funcional 6.F.4.
 
-### 4. 6.C — Imágenes de Temporadas, Campeonatos y Categorías (SIGUIENTE)
+### 4. 6.C — Imágenes de Temporadas, Campeonatos y Categorías (CLOSED / PASS)
 
-Estado parcial actual: `Season` no dispone todavía del mismo contrato;
-`Championship` y `Category` ya disponen de `image_path`. El bloque reutilizará
-la multimedia persistente existente y no rehacerá almacenamiento. Añadir la
-capacidad a `Season` puede requerir migración y, por tanto, gates adicionales
-de base de datos, backup y staging.
+6.C.1 añadió una portada opcional e independiente a `Season`, `Championship` y
+`Category`, reutilizando la multimedia persistente y el perfil `banner`.
+`seasons.image_path` se incorporó mediante una migración nullable sin backfill;
+los campos existentes de Campeonato y Categoría se conservaron como keys
+opacas. Administración cubre subida, preview privado, sustitución y retirada;
+la API pública sólo entrega un descriptor de ruta estable o `null`, sin
+herencia entre niveles ni referencias de storage.
+
+6.C.2 presenta esas portadas en la temporada principal, próxima e histórica de
+`/competicion`; en las tarjetas de Campeonatos de `/competicion` y `/torneos`;
+en el detalle de Campeonato; y en las tarjetas y resumen de Categoría. Las
+vistas de Clasificación, Calendario y resultados y Copa no muestran portada.
+El componente común mantiene layout estable, carga lazy por defecto y fallo
+silencioso ante una imagen inválida o no disponible.
+
+Los commits funcionales `744b10eb98cf13098f1e68706b372fe52526a866` y
+`97d11a52acc9aa5143d706d2acae9c0af4c8d4f8` fueron aceptados localmente, en
+staging y en producción. La aceptación productiva queda limitada por la falta
+de datos representativos para todos los recorridos dependientes de
+competición; no se fabricaron escenarios. La optimización automática mediante
+variantes responsive, compresión y mejoras de entrega permanece en el bloque
+P1 independiente y no forma parte de 6.C.
 
 ### 5. 5.7 — Hardening P1/P2 vigente
 

@@ -2430,3 +2430,47 @@ imágenes, la validación estricta de fechas de partidos ante valores como
 `20226`, la mejora visual del PDF por jornadas/fases conservando una A4, la
 normalización del fondo de Clasificación/Calendario/Copa y el rollback
 rehearsal histórico no ejecutado.
+
+## COMPETITION-COVERS-6C — Portadas opcionales de competición (CLOSED / PASS)
+
+El backend y la administración del commit funcional
+`744b10eb98cf13098f1e68706b372fe52526a866` acreditaron:
+
+- suite backend completa: 820 tests y 6.698 aserciones, PASS;
+- selección focal: 127 tests y 1.337 aserciones, PASS;
+- Pint de los archivos afectados, `php -l` sobre PHP/Blade afectados y
+  `git diff --check`: PASS;
+- validación humana local de subida, preview, sustitución y retirada en
+  Temporada, Campeonato y Categoría: PASS;
+- validación funcional en staging: PASS;
+- despliegue, migración y aceptación funcional en producción: PASS.
+
+La cobertura verifica el descriptor público URL/null, las rutas estables, la
+visibilidad efectiva, el preview privado, la ausencia de filtración de keys y
+el lifecycle de almacenamiento: compensación ante fallo de dominio, cleanup
+posterior al commit, retirada, borrado y tratamiento seguro de referencias
+legadas inválidas. La migración nullable de `seasons.image_path` no hizo
+backfill.
+
+La presentación React del commit funcional
+`97d11a52acc9aa5143d706d2acae9c0af4c8d4f8` acreditó:
+
+- tests focales: 76/76 en 8 archivos, PASS;
+- suite frontend completa: 708/708 en 94 archivos, PASS;
+- ESLint, build Vite, `git diff --check` y auditoría exacta del diff de 19
+  archivos: PASS;
+- validación visual humana local y validación visual/funcional en staging:
+  PASS;
+- aceptación funcional humana en producción: PASS.
+
+Los tests cubren URL nula o inválida, error de carga fail-soft, reset del fallo
+al cambiar la URL, carga lazy por defecto y prioridad sólo en cabeceras de
+detalle. También fijan las superficies incluidas y la ausencia de portada en
+Clasificación, Calendario y resultados y Copa.
+
+No se ejecutó la suite E2E global para 6.C.2 y no se reevalúa aquí su incidencia
+CMS histórica 67/68. El dataset productivo real no contiene suficientes datos
+oficiales y de competición para recorrer todos los casos dependientes de datos;
+esa limitación de aceptación no se convierte en un PASS inventado. Tampoco se
+acredita un ensayo histórico de rollback ni una prueba de persistencia de media
+tras redeploy en staging.
