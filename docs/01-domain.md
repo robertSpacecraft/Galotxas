@@ -249,8 +249,8 @@ parte conserva su propio slot e historia. Sí mantiene bloqueadas tras la
 reapertura las mutaciones vivas de Liga y participantes de las que depende su
 cuadro. 6.F.3D no implementó la oficialización de Copa; 6.F.3E la incorpora
 como lifecycle service-only. 6.F.3F incorpora después la administración Blade
-y la lectura histórica; 6.F.3G añade después el contrato API público. La
-anonimización ejecutable y la presentación React continúan fuera de estos
+y la lectura histórica; 6.F.3G añade después el contrato API público y 6.F.4
+su presentación React. La anonimización ejecutable continúa fuera de estos
 bloques.
 
 ### Oficialización y reapertura de Copa
@@ -350,6 +350,24 @@ del campeón de Copa obligatorios, la lectura falla cerrada con un `500`
 genérico para todo el agregado y nunca fabrica un payload parcial o un fallback
 vivo.
 
+### Presentación React del resultado oficial
+
+6.F.4 consume exclusivamente esta lectura para atribuir oficialidad en React.
+El resumen de categoría proyecta las tres primeras filas disponibles del
+`league.ranking` persistido, respetando su orden y `position`, y el nombre de
+`cup.champion`; el Top 3 es una decisión de presentación y no una nueva regla
+deportiva ni un ranking calculado por el cliente. La vista de clasificación usa
+la tabla snapshot completa cuando existe Liga oficial, y la vista de Copa
+presenta como campeón únicamente el snapshot vigente.
+
+Los standings, el schedule y el `winner_entry` de una Final validada continúan
+representando estado vivo. Si `league` es `null`, la clasificación viva puede
+mostrarse como «Clasificación actual», nunca como oficial; si `cup` es `null`,
+el cuadro puede mostrar el ganador de la Final, pero no proclama campeón. Un
+fallo de `official-results` es fail-soft para las vistas vivas y tampoco las
+convierte en fallback oficial. React no presenta versión, fecha, actor, digest,
+reapertura, motivo ni otros metadatos administrativos de oficialidad.
+
 ## Exportación PDF operativa de categoría
 
 6.F.3D.1 permite descargar desde administración una representación operativa
@@ -429,8 +447,9 @@ no crea duplicados.
 Un resultado administrativo sólo admite tanteos con estado `submitted` o
 `validated`; combinar tanteos con `scheduled`, `postponed`, `cancelled` o
 `under_review` se rechaza en validación en vez de descartarlos silenciosamente.
-El campeón vivo de Copa es el `winner_entry` de una Final validada, nunca un
-cálculo de React a partir del marcador.
+El ganador vivo de la Final de Copa es su `winner_entry` cuando está validada;
+este dato describe ese partido, no certifica al campeón oficial y nunca se
+convierte en tal mediante un cálculo de React.
 
 La experiencia pública separa las dos fases sin alterar este dominio común:
 `/categories/{id}/schedule` presenta exclusivamente las rondas de Liga y

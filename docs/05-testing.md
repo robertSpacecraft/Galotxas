@@ -2376,3 +2376,57 @@ validación estricta de fecha de partidos, la mejora visual del PDF por
 jornadas/fases manteniendo una A4, el E2E histórico 67/68 del dropdown CMS, las
 23 incidencias Pint globales, el pipeline P1 de optimización automática de
 imágenes y el rollback rehearsal histórico no ejecutado.
+
+## REACT-OFFICIAL-RESULTS-6F4-1 — Presentación React del resultado oficial (CLOSED / PASS)
+
+Ejecutado y desplegado con el commit funcional
+`2897a547dc564367891cfbe7a447a9360d5e96a8`.
+
+La implementación inicial acreditó:
+
+- 33/33 tests focales;
+- 54/54 tests de integración de rutas;
+- 690/690 tests frontend en 93 archivos tras completar el mock global
+  detectado por el primer pase;
+- ESLint, build Vite y `git diff --check`: PASS;
+- E2E dirigido de Copa: 1/1 PASS, incluida la comprobación responsive a
+  320 px.
+
+El ajuste humano final de Top 3 de Liga y etiqueta «Ganador» de Copa acreditó:
+
+- 13/13 tests focales;
+- 692/692 tests frontend en 93 archivos;
+- ESLint, build Vite y `git diff --check`: PASS;
+- E2E dirigido de Copa: 1/1 PASS.
+
+La cobertura verifica que `official-results` es la única fuente de oficialidad
+en React, que la Liga usa el ranking snapshot completo en Clasificación y sus
+tres primeras filas recibidas en el resumen, y que Copa usa exclusivamente el
+champion snapshot. También acredita estados `null`, fallo fail-soft sin
+fallback oficial, ausencia de metadatos administrativos y la regresión crítica
+en la que la Final viva muestra «Ganador: Jugador A» mientras el bloque oficial
+presenta como campeón a «Jugador B». `CupBracket` no proclama campeón a partir
+de una Final validada.
+
+La aceptación humana local fue PASS. Staging desplegó en Vercel el SHA exacto
+con estado READY; Railway marcó correctamente el commit frontend-only como
+SKIPPED y mantuvo el último backend SUCCESS. La categoría 2 validó Liga y Copa
+oficiales y la categoría 3 acreditó `league=null` y `cup=null`. El gate humano
+de staging fue PASS.
+
+Producción promovió por fast-forward limpio el mismo SHA. Vercel Production
+`dpl_HtutX6DydF261YfAwiyvBEKqToGo` quedó READY sobre `main`; Railway marcó el
+commit como SKIPPED por ser exclusivamente frontend y conservó el backend
+productivo SUCCESS. `/`, `/competicion` y `/torneos` respondieron `200`. No
+existían categorías públicas productivas, por lo que no se fabricaron datos y
+no se atribuye un smoke dependiente de `/categories/{id}`. El gate humano de
+producción fue PASS sobre navegación pública/general con esa limitación
+explícita.
+
+No se declara PASS para la suite E2E global: la incidencia histórica 67/68 del
+dropdown CMS permanece abierta. También siguen abiertas e independientes las
+23 incidencias Pint globales, el pipeline P1 de optimización/compresión de
+imágenes, la validación estricta de fechas de partidos ante valores como
+`20226`, la mejora visual del PDF por jornadas/fases conservando una A4, la
+normalización del fondo de Clasificación/Calendario/Copa y el rollback
+rehearsal histórico no ejecutado.

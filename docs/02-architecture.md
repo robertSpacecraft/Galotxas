@@ -507,6 +507,30 @@ reporta y responde con un `500` genérico y `data: null`, sin payload parcial ni
 reconstrucción viva. Esta capa no añade migraciones, endpoints de histórico o
 versión, escritura administrativa ni consumidor React.
 
+## Consumidor React de resultados oficiales
+
+6.F.4 amplía `championshipsService` con la lectura de
+`GET /api/v1/categories/{category}/official-results`. Resumen, Clasificación y
+Copa coordinan esta petición con sus datos de contexto o fuentes vivas sin
+introducir store global, rutas nuevas ni reglas de dominio en el cliente.
+
+`official-results` es la única entrada que permite a React usar semántica
+oficial. La clasificación principal usa exclusivamente `league.ranking` cuando
+existe el snapshot; en caso contrario conserva los standings vivos como
+«Clasificación actual». `CupBracket` conserva partidos, tanteos y el ganador de
+cada partido validado, pero el bloque «Campeón de Copa» sólo usa
+`cup.champion`. El resumen presenta el Top 3 de Liga tal como llega —sin ordenar
+ni recalcular— y la etiqueta «Ganador» con el campeón snapshot de Copa.
+
+La petición oficial falla de forma independiente: standings o schedule pueden
+seguir visibles con un aviso controlado, pero nunca adquieren oficialidad por
+fallback. El cliente tampoco presenta `version`, `officialized_at`, actores,
+digest, reaperturas, motivos, fuentes o identificadores administrativos.
+Aunque `version` y `officialized_at` forman parte del contrato público de
+`official-results`, se omiten deliberadamente de la interfaz; el resto
+permanece fuera de su proyección pública o pertenece a evidencia
+administrativa/interna. Backend, dominio y API permanecen como fuente de verdad.
+
 ## Exportación PDF live de competición por categoría
 
 6.F.3D.1 separa la adquisición de datos del renderizado. El controlador web

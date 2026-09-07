@@ -139,8 +139,10 @@ de `PublicCompetitionEntryResource`:
 
 No se publican `winner_entry_id`, `submitted_by`, `validated_by`, reportes ni
 datos internos de jugador o equipo. El frontend reconoce las fases de Copa por
-`stage`, omite de forma cerrada cualquier stage desconocido y obtiene el
-campeón únicamente de `winner_entry` de la Final validada.
+`stage`, omite de forma cerrada cualquier stage desconocido y puede presentar
+`winner_entry` como ganador del partido validado. Ese dato no proclama ni
+sustituye al campeón oficial de Copa, que React obtiene exclusivamente de
+`officialResults.cup.champion` tras consumir `official-results`.
 
 Este endpoint común alimenta dos vistas React distintas sin ampliar el
 contrato API: `/categories/{category}/schedule` selecciona sólo
@@ -319,6 +321,15 @@ ni timestamps técnicos. La identidad procede exclusivamente del
 `public_display_name` congelado; `public_anonymized_at` no nulo o un nombre
 público nulo/vacío se proyectan como `Participante` sin consultar identidades
 vivas.
+
+Desde 6.F.4, React usa `league.ranking` como única clasificación oficial y
+`cup.champion` como único campeón oficial. El resumen puede proyectar el Top 3
+de las filas recibidas, pero no las ordena ni recalcula; la tabla de
+Clasificación conserva el snapshot completo. Aunque el contrato incluya
+`version` y `officialized_at`, la interfaz pública no presenta esos campos ni
+actores, digest, reaperturas, motivos, fuentes o identificadores técnicos. Una
+parte `null` o un error del endpoint nunca habilitan fallback oficial desde
+standings, schedule o `winner_entry`.
 
 Una Liga oficial sin filas o una Copa oficial sin campeón constituyen un
 agregado corrupto. El endpoint no reconstruye datos ni devuelve una parte

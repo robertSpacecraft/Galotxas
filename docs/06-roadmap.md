@@ -341,7 +341,7 @@ o lingüística de `/admin`.
 
 Con 6.A cerrado se inició **6.F — Campeones de Liga y Copa**.
 
-### 3. 6.F — Campeones de Liga y Copa (EN CURSO)
+### 3. 6.F — Campeones de Liga y Copa (CLOSED / PASS)
 
 Definir primero el backend como fuente de verdad. Antes de representar el
 campeón en React se cerrarán cuándo existe, Liga, Copa, categorías, estados
@@ -549,12 +549,32 @@ guards, lifecycles de Liga y Copa, administración e histórico Blade y contrato
 público read-only. El backend conserva la fuente de verdad y React no calcula
 oficialidad, rankings ni campeones.
 
-#### Siguiente bloque: 6.F.4 — Presentación React del resultado final oficial
+#### 6.F.4 — Presentación React del resultado final oficial (CLOSED / PASS)
 
-6.F.4 consumirá el contrato público cerrado por 6.F.3G sin reconstruir datos
-deportivos ni identidad en frontend.
+El commit funcional `2897a547dc564367891cfbe7a447a9360d5e96a8` incorpora el
+consumidor React de `official-results` sin cambios backend, migraciones, Blade,
+rutas o dependencias. La clasificación oficial usa exclusivamente
+`league.ranking`; sin Liga oficial conserva los standings vivos como
+«Clasificación actual». Copa proclama campeón sólo desde `cup.champion`,
+mientras `CupBracket` limita `winner_entry` a «Ganador» del partido validado.
+Los estados `null` y los errores del endpoint nunca activan fallback oficial.
 
-### 4. 6.C — Imágenes de Temporadas, Campeonatos y Categorías
+El resumen de categoría presenta el Top 3 de Liga en el orden y `position`
+recibidos, sin recalcularlo, y la etiqueta «Ganador» con el campeón snapshot de
+Copa. La UI omite versión, fecha, actor, digest, reapertura, motivo y demás
+metadatos técnicos. Local cerró con 692/692 tests frontend, lint, build,
+`git diff --check` y E2E Copa 1/1 PASS. Staging y producción recibieron
+aceptación humana; producción no disponía de categorías públicas y, por tanto,
+no se atribuye un smoke dependiente de datos.
+
+Con 6.F.4, **6.F — Campeones de Liga y Copa** queda completado y cerrado.
+
+**Deuda visual abierta e independiente:** normalizar el fondo y la apariencia
+de Clasificación, Calendario y resultados y Copa, que conservan el fondo oscuro
+heredado frente al Resumen claro. Debe abordarse por separado, preferiblemente
+antes del rediseño Liquid Glass, y no forma parte del cierre funcional 6.F.4.
+
+### 4. 6.C — Imágenes de Temporadas, Campeonatos y Categorías (SIGUIENTE)
 
 Estado parcial actual: `Season` no dispone todavía del mismo contrato;
 `Championship` y `Category` ya disponen de `image_path`. El bloque reutilizará

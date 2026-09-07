@@ -2590,3 +2590,75 @@ Consecuencias:
   de no disponer de categorías públicas para un smoke dependiente de datos.
 - 6.F.3 queda CLOSED/PASS. 6.F.4 puede consumir este contrato para presentar en
   React el resultado final oficial sin reproducir reglas deportivas.
+
+---
+
+# ADR-055 — Presentación React de resultados oficiales sin inferencia viva
+
+Estado: Aceptada
+
+Fecha: 2026-09-07
+
+Contexto:
+- El frontend ya disponía de standings, schedule y `winner_entry` de partidos
+  validados, pero esas proyecciones describen estado deportivo vivo y pueden
+  cambiar después de una rectificación.
+- 6.F.3G publicó los snapshots vigentes de Liga y Copa mediante
+  `GET /api/v1/categories/{category}/official-results`, con partes
+  independientes que pueden ser `null`.
+- El contrato incluye `version` y `officialized_at` para describir el snapshot,
+  aunque la interfaz pública sólo necesita el resultado deportivo útil.
+- La presentación debe seguir siendo fail-soft sin trasladar reglas deportivas
+  ni autoridad de oficialización a React.
+
+Decisión:
+- Tratar `official-results` como la única fuente de oficialidad en React.
+  Standings y schedule pueden seguir mostrando estado vivo, pero nunca
+  sustituyen una parte oficial ausente o una lectura oficial fallida.
+- Usar exclusivamente `officialResults.league.ranking` para la tabla
+  «Clasificación oficial». Si `league` es `null` o no puede comprobarse,
+  conservar los standings vivos como «Clasificación actual», sin semántica
+  oficial.
+- Mantener `CupBracket` como representación de partidos y permitir «Ganador:
+  X» desde el `winner_entry` de un partido validado, pero no proclamar desde él
+  un campeón de Copa. El campeón oficial procede exclusivamente de
+  `officialResults.cup.champion`.
+- Proyectar en el resumen las tres primeras filas disponibles del ranking
+  oficial en el orden y con la `position` recibidos. Este Top 3 es una decisión
+  de presentación; React no ordena, recalcula ni consulta standings vivos para
+  formarlo.
+- Presentar en la tarjeta de Copa la etiqueta «Ganador» y el nombre del champion
+  snapshot. No presentar en la interfaz pública `version`, `officialized_at`,
+  actor, digest, reapertura, motivo, fuentes, IDs ni otros metadatos
+  administrativos o técnicos.
+- Resolver errores de `official-results` de forma independiente. Las vistas
+  vivas pueden permanecer disponibles con un aviso controlado, pero no se
+  convierten en fallback oficial.
+- Conservar las cuatro vistas existentes —Resumen, Clasificación, Calendario y
+  resultados y Copa— sin ruta, pestaña, store global o dependencia nueva.
+
+Alternativas descartadas:
+- inferir el campeón oficial desde el `winner_entry` de una Final validada;
+- tratar standings vivos como clasificación oficial;
+- usar el último estado vivo mientras `official-results` sea `null` o falle;
+- mostrar metadatos administrativos de oficialidad por defecto;
+- ordenar o recalcular el Top 3 y duplicar reglas deportivas en React.
+
+Consecuencias:
+- El commit funcional `2897a547dc564367891cfbe7a447a9360d5e96a8` implementa
+  esta decisión exclusivamente en frontend. Local cerró con 692/692 tests en
+  93 archivos, lint, build, `git diff --check` y E2E dirigido de Copa 1/1 PASS.
+- Staging quedó READY en Vercel con el SHA exacto y validó humanamente una
+  categoría con Liga/Copa oficiales y otra con ambas partes `null`; Railway
+  marcó correctamente el cambio frontend-only como SKIPPED.
+- Producción desplegó el mismo SHA en Vercel
+  (`dpl_HtutX6DydF261YfAwiyvBEKqToGo`, READY) y Railway volvió a marcarlo
+  SKIPPED sin alterar su backend SUCCESS. Los smokes generales respondieron
+  `200` y la aceptación humana fue PASS.
+- Producción no dispone de categorías públicas, por lo que no se atribuye un
+  smoke dependiente de `/categories/{id}` ni se fabrican datos para obtenerlo.
+- La normalización visual del fondo de Clasificación, Calendario y resultados y
+  Copa permanece abierta y fuera de 6.F.4, preferiblemente antes de Liquid
+  Glass.
+- 6.F.4 y 6.F quedan CLOSED/PASS; el siguiente gran bloque post-MVP es 6.C,
+  imágenes de Temporadas, Campeonatos y Categorías.
