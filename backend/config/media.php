@@ -12,6 +12,19 @@ return [
         'image/webp',
     ],
 
+    // Published versions are immutable: introduce a new version to change widths.
+    'variant_policies' => [
+        'v1' => [
+            'widths' => [
+                'avatar' => [128, 256],
+                'banner' => [320, 640, 960, 1280],
+                'news_cover' => [320, 640, 960, 1280],
+                'sponsor_logo' => [160, 320, 640],
+                'content' => [320, 640, 960, 1280, 1920],
+            ],
+        ],
+    ],
+
     'profiles' => [
         'avatar' => [
             'input_max_kb' => 3072,
