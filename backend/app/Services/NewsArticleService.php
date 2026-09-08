@@ -5,26 +5,27 @@ namespace App\Services;
 use App\Enums\NewsArticleStatus;
 use App\Models\NewsArticle;
 use App\Models\User;
-use App\Services\Media\Exceptions\MediaStorageException;
-use App\Services\Media\ImageNormalizer;
+use App\Services\Media\ImagePreparationPolicy;
 use App\Services\Media\MediaObjectKeyGenerator;
 use App\Services\Media\MediaPurpose;
-use App\Services\Media\MediaStorageService;
+use App\Services\Media\ResponsiveImagePreparer;
+use App\Services\Media\ResponsiveImageProfile;
+use App\Services\Media\ResponsiveMediaLifecycle;
+use App\Services\Media\ResponsiveMediaStorage;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Throwable;
+use RuntimeException;
 
 class NewsArticleService
 {
     public function __construct(
-        private readonly ImageNormalizer $images,
-        private readonly MediaStorageService $storage,
+        private readonly ResponsiveImagePreparer $images,
+        private readonly ResponsiveMediaStorage $storage,
         private readonly MediaObjectKeyGenerator $keys,
+        private readonly ResponsiveMediaLifecycle $lifecycle,
     ) {}
 
     /**
@@ -35,50 +36,46 @@ class NewsArticleService
         ?UploadedFile $image,
         User $actor
     ): NewsArticle {
-        $normalized = $image === null
-            ? null
-            : $this->images->normalize($image, 'news_cover');
-        $newKey = $normalized === null
-            ? null
-            : $this->storage->store(MediaPurpose::News, $normalized);
+        $set = $image === null ? null : $this->storage->store($this->images->prepare(
+            $image, ResponsiveImageProfile::NewsCover, ImagePreparationPolicy::Photo,
+        ));
+        $newKey = $set?->masterKey;
+        $normalized = $set?->manifest->master;
 
-        try {
-            return DB::transaction(function () use (
-                $actor,
-                $attributes,
-                $newKey,
-                $normalized
-            ): NewsArticle {
-                $articleAttributes = $this->editorialAttributes($attributes);
-                $articleAttributes['slug'] = $this->createSlug(
-                    $attributes['slug'] ?? null,
-                    $articleAttributes['title']
-                );
-                $articleAttributes['status'] = NewsArticleStatus::DRAFT->value;
-                $articleAttributes['published_at'] = null;
+        return $this->lifecycle->mutate($set, function () use (
+            $actor,
+            $attributes,
+            $newKey,
+            $normalized
+        ): NewsArticle {
+            $articleAttributes = $this->editorialAttributes($attributes);
+            $articleAttributes['slug'] = $this->createSlug(
+                $attributes['slug'] ?? null,
+                $articleAttributes['title']
+            );
+            $articleAttributes['status'] = NewsArticleStatus::DRAFT->value;
+            $articleAttributes['published_at'] = null;
 
-                if ($newKey !== null && $normalized !== null) {
-                    $articleAttributes = [
-                        ...$articleAttributes,
-                        ...$this->newImageAttributes(
-                            $attributes,
-                            $newKey,
-                            $normalized->width,
-                            $normalized->height,
-                            $actor
-                        ),
-                    ];
-                }
-
-                return NewsArticle::query()->create($articleAttributes);
-            });
-        } catch (Throwable $exception) {
-            if ($newKey !== null) {
-                $this->cleanup($newKey, 'create_compensation');
+            if ($newKey !== null && $normalized !== null) {
+                $articleAttributes = [
+                    ...$articleAttributes,
+                    ...$this->newImageAttributes(
+                        $attributes,
+                        $newKey,
+                        $normalized->width,
+                        $normalized->height,
+                        $actor
+                    ),
+                ];
             }
 
-            throw $exception;
-        }
+            $article = new NewsArticle($articleAttributes);
+            if (! $article->save()) {
+                throw new RuntimeException('No se pudo guardar la noticia.');
+            }
+
+            return $article;
+        });
     }
 
     /**
@@ -98,96 +95,80 @@ class NewsArticleService
             ]);
         }
 
-        $normalized = $image === null
-            ? null
-            : $this->images->normalize($image, 'news_cover');
-        $newKey = $normalized === null
-            ? null
-            : $this->storage->store(MediaPurpose::News, $normalized);
-        $oldKey = null;
+        $set = $image === null ? null : $this->storage->store($this->images->prepare(
+            $image, ResponsiveImageProfile::NewsCover, ImagePreparationPolicy::Photo,
+        ));
+        $newKey = $set?->masterKey;
+        $normalized = $set?->manifest->master;
 
-        try {
-            $updated = DB::transaction(function () use (
-                $actor,
-                $article,
-                $attributes,
-                $newKey,
-                $normalized,
-                $removeImage,
-                &$oldKey
-            ): NewsArticle {
-                $locked = NewsArticle::query()->lockForUpdate()->findOrFail($article->getKey());
-                $oldKey = $locked->image_key;
+        return $this->lifecycle->mutate($set, function (callable $obsolete) use (
+            $actor,
+            $article,
+            $attributes,
+            $newKey,
+            $normalized,
+            $removeImage
+        ): NewsArticle {
+            $locked = NewsArticle::query()->lockForUpdate()->findOrFail($article->getKey());
+            $oldKey = $locked->image_key;
+            $next = [
+                ...$this->editorialAttributes($attributes),
+                'slug' => $this->updatedSlug($locked, (string) $attributes['slug']),
+                'status' => (string) $attributes['status'],
+                'published_at' => $this->nextPublishedAt($locked, $attributes),
+            ];
+
+            if ($newKey !== null && $normalized !== null) {
                 $next = [
-                    ...$this->editorialAttributes($attributes),
-                    'slug' => $this->updatedSlug($locked, (string) $attributes['slug']),
-                    'status' => (string) $attributes['status'],
-                    'published_at' => $this->nextPublishedAt($locked, $attributes),
+                    ...$next,
+                    ...$this->newImageAttributes(
+                        $attributes,
+                        $newKey,
+                        $normalized->width,
+                        $normalized->height,
+                        $actor
+                    ),
                 ];
-
-                if ($newKey !== null && $normalized !== null) {
-                    $next = [
-                        ...$next,
-                        ...$this->newImageAttributes(
-                            $attributes,
-                            $newKey,
-                            $normalized->width,
-                            $normalized->height,
-                            $actor
-                        ),
-                    ];
-                } elseif ($removeImage) {
-                    if ($next['status'] !== NewsArticleStatus::DRAFT->value) {
-                        throw ValidationException::withMessages([
-                            'remove_image' => 'Para retirar la imagen debes guardar la noticia como borrador.',
-                        ]);
-                    }
-
-                    $next = [...$next, ...$this->emptyImageAttributes()];
-                } else {
-                    $next['image_alt'] = $attributes['image_alt'] ?? null;
-                    $next['image_credit'] = $attributes['image_credit'] ?? null;
-                    $next['image_source'] = $attributes['image_source'] ?? null;
-
-                    if ((bool) ($attributes['image_rights_confirmed'] ?? false)) {
-                        $next['image_rights_confirmed_at'] = now();
-                        $next['image_rights_confirmed_by'] = $actor->getKey();
-                    }
+            } elseif ($removeImage) {
+                if ($next['status'] !== NewsArticleStatus::DRAFT->value) {
+                    throw ValidationException::withMessages([
+                        'remove_image' => 'Para retirar la imagen debes guardar la noticia como borrador.',
+                    ]);
                 }
 
-                $this->assertPublishable($locked, $next, $attributes);
-                $locked->fill($next)->save();
+                $next = [...$next, ...$this->emptyImageAttributes()];
+            } else {
+                $next['image_alt'] = $attributes['image_alt'] ?? null;
+                $next['image_credit'] = $attributes['image_credit'] ?? null;
+                $next['image_source'] = $attributes['image_source'] ?? null;
 
-                return $locked;
-            });
-        } catch (Throwable $exception) {
-            if ($newKey !== null) {
-                $this->cleanup($newKey, 'replace_compensation');
+                if ((bool) ($attributes['image_rights_confirmed'] ?? false)) {
+                    $next['image_rights_confirmed_at'] = now();
+                    $next['image_rights_confirmed_by'] = $actor->getKey();
+                }
             }
 
-            throw $exception;
-        }
+            $this->assertPublishable($locked, $next, $attributes);
+            if (! $locked->fill($next)->save()) {
+                throw new RuntimeException('No se pudo guardar la noticia.');
+            }
+            if ($newKey !== null || $removeImage) {
+                $obsolete($oldKey, ResponsiveImageProfile::NewsCover);
+            }
 
-        if (($newKey !== null || $removeImage) && is_string($oldKey)) {
-            $this->cleanup($oldKey, $newKey !== null ? 'replace_old_object' : 'remove_object');
-        }
-
-        return $updated;
+            return $locked;
+        });
     }
 
     public function delete(NewsArticle $article): void
     {
-        $oldKey = null;
-
-        DB::transaction(function () use ($article, &$oldKey): void {
+        $this->lifecycle->mutate(null, function (callable $obsolete) use ($article): void {
             $locked = NewsArticle::query()->lockForUpdate()->findOrFail($article->getKey());
-            $oldKey = $locked->image_key;
-            $locked->delete();
+            $obsolete($locked->image_key, ResponsiveImageProfile::NewsCover);
+            if (! $locked->delete()) {
+                throw new RuntimeException('No se pudo eliminar la noticia.');
+            }
         });
-
-        if (is_string($oldKey)) {
-            $this->cleanup($oldKey, 'delete_object');
-        }
     }
 
     /**
@@ -370,25 +351,6 @@ class NewsArticleService
 
         if ($errors !== []) {
             throw ValidationException::withMessages($errors);
-        }
-    }
-
-    private function cleanup(string $key, string $operation): void
-    {
-        if (! $this->keys->isValidForPurpose($key, MediaPurpose::News)) {
-            Log::warning('News media cleanup skipped for an invalid reference.', [
-                'operation' => $operation,
-            ]);
-
-            return;
-        }
-
-        try {
-            $this->storage->delete($key);
-        } catch (MediaStorageException) {
-            Log::warning('News media cleanup failed.', [
-                'operation' => $operation,
-            ]);
         }
     }
 }

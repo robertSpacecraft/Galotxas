@@ -16,24 +16,25 @@ use App\Services\Media\MediaDeliveryService;
 use App\Services\Media\MediaObjectKeyGenerator;
 use App\Services\Media\MediaPurpose;
 use App\Services\Media\MediaStorageService;
+use App\Services\Media\ResponsiveMediaStorage;
 use App\Services\OfficialResultProtectedDeletionService;
 use App\Services\SeasonService;
 use Illuminate\Database\QueryException;
-use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\Sanctum;
 use Mockery;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
+use Tests\Concerns\InteractsWithResponsiveMedia;
 use Tests\TestCase;
 
 class CompetitionImageTest extends TestCase
 {
+    use InteractsWithResponsiveMedia;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -104,7 +105,8 @@ class CompetitionImageTest extends TestCase
         $bytes = Storage::disk('media_local')->get($created->image_path);
         $dimensions = getimagesizefromstring($bytes);
         $this->assertSame([1920, 960], [$dimensions[0], $dimensions[1]]);
-        $this->assertSame('image/png', $dimensions['mime']);
+        $this->assertSame('image/webp', $dimensions['mime']);
+        $this->assertResponsiveSet($created->image_path);
     }
 
     #[DataProvider('entities')]
@@ -160,7 +162,7 @@ class CompetitionImageTest extends TestCase
     public function test_upload_storage_failure_returns_sanitized_validation_feedback(string $table): void
     {
         $entity = $this->entity($table);
-        $this->mock(MediaStorageService::class)->shouldReceive('store')->once()
+        $this->mock(ResponsiveMediaStorage::class)->shouldReceive('store')->once()
             ->andThrow(new MediaStorageException('secret bucket internal-key'));
         $this->actingAs(User::factory()->admin()->create())
             ->put(route('admin.'.$table.'.update', $entity), [
@@ -208,7 +210,7 @@ class CompetitionImageTest extends TestCase
         $this->assertNotSame($first->image_path, $second->image_path);
         Storage::disk('media_local')->assertMissing($original);
         Storage::disk('media_local')->assertMissing($first->image_path);
-        $this->assertSame([$second->image_path], Storage::disk('media_local')->allFiles());
+        $this->assertOnlyResponsiveSet($second->image_path);
         $service->update($entity, $this->payload($entity), null, true);
         $this->assertNull($entity->fresh()->image_path);
         $this->assertSame([], Storage::disk('media_local')->allFiles());
@@ -221,13 +223,14 @@ class CompetitionImageTest extends TestCase
         $key = $this->storeImage($entity);
         $this->actingAs(User::factory()->admin()->create());
         $baselineLevel = DB::transactionLevel();
-        $this->storageMock()->shouldReceive('delete')->times(3)
-            ->andReturnUsing(function (string $oldKey) use ($entity, $baselineLevel): void {
+        $this->failMediaDeletion(
+            fn ($key) => app(MediaObjectKeyGenerator::class)->isValid($key),
+            3,
+            function (string $oldKey) use ($entity, $baselineLevel): void {
                 $this->assertSame($baselineLevel, DB::transactionLevel());
                 $this->assertNotSame($oldKey, $entity->fresh()?->image_path);
-                throw new MediaStorageException('secret storage detail');
-            });
-        Log::shouldReceive('warning')->times(3)->with('Competition image cleanup failed.', ['operation' => 'committed_cleanup']);
+            },
+        );
         $this->put(route('admin.'.$table.'.update', $entity), [...$this->payload($entity), 'image' => $this->image()])
             ->assertRedirect()->assertSessionHasNoErrors()->assertSessionHas('success');
         $this->assertNotSame($key, $entity->fresh()->image_path);
@@ -246,7 +249,7 @@ class CompetitionImageTest extends TestCase
         $entity = $this->entity($table);
         $legacy = 'https://legacy.invalid/private.png';
         $entity->refresh()->update(['image_path' => $legacy]);
-        $this->storageMock()->shouldNotReceive('delete');
+        $this->forbidMediaDeletion();
         $service = $this->service($entity);
         $service->update($entity, $this->payload($entity));
         $this->assertSame($legacy, $entity->fresh()->image_path);
@@ -294,7 +297,7 @@ class CompetitionImageTest extends TestCase
         $entity = match ($table) {
             'seasons' => $season, 'championships' => $championship, default => $category,
         };
-        $this->mock(MediaStorageService::class)->shouldNotReceive('delete');
+        $this->forbidMediaDeletion();
         $this->actingAs(User::factory()->admin()->create())->delete(route('admin.'.$table.'.destroy', $entity))
             ->assertRedirect()->assertSessionHas('error');
         foreach ([$season, $championship, $category] as $model) {
@@ -420,7 +423,7 @@ class CompetitionImageTest extends TestCase
     {
         $entity = $this->entity($table);
         $key = $this->storeImage($entity);
-        $this->mock(MediaStorageService::class)->shouldNotReceive('delete');
+        $this->forbidMediaDeletion();
         $entity::updating(static function (): void {
             throw new RuntimeException('forced save failure');
         });
@@ -458,7 +461,7 @@ class CompetitionImageTest extends TestCase
     {
         $entity = $this->entity($table);
         $key = $this->storeImage($entity);
-        $this->mock(MediaStorageService::class)->shouldNotReceive('delete');
+        $this->forbidMediaDeletion();
         DB::beginTransaction();
         try {
             $this->service($entity)->update($entity, $this->payload($entity), null, true);
@@ -583,11 +586,11 @@ class CompetitionImageTest extends TestCase
         return $key;
     }
 
-    private function storageMock(): MediaStorageService
+    private function forbidMediaDeletion(): void
     {
-        return $this->instance(MediaStorageService::class, Mockery::mock(MediaStorageService::class, [
-            app(FilesystemManager::class), app(MediaObjectKeyGenerator::class),
-        ])->makePartial());
+        $disk = Mockery::mock(Storage::disk('media_local'))->makePartial();
+        $disk->shouldNotReceive('delete');
+        Storage::set('media_local', $disk);
     }
 
     private function image(): UploadedFile

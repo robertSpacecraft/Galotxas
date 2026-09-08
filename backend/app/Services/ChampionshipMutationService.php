@@ -29,7 +29,7 @@ class ChampionshipMutationService
 
     private function persist(Championship $championship, array $validated, ?UploadedFile $image, bool $removeImage): Championship
     {
-        return $this->covers->mutate($image, $removeImage, function (?string $newKey) use ($championship, $validated, $removeImage): Championship {
+        return $this->covers->mutate($image, $removeImage, function (?string $newKey, callable $obsolete) use ($championship, $validated, $removeImage): Championship {
             $championship = $championship->exists
                 ? Championship::query()->lockForUpdate()->findOrFail($championship->getKey())
                 : clone $championship;
@@ -65,7 +65,7 @@ class ChampionshipMutationService
                 'registration_ends_at' => $validated['registration_ends_at'] ?? null,
             ]);
             $championship->is_public = (bool) $validated['is_public'];
-            $this->covers->saveWithImage($championship, $newKey, $removeImage);
+            $this->covers->saveWithImage($championship, $newKey, $removeImage, $obsolete);
 
             return $championship->refresh();
         });

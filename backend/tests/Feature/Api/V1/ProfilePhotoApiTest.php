@@ -5,6 +5,7 @@ namespace Tests\Feature\Api\V1;
 use App\Models\User;
 use App\Services\Media\Exceptions\MediaStorageException;
 use App\Services\Media\MediaStorageService;
+use App\Services\Media\ResponsiveMediaStorage;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -64,7 +65,7 @@ class ProfilePhotoApiTest extends TestCase
 
         $this->assertIsString($key);
         $this->assertMatchesRegularExpression(
-            '/\Aavatars\/[0-9a-f-]{36}\.png\z/',
+            '/\Aavatars\/[0-9a-f-]{36}\.webp\z/',
             $key
         );
         Storage::disk('media_local')->assertExists($key);
@@ -149,11 +150,11 @@ class ProfilePhotoApiTest extends TestCase
     public function test_storage_failures_are_sanitized_for_upload_and_delivery(): void
     {
         $user = $this->authenticate();
-        $storage = Mockery::mock(MediaStorageService::class);
+        $storage = Mockery::mock(ResponsiveMediaStorage::class);
         $storage->shouldReceive('store')
             ->once()
             ->andThrow(new MediaStorageException('secret upload detail'));
-        $this->app->instance(MediaStorageService::class, $storage);
+        $this->app->instance(ResponsiveMediaStorage::class, $storage);
 
         $upload = $this->upload(UploadedFile::fake()->image('avatar.jpg', 40, 40))
             ->assertServiceUnavailable()

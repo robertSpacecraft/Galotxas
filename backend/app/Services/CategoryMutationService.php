@@ -23,7 +23,7 @@ class CategoryMutationService
 
     private function persist(Category $category, array $attributes, ?UploadedFile $image, bool $removeImage): Category
     {
-        return $this->covers->mutate($image, $removeImage, function (?string $newKey) use ($category, $attributes, $removeImage): Category {
+        return $this->covers->mutate($image, $removeImage, function (?string $newKey, callable $obsolete) use ($category, $attributes, $removeImage): Category {
             $category = $category->exists
                 ? Category::query()->lockForUpdate()->findOrFail($category->getKey())
                 : clone $category;
@@ -37,7 +37,7 @@ class CategoryMutationService
                 'status' => $attributes['status'],
             ]);
             $category->is_public = (bool) $attributes['is_public'];
-            $this->covers->saveWithImage($category, $newKey, $removeImage);
+            $this->covers->saveWithImage($category, $newKey, $removeImage, $obsolete);
 
             return $category->refresh();
         });

@@ -5,21 +5,17 @@ namespace Tests\Feature;
 use App\Enums\NewsArticleStatus;
 use App\Models\NewsArticle;
 use App\Models\User;
-use App\Services\Media\Exceptions\MediaStorageException;
-use App\Services\Media\ImageNormalizer;
-use App\Services\Media\MediaObjectKeyGenerator;
-use App\Services\Media\MediaStorageService;
 use App\Services\NewsArticleService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Mockery;
 use RuntimeException;
+use Tests\Concerns\InteractsWithResponsiveMedia;
 use Tests\TestCase;
 
 class NewsArticleLifecycleTest extends TestCase
 {
+    use InteractsWithResponsiveMedia;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -82,21 +78,9 @@ class NewsArticleLifecycleTest extends TestCase
     public function test_cleanup_failure_after_soft_delete_is_sanitized_without_restoring_article(): void
     {
         $article = NewsArticle::factory()->withImage()->create();
-        $storage = Mockery::mock(MediaStorageService::class);
-        $storage->shouldReceive('delete')
-            ->once()
-            ->with($article->image_key)
-            ->andThrow(new MediaStorageException('secret object detail'));
-        Log::shouldReceive('warning')
-            ->once()
-            ->with('News media cleanup failed.', ['operation' => 'delete_object']);
-        $service = new NewsArticleService(
-            app(ImageNormalizer::class),
-            $storage,
-            app(MediaObjectKeyGenerator::class)
-        );
-
-        $service->delete($article);
+        Storage::disk('media_local')->put($article->image_key, 'legacy');
+        $this->failMediaDeletion([$article->image_key]);
+        app(NewsArticleService::class)->delete($article);
 
         $this->assertSoftDeleted($article);
     }
@@ -129,7 +113,7 @@ class NewsArticleLifecycleTest extends TestCase
         $this->assertNotSame($firstKey, $secondKey);
         Storage::disk('media_local')->assertMissing($firstKey);
         Storage::disk('media_local')->assertExists($secondKey);
-        $this->assertSame([$secondKey], Storage::disk('media_local')->allFiles());
+        $this->assertOnlyResponsiveSet($secondKey);
     }
 
     /**

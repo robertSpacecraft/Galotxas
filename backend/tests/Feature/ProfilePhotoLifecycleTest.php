@@ -4,24 +4,18 @@ namespace Tests\Feature;
 
 use App\Models\Player;
 use App\Models\User;
-use App\Services\Media\Exceptions\MediaStorageException;
-use App\Services\Media\ImageNormalizer;
-use App\Services\Media\MediaObjectKeyGenerator;
-use App\Services\Media\MediaPurpose;
-use App\Services\Media\MediaStorageService;
-use App\Services\Media\NormalizedImage;
 use App\Services\ProfilePhotoService;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Mockery;
 use RuntimeException;
+use Tests\Concerns\InteractsWithResponsiveMedia;
 use Tests\TestCase;
 
 class ProfilePhotoLifecycleTest extends TestCase
 {
+    use InteractsWithResponsiveMedia;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -58,45 +52,23 @@ class ProfilePhotoLifecycleTest extends TestCase
     public function test_replace_cleanup_failure_is_logged_without_reverting_the_new_reference(): void
     {
         $oldKey = 'avatars/00000000-0000-4000-8000-000000000001.jpg';
-        $newKey = 'avatars/00000000-0000-4000-8000-000000000002.png';
         $user = $this->userWithPhoto($oldKey);
-        $storage = Mockery::mock(MediaStorageService::class);
-        $storage->shouldReceive('store')
-            ->once()
-            ->with(MediaPurpose::Avatar, Mockery::type(NormalizedImage::class))
-            ->andReturn($newKey);
-        $storage->shouldReceive('delete')
-            ->once()
-            ->with($oldKey)
-            ->andThrow(new MediaStorageException('secret cleanup detail'));
-        Log::shouldReceive('warning')
-            ->once()
-            ->with('Profile photo cleanup failed.', ['operation' => 'replace_old_object']);
-
-        $this->serviceWith($storage)->store(
-            $user,
-            UploadedFile::fake()->image('replacement.png', 40, 40)
-        );
-
-        $this->assertSame($newKey, $user->refresh()->profile_photo_path);
+        Storage::disk('media_local')->put($oldKey, 'legacy');
+        $this->failMediaDeletion([$oldKey]);
+        $updated = app(ProfilePhotoService::class)->store($user, UploadedFile::fake()->image('replacement.png', 800, 400));
+        $this->assertNotSame($oldKey, $updated->profile_photo_path);
+        $this->assertSame($updated->profile_photo_path, $user->fresh()->profile_photo_path);
+        $this->assertResponsiveSet($updated->profile_photo_path);
     }
 
     public function test_remove_cleanup_failure_is_logged_without_restoring_the_reference(): void
     {
         $oldKey = 'avatars/00000000-0000-4000-8000-000000000001.jpg';
         $user = $this->userWithPhoto($oldKey);
-        $storage = Mockery::mock(MediaStorageService::class);
-        $storage->shouldReceive('delete')
-            ->once()
-            ->with($oldKey)
-            ->andThrow(new MediaStorageException('secret cleanup detail'));
-        Log::shouldReceive('warning')
-            ->once()
-            ->with('Profile photo cleanup failed.', ['operation' => 'remove_object']);
-
-        $this->serviceWith($storage)->remove($user);
-
-        $this->assertNull($user->refresh()->profile_photo_path);
+        Storage::disk('media_local')->put($oldKey, 'legacy');
+        $this->failMediaDeletion([$oldKey]);
+        app(ProfilePhotoService::class)->remove($user);
+        $this->assertNull($user->fresh()->profile_photo_path);
     }
 
     public function test_stale_replace_requests_use_the_locked_database_reference(): void
@@ -124,7 +96,7 @@ class ProfilePhotoLifecycleTest extends TestCase
         Storage::disk('media_local')->assertMissing($oldKey);
         Storage::disk('media_local')->assertMissing($firstKey);
         Storage::disk('media_local')->assertExists($secondKey);
-        $this->assertSame([$secondKey], Storage::disk('media_local')->allFiles());
+        $this->assertOnlyResponsiveSet($secondKey);
     }
 
     public function test_stale_replace_then_delete_uses_the_latest_committed_reference(): void
@@ -152,10 +124,8 @@ class ProfilePhotoLifecycleTest extends TestCase
     public function test_invalid_legacy_reference_is_cleared_without_touching_storage(): void
     {
         $user = $this->userWithPhoto('../legacy-private.jpg');
-        $storage = Mockery::mock(MediaStorageService::class);
-        $storage->shouldNotReceive('delete');
-
-        $this->serviceWith($storage)->remove($user);
+        app(ProfilePhotoService::class)->remove($user);
+        $this->assertSame([], Storage::disk('media_local')->allFiles());
 
         $this->assertNull($user->refresh()->profile_photo_path);
     }
@@ -179,16 +149,9 @@ class ProfilePhotoLifecycleTest extends TestCase
     {
         $key = 'avatars/00000000-0000-4000-8000-000000000001.jpg';
         $user = $this->userWithPhoto($key);
-        $storage = Mockery::mock(MediaStorageService::class);
-        $storage->shouldReceive('delete')
-            ->once()
-            ->with($key)
-            ->andThrow(new MediaStorageException('secret cleanup detail'));
-        Log::shouldReceive('warning')
-            ->once()
-            ->with('Profile photo cleanup failed.', ['operation' => 'delete_user_object']);
-
-        $this->serviceWith($storage)->deleteUser($user);
+        Storage::disk('media_local')->put($key, 'legacy');
+        $this->failMediaDeletion([$key]);
+        app(ProfilePhotoService::class)->deleteUser($user);
 
         $this->assertDatabaseMissing('users', ['id' => $user->id]);
     }
@@ -218,15 +181,6 @@ class ProfilePhotoLifecycleTest extends TestCase
         $user->forceFill(['profile_photo_path' => $key])->save();
 
         return $user;
-    }
-
-    private function serviceWith(MediaStorageService $storage): ProfilePhotoService
-    {
-        return new ProfilePhotoService(
-            app(ImageNormalizer::class),
-            $storage,
-            app(MediaObjectKeyGenerator::class),
-        );
     }
 
     protected function tearDown(): void

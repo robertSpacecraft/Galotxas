@@ -4,21 +4,20 @@ namespace Tests\Feature;
 
 use App\Models\Sponsor;
 use App\Models\User;
-use App\Services\Media\Exceptions\MediaStorageException;
-use App\Services\Media\ImageNormalizer;
 use App\Services\Media\MediaStorageService;
 use App\Services\SponsorService;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Mockery;
 use RuntimeException;
+use Tests\Concerns\InteractsWithResponsiveMedia;
 use Tests\TestCase;
 
 class AdminSponsorTest extends TestCase
 {
+    use InteractsWithResponsiveMedia;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -247,17 +246,9 @@ class AdminSponsorTest extends TestCase
     public function test_cleanup_failure_after_database_delete_is_logged_without_restoring_the_row(): void
     {
         $sponsor = Sponsor::factory()->create();
-        $storage = Mockery::mock(MediaStorageService::class);
-        $storage->shouldReceive('delete')
-            ->once()
-            ->with($sponsor->logo_key)
-            ->andThrow(new MediaStorageException('secret backend detail'));
-        Log::shouldReceive('warning')
-            ->once()
-            ->with('Sponsor media cleanup failed.', ['operation' => 'delete_object']);
-        $service = new SponsorService(app(ImageNormalizer::class), $storage);
-
-        $service->delete($sponsor);
+        Storage::disk('media_local')->put($sponsor->logo_key, 'legacy');
+        $this->failMediaDeletion([$sponsor->logo_key]);
+        app(SponsorService::class)->delete($sponsor);
 
         $this->assertDatabaseMissing('sponsors', ['id' => $sponsor->id]);
     }

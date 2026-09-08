@@ -103,6 +103,49 @@ class ResponsiveMediaStorage
         }
     }
 
+    /**
+     * Best-effort deletion of a validated identity, including legacy and partial sets.
+     * Never read a manifest to authorize deletion: both graphic formats are bounded.
+     */
+    public function deleteSet(mixed $masterKey, ResponsiveImageProfile $profile): void
+    {
+        if ($masterKey === null) {
+            return;
+        }
+        if (! is_string($masterKey) || ! $this->masters->isValidForPurpose($masterKey, $profile->purpose())) {
+            $this->warning('skip_invalid_reference');
+
+            return;
+        }
+
+        try {
+            $version = VariantPolicyVersion::V1;
+            $owned = [$this->keys->manifest($masterKey, $version)];
+            foreach ($version->widths($profile) as $width) {
+                foreach ([ImageFormat::Png, ImageFormat::Webp] as $format) {
+                    $owned[] = $this->keys->variant($masterKey, $profile, $version, $width, $format);
+                }
+            }
+            $owned[] = $masterKey;
+            $disk = $this->disk();
+        } catch (Throwable) {
+            $this->warning('delete_set');
+
+            return;
+        }
+
+        // Manifest first, master last. Missing objects are normal on both supported disks.
+        foreach ($owned as $key) {
+            try {
+                if (! $disk->delete($key)) {
+                    $this->warning('delete_set');
+                }
+            } catch (Throwable) {
+                $this->warning('delete_set');
+            }
+        }
+    }
+
     private function disk(): FilesystemAdapter
     {
         $name = trim((string) config('media.disk'));

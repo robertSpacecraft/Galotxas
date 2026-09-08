@@ -68,7 +68,7 @@ class OfficialResultProtectedDeletionService
             throw new RuntimeException('No se pudo eliminar la entidad de competición.');
         }
 
-        foreach ($keys as $key) {
+        foreach (collect($keys)->filter(fn ($key) => $this->covers->isManaged($key))->uniqueStrict() as $key) {
             $this->covers->cleanupAfterCommit($key);
         }
     }

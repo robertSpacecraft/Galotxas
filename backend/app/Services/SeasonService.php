@@ -37,7 +37,7 @@ class SeasonService
     private function persist(Season $season, array $attributes, ?UploadedFile $image, bool $removeImage): Season
     {
         try {
-            return $this->covers->mutate($image, $removeImage, function (?string $newKey) use ($season, $attributes, $removeImage): Season {
+            return $this->covers->mutate($image, $removeImage, function (?string $newKey, callable $obsolete) use ($season, $attributes, $removeImage): Season {
                 Season::query()
                     ->select('id')
                     ->orderBy('id')
@@ -70,7 +70,7 @@ class SeasonService
                     'end_date' => $attributes['end_date'] ?? null,
                 ]);
                 $season->is_public = (bool) $attributes['is_public'];
-                $this->covers->saveWithImage($season, $newKey, $removeImage);
+                $this->covers->saveWithImage($season, $newKey, $removeImage, $obsolete);
 
                 return $season->refresh();
             });
