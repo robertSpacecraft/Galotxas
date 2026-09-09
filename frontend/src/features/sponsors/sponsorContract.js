@@ -1,3 +1,5 @@
+import { normalizeResponsiveVariants } from '../../utils/responsiveImageContract';
+
 export class InvalidSponsorsResponseError extends Error {
   constructor() {
     super('Invalid sponsors response');
@@ -53,6 +55,14 @@ const normalizeSponsor = (sponsor) => {
     fail();
   }
 
+  const masterPath = `/api/v1/sponsors/${sponsor.id}/logo`;
+  const variants = normalizeResponsiveVariants({
+    variants: sponsor.logo.variants,
+    masterUrl: sponsor.logo.url,
+    masterPath,
+  });
+  const safeVariants = variants ?? [];
+
   return {
     id: sponsor.id,
     name: sponsor.name.trim(),
@@ -60,6 +70,7 @@ const normalizeSponsor = (sponsor) => {
       url: sponsor.logo.url,
       width: sponsor.logo.width,
       height: sponsor.logo.height,
+      ...(safeVariants.length > 0 ? { variants: safeVariants } : {}),
     },
     website_url: sponsor.website_url,
   };

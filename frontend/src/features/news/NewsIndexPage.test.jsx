@@ -20,6 +20,12 @@ const newsArticle = (slug, title) => ({
     height: 900,
     alt: `Imagen de ${title}.`,
     credit: null,
+    variants: [{
+      url: `https://api.example.test/api/v1/news/${slug}/image/640`,
+      width: 640,
+      height: 360,
+      mime_type: 'image/webp',
+    }],
   },
 });
 
@@ -53,6 +59,14 @@ describe('NewsIndexPage', () => {
     const images = screen.getAllByRole('img');
     expect(images[0]).toHaveAttribute('loading', 'eager');
     expect(images[1]).toHaveAttribute('loading', 'lazy');
+    expect(images[0]).toHaveAttribute(
+      'sizes',
+      '(max-width: 720px) calc(100vw - 2rem), 52vw',
+    );
+    expect(images[1]).toHaveAttribute(
+      'sizes',
+      '(max-width: 600px) calc(100vw - 2rem), (max-width: 1100px) calc(50vw - 2rem), calc(33vw - 2rem)',
+    );
     expect(container.scrollWidth).toBeLessThanOrEqual(container.clientWidth);
   });
 
@@ -95,6 +109,7 @@ describe('NewsIndexPage', () => {
     }));
     renderWithProviders(<NewsIndexPage />);
 
+    fireEvent.error(screen.getByRole('img', { name: 'Imagen de Segunda noticia.' }));
     fireEvent.error(screen.getByRole('img', { name: 'Imagen de Segunda noticia.' }));
     expect(screen.getByRole('img', { name: /Imagen de Segunda noticia.*no disponible/i }))
       .toBeInTheDocument();

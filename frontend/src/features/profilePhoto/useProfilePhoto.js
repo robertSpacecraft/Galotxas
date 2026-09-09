@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { profilePhotoService } from './profilePhotoService';
 
+const renderedAvatarWidth = () => {
+  const rootFontSize = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+
+  return 7 * rootFontSize;
+};
+
 const mutationErrorMessage = (error) => {
   const fieldMessage = error?.response?.data?.errors?.photo?.[0];
 
@@ -29,6 +35,8 @@ export const useProfilePhoto = ({ profilePhoto, onProfilePhotoChange }) => {
   const [reloadToken, setReloadToken] = useState(0);
   const imageUrlRef = useRef(null);
   const loadedReferenceRef = useRef(null);
+  const loadedVariantWidthRef = useRef(null);
+  const masterOnlyReferenceRef = useRef(null);
   const referenceUrl = profilePhoto?.url ?? null;
 
   const clearImage = useCallback(() => {
@@ -38,10 +46,11 @@ export const useProfilePhoto = ({ profilePhoto, onProfilePhotoChange }) => {
     }
 
     loadedReferenceRef.current = null;
+    loadedVariantWidthRef.current = null;
     setImageUrl(null);
   }, []);
 
-  const replaceImage = useCallback((blob, reference) => {
+  const replaceImage = useCallback((blob, reference, variantWidth = null) => {
     const nextUrl = URL.createObjectURL(blob);
 
     if (imageUrlRef.current) {
@@ -50,16 +59,39 @@ export const useProfilePhoto = ({ profilePhoto, onProfilePhotoChange }) => {
 
     imageUrlRef.current = nextUrl;
     loadedReferenceRef.current = reference;
+    loadedVariantWidthRef.current = variantWidth;
     setImageUrl(nextUrl);
   }, []);
 
-  const loadImage = useCallback(async ({ signal, reference }) => {
+  const loadImage = useCallback(async ({
+    signal,
+    reference,
+    responsive = true,
+    availableVariants = profilePhoto?.variants,
+  }) => {
+    const variants = responsive && Array.isArray(availableVariants)
+      ? availableVariants
+      : [];
+    const targetWidth = renderedAvatarWidth() * Math.max(1, window.devicePixelRatio || 1);
+    const selected = variants.find((variant) => variant.width >= targetWidth) ?? null;
+
+    if (selected !== null) {
+      try {
+        const blob = await profilePhotoService.download({ signal, width: selected.width });
+        replaceImage(blob, reference, selected.width);
+        return;
+      } catch (error) {
+        if (signal?.aborted) throw error;
+      }
+    }
+
     const blob = await profilePhotoService.download({ signal });
     replaceImage(blob, reference);
-  }, [replaceImage]);
+  }, [profilePhoto?.variants, replaceImage]);
 
   useEffect(() => {
     if (!referenceUrl) {
+      masterOnlyReferenceRef.current = null;
       clearImage();
       setIsLoading(false);
       return undefined;
@@ -74,7 +106,11 @@ export const useProfilePhoto = ({ profilePhoto, onProfilePhotoChange }) => {
     setIsLoading(true);
     setError(null);
 
-    loadImage({ signal: controller.signal, reference: referenceUrl })
+    loadImage({
+      signal: controller.signal,
+      reference: referenceUrl,
+      responsive: masterOnlyReferenceRef.current !== referenceUrl,
+    })
       .catch(() => {
         if (!active || controller.signal.aborted) return;
 
@@ -106,9 +142,13 @@ export const useProfilePhoto = ({ profilePhoto, onProfilePhotoChange }) => {
     try {
       const nextProfilePhoto = await profilePhotoService.upload(file);
       onProfilePhotoChange(nextProfilePhoto);
+      masterOnlyReferenceRef.current = null;
 
       try {
-        await loadImage({ reference: nextProfilePhoto.url });
+        await loadImage({
+          reference: nextProfilePhoto.url,
+          availableVariants: nextProfilePhoto.variants,
+        });
         setFeedback('Foto de perfil actualizada correctamente.');
       } catch {
         clearImage();
@@ -131,6 +171,7 @@ export const useProfilePhoto = ({ profilePhoto, onProfilePhotoChange }) => {
 
     try {
       const nextProfilePhoto = await profilePhotoService.remove();
+      masterOnlyReferenceRef.current = null;
       clearImage();
       onProfilePhotoChange(nextProfilePhoto);
       setFeedback('Foto de perfil eliminada correctamente.');
@@ -144,14 +185,23 @@ export const useProfilePhoto = ({ profilePhoto, onProfilePhotoChange }) => {
   }, [clearImage, onProfilePhotoChange]);
 
   const retry = useCallback(() => {
+    masterOnlyReferenceRef.current = null;
     setError(null);
     setReloadToken((current) => current + 1);
   }, []);
 
   const handleImageFailure = useCallback(() => {
+    const failedVariant = loadedVariantWidthRef.current !== null;
     clearImage();
-    setError('No se pudo mostrar la foto de perfil. Puedes volver a intentarlo.');
-  }, [clearImage]);
+    if (!failedVariant || !referenceUrl) {
+      setError('No se pudo mostrar la foto de perfil. Puedes volver a intentarlo.');
+      return;
+    }
+
+    masterOnlyReferenceRef.current = referenceUrl;
+    setError(null);
+    setReloadToken((current) => current + 1);
+  }, [clearImage, referenceUrl]);
 
   return {
     imageUrl,

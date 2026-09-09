@@ -1,3 +1,5 @@
+import { normalizeResponsiveVariants } from '../../utils/responsiveImageContract';
+
 export class InvalidProfilePhotoResponseError extends Error {
   constructor() {
     super('Invalid profile photo response');
@@ -31,11 +33,35 @@ export const normalizeProfilePhoto = (value) => {
     !value
     || typeof value !== 'object'
     || Array.isArray(value)
-    || Object.keys(value).length !== 1
     || !isStablePrivatePhotoUrl(value.url)
   ) {
     throw new InvalidProfilePhotoResponseError();
   }
 
-  return { url: value.url };
+  const keys = Object.keys(value);
+  const allowedKeys = new Set(['url', 'width', 'height', 'variants']);
+  const hasDimensions = Number.isInteger(value.width) && value.width > 0
+    && Number.isInteger(value.height) && value.height > 0;
+  if (
+    keys.some((key) => !allowedKeys.has(key))
+    || ((value.width !== undefined || value.height !== undefined) && !hasDimensions)
+  ) {
+    throw new InvalidProfilePhotoResponseError();
+  }
+
+  const variants = normalizeResponsiveVariants({
+    variants: value.variants,
+    masterUrl: value.url,
+    masterPath: PROFILE_PHOTO_PATH,
+  });
+  const safeVariants = variants !== null
+    && variants.every((variant) => [128, 256].includes(variant.width))
+    ? variants
+    : [];
+
+  return {
+    url: value.url,
+    ...(hasDimensions ? { width: value.width, height: value.height } : {}),
+    ...(safeVariants.length > 0 ? { variants: safeVariants } : {}),
+  };
 };

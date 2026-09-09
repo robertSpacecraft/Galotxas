@@ -26,12 +26,20 @@ export const CompetitionHistoricalSeasonCard = ({ season }) => {
           className={styles.historicalLink}
           aria-label={`Ver campeonatos de ${season?.name || 'la temporada'}`}
         >
-          <CompetitionCoverImage image={season?.image} className={styles.historicalCover} />
+          <CompetitionCoverImage
+            image={season?.image}
+            sizes="(max-width: 480px) calc(100vw - 2rem), (max-width: 800px) calc(50vw - 2rem), min(29vw, 384px)"
+            className={styles.historicalCover}
+          />
           {content}
         </Link>
       ) : (
         <article className={styles.historicalLink}>
-          <CompetitionCoverImage image={season?.image} className={styles.historicalCover} />
+          <CompetitionCoverImage
+            image={season?.image}
+            sizes="(max-width: 480px) calc(100vw - 2rem), (max-width: 800px) calc(50vw - 2rem), min(29vw, 384px)"
+            className={styles.historicalCover}
+          />
           {content}
         </article>
       )}

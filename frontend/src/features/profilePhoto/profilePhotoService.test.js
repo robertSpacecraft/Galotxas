@@ -61,4 +61,21 @@ describe('profilePhotoService', () => {
     api.get.mockResolvedValue({ data: new Blob(['html'], { type: 'text/html' }) });
     await expect(profilePhotoService.download()).rejects.toThrow(InvalidProfilePhotoResponseError);
   });
+
+  it('downloads only approved responsive widths through authenticated API paths', async () => {
+    const blob = new Blob(['photo'], { type: 'image/webp' });
+    api.get.mockResolvedValue({ data: blob });
+
+    await expect(profilePhotoService.download({ width: 256 })).resolves.toBe(blob);
+    expect(api.get).toHaveBeenCalledWith('/me/profile-photo/image/256', {
+      responseType: 'blob',
+      signal: undefined,
+    });
+    expect(api.get.mock.calls[0][0]).not.toContain('?');
+
+    api.get.mockClear();
+    await expect(profilePhotoService.download({ width: 320 }))
+      .rejects.toThrow(InvalidProfilePhotoResponseError);
+    expect(api.get).not.toHaveBeenCalled();
+  });
 });

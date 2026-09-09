@@ -65,7 +65,12 @@ const NewsDetailPage = () => {
         </header>
 
         <figure className={styles.detailFigure}>
-          <NewsImage image={article.image} eager className={styles.detailImage} />
+          <NewsImage
+            image={article.image}
+            sizes="(max-width: 720px) calc(100vw - 4.5rem), calc(88vw - 6rem)"
+            eager
+            className={styles.detailImage}
+          />
           {article.image.credit ? <figcaption>{article.image.credit}</figcaption> : null}
         </figure>
 

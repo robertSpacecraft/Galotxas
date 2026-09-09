@@ -1025,11 +1025,14 @@ delete antes del cleanup. No existe transacción ficticia entre MariaDB y object
 storage.
 
 La lectura pública usa un scope efectivo (`published`, fecha no futura y no
-eliminada), Resources cerrados y rutas por slug. `media_local` delega mediante
-`X-Accel-Redirect`; `media_s3` redirige a una GET temporal porque la portada es
-pública e indexable. Esta semántica se separa del redirect público de Sponsor y
-del stream privado `200` del avatar. React valida el contrato, no persiste URLs
-firmadas y renderiza cuerpo de texto escapado.
+eliminada), Resources cerrados y rutas por slug. La URL master estable se
+conserva siempre; cuando existe un manifest responsive válido, el Resource añade
+dimensiones y variantes servidas por rutas Laravel estables. `media_local`
+delega mediante `X-Accel-Redirect`; `media_s3` redirige a una GET temporal porque
+la portada es pública e indexable. Esta semántica se separa del redirect público
+de Sponsor y del stream privado `200` del avatar. React valida el contrato, usa
+`srcset` y `sizes`, no persiste URLs firmadas y renderiza cuerpo de texto
+escapado.
 
 El índice `/noticias` es estructural, lazy e indexable; los detalles obtienen
 metadata `article` y JSON-LD únicamente tras una respuesta válida. El sitemap
@@ -1052,14 +1055,21 @@ cleanup posterior se registra sin revertir la escritura confirmada. El mismo
 orden protege la sustitución, retirada y eliminación de la entidad; no existe
 una transacción ficticia entre MariaDB y el object storage.
 
-Las respuestas públicas contienen exclusivamente `image.url` con una ruta
-Laravel estable o `null`. La entrega exige visibilidad efectiva y resuelve
+Las respuestas públicas contienen `image.url` con la ruta Laravel master
+estable o `null`. Un manifest privado válido amplía el descriptor con
+`width`, `height` y `variants`; si falta o es inválido se conserva el contrato
+master. El resolver guarda resultados positivos durante 600 segundos y
+negativos durante 60. La entrega exige visibilidad efectiva y resuelve
 local/S3 mediante el servicio común; el preview Blade usa las rutas
-administrativas autenticadas y puede mostrar entidades privadas. React usa el
-descriptor sin persistir ni construir keys, mantiene `aspect-ratio` y
-`object-fit: cover`, carga de forma diferida salvo cabeceras principales y
-oculta la imagen ante URL inválida o error de carga. No procesa, redimensiona,
-amplía ni aplica fallback entre niveles en el cliente.
+administrativas autenticadas y puede mostrar entidades privadas. Las variantes
+de sponsor heredan `private, no-store` y `noindex` de su master; noticias y
+competición conservan el max-age público corto. React valida las rutas de
+variante, añade la master como último candidato de `srcset` cuando conoce su
+anchura, mantiene `sizes` por layout y conserva el frame
+con `aspect-ratio` también para registros legacy sin dimensiones y aplica la
+cascada explícita variante → master → ocultación existente, evitando reintentar
+la master si `currentSrc` demuestra que ya fue el candidato fallido. No procesa,
+redimensiona ni amplía imágenes en el cliente.
 
 ### Navegación CMS administrable y acotada en 7F.2F
 

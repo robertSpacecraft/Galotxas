@@ -23,7 +23,11 @@ export const CompetitionChampionshipCard = ({ championship }) => {
 
   return (
     <article className={styles.championshipCard} aria-labelledby={titleId}>
-      <CompetitionCoverImage image={championship.image} className={styles.championshipCover} />
+      <CompetitionCoverImage
+        image={championship.image}
+        sizes="(max-width: 480px) calc(100vw - 2rem), (max-width: 800px) calc(50vw - 2rem), min(29vw, 384px)"
+        className={styles.championshipCover}
+      />
       <div className={styles.championshipCardContent}>
         <p className={styles.championshipType}>{typeLabel}</p>
         <h4 id={titleId} className={styles.championshipTitle}>{championship.name}</h4>

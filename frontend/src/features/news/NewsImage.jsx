@@ -1,9 +1,13 @@
-import { useState } from 'react';
+import { useResponsiveImageFallback } from '../../hooks/useResponsiveImageFallback';
 import styles from './NewsPages.module.css';
 
-export const NewsImage = ({ image, eager = false, className = '' }) => {
-  const [failedUrl, setFailedUrl] = useState(null);
-  const failed = failedUrl === image.url;
+export const NewsImage = ({ image, sizes, eager = false, className = '' }) => {
+  const { failed, imageProps } = useResponsiveImageFallback({
+    masterUrl: image.url,
+    masterWidth: image.width,
+    variants: image.variants,
+    sizes,
+  });
 
   if (failed) {
     return (
@@ -20,13 +24,12 @@ export const NewsImage = ({ image, eager = false, className = '' }) => {
   return (
     <img
       className={className}
-      src={image.url}
+      {...imageProps}
       width={image.width}
       height={image.height}
       alt={image.alt}
       loading={eager ? 'eager' : 'lazy'}
       fetchPriority={eager ? 'high' : 'auto'}
-      onError={() => setFailedUrl(image.url)}
     />
   );
 };

@@ -16,6 +16,26 @@ const existingPhoto = {
   url: 'https://api.example.test/api/v1/me/profile-photo/image',
 };
 
+const responsivePhoto = {
+  ...existingPhoto,
+  width: 512,
+  height: 512,
+  variants: [
+    {
+      url: 'https://api.example.test/api/v1/me/profile-photo/image/128',
+      width: 128,
+      height: 128,
+      mime_type: 'image/webp',
+    },
+    {
+      url: 'https://api.example.test/api/v1/me/profile-photo/image/256',
+      width: 256,
+      height: 256,
+      mime_type: 'image/webp',
+    },
+  ],
+};
+
 const userWithoutPhoto = {
   name: 'Nombre',
   lastname: 'Apellido',
@@ -26,6 +46,10 @@ describe('ProfilePhotoCard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    Object.defineProperty(window, 'devicePixelRatio', {
+      configurable: true,
+      value: 1,
+    });
     Object.defineProperty(URL, 'createObjectURL', {
       configurable: true,
       writable: true,
@@ -71,6 +95,94 @@ describe('ProfilePhotoCard', () => {
 
     unmount();
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:photo-1');
+  });
+
+  it('selects an authenticated avatar variant for the rendered size and DPR', async () => {
+    Object.defineProperty(window, 'devicePixelRatio', {
+      configurable: true,
+      value: 2,
+    });
+    profilePhotoService.download.mockResolvedValue(new Blob(['photo'], { type: 'image/webp' }));
+    render(
+      <ProfilePhotoCard
+        user={{ ...userWithoutPhoto, profile_photo: responsivePhoto }}
+        onProfilePhotoChange={vi.fn()}
+      />,
+    );
+
+    await screen.findByRole('img', { name: 'Foto de perfil de Nombre Apellido' });
+    expect(profilePhotoService.download).toHaveBeenCalledOnce();
+    expect(profilePhotoService.download).toHaveBeenCalledWith({
+      signal: expect.any(AbortSignal),
+      width: 256,
+    });
+  });
+
+  it('uses the authenticated master when high DPR exceeds every available variant', async () => {
+    Object.defineProperty(window, 'devicePixelRatio', {
+      configurable: true,
+      value: 3,
+    });
+    profilePhotoService.download.mockResolvedValue(new Blob(['master'], { type: 'image/webp' }));
+    render(
+      <ProfilePhotoCard
+        user={{ ...userWithoutPhoto, profile_photo: responsivePhoto }}
+        onProfilePhotoChange={vi.fn()}
+      />,
+    );
+
+    await screen.findByRole('img', { name: 'Foto de perfil de Nombre Apellido' });
+    expect(profilePhotoService.download).toHaveBeenCalledOnce();
+    expect(profilePhotoService.download).toHaveBeenCalledWith({
+      signal: expect.any(AbortSignal),
+    });
+  });
+
+  it('falls back from a failed authenticated variant request to the authenticated master', async () => {
+    profilePhotoService.download
+      .mockRejectedValueOnce(new Error('variant unavailable'))
+      .mockResolvedValueOnce(new Blob(['master'], { type: 'image/webp' }));
+    render(
+      <ProfilePhotoCard
+        user={{ ...userWithoutPhoto, profile_photo: responsivePhoto }}
+        onProfilePhotoChange={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByRole('img', { name: 'Foto de perfil de Nombre Apellido' }))
+      .toHaveAttribute('src', 'blob:photo-1');
+    expect(profilePhotoService.download).toHaveBeenNthCalledWith(1, {
+      signal: expect.any(AbortSignal),
+      width: 128,
+    });
+    expect(profilePhotoService.download).toHaveBeenNthCalledWith(2, {
+      signal: expect.any(AbortSignal),
+    });
+  });
+
+  it('falls back from an undecodable variant blob to master, then stops on master failure', async () => {
+    profilePhotoService.download
+      .mockResolvedValueOnce(new Blob(['variant'], { type: 'image/webp' }))
+      .mockResolvedValueOnce(new Blob(['master'], { type: 'image/webp' }));
+    render(
+      <ProfilePhotoCard
+        user={{ ...userWithoutPhoto, profile_photo: responsivePhoto }}
+        onProfilePhotoChange={vi.fn()}
+      />,
+    );
+
+    fireEvent.error(await screen.findByRole('img', { name: 'Foto de perfil de Nombre Apellido' }));
+    await waitFor(() => expect(screen.getByRole('img', {
+      name: 'Foto de perfil de Nombre Apellido',
+    })).toHaveAttribute('src', 'blob:photo-2'));
+    expect(profilePhotoService.download).toHaveBeenNthCalledWith(2, {
+      signal: expect.any(AbortSignal),
+    });
+
+    fireEvent.error(screen.getByRole('img', { name: 'Foto de perfil de Nombre Apellido' }));
+    expect(screen.getByRole('img', { name: 'Sin foto de perfil' })).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('No se pudo mostrar');
+    expect(profilePhotoService.download).toHaveBeenCalledTimes(2);
   });
 
   it('previews, uploads and immediately refreshes without persisting photo data', async () => {

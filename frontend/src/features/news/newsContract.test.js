@@ -34,6 +34,28 @@ const listPayload = (overrides = {}) => ({
 });
 
 describe('newsContract', () => {
+  it('keeps the master contract and accepts only validated additive variants', () => {
+    const variants = [
+      {
+        url: 'https://api.example.test/api/v1/news/cronica-final/image/320',
+        width: 320,
+        height: 180,
+        mime_type: 'image/webp',
+      },
+      {
+        url: 'https://api.example.test/api/v1/news/cronica-final/image/640',
+        width: 640,
+        height: 360,
+        mime_type: 'image/webp',
+      },
+    ];
+    const normalized = normalizeNewsListResponse(listPayload({
+      data: [summary({ image: { ...summary().image, variants } })],
+    }));
+
+    expect(normalized.articles[0].image).toEqual({ ...summary().image, variants });
+  });
+
   it('normalizes a strict list and pagination contract', () => {
     expect(normalizeNewsListResponse(listPayload())).toEqual({
       articles: [summary()],
@@ -65,6 +87,22 @@ describe('newsContract', () => {
     { data: [summary()], meta: { ...listPayload().meta, per_page: 20 } },
   ])('rejects malformed list payload %#', (payload) => {
     expect(() => normalizeNewsListResponse(payload)).toThrow(InvalidNewsResponseError);
+  });
+
+  it.each([
+    [],
+    [{
+      url: 'https://api.example.test/api/v1/news/cronica-final/image/320?token=secret',
+      width: 320,
+      height: 180,
+      mime_type: 'image/webp',
+    }],
+  ])('ignores malformed additive variants and preserves the valid master %#', (variants) => {
+    const normalized = normalizeNewsListResponse(listPayload({
+      data: [summary({ image: { ...summary().image, variants } })],
+    }));
+
+    expect(normalized.articles[0].image).toEqual(summary().image);
   });
 
   it.each([

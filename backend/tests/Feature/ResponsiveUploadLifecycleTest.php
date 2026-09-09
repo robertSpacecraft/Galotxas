@@ -156,22 +156,71 @@ class ResponsiveUploadLifecycleTest extends TestCase
             default => route('api.v1.'.$entity->getTable().'.image', $entity),
         };
         if ($entity instanceof User) {
+            $this->getJson(route(
+                'api.v1.me.profile-photo.image.variant',
+                ['width' => $manifest->variants[0]->width],
+            ))->assertUnauthorized();
             Sanctum::actingAs($entity);
         }
-        $this->get($url)->assertOk()->assertHeader('X-Accel-Redirect', '/_private-media/'.$key)
+        $masterResponse = $this->get($url)->assertOk()->assertHeader('X-Accel-Redirect', '/_private-media/'.$key)
             ->assertHeader('Content-Type', $manifest->master->mimeType);
+        $variants = array_map(function ($variant) use ($domain, $entity): array {
+            $url = match ($domain) {
+                'avatar' => route('api.v1.me.profile-photo.image.variant', $variant->width),
+                'news' => route('api.v1.news.image.variant', [$entity->slug, $variant->width]),
+                'sponsor' => route('api.v1.sponsors.logo.variant', [$entity, $variant->width]),
+                default => route('api.v1.'.$entity->getTable().'.image.variant', [$entity, $variant->width]),
+            };
+
+            return [
+                'url' => $url,
+                'width' => $variant->width,
+                'height' => $variant->height,
+                'mime_type' => $variant->mimeType,
+            ];
+        }, $manifest->variants);
+        $responsiveShape = [
+            'url' => $url,
+            'width' => $manifest->master->width,
+            'height' => $manifest->master->height,
+            'variants' => $variants,
+        ];
         [$endpoint, $path, $shape] = match ($domain) {
-            'avatar' => ['/api/v1/me', 'data.user.profile_photo', ['url' => $url]],
+            'avatar' => ['/api/v1/me', 'data.user.profile_photo', $responsiveShape],
             'news' => ['/api/v1/news/'.$entity->slug, 'data.image', [
-                'url' => $url, 'width' => $entity->image_width, 'height' => $entity->image_height,
+                ...$responsiveShape,
                 'alt' => $entity->image_alt, 'credit' => $entity->image_credit,
             ]],
-            'sponsor' => ['/api/v1/sponsors', 'data.0.logo', ['url' => $url, 'width' => $entity->logo_width, 'height' => $entity->logo_height]],
-            'season' => ['/api/v1/seasons', 'data.0.image', ['url' => $url]],
-            default => ['/api/v1/'.$entity->getTable().'/'.$entity->id, 'data.image', ['url' => $url]],
+            'sponsor' => ['/api/v1/sponsors', 'data.0.logo', $responsiveShape],
+            'season' => ['/api/v1/seasons', 'data.0.image', $responsiveShape],
+            default => ['/api/v1/'.$entity->getTable().'/'.$entity->id, 'data.image', $responsiveShape],
         };
         $this->getJson($endpoint)->assertOk()->assertJsonPath($path, $shape)
-            ->assertDontSee($key, false)->assertDontSee('variants', false)->assertDontSee('srcset', false);
+            ->assertDontSee($key, false)->assertDontSee('srcset', false);
+        $firstVariant = $manifest->variants[0];
+        $variantResponse = $this->get($variants[0]['url'])->assertOk()
+            ->assertHeader('X-Accel-Redirect', '/_private-media/'.$firstVariant->key)
+            ->assertHeader('Content-Type', $firstVariant->mimeType)
+            ->assertHeader('X-Content-Type-Options', 'nosniff');
+        $variantResponse->assertHeader(
+            'Cache-Control',
+            in_array($domain, ['avatar', 'sponsor'], true)
+                ? 'no-store, private'
+                : 'max-age=60, public',
+        );
+        if ($domain === 'avatar') {
+            $variantResponse->assertHeader('Vary', 'Authorization')
+                ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+        }
+        if ($domain === 'sponsor') {
+            $variantResponse->assertHeader(
+                'Cache-Control',
+                $masterResponse->headers->get('Cache-Control')
+            )->assertHeader(
+                'X-Robots-Tag',
+                $masterResponse->headers->get('X-Robots-Tag')
+            );
+        }
         if (! $entity instanceof User) {
             $adminUrl = match ($domain) {
                 'news' => route('admin.news-articles.image', $entity), 'sponsor' => route('admin.sponsors.logo', $entity),

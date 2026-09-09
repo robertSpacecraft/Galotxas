@@ -194,6 +194,7 @@ export const TournamentDetail = () => {
       <header className={styles.detailHeader}>
         <CompetitionCoverImage
           image={tournament.image}
+          sizes="(max-width: 480px) calc(100vw - 2rem), min(calc(100vw - 4rem), 1136px)"
           className={styles.detailCover}
           priority
         />
@@ -241,6 +242,7 @@ export const TournamentDetail = () => {
                     <article key={category.id} className={styles.categoryCard}>
                       <CompetitionCoverImage
                         image={category.image}
+                        sizes="(max-width: 600px) calc(100vw - 5rem), (max-width: 1000px) calc(50vw - 4rem), 260px"
                         className={styles.categoryCover}
                       />
                       <h3>{category.name}</h3>

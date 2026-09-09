@@ -764,8 +764,9 @@ repiten aquí:
 - limpiar rutas/componentes heredados y duplicados sin alterar el contrato;
 - retirar adaptadores de compatibilidad cuando sus consumidores hayan migrado;
 - mantener auditorías periódicas de npm y Composer.
-- implementar en un bloque propio el pipeline P1 de optimización automática de
-  imágenes.
+- completar P1.D con backfill controlado de masters legacy y evaluar después
+  la caché HTTP larga únicamente si se prueba que las keys publicadas son
+  inmutables; P1.C queda validado localmente y pendiente de staging.
 
 ## Calidad
 

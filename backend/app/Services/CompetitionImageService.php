@@ -13,6 +13,7 @@ use App\Services\Media\MediaPurpose;
 use App\Services\Media\ResponsiveImagePreparer;
 use App\Services\Media\ResponsiveImageProfile;
 use App\Services\Media\ResponsiveMediaLifecycle;
+use App\Services\Media\ResponsiveMediaResolver;
 use App\Services\Media\ResponsiveMediaStorage;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
@@ -25,6 +26,7 @@ class CompetitionImageService
         private readonly ResponsiveMediaStorage $storage,
         private readonly MediaObjectKeyGenerator $keys,
         private readonly ResponsiveMediaLifecycle $lifecycle,
+        private readonly ResponsiveMediaResolver $resolver,
     ) {}
 
     /**
@@ -87,11 +89,21 @@ class CompetitionImageService
         return is_string($key) && $this->keys->isValidForPurpose($key, MediaPurpose::Banner);
     }
 
-    /** No storage or visibility queries: public callers already filter effective visibility. */
+    /** Public callers already filter effective visibility; a manifest is optional. */
     public function publicImage(Season|Championship|Category $entity): ?array
     {
-        return $this->isManaged($entity->image_path)
-            ? ['url' => route('api.v1.'.$entity->getTable().'.image', $entity)]
-            : null;
+        if (! $this->isManaged($entity->image_path)) {
+            return null;
+        }
+
+        return $this->resolver->image(
+            $entity->image_path,
+            ResponsiveImageProfile::Banner,
+            route('api.v1.'.$entity->getTable().'.image', $entity),
+            fn (int $width): string => route(
+                'api.v1.'.$entity->getTable().'.image.variant',
+                [$entity, $width],
+            ),
+        );
     }
 }

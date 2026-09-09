@@ -78,12 +78,15 @@ El inventario siguiente corresponde a `backend/routes/api.php` y a la salida de 
 | `POST` | `/auth/reset-password` | mensaje controlado o error `422` |
 | `GET` | `/seasons` | colección `SeasonResource` |
 | `GET` | `/seasons/{season}/image` | portada pública efectiva por ruta estable |
+| `GET` | `/seasons/{season}/image/{width}` | variante publicada por manifest válido |
 | `GET` | `/championships` | colección `ChampionshipPublicResource` |
 | `GET` | `/championships/{championship}` | `ChampionshipPublicResource` |
 | `GET` | `/championships/{championship}/image` | portada pública efectiva por ruta estable |
+| `GET` | `/championships/{championship}/image/{width}` | variante publicada por manifest válido |
 | `GET` | `/championships/{championship}/ranking` | colección `ChampionshipRankingResource` |
 | `GET` | `/categories/{category}` | `CategoryPublicResource` |
 | `GET` | `/categories/{category}/image` | portada pública efectiva por ruta estable |
+| `GET` | `/categories/{category}/image/{width}` | variante publicada por manifest válido |
 | `GET` | `/categories/{category}/official-results` | `PublicCategoryOfficialResultsResource` con Liga/Copa vigentes o `null` |
 | `GET` | `/categories/{category}/standings` | colección `CategoryRankingResource` |
 | `GET` | `/categories/{category}/schedule` | colección `CategoryScheduleRoundResource` |
@@ -94,6 +97,9 @@ El inventario siguiente corresponde a `backend/routes/api.php` y a la salida de 
 | `POST` | `/school/enrollments` | confirmación genérica sin datos personales |
 | `GET` | `/sponsors` | colección efectiva de `PublicSponsorResource` |
 | `GET` | `/sponsors/{sponsor}/logo` | logo efectivo por ruta estable; binario local o redirect temporal |
+| `GET` | `/sponsors/{sponsor}/logo/{width}` | variante efectiva validada por manifest |
+| `GET` | `/news/{slug}/image` | portada de noticia efectiva por ruta estable |
+| `GET` | `/news/{slug}/image/{width}` | variante de noticia validada por manifest |
 | `GET` | `/seasons/{season}/ranking` | colección `ChampionshipRankingResource` |
 | `GET` | `/rankings/all-time` | colección `AllTimeRankingResource` |
 
@@ -225,21 +231,28 @@ En actualización, `championship_id` no forma parte del contrato de categoría y
 
 `SeasonResource`, `ChampionshipPublicResource` y `CategoryPublicResource`
 exponen su portada propia como `"image": { "url": "<ruta Laravel estable>" }`
-o `"image": null`. `SeasonResource` aplica el mismo descriptor a cada
-Campeonato anidado y `ChampionshipPublicResource` a cada Categoría anidada. No
-existe herencia entre entidades y nunca se serializan `image_path`, bucket,
-disco, key o URL firmada.
+o `"image": null`. Si existe un manifest válido, el mismo objeto añade
+`width`, `height` y `variants`, cuyos elementos contienen exclusivamente
+`url`, `width`, `height` y `mime_type`. Sin manifest válido conserva la forma
+legacy. `SeasonResource` aplica el mismo descriptor a cada Campeonato anidado y
+`ChampionshipPublicResource` a cada Categoría anidada. No existe herencia entre
+entidades y nunca se serializan `image_path`, bucket, disco, key o URL firmada.
 
 Las rutas exactas son:
 
 - `GET /api/v1/seasons/{season}/image`;
+- `GET /api/v1/seasons/{season}/image/{width}`;
 - `GET /api/v1/championships/{championship}/image`;
-- `GET /api/v1/categories/{category}/image`.
+- `GET /api/v1/championships/{championship}/image/{width}`;
+- `GET /api/v1/categories/{category}/image`;
+- `GET /api/v1/categories/{category}/image/{width}`.
 
 La entrega exige visibilidad efectiva de toda la rama. Un registro privado,
 una key ausente o ajena al espacio gestionado y un objeto inexistente responden
 `404`; un fallo del storage responde `503` saneado. El descriptor sólo se
-emite para una key válida y siempre apunta a Laravel, no al bucket.
+emite para una key válida y siempre apunta a Laravel, no al bucket. `{width}`
+sólo sirve una anchura presente en el manifest validado; cualquier otra
+responde `404`. Las variantes mantienen `public, max-age=60`.
 
 El `SeasonResource` público heredado conserva una clave `slug`, cuyo valor real es `null` porque `Season` y su tabla no tienen ese atributo. Se mantiene para no introducir una ruptura de contrato sin versionado; añadir, calcular o retirar ese campo es deuda contractual independiente de este endurecimiento administrativo.
 
@@ -471,7 +484,7 @@ La normalización completa del contrato API constituye una fase específica del 
 }
 ```
 
-`user` se serializa mediante `UserResource` y solo expone los campos explícitos del contrato. `profile_photo` es `null` o contiene exclusivamente la URL estable autenticada. No incluye `profile_photo_path`, object key, disco, URL temporal, credenciales, token de sesión, estado de verificación de email, timestamps ni otros atributos internos del modelo.
+`user` se serializa mediante `UserResource` y solo expone los campos explícitos del contrato. `profile_photo` es `null` o conserva la URL estable autenticada y, con manifest válido, añade dimensiones y variantes autenticadas. No incluye `profile_photo_path`, object key, disco, URL temporal, credenciales, token de sesión, estado de verificación de email, timestamps ni otros atributos internos del modelo.
 
 La respuesta completa se compone mediante `MeResource`, que delega el perfil deportivo en `PlayerProfileResource`. Cuando el usuario no tiene perfil de jugador, `has_player` es `false` y `player` es `null`.
 
@@ -482,7 +495,7 @@ la composición `user`/`player` consumida por React se mantiene.
 
 ## Foto de perfil privada
 
-Las tres rutas pertenecen al usuario autenticado y activo; no aceptan ID de
+Las cuatro rutas pertenecen al usuario autenticado y activo; no aceptan ID de
 cuenta ni de jugador:
 
 | Método | Ruta | Resultado |
@@ -490,6 +503,7 @@ cuenta ni de jugador:
 | `POST` | `/api/v1/me/profile-photo` | multipart `photo`; crea o sustituye y devuelve `200` |
 | `DELETE` | `/api/v1/me/profile-photo` | elimina de forma idempotente y devuelve `200` |
 | `GET` | `/api/v1/me/profile-photo/image` | `200` con binario privado tanto en local como en S3 |
+| `GET` | `/api/v1/me/profile-photo/image/{width}` | variante privada 128 o 256 presente en manifest válido |
 
 Respuesta de escritura:
 
@@ -512,6 +526,12 @@ Respuesta de borrado:
   "data": { "profile_photo": null }
 }
 ```
+
+`profile_photo.url` conserva siempre la ruta master. Cuando existe un manifest
+válido añade dimensiones y `variants` con las rutas autenticadas 128/256. La
+ausencia o invalidez del manifest conserva el objeto de una sola URL. Las
+variantes requieren el mismo Bearer y usuario activo, usan `private, no-store`
+y nunca redirigen a una URL S3 firmada.
 
 El upload admite JPEG, PNG o WebP reales hasta 3 MiB y la normalización es la
 autoridad final. Las mutaciones comparten un límite de cinco por minuto por
@@ -1181,7 +1201,15 @@ fin nulo o exclusivo, ordenados por `sort_order ASC, id ASC`. La allowlist es:
       "logo": {
         "url": "https://api.example.test/api/v1/sponsors/1/logo",
         "width": 1200,
-        "height": 600
+        "height": 600,
+        "variants": [
+          {
+            "url": "https://api.example.test/api/v1/sponsors/1/logo/320",
+            "width": 320,
+            "height": 160,
+            "mime_type": "image/webp"
+          }
+        ]
       },
       "website_url": "https://example.com"
     }
@@ -1194,7 +1222,12 @@ activación, fechas, timestamps, disco o nombre original. No existe detalle
 público. `GET /api/v1/sponsors/{sponsor}/logo` responde `404` ante registro no
 efectivo, inexistente u objeto ausente, y `503` genérico ante fallo de storage;
 en S3 responde `302` a una GET prefirmada corta. El JSON nunca persiste ni
-entrega esa URL temporal.
+entrega esa URL temporal. `GET /api/v1/sponsors/{sponsor}/logo/{width}` sólo
+acepta una variante presente en un manifest válido. Sin manifest válido, el
+objeto `logo` conserva `url`, `width` y `height` sin `variants`. La variante
+mantiene la política HTTP de la master sponsor: `private, no-store`,
+`X-Robots-Tag: noindex, nofollow`, `X-Accel-Redirect` en local y redirect
+temporal corto en S3.
 
 ### Noticias
 
@@ -1216,7 +1249,15 @@ Una página fuera de rango responde `200`, `data: []` y metadata coherente:
         "width": 1600,
         "height": 900,
         "alt": "Material deportivo preparado para la jornada",
-        "credit": null
+        "credit": null,
+        "variants": [
+          {
+            "url": "https://api.example.test/api/v1/news/jornada-de-galotxes/image/640",
+            "width": 640,
+            "height": 360,
+            "mime_type": "image/webp"
+          }
+        ]
       }
     }
   ],
@@ -1235,6 +1276,9 @@ y `seo_description`. Borradores, futuras, eliminadas y slugs inexistentes
 devuelven el mismo `404`. `GET /api/v1/news/{slug}/image` exige igualmente una
 noticia efectiva; devuelve `404` si falta registro u objeto y `503` saneado si
 falla storage. Local usa entrega interna y S3 un redirect temporal público.
+`GET /api/v1/news/{slug}/image/{width}` exige la misma publicación y una
+variante declarada por el manifest. Sin manifest válido se mantiene la master,
+sus dimensiones persistidas, alt y crédito, sin `variants`.
 
 Ninguna respuesta expone `status`, timestamps internos, `image_key`,
 `image_source`, confirmación/responsable de derechos, disco o URL firmada

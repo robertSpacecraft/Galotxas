@@ -23,6 +23,12 @@ const article = {
     height: 900,
     alt: 'Pelota sobre una pista vacía.',
     credit: 'Club Galotxes Monòver',
+    variants: [{
+      url: 'https://api.example.test/api/v1/news/cronica-final/image/640',
+      width: 640,
+      height: 360,
+      mime_type: 'image/webp',
+    }],
   },
 };
 
@@ -47,6 +53,10 @@ describe('NewsDetailPage', () => {
     expect(screen.getByRole('link', { name: 'Volver a Noticias' }))
       .toHaveAttribute('href', '/noticias');
     expect(screen.getByRole('time')).toHaveAttribute('datetime', article.published_at);
+    expect(screen.getByRole('img', { name: article.image.alt })).toHaveAttribute(
+      'sizes',
+      '(max-width: 720px) calc(100vw - 4.5rem), calc(88vw - 6rem)',
+    );
   });
 
   it('uses the existing 404 for a missing public article', () => {
@@ -100,6 +110,7 @@ describe('NewsDetailPage', () => {
       route: '/noticias/cronica-final',
       routePath: '/noticias/:slug',
     });
+    fireEvent.error(screen.getByRole('img', { name: article.image.alt }));
     fireEvent.error(screen.getByRole('img', { name: article.image.alt }));
     expect(screen.getByRole('img', { name: /Pelota sobre una pista vacía.*no disponible/i }))
       .toBeInTheDocument();

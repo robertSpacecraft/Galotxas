@@ -37,6 +37,18 @@ const season = (id, status, overrides = {}) => ({
   ...overrides,
 });
 
+const responsiveCover = (path) => ({
+  url: `https://api.example.test${path}`,
+  width: 1600,
+  height: 900,
+  variants: [{
+    url: `https://api.example.test${path}/640`,
+    width: 640,
+    height: 360,
+    mime_type: 'image/webp',
+  }],
+});
+
 const activeSeason = season(7, 'active', {
   name: 'Temporada 2026',
   start_date: '2026-01-01',
@@ -92,7 +104,7 @@ describe('CompetitionPage', () => {
     championshipsService.getSeasons.mockResolvedValue([
       {
         ...activeSeason,
-        image: { url: 'https://api.example.test/api/v1/seasons/7/image' },
+        image: responsiveCover('/api/v1/seasons/7/image'),
         championships: [{
           ...activeSeason.championships[0],
           image: { url: 'https://api.example.test/api/v1/championships/22/image' },
@@ -115,6 +127,10 @@ describe('CompetitionPage', () => {
       'https://api.example.test/api/v1/seasons/7/image',
       'https://api.example.test/api/v1/championships/22/image',
     ]);
+    expect(within(currentSeason).getAllByRole('presentation')[0]).toHaveAttribute(
+      'sizes',
+      '(max-width: 480px) calc(100vw - 2rem), (max-width: 900px) calc(100vw - 4rem), min(88vw, 1200px)',
+    );
     expect(within(championshipCard).getByRole('presentation'))
       .toHaveAttribute('src', 'https://api.example.test/api/v1/championships/22/image');
     expect(within(historicalLink).getByRole('presentation'))

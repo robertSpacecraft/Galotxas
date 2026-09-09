@@ -1,3 +1,5 @@
+import { normalizeResponsiveVariants } from '../../utils/responsiveImageContract';
+
 export class InvalidNewsResponseError extends Error {
   constructor() {
     super('Invalid news response');
@@ -62,17 +64,26 @@ const normalizeSummary = (article) => {
     fail();
   }
 
+  const imageUrl = normalizeImageUrl(article.image.url, article.slug);
+  const variants = normalizeResponsiveVariants({
+    variants: article.image.variants,
+    masterUrl: imageUrl,
+    masterPath: `/api/v1/news/${article.slug}/image`,
+  });
+  const safeVariants = variants ?? [];
+
   return {
     slug: article.slug,
     title: article.title,
     excerpt: article.excerpt,
     published_at: normalizePublishedAt(article.published_at),
     image: {
-      url: normalizeImageUrl(article.image.url, article.slug),
+      url: imageUrl,
       width: article.image.width,
       height: article.image.height,
       alt: article.image.alt,
       credit: article.image.credit,
+      ...(safeVariants.length > 0 ? { variants: safeVariants } : {}),
     },
   };
 };

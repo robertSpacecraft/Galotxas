@@ -26,7 +26,11 @@ export const TournamentCard = ({ tournament }) => {
 
   return (
     <article className={styles.card}>
-      <CompetitionCoverImage image={tournament.image} className={styles.cover} />
+      <CompetitionCoverImage
+        image={tournament.image}
+        sizes="(max-width: 640px) calc(100vw - 4rem), (max-width: 1000px) calc(50vw - 4rem), 360px"
+        className={styles.cover}
+      />
       <div className={styles.cardHeader}>
         <span className={styles.badge}>{getChampionshipTypeLabel(type)}</span>
         {registration_is_open && (

@@ -22,8 +22,14 @@ export const profilePhotoService = {
     return mutationPhoto(response);
   },
 
-  download: async ({ signal } = {}) => {
-    const response = await api.get('/me/profile-photo/image', {
+  download: async ({ signal, width } = {}) => {
+    if (width !== undefined && ![128, 256].includes(width)) {
+      throw new InvalidProfilePhotoResponseError();
+    }
+    const path = width === undefined
+      ? '/me/profile-photo/image'
+      : `/me/profile-photo/image/${width}`;
+    const response = await api.get(path, {
       responseType: 'blob',
       signal,
     });

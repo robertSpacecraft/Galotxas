@@ -38,7 +38,11 @@ export const CompetitionSeason = ({ season, appearance = 'current' }) => {
 
   return (
     <section className={`${styles.season} ${appearanceClass}`} aria-labelledby={titleId}>
-      <CompetitionCoverImage image={season.image} className={styles.seasonCover} />
+      <CompetitionCoverImage
+        image={season.image}
+        sizes="(max-width: 480px) calc(100vw - 2rem), (max-width: 900px) calc(100vw - 4rem), min(88vw, 1200px)"
+        className={styles.seasonCover}
+      />
       <header className={styles.seasonHeader}>
         <div>
           <p className={styles.seasonEyebrow}>Temporada</p>

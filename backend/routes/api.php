@@ -48,8 +48,14 @@ Route::prefix('v1')->group(function () {
         ->middleware('throttle:auth.password');
 
     // Public API
+    Route::get('/seasons/{season}/image/{width}', [CompetitionImageController::class, 'seasonVariant'])
+        ->whereNumber('width')->name('api.v1.seasons.image.variant');
     Route::get('/seasons/{season}/image', [CompetitionImageController::class, 'season'])->name('api.v1.seasons.image');
+    Route::get('/championships/{championship}/image/{width}', [CompetitionImageController::class, 'championshipVariant'])
+        ->whereNumber('width')->name('api.v1.championships.image.variant');
     Route::get('/championships/{championship}/image', [CompetitionImageController::class, 'championship'])->name('api.v1.championships.image');
+    Route::get('/categories/{category}/image/{width}', [CompetitionImageController::class, 'categoryVariant'])
+        ->whereNumber('width')->name('api.v1.categories.image.variant');
     Route::get('/categories/{category}/image', [CompetitionImageController::class, 'category'])->name('api.v1.categories.image');
 
     Route::get('/seasons', [SeasonController::class, 'index']);
@@ -86,10 +92,14 @@ Route::prefix('v1')->group(function () {
     Route::get('/sponsors', [SponsorController::class, 'index']);
     Route::get('/sponsors/{sponsor}/logo', SponsorLogoController::class)
         ->name('api.v1.sponsors.logo');
+    Route::get('/sponsors/{sponsor}/logo/{width}', [SponsorLogoController::class, 'variant'])
+        ->whereNumber('width')->name('api.v1.sponsors.logo.variant');
 
     Route::get('/news', [NewsArticleController::class, 'index']);
     Route::get('/news/{slug}/image', NewsArticleImageController::class)
         ->name('api.v1.news.image');
+    Route::get('/news/{slug}/image/{width}', [NewsArticleImageController::class, 'variant'])
+        ->whereNumber('width')->name('api.v1.news.image.variant');
     Route::get('/news/{slug}', [NewsArticleController::class, 'show']);
 
     Route::prefix('public-identity/confirmation')->group(function () {
@@ -118,6 +128,8 @@ Route::prefix('v1')->group(function () {
             ->middleware('throttle:profile-photo-mutations');
         Route::get('/me/profile-photo/image', ProfilePhotoImageController::class)
             ->name('api.v1.me.profile-photo.image');
+        Route::get('/me/profile-photo/image/{width}', [ProfilePhotoImageController::class, 'variant'])
+            ->whereNumber('width')->name('api.v1.me.profile-photo.image.variant');
 
         Route::get('/me/championship-registrations', [MyChampionshipRegistrationController::class, 'index']);
         Route::get('/me/matches', [MatchController::class, 'myMatches']);

@@ -14,6 +14,19 @@ const sponsor = (overrides = {}) => ({
 });
 
 describe('sponsorContract', () => {
+  it('preserves the master and accepts validated additive variants', () => {
+    const variants = [{
+      url: 'https://api.example.test/api/v1/sponsors/7/logo/160',
+      width: 160,
+      height: 80,
+      mime_type: 'image/png',
+    }];
+
+    expect(normalizeSponsors([sponsor({
+      logo: { ...sponsor().logo, variants },
+    })])[0].logo).toEqual({ ...sponsor().logo, variants });
+  });
+
   it('normalizes the closed public contract while preserving API order', () => {
     const result = normalizeSponsors([
       sponsor({ id: 2, name: '  Segundo  ' }),
@@ -36,5 +49,19 @@ describe('sponsorContract', () => {
     [sponsor({ website_url: 'javascript:alert(1)' })],
   ])('rejects a malformed response without returning partial content', (payload) => {
     expect(() => normalizeSponsors(payload)).toThrow(InvalidSponsorsResponseError);
+  });
+
+  it.each([
+    [],
+    [{
+      url: 'https://objects.example.test/api/v1/sponsors/7/logo/160',
+      width: 160,
+      height: 80,
+      mime_type: 'image/webp',
+    }],
+  ])('ignores malformed additive variants while preserving the master %#', (variants) => {
+    expect(normalizeSponsors([sponsor({
+      logo: { ...sponsor().logo, variants },
+    })])[0].logo).toEqual(sponsor().logo);
   });
 });

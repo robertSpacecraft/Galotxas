@@ -129,6 +129,7 @@ export const CategoryDetail = () => {
       <header className={styles.detailHeader}>
         <CompetitionCoverImage
           image={category.image}
+          sizes="(max-width: 480px) calc(100vw - 2rem), min(calc(100vw - 4rem), 1136px)"
           className={styles.detailCover}
           priority
         />

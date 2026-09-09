@@ -9,6 +9,9 @@ export const NewsCard = ({ article, featured = false }) => (
     <div className={styles.cardImageFrame}>
       <NewsImage
         image={article.image}
+        sizes={featured
+          ? '(max-width: 720px) calc(100vw - 2rem), 52vw'
+          : '(max-width: 600px) calc(100vw - 2rem), (max-width: 1100px) calc(50vw - 2rem), calc(33vw - 2rem)'}
         eager={featured}
         className={styles.cardImage}
       />

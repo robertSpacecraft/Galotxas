@@ -31,6 +31,7 @@ La documentación se organiza para separar claramente:
 - SEO, canonicalización, indexación fail-closed y accesibilidad pública.
 - preparación operativa fail-closed de la Escuela de Galotxas.
 - preparación productiva, entornos y runbooks de despliegue.
+- consumo responsive aditivo de imágenes y su validación pendiente de staging.
 
 ## Orden recomendado de lectura
 
@@ -63,6 +64,7 @@ La documentación se organiza para separar claramente:
 27. [SEO, accesibilidad e indexación pública](25-public-seo-accessibility-and-indexing.md)
 28. [Preparación operativa de Escuela](26-school-operational-readiness.md)
 29. [Preparación productiva y runbook de despliegue](27-production-readiness-and-deployment-runbook.md)
+30. [Consumo responsive de imágenes P1.C](30-responsive-image-consumption.md)
 
 El contrato de navegación inventaría el router y los enlaces actuales y conserva
 el histórico de la arquitectura pública desde Fase 3. El contrato de Fase 7B
