@@ -155,3 +155,8 @@ anual immutable porque reemplazar una imagen conserva esa URL.
 
 Las pruebas de integración se ejecutan exclusivamente con el runner oficial
 `backend/scripts/run-tests.sh`, MariaDB aislada y objetos controlados en memoria.
+
+Las primitivas APPLY de P1.D.1B se documentan por separado en
+[32-responsive-backfill-safety.md](32-responsive-backfill-safety.md). Añaden el
+journal y las defensas previas a escritura, sin incorporar runner, CLI ni
+backfill y sin alterar esta fundación read-only.
