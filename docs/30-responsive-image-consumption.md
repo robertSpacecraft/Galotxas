@@ -126,6 +126,10 @@ sobre MariaDB aislada y 732 tests frontend en 95 archivos, todos correctos.
 
 ## Pendiente de P1.D o posterior
 
+La fundación read-only P1.D.1A y la compatibilidad privada con masters
+preservadas se documentan en [31-responsive-backfill-foundation.md](31-responsive-backfill-foundation.md).
+No incorporan ejecución de backfill ni cambian el contrato público descrito aquí.
+
 P1.D debe definir y ejecutar el backfill de masters legacy, con inventario,
 idempotencia, observabilidad y recuperación propios. Tras verificar formalmente
 que una sustitución crea siempre una master key nueva y que ningún derivado se

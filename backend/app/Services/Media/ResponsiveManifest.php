@@ -48,6 +48,12 @@ final readonly class ResponsiveManifest
         }
         $data = json_decode($json, false, 16, JSON_THROW_ON_ERROR);
         $expected = ['schema_version', 'policy_version', 'profile', 'preparation_policy', 'purpose', 'master', 'variants'];
+        if ($data instanceof stdClass && ($data->schema_version ?? null) === 2) {
+            $expected[] = 'master_mode';
+            if (($data->master_mode ?? null) !== 'preserved') {
+                throw new InvalidArgumentException('El modo de master no es válido.');
+            }
+        }
         if (! $data instanceof stdClass || count(get_object_vars($data)) !== count($expected)
             || array_diff($expected, array_keys(get_object_vars($data))) !== []) {
             throw new InvalidArgumentException('El manifiesto de imagen no es válido.');
@@ -63,7 +69,7 @@ final readonly class ResponsiveManifest
         $purpose = MediaPurpose::from($data->purpose);
         $master = ManifestImage::fromObject($data->master);
         $masters = new MediaObjectKeyGenerator;
-        if ($data->schema_version !== 1 || $purpose !== $profile->purpose()
+        if (! in_array($data->schema_version, [1, 2], true) || $purpose !== $profile->purpose()
             || $master->key !== $masterKey || ! $masters->isValidForPurpose($masterKey, $purpose)
             || ! $keys->isValidManifest($manifestKey, $masterKey, $version)
             || ! is_array($data->variants) || ! array_is_list($data->variants)
@@ -92,14 +98,46 @@ final readonly class ResponsiveManifest
             $previous = $variant->width;
             $variants[] = $variant;
         }
-        foreach ([$master, ...$variants] as $image) {
+        if ($data->schema_version === 2 && array_column($variants, 'width') !== array_values(array_filter(
+            $version->widths($profile), static fn (int $width): bool => $width < $master->width,
+        ))) {
+            throw new InvalidArgumentException('El conjunto de variantes no está completo.');
+        }
+        foreach ($data->schema_version === 1 ? [$master, ...$variants] : $variants as $image) {
             $format = ImageFormat::fromMimeType($image->mimeType);
             if ($format === ImageFormat::Jpeg || ($policy === ImagePreparationPolicy::Photo && $format !== ImageFormat::Webp)) {
                 throw new InvalidArgumentException('La codificación del manifiesto no es válida.');
             }
         }
 
-        return new self(1, $version, $profile, $policy, $purpose, $master, $variants);
+        return new self($data->schema_version, $version, $profile, $policy, $purpose, $master, $variants);
+    }
+
+    /** @param list<NormalizedImage> $variants */
+    public static function fromPreservedMaster(
+        ManifestImage $master,
+        array $variants,
+        ResponsiveImageProfile $profile,
+        ImagePreparationPolicy $policy,
+        ResponsiveMediaKeys $keys,
+    ): self {
+        $version = VariantPolicyVersion::V1;
+        $descriptors = [];
+        foreach ($variants as $variant) {
+            $key = $keys->variant($master->key, $profile, $version, $variant->width, ImageFormat::from($variant->extension));
+            $descriptors[] = ManifestImage::fromImage($key, $variant)->toArray();
+        }
+
+        return self::fromJson(json_encode([
+            'schema_version' => 2,
+            'policy_version' => $version->value,
+            'profile' => $profile->value,
+            'preparation_policy' => $policy->value,
+            'purpose' => $profile->purpose()->value,
+            'master_mode' => 'preserved',
+            'master' => $master->toArray(),
+            'variants' => $descriptors,
+        ], JSON_THROW_ON_ERROR), $master->key, $keys->manifest($master->key, $version), $keys);
     }
 
     public function toJson(): string
@@ -110,6 +148,7 @@ final readonly class ResponsiveManifest
             'profile' => $this->profile->value,
             'preparation_policy' => $this->policy->value,
             'purpose' => $this->purpose->value,
+            ...($this->schemaVersion === 2 ? ['master_mode' => 'preserved'] : []),
             'master' => $this->master->toArray(),
             'variants' => array_map(fn (ManifestImage $image) => $image->toArray(), $this->variants),
         ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);

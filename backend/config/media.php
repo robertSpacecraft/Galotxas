@@ -3,6 +3,9 @@
 return [
     'disk' => env('MEDIA_DISK', 'media_local'),
 
+    // Stored outputs are not HTTP uploads: lossless output can exceed input bytes.
+    'stored_master_max_bytes' => 32 * 1024 * 1024,
+
     'temporary_url_ttl_seconds' => (int) env('MEDIA_TEMPORARY_URL_TTL_SECONDS', 300),
     'private_temporary_url_ttl_seconds' => (int) env('MEDIA_PRIVATE_TEMPORARY_URL_TTL_SECONDS', 60),
 
