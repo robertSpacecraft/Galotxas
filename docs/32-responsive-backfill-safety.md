@@ -223,7 +223,7 @@ para revalidar ownership/referencias y publicar todas las variantes antes del
 manifest. D2 resolverá reconciliación e incertidumbres inspeccionando key y hash
 exactos; no se implementa aquí.
 
-## Validación y aceptación pendiente
+## Validación y aceptación de capacidad
 
 Las pruebas se ejecutan sólo mediante `bash backend/scripts/run-tests.sh`,
 runner oficial con Docker y MariaDB `galotxas_testing`. Los objetos locales son
@@ -244,8 +244,14 @@ los 5 PHP cambiados, Pint affected y diff-check: PASS. Log:
 `/tmp/galotxas-p1d1b-correction-focused.log`. La suite completa indicada arriba
 corresponde a la validación anterior; no se repitió para estas dos correcciones.
 
-La capacidad real del proveedor S3 compatible (incluido Railway) **sigue
-pendiente de aceptación explícita en staging con objetos de prueba controlados**.
-No se ha realizado ningún probe remoto, migración fuera de tests, escritura de
-media real, ejecución de backfill ni despliegue. Esta fundación no autoriza por
-sí sola un apply operacional.
+La capacidad real de create condicional del proveedor S3 compatible fue
+verificada en staging mediante un probe controlado con objetos de prueba. El
+primer create condicional tuvo éxito. Un segundo create contra el mismo target
+fue rechazado con HTTP 412 / PreconditionFailed y el contenido existente
+permaneció intacto. La limpieza controlada de esos objetos terminó
+correctamente. **El gate de capacidad de create condicional exigido por D1B
+queda por tanto aceptado.**
+
+Esa aceptación no autoriza por sí sola un apply operacional. P1.D.1C-B sigue sin
+implementarse y sus precondiciones operativas deben cumplirse igualmente. Fuera
+de ese probe controlado no se ha ejecutado backfill ni escritura de media real.

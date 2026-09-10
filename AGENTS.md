@@ -107,3 +107,37 @@ Antes de modificar un archivo se deben consultar todos los `AGENTS.md` aplicable
 - Mantener los archivos de texto en UTF-8, con finales de línea LF y sin espacios finales.
 
 No introducir cambios amplios en varias capas simultáneamente sin una justificación clara.
+
+---
+
+## Operativa multiagente
+
+Codex, Claude Code y Antigravity son agentes de implementación equivalentes para este repositorio.
+
+La elección entre ellos depende de disponibilidad y capacidad. Ningún diseño, decisión ni continuidad del proyecto puede depender de la memoria privada o del historial de sesión de un agente concreto.
+
+Reglas de bloque y traspaso:
+
+- Un bloque de implementación debe completarse normalmente con el mismo agente que lo inició.
+- No se traspasa un bloque a medio implementar por el mero hecho de que ese agente agote cuota o contexto. El traspaso exige un checkpoint seguro explícito y una decisión del usuario.
+- Antes de que otro agente asuma un bloque nuevo, el repositorio debe encontrarse en un checkpoint de traspaso commiteado y revisable, con el árbol de trabajo completamente limpio: sin cambios preparados, sin cambios sin preparar y sin archivos sin seguimiento. La invariante alcanza a todo el repositorio, incluida documentación y configuración.
+- Git permanece bajo control del usuario. Los agentes no ejecutan `git add`, `git commit`, `git push`, `git merge`, `git reset`, `git restore`, `git stash` ni despliegues salvo instrucción explícita.
+
+---
+
+## Contexto canónico del proyecto
+
+El contexto canónico es el propio repositorio:
+
+- la jerarquía de archivos `AGENTS.md`;
+- `/docs`;
+- `/knowledge` cuando la materia sea conocimiento canónico;
+- el código fuente y sus pruebas.
+
+Las memorias locales de un agente, los Knowledge Items, el historial de conversación, los planes generados y los almacenes de reglas propios de una herramienta no son canónicos y no pueden invocarse como fuente.
+
+Por tanto:
+
+- Toda decisión duradera, restricción, riesgo no resuelto o estado de implementación que necesite el siguiente agente debe escribirse en el repositorio antes del traspaso.
+- Al iniciar un bloque nuevo, o al asumir el relevo de otro agente, leer primero `docs/CURRENT_STATE.md` y después los documentos técnicos que este referencie.
+- `docs/CURRENT_STATE.md` se mantiene breve y orientado a punteros. No duplica documentos técnicos extensos ni sustituye a `/docs`.
