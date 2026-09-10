@@ -137,14 +137,14 @@ class BackfillApplyJournalTest extends TestCase
     public function test_apply_run_reload_item_upsert_uniqueness_and_heartbeat(): void
     {
         $journal = app(ApplyJournal::class);
-        $run = $journal->createApplyRun($this->identity(), str_repeat('a', 40), [ManagedMediaDomain::News]);
+        $run = $journal->createApplyRun($this->identity(), $this->applySelection(), str_repeat('a', 40));
         $this->assertMatchesRegularExpression('/\A[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/', $run);
         $item = $journal->snapshot($run, $this->preflight());
         $this->assertSame($item, $journal->snapshot($run, $this->preflight()));
         $fresh = new ApplyJournal(app('db'));
         $this->assertSame('apply', $fresh->run($run)->mode);
         $this->assertSame($this->identity()->hash, $fresh->run($run)->storage_identity_hash);
-        $this->assertSame(['domains' => ['news']], json_decode($fresh->run($run)->options_json, true));
+        $this->assertSame(['domain' => 'news', 'after_id' => 0, 'limit' => 1000], json_decode($fresh->run($run)->options_json, true));
         $this->assertSame('news/'.self::SAFETY_UUID.'.jpg', $fresh->item($item)->master_key);
         $this->assertSame(hash('sha256', $fresh->item($item)->master_key), $fresh->item($item)->master_key_hash);
         $journal->heartbeat($run);
@@ -162,7 +162,7 @@ class BackfillApplyJournalTest extends TestCase
     public function test_manifest_exact_16_kib_boundary_and_hash_validation(): void
     {
         $journal = app(ApplyJournal::class);
-        $run = $journal->createApplyRun($this->identity());
+        $run = $journal->createApplyRun($this->identity(), $this->applySelection());
         $preflight = $this->preflight();
         $json = str_pad($preflight->prepared->manifest->toJson(), ResponsiveManifest::MAX_BYTES, ' ');
         $id = $journal->snapshot($run, $preflight, candidateJson: $json);
@@ -170,7 +170,8 @@ class BackfillApplyJournalTest extends TestCase
         $this->assertSame(hash('sha256', $json), $journal->item($id)->candidate_manifest_sha256);
         $this->assertSafetyError(SafetyError::InvalidInput, fn () => $journal->snapshot($run, $preflight, candidateJson: $json.' '));
         $this->assertSafetyError(SafetyError::InvalidInput, fn () => $journal->snapshot($run, $preflight, sourceSha256: 'not-a-hash'));
-        $this->assertSafetyError(SafetyError::InvalidInput, fn () => $journal->createApplyRun($this->identity(), 'not-a-revision'));
+        $this->assertSafetyError(SafetyError::InvalidInput,
+            fn () => $journal->createApplyRun($this->identity(), $this->applySelection(), 'not-a-revision'));
         [$target] = $this->variant();
         $this->assertSafetyError(SafetyError::InvalidInput, fn () => new TargetObject($target->key, $target->kind, 'bad', $target->size, $target->mimeType));
     }
@@ -178,7 +179,7 @@ class BackfillApplyJournalTest extends TestCase
     public function test_invalid_references_are_bounded_sanitized_and_never_serialized(): void
     {
         $journal = app(ApplyJournal::class);
-        $run = $journal->createApplyRun($this->identity());
+        $run = $journal->createApplyRun($this->identity(), $this->applySelection());
         $secret = "https://user:secret@private.invalid/\n\0".str_repeat('x', 100000);
         $inputs = [$secret, ['private' => $secret], new class
         {
@@ -382,7 +383,7 @@ class BackfillApplyJournalTest extends TestCase
     public function test_published_requires_all_planned_candidate_objects_and_terminal_states_cannot_go_backwards(): void
     {
         $journal = app(ApplyJournal::class);
-        $run = $journal->createApplyRun($this->identity());
+        $run = $journal->createApplyRun($this->identity(), $this->applySelection());
         $preflight = $this->preflight();
         $item = $journal->snapshot($run, $preflight);
         $manifest = $preflight->prepared->manifest->toJson();

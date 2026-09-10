@@ -1,9 +1,10 @@
 # Diseño de APPLY para backfill responsive — P1.D.1C-B
 
-> **DISEÑO APROBADO / TODAVÍA NO IMPLEMENTADO.**
-> Este documento registra el contrato cerrado en la auditoría de diseño de
-> P1.D.1C-B. No describe código existente. APPLY no está implementado: el único
-> comando disponible hoy es el dry-run read-only de P1.D.1C-A documentado en
+> **DISEÑO APROBADO / APPLY OPERACIONAL TODAVÍA NO IMPLEMENTADO.**
+> P1.D.1C-B1 implementa localmente sólo las primitivas internas de rango,
+> checkpoint y barrera de recuperación. No existe CLI APPLY ni publicación. El
+> único comando disponible sigue siendo el dry-run read-only de P1.D.1C-A
+> documentado en
 > [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md).
 
 ## Alcance
@@ -86,7 +87,7 @@ El heartbeat debe ser por evento, no por temporizador.
 - D2 es propietario de la reconciliación y de cualquier borrado seguro futuro,
   condicional o por versión.
 
-## Extensiones mínimas esperadas de la API D1B
+## Extensiones internas aportadas por B1
 
 - creación de run capaz de persistir atómicamente dominio tipado, `after_id`,
   `limit`, límite superior, checkpoint inicial y los datos ya existentes de
@@ -97,21 +98,24 @@ El heartbeat debe ser por evento, no por temporizador.
 - no se requiere ningún estado nuevo de run;
 - no se requiere primitiva de borrado seguro en D1C.
 
-### Discrepancias con la API D1B vigente
+### Discrepancias D1B resueltas por B1
 
-Estas diferencias se registran sin modificar el comportamiento actual. Las
-invariantes de seguridad anteriores se mantienen tal como están enunciadas.
+Las tres diferencias de API identificadas por el diseño quedan resueltas sin
+relajar las invariantes de seguridad anteriores:
 
-- `ApplyJournal::createApplyRun()` acepta hoy identidad, revisión de código y
-  dominios tipados. No acepta `after_id`, `limit`, límite superior ni checkpoint
-  inicial. La persistencia atómica de esos campos es una extensión pendiente.
-- Las columnas de límites superiores y checkpoints existen en el esquema pero
-  quedaron reservadas para D1C. D1B no implementa su avance, por lo que
-  `advanceCheckpoint(...)` no existe todavía.
-- D1B ofrece `activeRuns()`, `unfinishedItems()` y `unresolvedObjects()` como
-  lecturas de recuperación paginadas. No existe una consulta única de barrera de
-  recuperación. La barrera puede componerse sobre esas lecturas o añadirse como
-  consulta read-only dedicada, sin ejecutar recuperación.
+- `ApplyJournal::createApplyRun()` recibe un `ApplyRunSelection` de un único
+  dominio y persiste atómicamente identidad/revisión y
+  `options_json={"domain":"…","after_id":N,"limit":N}`,
+  `upper_bounds_json={"<domain>":N}` y
+  `checkpoints_json={"<domain>":after_id}`.
+- `advanceCheckpoint(...)` aplica avance monótono sobre el run activo y exige
+  item target terminado y ausencia de items journalizados no terminados en el
+  intervalo. La igualdad es no-op; los IDs dispersos son válidos. Si el límite
+  superior queda por debajo de `after_id`, el rango es vacío y el checkpoint
+  permanece en `after_id` sin evidencia ficticia.
+- `recoveryBarrier()` devuelve el estado tipado `clear`/`blocked` mediante
+  consultas `EXISTS` read-only sobre la conexión de escritura. Un fallo de
+  journal se distingue mediante el error tipado existente.
 
 ## Barrera de recuperación
 
@@ -119,7 +123,11 @@ Una invocación nueva de APPLY debe rechazarse mientras exista evidencia previa
 activa, sin terminar, en intent, desconocida o con cleanup pendiente que
 requiera reconciliación.
 
-La barrera es de sólo lectura: observa evidencia, no la resuelve.
+La barrera es de sólo lectura: observa evidencia, no la resuelve. B1 bloquea por
+run activo, item no terminado, escritura `intent`/`unknown` o cleanup
+`pending`/`failed`/`unknown`. No bloquea sólo por un run terminal ni por un recibo
+terminal `failed` sin escritura o `rejected` por colisión. El futuro runner la
+invocará antes de crear su propio run activo.
 
 ## Códigos de salida objetivo
 
@@ -139,10 +147,11 @@ fallo inesperado o no clasificado.
 
 ## Estado
 
-APPLY no está implementado. El gate de capacidad de create condicional S3 de
-D1B ya está aceptado y registrado en
+Las primitivas internas B1 están implementadas localmente y pendientes de
+revisión/promoción. APPLY no está implementado. El gate de capacidad de create
+condicional S3 de D1B ya está aceptado y registrado en
 [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md).
 
-Aun así, este documento no autoriza ninguna ejecución operativa: P1.D.1C-B no
-está implementado y sus precondiciones de seguridad en ejecución siguen siendo
-obligatorias.
+Aun así, este documento no autoriza ninguna ejecución operativa: el runner y el
+APPLY completo de P1.D.1C-B no están implementados y sus precondiciones de
+seguridad en ejecución siguen siendo obligatorias.

@@ -7,6 +7,7 @@ use App\Services\Media\Backfill\ManagedMediaReference;
 use App\Services\Media\Backfill\PreflightClassification;
 use App\Services\Media\Backfill\PreflightResult;
 use App\Services\Media\Backfill\Safety\ApplyJournal;
+use App\Services\Media\Backfill\Safety\ApplyRunSelection;
 use App\Services\Media\Backfill\Safety\BackfillSafetyException;
 use App\Services\Media\Backfill\Safety\ObjectKind;
 use App\Services\Media\Backfill\Safety\SafetyError;
@@ -67,7 +68,7 @@ trait BackfillSafetyFixtures
     private function plannedObject(): array
     {
         $journal = app(ApplyJournal::class);
-        $run = $journal->createApplyRun($this->identity());
+        $run = $journal->createApplyRun($this->identity(), $this->applySelection());
         $preflight = $this->preflight();
         $item = $journal->snapshot($run, $preflight);
         $bytes = $preflight->prepared->variants[0]->bytes;
@@ -77,6 +78,15 @@ trait BackfillSafetyFixtures
         $journal->markRevalidated($item);
 
         return [$journal, $run, $item, $object, $target, $bytes];
+    }
+
+    private function applySelection(
+        ManagedMediaDomain $domain = ManagedMediaDomain::News,
+        int $afterId = 0,
+        int $limit = 1000,
+        int $upperBound = 1000,
+    ): ApplyRunSelection {
+        return new ApplyRunSelection($domain, $afterId, $limit, $upperBound);
     }
 
     private function assertSafetyError(SafetyError $reason, callable $callback): void

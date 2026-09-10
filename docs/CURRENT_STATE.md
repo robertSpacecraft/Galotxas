@@ -25,21 +25,24 @@ Sublínea activa: P1.D — backfill de masters legacy.
 | P1.D.1A — fundación de lectura | completado |
 | P1.D.1B — primitivas de seguridad | completado |
 | P1.D.1C-A — dry-run read-only | completado hasta producción |
+| P1.D.1C-B1 — rango/checkpoint/barrera internos | implementado localmente; pendiente de revisión/promoción |
 
 P1.D.1C-A está completado hasta producción. Su smoke de producción terminó correctamente con exit 0, cero bloqueos y cero escrituras de storage.
 
-## Siguiente bloque de implementación
+## Siguiente bloque tras cerrar B1
 
-P1.D.1C-B — APPLY real.
+P1.D.1C-B2 — siguiente sub-bloque interno de la composición APPLY.
 
-Su contrato está aprobado y documentado, pero **no está implementado**.
+El contrato global de P1.D.1C-B está aprobado y documentado, pero el APPLY
+operacional **no está implementado**: no hay CLI APPLY, publicación ni ejecución
+real en B1. B2 no debe confundirse con autorización de ejecución operativa.
 
 ## Documentos de referencia
 
 - [31-responsive-backfill-foundation.md](31-responsive-backfill-foundation.md) — fundación de lectura, inspección y preflight (P1.D.1A).
 - [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md) — journal, identidad, lock, mantenimiento y escritura exclusiva (P1.D.1B).
 - [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md) — comando dry-run (P1.D.1C-A).
-- [34-responsive-backfill-apply-design.md](34-responsive-backfill-apply-design.md) — diseño aprobado de APPLY (P1.D.1C-B), no implementado.
+- [34-responsive-backfill-apply-design.md](34-responsive-backfill-apply-design.md) — diseño aprobado de APPLY (P1.D.1C-B) y primitivas internas B1; APPLY operacional no implementado.
 
 ## Invariante de traspaso
 

@@ -9,6 +9,10 @@ no tiene comando Artisan, CLI, runner, publicación de conjuntos, enumeración d
 media ni reconciliación. P1.D y P1 siguen abiertos; el cierre documental
 compuesto corresponde a P1.D.3.
 
+P1.D.1C-B1 amplía esta fundación interna con el contrato tipado de rango,
+checkpoint y barrera de recuperación que compondrá un runner posterior. B1 no
+añade APPLY al comando, no recorre referencias y no publica ni elimina media.
+
 El dry-run de P1.D.1C-A tiene **cero escrituras totales**: ni journal, ni
 dominio, ni media, y se documenta en
 [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md).
@@ -46,10 +50,19 @@ Resources ni endpoints. Los métodos de lectura devuelven filas privadas del
 query builder; no deben serializarse en respuestas públicas. No existe API de
 actualización arbitraria de columnas.
 
-Las opciones del run aceptan sólo dominios tipados; el resumen acepta contadores
-no negativos bajo clasificaciones/resultados conocidos. Upper bounds y
-checkpoints quedan reservados en el esquema para D1C: D1B no implementa su
-recorrido ni avance.
+`ApplyRunSelection` exige exactamente un `ManagedMediaDomain`, `after_id >= 0`,
+`limit` entre 1 y 1000 y `upper_bound >= 0`. `createApplyRun()` persiste en el
+mismo insert transaccional estas formas JSON deterministas:
+
+- `options_json`: `{"domain":"news","after_id":12,"limit":25}`;
+- `upper_bounds_json`: `{"news":300}`;
+- `checkpoints_json`: `{"news":12}`.
+
+La key real sustituye a `news` para el único dominio seleccionado. El checkpoint
+inicial es el límite inferior exclusivo ya descartado. `upper_bound < after_id`
+representa deliberadamente un rango vacío: conserva `after_id` como checkpoint,
+no crea referencias ficticias y no permite avance. El resumen acepta contadores
+no negativos bajo clasificaciones/resultados conocidos.
 
 Las keys canónicas se conservan completas. Para un string inválido se calcula
 SHA-256 sobre todos sus bytes, pero la muestra sólo contiene tipo y longitud.
@@ -69,12 +82,14 @@ con DSNs, credenciales, URLs o payloads privados. No se añaden logs de secretos
 
 `Backfill/Safety/ApplyJournal` proporciona:
 
-- `createApplyRun()`, `snapshot()` y `planObject()`;
+- `createApplyRun()` con `ApplyRunSelection`, `snapshot()`,
+  `advanceCheckpoint()` y `planObject()`;
 - `markRevalidated()` y `commitIntent()`;
 - `recordReceipt()` para created, rejected, fallo conocido sin creación o unknown;
 - `updateCleanup()`, `finishItem()`, `heartbeat()` y `finishRun()`;
 - `run()`, `item()`, `object()`, `target()`, `activeRuns()`, `unfinishedItems()` y
-  `unresolvedObjects()` para lectura/recovery posterior.
+  `unresolvedObjects()` para lectura/recovery posterior;
+- `recoveryBarrier()` como consulta read-only de estado `clear`/`blocked`.
 
 Cada mutación usa una transacción corta, sin reintentos, con locks de fila en
 orden run → item → object. No hace I/O de storage. Rechaza transacciones externas
@@ -82,6 +97,23 @@ abiertas, tanto en Laravel como en PDO, para garantizar un commit independiente.
 Usa begin/commit/rollback explícitos: la versión instalada de Laravel puede
 reducir su contador sin rollback PDO si falla un evento `committing` dentro de
 `transaction(..., 1)`. Un fallo de rollback desconecta la sesión de journal.
+
+El snapshot queda limitado al dominio, intervalo `(after_id, upper_bound]` y
+cantidad máxima persistidos en el run. `advanceCheckpoint()` bloquea primero el
+run activo, admite igualdad como no-op y sólo avanza dentro del límite superior
+hasta un item `finished`, sin items journalizados no terminados en el intervalo.
+Funciona con IDs dispersos: acredita evidencia terminal contigua de la
+invocación journalizada, no reconstrucción exhaustiva del historial de la tabla
+ni autorización de resume. Un run terminal no admite avance.
+
+`recoveryBarrier()` usa lecturas `EXISTS` sobre la conexión de escritura y no
+materializa historiales. Devuelve `blocked` ante cualquier run activo, item no
+terminado, escritura `intent`/`unknown` o cleanup `pending`/`failed`/`unknown`.
+Un historial terminal completamente resuelto, incluido fallo conocido sin
+escritura o colisión rechazada terminal, devuelve `clear`. La consulta no hace
+I/O de storage, no muta ni reconcilia; el futuro runner deberá ejecutarla antes
+de crear su propio run activo. Un fallo del journal sigue siendo un
+`JournalUnavailable`, no un resultado de barrera.
 
 | Registro | Transiciones |
 | --- | --- |
@@ -252,6 +284,7 @@ permaneció intacto. La limpieza controlada de esos objetos terminó
 correctamente. **El gate de capacidad de create condicional exigido por D1B
 queda por tanto aceptado.**
 
-Esa aceptación no autoriza por sí sola un apply operacional. P1.D.1C-B sigue sin
+Esa aceptación no autoriza por sí sola un apply operacional. B1 sólo aporta
+primitivas internas de rango, checkpoint y barrera; el APPLY completo sigue sin
 implementarse y sus precondiciones operativas deben cumplirse igualmente. Fuera
 de ese probe controlado no se ha ejecutado backfill ni escritura de media real.

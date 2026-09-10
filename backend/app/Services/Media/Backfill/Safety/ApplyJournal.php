@@ -22,21 +22,21 @@ class ApplyJournal
 {
     public function __construct(private readonly DatabaseManager $database) {}
 
-    /** @param list<ManagedMediaDomain> $domains */
-    public function createApplyRun(StorageIdentity $identity, ?string $codeRevision = null, array $domains = []): string
+    public function createApplyRun(StorageIdentity $identity, ApplyRunSelection $selection, ?string $codeRevision = null): string
     {
-        if (($codeRevision !== null && preg_match('/\A[0-9a-f]{40}\z/', $codeRevision) !== 1)
-            || count($domains) > count(ManagedMediaDomain::cases())) {
+        if ($codeRevision !== null && preg_match('/\A[0-9a-f]{40}\z/', $codeRevision) !== 1) {
             throw new BackfillSafetyException(SafetyError::InvalidInput);
         }
-        $options = ['domains' => array_map(fn (ManagedMediaDomain $domain) => $domain->value, $domains)];
+        $options = json_encode($selection->options(), JSON_THROW_ON_ERROR);
+        $upperBounds = json_encode($selection->upperBounds(), JSON_THROW_ON_ERROR);
+        $checkpoints = json_encode($selection->checkpoints(), JSON_THROW_ON_ERROR);
 
-        return $this->transaction(function (Connection $db) use ($identity, $codeRevision, $options) {
+        return $this->transaction(function (Connection $db) use ($identity, $codeRevision, $options, $upperBounds, $checkpoints) {
             $id = (string) Str::uuid();
             $db->table('media_backfill_runs')->insert([
                 'run_id' => $id, 'mode' => JournalMode::Apply->value, 'state' => RunState::Active->value,
                 'storage_identity_hash' => $identity->hash, 'code_revision' => $codeRevision,
-                'options_json' => json_encode($options, JSON_THROW_ON_ERROR),
+                'options_json' => $options, 'upper_bounds_json' => $upperBounds, 'checkpoints_json' => $checkpoints,
                 'started_at' => now(), 'created_at' => now(), 'updated_at' => now(),
             ]);
 
@@ -79,7 +79,10 @@ class ApplyJournal
         ];
 
         return $this->transaction(function (Connection $db) use ($runId, $reference, $values) {
-            $this->lockRun($db, $runId);
+            $run = $this->lockRun($db, $runId);
+            $selection = $this->runSelection($run);
+            $this->require($reference->domain === $selection->domain
+                && $reference->id > $selection->afterId && $reference->id <= $selection->upperBound);
             $query = $db->table('media_backfill_items')->where('run_id', $runId)->where('domain', $reference->domain->value)->where('entity_id', $reference->id);
             $item = $query->lockForUpdate()->first();
             if ($item) {
@@ -89,10 +92,43 @@ class ApplyJournal
 
                 return (int) $item->id;
             }
+            $checkpoint = $this->checkpoint($run, $selection);
+            $this->require($reference->id > $checkpoint
+                && $db->table('media_backfill_items')->where('run_id', $runId)->count() < $selection->limit);
 
             return $db->table('media_backfill_items')->insertGetId($values + [
                 'run_id' => $runId, 'domain' => $reference->domain->value, 'entity_id' => $reference->id,
                 'phase' => ItemPhase::Inspected->value, 'created_at' => now(),
+            ]);
+        });
+    }
+
+    public function advanceCheckpoint(string $runId, ManagedMediaDomain $domain, int $entityId): void
+    {
+        if ($entityId < 0) {
+            throw new BackfillSafetyException(SafetyError::InvalidInput);
+        }
+
+        $this->transaction(function (Connection $db) use ($runId, $domain, $entityId) {
+            $run = $this->lockRun($db, $runId);
+            $selection = $this->runSelection($run);
+            if ($domain !== $selection->domain) {
+                throw new BackfillSafetyException(SafetyError::InvalidInput);
+            }
+            $checkpoint = $this->checkpoint($run, $selection);
+            if ($entityId === $checkpoint) {
+                return;
+            }
+            $this->require($entityId > $checkpoint && $entityId <= $selection->upperBound);
+            $item = $db->table('media_backfill_items')->where('run_id', $runId)
+                ->where('domain', $domain->value)->where('entity_id', $entityId)->lockForUpdate()->first();
+            $this->require($item !== null && $item->phase === ItemPhase::Finished->value);
+            $this->require(! $db->table('media_backfill_items')->where('run_id', $runId)
+                ->where('domain', $domain->value)->where('entity_id', '>', $checkpoint)->where('entity_id', '<=', $entityId)
+                ->where('phase', '!=', ItemPhase::Finished->value)->exists());
+            $db->table('media_backfill_runs')->where('run_id', $runId)->update([
+                'checkpoints_json' => json_encode([$domain->value => $entityId], JSON_THROW_ON_ERROR),
+                'updated_at' => now(),
             ]);
         });
     }
@@ -300,6 +336,26 @@ class ApplyJournal
             ->orderBy('id')->limit($limit)->get()->all());
     }
 
+    /** Read-only. The future runner must call this before creating its own active run. */
+    public function recoveryBarrier(): RecoveryBarrierState
+    {
+        return $this->safe(function () {
+            $db = $this->database->connection();
+            if ($db->getDriverName() !== 'mariadb') {
+                throw new BackfillSafetyException(SafetyError::JournalUnavailable);
+            }
+            if ($db->table('media_backfill_runs')->useWritePdo()->where('state', RunState::Active->value)->exists()
+                || $db->table('media_backfill_items')->useWritePdo()->where('phase', '!=', ItemPhase::Finished->value)->exists()
+                || $db->table('media_backfill_objects')->useWritePdo()
+                    ->where(fn ($query) => $query->whereIn('write_state', [ObjectWriteState::Intent->value, ObjectWriteState::Unknown->value])
+                        ->orWhereIn('cleanup_state', [CleanupState::Pending->value, CleanupState::Failed->value, CleanupState::Unknown->value]))->exists()) {
+                return RecoveryBarrierState::Blocked;
+            }
+
+            return RecoveryBarrierState::Clear;
+        });
+    }
+
     private function read(string $table, string $column, string|int $id): stdClass
     {
         return $this->safe(function () use ($table, $column, $id) {
@@ -338,6 +394,32 @@ class ApplyJournal
         $this->require($object !== null && (! $active || $item->phase !== ItemPhase::Finished->value));
 
         return [$object, $item];
+    }
+
+    private function runSelection(stdClass $run): ApplyRunSelection
+    {
+        $options = json_decode($run->options_json, true, 4, JSON_THROW_ON_ERROR);
+        $upperBounds = json_decode($run->upper_bounds_json, true, 4, JSON_THROW_ON_ERROR);
+        $this->require(is_array($options) && array_keys($options) === ['domain', 'after_id', 'limit']
+            && is_string($options['domain']) && is_int($options['after_id']) && is_int($options['limit'])
+            && is_array($upperBounds) && array_keys($upperBounds) === [$options['domain']]
+            && is_int($upperBounds[$options['domain']]));
+        $domain = ManagedMediaDomain::tryFrom($options['domain']);
+        $this->require($domain !== null);
+
+        return new ApplyRunSelection($domain, $options['after_id'], $options['limit'], $upperBounds[$options['domain']]);
+    }
+
+    private function checkpoint(stdClass $run, ApplyRunSelection $selection): int
+    {
+        $checkpoints = json_decode($run->checkpoints_json, true, 4, JSON_THROW_ON_ERROR);
+        $this->require(is_array($checkpoints) && array_keys($checkpoints) === [$selection->domain->value]
+            && is_int($checkpoints[$selection->domain->value]));
+        $checkpoint = $checkpoints[$selection->domain->value];
+        $this->require($checkpoint >= $selection->afterId
+            && ($checkpoint <= $selection->upperBound || $checkpoint === $selection->afterId));
+
+        return $checkpoint;
     }
 
     private function transaction(Closure $callback): mixed
