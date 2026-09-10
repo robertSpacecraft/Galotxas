@@ -9,8 +9,10 @@ no tiene comando Artisan, CLI, runner, publicación de conjuntos, enumeración d
 media ni reconciliación. P1.D y P1 siguen abiertos; el cierre documental
 compuesto corresponde a P1.D.3.
 
-El futuro dry-run tiene **cero escrituras totales**: ni journal, ni dominio, ni
-media. `ApplyJournal::createApplyRun()` es exclusivamente APPLY y no admite un
+El dry-run de P1.D.1C-A tiene **cero escrituras totales**: ni journal, ni
+dominio, ni media, y se documenta en
+[33-responsive-backfill-runner.md](33-responsive-backfill-runner.md).
+`ApplyJournal::createApplyRun()` es exclusivamente APPLY y no admite un
 argumento de modo alternativo. Ningún consumidor dry-run está conectado a estas
 primitivas.
 

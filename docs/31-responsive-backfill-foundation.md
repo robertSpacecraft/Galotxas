@@ -144,7 +144,9 @@ entre consultas y lecturas.
 
 ## Frontera con siguientes bloques
 
-El futuro dry-run tendrá cero escrituras de journal/media/dominio. Journal
+El dry-run implementado en P1.D.1C-A tiene cero escrituras de
+journal/media/dominio y se documenta en
+[33-responsive-backfill-runner.md](33-responsive-backfill-runner.md). Journal
 MariaDB sólo para apply, con tablas runs/items/objects. Apply exigirá ventana
 operativa sin mutaciones, maintenance mode fuera de testing, single-flight y
 revalidación de ownership antes de publicar. Ninguna de esas capacidades se

@@ -38,6 +38,24 @@ class ManagedMediaReferenceRegistry
             ->limit($limit)->get()->map(fn (Model $row) => $this->reference($domain, $row))->all();
     }
 
+    public function upperBound(ManagedMediaDomain $domain): int
+    {
+        return (int) ($this->query($domain)->reorder()->max('id') ?? 0);
+    }
+
+    public function hasReferences(ManagedMediaDomain $domain, int $afterId, int $throughId): bool
+    {
+        if ($afterId < 0 || $throughId < 0) {
+            throw new InvalidArgumentException('El intervalo de referencias no es válido.');
+        }
+        if ($throughId <= $afterId) {
+            return false;
+        }
+
+        return $this->query($domain)->reorder()
+            ->where('id', '>', $afterId)->where('id', '<=', $throughId)->exists();
+    }
+
     public function find(ManagedMediaDomain $domain, int $id): ?ManagedMediaReference
     {
         $row = $this->query($domain)->find($id);
