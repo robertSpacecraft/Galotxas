@@ -1,10 +1,11 @@
 # Diseño de APPLY para backfill responsive — P1.D.1C-B
 
-> **DISEÑO APROBADO / APPLY OPERACIONAL TODAVÍA NO IMPLEMENTADO.**
+> **DISEÑO APROBADO / B3-A IMPLEMENTADO SÓLO LOCALMENTE / APPLY OPERACIONAL TODAVÍA NO IMPLEMENTADO.**
 > P1.D.1C-B1 está completado y aceptado hasta producción, pero sólo aporta las
 > primitivas internas de rango, checkpoint y barrera de recuperación. B2 está
-> completado y aceptado hasta producción como publicador interno de un item. No
-> existe CLI APPLY ni runner de rango. El único comando
+> completado y aceptado hasta producción como publicador interno de un item.
+> El coordinador interno de invocación/rango B3-A está pendiente de revisión
+> humana y promoción. No existe CLI APPLY. El único comando
 > disponible sigue siendo el dry-run read-only de P1.D.1C-A documentado en
 > [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md).
 
@@ -215,9 +216,14 @@ condicional S3 de D1B ya está
 aceptado y registrado en
 [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md).
 
-B3 conserva la responsabilidad de componer rango e invocación y de aportar el
-CLI y el gate operacional.
+B3-A aporta localmente la composición interna tipada de una invocación y rango
+de un único dominio. Sigue pendiente de revisión humana y promoción. B3-B es el
+siguiente bloque y conserva la responsabilidad exclusiva de cablear el CLI
+`--apply`, validar sus argumentos, presentar el informe y mapear sus resultados
+a códigos de salida.
 
-Aun así, este documento no autoriza ninguna ejecución operativa: el runner, el
-flujo CLI de publicación y el APPLY completo de P1.D.1C-B no están implementados
-y sus precondiciones de seguridad en ejecución siguen siendo obligatorias.
+Aun así, este documento no autoriza ninguna ejecución operativa: `--apply`
+todavía no existe, no se ha autorizado ni ejecutado ningún APPLY operacional y
+el flujo CLI de publicación y el APPLY completo de P1.D.1C-B no están
+implementados. Sus precondiciones de seguridad en ejecución siguen siendo
+obligatorias.
