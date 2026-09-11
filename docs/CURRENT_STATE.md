@@ -26,7 +26,7 @@ Sublínea activa: P1.D — backfill de masters legacy.
 | P1.D.1B — primitivas de seguridad | completado |
 | P1.D.1C-A — dry-run read-only | completado hasta producción |
 | P1.D.1C-B1 — rango/checkpoint/barrera internos | completado hasta producción |
-| P1.D.1C-B2 — publicador interno item-atomic | implementado localmente; pendiente de revisión/promoción |
+| P1.D.1C-B2 — publicador interno item-atomic | completado hasta producción |
 
 P1.D.1C-A está completado hasta producción. Su smoke de producción terminó correctamente con exit 0, cero bloqueos y cero escrituras de storage.
 
@@ -34,20 +34,26 @@ Los smokes read-only de B1 en staging y producción validaron el JSON tipado de
 `ApplyRunSelection` y devolvieron `recoveryBarrier()=clear` en el momento de cada
 comprobación, ambos con exit 0.
 
+Los smokes no destructivos de B2 en staging y producción confirmaron la
+resolución por DI de `ApplyItemPublisher`, la firma de tres parámetros de
+`publish()`, `recoveryBarrier()=clear` en el momento de cada comprobación y la
+ausencia de `--apply`; ambos finalizaron con exit 0.
+
 ## Siguiente bloque de implementación
 
 P1.D.1C-B3 — composición de rango/invocación, CLI y gate operacional.
 
 El contrato global de P1.D.1C-B está aprobado y documentado, pero el APPLY
-operacional **no está implementado**: no hay CLI APPLY, publicación ni ejecución
-de rango. El publicador interno B2 no es una autorización de ejecución operativa.
+operacional **no está implementado**: `--apply` todavía no existe y no hay runner
+de publicación ni ejecución de rango. El publicador interno B2 no es una
+autorización de ejecución operativa.
 
 ## Documentos de referencia
 
 - [31-responsive-backfill-foundation.md](31-responsive-backfill-foundation.md) — fundación de lectura, inspección y preflight (P1.D.1A).
 - [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md) — journal, identidad, lock, mantenimiento y escritura exclusiva (P1.D.1B).
 - [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md) — comando dry-run (P1.D.1C-A).
-- [34-responsive-backfill-apply-design.md](34-responsive-backfill-apply-design.md) — diseño aprobado de APPLY (P1.D.1C-B) y primitivas internas B1; APPLY operacional no implementado.
+- [34-responsive-backfill-apply-design.md](34-responsive-backfill-apply-design.md) — diseño aprobado de APPLY (P1.D.1C-B), primitivas internas B1 y publicador interno B2; APPLY operacional no implementado.
 
 ## Invariante de traspaso
 

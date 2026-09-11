@@ -2,9 +2,9 @@
 
 > **DISEÑO APROBADO / APPLY OPERACIONAL TODAVÍA NO IMPLEMENTADO.**
 > P1.D.1C-B1 está completado y aceptado hasta producción, pero sólo aporta las
-> primitivas internas de rango, checkpoint y barrera de recuperación. B2 añade
-> localmente el publicador interno de un item y está pendiente de
-> revisión/promoción. No existe CLI APPLY ni runner de rango. El único comando
+> primitivas internas de rango, checkpoint y barrera de recuperación. B2 está
+> completado y aceptado hasta producción como publicador interno de un item. No
+> existe CLI APPLY ni runner de rango. El único comando
 > disponible sigue siendo el dry-run read-only de P1.D.1C-A documentado en
 > [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md).
 
@@ -205,11 +205,18 @@ Las primitivas internas B1 están completadas y aceptadas hasta producción. Sus
 smokes read-only en staging y producción validaron el JSON tipado de
 `ApplyRunSelection` y devolvieron `recoveryBarrier()=clear`, ambos con exit 0.
 Ese valor `clear` describe el estado observado durante cada smoke, no una
-propiedad permanente del entorno. El publicador interno B2 está implementado
-localmente y pendiente de revisión/promoción. APPLY operacional no está
-implementado. El gate de capacidad de create condicional S3 de D1B ya está
+propiedad permanente del entorno. El publicador interno B2 está completado y
+aceptado hasta producción. Sus smokes no destructivos en staging y
+producción confirmaron en ese momento su resolución por DI, la firma de tres
+parámetros de `publish()`, `recoveryBarrier()=clear`, exit 0 y la ausencia de
+`--apply`; el valor `clear` tampoco constituye una propiedad permanente del
+entorno. APPLY operacional no está implementado. El gate de capacidad de create
+condicional S3 de D1B ya está
 aceptado y registrado en
 [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md).
+
+B3 conserva la responsabilidad de componer rango e invocación y de aportar el
+CLI y el gate operacional.
 
 Aun así, este documento no autoriza ninguna ejecución operativa: el runner, el
 flujo CLI de publicación y el APPLY completo de P1.D.1C-B no están implementados
