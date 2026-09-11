@@ -26,6 +26,7 @@ Sublínea activa: P1.D — backfill de masters legacy.
 | P1.D.1B — primitivas de seguridad | completado |
 | P1.D.1C-A — dry-run read-only | completado hasta producción |
 | P1.D.1C-B1 — rango/checkpoint/barrera internos | completado hasta producción |
+| P1.D.1C-B2 — publicador interno item-atomic | implementado localmente; pendiente de revisión/promoción |
 
 P1.D.1C-A está completado hasta producción. Su smoke de producción terminó correctamente con exit 0, cero bloqueos y cero escrituras de storage.
 
@@ -35,11 +36,11 @@ comprobación, ambos con exit 0.
 
 ## Siguiente bloque de implementación
 
-P1.D.1C-B2 — siguiente sub-bloque interno de la composición APPLY.
+P1.D.1C-B3 — composición de rango/invocación, CLI y gate operacional.
 
 El contrato global de P1.D.1C-B está aprobado y documentado, pero el APPLY
 operacional **no está implementado**: no hay CLI APPLY, publicación ni ejecución
-real en B1. B2 no debe confundirse con autorización de ejecución operativa.
+de rango. El publicador interno B2 no es una autorización de ejecución operativa.
 
 ## Documentos de referencia
 

@@ -2,9 +2,10 @@
 
 > **DISEÑO APROBADO / APPLY OPERACIONAL TODAVÍA NO IMPLEMENTADO.**
 > P1.D.1C-B1 está completado y aceptado hasta producción, pero sólo aporta las
-> primitivas internas de rango, checkpoint y barrera de recuperación. No existe
-> CLI APPLY ni publicación. El único comando disponible sigue siendo el dry-run
-> read-only de P1.D.1C-A documentado en
+> primitivas internas de rango, checkpoint y barrera de recuperación. B2 añade
+> localmente el publicador interno de un item y está pendiente de
+> revisión/promoción. No existe CLI APPLY ni runner de rango. El único comando
+> disponible sigue siendo el dry-run read-only de P1.D.1C-A documentado en
 > [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md).
 
 ## Alcance
@@ -69,6 +70,59 @@ El checkpoint es exclusivamente evidencia terminal contigua. Nunca constituye
 una autorización automática de reanudación.
 
 El heartbeat debe ser por evento, no por temporizador.
+
+### Contrato interno implementado por B2
+
+`ApplyItemPublisher::publish(runId, itemId, lock)` recibe un item ya
+journalizado y un `AdvisoryLockHandle` adquirido por el llamador. Exige run
+APPLY activo, pertenencia exacta, fase `inspected`, clasificación
+`legacy_backfillable`, snapshot íntegro e identidades de run/lock/storage
+concordantes. No crea runs ni adquiere o libera el lock.
+
+La primera revalidación relee la entidad y ejecuta el preflight D1A completo.
+Sólo continúa si la referencia sigue siendo la misma, el owner live es único,
+la clasificación sigue siendo `legacy_backfillable`, el SHA de la master
+coincide y los bytes y SHA del manifest recién preparado son idénticos al
+snapshot. El mapeo terminal sin escrituras es:
+
+- entidad ausente, referencia/owner/deleted/metadata cambiados, o clasificación
+  `excluded_null`, `excluded_deleted`, `invalid_reference`,
+  `reference_conflict` o `metadata_mismatch` → `reference_changed`;
+- cualquier otra clasificación no candidata, fallo de inspección/preparación,
+  cambio de SHA de master, cambio de bytes/hash candidato o target presente/no
+  verificable → `failed_no_writes`.
+
+Después se planifican en orden todas las variantes del candidato y el manifest,
+sin master ni targets adicionales. Una nueva barrera de referencia, ownership,
+master y ausencia exacta de manifest/residuos precede a `markRevalidated()`.
+Todos los objetos siguen `planned` al entrar en el primer writer. Las variantes
+se envían en el orden del manifest mediante `JournaledObjectWriter`; el manifest
+se envía estrictamente el último.
+
+Tras crear todas las variantes, la segunda barrera relee referencia completa,
+owner, master y targets exactos; exige ausencia del manifest, ausencia de
+residuos adicionales y lectura/hash/descriptor exactos de cada variante cuyo
+recibo journalizado acredita `created`. Finalmente vuelve a comprobar identidad,
+mantenimiento y ownership del lock antes del dispatch del manifest.
+
+| Recibo | Sin variante anterior creada | Con variantes anteriores creadas |
+| --- | --- | --- |
+| `created` | continúa; si es manifest, `published` | continúa; manifest `created` cierra `published` |
+| `rejected` | `collision_detected` | sólo variantes acreditadas pasan a cleanup `pending`; `failed_cleanup_incomplete` |
+| `failed` | `failed_no_writes` | sólo variantes acreditadas pasan a cleanup `pending`; `failed_cleanup_incomplete` |
+| `unknown` o excepción `publication_unknown` | `publication_unknown` | `publication_unknown`; las variantes no pasan a cleanup sólo por esa incertidumbre |
+
+Un fallo conocido de la segunda barrera después de variantes acreditadas deja
+esas variantes en cleanup `pending` y cierra `failed_cleanup_incomplete`; sin
+variantes conserva el resultado seguro sin escrituras correspondiente. Un fallo
+de identidad/mantenimiento/lock se propaga tras registrar ese resultado cuando
+el journal lo permite. Si ya existe intent/unknown, se conserva como
+`publication_unknown`; un fallo del propio journal se propaga sin fabricar
+estado. B2 no borra físicamente, no reintenta y no atribuye ownership de cleanup
+a intent/unknown.
+
+B2 termina exclusivamente el item. No avanza checkpoint, no finaliza el run y
+no autoriza resume ni ejecución operacional.
 
 ## Fallo y recuperación
 
@@ -151,8 +205,10 @@ Las primitivas internas B1 están completadas y aceptadas hasta producción. Sus
 smokes read-only en staging y producción validaron el JSON tipado de
 `ApplyRunSelection` y devolvieron `recoveryBarrier()=clear`, ambos con exit 0.
 Ese valor `clear` describe el estado observado durante cada smoke, no una
-propiedad permanente del entorno. APPLY no está implementado. El gate de
-capacidad de create condicional S3 de D1B ya está aceptado y registrado en
+propiedad permanente del entorno. El publicador interno B2 está implementado
+localmente y pendiente de revisión/promoción. APPLY operacional no está
+implementado. El gate de capacidad de create condicional S3 de D1B ya está
+aceptado y registrado en
 [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md).
 
 Aun así, este documento no autoriza ninguna ejecución operativa: el runner, el
