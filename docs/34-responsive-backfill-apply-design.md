@@ -1,11 +1,11 @@
 # Diseño de APPLY para backfill responsive — P1.D.1C-B
 
-> **DISEÑO APROBADO / B3-A IMPLEMENTADO SÓLO LOCALMENTE / APPLY OPERACIONAL TODAVÍA NO IMPLEMENTADO.**
+> **DISEÑO APROBADO / B3-A ACEPTADO HASTA PRODUCCIÓN / APPLY OPERACIONAL TODAVÍA NO IMPLEMENTADO.**
 > P1.D.1C-B1 está completado y aceptado hasta producción, pero sólo aporta las
 > primitivas internas de rango, checkpoint y barrera de recuperación. B2 está
 > completado y aceptado hasta producción como publicador interno de un item.
-> El coordinador interno de invocación/rango B3-A está pendiente de revisión
-> humana y promoción. No existe CLI APPLY. El único comando
+> El coordinador interno de invocación/rango B3-A también está completado y
+> aceptado hasta producción. No existe CLI APPLY. El único comando
 > disponible sigue siendo el dry-run read-only de P1.D.1C-A documentado en
 > [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md).
 
@@ -216,11 +216,17 @@ condicional S3 de D1B ya está
 aceptado y registrado en
 [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md).
 
-B3-A aporta localmente la composición interna tipada de una invocación y rango
-de un único dominio. Sigue pendiente de revisión humana y promoción. B3-B es el
-siguiente bloque y conserva la responsabilidad exclusiva de cablear el CLI
-`--apply`, validar sus argumentos, presentar el informe y mapear sus resultados
-a códigos de salida.
+B3-A está completado y aceptado hasta producción como composición interna
+tipada de una invocación y rango de un único dominio. Sus smokes no destructivos
+en staging y producción confirmaron puntualmente la resolución por DI de
+`ResponsiveBackfillApply`, el único parámetro de `run()`,
+`recoveryBarrier()=clear`, exit 0 y la ausencia de `--apply`. El valor `clear`
+describe cada smoke, no una propiedad permanente del entorno; no se autorizó ni
+ejecutó ningún APPLY operacional ni hubo publicación de media.
+
+B3-B es el siguiente bloque y conserva la responsabilidad exclusiva de cablear
+el CLI `--apply`, validar sus argumentos, presentar el informe y mapear sus
+resultados a códigos de salida.
 
 Aun así, este documento no autoriza ninguna ejecución operativa: `--apply`
 todavía no existe, no se ha autorizado ni ejecutado ningún APPLY operacional y

@@ -27,7 +27,7 @@ Sublínea activa: P1.D — backfill de masters legacy.
 | P1.D.1C-A — dry-run read-only | completado hasta producción |
 | P1.D.1C-B1 — rango/checkpoint/barrera internos | completado hasta producción |
 | P1.D.1C-B2 — publicador interno item-atomic | completado hasta producción |
-| P1.D.1C-B3-A — coordinador interno de invocación/rango APPLY | implementado localmente; pendiente de revisión humana y promoción |
+| P1.D.1C-B3-A — coordinador interno de invocación/rango APPLY | completado hasta producción |
 
 P1.D.1C-A está completado hasta producción. Su smoke de producción terminó correctamente con exit 0, cero bloqueos y cero escrituras de storage.
 
@@ -40,22 +40,29 @@ resolución por DI de `ApplyItemPublisher`, la firma de tres parámetros de
 `publish()`, `recoveryBarrier()=clear` en el momento de cada comprobación y la
 ausencia de `--apply`; ambos finalizaron con exit 0.
 
+Los smokes no destructivos de B3-A en staging y producción confirmaron para el
+commit aceptado la resolución por DI de `ResponsiveBackfillApply`, la firma de
+un parámetro de `run()`, `recoveryBarrier()=clear` en el momento de cada
+comprobación y la ausencia de `--apply`; ambos finalizaron con exit 0. Ese valor
+`clear` es evidencia puntual, no una propiedad permanente. No se autorizó ni
+ejecutó ningún APPLY operacional ni se publicó media durante estos smokes.
+
 ## Siguiente bloque de implementación
 
 P1.D.1C-B3-B — wiring CLI `--apply`, validación, presentación y mapeo de
 resultados a códigos de salida.
 
-El coordinador interno B3-A está implementado sólo localmente y pendiente de
-revisión humana y promoción. El APPLY operacional **no está implementado**:
-`--apply` todavía no existe. No se ha autorizado ni ejecutado ningún APPLY
-operacional; ni B2 ni B3-A constituyen por sí solos una autorización operativa.
+El coordinador B3-A está completado hasta producción, pero es exclusivamente
+interno. El APPLY operacional **no está implementado**: `--apply` todavía no
+existe. No se ha autorizado ni ejecutado ningún APPLY operacional; ni B2 ni
+B3-A constituyen por sí solos una autorización operativa.
 
 ## Documentos de referencia
 
 - [31-responsive-backfill-foundation.md](31-responsive-backfill-foundation.md) — fundación de lectura, inspección y preflight (P1.D.1A).
 - [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md) — journal, identidad, lock, mantenimiento y escritura exclusiva (P1.D.1B).
 - [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md) — comando dry-run (P1.D.1C-A).
-- [34-responsive-backfill-apply-design.md](34-responsive-backfill-apply-design.md) — diseño aprobado de APPLY (P1.D.1C-B), B1/B2 aceptados hasta producción y coordinador interno B3-A implementado localmente; CLI APPLY no implementado.
+- [34-responsive-backfill-apply-design.md](34-responsive-backfill-apply-design.md) — diseño aprobado de APPLY (P1.D.1C-B), B1/B2/B3-A aceptados hasta producción; CLI APPLY no implementado.
 
 ## Invariante de traspaso
 
