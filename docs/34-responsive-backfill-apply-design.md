@@ -1,10 +1,10 @@
 # Diseño de APPLY para backfill responsive — P1.D.1C-B
 
 > **DISEÑO APROBADO / APPLY OPERACIONAL TODAVÍA NO IMPLEMENTADO.**
-> P1.D.1C-B1 implementa localmente sólo las primitivas internas de rango,
-> checkpoint y barrera de recuperación. No existe CLI APPLY ni publicación. El
-> único comando disponible sigue siendo el dry-run read-only de P1.D.1C-A
-> documentado en
+> P1.D.1C-B1 está completado y aceptado hasta producción, pero sólo aporta las
+> primitivas internas de rango, checkpoint y barrera de recuperación. No existe
+> CLI APPLY ni publicación. El único comando disponible sigue siendo el dry-run
+> read-only de P1.D.1C-A documentado en
 > [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md).
 
 ## Alcance
@@ -147,11 +147,14 @@ fallo inesperado o no clasificado.
 
 ## Estado
 
-Las primitivas internas B1 están implementadas localmente y pendientes de
-revisión/promoción. APPLY no está implementado. El gate de capacidad de create
-condicional S3 de D1B ya está aceptado y registrado en
+Las primitivas internas B1 están completadas y aceptadas hasta producción. Sus
+smokes read-only en staging y producción validaron el JSON tipado de
+`ApplyRunSelection` y devolvieron `recoveryBarrier()=clear`, ambos con exit 0.
+Ese valor `clear` describe el estado observado durante cada smoke, no una
+propiedad permanente del entorno. APPLY no está implementado. El gate de
+capacidad de create condicional S3 de D1B ya está aceptado y registrado en
 [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md).
 
-Aun así, este documento no autoriza ninguna ejecución operativa: el runner y el
-APPLY completo de P1.D.1C-B no están implementados y sus precondiciones de
-seguridad en ejecución siguen siendo obligatorias.
+Aun así, este documento no autoriza ninguna ejecución operativa: el runner, el
+flujo CLI de publicación y el APPLY completo de P1.D.1C-B no están implementados
+y sus precondiciones de seguridad en ejecución siguen siendo obligatorias.

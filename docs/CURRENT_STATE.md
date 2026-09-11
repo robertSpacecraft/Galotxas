@@ -25,11 +25,15 @@ Sublínea activa: P1.D — backfill de masters legacy.
 | P1.D.1A — fundación de lectura | completado |
 | P1.D.1B — primitivas de seguridad | completado |
 | P1.D.1C-A — dry-run read-only | completado hasta producción |
-| P1.D.1C-B1 — rango/checkpoint/barrera internos | implementado localmente; pendiente de revisión/promoción |
+| P1.D.1C-B1 — rango/checkpoint/barrera internos | completado hasta producción |
 
 P1.D.1C-A está completado hasta producción. Su smoke de producción terminó correctamente con exit 0, cero bloqueos y cero escrituras de storage.
 
-## Siguiente bloque tras cerrar B1
+Los smokes read-only de B1 en staging y producción validaron el JSON tipado de
+`ApplyRunSelection` y devolvieron `recoveryBarrier()=clear` en el momento de cada
+comprobación, ambos con exit 0.
+
+## Siguiente bloque de implementación
 
 P1.D.1C-B2 — siguiente sub-bloque interno de la composición APPLY.
 
