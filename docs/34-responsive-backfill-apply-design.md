@@ -1,13 +1,14 @@
 # Diseño de APPLY para backfill responsive — P1.D.1C-B
 
-> **DISEÑO APROBADO / B3-A ACEPTADO HASTA PRODUCCIÓN / APPLY OPERACIONAL TODAVÍA NO IMPLEMENTADO.**
+> **DISEÑO APROBADO / B3-A ACEPTADO HASTA PRODUCCIÓN / B3-B IMPLEMENTADO SÓLO LOCALMENTE.**
 > P1.D.1C-B1 está completado y aceptado hasta producción, pero sólo aporta las
 > primitivas internas de rango, checkpoint y barrera de recuperación. B2 está
 > completado y aceptado hasta producción como publicador interno de un item.
 > El coordinador interno de invocación/rango B3-A también está completado y
-> aceptado hasta producción. No existe CLI APPLY. El único comando
-> disponible sigue siendo el dry-run read-only de P1.D.1C-A documentado en
-> [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md).
+> aceptado hasta producción. B3-B añade `--apply` únicamente en este
+> branch/worktree local y está pendiente de revisión humana y promoción; no
+> debe darse por presente en staging o producción. No se ha autorizado ni
+> ejecutado ningún APPLY operacional.
 
 ## Alcance
 
@@ -211,8 +212,8 @@ aceptado hasta producción. Sus smokes no destructivos en staging y
 producción confirmaron en ese momento su resolución por DI, la firma de tres
 parámetros de `publish()`, `recoveryBarrier()=clear`, exit 0 y la ausencia de
 `--apply`; el valor `clear` tampoco constituye una propiedad permanente del
-entorno. APPLY operacional no está implementado. El gate de capacidad de create
-condicional S3 de D1B ya está
+entorno. B3-B aún no está promovido y no se ha autorizado ni ejecutado un APPLY
+operacional. El gate de capacidad de create condicional S3 de D1B ya está
 aceptado y registrado en
 [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md).
 
@@ -224,12 +225,17 @@ en staging y producción confirmaron puntualmente la resolución por DI de
 describe cada smoke, no una propiedad permanente del entorno; no se autorizó ni
 ejecutó ningún APPLY operacional ni hubo publicación de media.
 
-B3-B es el siguiente bloque y conserva la responsabilidad exclusiva de cablear
-el CLI `--apply`, validar sus argumentos, presentar el informe y mapear sus
-resultados a códigos de salida.
+B3-B conserva la responsabilidad exclusiva de cablear el CLI `--apply`, validar
+sus argumentos, presentar el informe y mapear sus resultados a códigos de
+salida. Está implementado en el branch/worktree local y pendiente de revisión
+humana y promoción. Su contrato exige un dominio explícito, `--limit` obligatorio
+entre 1 y 1000 y `--after-id` exclusivo opcional; no define `--resume`, es no
+interactivo y muestra la advertencia sobre workers y escritores externos. El
+CLI delega exclusivamente en B3-A, presenta hechos seguros de `ApplyReport` y
+mapea outcomes a exits `0/2/3/4/5/6/7`.
 
-Aun así, este documento no autoriza ninguna ejecución operativa: `--apply`
-todavía no existe, no se ha autorizado ni ejecutado ningún APPLY operacional y
-el flujo CLI de publicación y el APPLY completo de P1.D.1C-B no están
-implementados. Sus precondiciones de seguridad en ejecución siguen siendo
+Aun así, este documento no autoriza ninguna ejecución operativa: no se ha
+autorizado ni ejecutado ningún APPLY y staging/producción no disponen de B3-B
+hasta una promoción posterior. P1.D.1C-B3, P1.D.1C-B, P1.D, D2 y D3 continúan
+abiertos; todas las precondiciones de seguridad en ejecución siguen siendo
 obligatorias.
