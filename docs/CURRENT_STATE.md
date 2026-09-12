@@ -28,7 +28,8 @@ Sublínea activa: P1.D — backfill de masters legacy.
 | P1.D.1C-B1 — rango/checkpoint/barrera internos | completado hasta producción |
 | P1.D.1C-B2 — publicador interno item-atomic | completado hasta producción |
 | P1.D.1C-B3-A — coordinador interno de invocación/rango APPLY | completado hasta producción |
-| P1.D.1C-B3-B — wiring CLI APPLY | implementado localmente; pendiente de revisión humana y promoción |
+| P1.D.1C-B3-B — wiring CLI APPLY | completado hasta producción |
+| P1.D.1C-B3 — coordinador y wiring CLI APPLY | completado hasta producción |
 
 P1.D.1C-A está completado hasta producción. Su smoke de producción terminó correctamente con exit 0, cero bloqueos y cero escrituras de storage.
 
@@ -48,27 +49,37 @@ comprobación y la ausencia de `--apply`; ambos finalizaron con exit 0. Ese valo
 `clear` es evidencia puntual, no una propiedad permanente. No se autorizó ni
 ejecutó ningún APPLY operacional ni se publicó media durante estos smokes.
 
-## Bloque local pendiente de revisión
+## Cierre de P1.D.1C-B3
 
-P1.D.1C-B3-B incorpora en este branch/worktree local el wiring CLI `--apply`,
-su validación, presentación segura y mapeo de resultados. No debe considerarse
-presente en staging ni producción hasta su revisión humana y promoción.
+El commit `a39a0b15f42eb74817855675ec4479992ce92317` está desplegado y
+aceptado en staging y producción. `--apply` existe en ambos entornos y
+`--resume` no existe. B3-A sigue siendo la única fuente de orquestación de
+negocio y seguridad; el CLI B3-B permanece fino.
 
-La invocación APPLY local exige un dominio explícito, `--limit` obligatorio
-entre 1 y 1000 y `--after-id` exclusivo opcional; no existe `--resume`. Es no
-interactiva, advierte que el operador debe detener workers y escritores externos
-y usa exits `0/2/3/4/5/6/7`. B3-A sigue siendo la única fuente de orquestación
-de negocio y seguridad; el CLI permanece fino.
+La aceptación fue exclusivamente no destructiva. En staging y producción,
+Laravel no estaba en mantenimiento: help mostró `--apply` y no `--resume`, la
+invocación prohibida con `--resume` devolvió exit 2 y la invocación con forma
+válida `--apply --domain=news --limit=1` mostró la advertencia sobre writers
+externos y se detuvo en `maintenance_required`, exit 3. El journal permaneció
+en runs/items/objects `0/0/0` antes y después; no se creó ningún run ni se
+publicó media. Esto no acredita que workers estuvieran detenidos.
 
-No se ha autorizado ni ejecutado ningún APPLY operacional. P1.D.1C-B3,
-P1.D.1C-B, P1.D, D2 y D3 continúan abiertos.
+El contrato permanece en un dominio explícito, `--limit` obligatorio entre 1 y
+1000, `--after-id` exclusivo opcional, sin `--resume` y con exits
+`0/2/3/4/5/6/7`.
+
+P1.D.1C-B3 está completado hasta producción. No se ha autorizado ni ejecutado
+ningún APPLY operacional bajo mantenimiento ni ningún backfill/publicación de
+media. P1.D.1C-B, P1.D, D2 y D3 continúan abiertos. D2 reconciliación es el
+siguiente bloque; un APPLY real en staging requerirá capacidad de seguridad y
+reconciliación suficiente y una autorización operacional separada.
 
 ## Documentos de referencia
 
 - [31-responsive-backfill-foundation.md](31-responsive-backfill-foundation.md) — fundación de lectura, inspección y preflight (P1.D.1A).
 - [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md) — journal, identidad, lock, mantenimiento y escritura exclusiva (P1.D.1B).
-- [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md) — dry-run aceptado y wiring CLI APPLY implementado localmente.
-- [34-responsive-backfill-apply-design.md](34-responsive-backfill-apply-design.md) — diseño aprobado de APPLY, B1/B2/B3-A aceptados hasta producción y B3-B local pendiente de revisión/promoción.
+- [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md) — dry-run y wiring CLI APPLY aceptados hasta producción.
+- [34-responsive-backfill-apply-design.md](34-responsive-backfill-apply-design.md) — diseño aprobado de APPLY; B1/B2/B3-A/B3-B y B3 aceptados hasta producción.
 
 ## Invariante de traspaso
 

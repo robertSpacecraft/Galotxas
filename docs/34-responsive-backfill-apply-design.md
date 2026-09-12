@@ -1,18 +1,18 @@
 # Diseño de APPLY para backfill responsive — P1.D.1C-B
 
-> **DISEÑO APROBADO / B3-A ACEPTADO HASTA PRODUCCIÓN / B3-B IMPLEMENTADO SÓLO LOCALMENTE.**
+> **DISEÑO APROBADO / B3 ACEPTADO HASTA PRODUCCIÓN / APPLY REAL NO AUTORIZADO.**
 > P1.D.1C-B1 está completado y aceptado hasta producción, pero sólo aporta las
 > primitivas internas de rango, checkpoint y barrera de recuperación. B2 está
 > completado y aceptado hasta producción como publicador interno de un item.
 > El coordinador interno de invocación/rango B3-A también está completado y
-> aceptado hasta producción. B3-B añade `--apply` únicamente en este
-> branch/worktree local y está pendiente de revisión humana y promoción; no
-> debe darse por presente en staging o producción. No se ha autorizado ni
-> ejecutado ningún APPLY operacional.
+> aceptado hasta producción. B3-B y el compuesto B3 están completados y
+> aceptados hasta producción; `--apply` existe en staging y producción y
+> `--resume` no existe. No se ha autorizado ni ejecutado ningún APPLY
+> operacional bajo mantenimiento.
 
 ## Alcance
 
-P1.D.1C-B implementará el APPLY real componiendo la fundación de lectura de
+P1.D.1C-B compone la fundación de lectura de
 [31-responsive-backfill-foundation.md](31-responsive-backfill-foundation.md) y
 las primitivas de seguridad de
 [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md).
@@ -182,10 +182,10 @@ requiera reconciliación.
 La barrera es de sólo lectura: observa evidencia, no la resuelve. B1 bloquea por
 run activo, item no terminado, escritura `intent`/`unknown` o cleanup
 `pending`/`failed`/`unknown`. No bloquea sólo por un run terminal ni por un recibo
-terminal `failed` sin escritura o `rejected` por colisión. El futuro runner la
-invocará antes de crear su propio run activo.
+terminal `failed` sin escritura o `rejected` por colisión. El coordinador B3-A
+la invoca antes de crear su propio run activo.
 
-## Códigos de salida objetivo
+## Códigos de salida
 
 | Código | Significado |
 | --- | --- |
@@ -212,8 +212,7 @@ aceptado hasta producción. Sus smokes no destructivos en staging y
 producción confirmaron en ese momento su resolución por DI, la firma de tres
 parámetros de `publish()`, `recoveryBarrier()=clear`, exit 0 y la ausencia de
 `--apply`; el valor `clear` tampoco constituye una propiedad permanente del
-entorno. B3-B aún no está promovido y no se ha autorizado ni ejecutado un APPLY
-operacional. El gate de capacidad de create condicional S3 de D1B ya está
+entorno. El gate de capacidad de create condicional S3 de D1B ya está
 aceptado y registrado en
 [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md).
 
@@ -227,15 +226,24 @@ ejecutó ningún APPLY operacional ni hubo publicación de media.
 
 B3-B conserva la responsabilidad exclusiva de cablear el CLI `--apply`, validar
 sus argumentos, presentar el informe y mapear sus resultados a códigos de
-salida. Está implementado en el branch/worktree local y pendiente de revisión
-humana y promoción. Su contrato exige un dominio explícito, `--limit` obligatorio
-entre 1 y 1000 y `--after-id` exclusivo opcional; no define `--resume`, es no
-interactivo y muestra la advertencia sobre workers y escritores externos. El
-CLI delega exclusivamente en B3-A, presenta hechos seguros de `ApplyReport` y
-mapea outcomes a exits `0/2/3/4/5/6/7`.
+salida. El commit `a39a0b15f42eb74817855675ec4479992ce92317` está desplegado
+y aceptado en staging y producción. Su contrato exige un dominio explícito,
+`--limit` obligatorio entre 1 y 1000 y `--after-id` exclusivo opcional; no
+define `--resume`, es no interactivo y muestra la advertencia sobre workers y
+escritores externos. El CLI delega exclusivamente en B3-A, presenta hechos
+seguros de `ApplyReport` y mapea outcomes a exits `0/2/3/4/5/6/7`.
 
-Aun así, este documento no autoriza ninguna ejecución operativa: no se ha
-autorizado ni ejecutado ningún APPLY y staging/producción no disponen de B3-B
-hasta una promoción posterior. P1.D.1C-B3, P1.D.1C-B, P1.D, D2 y D3 continúan
-abiertos; todas las precondiciones de seguridad en ejecución siguen siendo
-obligatorias.
+La aceptación B3-B fue no destructiva. En staging y producción, Laravel no
+estaba en mantenimiento; help mostró `--apply` y no `--resume`, la invocación
+prohibida con `--resume` devolvió exit 2 y la invocación con forma válida
+`--apply --domain=news --limit=1` mostró la advertencia externa y terminó en
+`maintenance_required`, exit 3. El journal permaneció en runs/items/objects
+`0/0/0` antes y después: no se creó ningún run ni se publicó media. No se
+comprobó que workers estuvieran detenidos.
+
+B3-B y P1.D.1C-B3 están completados y aceptados hasta producción. Esto no
+autoriza una ejecución operativa: no se ha ejecutado ningún APPLY bajo
+mantenimiento ni backfill/publicación de media. P1.D.1C-B, P1.D, D2 y D3
+continúan abiertos. D2 reconciliación es el siguiente bloque; un APPLY real en
+staging requerirá capacidad de seguridad/reconciliación suficiente y una
+autorización operacional separada.

@@ -1,4 +1,4 @@
-# Runner CLI del backfill responsive — P1.D.1C-A / B3-B local
+# Runner CLI del backfill responsive — P1.D.1C-A / B3-B
 
 ## Alcance
 
@@ -61,14 +61,13 @@ Exit codes:
 Aunque aparezca un bloqueo, el comando completa el rango seleccionado hasta su
 límite para ofrecer un resumen conjunto.
 
-## Wiring APPLY local — P1.D.1C-B3-B
+## Wiring APPLY — P1.D.1C-B3-B
 
-`--apply` existe únicamente en la implementación local B3-B pendiente de
-revisión humana y promoción; no debe darse por disponible en staging o
-producción. La invocación es no interactiva y exige exactamente un
-`--domain` canónico explícito y `--limit` entre 1 y 1000. `--after-id` es
-opcional, decimal no negativo y exclusivo, con valor por defecto cero. No se
-define `--resume`.
+`--apply` existe en staging y producción desde el commit
+`a39a0b15f42eb74817855675ec4479992ce92317`. La invocación es no interactiva
+y exige exactamente un `--domain` canónico explícito y `--limit` entre 1 y
+1000. `--after-id` es opcional, decimal no negativo y exclusivo, con valor por
+defecto cero. No se define `--resume`.
 
 Antes de llamar al coordinador, el CLI advierte que el mantenimiento de Laravel
 no demuestra que workers u otros escritores externos estén detenidos y que el
@@ -94,6 +93,18 @@ reintento ni inferencias sobre publicación.
 | 6 | `safe_failure` |
 | 7 | `reconciliation_required` o ruptura inesperada del contrato tipado |
 
-No se ha autorizado ni ejecutado ningún APPLY operacional. B3-B permanece
-local y pendiente de revisión/promoción; P1.D.1C-B3, P1.D.1C-B, P1.D, D2 y D3
-continúan abiertos.
+## Aceptación no destructiva
+
+En staging y producción se desplegó el commit exacto, help mostró `--apply` y
+no `--resume`, y el `--resume` prohibido con APPLY devolvió exit 2. Laravel no
+estaba en mantenimiento durante el smoke con forma válida
+`--apply --domain=news --limit=1`: se mostró la advertencia sobre writers
+externos y B3-A devolvió `maintenance_required`, exit 3, antes de crear un run
+o publicar media. El journal permaneció en runs/items/objects `0/0/0` antes y
+después en ambos entornos.
+
+La prueba no verificó que workers estuvieran detenidos y no autoriza un APPLY
+real. B3-B y el compuesto P1.D.1C-B3 están completados y aceptados hasta
+producción; P1.D.1C-B, P1.D, D2 y D3 siguen abiertos. D2 reconciliación es el
+siguiente bloque. Un APPLY real en staging queda pendiente de capacidad de
+seguridad/reconciliación suficiente y autorización operacional separada.
