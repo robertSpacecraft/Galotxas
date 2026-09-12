@@ -1,6 +1,7 @@
 # Reconciliación de backfill responsive — P1.D.2
 
 > **D2-A COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
+> **D2-B1 IMPLEMENTADO LOCALMENTE / PENDIENTE DE ACEPTACIÓN Y PROMOCIÓN.**
 > P1.D.1C-B3 permanece aceptado hasta producción. No se ha autorizado ni
 > ejecutado ningún APPLY real.
 
@@ -160,17 +161,96 @@ mocks de observación sólo admiten operaciones sobre una clave exacta y rechaza
 listing, escritura y borrado.
 
 D2-A no ofrece cleanup automático local ni cleanup S3; no borra manifests,
-variantes, masters preservados u objetos ajenos. No incorpora estados durables
+variantes, masters preservados u objetos ajenos. No incorporó estados durables
 de reconciliación y no puede despejar ningún predicado de la barrera. La
 igualdad de contenido es evidencia funcional actual, no prueba suficiente para
 un borrado futuro.
 
+## D2-B1: esquema durable sin API de mutación
+
+D2-B1 añade una única migración MariaDB aditiva posterior al journal APPLY. El
+modelo es híbrido:
+
+- `media_backfill_reconciliation_events` conserva eventos conceptualmente
+  append-only con UUID de evento e intento, parent run/item, tipo cerrado en
+  PHP pero `VARCHAR` en MariaDB, versión y hash de evidencia, hash de identidad
+  de storage, modo de backend, revisión de código nullable, JSON de evidencia y
+  `created_at`; no tiene `updated_at`;
+- `media_backfill_runs.reconciliation_event_id` es un puntero nullable;
+- `media_backfill_items.reconciliation_result` admite en B1
+  `forward_accepted` o `closed_no_effect` y su puntero de evento nullable;
+- `media_backfill_objects.reconciliation_resolution` admite en B1 únicamente
+  `forward_retained` y su puntero de evento nullable.
+
+Todas las proyecciones tienen default `NULL`. `NULL` significa que no existe
+una resolución D2 aceptada, también para filas pre-D2. Un valor desconocido o
+un estado/puntero incoherente se representa como inválido/no resuelto y falla
+cerrado; nunca se interpreta como resolución. Los FKs usan RESTRICT en DELETE y
+UPDATE. El ciclo entre parents y eventos es deliberado y seguro para el futuro:
+el evento referenciará una fila existente y, dentro de una transacción
+soportada, la proyección nullable podrá apuntar después al evento.
+
+La migración sólo puede revertirse físicamente mientras el esquema siga vacío:
+`down()` comprueba, antes de cualquier DDL, que no haya eventos ni ninguna
+proyección no nula. Si existe procedencia durable, aborta el rollback. D2-B1 no
+ofrece código de aplicación para insertar eventos o actualizar proyecciones;
+las escrituras directas existen sólo en tests MariaDB aislados para verificar
+constraints, parsing y el guard de rollback.
+
+Los hechos originales `run.state`, `item.phase`, `item.apply_result`,
+`object.write_state`, `object.create_state`, `object.cleanup_state`, recibos y
+checkpoints continúan siendo historia APPLY autoritativa e inmutable para D2.
+El cierre tardío `active → interrupted` con evento explícito queda reservado a
+D2-B3. Los checkpoints quedan permanentemente fuera de las mutaciones D2.
+
+## Dimensión funcional exacta de D2-B1
+
+El report de item expone adicionalmente `functionalStorageSetExact`. Es una
+observación read-only, no una proyección ni una resolución, y no acredita
+ownership. Sólo es true si el manifest candidato es válido e internamente
+consistente, parent run/item y selección son válidos, la identidad de storage
+coincide, existe exactamente una fila de manifest y una por cada variante sin
+faltantes, duplicados ni extras, todas las relaciones key/tamaño/MIME/descriptor
+son válidas y todas las claves exactas contienen los bytes esperados.
+
+La atribución histórica (`not_dispatched`, `attempt_ambiguous`, recibo created,
+rejected o failed) no restringe esta dimensión. Tampoco exige
+`cleanup_state=not_required`: `pending`, `failed` y `unknown` pueden coexistir
+con `functionalStorageSetExact=true` si el conjunto deseado está completo y
+exacto ahora. `deleted`, ausencia, contenido diferente, lectura imposible,
+identidad distinta o cualquier inconsistencia hacen que sea false. La
+clasificación D2-A conserva su precedencia histórica: la presencia de cleanup
+attention sigue produciendo `cleanup_attention_candidate`; sin esa atención,
+el caso exacto puede seguir siendo
+`storage_set_exact_domain_revalidation_pending_d2_c`.
+
+El CLI muestra los estados históricos, la observación/clasificación actual y
+la proyección durable por separado. Para el puntero sólo muestra ausencia,
+invalidez o un fingerprint SHA-256 truncado; no vuelca UUIDs de evento,
+`evidence_json`, claves, ETags, version IDs ni configuración de storage.
+
+## Barrera sin cambios en D2-B1
+
+`recoveryBarrier()` conserva exactamente sus predicados aceptados: run activo,
+item no finished, escritura intent/unknown o cleanup pending/failed/unknown.
+Ninguna proyección B1 los sustituye ni los debilita, incluso si se inyecta
+manualmente un valor no nulo en tests. La consulta sigue sin I/O de storage.
+Barrier V2 queda reservado a D2-B3, después de disponer de APIs soportadas y
+proyecciones alcanzables por código.
+
+## Validación local de D2-B1
+
+La validación focal MariaDB cubre journal/rango, esquema/rollback,
+clasificadores, representación durable e inspector: 120 tests y 1.156
+aserciones, exit 0. La suite backend completa pasa una vez con 1.460 tests y
+14.188 aserciones, exit 0. También pasan la sintaxis PHP de todos los archivos
+PHP afectados, Pint limitado a esos archivos y `git diff --check`.
+
 ## Siguiente bloque
 
-D2-B es el siguiente bloque: definirá el mínimo contrato de estados y API de
-resolución durable. Debe preservar la distinción entre observación y resolución
-y seguir fallando cerrado para filas históricas sin identidad suficiente. El
-diseño y la primitiva de cleanup seguro, local o S3, no existen todavía y
-permanecen fuera de D2-A. Toda reconciliación mutante seguirá siendo trabajo
-futuro hasta que los contratos de seguridad D2-B/C estén implementados y
-aceptados. P1.D.2 y P1.D no están completos.
+D2-B2 será el siguiente bloque sólo después de aceptar y promover D2-B1. Deberá
+introducir las APIs mínimas, específicas y transaccionales para resolución
+forward/no-effect; B1 no las anticipa con setters genéricos. Barrier V2 y el
+cierre de run quedan para D2-B3. El diseño y las primitivas de cleanup seguro,
+ausencia confirmada local o S3 no existen todavía. Toda reconciliación mutante
+sigue siendo trabajo futuro. P1.D.2 y P1.D no están completos.

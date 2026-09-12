@@ -31,6 +31,7 @@ Sublínea activa: P1.D — backfill de masters legacy.
 | P1.D.1C-B3-B — wiring CLI APPLY | completado hasta producción |
 | P1.D.1C-B3 — coordinador y wiring CLI APPLY | completado hasta producción |
 | P1.D.2-A — inspector/clasificador de reconciliación read-only | completado hasta producción |
+| P1.D.2-B1 — esquema y representación durable read-only | implementado localmente; pendiente de aceptación humana y promoción |
 
 P1.D.1C-A está completado hasta producción. Su smoke de producción terminó correctamente con exit 0, cero bloqueos y cero escrituras de storage.
 
@@ -108,10 +109,33 @@ cleanup S3.
 P1.D.1C-B3 permanece aceptado hasta producción. El despliegue de D2-A no
 autoriza ningún APPLY real: durante su aceptación no hubo APPLY operacional,
 reconciliación mutante, publicación de storage ni creación de evidencia
-artificial. P1.D.2 y P1.D permanecen abiertos. El siguiente bloque es D2-B:
-definir los estados/API mínimos de resolución durable. Toda reconciliación
-mutante sigue siendo trabajo futuro, posterior a la implementación y aceptación
-de los contratos de seguridad D2-B/C.
+artificial. P1.D.2 y P1.D permanecen abiertos. El diseño D2-B posterior definió
+el modelo mínimo de resolución durable; el estado local de su primer bloque se
+detalla a continuación. Toda reconciliación mutante sigue siendo trabajo futuro,
+posterior a la implementación y aceptación de sus contratos de seguridad.
+
+## Estado local de P1.D.2-B1
+
+D2-B1 está implementado únicamente en el árbol local y queda pendiente de
+revisión humana, commit y promoción. Añade un esquema híbrido: eventos de
+reconciliación conceptualmente append-only y proyecciones nullable en runs,
+items y objetos. `NULL` significa sin resolución D2 aceptada, incluida toda fila
+pre-D2. Los hechos originales de APPLY y los checkpoints no se reescriben.
+
+La inspección read-only muestra las proyecciones como una dimensión separada.
+También incorpora `functionalStorageSetExact`: acredita sólo que el plan
+completo y los bytes actuales forman el conjunto funcional exacto. Es
+independiente de la atribución histórica y puede coexistir con cleanup
+`pending`, `failed` o `unknown`, pero es falso ante cleanup `deleted`, lectura
+no exacta, plan incompleto/duplicado, identidad distinta o evidencia
+inconsistente. No acredita ownership ni constituye una resolución durable.
+
+La barrera de recuperación conserva deliberadamente en B1 sus cuatro
+predicados históricos sin override por proyecciones. No existe todavía ningún
+repositorio/API de mutación de reconciliación, cierre tardío de run, cleanup ni
+ausencia confirmada. El rollback físico de la migración B1 sólo se permite
+cuando no hay eventos ni proyecciones. D2-B2 será el siguiente bloque sólo tras
+la aceptación de B1; P1.D.2 y P1.D permanecen abiertos.
 
 ## Documentos de referencia
 
@@ -119,7 +143,7 @@ de los contratos de seguridad D2-B/C.
 - [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md) — journal, identidad, lock, mantenimiento y escritura exclusiva (P1.D.1B).
 - [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md) — dry-run y wiring CLI APPLY aceptados hasta producción.
 - [34-responsive-backfill-apply-design.md](34-responsive-backfill-apply-design.md) — diseño aprobado de APPLY; B1/B2/B3-A/B3-B y B3 aceptados hasta producción.
-- [35-responsive-backfill-reconciliation.md](35-responsive-backfill-reconciliation.md) — D2-A read-only aceptado hasta producción: lectores acotados, observación exacta, clasificaciones y CLI.
+- [35-responsive-backfill-reconciliation.md](35-responsive-backfill-reconciliation.md) — D2-A read-only aceptado hasta producción y D2-B1 local pendiente: esquema híbrido y representación durable read-only.
 
 ## Invariante de traspaso
 

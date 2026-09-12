@@ -182,7 +182,12 @@ class ResponsiveBackfillReconcileCommand extends Command
     private function renderRunSummary(RunReconciliationReport $report): void
     {
         $this->line('Run '.$report->runId.' state='.($report->state?->value ?? 'invalid')
-            .' domain='.$report->domain.' flags='.$this->enumList($report->flags));
+            .' domain='.$report->domain.' flags='.$this->enumList($report->flags)
+            .' reconciliation_event='.$this->reconciliationEvent(
+                $report->hasReconciliationEvent,
+                $report->reconciliationEventPointerInvalid,
+                $report->reconciliationEventFingerprint,
+            ));
         $this->line('  items_total='.$report->totalItems.' unfinished='.$report->unfinishedItems
             .' unresolved_objects='.$report->unresolvedObjects.' ambiguous_writes='.$report->ambiguousWrites
             .' cleanup_attention='.$report->cleanupAttention
@@ -207,7 +212,17 @@ class ResponsiveBackfillReconcileCommand extends Command
         $this->line('Item '.$report->id.' run='.$report->runId.' domain='.$report->domain
             .' entity='.$report->entityId.' phase='.($report->phase?->value ?? 'invalid')
             .' result='.($report->applyResult?->value ?? '-').' preflight='.$report->preflightClassification
-            .' classification='.$report->classification->value.' action='.$report->recommendedAction());
+            .' classification='.$report->classification->value
+            .' functional_storage_set_exact='.($report->functionalStorageSetExact ? 'yes' : 'no')
+            .' durable_reconciliation='.($report->reconciliationResultInvalid
+                ? 'invalid'
+                : ($report->reconciliationResult?->value ?? 'unresolved'))
+            .' reconciliation_event='.$this->reconciliationEvent(
+                $report->hasReconciliationEvent,
+                $report->reconciliationResultInvalid,
+                $report->reconciliationEventFingerprint,
+            )
+            .' action='.$report->recommendedAction());
     }
 
     private function renderObjectContext(ObjectContextReport $report): bool
@@ -228,6 +243,14 @@ class ResponsiveBackfillReconcileCommand extends Command
             .' observation='.$report->observation->value.' attribution='.$report->attribution->value
             .' classification='.$report->classification->value.' has_etag='.($report->hasEtag ? 'yes' : 'no')
             .' has_version_identity='.($report->hasVersionIdentity ? 'yes' : 'no')
+            .' durable_reconciliation='.($report->reconciliationResolutionInvalid
+                ? 'invalid'
+                : ($report->reconciliationResolution?->value ?? 'unresolved'))
+            .' reconciliation_event='.$this->reconciliationEvent(
+                $report->hasReconciliationEvent,
+                $report->reconciliationResolutionInvalid,
+                $report->reconciliationEventFingerprint,
+            )
             .' action='.$report->recommendedAction());
     }
 
@@ -254,6 +277,18 @@ class ResponsiveBackfillReconcileCommand extends Command
     private function nullableBoolean(?bool $value): string
     {
         return $value === null ? 'unavailable' : ($value ? 'yes' : 'no');
+    }
+
+    private function reconciliationEvent(bool $present, bool $invalid, ?string $fingerprint): string
+    {
+        if ($invalid) {
+            return 'invalid';
+        }
+        if (! $present) {
+            return 'none';
+        }
+
+        return $fingerprint === null ? 'invalid' : 'sha256:'.$fingerprint;
     }
 
     private function renderNoMutationFooter(): void

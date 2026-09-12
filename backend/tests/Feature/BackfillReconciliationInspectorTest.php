@@ -11,10 +11,13 @@ use App\Services\Media\Backfill\PreflightResult;
 use App\Services\Media\Backfill\Reconciliation\ExactObjectObserver;
 use App\Services\Media\Backfill\Reconciliation\ItemClassification;
 use App\Services\Media\Backfill\Reconciliation\ItemReconciliationReport;
+use App\Services\Media\Backfill\Reconciliation\ItemReconciliationResult;
 use App\Services\Media\Backfill\Reconciliation\ObjectAttribution;
 use App\Services\Media\Backfill\Reconciliation\ObjectClassification;
 use App\Services\Media\Backfill\Reconciliation\ObjectObservation;
 use App\Services\Media\Backfill\Reconciliation\ObjectReconciliationReport;
+use App\Services\Media\Backfill\Reconciliation\ObjectReconciliationResolution;
+use App\Services\Media\Backfill\Reconciliation\ReconciliationEventType;
 use App\Services\Media\Backfill\Reconciliation\ReconciliationInspector;
 use App\Services\Media\Backfill\Reconciliation\RunFlag;
 use App\Services\Media\Backfill\Safety\ApplyJournal;
@@ -84,7 +87,7 @@ class BackfillReconciliationInspectorTest extends TestCase
         $beforeBarrier = $journal->recoveryBarrier();
         $queries = [];
         DB::listen(function ($query) use (&$queries) {
-            if (preg_match('/media_backfill_(runs|items|objects)/i', $query->sql) === 1) {
+            if (preg_match('/media_backfill_(runs|items|objects|reconciliation_events)/i', $query->sql) === 1) {
                 $queries[] = $query->sql;
             }
         });
@@ -97,7 +100,13 @@ class BackfillReconciliationInspectorTest extends TestCase
         $this->assertSame(ItemClassification::StorageSetExactDomainRevalidationPending, $report->classification);
         $this->assertSame(ApplyResult::PublicationUnknown, $report->applyResult);
         $this->assertTrue($report->domainRevalidationPending);
+        $this->assertTrue($report->functionalStorageSetExact);
+        $this->assertNull($report->reconciliationResult);
+        $this->assertFalse($report->reconciliationResultInvalid);
+        $this->assertFalse($report->hasReconciliationEvent);
         $this->assertStringContainsString('storage_set_exact_domain_revalidation_pending_d2_c', $output);
+        $this->assertStringContainsString('functional_storage_set_exact=yes', $output);
+        $this->assertStringContainsString('durable_reconciliation=unresolved', $output);
         $this->assertStringContainsString('has_etag=yes', $output);
         $this->assertStringContainsString('has_version_identity=yes', $output);
         $this->assertStringNotContainsString('private-etag', $output);
@@ -128,6 +137,9 @@ class BackfillReconciliationInspectorTest extends TestCase
         $this->assertSame(ObjectObservation::AbsentNow, $report->observation);
         $this->assertSame(ObjectClassification::AmbiguousAbsentNow, $report->classification);
         $this->assertTrue($report->recoveryBlocker());
+        $this->assertNull($report->reconciliationResolution);
+        $this->assertFalse($report->reconciliationResolutionInvalid);
+        $this->assertFalse($report->hasReconciliationEvent);
         $this->assertSame(RecoveryBarrierState::Blocked, $journal->recoveryBarrier());
         $this->assertSame($before, $this->journalSnapshot());
         $this->assertSame('intent', $journal->object($variantId)->write_state);
@@ -148,6 +160,7 @@ class BackfillReconciliationInspectorTest extends TestCase
         $report = app(ReconciliationInspector::class)->inspectItem($itemId);
 
         $this->assertSame(ItemClassification::AmbiguousBlocked, $report->classification);
+        $this->assertFalse($report->functionalStorageSetExact);
         $this->assertSame(ObjectObservation::ExpectedContentPresent, $report->manifest->observation);
         $this->assertContains(ObjectObservation::AbsentNow, array_map(
             static fn ($object) => $object->observation,
@@ -168,6 +181,7 @@ class BackfillReconciliationInspectorTest extends TestCase
         $report = app(ReconciliationInspector::class)->inspectItem($itemId);
 
         $this->assertSame(ItemClassification::AmbiguousBlocked, $report->classification);
+        $this->assertFalse($report->functionalStorageSetExact);
         $this->assertSame(ObjectObservation::AbsentNow, $report->manifest->observation);
         $this->assertSame(ObjectClassification::AmbiguousExpectedPresent, $this->objectReport($report, $variantId)->classification);
     }
@@ -191,6 +205,7 @@ class BackfillReconciliationInspectorTest extends TestCase
         $variant = $this->objectReport($report, $variantId);
 
         $this->assertSame(ItemClassification::StorageSetExactDomainRevalidationPending, $report->classification);
+        $this->assertTrue($report->functionalStorageSetExact);
         $this->assertSame($attribution, $variant->attribution);
         $this->assertSame($objectClassification, $variant->classification);
         $this->assertSame($receipt->value, $journal->object($variantId)->create_state);
@@ -235,6 +250,7 @@ class BackfillReconciliationInspectorTest extends TestCase
         $report = app(ReconciliationInspector::class)->inspectItem($itemId);
 
         $this->assertNotSame(ItemClassification::StorageSetExactDomainRevalidationPending, $report->classification);
+        $this->assertFalse($report->functionalStorageSetExact);
         $this->assertSame($before, $this->journalSnapshot());
     }
 
@@ -244,6 +260,89 @@ class BackfillReconciliationInspectorTest extends TestCase
             'missing' => ['missing'],
             'different' => ['different'],
             'unreadable' => ['unreadable'],
+        ];
+    }
+
+    #[DataProvider('cleanupStatesCompatibleWithFunctionalExactness')]
+    public function test_functional_exactness_is_independent_of_cleanup_attention(CleanupState $cleanup): void
+    {
+        [$journal, , $itemId, $objects, $bytes] = $this->candidatePlan();
+        foreach ($objects as $objectId) {
+            $journal->commitIntent($objectId);
+            $journal->recordReceipt($objectId, new CreateReceipt(CreateState::Created));
+            Storage::disk('media_local')->put($bytes[$objectId]['key'], $bytes[$objectId]['bytes']);
+        }
+        if ($cleanup !== CleanupState::NotRequired) {
+            $journal->updateCleanup($objects['variant'], CleanupState::Pending);
+            if ($cleanup !== CleanupState::Pending) {
+                $journal->updateCleanup($objects['variant'], $cleanup);
+            }
+        }
+
+        $report = app(ReconciliationInspector::class)->inspectItem($itemId);
+
+        $this->assertTrue($report->functionalStorageSetExact);
+        $this->assertSame(
+            $cleanup === CleanupState::NotRequired
+                ? ItemClassification::StorageSetExactDomainRevalidationPending
+                : ItemClassification::CleanupAttentionCandidate,
+            $report->classification,
+        );
+        $this->assertSame(RecoveryBarrierState::Blocked, $journal->recoveryBarrier());
+    }
+
+    public static function cleanupStatesCompatibleWithFunctionalExactness(): array
+    {
+        return [
+            'not required' => [CleanupState::NotRequired],
+            'pending' => [CleanupState::Pending],
+            'failed' => [CleanupState::Failed],
+            'unknown' => [CleanupState::Unknown],
+        ];
+    }
+
+    public function test_deleted_cleanup_history_prevents_functional_exactness_even_when_bytes_are_exact(): void
+    {
+        [$journal, , $itemId, $objects, $bytes] = $this->candidatePlan();
+        foreach ($objects as $objectId) {
+            $journal->commitIntent($objectId);
+            $journal->recordReceipt($objectId, new CreateReceipt(CreateState::Created));
+            Storage::disk('media_local')->put($bytes[$objectId]['key'], $bytes[$objectId]['bytes']);
+        }
+        $journal->updateCleanup($objects['variant'], CleanupState::Pending);
+        $journal->updateCleanup($objects['variant'], CleanupState::Deleted);
+
+        $this->assertFalse(app(ReconciliationInspector::class)->inspectItem($itemId)->functionalStorageSetExact);
+    }
+
+    #[DataProvider('invalidPlannedSetCases')]
+    public function test_missing_or_duplicate_planned_rows_prevent_functional_exactness(string $case): void
+    {
+        [$journal, , $itemId, $objects, $bytes] = $this->candidatePlan();
+        foreach ($bytes as $expected) {
+            Storage::disk('media_local')->put($expected['key'], $expected['bytes']);
+        }
+        if ($case === 'missing_manifest') {
+            DB::table('media_backfill_objects')->where('id', $objects['manifest'])->delete();
+        } elseif ($case === 'missing_variant') {
+            DB::table('media_backfill_objects')->where('id', $objects['variant'])->delete();
+        } else {
+            $duplicate = (array) DB::table('media_backfill_objects')->where('id', $objects[$case])->first();
+            unset($duplicate['id']);
+            $duplicate['object_key'] .= '.duplicate';
+            DB::table('media_backfill_objects')->insert($duplicate);
+        }
+
+        $this->assertFalse(app(ReconciliationInspector::class)->inspectItem($itemId)->functionalStorageSetExact);
+    }
+
+    public static function invalidPlannedSetCases(): array
+    {
+        return [
+            'missing manifest' => ['missing_manifest'],
+            'missing variant' => ['missing_variant'],
+            'duplicate manifest' => ['manifest'],
+            'duplicate variant' => ['variant'],
         ];
     }
 
@@ -266,6 +365,7 @@ class BackfillReconciliationInspectorTest extends TestCase
         $report = app(ReconciliationInspector::class)->inspectItem($itemId);
 
         $this->assertSame(ItemClassification::CleanupAttentionCandidate, $report->classification);
+        $this->assertFalse($report->functionalStorageSetExact);
         $this->assertSame(ObjectClassification::CleanupPendingPresent, $this->objectReport($report, $variantId)->classification);
         $this->assertSame(ObjectClassification::AmbiguousDifferentPresent, $report->manifest->classification);
         $this->assertSame($before, $this->journalSnapshot());
@@ -273,8 +373,11 @@ class BackfillReconciliationInspectorTest extends TestCase
 
     public function test_storage_identity_drift_makes_exact_key_evidence_unreadable_without_disclosing_configuration(): void
     {
-        [$journal, , $itemId, $objects] = $this->candidatePlan();
+        [$journal, , $itemId, $objects, $bytes] = $this->candidatePlan();
         $journal->commitIntent($objects['variant']);
+        foreach ($bytes as $expected) {
+            Storage::disk('media_local')->put($expected['key'], $expected['bytes']);
+        }
         config()->set('filesystems.disks.media_local.root', $this->safetyRoot.'/different-root');
 
         $exitCode = Artisan::call('media:responsive-backfill-reconcile', ['--object' => (string) $objects['variant']]);
@@ -285,6 +388,7 @@ class BackfillReconciliationInspectorTest extends TestCase
         $this->assertStringNotContainsString($this->safetyRoot, $output);
         $this->assertSame('intent', $journal->object($objects['variant'])->write_state);
         $this->assertSame('writing', $journal->item($itemId)->phase);
+        $this->assertFalse(app(ReconciliationInspector::class)->inspectItem($itemId)->functionalStorageSetExact);
     }
 
     public function test_run_flags_cover_active_terminal_unfinished_ambiguous_cleanup_and_mixed_evidence(): void
@@ -325,6 +429,7 @@ class BackfillReconciliationInspectorTest extends TestCase
         $report = app(ReconciliationInspector::class)->inspectItem($itemId);
 
         $this->assertSame(ItemClassification::InternallyInconsistent, $report->classification);
+        $this->assertFalse($report->functionalStorageSetExact);
         $this->assertSame(7, Artisan::call('media:responsive-backfill-reconcile', ['--item' => (string) $itemId]));
         $this->assertSame($before, $this->journalSnapshot());
     }
@@ -343,6 +448,7 @@ class BackfillReconciliationInspectorTest extends TestCase
         $report = app(ReconciliationInspector::class)->inspectItem($itemId);
 
         $this->assertSame(ItemClassification::InternallyInconsistent, $report->classification);
+        $this->assertFalse($report->functionalStorageSetExact);
         $this->assertSame(7, Artisan::call('media:responsive-backfill-reconcile', ['--item' => (string) $itemId]));
         $this->assertSame($before, $this->journalSnapshot());
     }
@@ -352,7 +458,9 @@ class BackfillReconciliationInspectorTest extends TestCase
         [$journal, , $itemId, $objects, $bytes] = $this->candidatePlan();
         $objectId = $objects['variant'];
         $journal->commitIntent($objectId);
-        Storage::disk('media_local')->put($bytes[$objectId]['key'], $bytes[$objectId]['bytes']);
+        foreach ($bytes as $expected) {
+            Storage::disk('media_local')->put($expected['key'], $expected['bytes']);
+        }
         DB::table('media_backfill_items')->where('id', $itemId)->update(['entity_id' => 1001]);
         $beforeJournal = $this->journalSnapshot();
         $beforeStorage = $this->storageSnapshot();
@@ -366,6 +474,7 @@ class BackfillReconciliationInspectorTest extends TestCase
         $output = Artisan::output();
         $this->assertStringContainsString('observation=expected_content_present', $output);
         $this->assertStringContainsString('classification=inconsistent', $output);
+        $this->assertFalse(app(ReconciliationInspector::class)->inspectItem($itemId)->functionalStorageSetExact);
         $this->assertSame($beforeJournal, $this->journalSnapshot());
         $this->assertSame($beforeStorage, $this->storageSnapshot());
     }
@@ -528,6 +637,78 @@ class BackfillReconciliationInspectorTest extends TestCase
         $this->assertSame($before, $this->journalSnapshot());
     }
 
+    public function test_valid_durable_projections_are_reported_but_do_not_override_the_recovery_barrier(): void
+    {
+        [$journal, $runId, $itemId, $objects, $bytes] = $this->candidatePlan();
+        $journal->commitIntent($objects['variant']);
+        foreach ($bytes as $expected) {
+            Storage::disk('media_local')->put($expected['key'], $expected['bytes']);
+        }
+        $event = $this->insertReconciliationEvent($runId, $itemId, ReconciliationEventType::ItemForwardAccepted);
+        DB::table('media_backfill_runs')->where('run_id', $runId)->update(['reconciliation_event_id' => $event]);
+        DB::table('media_backfill_items')->where('id', $itemId)->update([
+            'reconciliation_result' => ItemReconciliationResult::ForwardAccepted->value,
+            'reconciliation_event_id' => $event,
+        ]);
+        DB::table('media_backfill_objects')->where('id', $objects['variant'])->update([
+            'reconciliation_resolution' => ObjectReconciliationResolution::ForwardRetained->value,
+            'reconciliation_event_id' => $event,
+        ]);
+        $before = $this->journalSnapshot();
+
+        $run = app(ReconciliationInspector::class)->inspectRun($runId, 100);
+        $item = app(ReconciliationInspector::class)->inspectItem($itemId);
+        $object = app(ReconciliationInspector::class)->inspectObject($objects['variant']);
+        $this->assertTrue($run->hasReconciliationEvent);
+        $this->assertFalse($run->reconciliationEventPointerInvalid);
+        $this->assertSame(ItemReconciliationResult::ForwardAccepted, $item->reconciliationResult);
+        $this->assertFalse($item->reconciliationResultInvalid);
+        $this->assertSame(ObjectReconciliationResolution::ForwardRetained, $object->reconciliationResolution);
+        $this->assertFalse($object->reconciliationResolutionInvalid);
+        $this->assertSame(RecoveryBarrierState::Blocked, $journal->recoveryBarrier());
+
+        $this->assertSame(0, Artisan::call('media:responsive-backfill-reconcile', ['--item' => (string) $itemId]));
+        $output = Artisan::output();
+        $this->assertStringContainsString('durable_reconciliation=forward_accepted', $output);
+        $this->assertStringContainsString('reconciliation_event=sha256:', $output);
+        $this->assertStringNotContainsString($event, $output);
+        $this->assertSame($before, $this->journalSnapshot());
+        $this->assertSame('active', $journal->run($runId)->state);
+        $this->assertSame('writing', $journal->item($itemId)->phase);
+        $this->assertSame('intent', $journal->object($objects['variant'])->write_state);
+    }
+
+    public function test_unknown_durable_projection_is_invalid_unresolved_and_read_only(): void
+    {
+        [$journal, $runId, $itemId, $objects] = $this->candidatePlan();
+        $journal->commitIntent($objects['variant']);
+        $event = $this->insertReconciliationEvent($runId, $itemId, ReconciliationEventType::AttemptBlocked);
+        DB::table('media_backfill_objects')->where('id', $objects['variant'])->update([
+            'reconciliation_resolution' => 'future_unknown',
+            'reconciliation_event_id' => $event,
+        ]);
+        DB::table('media_backfill_items')->where('id', $itemId)->update([
+            'reconciliation_result' => 'future_unknown',
+            'reconciliation_event_id' => $event,
+        ]);
+        $before = $this->journalSnapshot();
+
+        $report = app(ReconciliationInspector::class)->inspectObject($objects['variant']);
+        $itemReport = app(ReconciliationInspector::class)->inspectItem($itemId);
+
+        $this->assertNull($report->reconciliationResolution);
+        $this->assertTrue($report->reconciliationResolutionInvalid);
+        $this->assertTrue($report->preventsTrustworthyClassification());
+        $this->assertNull($itemReport->reconciliationResult);
+        $this->assertTrue($itemReport->reconciliationResultInvalid);
+        $this->assertFalse($itemReport->functionalStorageSetExact);
+        $this->assertSame(RecoveryBarrierState::Blocked, $journal->recoveryBarrier());
+        $this->assertSame(7, Artisan::call('media:responsive-backfill-reconcile', ['--item' => (string) $itemId]));
+        $this->assertStringContainsString('durable_reconciliation=invalid', Artisan::output());
+        $this->assertStringNotContainsString($event, Artisan::output());
+        $this->assertSame($before, $this->journalSnapshot());
+    }
+
     public function test_read_only_components_have_no_mutation_or_listing_dependencies(): void
     {
         $commandSource = file_get_contents(app_path('Console/Commands/ResponsiveBackfillReconcileCommand.php'));
@@ -549,6 +730,11 @@ class BackfillReconciliationInspectorTest extends TestCase
         foreach (['finishItem', 'finishRun', 'recordReceipt', 'updateCleanup', 'advanceCheckpoint', 'commitIntent'] as $mutation) {
             $this->assertStringNotContainsString($mutation.'(', $commandSource.$inspectorSource.$observerSource);
         }
+        foreach (['beginRunReconciliation', 'recordBlockedAttempt', 'recordForwardItemResolution',
+            'recordNoEffectItemResolution', 'closeReconciledRun', 'recordCleanupResolution'] as $method) {
+            $this->assertFalse(method_exists(ApplyJournal::class, $method));
+        }
+        $this->assertFalse(class_exists('App\\Services\\Media\\Backfill\\Reconciliation\\ReconciliationJournal'));
         foreach (['listContents', 'allFiles(', 'files(', 'directories('] as $listing) {
             $this->assertStringNotContainsString($listing, $commandSource.$inspectorSource.$observerSource);
         }
@@ -626,7 +812,32 @@ class BackfillReconciliationInspectorTest extends TestCase
             'runs' => DB::table('media_backfill_runs')->orderBy('run_id')->get()->map(fn ($row) => (array) $row)->all(),
             'items' => DB::table('media_backfill_items')->orderBy('id')->get()->map(fn ($row) => (array) $row)->all(),
             'objects' => DB::table('media_backfill_objects')->orderBy('id')->get()->map(fn ($row) => (array) $row)->all(),
+            'reconciliation_events' => DB::table('media_backfill_reconciliation_events')->orderBy('event_id')->get()->map(fn ($row) => (array) $row)->all(),
         ];
+    }
+
+    private function insertReconciliationEvent(
+        string $runId,
+        int $itemId,
+        ReconciliationEventType $type,
+    ): string {
+        $event = '550e8400-e29b-41d4-a716-446655440001';
+        DB::table('media_backfill_reconciliation_events')->insert([
+            'event_id' => $event,
+            'attempt_id' => '550e8400-e29b-41d4-a716-446655440002',
+            'run_id' => $runId,
+            'item_id' => $itemId,
+            'event_type' => $type->value,
+            'evidence_version' => 1,
+            'storage_identity_hash' => $this->identity()->hash,
+            'backend_mode' => 'local',
+            'code_revision' => str_repeat('a', 64),
+            'evidence_sha256' => hash('sha256', '{}'),
+            'evidence_json' => '{}',
+            'created_at' => now(),
+        ]);
+
+        return $event;
     }
 
     private function storageSnapshot(): array

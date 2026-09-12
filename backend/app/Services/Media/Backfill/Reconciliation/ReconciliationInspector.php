@@ -115,6 +115,7 @@ class ReconciliationInspector
             : [];
         $items = array_map(fn (stdClass $item): ItemReconciliationReport => $this->itemReport($item, $run), $itemRows);
         $state = is_string($run->state ?? null) ? RunState::tryFrom($run->state) : null;
+        $reconciliationEvent = ReconciliationEventPointer::from($run->reconciliation_event_id ?? null);
         $identityMatches = $this->storageIdentityMatches($run);
         $itemsTruncated = $counts['total_items'] > count($itemRows);
         $childInconsistent = false;
@@ -124,7 +125,8 @@ class ReconciliationInspector
                 break;
             }
         }
-        $inconsistent = ! $runConsistent || $counts['total_items'] > $limit || $childInconsistent;
+        $inconsistent = ! $runConsistent || ! $reconciliationEvent->valid
+            || $counts['total_items'] > $limit || $childInconsistent;
         $flags = [];
         if ($counts['unfinished_items'] > 0) {
             $flags[] = RunFlag::HasUnfinishedItems;
@@ -169,12 +171,23 @@ class ReconciliationInspector
             flags: $flags,
             items: $items,
             itemsTruncated: $itemsTruncated,
+            hasReconciliationEvent: $reconciliationEvent->present,
+            reconciliationEventPointerInvalid: ! $reconciliationEvent->valid,
+            reconciliationEventFingerprint: $reconciliationEvent->fingerprint,
         );
     }
 
     private function itemReport(stdClass $item, stdClass $run): ItemReconciliationReport
     {
         [$manifest, $phase, $result, $preflight, $itemConsistent] = $this->itemContext($item, $run);
+        $reconciliationResult = is_string($item->reconciliation_result ?? null)
+            ? ItemReconciliationResult::tryFrom($item->reconciliation_result)
+            : null;
+        $reconciliationEvent = ReconciliationEventPointer::from($item->reconciliation_event_id ?? null);
+        $reconciliationResultInvalid = (($item->reconciliation_result ?? null) !== null
+            && $reconciliationResult === null)
+            || ($reconciliationResult !== null && ! $reconciliationEvent->valid)
+            || ($reconciliationResult !== null) !== $reconciliationEvent->present;
         $rows = $this->journal->objectsForItem((int) $item->id, 0, self::MAX_CHILDREN);
         $objects = array_map(
             fn (stdClass $object): ObjectReconciliationReport => $this->objectReport(
@@ -191,7 +204,7 @@ class ReconciliationInspector
         $manifestReport = null;
         $hasCleanupAttention = false;
         $hasAmbiguity = false;
-        $hasInconsistency = ! $itemConsistent;
+        $hasInconsistency = ! $itemConsistent || $reconciliationResultInvalid;
         foreach ($objects as $object) {
             $durableKey = ($object->writeState?->value ?? 'invalid').'/'.($object->cleanupState?->value ?? 'invalid');
             $durableCounts[$durableKey] = ($durableCounts[$durableKey] ?? 0) + 1;
@@ -207,10 +220,18 @@ class ReconciliationInspector
                 [ObjectWriteState::Intent, ObjectWriteState::Unknown],
                 true,
             );
-            $hasInconsistency = $hasInconsistency || $object->classification === ObjectClassification::Inconsistent;
+            $hasInconsistency = $hasInconsistency || $object->classification === ObjectClassification::Inconsistent
+                || $object->reconciliationResolutionInvalid;
         }
 
-        $exactSet = $this->isExactCandidateSet($manifest, $objects);
+        $functionalStorageSetExact = $this->functionalStorageSetExact(
+            $item,
+            $manifest,
+            $rows,
+            $objects,
+            $itemConsistent && ! $reconciliationResultInvalid,
+        );
+        $exactSet = $functionalStorageSetExact && $this->hasNoCleanupHistory($objects);
         $classification = match (true) {
             $hasInconsistency => ItemClassification::InternallyInconsistent,
             $hasCleanupAttention => ItemClassification::CleanupAttentionCandidate,
@@ -233,6 +254,11 @@ class ReconciliationInspector
             manifest: $manifestReport,
             classification: $classification,
             domainRevalidationPending: $classification === ItemClassification::StorageSetExactDomainRevalidationPending,
+            functionalStorageSetExact: $functionalStorageSetExact,
+            reconciliationResult: $reconciliationResult,
+            reconciliationResultInvalid: $reconciliationResultInvalid,
+            hasReconciliationEvent: $reconciliationEvent->present,
+            reconciliationEventFingerprint: $reconciliationEvent->fingerprint,
         );
     }
 
@@ -339,20 +365,62 @@ class ReconciliationInspector
         return [null, false];
     }
 
-    /** @param list<ObjectReconciliationReport> $objects */
-    private function isExactCandidateSet(?ResponsiveManifest $manifest, array $objects): bool
-    {
-        if ($manifest === null || count($objects) !== count($manifest->variants) + 1) {
+    /**
+     * @param  list<stdClass>  $rows
+     * @param  list<ObjectReconciliationReport>  $objects
+     */
+    private function functionalStorageSetExact(
+        stdClass $item,
+        ?ResponsiveManifest $manifest,
+        array $rows,
+        array $objects,
+        bool $parentsConsistent,
+    ): bool {
+        if (! $parentsConsistent || $manifest === null
+            || count($rows) !== count($objects)
+            || count($objects) !== count($manifest->variants) + 1
+            || ! is_string($item->manifest_key ?? null)) {
             return false;
         }
+
+        $expectedKeys = [$item->manifest_key, ...array_map(
+            static fn (ManifestImage $variant): string => $variant->key,
+            $manifest->variants,
+        )];
+        $actualKeys = [];
+        foreach ($rows as $row) {
+            if (! is_string($row->object_key ?? null)) {
+                return false;
+            }
+            $actualKeys[] = $row->object_key;
+        }
+        sort($expectedKeys);
+        sort($actualKeys);
+        if ($actualKeys !== $expectedKeys || count(array_unique($actualKeys)) !== count($actualKeys)) {
+            return false;
+        }
+
         foreach ($objects as $object) {
             if ($object->observation !== ObjectObservation::ExpectedContentPresent
-                || $object->cleanupState !== CleanupState::NotRequired) {
+                || $object->cleanupState === CleanupState::Deleted
+                || $object->preventsTrustworthyClassification()) {
                 return false;
             }
         }
 
         return count(array_filter($objects, static fn (ObjectReconciliationReport $object): bool => $object->kind === ObjectKind::Manifest)) === 1;
+    }
+
+    /** @param list<ObjectReconciliationReport> $objects */
+    private function hasNoCleanupHistory(array $objects): bool
+    {
+        foreach ($objects as $object) {
+            if ($object->cleanupState !== CleanupState::NotRequired) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /** @param list<ObjectReconciliationReport> $objects */
@@ -393,6 +461,7 @@ class ReconciliationInspector
                 ? ManagedMediaDomain::tryFrom($options['domain'])
                 : null;
             $state = is_string($run->state ?? null) ? RunState::tryFrom($run->state) : null;
+            $reconciliationEvent = ReconciliationEventPointer::from($run->reconciliation_event_id ?? null);
             $valid = $this->canonicalUuid((string) ($run->run_id ?? ''))
                 && ($run->mode ?? null) === JournalMode::Apply->value
                 && $state !== null
@@ -407,6 +476,7 @@ class ReconciliationInspector
                     || $checkpoints[$domain->value] === $options['after_id'])
                 && is_string($run->storage_identity_hash ?? null)
                 && preg_match('/\A[0-9a-f]{64}\z/D', $run->storage_identity_hash) === 1
+                && $reconciliationEvent->valid
                 && (($state === RunState::Active && ($run->finished_at ?? null) === null)
                     || ($state !== RunState::Active && ($run->finished_at ?? null) !== null));
 

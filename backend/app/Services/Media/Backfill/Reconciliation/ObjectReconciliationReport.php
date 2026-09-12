@@ -22,11 +22,16 @@ final readonly class ObjectReconciliationReport
         public ObjectClassification $classification,
         public bool $hasEtag,
         public bool $hasVersionIdentity,
+        public ?ObjectReconciliationResolution $reconciliationResolution,
+        public bool $reconciliationResolutionInvalid,
+        public bool $hasReconciliationEvent,
+        public ?string $reconciliationEventFingerprint,
     ) {}
 
     public function preventsTrustworthyClassification(): bool
     {
         return $this->classification === ObjectClassification::Inconsistent
+            || $this->reconciliationResolutionInvalid
             || in_array($this->observation, [ObjectObservation::Unreadable], true);
     }
 

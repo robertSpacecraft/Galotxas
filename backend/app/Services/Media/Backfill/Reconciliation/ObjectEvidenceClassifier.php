@@ -18,6 +18,13 @@ class ObjectEvidenceClassifier
         $write = is_string($row->write_state ?? null) ? ObjectWriteState::tryFrom($row->write_state) : null;
         $create = is_string($row->create_state ?? null) ? CreateState::tryFrom($row->create_state) : null;
         $cleanup = is_string($row->cleanup_state ?? null) ? CleanupState::tryFrom($row->cleanup_state) : null;
+        $resolution = is_string($row->reconciliation_resolution ?? null)
+            ? ObjectReconciliationResolution::tryFrom($row->reconciliation_resolution)
+            : null;
+        $event = ReconciliationEventPointer::from($row->reconciliation_event_id ?? null);
+        $resolutionInvalid = (($row->reconciliation_resolution ?? null) !== null && $resolution === null)
+            || ($resolution !== null && ! $event->valid)
+            || ($resolution !== null) !== $event->present;
         $consistent = $parentConsistent && $this->targetIsValid($row, $kind)
             && $this->statesAreConsistent($row, $write, $create, $cleanup);
         $attribution = $consistent
@@ -39,6 +46,10 @@ class ObjectEvidenceClassifier
                 : ObjectClassification::Inconsistent,
             hasEtag: is_string($row->etag ?? null) && $row->etag !== '',
             hasVersionIdentity: is_string($row->version_id ?? null) && $row->version_id !== '',
+            reconciliationResolution: $resolution,
+            reconciliationResolutionInvalid: $resolutionInvalid,
+            hasReconciliationEvent: $event->present,
+            reconciliationEventFingerprint: $event->fingerprint,
         );
     }
 

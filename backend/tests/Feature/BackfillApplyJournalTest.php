@@ -65,9 +65,10 @@ class BackfillApplyJournalTest extends TestCase
     public function test_schema_columns_indexes_and_only_restrict_internal_foreign_keys(): void
     {
         $expected = [
-            'runs' => ['run_id', 'mode', 'state', 'options_json', 'storage_identity_hash', 'code_revision', 'upper_bounds_json', 'checkpoints_json', 'summary_json', 'started_at', 'heartbeat_at', 'finished_at', 'error_code', 'created_at', 'updated_at'],
-            'items' => ['id', 'run_id', 'domain', 'entity_id', 'master_key', 'master_key_hash', 'reference_sample', 'manifest_key', 'preflight_classification', 'reason_codes_json', 'phase', 'apply_result', 'source_sha256', 'candidate_manifest_sha256', 'candidate_manifest_json', 'inspected_at', 'revalidated_at', 'finished_at', 'created_at', 'updated_at'],
-            'objects' => ['id', 'item_id', 'object_key', 'kind', 'expected_sha256', 'expected_size', 'mime_type', 'write_state', 'create_state', 'cleanup_state', 'etag', 'version_id', 'write_intent_at', 'write_confirmed_at', 'cleanup_attempted_at', 'cleanup_finished_at', 'created_at', 'updated_at'],
+            'runs' => ['run_id', 'mode', 'state', 'options_json', 'storage_identity_hash', 'code_revision', 'upper_bounds_json', 'checkpoints_json', 'summary_json', 'started_at', 'heartbeat_at', 'finished_at', 'error_code', 'created_at', 'updated_at', 'reconciliation_event_id'],
+            'items' => ['id', 'run_id', 'domain', 'entity_id', 'master_key', 'master_key_hash', 'reference_sample', 'manifest_key', 'preflight_classification', 'reason_codes_json', 'phase', 'apply_result', 'source_sha256', 'candidate_manifest_sha256', 'candidate_manifest_json', 'inspected_at', 'revalidated_at', 'finished_at', 'created_at', 'updated_at', 'reconciliation_result', 'reconciliation_event_id'],
+            'objects' => ['id', 'item_id', 'object_key', 'kind', 'expected_sha256', 'expected_size', 'mime_type', 'write_state', 'create_state', 'cleanup_state', 'etag', 'version_id', 'write_intent_at', 'write_confirmed_at', 'cleanup_attempted_at', 'cleanup_finished_at', 'created_at', 'updated_at', 'reconciliation_resolution', 'reconciliation_event_id'],
+            'reconciliation_events' => ['event_id', 'attempt_id', 'run_id', 'item_id', 'event_type', 'evidence_version', 'storage_identity_hash', 'backend_mode', 'code_revision', 'evidence_sha256', 'evidence_json', 'created_at'],
         ];
         foreach ($expected as $suffix => $columns) {
             $table = 'media_backfill_'.$suffix;
@@ -80,24 +81,81 @@ class BackfillApplyJournalTest extends TestCase
         foreach ([['runs', ['run_id'], true], ['runs', ['state', 'started_at'], false],
             ['items', ['run_id', 'domain', 'entity_id'], true], ['items', ['run_id', 'phase'], false],
             ['items', ['master_key_hash', 'phase'], false], ['objects', ['item_id', 'object_key'], true],
-            ['objects', ['cleanup_state', 'updated_at'], false]] as [$suffix, $columns, $unique]) {
+            ['objects', ['cleanup_state', 'updated_at'], false],
+            ['items', ['phase', 'reconciliation_result'], false],
+            ['objects', ['write_state', 'reconciliation_resolution'], false],
+            ['objects', ['cleanup_state', 'reconciliation_resolution'], false],
+            ['reconciliation_events', ['attempt_id', 'created_at'], false],
+            ['reconciliation_events', ['run_id', 'created_at'], false],
+            ['reconciliation_events', ['item_id', 'created_at'], false]] as [$suffix, $columns, $unique]) {
             $indexes = Schema::getIndexes('media_backfill_'.$suffix);
             $this->assertTrue(collect($indexes)->contains(fn ($index) => $index['columns'] === $columns && $index['unique'] === $unique));
         }
         $createState = collect(Schema::getColumns('media_backfill_objects'))->firstWhere('name', 'create_state');
         $this->assertSame('varchar', $createState['type_name']);
         $this->assertTrue($createState['nullable']);
-        $foreign = DB::select("SELECT TABLE_NAME, REFERENCED_TABLE_NAME, DELETE_RULE, UPDATE_RULE FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE() AND TABLE_NAME LIKE 'media_backfill_%' ORDER BY TABLE_NAME");
-        $this->assertCount(2, $foreign);
-        $this->assertSame('media_backfill_items', $foreign[0]->TABLE_NAME);
-        $this->assertSame('media_backfill_runs', $foreign[0]->REFERENCED_TABLE_NAME);
-        $this->assertSame('media_backfill_objects', $foreign[1]->TABLE_NAME);
-        $this->assertSame('media_backfill_items', $foreign[1]->REFERENCED_TABLE_NAME);
+        $eventColumns = collect(DB::select("SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE, CHARACTER_MAXIMUM_LENGTH, IS_NULLABLE, COLUMN_DEFAULT FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'media_backfill_reconciliation_events'"))
+            ->keyBy('COLUMN_NAME');
+        $runPrimaryType = DB::selectOne("SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'media_backfill_runs' AND COLUMN_NAME = 'run_id'");
+        foreach (['event_id', 'attempt_id', 'run_id'] as $uuidColumn) {
+            $this->assertSame($runPrimaryType->COLUMN_TYPE, $eventColumns[$uuidColumn]->COLUMN_TYPE);
+        }
+        $this->assertSame('uuid', $eventColumns['event_id']->DATA_TYPE);
+        $this->assertNull($eventColumns['event_id']->CHARACTER_MAXIMUM_LENGTH);
+        $itemPrimaryType = DB::selectOne("SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'media_backfill_items' AND COLUMN_NAME = 'id'");
+        $this->assertSame($itemPrimaryType->COLUMN_TYPE, $eventColumns['item_id']->COLUMN_TYPE);
+        $this->assertSame('smallint', $eventColumns['evidence_version']->DATA_TYPE);
+        $this->assertStringEndsWith(' unsigned', $eventColumns['evidence_version']->COLUMN_TYPE);
+        $this->assertSame('varchar', $eventColumns['event_type']->DATA_TYPE);
+        $this->assertSame(40, $eventColumns['event_type']->CHARACTER_MAXIMUM_LENGTH);
+        $this->assertSame(16, $eventColumns['backend_mode']->CHARACTER_MAXIMUM_LENGTH);
+        $this->assertSame(64, $eventColumns['storage_identity_hash']->CHARACTER_MAXIMUM_LENGTH);
+        $this->assertSame(64, $eventColumns['evidence_sha256']->CHARACTER_MAXIMUM_LENGTH);
+        $this->assertSame('longtext', $eventColumns['evidence_json']->DATA_TYPE);
+        $this->assertSame('datetime', $eventColumns['created_at']->DATA_TYPE);
+        $this->assertSame(64, $eventColumns['code_revision']->CHARACTER_MAXIMUM_LENGTH);
+        $this->assertSame('YES', $eventColumns['code_revision']->IS_NULLABLE);
+        $this->assertContains($eventColumns['code_revision']->COLUMN_DEFAULT, [null, 'NULL']);
+        foreach ($eventColumns as $name => $column) {
+            $this->assertSame(in_array($name, ['item_id', 'code_revision'], true) ? 'YES' : 'NO', $column->IS_NULLABLE);
+        }
+
+        foreach ([
+            'media_backfill_runs.reconciliation_event_id' => 'uuid',
+            'media_backfill_items.reconciliation_result' => 'varchar',
+            'media_backfill_items.reconciliation_event_id' => 'uuid',
+            'media_backfill_objects.reconciliation_resolution' => 'varchar',
+            'media_backfill_objects.reconciliation_event_id' => 'uuid',
+        ] as $projection => $type) {
+            [$table, $column] = explode('.', $projection);
+            $metadata = collect(Schema::getColumns($table))->firstWhere('name', $column);
+            $this->assertSame($type, $metadata['type_name']);
+            $this->assertTrue($metadata['nullable']);
+            $this->assertContains($metadata['default'], [null, 'NULL']);
+        }
+
+        $foreign = DB::select("SELECT TABLE_NAME, REFERENCED_TABLE_NAME, DELETE_RULE, UPDATE_RULE FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE() AND TABLE_NAME LIKE 'media_backfill_%'");
+        $this->assertCount(7, $foreign);
+        $relations = collect($foreign)->map(fn ($constraint): string => $constraint->TABLE_NAME.'->'.$constraint->REFERENCED_TABLE_NAME)->sort()->values()->all();
+        $this->assertSame([
+            'media_backfill_items->media_backfill_reconciliation_events',
+            'media_backfill_items->media_backfill_runs',
+            'media_backfill_objects->media_backfill_items',
+            'media_backfill_objects->media_backfill_reconciliation_events',
+            'media_backfill_reconciliation_events->media_backfill_items',
+            'media_backfill_reconciliation_events->media_backfill_runs',
+            'media_backfill_runs->media_backfill_reconciliation_events',
+        ], $relations);
         foreach ($foreign as $constraint) {
             $this->assertSame('RESTRICT', $constraint->DELETE_RULE);
             $this->assertSame('RESTRICT', $constraint->UPDATE_RULE);
         }
         [$journal, $run, $item, $object] = $this->plannedObject();
+        $this->assertNull($journal->run($run)->reconciliation_event_id);
+        $this->assertNull($journal->item($item)->reconciliation_result);
+        $this->assertNull($journal->item($item)->reconciliation_event_id);
+        $this->assertNull($journal->object($object)->reconciliation_resolution);
+        $this->assertNull($journal->object($object)->reconciliation_event_id);
         foreach ([['media_backfill_runs', 'run_id', $run], ['media_backfill_items', 'id', $item]] as [$table, $key, $id]) {
             try {
                 DB::table($table)->where($key, $id)->delete();
@@ -120,18 +178,97 @@ class BackfillApplyJournalTest extends TestCase
 
     public function test_migration_down_and_up_on_isolated_database(): void
     {
-        $migration = require database_path('migrations/2026_09_09_000000_create_media_backfill_journal_tables.php');
+        $journalMigration = require database_path('migrations/2026_09_09_000000_create_media_backfill_journal_tables.php');
+        $reconciliationMigration = require database_path('migrations/2026_09_12_000000_add_media_backfill_reconciliation_representation.php');
         try {
-            $migration->down();
-            foreach (['runs', 'items', 'objects'] as $suffix) {
+            $reconciliationMigration->down();
+            $journalMigration->down();
+            foreach (['runs', 'items', 'objects', 'reconciliation_events'] as $suffix) {
                 $this->assertFalse(Schema::hasTable('media_backfill_'.$suffix));
             }
         } finally {
-            $migration->up();
+            $journalMigration->up();
+            $reconciliationMigration->up();
         }
-        foreach (['runs', 'items', 'objects'] as $suffix) {
+        foreach (['runs', 'items', 'objects', 'reconciliation_events'] as $suffix) {
             $this->assertTrue(Schema::hasTable('media_backfill_'.$suffix));
         }
+    }
+
+    public function test_reconciliation_migration_refuses_rollback_when_an_event_exists(): void
+    {
+        [, $run, $item] = $this->plannedObject();
+        $this->insertReconciliationEvent($run, $item);
+        $migration = require database_path('migrations/2026_09_12_000000_add_media_backfill_reconciliation_representation.php');
+
+        try {
+            $migration->down();
+            $this->fail('Rollback must retain durable reconciliation evidence.');
+        } catch (RuntimeException $error) {
+            $this->assertSame('Cannot roll back durable media backfill reconciliation provenance.', $error->getMessage());
+        }
+
+        $this->assertTrue(Schema::hasTable('media_backfill_reconciliation_events'));
+        $this->assertTrue(Schema::hasColumn('media_backfill_objects', 'reconciliation_resolution'));
+    }
+
+    #[DataProvider('reconciliationProjectionCases')]
+    public function test_reconciliation_migration_refuses_rollback_when_a_projection_exists(
+        string $table,
+        string $key,
+        string $column,
+        string $value,
+    ): void {
+        [, $run, $item, $object] = $this->plannedObject();
+        $event = $value === '@event' ? $this->insertReconciliationEvent($run, $item) : null;
+        $id = match ($table) {
+            'media_backfill_runs' => $run,
+            'media_backfill_items' => $item,
+            default => $object,
+        };
+        DB::table($table)->where($key, $id)->update([$column => $event ?? $value]);
+        $migration = require database_path('migrations/2026_09_12_000000_add_media_backfill_reconciliation_representation.php');
+
+        try {
+            $migration->down();
+            $this->fail('Rollback must retain durable reconciliation projections.');
+        } catch (RuntimeException $error) {
+            $this->assertSame('Cannot roll back durable media backfill reconciliation provenance.', $error->getMessage());
+        }
+
+        $this->assertTrue(Schema::hasTable('media_backfill_reconciliation_events'));
+    }
+
+    public static function reconciliationProjectionCases(): array
+    {
+        return [
+            'run event pointer' => ['media_backfill_runs', 'run_id', 'reconciliation_event_id', '@event'],
+            'item result' => ['media_backfill_items', 'id', 'reconciliation_result', 'forward_accepted'],
+            'item event pointer' => ['media_backfill_items', 'id', 'reconciliation_event_id', '@event'],
+            'object resolution' => ['media_backfill_objects', 'id', 'reconciliation_resolution', 'forward_retained'],
+            'object event pointer' => ['media_backfill_objects', 'id', 'reconciliation_event_id', '@event'],
+        ];
+    }
+
+    private function insertReconciliationEvent(string $run, int $item): string
+    {
+        $event = '550e8400-e29b-41d4-a716-446655440001';
+        DB::table('media_backfill_reconciliation_events')->insert([
+            'event_id' => $event,
+            'attempt_id' => '550e8400-e29b-41d4-a716-446655440002',
+            'run_id' => $run,
+            'item_id' => $item,
+            'event_type' => 'attempt_started',
+            'evidence_version' => 1,
+            'storage_identity_hash' => $this->identity()->hash,
+            'backend_mode' => 'local',
+            'code_revision' => str_repeat('a', 64),
+            'evidence_sha256' => hash('sha256', '{}'),
+            'evidence_json' => '{}',
+            'created_at' => now(),
+        ]);
+
+        return $event;
     }
 
     public function test_apply_run_reload_item_upsert_uniqueness_and_heartbeat(): void

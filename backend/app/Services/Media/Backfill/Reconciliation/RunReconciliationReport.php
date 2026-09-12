@@ -27,11 +27,15 @@ final readonly class RunReconciliationReport
         public array $flags,
         public array $items,
         public bool $itemsTruncated,
+        public bool $hasReconciliationEvent,
+        public bool $reconciliationEventPointerInvalid,
+        public ?string $reconciliationEventFingerprint,
     ) {}
 
     public function preventsTrustworthyClassification(): bool
     {
-        if (in_array(RunFlag::Inconsistent, $this->flags, true)
+        if ($this->reconciliationEventPointerInvalid
+            || in_array(RunFlag::Inconsistent, $this->flags, true)
             || in_array(RunFlag::StorageIdentityMismatch, $this->flags, true)) {
             return true;
         }

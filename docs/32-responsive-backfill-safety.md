@@ -45,6 +45,17 @@ exactamente tres tablas. No usa ENUM SQL ni FKs hacia tablas de dominio:
 en DELETE y UPDATE. El historial no se borra por cascada. `down()` elimina las
 tablas en orden inverso; su prueba se limita a MariaDB aislada.
 
+P1.D.2-B1 añade de forma aditiva
+`2026_09_12_000000_add_media_backfill_reconciliation_representation.php`: una
+tabla append-only `media_backfill_reconciliation_events` y proyecciones
+nullable en runs, items y objetos. Los eventos referencian run y, opcionalmente,
+item; cada proyección puede referenciar el evento que la establezca. Todos los
+FKs nuevos son RESTRICT y los punteros empiezan en `NULL`. El modelo no cambia
+ni rellena los hechos APPLY existentes. La migración comprueba todas las
+proyecciones y la tabla de eventos antes de ejecutar DDL en `down()` y rechaza
+el rollback si ya existe cualquier procedencia durable; sólo un esquema B1
+vacío puede revertirse físicamente.
+
 Los estados y resultados usan backed enums PHP. No se añaden modelos Eloquent,
 Resources ni endpoints. Los métodos de lectura devuelven filas privadas del
 query builder; no deben serializarse en respuestas públicas. No existe API de
@@ -114,6 +125,11 @@ escritura o colisión rechazada terminal, devuelve `clear`. La consulta no hace
 I/O de storage, no muta ni reconcilia; el futuro runner deberá ejecutarla antes
 de crear su propio run activo. Un fallo del journal sigue siendo un
 `JournalUnavailable`, no un resultado de barrera.
+
+Las proyecciones de D2-B1 son únicamente visibles en lectura y no intervienen
+todavía en esta consulta. Hasta Barrier V2 en D2-B3, incluso una proyección no
+nula deja intactos los cuatro predicados históricos anteriores. B1 tampoco
+añade un repositorio/API capaz de insertar eventos o modificar proyecciones.
 
 | Registro | Transiciones |
 | --- | --- |

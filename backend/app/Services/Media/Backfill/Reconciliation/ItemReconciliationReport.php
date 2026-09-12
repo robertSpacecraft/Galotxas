@@ -26,11 +26,17 @@ final readonly class ItemReconciliationReport
         public ?ObjectReconciliationReport $manifest,
         public ItemClassification $classification,
         public bool $domainRevalidationPending,
+        public bool $functionalStorageSetExact,
+        public ?ItemReconciliationResult $reconciliationResult,
+        public bool $reconciliationResultInvalid,
+        public bool $hasReconciliationEvent,
+        public ?string $reconciliationEventFingerprint,
     ) {}
 
     public function preventsTrustworthyClassification(): bool
     {
-        if ($this->classification === ItemClassification::InternallyInconsistent) {
+        if ($this->classification === ItemClassification::InternallyInconsistent
+            || $this->reconciliationResultInvalid) {
             return true;
         }
         foreach ($this->objects as $object) {
