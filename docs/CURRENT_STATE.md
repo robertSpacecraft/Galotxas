@@ -32,7 +32,7 @@ Sublínea activa: P1.D — backfill de masters legacy.
 | P1.D.1C-B3 — coordinador y wiring CLI APPLY | completado hasta producción |
 | P1.D.2-A — inspector/clasificador de reconciliación read-only | completado hasta producción |
 | P1.D.2-B1 — esquema y representación durable read-only | completado hasta producción |
-| P1.D.2-B2 — APIs internas item-atomic de resolución | implementado localmente, pendiente de auditoría humana y promoción |
+| P1.D.2-B2 — APIs internas item-atomic de resolución | completado hasta producción |
 
 P1.D.1C-A está completado hasta producción. Su smoke de producción terminó correctamente con exit 0, cero bloqueos y cero escrituras de storage.
 
@@ -152,60 +152,71 @@ D2-B2 y se describen a continuación. Barrier V2 y el cierre tardío de run sigu
 en D2-B3; la reconciliación destructiva/cleanup permanece para trabajo
 posterior. P1.D.2 y P1.D continúan abiertos.
 
-## Estado de P1.D.2-B2
+## Cierre de P1.D.2-B2
 
-P1.D.2-B2 está **implementado localmente y pendiente de auditoría humana y
-promoción**. No está commiteado, no está desplegado y no se ha ejecutado
-ninguna reconciliación real en ningún entorno.
-
-Añade el repositorio interno de mutación
+El commit `64af3f2358afdaad08ac34bfe8d758121d54711d` está desplegado y
+aceptado en staging y producción. Añade el repositorio interno de mutación
 `backend/app/Services/Media/Backfill/Reconciliation/ReconciliationJournal.php`
 con exactamente cuatro operaciones: `beginRunReconciliation()`,
 `recordBlockedAttempt()`, `recordForwardItemResolution()` y
 `recordNoEffectItemResolution()`. `ApplyJournal` no gana métodos de mutación de
-reconciliación y no existen setters genéricos.
+reconciliación y no existen setters genéricos. No requirió ninguna migración
+propia: el esquema instalado en D2-B1 ya cubría eventos y proyecciones.
 
-Los eventos siguen siendo append-only y se direccionan por `event_id` y
-`attempt_id` del llamador: replay idéntico es no-op, cualquier divergencia o
-intento de sustituir una proyección terminal falla cerrado, y un estado durable
-parcial se rechaza en lugar de repararse. La aceptación forward es item-atomic
-sobre una sola transacción con orden de bloqueo run → item → objetos ascendentes
-y valida una evidencia tipada v1 con hashing canónico, sin ningún I/O de
-storage en el repositorio. El cierre no-effect sólo se apoya en la historia
-inmutable del journal y proyecta únicamente el item.
+Los eventos son append-only y se direccionan por `event_id` y `attempt_id` del
+llamador: replay idéntico es no-op, cualquier divergencia o intento de
+sustituir una proyección terminal falla cerrado, y un estado durable parcial se
+rechaza en lugar de repararse. La aceptación forward es item-atomic sobre una
+sola transacción con orden de bloqueo run → item → objetos ascendentes y valida
+una evidencia tipada v1 con hashing canónico, sin ningún I/O de storage en el
+repositorio. El cierre no-effect sólo se apoya en la historia inmutable del
+journal y proyecta únicamente el item; no existe setter público por objeto.
 
-Tras la auditoría humana se añadieron dos ayudantes read-only compartidos por la
-inspección D2-A y el repositorio de mutación: `ReconciliationEventValidator`
-valida evento, sobre de evidencia, parentesco y procedencia de intento, y
-`CandidateManifestReader` conserva la regla de coherencia de candidato ya
-aceptada. Por tanto: toda resolución exige un `attempt_started` semánticamente
-válido; un puntero durable que no resuelve a un evento válido del tipo, parent y
-procedencia esperados se informa como inválido e inconsistente en lugar de
-mostrarse como un simple fingerprint; los metadatos de candidato deben
+Dos ayudantes read-only, `ReconciliationEventValidator` y
+`CandidateManifestReader`, comparten una sola regla de validación semántica
+entre la inspección D2-A y el repositorio de mutación. Toda resolución exige un
+`attempt_started` semánticamente válido; un puntero durable que no resuelve a
+un evento válido del tipo, parent y procedencia esperados se informa como
+inválido e inconsistente en la inspección read-only, nunca como un simple
+fingerprint. La igualdad entre la proyección del item y la de cada objeto se
+comprueba sobre los identificadores durables de evento, nunca sobre el
+fingerprint truncado, que sigue siendo sólo metadato de presentación. La
+procedencia de un evento está anclada al hash de identidad de storage durable
+del run: un inicio y una resolución corrompidos de forma coherente entre sí,
+pero discordantes con su run, fallan cerrado. Los metadatos de candidato deben
 corresponder a la clasificación de preflight antes de cerrar un item por
-no-effect; y cualquier `reconciliation_event_id` no nulo en un run deja fuera de
-alcance las operaciones B2, porque el cierre de run pertenece a D2-B3.
+no-effect, y cualquier `reconciliation_event_id` no nulo en un run deja fuera
+de alcance las cuatro operaciones B2, porque el cierre de run pertenece a
+D2-B3.
 
-Los hechos de APPLY y los checkpoints permanecen inmutables,
-`ApplyJournal::recoveryBarrier()` no cambia y ninguna proyección despeja todavía
-un bloqueo. No hay llamador operacional: ningún comando, endpoint, job o
-provider alcanza estas APIs. No hay cleanup, borrado, ausencia confirmada ni
-cierre de run.
+Los hechos de APPLY y los checkpoints permanecen inmutables y
+`ApplyJournal::recoveryBarrier()` conserva exactamente sus cuatro predicados
+históricos: ninguna proyección B2 despeja todavía un bloqueo. No hay llamador
+operacional: ningún comando, endpoint, job o provider alcanza estas APIs. No
+hay cleanup, borrado, ausencia confirmada ni cierre de run.
 
-La igualdad entre la proyección del item y la de cada objeto se comprueba sobre
-los identificadores durables de evento; el fingerprint truncado sigue siendo sólo
-metadato de presentación. La procedencia de un evento está anclada además al hash
-de identidad de storage durable del run, de modo que un inicio y una resolución
-corrompidos de forma coherente entre sí, pero discordantes con su run, fallan
-cerrado en la inspección read-only.
+En staging y producción, antes del despliegue, runs/items/objects/events y los
+cinco conteos de proyecciones no nulas eran cero; `--execute` siguió rechazado
+con exit 2; la inspección read-only terminó con exit 0, observó
+`recoveryBarrier()=clear`, mostró cero runs activos, items sin terminar y
+objetos no resueltos, y declaró cero mutaciones de journal y cero
+escrituras/borrados de storage. Después del despliegue, los nueve conteos eran
+idénticos a los de antes en ambos entornos. La aceptación fue deliberadamente
+no mutante: no se invocó ninguna operación de `ReconciliationJournal`, porque
+D2-B2 carece de llamador operacional.
 
 Validación local: focales 280 tests / 3.216 aserciones y suite backend completa
 1.549 tests / 15.550 aserciones, ambas con exit 0; `php -l`, Pint sobre los
-archivos afectados y `git diff --check` en PASS.
+archivos afectados y `git diff --check` en PASS. La auditoría humana exacta del
+diff dio PASS.
 
-D2-B3 sigue siendo el siguiente bloque: cierre tardío de run, Barrier V2 y
-guards de APPLY frente a proyecciones reconciliadas. D2-C continúa siendo
-trabajo futuro. P1.D.2-B, P1.D.2 y P1.D permanecen abiertos.
+D2-B3 es el siguiente bloque: cierre tardío de run, Barrier V2 y guards de
+APPLY frente a proyecciones reconciliadas. Hereda sin cambios las fronteras de
+seguridad de B2: `recoveryBarrier()` sigue sin alterarse hasta que B3 la
+extienda explícitamente, las proyecciones B2 no clasifican como resolución
+hasta entonces, y D2-C (observación/revalidación de storage para construir la
+evidencia forward) sigue siendo trabajo futuro no iniciado. P1.D.2 y P1.D
+permanecen abiertos.
 
 ## Documentos de referencia
 
@@ -213,7 +224,7 @@ trabajo futuro. P1.D.2-B, P1.D.2 y P1.D permanecen abiertos.
 - [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md) — journal, identidad, lock, mantenimiento y escritura exclusiva (P1.D.1B).
 - [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md) — dry-run y wiring CLI APPLY aceptados hasta producción.
 - [34-responsive-backfill-apply-design.md](34-responsive-backfill-apply-design.md) — diseño aprobado de APPLY; B1/B2/B3-A/B3-B y B3 aceptados hasta producción.
-- [35-responsive-backfill-reconciliation.md](35-responsive-backfill-reconciliation.md) — D2-A y D2-B1 aceptados hasta producción; inspección read-only, esquema híbrido y límites de la reconciliación futura.
+- [35-responsive-backfill-reconciliation.md](35-responsive-backfill-reconciliation.md) — D2-A, D2-B1 y D2-B2 aceptados hasta producción; inspección read-only, esquema híbrido, repositorio de mutación item-atomic y límites de la reconciliación futura.
 
 ## Invariante de traspaso
 

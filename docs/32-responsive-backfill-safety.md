@@ -132,9 +132,11 @@ nula deja intactos los cuatro predicados históricos anteriores. B1 tampoco
 añade un repositorio/API capaz de insertar eventos o modificar proyecciones.
 
 D2-B2 sí añade ese repositorio interno,
-`Backfill/Reconciliation/ReconciliationJournal`, implementado localmente y
-pendiente de auditoría humana y promoción. Es un bloque de librería sin llamador
-operacional: no tiene comando, endpoint, job ni provider que pueda invocarlo.
+`Backfill/Reconciliation/ReconciliationJournal`. El commit
+`64af3f2358afdaad08ac34bfe8d758121d54711d` está desplegado y aceptado en
+staging y producción; no requirió ninguna migración propia sobre el esquema
+B1 ya instalado. Es un bloque de librería sin llamador operacional: no tiene
+comando, endpoint, job ni provider que pueda invocarlo.
 Escribe exclusivamente eventos append-only y las proyecciones nullable de item y
 objeto, nunca columnas de APPLY, y no adquiere ni libera el lock. Reutiliza las
 primitivas de seguridad de este documento: exige conexión MariaDB, ausencia de

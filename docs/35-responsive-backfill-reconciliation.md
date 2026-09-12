@@ -2,7 +2,7 @@
 
 > **D2-A COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
 > **D2-B1 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
-> **D2-B2 IMPLEMENTADO LOCALMENTE / PENDIENTE DE AUDITORÍA HUMANA Y PROMOCIÓN.**
+> **D2-B2 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
 > P1.D.1C-B3 permanece aceptado hasta producción. No se ha autorizado ni
 > ejecutado ningún APPLY real.
 
@@ -47,6 +47,28 @@ read-only terminó con exit 0, observó `recoveryBarrier()=clear`, mostró cero 
 activos, items sin terminar y objetos no resueltos, y declaró cero mutaciones de
 journal y cero escrituras/borrados de storage. La aceptación posterior a la
 instalación del esquema fue, por tanto, estrictamente no mutante.
+
+## Aceptación de D2-B2 hasta producción
+
+El commit `64af3f2358afdaad08ac34bfe8d758121d54711d` está desplegado y
+aceptado en staging y producción. Añade el repositorio interno de mutación
+`ReconciliationJournal` sobre el esquema B1 ya instalado; no requiere ni
+ejecuta ninguna migración propia.
+
+En cada entorno, antes del despliegue, runs/items/objects/events y los cinco
+conteos de proyecciones no nulas (puntero de run, resultado de item, puntero
+de item, resolución de objeto, puntero de objeto) eran cero. `--execute`
+continuó rechazado con exit 2. La inspección read-only terminó con exit 0,
+observó `recoveryBarrier()=clear`, mostró cero runs activos, items sin
+terminar y objetos no resueltos, y declaró cero mutaciones de journal y cero
+escrituras/borrados de storage. Después del despliegue, los nueve conteos
+anteriores eran idénticos a los de antes en ambos entornos.
+
+La aceptación fue deliberadamente no mutante: no se invocó ninguna de las
+cuatro operaciones de `ReconciliationJournal` en staging ni en producción,
+porque D2-B2 no tiene llamador operacional y el smoke se limitó al mismo
+comando read-only ya aceptado en D2-A/D2-B1. Esto acredita despliegue y
+disponibilidad de las clases, no ejecución de reconciliación real.
 
 ## Alcance de D2-A
 
@@ -274,9 +296,10 @@ PHP afectados, Pint limitado a esos archivos y `git diff --check`.
 
 ## D2-B2: APIs internas item-atomic de resolución
 
-> **IMPLEMENTADO LOCALMENTE / PENDIENTE DE AUDITORÍA HUMANA Y PROMOCIÓN.**
-> No está desplegado, no tiene llamador operacional y no se ha ejecutado
-> ninguna reconciliación real.
+> **COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
+> El commit `64af3f2358afdaad08ac34bfe8d758121d54711d` está desplegado en
+> staging y producción. Sigue sin tener llamador operacional y no se ha
+> ejecutado ninguna reconciliación real en ningún entorno.
 
 D2-B2 añade el repositorio interno de mutación
 `Backfill/Reconciliation/ReconciliationJournal` sobre el esquema aceptado en B1.
@@ -516,10 +539,12 @@ limitado a esos archivos y `git diff --check`: PASS.
 
 ## Siguiente bloque
 
-D2-B2 está implementado localmente y pendiente de auditoría humana y
-promoción. D2-B3 es el siguiente bloque: cierre tardío de run, Barrier V2 y
-guards de APPLY frente a proyecciones reconciliadas. D2-C, que observará y
-revalidará para construir la evidencia que B2 valida, sigue siendo trabajo
-futuro. El diseño y las primitivas de cleanup seguro, ausencia confirmada local
-o S3 no existen todavía y la reconciliación destructiva sigue siendo trabajo
+D2-B2 está completado y aceptado hasta producción. D2-B3 es el siguiente
+bloque: cierre tardío de run, Barrier V2 y guards de APPLY frente a
+proyecciones reconciliadas. Hasta que D2-B3 se implemente y acepte,
+`recoveryBarrier()` conserva exactamente sus cuatro predicados históricos y
+ninguna proyección B2 despeja un bloqueo. D2-C, que observará y revalidará
+para construir la evidencia que B2 valida, sigue siendo trabajo futuro. El
+diseño y las primitivas de cleanup seguro, ausencia confirmada local o S3 no
+existen todavía y la reconciliación destructiva sigue siendo trabajo
 posterior. D2-B, P1.D.2 y P1.D no están completos.
