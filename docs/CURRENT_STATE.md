@@ -30,7 +30,7 @@ Sublínea activa: P1.D — backfill de masters legacy.
 | P1.D.1C-B3-A — coordinador interno de invocación/rango APPLY | completado hasta producción |
 | P1.D.1C-B3-B — wiring CLI APPLY | completado hasta producción |
 | P1.D.1C-B3 — coordinador y wiring CLI APPLY | completado hasta producción |
-| P1.D.2-A — inspector/clasificador de reconciliación read-only | implementado localmente; pendiente de revisión humana/promoción |
+| P1.D.2-A — inspector/clasificador de reconciliación read-only | completado hasta producción |
 
 P1.D.1C-A está completado hasta producción. Su smoke de producción terminó correctamente con exit 0, cero bloqueos y cero escrituras de storage.
 
@@ -73,14 +73,23 @@ P1.D.1C-B3 está completado hasta producción. No se ha autorizado ni ejecutado
 ningún APPLY operacional bajo mantenimiento ni ningún backfill/publicación de
 media. P1.D.1C-B, P1.D, D2 y D3 continúan abiertos.
 
-## Estado local de P1.D.2-A
+## Cierre de P1.D.2-A
 
-D2-A implementa localmente el inspector/clasificador read-only y el comando
-separado `media:responsive-backfill-reconcile`. Está pendiente de revisión
-humana y promoción; no está aceptado en staging ni producción. Sólo añade
-lecturas acotadas del journal, observación de claves exactas y clasificaciones
-tipadas de objetos, items y runs. No muta journal, checkpoint, dominio o
-storage, no adquiere el lock de APPLY y no exige ni activa mantenimiento.
+El commit `b4f68144258900764ccf5790f3a09e4aa1e04030` está desplegado y
+aceptado en staging y producción. El comando read-only independiente
+`media:responsive-backfill-reconcile` existe en ambos entornos. La aceptación
+fue estrictamente no mutante: en cada entorno el journal permaneció en
+runs/items/objects `0/0/0` antes y después, la barrera global se observó
+`clear`, el resumen acotado terminó con exit 0 y declaró cero mutaciones de
+journal y cero escrituras/borrados de storage. `--execute` no existe y fue
+rechazado con exit 2; `--limit` con selector de item u objeto también fue
+rechazado con exit 2, conforme al contrato.
+
+D2-A sólo añade lecturas acotadas del journal, observación de claves exactas y
+clasificaciones tipadas de objetos, items y runs. No incorpora estados durables
+de reconciliación ni APIs de mutación, no usa listing heurístico, no muta
+journal, checkpoint, dominio o storage, no adquiere el lock de APPLY y no exige
+ni activa mantenimiento.
 
 `absent_now` es exclusivamente una observación puntual. En particular, ante
 `intent` o `unknown` no acredita ausencia permanente, no fabrica un recibo y no
@@ -89,13 +98,20 @@ acredita ownership. Un conjunto funcional exacto describe únicamente que el
 plan completo y sus bytes actuales coinciden; conserva por separado la
 atribución histórica, incluso `rejected`, `failed` o `planned`. En la inspección
 de un run, `--limit` acota el trabajo sobre items y un detalle truncado se marca
-explícitamente sin convertirlo en inconsistencia. D2-A no implementa cleanup
-automático local ni cleanup S3.
+explícitamente sin convertirlo en inconsistencia. Las contradicciones entre run
+e item se propagan fail-closed a las clasificaciones de item, objeto y resumen
+global. La clasificación de conjunto funcional exacto es independiente de la
+atribución histórica y sigue siendo sólo un candidato read-only pendiente de
+revalidación de dominio en D2-C. D2-A no implementa cleanup automático local ni
+cleanup S3.
 
-P1.D.1C-B3 permanece aceptado hasta producción, pero sigue sin autorizarse ni
-haberse ejecutado ningún APPLY real. El siguiente bloque, sólo después de la
-aceptación humana de D2-A, es D2-B: estados/API de resolución durable. Hasta
-entonces toda evidencia bloqueante permanece intacta.
+P1.D.1C-B3 permanece aceptado hasta producción. El despliegue de D2-A no
+autoriza ningún APPLY real: durante su aceptación no hubo APPLY operacional,
+reconciliación mutante, publicación de storage ni creación de evidencia
+artificial. P1.D.2 y P1.D permanecen abiertos. El siguiente bloque es D2-B:
+definir los estados/API mínimos de resolución durable. Toda reconciliación
+mutante sigue siendo trabajo futuro, posterior a la implementación y aceptación
+de los contratos de seguridad D2-B/C.
 
 ## Documentos de referencia
 
@@ -103,7 +119,7 @@ entonces toda evidencia bloqueante permanece intacta.
 - [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md) — journal, identidad, lock, mantenimiento y escritura exclusiva (P1.D.1B).
 - [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md) — dry-run y wiring CLI APPLY aceptados hasta producción.
 - [34-responsive-backfill-apply-design.md](34-responsive-backfill-apply-design.md) — diseño aprobado de APPLY; B1/B2/B3-A/B3-B y B3 aceptados hasta producción.
-- [35-responsive-backfill-reconciliation.md](35-responsive-backfill-reconciliation.md) — D2-A read-only local: lectores acotados, observación exacta, clasificaciones y CLI.
+- [35-responsive-backfill-reconciliation.md](35-responsive-backfill-reconciliation.md) — D2-A read-only aceptado hasta producción: lectores acotados, observación exacta, clasificaciones y CLI.
 
 ## Invariante de traspaso
 

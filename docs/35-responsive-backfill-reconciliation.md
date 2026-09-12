@@ -1,8 +1,25 @@
 # Reconciliación de backfill responsive — P1.D.2
 
-> **D2-A IMPLEMENTADO LOCALMENTE / PENDIENTE DE REVISIÓN HUMANA Y PROMOCIÓN.**
+> **D2-A COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
 > P1.D.1C-B3 permanece aceptado hasta producción. No se ha autorizado ni
 > ejecutado ningún APPLY real.
+
+## Aceptación hasta producción
+
+El commit `b4f68144258900764ccf5790f3a09e4aa1e04030` está desplegado y
+aceptado en staging y producción. El CLI read-only existe en ambos entornos con
+los selectores `--run`, `--item`, `--object`, `--after-id` y `--limit`.
+`--execute` no está soportado y fue rechazado con exit 2; también se rechazó con
+exit 2 el uso inválido de `--limit` con un selector de item. El mismo contrato
+invalida `--limit` con un selector de objeto.
+
+La aceptación fue estrictamente no mutante. En ambos entornos el journal tenía
+runs/items/objects `0/0/0` antes y después. La inspección global acotada observó
+la barrera de recuperación en `clear`, no encontró runs activos, items sin
+terminar ni objetos no resueltos, declaró cero mutaciones de journal y cero
+escrituras/borrados de storage, y terminó con exit 0. No se ejecutó APPLY
+operacional o bajo mantenimiento, reconciliación mutante ni publicación de
+storage, y no se creó evidencia artificial para la aceptación.
 
 ## Alcance de D2-A
 
@@ -92,7 +109,10 @@ global de `recoveryBarrier()` se etiqueta como observación puntual y D2-A no lo
 altera. Cada item debe pertenecer al dominio seleccionado por su run y satisfacer
 `entity_id > after_id` y `entity_id <= upper_bound`; además, el total de items no
 puede superar el `limit` durable del run. Una relación imposible se clasifica
-como inconsistente.
+como inconsistente. Esta validación de parent se aplica uniformemente a las
+inspecciones de item, objeto y resumen global: si falla, la clasificación
+propaga `inconsistent` de forma fail-closed aunque una observación puntual del
+objeto pueda seguir siendo legible.
 
 El límite de detalle de run se aplica antes de inspeccionar children y observar
 storage. Si quedan items fuera de la página, el flag `details_truncated` y el
@@ -147,8 +167,10 @@ un borrado futuro.
 
 ## Siguiente bloque
 
-D2-B definirá el mínimo contrato de estados y API de resolución durable, sólo
-después de la aceptación humana de D2-A. Debe preservar la distinción entre
-observación y resolución y seguir fallando cerrado para filas históricas sin
-identidad suficiente. El diseño y la primitiva de cleanup seguro, local o S3,
-no existen todavía y permanecen fuera de D2-A.
+D2-B es el siguiente bloque: definirá el mínimo contrato de estados y API de
+resolución durable. Debe preservar la distinción entre observación y resolución
+y seguir fallando cerrado para filas históricas sin identidad suficiente. El
+diseño y la primitiva de cleanup seguro, local o S3, no existen todavía y
+permanecen fuera de D2-A. Toda reconciliación mutante seguirá siendo trabajo
+futuro hasta que los contratos de seguridad D2-B/C estén implementados y
+aceptados. P1.D.2 y P1.D no están completos.
