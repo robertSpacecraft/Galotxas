@@ -12,8 +12,16 @@ use Throwable;
 
 class ObjectEvidenceClassifier
 {
-    public function report(stdClass $row, ObjectObservation $observation, bool $parentConsistent = true): ObjectReconciliationReport
-    {
+    /**
+     * $linkIsValid carries the read-only semantic validation of the durable event pointer, which
+     * needs journal lookups this pure classifier deliberately does not perform.
+     */
+    public function report(
+        stdClass $row,
+        ObjectObservation $observation,
+        bool $parentConsistent = true,
+        bool $linkIsValid = true,
+    ): ObjectReconciliationReport {
         $kind = is_string($row->kind ?? null) ? ObjectKind::tryFrom($row->kind) : null;
         $write = is_string($row->write_state ?? null) ? ObjectWriteState::tryFrom($row->write_state) : null;
         $create = is_string($row->create_state ?? null) ? CreateState::tryFrom($row->create_state) : null;
@@ -24,12 +32,10 @@ class ObjectEvidenceClassifier
         $event = ReconciliationEventPointer::from($row->reconciliation_event_id ?? null);
         $resolutionInvalid = (($row->reconciliation_resolution ?? null) !== null && $resolution === null)
             || ($resolution !== null && ! $event->valid)
-            || ($resolution !== null) !== $event->present;
-        $consistent = $parentConsistent && $this->targetIsValid($row, $kind)
-            && $this->statesAreConsistent($row, $write, $create, $cleanup);
-        $attribution = $consistent
-            ? $this->attribution($write, $create)
-            : ObjectAttribution::InconsistentJournal;
+            || ($resolution !== null) !== $event->present
+            || ! $linkIsValid;
+        $attribution = $parentConsistent ? $this->attributionFor($row) : ObjectAttribution::InconsistentJournal;
+        $consistent = $attribution !== ObjectAttribution::InconsistentJournal;
 
         return new ObjectReconciliationReport(
             id: (int) ($row->id ?? 0),
@@ -51,6 +57,20 @@ class ObjectEvidenceClassifier
             hasReconciliationEvent: $event->present,
             reconciliationEventFingerprint: $event->fingerprint,
         );
+    }
+
+    /** Durable-state attribution only: no storage observation and no parent context. */
+    public function attributionFor(stdClass $row): ObjectAttribution
+    {
+        $kind = is_string($row->kind ?? null) ? ObjectKind::tryFrom($row->kind) : null;
+        $write = is_string($row->write_state ?? null) ? ObjectWriteState::tryFrom($row->write_state) : null;
+        $create = is_string($row->create_state ?? null) ? CreateState::tryFrom($row->create_state) : null;
+        $cleanup = is_string($row->cleanup_state ?? null) ? CleanupState::tryFrom($row->cleanup_state) : null;
+
+        return $write !== null && $this->targetIsValid($row, $kind)
+            && $this->statesAreConsistent($row, $write, $create, $cleanup)
+            ? $this->attribution($write, $create)
+            : ObjectAttribution::InconsistentJournal;
     }
 
     private function targetIsValid(stdClass $row, ?ObjectKind $kind): bool

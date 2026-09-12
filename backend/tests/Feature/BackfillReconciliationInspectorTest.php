@@ -5,9 +5,6 @@ namespace Tests\Feature;
 use App\Console\Commands\ResponsiveBackfillReconcileCommand;
 use App\Services\Media\Backfill\ApplyItemPublisher;
 use App\Services\Media\Backfill\ManagedMediaDomain;
-use App\Services\Media\Backfill\ManagedMediaReference;
-use App\Services\Media\Backfill\PreflightClassification;
-use App\Services\Media\Backfill\PreflightResult;
 use App\Services\Media\Backfill\Reconciliation\ExactObjectObserver;
 use App\Services\Media\Backfill\Reconciliation\ItemClassification;
 use App\Services\Media\Backfill\Reconciliation\ItemReconciliationReport;
@@ -17,8 +14,11 @@ use App\Services\Media\Backfill\Reconciliation\ObjectClassification;
 use App\Services\Media\Backfill\Reconciliation\ObjectObservation;
 use App\Services\Media\Backfill\Reconciliation\ObjectReconciliationReport;
 use App\Services\Media\Backfill\Reconciliation\ObjectReconciliationResolution;
+use App\Services\Media\Backfill\Reconciliation\ReconciliationBlockReason;
 use App\Services\Media\Backfill\Reconciliation\ReconciliationEventType;
+use App\Services\Media\Backfill\Reconciliation\ReconciliationEventValidator;
 use App\Services\Media\Backfill\Reconciliation\ReconciliationInspector;
+use App\Services\Media\Backfill\Reconciliation\ReconciliationJournal;
 use App\Services\Media\Backfill\Reconciliation\RunFlag;
 use App\Services\Media\Backfill\Safety\ApplyJournal;
 use App\Services\Media\Backfill\Safety\ApplyMaintenanceGuard;
@@ -32,14 +32,15 @@ use App\Services\Media\Backfill\Safety\MariaDbBackfillLock;
 use App\Services\Media\Backfill\Safety\ObjectKind;
 use App\Services\Media\Backfill\Safety\RecoveryBarrierState;
 use App\Services\Media\Backfill\Safety\RunState;
-use App\Services\Media\Backfill\Safety\TargetObject;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Mockery;
 use PHPUnit\Framework\Attributes\DataProvider;
+use ReflectionMethod;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Tests\Concerns\BackfillSafetyFixtures;
@@ -49,6 +50,8 @@ class BackfillReconciliationInspectorTest extends TestCase
 {
     use BackfillSafetyFixtures;
     use DatabaseTruncation;
+
+    private const EVENTS = 'media_backfill_reconciliation_events';
 
     protected function setUp(): void
     {
@@ -61,6 +64,7 @@ class BackfillReconciliationInspectorTest extends TestCase
     protected function tearDown(): void
     {
         try {
+            $this->releaseBackfillLock();
             $this->truncateTablesForAllConnections();
             $this->cleanupSafetyStorage();
         } finally {
@@ -644,25 +648,17 @@ class BackfillReconciliationInspectorTest extends TestCase
         foreach ($bytes as $expected) {
             Storage::disk('media_local')->put($expected['key'], $expected['bytes']);
         }
-        $event = $this->insertReconciliationEvent($runId, $itemId, ReconciliationEventType::ItemForwardAccepted);
-        DB::table('media_backfill_runs')->where('run_id', $runId)->update(['reconciliation_event_id' => $event]);
-        DB::table('media_backfill_items')->where('id', $itemId)->update([
-            'reconciliation_result' => ItemReconciliationResult::ForwardAccepted->value,
-            'reconciliation_event_id' => $event,
-        ]);
-        DB::table('media_backfill_objects')->where('id', $objects['variant'])->update([
-            'reconciliation_resolution' => ObjectReconciliationResolution::ForwardRetained->value,
-            'reconciliation_event_id' => $event,
-        ]);
+        $event = $this->acceptForward($runId, $itemId, 90, 1, 2);
         $before = $this->journalSnapshot();
 
         $run = app(ReconciliationInspector::class)->inspectRun($runId, 100);
         $item = app(ReconciliationInspector::class)->inspectItem($itemId);
         $object = app(ReconciliationInspector::class)->inspectObject($objects['variant']);
-        $this->assertTrue($run->hasReconciliationEvent);
+        $this->assertFalse($run->hasReconciliationEvent);
         $this->assertFalse($run->reconciliationEventPointerInvalid);
         $this->assertSame(ItemReconciliationResult::ForwardAccepted, $item->reconciliationResult);
         $this->assertFalse($item->reconciliationResultInvalid);
+        $this->assertFalse($item->preventsTrustworthyClassification());
         $this->assertSame(ObjectReconciliationResolution::ForwardRetained, $object->reconciliationResolution);
         $this->assertFalse($object->reconciliationResolutionInvalid);
         $this->assertSame(RecoveryBarrierState::Blocked, $journal->recoveryBarrier());
@@ -678,11 +674,247 @@ class BackfillReconciliationInspectorTest extends TestCase
         $this->assertSame('intent', $journal->object($objects['variant'])->write_state);
     }
 
+    #[DataProvider('brokenProjectionLinks')]
+    public function test_semantically_broken_projection_links_are_reported_as_inconsistent(string $case): void
+    {
+        [$journal, $runId, $itemId, $objects, $bytes] = $this->candidatePlan();
+        foreach ($bytes as $expected) {
+            Storage::disk('media_local')->put($expected['key'], $expected['bytes']);
+        }
+        $this->acceptForward($runId, $itemId, 90, 1, 2);
+        $this->breakProjectionLink($case, $journal, $runId, $itemId, $objects['variant']);
+        $before = $this->journalSnapshot();
+
+        $item = app(ReconciliationInspector::class)->inspectItem($itemId);
+        $object = app(ReconciliationInspector::class)->inspectObject($objects['variant']);
+
+        $this->assertTrue($item->preventsTrustworthyClassification(), $case);
+        $this->assertSame(ItemClassification::InternallyInconsistent, $item->classification, $case);
+        $this->assertFalse($item->functionalStorageSetExact, $case);
+        // A partial projection is only visible as a cross-projection contradiction: every other
+        // corruption also invalidates the individual durable link it names.
+        $linkFlagged = $item->reconciliationResultInvalid || $object->reconciliationResolutionInvalid
+            || $this->objectReport($item, $objects['variant'])->reconciliationResolutionInvalid;
+        $this->assertSame($case !== 'partial projection', $linkFlagged, $case);
+        $this->assertSame(7, Artisan::call('media:responsive-backfill-reconcile', ['--item' => (string) $itemId]), $case);
+        $this->assertSame(RecoveryBarrierState::Blocked, $journal->recoveryBarrier());
+        $this->assertSame($before, $this->journalSnapshot(), $case);
+    }
+
+    public static function brokenProjectionLinks(): array
+    {
+        return [
+            'pointer to a missing event' => ['missing event'],
+            'pointer to another event type' => ['wrong type'],
+            'pointer to an event of another run' => ['foreign run'],
+            'pointer to an event of another item' => ['foreign item'],
+            'event with a broken evidence hash' => ['bad evidence hash'],
+            'event with a malformed evidence envelope' => ['malformed envelope'],
+            'item and object naming different events' => ['crossed pointers'],
+            'partial object projection' => ['partial projection'],
+            'resolution whose attempt start is missing' => ['missing start'],
+            'resolution whose attempt start is corrupt' => ['corrupt start'],
+        ];
+    }
+
+    public function test_a_run_pointer_to_a_non_closure_event_is_invalid(): void
+    {
+        [$journal, $runId, $itemId] = $this->candidatePlan();
+        $this->acceptForward($runId, $itemId, 90, 1, 2);
+        Schema::withoutForeignKeyConstraints(fn () => DB::table('media_backfill_runs')->where('run_id', $runId)
+            ->update(['reconciliation_event_id' => $this->reconciliationUuid(1)]));
+        $before = $this->journalSnapshot();
+
+        $run = app(ReconciliationInspector::class)->inspectRun($runId, 100);
+
+        $this->assertTrue($run->hasReconciliationEvent);
+        $this->assertTrue($run->reconciliationEventPointerInvalid);
+        $this->assertContains(RunFlag::Inconsistent, $run->flags);
+        $this->assertSame(7, Artisan::call('media:responsive-backfill-reconcile', ['--run' => $runId]));
+        $this->assertSame($before, $this->journalSnapshot());
+        $this->assertSame(RecoveryBarrierState::Blocked, $journal->recoveryBarrier());
+    }
+
+    private function breakProjectionLink(
+        string $case,
+        ApplyJournal $journal,
+        string $runId,
+        int $itemId,
+        int $objectId,
+    ): void {
+        $events = fn () => DB::table('media_backfill_reconciliation_events');
+        $forward = $this->reconciliationUuid(2);
+        $start = $this->reconciliationUuid(1);
+        $pointer = match ($case) {
+            'missing event' => $this->reconciliationUuid(999),
+            'wrong type' => $this->blockedEvent($runId, $itemId),
+            'foreign run' => $this->foreignForwardEvent(true),
+            'foreign item' => $this->foreignForwardEvent(false, $runId, $journal),
+            default => null,
+        };
+        if ($pointer !== null) {
+            Schema::withoutForeignKeyConstraints(fn () => DB::table('media_backfill_items')->where('id', $itemId)
+                ->update(['reconciliation_event_id' => $pointer]));
+
+            return;
+        }
+        match ($case) {
+            'bad evidence hash' => $events()->where('event_id', $forward)
+                ->update(['evidence_sha256' => str_repeat('0', 64)]),
+            'malformed envelope' => $events()->where('event_id', $forward)
+                ->update(['evidence_json' => '{}', 'evidence_sha256' => hash('sha256', '{}')]),
+            'crossed pointers' => Schema::withoutForeignKeyConstraints(
+                fn () => DB::table('media_backfill_objects')->where('id', $objectId)
+                    ->update(['reconciliation_event_id' => $this->foreignForwardEvent(false, $runId, $journal)])),
+            'partial projection' => DB::table('media_backfill_objects')->where('id', $objectId)
+                ->update(['reconciliation_resolution' => null, 'reconciliation_event_id' => null]),
+            'missing start' => $events()->where('event_id', $start)->delete(),
+            'corrupt start' => $events()->where('event_id', $start)
+                ->update(['evidence_sha256' => str_repeat('0', 64)]),
+        };
+    }
+
+    public function test_cross_projection_identity_requires_the_exact_event_not_a_display_fingerprint(): void
+    {
+        [$journal, $runId, $itemId, $objects, $bytes] = $this->candidatePlan();
+        foreach ($bytes as $expected) {
+            Storage::disk('media_local')->put($expected['key'], $expected['bytes']);
+        }
+        $first = $this->acceptForward($runId, $itemId, 90, 1, 2);
+        // Clearing the projections makes a second, independently valid acceptance of the same item
+        // reachable, so both events remain valid links for this exact run and item.
+        DB::table('media_backfill_items')->where('id', $itemId)
+            ->update(['reconciliation_result' => null, 'reconciliation_event_id' => null]);
+        DB::table('media_backfill_objects')->where('item_id', $itemId)
+            ->update(['reconciliation_resolution' => null, 'reconciliation_event_id' => null]);
+        $second = $this->acceptForward($runId, $itemId, 92, 6, 7);
+        $this->assertNotSame($first, $second);
+        DB::table('media_backfill_objects')->where('id', $objects['variant'])
+            ->update(['reconciliation_event_id' => $first]);
+        $before = $this->journalSnapshot();
+
+        $item = app(ReconciliationInspector::class)->inspectItem($itemId);
+        $object = $this->objectReport($item, $objects['variant']);
+
+        $this->assertSame(ItemReconciliationResult::ForwardAccepted, $item->reconciliationResult);
+        $this->assertFalse($item->reconciliationResultInvalid);
+        $this->assertSame(ObjectReconciliationResolution::ForwardRetained, $object->reconciliationResolution);
+        $this->assertFalse($object->reconciliationResolutionInvalid);
+        $this->assertSame(ItemClassification::InternallyInconsistent, $item->classification);
+        $this->assertTrue($item->preventsTrustworthyClassification());
+        $this->assertFalse($item->functionalStorageSetExact);
+        $this->assertSame(7, Artisan::call('media:responsive-backfill-reconcile', ['--item' => (string) $itemId]));
+        $this->assertSame($before, $this->journalSnapshot());
+        $this->assertSame(RecoveryBarrierState::Blocked, $journal->recoveryBarrier());
+
+        $method = new ReflectionMethod(ReconciliationInspector::class, 'crossProjectionInvalid');
+        $source = implode('', array_slice(file($method->getFileName()), $method->getStartLine() - 1,
+            $method->getEndLine() - $method->getStartLine() + 1));
+        $this->assertStringContainsString('reconciliation_event_id', $source);
+        $this->assertStringNotContainsString('Fingerprint', $source);
+    }
+
+    public function test_event_provenance_must_match_the_durable_run_storage_identity(): void
+    {
+        [$journal, $runId, $itemId, $objects, $bytes] = $this->candidatePlan();
+        foreach ($bytes as $expected) {
+            Storage::disk('media_local')->put($expected['key'], $expected['bytes']);
+        }
+        $this->acceptForward($runId, $itemId, 90, 1, 2);
+        $accepted = app(ReconciliationInspector::class)->inspectItem($itemId);
+        $this->assertSame(ItemReconciliationResult::ForwardAccepted, $accepted->reconciliationResult);
+        $this->assertFalse($accepted->reconciliationResultInvalid);
+
+        // Start and resolution keep agreeing with each other, and each stays individually valid,
+        // but they no longer agree with the storage identity the run was journaled with.
+        $foreign = str_repeat('b', 64);
+        $validator = app(ReconciliationEventValidator::class);
+        foreach ([1, 2] as $number) {
+            $this->reidentifyEvent($this->reconciliationUuid($number), $foreign);
+            $this->assertTrue($validator->isStructurallyValid(DB::table(self::EVENTS)
+                ->where('event_id', $this->reconciliationUuid($number))->first()));
+        }
+        $this->assertSame($this->identity()->hash, DB::table('media_backfill_runs')
+            ->where('run_id', $runId)->value('storage_identity_hash'));
+        $before = $this->journalSnapshot();
+
+        $item = app(ReconciliationInspector::class)->inspectItem($itemId);
+
+        $this->assertTrue($item->reconciliationResultInvalid);
+        $this->assertTrue($this->objectReport($item, $objects['variant'])->reconciliationResolutionInvalid);
+        $this->assertSame(ItemClassification::InternallyInconsistent, $item->classification);
+        $this->assertFalse($item->functionalStorageSetExact);
+        $this->assertSame(7, Artisan::call('media:responsive-backfill-reconcile', ['--item' => (string) $itemId]));
+        $this->assertSame($before, $this->journalSnapshot());
+        $this->assertSame(RecoveryBarrierState::Blocked, $journal->recoveryBarrier());
+    }
+
+    /** Rewrites one event's storage identity coherently: scalar column, envelope and evidence hash. */
+    private function reidentifyEvent(string $eventId, string $hash): void
+    {
+        $event = DB::table(self::EVENTS)->where('event_id', $eventId)->first();
+        $evidence = json_decode($event->evidence_json, true, 8, JSON_THROW_ON_ERROR);
+        $evidence['storage_identity_hash'] = $hash;
+        $json = json_encode($evidence, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        DB::table(self::EVENTS)->where('event_id', $eventId)->update([
+            'storage_identity_hash' => $hash,
+            'evidence_json' => $json,
+            'evidence_sha256' => hash('sha256', $json),
+        ]);
+    }
+
+    public function test_a_closed_no_effect_item_may_not_carry_object_projections(): void
+    {
+        [$journal, $runId, $itemId, $objects] = $this->candidatePlan();
+        $context = $this->reconciliationContext(90);
+        app(ReconciliationJournal::class)->beginRunReconciliation($runId, $this->reconciliationUuid(1),
+            $this->reconciliationMoment(), $context);
+        app(ReconciliationJournal::class)->recordNoEffectItemResolution($runId, $itemId,
+            $this->reconciliationUuid(2), $this->reconciliationMoment(), $context);
+        $clean = app(ReconciliationInspector::class)->inspectItem($itemId);
+        $this->assertSame(ItemReconciliationResult::ClosedNoEffect, $clean->reconciliationResult);
+        $this->assertFalse($clean->reconciliationResultInvalid);
+
+        DB::table('media_backfill_objects')->where('id', $objects['variant'])->update([
+            'reconciliation_resolution' => ObjectReconciliationResolution::ForwardRetained->value,
+            'reconciliation_event_id' => $this->foreignForwardEvent(false, $runId, $journal),
+        ]);
+        $before = $this->journalSnapshot();
+
+        $item = app(ReconciliationInspector::class)->inspectItem($itemId);
+
+        $this->assertSame(ItemClassification::InternallyInconsistent, $item->classification);
+        $this->assertTrue($item->preventsTrustworthyClassification());
+        $this->assertSame(7, Artisan::call('media:responsive-backfill-reconcile', ['--item' => (string) $itemId]));
+        $this->assertSame($before, $this->journalSnapshot());
+        $this->assertSame(RecoveryBarrierState::Blocked, $journal->recoveryBarrier());
+    }
+
+    /** A valid blocked event of the same attempt, used as an incompatible pointer target. */
+    private function blockedEvent(string $runId, int $itemId): string
+    {
+        app(ReconciliationJournal::class)->recordBlockedAttempt($runId, $itemId, $this->reconciliationUuid(3),
+            ReconciliationBlockReason::EvidenceMismatch, $this->reconciliationMoment(),
+            $this->reconciliationContext(90));
+
+        return $this->reconciliationUuid(3);
+    }
+
+    /** A second, otherwise valid forward acceptance used as a foreign pointer target. */
+    private function foreignForwardEvent(bool $otherRun, ?string $runId = null, ?ApplyJournal $journal = null): string
+    {
+        $journal ??= app(ApplyJournal::class);
+        $runId = $otherRun ? $journal->createApplyRun($this->identity(), $this->applySelection()) : $runId;
+        [$itemId] = $this->candidateItem($journal, $runId, 200);
+
+        return $this->acceptForward($runId, $itemId, 91, 4, 5);
+    }
+
     public function test_unknown_durable_projection_is_invalid_unresolved_and_read_only(): void
     {
         [$journal, $runId, $itemId, $objects] = $this->candidatePlan();
         $journal->commitIntent($objects['variant']);
-        $event = $this->insertReconciliationEvent($runId, $itemId, ReconciliationEventType::AttemptBlocked);
+        $event = $this->injectInvalidReconciliationEvent($runId, $itemId, ReconciliationEventType::AttemptBlocked);
         DB::table('media_backfill_objects')->where('id', $objects['variant'])->update([
             'reconciliation_resolution' => 'future_unknown',
             'reconciliation_event_id' => $event,
@@ -734,66 +966,13 @@ class BackfillReconciliationInspectorTest extends TestCase
             'recordNoEffectItemResolution', 'closeReconciledRun', 'recordCleanupResolution'] as $method) {
             $this->assertFalse(method_exists(ApplyJournal::class, $method));
         }
-        $this->assertFalse(class_exists('App\\Services\\Media\\Backfill\\Reconciliation\\ReconciliationJournal'));
+        // D2-B2 owns the mutation repository; read-only inspection must never depend on it.
+        $this->assertStringNotContainsString('ReconciliationJournal', $commandSource.$inspectorSource.$observerSource);
         foreach (['listContents', 'allFiles(', 'files(', 'directories('] as $listing) {
             $this->assertStringNotContainsString($listing, $commandSource.$inspectorSource.$observerSource);
         }
         $this->assertStringNotContainsString('delete(', $commandSource.$inspectorSource.$observerSource);
         $this->assertStringNotContainsString('put(', $commandSource.$inspectorSource.$observerSource);
-    }
-
-    /** @return array{ApplyJournal, string, int, array{variant: int, manifest: int}, array<int, array{key: string, bytes: string}>} */
-    private function candidatePlan(): array
-    {
-        $journal = app(ApplyJournal::class);
-        $runId = $journal->createApplyRun($this->identity(), $this->applySelection());
-        [$itemId, $objects, $bytes] = $this->candidateItem($journal, $runId, 123);
-
-        return [$journal, $runId, $itemId, $objects, $bytes];
-    }
-
-    /** @return array{int, array{variant: int, manifest: int}, array<int, array{key: string, bytes: string}>} */
-    private function candidateItem(ApplyJournal $journal, string $runId, int $entityId): array
-    {
-        $preflight = $this->preflight($entityId);
-        $itemId = $journal->snapshot($runId, $preflight);
-        $objects = [];
-        $bytes = [];
-        foreach ($preflight->prepared->manifest->variants as $index => $descriptor) {
-            $image = $preflight->prepared->variants[$index];
-            $target = new TargetObject(
-                $descriptor->key,
-                ObjectKind::Variant,
-                hash('sha256', $image->bytes),
-                $image->size,
-                $image->mimeType,
-            );
-            $objectId = $journal->planObject($itemId, $target);
-            $objects['variant'] = $objectId;
-            $bytes[$objectId] = ['key' => $target->key, 'bytes' => $image->bytes];
-        }
-        $manifestBytes = $preflight->prepared->manifest->toJson();
-        $manifestTarget = new TargetObject(
-            $journal->item($itemId)->manifest_key,
-            ObjectKind::Manifest,
-            hash('sha256', $manifestBytes),
-            strlen($manifestBytes),
-            'application/json',
-        );
-        $manifestId = $journal->planObject($itemId, $manifestTarget);
-        $objects['manifest'] = $manifestId;
-        $bytes[$manifestId] = ['key' => $manifestTarget->key, 'bytes' => $manifestBytes];
-        $journal->markRevalidated($itemId);
-
-        return [$itemId, $objects, $bytes];
-    }
-
-    private function excludedItem(int $entityId): PreflightResult
-    {
-        return new PreflightResult(
-            new ManagedMediaReference(ManagedMediaDomain::News, $entityId, null),
-            PreflightClassification::ExcludedNull,
-        );
     }
 
     private function objectReport(ItemReconciliationReport $itemReport, int $objectId): ObjectReconciliationReport
@@ -816,7 +995,7 @@ class BackfillReconciliationInspectorTest extends TestCase
         ];
     }
 
-    private function insertReconciliationEvent(
+    private function injectInvalidReconciliationEvent(
         string $runId,
         int $itemId,
         ReconciliationEventType $type,

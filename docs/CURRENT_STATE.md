@@ -32,6 +32,7 @@ Sublínea activa: P1.D — backfill de masters legacy.
 | P1.D.1C-B3 — coordinador y wiring CLI APPLY | completado hasta producción |
 | P1.D.2-A — inspector/clasificador de reconciliación read-only | completado hasta producción |
 | P1.D.2-B1 — esquema y representación durable read-only | completado hasta producción |
+| P1.D.2-B2 — APIs internas item-atomic de resolución | implementado localmente, pendiente de auditoría humana y promoción |
 
 P1.D.1C-A está completado hasta producción. Su smoke de producción terminó correctamente con exit 0, cero bloqueos y cero escrituras de storage.
 
@@ -146,10 +147,65 @@ En staging y producción, runs/items/objects/events y los cinco conteos de
 proyecciones no nulas fueron cero antes y después. `--execute` continuó
 rechazado con exit 2; la inspección read-only terminó con exit 0 y observó
 `recoveryBarrier()=clear`, sin mutaciones de journal ni escrituras/borrados de
-storage. D2-B2 es el siguiente bloque: APIs item-atomic para resolución
-forward/no-effect. Barrier V2 y el cierre tardío de run siguen en D2-B3; la
-reconciliación destructiva/cleanup permanece para trabajo posterior. P1.D.2 y
-P1.D continúan abiertos.
+storage. Las APIs item-atomic de resolución forward/no-effect corresponden a
+D2-B2 y se describen a continuación. Barrier V2 y el cierre tardío de run siguen
+en D2-B3; la reconciliación destructiva/cleanup permanece para trabajo
+posterior. P1.D.2 y P1.D continúan abiertos.
+
+## Estado de P1.D.2-B2
+
+P1.D.2-B2 está **implementado localmente y pendiente de auditoría humana y
+promoción**. No está commiteado, no está desplegado y no se ha ejecutado
+ninguna reconciliación real en ningún entorno.
+
+Añade el repositorio interno de mutación
+`backend/app/Services/Media/Backfill/Reconciliation/ReconciliationJournal.php`
+con exactamente cuatro operaciones: `beginRunReconciliation()`,
+`recordBlockedAttempt()`, `recordForwardItemResolution()` y
+`recordNoEffectItemResolution()`. `ApplyJournal` no gana métodos de mutación de
+reconciliación y no existen setters genéricos.
+
+Los eventos siguen siendo append-only y se direccionan por `event_id` y
+`attempt_id` del llamador: replay idéntico es no-op, cualquier divergencia o
+intento de sustituir una proyección terminal falla cerrado, y un estado durable
+parcial se rechaza en lugar de repararse. La aceptación forward es item-atomic
+sobre una sola transacción con orden de bloqueo run → item → objetos ascendentes
+y valida una evidencia tipada v1 con hashing canónico, sin ningún I/O de
+storage en el repositorio. El cierre no-effect sólo se apoya en la historia
+inmutable del journal y proyecta únicamente el item.
+
+Tras la auditoría humana se añadieron dos ayudantes read-only compartidos por la
+inspección D2-A y el repositorio de mutación: `ReconciliationEventValidator`
+valida evento, sobre de evidencia, parentesco y procedencia de intento, y
+`CandidateManifestReader` conserva la regla de coherencia de candidato ya
+aceptada. Por tanto: toda resolución exige un `attempt_started` semánticamente
+válido; un puntero durable que no resuelve a un evento válido del tipo, parent y
+procedencia esperados se informa como inválido e inconsistente en lugar de
+mostrarse como un simple fingerprint; los metadatos de candidato deben
+corresponder a la clasificación de preflight antes de cerrar un item por
+no-effect; y cualquier `reconciliation_event_id` no nulo en un run deja fuera de
+alcance las operaciones B2, porque el cierre de run pertenece a D2-B3.
+
+Los hechos de APPLY y los checkpoints permanecen inmutables,
+`ApplyJournal::recoveryBarrier()` no cambia y ninguna proyección despeja todavía
+un bloqueo. No hay llamador operacional: ningún comando, endpoint, job o
+provider alcanza estas APIs. No hay cleanup, borrado, ausencia confirmada ni
+cierre de run.
+
+La igualdad entre la proyección del item y la de cada objeto se comprueba sobre
+los identificadores durables de evento; el fingerprint truncado sigue siendo sólo
+metadato de presentación. La procedencia de un evento está anclada además al hash
+de identidad de storage durable del run, de modo que un inicio y una resolución
+corrompidos de forma coherente entre sí, pero discordantes con su run, fallan
+cerrado en la inspección read-only.
+
+Validación local: focales 280 tests / 3.216 aserciones y suite backend completa
+1.549 tests / 15.550 aserciones, ambas con exit 0; `php -l`, Pint sobre los
+archivos afectados y `git diff --check` en PASS.
+
+D2-B3 sigue siendo el siguiente bloque: cierre tardío de run, Barrier V2 y
+guards de APPLY frente a proyecciones reconciliadas. D2-C continúa siendo
+trabajo futuro. P1.D.2-B, P1.D.2 y P1.D permanecen abiertos.
 
 ## Documentos de referencia
 

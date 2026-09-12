@@ -2,6 +2,7 @@
 
 > **D2-A COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
 > **D2-B1 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
+> **D2-B2 IMPLEMENTADO LOCALMENTE / PENDIENTE DE AUDITORÍA HUMANA Y PROMOCIÓN.**
 > P1.D.1C-B3 permanece aceptado hasta producción. No se ha autorizado ni
 > ejecutado ningún APPLY real.
 
@@ -271,11 +272,254 @@ aserciones, exit 0. La suite backend completa pasa una vez con 1.460 tests y
 14.188 aserciones, exit 0. También pasan la sintaxis PHP de todos los archivos
 PHP afectados, Pint limitado a esos archivos y `git diff --check`.
 
+## D2-B2: APIs internas item-atomic de resolución
+
+> **IMPLEMENTADO LOCALMENTE / PENDIENTE DE AUDITORÍA HUMANA Y PROMOCIÓN.**
+> No está desplegado, no tiene llamador operacional y no se ha ejecutado
+> ninguna reconciliación real.
+
+D2-B2 añade el repositorio interno de mutación
+`Backfill/Reconciliation/ReconciliationJournal` sobre el esquema aceptado en B1.
+No amplía `ApplyJournal` ni introduce setters genéricos. Expone exactamente
+cuatro operaciones públicas:
+
+| Operación | Efecto durable |
+| --- | --- |
+| `beginRunReconciliation()` | inserta `attempt_started` para un run exacto; ninguna proyección |
+| `recordBlockedAttempt()` | inserta `attempt_blocked` con una razón cerrada; ninguna proyección |
+| `recordForwardItemResolution()` | inserta `item_forward_accepted` y proyecta item y todos sus objetos |
+| `recordNoEffectItemResolution()` | inserta `item_no_effect_closed` y proyecta únicamente el item |
+
+No existen `closeReconciledRun()`, `recordCleanupResolution()`, resolución
+pública por objeto, ausencia confirmada, primitiva de borrado ni camino CLI.
+
+### Contrato operativo del llamador
+
+Todas las operaciones exigen un `ReconciliationContext` con el `attempt_id`
+canónico, el handle del lock exclusivo de APPLY, la identidad de storage, el
+modo de backend y una revisión de código opcional de 40 hex. El repositorio
+**no adquiere ni libera el lock**: el futuro coordinador es dueño de su ciclo de
+vida y el repositorio sólo verifica propiedad.
+
+Antes de cualquier escritura se comprueban conexión MariaDB, ausencia de
+transacción ambiente del llamador, coincidencia de `StorageIdentity::current()`
+con el contexto, con el handle del lock y con el `storage_identity_hash` durable
+del run, coincidencia del modo de backend, mantenimiento según la semántica
+vigente del guard y propiedad del lock. La propiedad del lock y el mantenimiento
+se vuelven a comprobar inmediatamente antes del commit.
+
+### Validación semántica compartida
+
+`ReconciliationEventValidator` y `CandidateManifestReader` son dos ayudantes
+read-only sin I/O de storage ni mutación, usados tanto por la inspección D2-A
+como por el repositorio de mutación, de modo que lectura y escritura aplican una
+sola regla.
+
+El validador de eventos comprueba, para cualquier fila: identificadores
+canónicos de evento, intento y run; tipo conocido; `evidence_version`
+soportada; `storage_identity_hash` y `evidence_sha256` de 64 hex;
+`backend_mode` conocido; `code_revision` nula o de 40 hex; `evidence_json`
+acotado cuyo SHA-256 coincide exactamente con `evidence_sha256`; y un sobre v1
+canónico cuyo conjunto y orden de claves, `kind`, `observed_at`, hash de
+identidad y modo de backend concuerdan con las columnas escalares. El cuerpo
+específico de cada tipo también se valida, incluido el ámbito de item: un
+`attempt_started` o un cierre de run no puede tener `item_id`, y una resolución
+de item lo exige. La columna `evidence_json` es `json` en MariaDB, de modo que
+el motor ya rechaza payloads sintácticamente inválidos.
+
+Para un puntero durable, el validador exige además evento existente, tipo
+compatible con la proyección, parentesco exacto de run e item y procedencia: el
+intento del evento debe tener exactamente un `attempt_started` válido del mismo
+run, sin abarcar dos runs, y con identidad de storage, modo de backend y
+revisión de código concordantes. Un UUID sintácticamente válido ha dejado de ser
+suficiente.
+
+Esa procedencia está anclada al hash de identidad de storage **durable del
+run**: quien valida un puntero pasa explícitamente
+`media_backfill_runs.storage_identity_hash` y tanto el evento como su
+`attempt_started` deben coincidir con él. Un par corrupto de forma coherente,
+que concuerda consigo mismo pero no con su run, falla cerrado; una identidad
+durable malformada también. Esto es independiente de la dimensión ya existente
+de deriva respecto a la identidad actual del entorno, que se sigue informando
+por separado. La revisión de código del evento no tiene que coincidir con la del
+run APPLY original, porque la reconciliación puede ejecutarse con código
+posterior; sólo debe ser sintácticamente válida y concordante dentro del intento.
+No se inventa una columna de modo de backend en el run: para el backend se
+conserva la concordancia entre inicio y evento.
+
+`CandidateManifestReader` conserva sin cambios la regla de coherencia de
+candidato ya aceptada en D2-A y la comparte con el repositorio.
+
+### Provenance obligatoria del intento
+
+`recordBlockedAttempt()`, `recordForwardItemResolution()` y
+`recordNoEffectItemResolution()` sólo continúan un intento cuyo
+`attempt_started` es semánticamente válido. Un evento de inicio corrupto,
+duplicado, retipado, con `item_id`, con sobre o hash de evidencia inválidos, con
+identidad, backend o revisión discordantes, o perteneciente a otro run, no
+autoriza ninguna escritura durable. La ausencia total de inicio es
+`illegal_resolution`; un inicio presente pero inválido es
+`inconsistent_journal`.
+
+### Eventos append-only e idempotencia
+
+La tabla de eventos sigue siendo append-only en aplicación: no hay método de
+actualización ni de borrado. Cada evento se direcciona por `event_id` y
+`attempt_id` canónicos suministrados por el llamador. Un `attempt_id` no puede
+abarcar dos runs y sólo admite un `attempt_started`; blocked, forward y
+no-effect exigen que ese `attempt_started` ya exista.
+
+- `event_id` ausente: se inserta sólo tras cumplirse todas las precondiciones.
+- `event_id` existente con todos los campos durables y la evidencia idénticos,
+  y proyecciones ya iguales al resultado esperado: replay idempotente, sin
+  escritura.
+- Cualquier divergencia de campo o evidencia: `replay_conflict`.
+- Otro evento sobre una proyección ya terminal: `replay_conflict`.
+- Evento sin proyecciones, proyección sin evento, punteros cruzados, tipo de
+  evento incompatible o conjunto parcial: `inconsistent_journal`. El estado
+  parcial artificial se rechaza, nunca se repara en silencio.
+
+La evidencia se canonicaliza en PHP con orden de claves fijo antes de
+codificarse; `evidence_sha256` cubre exactamente los bytes almacenados en
+`evidence_json`. No se depende del orden de claves que devuelva MariaDB. El
+payload se limita a 16.384 bytes y `evidence_version` es 1.
+
+### Evidencia v1 de aceptación forward
+
+`ForwardItemEvidence` es el snapshot tipado que D2-C deberá construir tras
+observar y revalidar. El repositorio **no hace I/O de storage**: valida la
+evidencia contra los hechos inmutables del journal.
+
+La evidencia atestigua momento de observación, hash de identidad de storage,
+modo de backend, hash de la identidad de referencia del dominio, hash de la
+master key, SHA-256 actual de la master, SHA-256 del manifest candidato,
+revalidación de owner vivo único con dominio y entidad, validación estructural
+del manifest candidato, comprobación de clave exacta de que no existe un target
+canónico inesperado y una entrada por cada objeto planificado, en orden
+ascendente de ID, con SHA-256 y tamaño observados, MIME observado y las
+atestaciones de descriptor y estructura.
+
+No se duplican en la evidencia claves de objeto, SHA/tamaño/MIME esperados ni el
+manifest completo: ya son hechos durables. El repositorio comprueba que el
+conjunto de IDs de evidencia coincide exactamente con las filas del item, sin
+faltantes, extras ni duplicados; que cada SHA y tamaño observados igualan los
+esperados; que todas las atestaciones son verdaderas; y que el plan journalizado
+es internamente consistente. Un booleano de conjunto exacto suministrado por el
+llamador no se acepta como prueba.
+
+### Transición forward item-atomic
+
+Dentro de una única transacción corta se bloquea run, después item y después
+todos los objetos en orden ascendente de ID; se revalidan las precondiciones; se
+inserta el evento; se proyectan **todos** los objetos a `forward_retained` y el
+item a `forward_accepted` con ese mismo evento; se recomprueba la propiedad del
+lock y se hace commit. Un fallo en cualquier punto revierte evento y
+proyecciones a la vez.
+
+La aceptación forward no exige una atribución histórica concreta: `planned`,
+`intent`, `unknown`, recibo `created`, colisión `rejected` y fallo conocido
+`failed` pueden coexistir con ella, igual que cleanup `pending`, `failed` o
+`unknown`. `cleanup_state=deleted` la hace ilegal. También se exige el plan
+completo: manifest más cada variante, sin filas faltantes, duplicadas o ajenas.
+
+### Coherencia de candidato y preflight
+
+Antes de cualquier resolución, el item debe presentar exactamente la forma que
+produce un snapshot válido para su clasificación. Un item
+`legacy_backfillable` exige candidato completo y coherente: hash de master,
+hash del JSON candidato, `source_sha256` y un manifest que parsea y concuerda
+con dominio, perfil, política y contrato de claves. Una clasificación no
+candidata no puede llevar JSON, hash de candidato ni `source_sha256`, sólo
+admite fase `inspected` o `finished` y no puede tener filas de objeto, porque
+planificar un objeto exige un candidato coherente. `writing` sólo es alcanzable
+con al menos un objeto despachado. La correspondencia entre `master_key` y
+`manifest_key` se comprueba siempre.
+
+Esto cierra el hueco de un item `legacy_backfillable` manipulado al que se le
+retira el candidato y se le vacían los objetos: sin candidato coherente no hay
+cierre no-effect. Un item candidato legítimo que quedó en `inspected` sin
+objetos planificados sí puede cerrarse: cero objetos es válido, metadatos
+inmutables corruptos no.
+
+### Cierre no-effect
+
+`recordNoEffectItemResolution()` sólo cierra el bloqueo de fase del item cuando
+la historia durable prueba por sí misma que no pudo existir efecto de storage:
+item no `finished`, `apply_result` nulo y, para cada fila de objeto, atribución
+`not_dispatched`, `rejected_collision` o `failed_without_write` con cleanup
+`not_required`, sin recibo de creación, ETag, version ID ni confirmación de
+escritura. Un item sin objetos planificados también cualifica. Cualquier
+`intent`, `unknown`, `created` o cleanup no `not_required` lo rechaza. Sólo se
+escribe la proyección del item; los objetos permanecen en `NULL`.
+
+### Puntero de reconciliación del run
+
+El cierre tardío de run pertenece a D2-B3, de modo que B2 adopta la variante
+más estricta compatible con estos documentos: cualquier
+`runs.reconciliation_event_id` no nulo deja fuera de alcance las cuatro
+operaciones, incluso si nombra un evento real de ese mismo run. B2 no crea ni
+modifica proyecciones de run. La inspección read-only, en cambio, sí clasifica
+el puntero: sólo es válido si nombra un `run_closed_after_reconciliation`
+estructuralmente válido, sin `item_id` y con procedencia concordante; un puntero
+a un `attempt_started` se informa como inválido e inconsistente.
+
+### Enlaces inválidos en la inspección read-only
+
+La representación read-only ya no muestra un puntero sin comprobarlo. Un enlace
+inexistente, de otro tipo, de otro run, de otro item, con hash o sobre de
+evidencia corruptos, o cuya procedencia de intento falta o es inválida, se
+clasifica como inválido e inconsistente, propaga `internally_inconsistent`,
+anula `functionalStorageSetExact` y produce exit 7. También se validan las
+reglas cruzadas: una aceptación forward exige que item y **todos** sus objetos
+nombren el mismo evento válido, un cierre no-effect no admite ninguna proyección
+de objeto y ningún objeto puede resolverse sin resolución de su item. Esa
+igualdad se comprueba sobre los identificadores durables de las filas del
+journal. El fingerprint SHA-256 truncado que muestran los reports y el CLI es
+exclusivamente metadato de presentación y nunca acredita identidad durable. El CLI
+sigue siendo read-only, no adquiere lock ni exige mantenimiento, y
+`recoveryBarrier()` no cambia.
+
+### Inmutabilidad y límites
+
+Las columnas de APPLY no se tocan: estados de escritura, creación y cleanup,
+recibos, fase, resultado, `finished_at`, resumen, error y heartbeat del run y
+checkpoints permanecen byte a byte idénticos, incluido `updated_at`. Las
+pruebas comparan todas las columnas históricas antes y después de cada
+resolución aceptada.
+
+`ApplyJournal::recoveryBarrier()` permanece exactamente igual: run activo, item
+no `finished`, escritura `intent`/`unknown` o cleanup `pending`/`failed`/
+`unknown`. Una proyección B2 válida no despeja ningún predicado; Barrier V2, el
+cierre tardío `active → interrupted` y los guards de APPLY frente a proyecciones
+reconciliadas siguen reservados a D2-B3.
+
+Los errores usan la enumeración cerrada `ReconciliationError`
+(`invalid_input`, `maintenance_required`, `lock_lost`, `identity_mismatch`,
+`unsupported_storage`, `ambient_transaction`, `journal_unavailable`,
+`inconsistent_journal`, `evidence_mismatch`, `replay_conflict`,
+`illegal_resolution`) y no encadenan excepciones previas ni exponen claves,
+ETags, version IDs, evidencia cruda ni configuración de storage.
+
+D2-B2 no tiene llamador operacional: ningún comando, controlador, ruta, job ni
+provider lo referencia, y las pruebas lo verifican recorriendo esas rutas del
+código. Tampoco observa, escribe o borra storage, no hace cleanup, no acredita
+ausencia confirmada y no cierra runs. `ObjectEvidenceClassifier` expone ahora
+`attributionFor()` para reutilizar en B2 la validación de estados durables ya
+aceptada en D2-A, sin cambiar su clasificación externa.
+
+### Validación local de D2-B2
+
+Focales de journal, rango, esquema, clasificadores, representación, inspector y
+mutación: 280 tests y 3.216 aserciones, exit 0. Suite backend completa: 1.549
+tests y 15.550 aserciones, exit 0. `php -l` sobre todos los PHP afectados, Pint
+limitado a esos archivos y `git diff --check`: PASS.
+
 ## Siguiente bloque
 
-D2-B2 es el siguiente bloque de implementación: debe introducir APIs mínimas,
-específicas, transaccionales e item-atomic para resolución forward/no-effect;
-B1 no las anticipa con setters genéricos. Barrier V2 y el cierre tardío de run
-quedan para D2-B3. El diseño y las primitivas de cleanup seguro, ausencia
-confirmada local o S3 no existen todavía y la reconciliación destructiva sigue
-siendo trabajo posterior. D2-B, P1.D.2 y P1.D no están completos.
+D2-B2 está implementado localmente y pendiente de auditoría humana y
+promoción. D2-B3 es el siguiente bloque: cierre tardío de run, Barrier V2 y
+guards de APPLY frente a proyecciones reconciliadas. D2-C, que observará y
+revalidará para construir la evidencia que B2 valida, sigue siendo trabajo
+futuro. El diseño y las primitivas de cleanup seguro, ausencia confirmada local
+o S3 no existen todavía y la reconciliación destructiva sigue siendo trabajo
+posterior. D2-B, P1.D.2 y P1.D no están completos.

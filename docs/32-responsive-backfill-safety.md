@@ -131,6 +131,26 @@ todavía en esta consulta. Hasta Barrier V2 en D2-B3, incluso una proyección no
 nula deja intactos los cuatro predicados históricos anteriores. B1 tampoco
 añade un repositorio/API capaz de insertar eventos o modificar proyecciones.
 
+D2-B2 sí añade ese repositorio interno,
+`Backfill/Reconciliation/ReconciliationJournal`, implementado localmente y
+pendiente de auditoría humana y promoción. Es un bloque de librería sin llamador
+operacional: no tiene comando, endpoint, job ni provider que pueda invocarlo.
+Escribe exclusivamente eventos append-only y las proyecciones nullable de item y
+objeto, nunca columnas de APPLY, y no adquiere ni libera el lock. Reutiliza las
+primitivas de seguridad de este documento: exige conexión MariaDB, ausencia de
+transacción ambiente, identidad de storage coincidente con el contexto, el
+handle del lock exclusivo y el run durable, mantenimiento según
+`ApplyMaintenanceGuard` y propiedad del lock antes de mutar y de nuevo
+inmediatamente antes del commit. Además, toda resolución exige un evento
+`attempt_started` semánticamente válido del mismo intento y run, anclado al hash
+de identidad de storage durable de ese run, y cualquier
+puntero de reconciliación no nulo en el run deja las operaciones B2 fuera de
+alcance: el cierre tardío sigue siendo de D2-B3. La validación semántica de
+eventos y punteros vive en un ayudante read-only compartido con la inspección.
+El contrato completo se documenta en
+[35-responsive-backfill-reconciliation.md](35-responsive-backfill-reconciliation.md).
+`recoveryBarrier()` no cambia en B2.
+
 | Registro | Transiciones |
 | --- | --- |
 | Run | `active → completed / failed / interrupted`; terminal no vuelve a active |

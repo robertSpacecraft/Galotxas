@@ -15,7 +15,6 @@ use App\Services\Media\Backfill\Safety\RunState;
 use App\Services\Media\Backfill\Safety\StorageIdentity;
 use App\Services\Media\ManifestImage;
 use App\Services\Media\ResponsiveManifest;
-use App\Services\Media\ResponsiveMediaKeys;
 use Illuminate\Database\DatabaseManager;
 use stdClass;
 use Throwable;
@@ -29,7 +28,8 @@ class ReconciliationInspector
         private readonly ApplyJournal $journal,
         private readonly ExactObjectObserver $observer,
         private readonly ObjectEvidenceClassifier $classifier,
-        private readonly ResponsiveMediaKeys $keys,
+        private readonly CandidateManifestReader $candidates,
+        private readonly ReconciliationEventValidator $events,
         private readonly DatabaseManager $database,
     ) {}
 
@@ -116,6 +116,11 @@ class ReconciliationInspector
         $items = array_map(fn (stdClass $item): ItemReconciliationReport => $this->itemReport($item, $run), $itemRows);
         $state = is_string($run->state ?? null) ? RunState::tryFrom($run->state) : null;
         $reconciliationEvent = ReconciliationEventPointer::from($run->reconciliation_event_id ?? null);
+        // A run pointer may only name a valid late-closure event; D2-B2 never writes one.
+        $runLinkValid = $reconciliationEvent->valid && (! $reconciliationEvent->present
+            || $this->events->projectionEvent($run->reconciliation_event_id ?? null,
+                ReconciliationEventType::RunClosedAfterReconciliation, (string) ($run->run_id ?? ''), null,
+                $run->storage_identity_hash ?? null) !== null);
         $identityMatches = $this->storageIdentityMatches($run);
         $itemsTruncated = $counts['total_items'] > count($itemRows);
         $childInconsistent = false;
@@ -125,7 +130,7 @@ class ReconciliationInspector
                 break;
             }
         }
-        $inconsistent = ! $runConsistent || ! $reconciliationEvent->valid
+        $inconsistent = ! $runConsistent || ! $runLinkValid
             || $counts['total_items'] > $limit || $childInconsistent;
         $flags = [];
         if ($counts['unfinished_items'] > 0) {
@@ -172,7 +177,7 @@ class ReconciliationInspector
             items: $items,
             itemsTruncated: $itemsTruncated,
             hasReconciliationEvent: $reconciliationEvent->present,
-            reconciliationEventPointerInvalid: ! $reconciliationEvent->valid,
+            reconciliationEventPointerInvalid: ! $runLinkValid,
             reconciliationEventFingerprint: $reconciliationEvent->fingerprint,
         );
     }
@@ -187,7 +192,8 @@ class ReconciliationInspector
         $reconciliationResultInvalid = (($item->reconciliation_result ?? null) !== null
             && $reconciliationResult === null)
             || ($reconciliationResult !== null && ! $reconciliationEvent->valid)
-            || ($reconciliationResult !== null) !== $reconciliationEvent->present;
+            || ($reconciliationResult !== null) !== $reconciliationEvent->present
+            || ($reconciliationResult !== null && ! $this->itemLinkIsValid($item, $run, $reconciliationResult));
         $rows = $this->journal->objectsForItem((int) $item->id, 0, self::MAX_CHILDREN);
         $objects = array_map(
             fn (stdClass $object): ObjectReconciliationReport => $this->objectReport(
@@ -224,12 +230,19 @@ class ReconciliationInspector
                 || $object->reconciliationResolutionInvalid;
         }
 
+        $crossProjectionInvalid = $this->crossProjectionInvalid(
+            $reconciliationResult,
+            $item->reconciliation_event_id ?? null,
+            $rows,
+        );
+        $hasInconsistency = $hasInconsistency || $crossProjectionInvalid;
+
         $functionalStorageSetExact = $this->functionalStorageSetExact(
             $item,
             $manifest,
             $rows,
             $objects,
-            $itemConsistent && ! $reconciliationResultInvalid,
+            $itemConsistent && ! $reconciliationResultInvalid && ! $crossProjectionInvalid,
         );
         $exactSet = $functionalStorageSetExact && $this->hasNoCleanupHistory($objects);
         $classification = match (true) {
@@ -266,7 +279,7 @@ class ReconciliationInspector
     private function itemContext(stdClass $item, stdClass $run): array
     {
         [$selectedDomain, $selectedAfterId, , $selectedUpperBound, , $runConsistent] = $this->runSelection($run);
-        [$manifest, $candidateConsistent] = $this->candidate($item);
+        [$manifest, $candidateConsistent] = $this->candidates->read($item);
         $phase = is_string($item->phase ?? null) ? ItemPhase::tryFrom($item->phase) : null;
         $result = is_string($item->apply_result ?? null) ? ApplyResult::tryFrom($item->apply_result) : null;
         $preflight = is_string($item->preflight_classification ?? null)
@@ -301,42 +314,8 @@ class ReconciliationInspector
             ? $this->observer->observe($object, $descriptor)
             : ObjectObservation::Unreadable;
 
-        return $this->classifier->report($object, $observation, $parentConsistent);
-    }
-
-    /** @return array{?ResponsiveManifest, bool} */
-    private function candidate(stdClass $item): array
-    {
-        $preflight = is_string($item->preflight_classification ?? null)
-            ? PreflightClassification::tryFrom($item->preflight_classification)
-            : null;
-        $json = $item->candidate_manifest_json ?? null;
-        $hash = $item->candidate_manifest_sha256 ?? null;
-        $master = $item->master_key ?? null;
-        $masterHash = $item->master_key_hash ?? null;
-        $manifestKey = $item->manifest_key ?? null;
-        if ($json === null && $hash === null && $manifestKey === null) {
-            return [null, $preflight !== PreflightClassification::LegacyBackfillable];
-        }
-        if (! is_string($json) || ! is_string($hash) || ! is_string($master)
-            || ! is_string($masterHash) || ! is_string($manifestKey)
-            || ! hash_equals(hash('sha256', $json), $hash)
-            || ! hash_equals(hash('sha256', $master), $masterHash)) {
-            return [null, false];
-        }
-        try {
-            $manifest = ResponsiveManifest::fromJson($json, $master, $manifestKey, $this->keys);
-            $domain = ManagedMediaDomain::tryFrom(is_string($item->domain ?? null) ? $item->domain : '');
-            if ($preflight !== PreflightClassification::LegacyBackfillable || $domain === null
-                || $manifest->schemaVersion !== 2 || $manifest->profile !== $domain->profile()
-                || $manifest->policy !== $domain->policy()) {
-                return [null, false];
-            }
-
-            return [$manifest, true];
-        } catch (Throwable) {
-            return [null, false];
-        }
+        return $this->classifier->report($object, $observation, $parentConsistent,
+            $this->objectLinkIsValid($object, $item, $run));
     }
 
     /** @return array{?ManifestImage, bool} */
@@ -363,6 +342,68 @@ class ReconciliationInspector
         }
 
         return [null, false];
+    }
+
+    private function itemLinkIsValid(stdClass $item, stdClass $run, ItemReconciliationResult $result): bool
+    {
+        return $this->events->projectionEvent(
+            $item->reconciliation_event_id ?? null,
+            $result === ItemReconciliationResult::ForwardAccepted
+                ? ReconciliationEventType::ItemForwardAccepted
+                : ReconciliationEventType::ItemNoEffectClosed,
+            (string) ($item->run_id ?? ''),
+            (int) ($item->id ?? 0),
+            $run->storage_identity_hash ?? null,
+        ) !== null;
+    }
+
+    private function objectLinkIsValid(stdClass $object, stdClass $item, stdClass $run): bool
+    {
+        if (($object->reconciliation_event_id ?? null) === null) {
+            return true;
+        }
+
+        return $this->events->projectionEvent(
+            $object->reconciliation_event_id,
+            ReconciliationEventType::ItemForwardAccepted,
+            (string) ($item->run_id ?? ''),
+            (int) ($item->id ?? 0),
+            $run->storage_identity_hash ?? null,
+        ) !== null;
+    }
+
+    /**
+     * Forward acceptance is item-atomic: item and every object must name the same exact event. A
+     * no-effect closure never projects objects, and objects never resolve without their item.
+     * This compares durable identifiers from the journal rows; the truncated fingerprints exposed
+     * by the reports are presentation metadata and never establish durable equality.
+     *
+     * @param  list<stdClass>  $rows
+     */
+    private function crossProjectionInvalid(?ItemReconciliationResult $result, mixed $itemPointer, array $rows): bool
+    {
+        if ($result === ItemReconciliationResult::ForwardAccepted) {
+            if ($rows === [] || ! is_string($itemPointer)) {
+                return true;
+            }
+            foreach ($rows as $row) {
+                $pointer = $row->reconciliation_event_id ?? null;
+                if (($row->reconciliation_resolution ?? null) !== ObjectReconciliationResolution::ForwardRetained->value
+                    || ! is_string($pointer) || $pointer !== $itemPointer) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        foreach ($rows as $row) {
+            if (($row->reconciliation_resolution ?? null) !== null || ($row->reconciliation_event_id ?? null) !== null) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
