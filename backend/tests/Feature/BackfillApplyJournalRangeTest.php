@@ -13,9 +13,11 @@ use App\Services\Media\Backfill\Safety\ApplyRunSelection;
 use App\Services\Media\Backfill\Safety\CleanupState;
 use App\Services\Media\Backfill\Safety\CreateReceipt;
 use App\Services\Media\Backfill\Safety\CreateState;
+use App\Services\Media\Backfill\Safety\ObjectKind;
 use App\Services\Media\Backfill\Safety\RecoveryBarrierState;
 use App\Services\Media\Backfill\Safety\RunState;
 use App\Services\Media\Backfill\Safety\SafetyError;
+use App\Services\Media\Backfill\Safety\TargetObject;
 use Illuminate\Database\Events\TransactionCommitting;
 use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
@@ -292,6 +294,144 @@ class BackfillApplyJournalRangeTest extends TestCase
         )));
         $this->assertSame($before, (array) $journal->run($runId));
         $this->assertSame([], File::allFiles($this->safetyRoot));
+    }
+
+    public function test_reconciliation_child_readers_are_bounded_ordered_and_cursor_based(): void
+    {
+        $journal = app(ApplyJournal::class);
+        $runId = $journal->createApplyRun($this->identity(), $this->applySelection());
+        $first = $journal->snapshot($runId, $this->excludedReference(ManagedMediaDomain::News, 10));
+        $second = $journal->snapshot($runId, $this->preflight(20));
+        $third = $journal->snapshot($runId, $this->excludedReference(ManagedMediaDomain::News, 30));
+
+        $this->assertSame([$first, $second], array_map(
+            static fn ($row): int => (int) $row->id,
+            $journal->itemsForRun($runId, 0, 2),
+        ));
+        $this->assertSame([$second, $third], array_map(
+            static fn ($row): int => (int) $row->id,
+            $journal->itemsForRun($runId, $first, 2),
+        ));
+
+        $candidate = $journal->item($second);
+        $manifest = new TargetObject(
+            $candidate->manifest_key,
+            ObjectKind::Manifest,
+            $candidate->candidate_manifest_sha256,
+            strlen($candidate->candidate_manifest_json),
+            'application/json',
+        );
+        $descriptor = $this->preflight(20)->prepared->manifest->variants[0];
+        $variant = new TargetObject(
+            $descriptor->key,
+            ObjectKind::Variant,
+            hash('sha256', str_repeat('x', $descriptor->size)),
+            $descriptor->size,
+            $descriptor->mimeType,
+        );
+        $variantId = $journal->planObject($second, $variant);
+        $manifestId = $journal->planObject($second, $manifest);
+
+        $this->assertSame([$variantId], array_map(
+            static fn ($row): int => (int) $row->id,
+            $journal->objectsForItem($second, 0, 1),
+        ));
+        $this->assertSame([$manifestId], array_map(
+            static fn ($row): int => (int) $row->id,
+            $journal->objectsForItem($second, $variantId, 1),
+        ));
+    }
+
+    public function test_reconciliation_global_and_run_readers_include_terminal_unfinished_and_exact_run_objects(): void
+    {
+        $journal = app(ApplyJournal::class);
+        [$firstJournal, $firstRun, $firstItem, $firstObject] = $this->plannedObject();
+        $firstJournal->commitIntent($firstObject);
+        $firstJournal->finishItem($firstItem, ApplyResult::PublicationUnknown);
+        $firstJournal->finishRun($firstRun, RunState::Interrupted);
+
+        [$secondJournal, $secondRun, $secondItem, $secondObject] = $this->plannedObject();
+        $secondJournal->commitIntent($secondObject);
+        $secondJournal->recordReceipt($secondObject, new CreateReceipt(CreateState::Unknown));
+        $secondJournal->finishRun($secondRun, RunState::Failed);
+
+        $this->assertSame([$secondItem], array_map(
+            static fn ($row): int => (int) $row->id,
+            $journal->allUnfinishedItems(0, 10),
+        ));
+        $this->assertSame([$firstObject], array_map(
+            static fn ($row): int => (int) $row->id,
+            $journal->unresolvedObjectsForRun($firstRun, 0, 10),
+        ));
+        $this->assertSame([$secondObject], array_map(
+            static fn ($row): int => (int) $row->id,
+            $journal->unresolvedObjectsForRun($secondRun, 0, 10),
+        ));
+        $this->assertSame([
+            'total_items' => 1,
+            'unfinished_items' => 1,
+            'unresolved_objects' => 1,
+            'ambiguous_writes' => 1,
+            'cleanup_attention' => 0,
+        ], $journal->runEvidenceCounts($secondRun));
+    }
+
+    public function test_reconciliation_readers_reject_invalid_ids_limits_and_uuid_without_mutation(): void
+    {
+        $journal = app(ApplyJournal::class);
+        $before = [
+            DB::table('media_backfill_runs')->count(),
+            DB::table('media_backfill_items')->count(),
+            DB::table('media_backfill_objects')->count(),
+        ];
+
+        foreach ([
+            fn () => $journal->itemsForRun('not-a-uuid'),
+            fn () => $journal->itemsForRun(strtoupper('550e8400-e29b-41d4-a716-446655440000')),
+            fn () => $journal->itemsForRun('550e8400-e29b-41d4-a716-446655440000', -1),
+            fn () => $journal->itemsForRun('550e8400-e29b-41d4-a716-446655440000', 0, 1001),
+            fn () => $journal->objectsForItem(0),
+            fn () => $journal->objectsForItem(1, -1),
+            fn () => $journal->objectsForItem(1, 0, 0),
+            fn () => $journal->allUnfinishedItems(-1),
+            fn () => $journal->unresolvedObjectsForRun('not-a-uuid'),
+            fn () => $journal->runEvidenceCounts('not-a-uuid'),
+        ] as $call) {
+            $this->assertSafetyError(SafetyError::IllegalTransition, $call);
+        }
+
+        $this->assertSame($before, [
+            DB::table('media_backfill_runs')->count(),
+            DB::table('media_backfill_items')->count(),
+            DB::table('media_backfill_objects')->count(),
+        ]);
+    }
+
+    public function test_reconciliation_readers_issue_selects_only_and_leave_timestamps_unchanged(): void
+    {
+        $journal = app(ApplyJournal::class);
+        $runId = $journal->createApplyRun($this->identity(), $this->applySelection());
+        $itemId = $journal->snapshot($runId, $this->excludedReference(ManagedMediaDomain::News, 10));
+        $beforeRun = (array) $journal->run($runId);
+        $beforeItem = (array) $journal->item($itemId);
+        $queries = [];
+        DB::listen(function ($query) use (&$queries) {
+            $queries[] = $query->sql;
+        });
+
+        $journal->itemsForRun($runId);
+        $journal->objectsForItem($itemId);
+        $journal->allUnfinishedItems();
+        $journal->unresolvedObjectsForRun($runId);
+        $journal->runEvidenceCounts($runId);
+
+        $this->assertNotEmpty($queries);
+        $this->assertSame([], array_values(array_filter(
+            $queries,
+            static fn (string $sql): bool => preg_match('/\A\s*(insert|update|delete|replace|alter|create|drop|truncate)\b/i', $sql) === 1,
+        )));
+        $this->assertSame($beforeRun, (array) $journal->run($runId));
+        $this->assertSame($beforeItem, (array) $journal->item($itemId));
     }
 
     private function excludedReference(ManagedMediaDomain $domain, int $entityId): PreflightResult

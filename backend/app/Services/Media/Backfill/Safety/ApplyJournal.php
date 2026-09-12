@@ -324,7 +324,7 @@ class ApplyJournal
         $this->require($limit > 0 && $limit <= 1000);
 
         return $this->safe(fn () => $this->database->connection()->table('media_backfill_runs')->useWritePdo()
-            ->where('state', RunState::Active->value)->orderBy('started_at')->limit($limit)->get()->all());
+            ->where('state', RunState::Active->value)->orderBy('started_at')->orderBy('run_id')->limit($limit)->get()->all());
     }
 
     public function unfinishedItems(string $runId, int $afterId = 0, int $limit = 100): array
@@ -334,6 +334,73 @@ class ApplyJournal
         return $this->safe(fn () => $this->database->connection()->table('media_backfill_items')->useWritePdo()
             ->where('run_id', $runId)->where('id', '>', $afterId)->where('phase', '!=', ItemPhase::Finished->value)
             ->orderBy('id')->limit($limit)->get()->all());
+    }
+
+    /** Bounded read-only page of every item belonging to one exact run. */
+    public function itemsForRun(string $runId, int $afterId = 0, int $limit = 100): array
+    {
+        $this->require($this->isCanonicalUuid($runId) && $limit > 0 && $limit <= 1000 && $afterId >= 0);
+
+        return $this->safe(fn () => $this->database->connection()->table('media_backfill_items')->useWritePdo()
+            ->where('run_id', $runId)->where('id', '>', $afterId)
+            ->orderBy('id')->limit($limit)->get()->all());
+    }
+
+    /** Bounded read-only page of every object belonging to one exact item. */
+    public function objectsForItem(int $itemId, int $afterId = 0, int $limit = 100): array
+    {
+        $this->require($itemId > 0 && $limit > 0 && $limit <= 1000 && $afterId >= 0);
+
+        return $this->safe(fn () => $this->database->connection()->table('media_backfill_objects')->useWritePdo()
+            ->where('item_id', $itemId)->where('id', '>', $afterId)
+            ->orderBy('id')->limit($limit)->get()->all());
+    }
+
+    /** Includes unfinished items on terminal runs. Bounded pages, no recovery mutations. */
+    public function allUnfinishedItems(int $afterId = 0, int $limit = 100): array
+    {
+        $this->require($limit > 0 && $limit <= 1000 && $afterId >= 0);
+
+        return $this->safe(fn () => $this->database->connection()->table('media_backfill_items')->useWritePdo()
+            ->where('id', '>', $afterId)->where('phase', '!=', ItemPhase::Finished->value)
+            ->orderBy('id')->limit($limit)->get()->all());
+    }
+
+    /** Bounded unresolved-object page scoped through exact journal parentage. */
+    public function unresolvedObjectsForRun(string $runId, int $afterId = 0, int $limit = 100): array
+    {
+        $this->require($this->isCanonicalUuid($runId) && $limit > 0 && $limit <= 1000 && $afterId >= 0);
+
+        return $this->safe(fn () => $this->database->connection()->table('media_backfill_objects as objects')->useWritePdo()
+            ->join('media_backfill_items as items', 'items.id', '=', 'objects.item_id')
+            ->where('items.run_id', $runId)->where('objects.id', '>', $afterId)
+            ->where(fn ($query) => $query->whereIn('objects.write_state', ['intent', 'unknown'])
+                ->orWhereIn('objects.cleanup_state', ['pending', 'failed', 'unknown']))
+            ->select('objects.*')->orderBy('objects.id')->limit($limit)->get()->all());
+    }
+
+    /** @return array{total_items: int, unfinished_items: int, unresolved_objects: int, ambiguous_writes: int, cleanup_attention: int} */
+    public function runEvidenceCounts(string $runId): array
+    {
+        $this->require($this->isCanonicalUuid($runId));
+
+        return $this->safe(function () use ($runId) {
+            $db = $this->database->connection();
+            $items = $db->table('media_backfill_items')->useWritePdo()->where('run_id', $runId);
+            $objects = fn () => $db->table('media_backfill_objects as objects')->useWritePdo()
+                ->join('media_backfill_items as items', 'items.id', '=', 'objects.item_id')
+                ->where('items.run_id', $runId);
+
+            return [
+                'total_items' => (clone $items)->count(),
+                'unfinished_items' => (clone $items)->where('phase', '!=', ItemPhase::Finished->value)->count(),
+                'unresolved_objects' => $objects()->where(fn ($query) => $query
+                    ->whereIn('objects.write_state', ['intent', 'unknown'])
+                    ->orWhereIn('objects.cleanup_state', ['pending', 'failed', 'unknown']))->count(),
+                'ambiguous_writes' => $objects()->whereIn('objects.write_state', ['intent', 'unknown'])->count(),
+                'cleanup_attention' => $objects()->whereIn('objects.cleanup_state', ['pending', 'failed', 'unknown'])->count(),
+            ];
+        });
     }
 
     /** Read-only. The future runner must call this before creating its own active run. */
@@ -471,5 +538,10 @@ class ApplyJournal
         if (! $condition) {
             throw new BackfillSafetyException(SafetyError::IllegalTransition);
         }
+    }
+
+    private function isCanonicalUuid(string $value): bool
+    {
+        return preg_match('/\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/D', $value) === 1;
     }
 }

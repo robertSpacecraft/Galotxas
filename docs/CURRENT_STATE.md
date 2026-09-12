@@ -30,6 +30,7 @@ Sublínea activa: P1.D — backfill de masters legacy.
 | P1.D.1C-B3-A — coordinador interno de invocación/rango APPLY | completado hasta producción |
 | P1.D.1C-B3-B — wiring CLI APPLY | completado hasta producción |
 | P1.D.1C-B3 — coordinador y wiring CLI APPLY | completado hasta producción |
+| P1.D.2-A — inspector/clasificador de reconciliación read-only | implementado localmente; pendiente de revisión humana/promoción |
 
 P1.D.1C-A está completado hasta producción. Su smoke de producción terminó correctamente con exit 0, cero bloqueos y cero escrituras de storage.
 
@@ -70,9 +71,31 @@ El contrato permanece en un dominio explícito, `--limit` obligatorio entre 1 y
 
 P1.D.1C-B3 está completado hasta producción. No se ha autorizado ni ejecutado
 ningún APPLY operacional bajo mantenimiento ni ningún backfill/publicación de
-media. P1.D.1C-B, P1.D, D2 y D3 continúan abiertos. D2 reconciliación es el
-siguiente bloque; un APPLY real en staging requerirá capacidad de seguridad y
-reconciliación suficiente y una autorización operacional separada.
+media. P1.D.1C-B, P1.D, D2 y D3 continúan abiertos.
+
+## Estado local de P1.D.2-A
+
+D2-A implementa localmente el inspector/clasificador read-only y el comando
+separado `media:responsive-backfill-reconcile`. Está pendiente de revisión
+humana y promoción; no está aceptado en staging ni producción. Sólo añade
+lecturas acotadas del journal, observación de claves exactas y clasificaciones
+tipadas de objetos, items y runs. No muta journal, checkpoint, dominio o
+storage, no adquiere el lock de APPLY y no exige ni activa mantenimiento.
+
+`absent_now` es exclusivamente una observación puntual. En particular, ante
+`intent` o `unknown` no acredita ausencia permanente, no fabrica un recibo y no
+despeja la barrera de recuperación. Tampoco la igualdad actual de contenido
+acredita ownership. Un conjunto funcional exacto describe únicamente que el
+plan completo y sus bytes actuales coinciden; conserva por separado la
+atribución histórica, incluso `rejected`, `failed` o `planned`. En la inspección
+de un run, `--limit` acota el trabajo sobre items y un detalle truncado se marca
+explícitamente sin convertirlo en inconsistencia. D2-A no implementa cleanup
+automático local ni cleanup S3.
+
+P1.D.1C-B3 permanece aceptado hasta producción, pero sigue sin autorizarse ni
+haberse ejecutado ningún APPLY real. El siguiente bloque, sólo después de la
+aceptación humana de D2-A, es D2-B: estados/API de resolución durable. Hasta
+entonces toda evidencia bloqueante permanece intacta.
 
 ## Documentos de referencia
 
@@ -80,6 +103,7 @@ reconciliación suficiente y una autorización operacional separada.
 - [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md) — journal, identidad, lock, mantenimiento y escritura exclusiva (P1.D.1B).
 - [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md) — dry-run y wiring CLI APPLY aceptados hasta producción.
 - [34-responsive-backfill-apply-design.md](34-responsive-backfill-apply-design.md) — diseño aprobado de APPLY; B1/B2/B3-A/B3-B y B3 aceptados hasta producción.
+- [35-responsive-backfill-reconciliation.md](35-responsive-backfill-reconciliation.md) — D2-A read-only local: lectores acotados, observación exacta, clasificaciones y CLI.
 
 ## Invariante de traspaso
 
