@@ -26,7 +26,7 @@ class ChampionshipController extends Controller
             ->effectivelyPublic()
             ->with([
                 'season',
-                'categories' => fn ($categoryQuery) => $categoryQuery->effectivelyPublic(),
+                'categories' => fn ($categoryQuery) => $categoryQuery->effectivelyPublic()->orderBy('id'),
             ])
             ->orderByDesc('id');
 
@@ -63,7 +63,7 @@ class ChampionshipController extends Controller
 
         $championship->load([
             'season',
-            'categories' => fn ($categoryQuery) => $categoryQuery->effectivelyPublic(),
+            'categories' => fn ($categoryQuery) => $categoryQuery->effectivelyPublic()->orderBy('id'),
         ]);
 
         return $this->successResponse(

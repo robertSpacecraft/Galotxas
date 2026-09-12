@@ -236,6 +236,131 @@ class CompetitionPublicVisibilityTest extends TestCase
         $this->getJson('/api/v1/championships/'.$hiddenBySeason->id)->assertNotFound();
     }
 
+    public function test_championship_categories_are_returned_in_creation_order_matching_production_scenario(): void
+    {
+        $season = Season::factory()->publiclyVisible()->create();
+        $championship = Championship::factory()->publiclyVisible()->create([
+            'season_id' => $season->id,
+        ]);
+
+        $primera = Category::factory()->publiclyVisible()->create([
+            'championship_id' => $championship->id,
+            'name' => 'Primera categoría',
+            'level' => 1,
+        ]);
+        $segunda = Category::factory()->publiclyVisible()->create([
+            'championship_id' => $championship->id,
+            'name' => 'Segunda categoría',
+            'level' => 2,
+        ]);
+        $tercera = Category::factory()->publiclyVisible()->create([
+            'championship_id' => $championship->id,
+            'name' => 'Tercera categoría',
+            'level' => 3,
+        ]);
+        $cuarta = Category::factory()->publiclyVisible()->create([
+            'championship_id' => $championship->id,
+            'name' => 'Cuarta categoría',
+            'level' => 4,
+        ]);
+        $quinta = Category::factory()->publiclyVisible()->create([
+            'championship_id' => $championship->id,
+            'name' => 'Quinta categoría',
+            'level' => 5,
+        ]);
+        $femenina = Category::factory()->publiclyVisible()->create([
+            'championship_id' => $championship->id,
+            'name' => 'Femenina',
+            'level' => null,
+        ]);
+        $infantil = Category::factory()->publiclyVisible()->create([
+            'championship_id' => $championship->id,
+            'name' => 'Infantil',
+            'level' => null,
+        ]);
+
+        // Creation order, not alphabetical (which would read Cuarta, Femenina,
+        // Infantil, Primera, Quinta, Segunda, Tercera) and not level order with
+        // nulls first (which would push Femenina/Infantil ahead of Primera).
+        $expectedOrder = [
+            $primera->id,
+            $segunda->id,
+            $tercera->id,
+            $cuarta->id,
+            $quinta->id,
+            $femenina->id,
+            $infantil->id,
+        ];
+
+        $showResponse = $this->getJson('/api/v1/championships/'.$championship->id)->assertOk();
+        $this->assertSame(
+            $expectedOrder,
+            collect($showResponse->json('data.categories'))->pluck('id')->all()
+        );
+
+        $indexResponse = $this->getJson('/api/v1/championships')->assertOk();
+        $indexItem = collect($indexResponse->json('data'))->firstWhere('id', $championship->id);
+        $this->assertSame(
+            $expectedOrder,
+            collect($indexItem['categories'])->pluck('id')->all()
+        );
+    }
+
+    public function test_championship_categories_creation_order_does_not_depend_on_name_level_gender_or_status(): void
+    {
+        $season = Season::factory()->publiclyVisible()->create();
+        $championship = Championship::factory()->publiclyVisible()->create([
+            'season_id' => $season->id,
+        ]);
+
+        // Name, level, gender and status are deliberately scrambled relative to
+        // creation order, so no attribute-based sort could coincidentally
+        // reproduce the expected id-ascending result.
+        $first = Category::factory()->publiclyVisible()->create([
+            'championship_id' => $championship->id,
+            'name' => 'Zeta especial',
+            'level' => 3,
+            'gender' => 'mixed',
+            'status' => 'active',
+        ]);
+        $second = Category::factory()->publiclyVisible()->create([
+            'championship_id' => $championship->id,
+            'name' => 'Alfa numerada',
+            'level' => 1,
+            'gender' => 'female',
+            'status' => 'pending',
+        ]);
+        $third = Category::factory()->publiclyVisible()->create([
+            'championship_id' => $championship->id,
+            'name' => 'Infantil especial',
+            'level' => null,
+            'gender' => 'mixed',
+            'status' => 'active',
+        ]);
+        $fourth = Category::factory()->publiclyVisible()->create([
+            'championship_id' => $championship->id,
+            'name' => 'Beta numerada',
+            'level' => 2,
+            'gender' => 'male',
+            'status' => 'pending',
+        ]);
+        $fifth = Category::factory()->publiclyVisible()->create([
+            'championship_id' => $championship->id,
+            'name' => 'Femenina especial',
+            'level' => null,
+            'gender' => 'female',
+            'status' => 'active',
+        ]);
+
+        $expectedOrder = [$first->id, $second->id, $third->id, $fourth->id, $fifth->id];
+
+        $response = $this->getJson('/api/v1/championships/'.$championship->id)->assertOk();
+        $this->assertSame(
+            $expectedOrder,
+            collect($response->json('data.categories'))->pluck('id')->all()
+        );
+    }
+
     public function test_category_standings_schedule_and_matches_require_a_complete_public_branch(): void
     {
         [$publicSeason, $publicChampionship, $publicCategory] = $this->createPublicBranch();
