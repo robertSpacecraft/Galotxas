@@ -31,7 +31,7 @@ Sublínea activa: P1.D — backfill de masters legacy.
 | P1.D.1C-B3-B — wiring CLI APPLY | completado hasta producción |
 | P1.D.1C-B3 — coordinador y wiring CLI APPLY | completado hasta producción |
 | P1.D.2-A — inspector/clasificador de reconciliación read-only | completado hasta producción |
-| P1.D.2-B1 — esquema y representación durable read-only | implementado localmente; pendiente de aceptación humana y promoción |
+| P1.D.2-B1 — esquema y representación durable read-only | completado hasta producción |
 
 P1.D.1C-A está completado hasta producción. Su smoke de producción terminó correctamente con exit 0, cero bloqueos y cero escrituras de storage.
 
@@ -110,17 +110,23 @@ P1.D.1C-B3 permanece aceptado hasta producción. El despliegue de D2-A no
 autoriza ningún APPLY real: durante su aceptación no hubo APPLY operacional,
 reconciliación mutante, publicación de storage ni creación de evidencia
 artificial. P1.D.2 y P1.D permanecen abiertos. El diseño D2-B posterior definió
-el modelo mínimo de resolución durable; el estado local de su primer bloque se
-detalla a continuación. Toda reconciliación mutante sigue siendo trabajo futuro,
-posterior a la implementación y aceptación de sus contratos de seguridad.
+el modelo mínimo de resolución durable; el cierre de su primer bloque se detalla
+a continuación. Toda reconciliación mutante sigue siendo trabajo futuro.
 
-## Estado local de P1.D.2-B1
+## Cierre de P1.D.2-B1
 
-D2-B1 está implementado únicamente en el árbol local y queda pendiente de
-revisión humana, commit y promoción. Añade un esquema híbrido: eventos de
+El commit `ad6334b60415ceab3b1658cc700e842e52183e9f` está desplegado y
+aceptado en staging y producción. Añade el esquema híbrido de eventos de
 reconciliación conceptualmente append-only y proyecciones nullable en runs,
 items y objetos. `NULL` significa sin resolución D2 aceptada, incluida toda fila
 pre-D2. Los hechos originales de APPLY y los checkpoints no se reescriben.
+
+El despliegue de código en Railway no ejecutó la migración Laravel. En cada
+entorno se instaló exclusivamente la migración B1 con `php artisan migrate`
+usando el path exacto
+`database/migrations/2026_09_12_000000_add_media_backfill_reconciliation_representation.php`
+y `--force`; no se usó migrate general, rollback ni fresh. Es una nota
+operativa de despliegue, no un cambio de arquitectura de la aplicación.
 
 La inspección read-only muestra las proyecciones como una dimensión separada.
 También incorpora `functionalStorageSetExact`: acredita sólo que el plan
@@ -134,8 +140,16 @@ La barrera de recuperación conserva deliberadamente en B1 sus cuatro
 predicados históricos sin override por proyecciones. No existe todavía ningún
 repositorio/API de mutación de reconciliación, cierre tardío de run, cleanup ni
 ausencia confirmada. El rollback físico de la migración B1 sólo se permite
-cuando no hay eventos ni proyecciones. D2-B2 será el siguiente bloque sólo tras
-la aceptación de B1; P1.D.2 y P1.D permanecen abiertos.
+cuando no hay eventos ni proyecciones.
+
+En staging y producción, runs/items/objects/events y los cinco conteos de
+proyecciones no nulas fueron cero antes y después. `--execute` continuó
+rechazado con exit 2; la inspección read-only terminó con exit 0 y observó
+`recoveryBarrier()=clear`, sin mutaciones de journal ni escrituras/borrados de
+storage. D2-B2 es el siguiente bloque: APIs item-atomic para resolución
+forward/no-effect. Barrier V2 y el cierre tardío de run siguen en D2-B3; la
+reconciliación destructiva/cleanup permanece para trabajo posterior. P1.D.2 y
+P1.D continúan abiertos.
 
 ## Documentos de referencia
 
@@ -143,7 +157,7 @@ la aceptación de B1; P1.D.2 y P1.D permanecen abiertos.
 - [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md) — journal, identidad, lock, mantenimiento y escritura exclusiva (P1.D.1B).
 - [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md) — dry-run y wiring CLI APPLY aceptados hasta producción.
 - [34-responsive-backfill-apply-design.md](34-responsive-backfill-apply-design.md) — diseño aprobado de APPLY; B1/B2/B3-A/B3-B y B3 aceptados hasta producción.
-- [35-responsive-backfill-reconciliation.md](35-responsive-backfill-reconciliation.md) — D2-A read-only aceptado hasta producción y D2-B1 local pendiente: esquema híbrido y representación durable read-only.
+- [35-responsive-backfill-reconciliation.md](35-responsive-backfill-reconciliation.md) — D2-A y D2-B1 aceptados hasta producción; inspección read-only, esquema híbrido y límites de la reconciliación futura.
 
 ## Invariante de traspaso
 

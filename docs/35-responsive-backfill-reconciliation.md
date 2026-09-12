@@ -1,11 +1,11 @@
 # Reconciliación de backfill responsive — P1.D.2
 
 > **D2-A COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
-> **D2-B1 IMPLEMENTADO LOCALMENTE / PENDIENTE DE ACEPTACIÓN Y PROMOCIÓN.**
+> **D2-B1 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
 > P1.D.1C-B3 permanece aceptado hasta producción. No se ha autorizado ni
 > ejecutado ningún APPLY real.
 
-## Aceptación hasta producción
+## Aceptación de D2-A hasta producción
 
 El commit `b4f68144258900764ccf5790f3a09e4aa1e04030` está desplegado y
 aceptado en staging y producción. El CLI read-only existe en ambos entornos con
@@ -21,6 +21,31 @@ terminar ni objetos no resueltos, declaró cero mutaciones de journal y cero
 escrituras/borrados de storage, y terminó con exit 0. No se ejecutó APPLY
 operacional o bajo mantenimiento, reconciliación mutante ni publicación de
 storage, y no se creó evidencia artificial para la aceptación.
+
+## Aceptación de D2-B1 hasta producción
+
+El commit `ad6334b60415ceab3b1658cc700e842e52183e9f` está desplegado y
+aceptado en staging y producción. El despliegue de código en Railway no ejecutó
+la migración Laravel; en cada entorno se aplicó exclusivamente:
+
+```text
+php artisan migrate \
+  --path=database/migrations/2026_09_12_000000_add_media_backfill_reconciliation_representation.php \
+  --force
+```
+
+No se usó migrate general, rollback ni fresh. Esta es una nota operativa sobre
+la instalación del esquema, no una modificación de la arquitectura de la
+aplicación.
+
+Después de instalarla, ambos entornos tenían la tabla de eventos y las cinco
+proyecciones B1. Antes y después de la aceptación, los conteos de
+runs/items/objects/events eran `0/0/0/0` y cada conteo de proyección no nula era
+cero. `--execute` siguió sin soporte y fue rechazado con exit 2. La inspección
+read-only terminó con exit 0, observó `recoveryBarrier()=clear`, mostró cero runs
+activos, items sin terminar y objetos no resueltos, y declaró cero mutaciones de
+journal y cero escrituras/borrados de storage. La aceptación posterior a la
+instalación del esquema fue, por tanto, estrictamente no mutante.
 
 ## Alcance de D2-A
 
@@ -238,7 +263,7 @@ manualmente un valor no nulo en tests. La consulta sigue sin I/O de storage.
 Barrier V2 queda reservado a D2-B3, después de disponer de APIs soportadas y
 proyecciones alcanzables por código.
 
-## Validación local de D2-B1
+## Validación aceptada de D2-B1
 
 La validación focal MariaDB cubre journal/rango, esquema/rollback,
 clasificadores, representación durable e inspector: 120 tests y 1.156
@@ -248,9 +273,9 @@ PHP afectados, Pint limitado a esos archivos y `git diff --check`.
 
 ## Siguiente bloque
 
-D2-B2 será el siguiente bloque sólo después de aceptar y promover D2-B1. Deberá
-introducir las APIs mínimas, específicas y transaccionales para resolución
-forward/no-effect; B1 no las anticipa con setters genéricos. Barrier V2 y el
-cierre de run quedan para D2-B3. El diseño y las primitivas de cleanup seguro,
-ausencia confirmada local o S3 no existen todavía. Toda reconciliación mutante
-sigue siendo trabajo futuro. P1.D.2 y P1.D no están completos.
+D2-B2 es el siguiente bloque de implementación: debe introducir APIs mínimas,
+específicas, transaccionales e item-atomic para resolución forward/no-effect;
+B1 no las anticipa con setters genéricos. Barrier V2 y el cierre tardío de run
+quedan para D2-B3. El diseño y las primitivas de cleanup seguro, ausencia
+confirmada local o S3 no existen todavía y la reconciliación destructiva sigue
+siendo trabajo posterior. D2-B, P1.D.2 y P1.D no están completos.
