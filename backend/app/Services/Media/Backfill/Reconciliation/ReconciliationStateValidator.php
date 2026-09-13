@@ -135,6 +135,100 @@ final class ReconciliationStateValidator
     }
 
     /**
+     * Validates every durable event of one run, including events that are not projections. Started
+     * and blocked attempts may legitimately remain unprojected; item/run resolution events may not.
+     *
+     * @param  list<stdClass>  $items
+     * @param  list<stdClass>  $objects
+     */
+    public function runHistoryIsValid(stdClass $run, array $items, array $objects): bool
+    {
+        $runId = $run->run_id ?? null;
+        $identity = $run->storage_identity_hash ?? null;
+        if (! is_string($runId) || ! $this->canonicalUuid($runId)
+            || ! is_string($identity) || ! $this->sha256($identity)
+            || ! array_is_list($items) || ! array_is_list($objects)) {
+            return false;
+        }
+        $itemsById = [];
+        foreach ($items as $item) {
+            if (! $item instanceof stdClass || (string) ($item->run_id ?? '') !== $runId) {
+                return false;
+            }
+            $itemsById[(int) ($item->id ?? 0)] = $item;
+        }
+        $objectsByItem = [];
+        foreach ($objects as $object) {
+            if (! $object instanceof stdClass || ! isset($itemsById[(int) ($object->item_id ?? 0)])) {
+                return false;
+            }
+            $objectsByItem[(int) $object->item_id][] = $object;
+        }
+
+        try {
+            $events = $this->database->connection()->table('media_backfill_reconciliation_events')
+                ->useWritePdo()->where('run_id', $runId)->orderBy('event_id')->get()->all();
+        } catch (Throwable) {
+            return false;
+        }
+        foreach ($events as $event) {
+            if (! $event instanceof stdClass || ! $this->events->isStructurallyValid($event)
+                || ! is_string($event->storage_identity_hash ?? null)
+                || ! hash_equals($identity, $event->storage_identity_hash)) {
+                return false;
+            }
+            $type = ReconciliationEventType::tryFrom((string) ($event->event_type ?? ''));
+            $start = $this->events->attemptStart($event->attempt_id ?? null, $runId, $identity);
+            if ($type === null || $start === null
+                || ($start->backend_mode ?? null) !== ($event->backend_mode ?? null)
+                || ($start->code_revision ?? null) !== ($event->code_revision ?? null)) {
+                return false;
+            }
+            $itemId = ($event->item_id ?? null) === null ? null : (int) $event->item_id;
+            if ($type === ReconciliationEventType::AttemptStarted) {
+                if (($start->event_id ?? null) !== ($event->event_id ?? null) || $itemId !== null) {
+                    return false;
+                }
+
+                continue;
+            }
+            if ($type === ReconciliationEventType::AttemptBlocked) {
+                if ($itemId !== null && ! isset($itemsById[$itemId])) {
+                    return false;
+                }
+
+                continue;
+            }
+            if ($type === ReconciliationEventType::RunClosedAfterReconciliation) {
+                if ($itemId !== null || ($run->reconciliation_event_id ?? null) !== ($event->event_id ?? null)) {
+                    return false;
+                }
+
+                continue;
+            }
+            $item = $itemId === null ? null : ($itemsById[$itemId] ?? null);
+            if (! $item instanceof stdClass || ($item->reconciliation_event_id ?? null) !== ($event->event_id ?? null)) {
+                return false;
+            }
+            if ($type === ReconciliationEventType::ItemForwardAccepted) {
+                if (($item->reconciliation_result ?? null) !== ItemReconciliationResult::ForwardAccepted->value) {
+                    return false;
+                }
+                foreach ($objectsByItem[$itemId] ?? [] as $object) {
+                    if (($object->reconciliation_resolution ?? null) !== ObjectReconciliationResolution::ForwardRetained->value
+                        || ($object->reconciliation_event_id ?? null) !== ($event->event_id ?? null)) {
+                        return false;
+                    }
+                }
+            } elseif (($item->reconciliation_result ?? null) !== ItemReconciliationResult::ClosedNoEffect->value) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * DB-only operational view of one item. It deliberately reuses itemState(), the exact
      * projection/event policy used by Barrier V2 and run closure.
      *
