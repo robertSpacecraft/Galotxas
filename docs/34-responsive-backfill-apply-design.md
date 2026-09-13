@@ -261,8 +261,9 @@ comprobó que workers estuvieran detenidos.
 
 B3-B y P1.D.1C-B3 están completados y aceptados hasta producción. Esto no
 autoriza una ejecución operativa: no se ha ejecutado ningún APPLY bajo
-mantenimiento ni backfill/publicación de media. P1.D.1C-B, P1.D, D2 y D3
-continúan abiertos. La reconciliación D2 está aceptada hasta C2 y C3, todavía
-sin implementar, es el siguiente bloque; un APPLY real en staging requerirá
-capacidad de seguridad/reconciliación suficiente y una autorización operacional
-separada.
+mantenimiento ni backfill/publicación de media. P1.D.2 está cerrado hasta
+producción tras el CLI mutante explícito y el mapeo de exits de C3, pero no se
+ha ejecutado ninguna reconciliación mutante real en entornos compartidos y
+forward continúa fail-closed. P1.D permanece abierto y P1.D.3 (D3) es el
+siguiente bloque, propietario de la aceptación operacional final y el cierre
+de P1.D. Un APPLY real sigue requiriendo autorización explícita del operador.

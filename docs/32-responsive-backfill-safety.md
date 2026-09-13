@@ -212,6 +212,30 @@ adaptador, topología y capacidad de lectura: no autoriza forward. Cleanup
 `pending`/`failed`/`unknown` continúa bloqueando y C2 no limpia, borra, confirma
 ausencia ni muta storage.
 
+P1.D.2-C3 está completado y aceptado hasta producción en el commit
+`68794a1e8428f0c60952638620fe9adc6e1e502c`. Añade exclusivamente el CLI
+mutante explícito
+`media:responsive-backfill-reconcile-run --run=<uuid> --execute`, con ambas
+opciones obligatorias. Es el único llamador operacional de C2: construye una
+sola invocation, llama una vez al coordinador y mapea los hechos tipados del
+report. No activa mantenimiento, gestiona otro lock, llama directamente al
+journal ni observa o muta storage. El comando D2-A continúa read-only y rechaza
+`--execute` con exit 2.
+
+C3 no cambia la congelación de writers. Un candidato forward sigue iniciando
+el intento C2 y después queda bloqueado con
+`storage_observation_untrusted`, sin observación exacta de objetos ni resolución
+forward; su exit es 7 por la procedencia durable del intento. La rama no-effect
+continúa siendo exclusivamente DB-only y basada en historia APPLY inmutable.
+Los smokes no destructivos compartidos alcanzaron el primer gate del coordinador
+con mantenimiento desactivado y devolvieron `MaintenanceRequired / exit 3`, sin
+intento, evento, proyección ni mutación.
+
+Con C3, P1.D.2 queda cerrado hasta producción. P1.D permanece abierto y
+P1.D.3 (D3) es el siguiente bloque, propietario de la aceptación operacional
+final y del cierre de P1.D. No se ha autorizado ni ejecutado un APPLY real ni
+una reconciliación mutante real en entornos compartidos.
+
 | Registro | Transiciones |
 | --- | --- |
 | Run | `active → completed / failed / interrupted`; terminal no vuelve a active |

@@ -6,6 +6,8 @@
 > **D2-B3 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
 > **D2-C1 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
 > **D2-C2 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
+> **D2-C3 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
+> **P1.D.2 CERRADO HASTA PRODUCCIÓN / P1.D PERMANECE ABIERTO.**
 > P1.D.1C-B3 permanece aceptado hasta producción. No se ha autorizado ni
 > ejecutado ningún APPLY real.
 
@@ -676,10 +678,10 @@ escrituras/borrados de storage fueron cero; y `recovery barrier modified` fue
 > mutaciones B2/B3.
 
 D2-C se divide en tres bloques independientes: C1 aporta evidencia operacional
-exacta; C2 compone el coordinador interno para un único run; C3 cableará más
-tarde un CLI mutante explícito. C1 no contiene coordinador, comando, endpoint,
-job, provider, ruta ni llamador de `ReconciliationJournal`. Su API pública sigue
-teniendo exactamente cinco operaciones:
+exacta; C2 compone el coordinador interno para un único run; C3 quedó reservado
+para cablear un CLI mutante explícito. C1 no contiene coordinador, comando,
+endpoint, job, provider, ruta ni llamador de `ReconciliationJournal`. Su API
+pública sigue teniendo exactamente cinco operaciones:
 
 - `beginRunReconciliation`;
 - `closeRunAfterReconciliation`;
@@ -894,14 +896,14 @@ permanece exactamente en cinco operaciones:
 
 C2 no añade migración ni configuración y no modifica directamente eventos o
 proyecciones. Tampoco incorpora command Artisan mutante, endpoint, job, route,
-scheduler ni provider wiring. El CLI mutante explícito corresponde a C3:
+scheduler ni provider wiring. El CLI mutante explícito quedó reservado a C3:
 
 ```text
 php artisan media:responsive-backfill-reconcile-run --run=<uuid> --execute
 ```
 
-Ese comando no existe todavía. El CLI D2-A read-only permanece intacto y
-rechaza `--execute` con exit 2.
+En el cierre de C2 ese comando todavía no existía. El CLI D2-A read-only
+permanecía intacto y rechazaba `--execute` con exit 2.
 
 ### Validación local de D2-C2
 
@@ -941,14 +943,128 @@ forward; no leyó un objeto S3 concreto para C2; y no escribió o borró storage
 Con cero filas no había nada legítimo que reconciliar. Es una aceptación de
 despliegue, runtime y rechazo fail-closed, no una autorización de forward.
 
-## Siguiente bloque
+## D2-C3: CLI mutante explícito y mapeo de exits
 
-D2-C2 está completado y aceptado hasta producción. El siguiente bloque activo
-es P1.D.2-C3, propietario del comando mutante explícito y su mapeo de exits. C3
-no puede debilitar el writer-freeze C2: con el guard actual, toda invocation que
-contenga un candidato forward debe reflejar fielmente el rechazo fail-closed y
-no anunciar forward como disponible. No se ha autorizado ni ejecutado APPLY
-real ni reconciliación mutante real en staging o producción. El diseño y las
-primitivas de cleanup seguro y ausencia confirmada local o S3 no existen; la
-reconciliación destructiva sigue siendo posterior. P1.D.2 y P1.D permanecen
-abiertos.
+> **COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
+> El commit `68794a1e8428f0c60952638620fe9adc6e1e502c`
+> (`feat(media): añadir CLI mutante de reconciliación`) está desplegado y
+> aceptado en staging y producción. Su parent es
+> `7748a10057114707a6f277d03a9bc70dcbd076df`.
+
+C3 añade el primer y único llamador operacional de
+`ReconciliationCoordinator`:
+
+```text
+php artisan media:responsive-backfill-reconcile-run \
+  --run=<canonical-lowercase-uuid> \
+  --execute
+```
+
+`--run` y `--execute` son obligatorios. La superficie específica no contiene
+`--item`, `--object`, `--after-id`, `--limit`, `--force`, `--resume`,
+`--cleanup`, `--finalize`, `--apply`, `--dry-run` ni `--yes`. La ausencia de
+una opción obligatoria, un UUID no canónico o una opción no soportada devuelve
+exit 2 sin invocar el coordinador. Si falta `--execute`, el comando no muta ni
+redirige automáticamente: señala la inspección disponible mediante
+`media:responsive-backfill-reconcile --run=<uuid>`.
+
+Con entrada válida muestra primero `Modo: RECONCILIATION MUTATING / EXACT RUN`,
+construye exactamente una `ReconciliationInvocation`, llama exactamente una
+vez a `ReconciliationCoordinator::run()` y presenta sólo hechos tipados y
+acotados de `ReconciliationReport`. No replica política de reconciliación, no
+consulta ni muta directamente las tablas, no llama a `ReconciliationJournal`,
+no observa ni muta storage, no adquiere un segundo lock y no activa ni desactiva
+el mantenimiento de Laravel. Todos los gates continúan perteneciendo a C2. El
+comando D2-A `media:responsive-backfill-reconcile` permanece read-only, conserva
+su superficie y sigue rechazando `--execute` con exit 2.
+
+### Contrato de salida C3
+
+El proceso deriva el exit exclusivamente del outcome y los hechos tipados del
+report, nunca de mensajes humanos:
+
+| Exit | Hecho tipado |
+| --- | --- |
+| `0` | `Completed`, `AlreadyClosed` o `NoReconciliationRequired`. Una Barrier V2 global `blocked` causada por otro run se muestra, pero no invalida el éxito del run seleccionado. |
+| `2` | Uso CLI inválido: falta `--run` o `--execute`, UUID no canónico u opción no soportada. El coordinador no se invoca. |
+| `3` | `MaintenanceRequired`. |
+| `4` | `LockBusy`. |
+| `5` | `LockAcquireFailed`. |
+| `6` | `SafetyFailure` con `attemptId == null` y `durableProgressOccurred != true`: no se ha establecido intento o progreso durable. |
+| `7` | `Blocked`, o `SafetyFailure` con `attemptId != null` o `durableProgressOccurred == true`; una incertidumbre post-attempt representada por esos hechos tipados también conserva la precedencia de 7. |
+
+El resumen muestra run, outcome, no-op, attempt, conteos recorridos y resueltos,
+primer blocker, cierre de run, estado final, Barrier V2 global, progreso durable
+y exit. No expone keys, evidencia JSON, respuestas de storage, ETag, VersionId,
+credenciales, mensajes crudos de excepción ni stack traces.
+
+### No-effect accesible; forward continúa fail-closed
+
+C3 hace operacionalmente invocable la rama no-effect DB-only ya aceptada en C2
+sin cambiarla. La elegibilidad depende sólo de historia APPLY inmutable, hace
+cero observaciones de objetos y no usa la deriva actual de entidad, referencia,
+owner o master como prueba. Mantenimiento, lock, identidad, capability gate y
+las demás revalidaciones C2 siguen siendo obligatorios. Los tests de integración
+locales ejercitaron esta ruta con MariaDB aislada, mantuvieron intactos los
+hechos APPLY y checkpoints y observaron cero I/O de objetos.
+
+C3 no habilita forward. `ManagedMediaWriterFreezeGuard` sigue siendo no
+bypassable y rechaza local y S3 con `storage_observation_untrusted`. El camino
+actual crea la procedencia durable normal `attempt_started` antes de encontrar
+el blocker y conserva `attempt_blocked`; por eso el CLI devuelve exit 7. No se
+observa ningún objeto exacto, no se registra `ItemForwardAccepted` y no se
+escribe, borra, copia, mueve o enumera storage.
+
+### Validación local de D2-C3
+
+La suite focal C3 pasó con 48 tests / 516 aserciones. El foco combinado
+C3/C2/C1/B3/APPLY/read-only/locks pasó con 454 tests / 5.495 aserciones y la
+suite backend oficial completa con 1.695 tests / 17.199 aserciones, siempre
+sobre MariaDB aislada y con exit 0. `php -l` sobre los PHP afectados, Pint
+limitado a esos archivos, `git diff --check` y la auditoría humana de
+implementación: PASS. C3 no añadió migración.
+
+### Aceptación de staging y producción de D2-C3
+
+| Entorno | Proyecto | Environment | Servicio backend | Deployment | Estado |
+| --- | --- | --- | --- | --- | --- |
+| staging | `8cef1db0-14bc-4d81-a1b9-d16f55e63728` | `60e4c050-1404-44c3-a7ea-c1c5b0cf1eee` | `4739ea72-bbbe-4b95-8f2d-ebf157aa77d1` | `37a5cfa8-3d98-4555-9850-2bef6cb5c832` | `SUCCESS` |
+| producción | `87540113-7f61-4081-9b8f-5172e7d43e7a` | `5cdac336-8763-4e92-ba72-9d7f24e4e4aa` | `9c6bfc33-8ee1-41f5-a2dc-11215ddf5bdd` | `5570e051-d155-4379-a855-bc6f6cadb676` | `SUCCESS` |
+
+Ambos entornos ejecutaron el mismo smoke no destructivo sobre el SHA exacto
+`68794a1e8428f0c60952638620fe9adc6e1e502c`. Los nueve conteos de
+runs/items/objetos/eventos y proyecciones no nulas permanecieron de `0` a `0`;
+el driver fue MariaDB y mantenimiento estaba desactivado. El comando C3 apareció
+exactamente una vez, help devolvió exit 0, mostró `--run` y `--execute` y no
+mostró las opciones específicas prohibidas. La falta de `--execute` y
+`--limit` no soportado devolvieron exit 2, y el comando read-only con
+`--execute` conservó exit 2.
+
+La forma mutante válida con UUID canónico y `--execute` sí invocó C3 y alcanzó
+el primer gate del coordinador. En staging y producción devolvió
+`MaintenanceRequired / exit 3`, attempt ausente, cero items recorridos y
+progreso durable `no`. `ReconciliationJournal` conservó cinco métodos públicos,
+Barrier V2 se observó puntualmente `clear` y los nueve conteos finales siguieron
+a cero.
+
+La aceptación compartida fue de runtime, wiring y rechazo fail-closed. No
+activó mantenimiento ni inició un intento durable. Tampoco creó eventos o
+proyecciones, ejecutó una reconciliación no-effect o forward real, leyó un
+objeto concreto ni mutó storage. El smoke de producción reutilizó el mismo
+script y su encabezado pegado seguía diciendo `STAGING ACCEPTANCE`; la
+ejecución y el deployment de la tabla anterior corresponden efectivamente a
+producción.
+
+## Cierre de P1.D.2 y siguiente bloque
+
+P1.D.2 queda cerrado hasta producción mediante la cadena completa D2-A,
+D2-B1, D2-B2, D2-B3, D2-C1, D2-C2 y D2-C3. Este cierre no incorpora cleanup ni
+ausencia confirmada, no habilita forward, no resuelve la congelación global de
+writers y no acredita una reconciliación mutante real en staging o producción.
+Tampoco autoriza o acredita un APPLY real.
+
+P1.D permanece abierto. El siguiente bloque activo es P1.D.3 (D3), propietario
+de la aceptación operacional final y del cierre de P1.D. Cualquier APPLY real
+bajo mantenimiento sigue requiriendo autorización explícita del operador; no
+se ha autorizado ni ejecutado ninguno. Tampoco se ha ejecutado una mutación
+real de reconciliación en entornos compartidos.

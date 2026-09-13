@@ -36,6 +36,9 @@ Sublínea activa: P1.D — backfill de masters legacy.
 | P1.D.2-B3 — cierre tardío de run, Barrier V2 y guards APPLY | completado y aceptado hasta producción |
 | P1.D.2-C1 — base de evidencia operacional exacta | completado y aceptado hasta producción |
 | P1.D.2-C2 — coordinador interno exact-one-run | completado y aceptado hasta producción |
+| P1.D.2-C3 — CLI mutante explícito y mapeo de exits | completado y aceptado hasta producción |
+| P1.D.2 — reconciliación de runs APPLY | cerrado hasta producción |
+| P1.D.3 (D3) — aceptación operacional final y cierre de P1.D | siguiente bloque |
 
 P1.D.1C-A está completado hasta producción. Su smoke de producción terminó correctamente con exit 0, cero bloqueos y cero escrituras de storage.
 
@@ -353,11 +356,61 @@ conteos de journal/proyecciones permanecieron en cero. No se invocó
 un objeto S3 concreto para aceptar C2, no se activó mantenimiento y no se mutó
 storage.
 
-El siguiente bloque es P1.D.2-C3. C3 posee exclusivamente el CLI mutante
-explícito y el mapeo de exits; debe reflejar el rechazo forward actual sin
-anunciar esa capacidad como disponible. No se ha autorizado ni ejecutado APPLY
-real, no se ha ejecutado reconciliación mutante real en entornos compartidos y
-cleanup continúa sin implementar. P1.D.2 y P1.D permanecen abiertos.
+El bloque siguiente a C2 fue P1.D.2-C3, propietario exclusivamente del CLI
+mutante explícito y el mapeo de exits. Su cierre se documenta a continuación.
+
+## Cierre de P1.D.2-C3 y P1.D.2
+
+El commit `68794a1e8428f0c60952638620fe9adc6e1e502c` está desplegado y
+aceptado en staging y producción. Añade el CLI mutante explícito
+`media:responsive-backfill-reconcile-run --run=<uuid> --execute`; ambas
+opciones son obligatorias y el UUID debe ser canónico y minúsculo. El comando
+construye una única `ReconciliationInvocation`, invoca exactamente una vez
+`ReconciliationCoordinator::run()` y presenta los hechos tipados de
+`ReconciliationReport`. No reproduce política C2, no muta DB o storage
+directamente, no llama al journal, no gestiona un lock paralelo y no activa ni
+desactiva mantenimiento. El comando D2-A
+`media:responsive-backfill-reconcile` permanece read-only y rechaza
+`--execute` con exit 2.
+
+El mapeo operacional es `0` para `Completed`, `AlreadyClosed` y
+`NoReconciliationRequired`; `2` para uso CLI inválido sin invocar el
+coordinador; `3` para `MaintenanceRequired`; `4` para `LockBusy`; `5` para
+`LockAcquireFailed`; `6` para `SafetyFailure` con `attemptId == null` y
+`durableProgressOccurred != true`; y `7` para `Blocked` o `SafetyFailure` con
+intento o progreso durable. Una Barrier V2 global `blocked` causada por otro
+run se muestra, pero no convierte en fallo el éxito del run seleccionado.
+
+La rama no-effect DB-only de C2 queda accesible operacionalmente sin cambiar su
+semántica: sólo usa historia APPLY inmutable, no observa storage y no depende de
+deriva actual de entidad, referencia o master. La validación local la ejercitó
+con MariaDB aislada, pero staging y producción tenían los nueve conteos a cero
+y mantenimiento desactivado, por lo que sus smokes no ejecutaron una
+reconciliación no-effect real.
+
+Forward continúa fail-closed. `ManagedMediaWriterFreezeGuard` no tiene bypass y
+rechaza local y S3 con `storage_observation_untrusted`. El camino actual inicia
+la procedencia durable normal del intento antes de bloquear, de modo que el CLI
+devuelve exit 7; no observa objetos, no registra `ItemForwardAccepted` y no muta
+storage.
+
+Los smokes no destructivos de staging y producción confirmaron el SHA exacto,
+MariaDB, el registro único del comando, su help y superficie de opciones, los
+rechazos de uso inválido con exit 2, el rechazo de `--execute` por el comando
+read-only, la API pública de cinco métodos de `ReconciliationJournal` y Barrier
+V2 puntualmente `clear`. La forma mutante válida alcanzó el primer gate del
+coordinador y devolvió `MaintenanceRequired / exit 3`, sin attempt, eventos,
+proyecciones, lectura concreta de storage ni mutación de journal o storage. El
+smoke de producción reutilizó el script cuyo encabezado textual decía
+`STAGING ACCEPTANCE`; la ejecución se realizó en producción.
+
+P1.D.2 queda cerrado hasta producción mediante D2-A, D2-B1, D2-B2, D2-B3,
+D2-C1, D2-C2 y D2-C3. Esto no habilita cleanup, ausencia confirmada ni forward,
+no demuestra una congelación global de writers y no acredita una
+reconciliación mutante real en entornos compartidos. P1.D permanece abierto y
+P1.D.3 (D3) es el siguiente bloque: posee la aceptación operacional final y el
+cierre de P1.D. Cualquier APPLY real bajo mantenimiento sigue requiriendo
+autorización explícita del operador; no se ha autorizado ni ejecutado ninguno.
 
 ## Documentos de referencia
 
@@ -365,7 +418,7 @@ cleanup continúa sin implementar. P1.D.2 y P1.D permanecen abiertos.
 - [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md) — journal, identidad, lock, mantenimiento y escritura exclusiva (P1.D.1B).
 - [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md) — dry-run y wiring CLI APPLY aceptados hasta producción.
 - [34-responsive-backfill-apply-design.md](34-responsive-backfill-apply-design.md) — diseño aprobado de APPLY; B1/B2/B3-A/B3-B y B3 aceptados hasta producción.
-- [35-responsive-backfill-reconciliation.md](35-responsive-backfill-reconciliation.md) — D2-A, D2-B1, D2-B2, D2-B3, D2-C1 y D2-C2 aceptados hasta producción; D2-C3 es el siguiente bloque.
+- [35-responsive-backfill-reconciliation.md](35-responsive-backfill-reconciliation.md) — P1.D.2 cerrado hasta producción mediante D2-A, D2-B1, D2-B2, D2-B3, D2-C1, D2-C2 y D2-C3; P1.D.3 (D3) es el siguiente bloque.
 
 ## Invariante de traspaso
 
