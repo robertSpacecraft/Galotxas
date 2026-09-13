@@ -3,21 +3,45 @@
 namespace App\Services\Media\Backfill\Reconciliation;
 
 use App\Services\Media\Backfill\Safety\ObjectKind;
+use App\Services\Media\Backfill\Safety\StorageIdentity;
 use App\Services\Media\Backfill\Safety\TargetObject;
 use App\Services\Media\ManifestImage;
 use Illuminate\Filesystem\FilesystemAdapter;
-use Illuminate\Filesystem\FilesystemManager;
-use InvalidArgumentException;
 use stdClass;
 use Throwable;
 
 /** Exact-key, bounded reads only. It never exposes bytes or storage exceptions. */
 class ExactObjectObserver
 {
-    public function __construct(private readonly FilesystemManager $filesystems) {}
+    public function __construct(private readonly StorageObservationCapability $capability) {}
 
     public function observe(stdClass $row, ?ManifestImage $descriptor = null): ObjectObservation
     {
+        try {
+            return $this->observeOn($row, $this->capability->currentDisk(), $descriptor)->classification;
+        } catch (Throwable) {
+            return ObjectObservation::Unreadable;
+        }
+    }
+
+    public function observeExact(
+        stdClass $row,
+        StorageIdentity $identity,
+        ReconciliationBackendMode $backendMode,
+        ?ManifestImage $descriptor = null,
+    ): ExactObjectObservation {
+        try {
+            return $this->observeOn($row, $this->capability->disk($identity, $backendMode), $descriptor);
+        } catch (Throwable) {
+            return ExactObjectObservation::unreadable();
+        }
+    }
+
+    private function observeOn(
+        stdClass $row,
+        FilesystemAdapter $disk,
+        ?ManifestImage $descriptor,
+    ): ExactObjectObservation {
         $stream = null;
         try {
             $target = new TargetObject(
@@ -27,46 +51,60 @@ class ExactObjectObserver
                 (int) $row->expected_size,
                 $row->mime_type,
             );
-            $disk = $this->disk();
             if (! $disk->fileExists($target->key)) {
-                return ObjectObservation::AbsentNow;
+                return ExactObjectObservation::absentNow();
             }
             if ($disk->size($target->key) !== $target->size) {
-                return ObjectObservation::DifferentContentPresent;
+                return ExactObjectObservation::differentContentPresent();
             }
             $stream = $disk->readStream($target->key);
             if (! is_resource($stream)) {
-                return ObjectObservation::Unreadable;
+                return ExactObjectObservation::unreadable();
             }
 
             $bytes = '';
             while (! feof($stream) && strlen($bytes) <= $target->size) {
                 $chunk = fread($stream, min(8192, $target->size + 1 - strlen($bytes)));
                 if ($chunk === false || ($chunk === '' && ! feof($stream))) {
-                    return ObjectObservation::Unreadable;
+                    return ExactObjectObservation::unreadable();
                 }
                 $bytes .= $chunk;
             }
-            if ((stream_get_meta_data($stream)['timed_out'] ?? false)
-                || strlen($bytes) !== $target->size
-                || ! hash_equals($target->sha256, hash('sha256', $bytes))) {
-                return strlen($bytes) === $target->size
-                    ? ObjectObservation::DifferentContentPresent
-                    : ObjectObservation::Unreadable;
+            if (stream_get_meta_data($stream)['timed_out'] ?? false) {
+                return ExactObjectObservation::unreadable();
+            }
+            if (strlen($bytes) !== $target->size) {
+                return ExactObjectObservation::unreadable();
+            }
+            if (! hash_equals($target->sha256, hash('sha256', $bytes))) {
+                return ExactObjectObservation::differentContentPresent();
             }
 
             try {
                 $target->validateBytes($bytes);
             } catch (Throwable) {
-                return ObjectObservation::DifferentContentPresent;
+                return ExactObjectObservation::differentContentPresent();
             }
             if ($descriptor !== null && ! $this->matchesDescriptor($bytes, $descriptor)) {
-                return ObjectObservation::DifferentContentPresent;
+                return ExactObjectObservation::differentContentPresent();
             }
 
-            return ObjectObservation::ExpectedContentPresent;
+            $mimeType = $target->kind === ObjectKind::Manifest
+                ? 'application/json'
+                : (new \finfo(FILEINFO_MIME_TYPE))->buffer($bytes);
+            if (! is_string($mimeType) || $mimeType !== $target->mimeType) {
+                return ExactObjectObservation::differentContentPresent();
+            }
+
+            return ExactObjectObservation::expectedContentPresent(
+                hash('sha256', $bytes),
+                strlen($bytes),
+                $mimeType,
+                $target->kind === ObjectKind::Manifest || $descriptor !== null,
+                true,
+            );
         } catch (Throwable) {
-            return ObjectObservation::Unreadable;
+            return ExactObjectObservation::unreadable();
         } finally {
             if (is_resource($stream)) {
                 fclose($stream);
@@ -84,15 +122,5 @@ class ExactObjectObserver
             && $header[1] === $descriptor->height
             && ($header['mime'] ?? null) === $descriptor->mimeType
             && (new \finfo(FILEINFO_MIME_TYPE))->buffer($bytes) === $descriptor->mimeType;
-    }
-
-    private function disk(): FilesystemAdapter
-    {
-        $name = trim((string) config('media.disk'));
-        if ($name === '') {
-            throw new InvalidArgumentException('Invalid media disk.');
-        }
-
-        return $this->filesystems->disk($name);
     }
 }

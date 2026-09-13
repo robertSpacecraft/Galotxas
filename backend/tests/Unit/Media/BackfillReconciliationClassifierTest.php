@@ -2,14 +2,17 @@
 
 namespace Tests\Unit\Media;
 
+use App\Services\Media\Backfill\Reconciliation\ExactObjectObservation;
 use App\Services\Media\Backfill\Reconciliation\ExactObjectObserver;
 use App\Services\Media\Backfill\Reconciliation\ObjectAttribution;
 use App\Services\Media\Backfill\Reconciliation\ObjectClassification;
 use App\Services\Media\Backfill\Reconciliation\ObjectEvidenceClassifier;
 use App\Services\Media\Backfill\Reconciliation\ObjectObservation;
+use App\Services\Media\Backfill\Reconciliation\ReconciliationBackendMode;
+use App\Services\Media\Backfill\Reconciliation\StorageObservationCapability;
+use App\Services\Media\Backfill\Safety\StorageIdentity;
 use App\Services\Media\ManifestImage;
 use Illuminate\Filesystem\FilesystemAdapter;
-use Illuminate\Filesystem\FilesystemManager;
 use Mockery;
 use PHPUnit\Framework\Attributes\DataProvider;
 use stdClass;
@@ -127,11 +130,105 @@ class BackfillReconciliationClassifierTest extends TestCase
 
         $this->assertSame(ObjectObservation::DifferentContentPresent, $this->observeWithDisk($row, $descriptor, true, $bytes));
 
-        $manager = Mockery::mock(FilesystemManager::class);
         $disk = Mockery::mock(FilesystemAdapter::class);
-        $manager->shouldReceive('disk')->once()->with('media_local')->andReturn($disk);
+        $capability = Mockery::mock(StorageObservationCapability::class);
+        $capability->shouldReceive('currentDisk')->once()->andReturn($disk);
         $disk->shouldReceive('fileExists')->once()->with($row->object_key)->andThrow(new \RuntimeException('secret endpoint'));
-        $this->assertSame(ObjectObservation::Unreadable, (new ExactObjectObserver($manager))->observe($row));
+        $this->assertSame(ObjectObservation::Unreadable, (new ExactObjectObserver($capability))->observe($row));
+    }
+
+    public function test_typed_exact_observation_returns_actual_facts_and_no_bytes(): void
+    {
+        $bytes = $this->fixtureBytes(320, 160, 'webp');
+        $row = $this->targetRow($bytes);
+        $descriptor = ManifestImage::fromObject((object) [
+            'key' => $row->object_key,
+            'width' => 320,
+            'height' => 160,
+            'mime_type' => 'image/webp',
+            'size' => strlen($bytes),
+        ]);
+        $disk = Mockery::mock(FilesystemAdapter::class);
+        $capability = Mockery::mock(StorageObservationCapability::class);
+        $identity = StorageIdentity::current(app('db'));
+        $capability->shouldReceive('disk')->once()->with($identity, ReconciliationBackendMode::Local)->andReturn($disk);
+        $disk->shouldReceive('fileExists')->once()->with($row->object_key)->andReturnTrue();
+        $disk->shouldReceive('size')->once()->with($row->object_key)->andReturn(strlen($bytes));
+        $stream = fopen('php://memory', 'r+');
+        fwrite($stream, $bytes);
+        rewind($stream);
+        $disk->shouldReceive('readStream')->once()->with($row->object_key)->andReturn($stream);
+        $disk->shouldNotReceive('listContents', 'files', 'allFiles', 'directories', 'write', 'put', 'delete', 'copy', 'move');
+
+        $result = (new ExactObjectObserver($capability))->observeExact(
+            $row,
+            $identity,
+            ReconciliationBackendMode::Local,
+            $descriptor,
+        );
+
+        $this->assertInstanceOf(ExactObjectObservation::class, $result);
+        $this->assertSame(ObjectObservation::ExpectedContentPresent, $result->classification);
+        $this->assertSame(hash('sha256', $bytes), $result->observedSha256);
+        $this->assertSame(strlen($bytes), $result->observedSize);
+        $this->assertSame('image/webp', $result->observedMimeType);
+        $this->assertTrue($result->descriptorValidated);
+        $this->assertTrue($result->structureValidated);
+        $this->assertObjectNotHasProperty('bytes', $result);
+    }
+
+    public function test_typed_non_success_observations_do_not_fabricate_expected_facts(): void
+    {
+        $bytes = $this->fixtureBytes(320, 160, 'webp');
+        $row = $this->targetRow($bytes);
+        $identity = StorageIdentity::current(app('db'));
+        foreach ([
+            'absent' => [false, null, ObjectObservation::AbsentNow],
+            'wrong-size' => [true, 'short', ObjectObservation::DifferentContentPresent],
+        ] as [$exists, $actual, $expected]) {
+            $disk = Mockery::mock(FilesystemAdapter::class);
+            $capability = Mockery::mock(StorageObservationCapability::class);
+            $capability->shouldReceive('disk')->once()->andReturn($disk);
+            $disk->shouldReceive('fileExists')->once()->with($row->object_key)->andReturn($exists);
+            if ($exists) {
+                $disk->shouldReceive('size')->once()->with($row->object_key)->andReturn(strlen($actual));
+            }
+            $result = (new ExactObjectObserver($capability))->observeExact(
+                $row,
+                $identity,
+                ReconciliationBackendMode::Local,
+            );
+            $this->assertSame($expected, $result->classification);
+            $this->assertNull($result->observedSha256);
+            $this->assertNull($result->observedSize);
+            $this->assertNull($result->observedMimeType);
+            $this->assertFalse($result->descriptorValidated);
+            $this->assertFalse($result->structureValidated);
+        }
+    }
+
+    public function test_typed_truncated_stream_is_unreadable_and_bounded(): void
+    {
+        $bytes = $this->fixtureBytes(320, 160, 'webp');
+        $row = $this->targetRow($bytes);
+        $disk = Mockery::mock(FilesystemAdapter::class);
+        $capability = Mockery::mock(StorageObservationCapability::class);
+        $capability->shouldReceive('disk')->once()->andReturn($disk);
+        $disk->shouldReceive('fileExists')->once()->andReturnTrue();
+        $disk->shouldReceive('size')->once()->andReturn(strlen($bytes));
+        $stream = fopen('php://memory', 'r+');
+        fwrite($stream, substr($bytes, 0, -1));
+        rewind($stream);
+        $disk->shouldReceive('readStream')->once()->andReturn($stream);
+
+        $result = (new ExactObjectObserver($capability))->observeExact(
+            $row,
+            StorageIdentity::current(app('db')),
+            ReconciliationBackendMode::Local,
+        );
+
+        $this->assertSame(ObjectObservation::Unreadable, $result->classification);
+        $this->assertNull($result->observedSha256);
     }
 
     private function observeWithDisk(
@@ -141,9 +238,9 @@ class BackfillReconciliationClassifierTest extends TestCase
         ?string $bytes = null,
     ): ObjectObservation {
         config()->set('media.disk', 'media_local');
-        $manager = Mockery::mock(FilesystemManager::class);
         $disk = Mockery::mock(FilesystemAdapter::class);
-        $manager->shouldReceive('disk')->once()->with('media_local')->andReturn($disk);
+        $capability = Mockery::mock(StorageObservationCapability::class);
+        $capability->shouldReceive('currentDisk')->once()->andReturn($disk);
         $disk->shouldReceive('fileExists')->once()->with($row->object_key)->andReturn($exists);
         $disk->shouldNotReceive('listContents', 'files', 'allFiles', 'directories', 'delete', 'write', 'put');
         if ($exists) {
@@ -160,7 +257,7 @@ class BackfillReconciliationClassifierTest extends TestCase
             $disk->shouldNotReceive('size', 'readStream');
         }
 
-        return (new ExactObjectObserver($manager))->observe($row, $descriptor);
+        return (new ExactObjectObserver($capability))->observe($row, $descriptor);
     }
 
     private function row(string $write, ?string $create, string $cleanup): stdClass

@@ -12,6 +12,7 @@ use App\Services\Media\Backfill\Safety\JournalMode;
 use App\Services\Media\Backfill\Safety\ObjectKind;
 use App\Services\Media\Backfill\Safety\ObjectWriteState;
 use App\Services\Media\Backfill\Safety\RunState;
+use App\Services\Media\Backfill\Safety\TargetObject;
 use DateTimeImmutable;
 use DateTimeZone;
 use Illuminate\Database\Connection;
@@ -131,6 +132,126 @@ final class ReconciliationStateValidator
 
         return $analysis !== null && $analysis['resolved']
             && $this->closureProjectionIsValid($run, $event, $analysis);
+    }
+
+    /**
+     * DB-only operational view of one item. It deliberately reuses itemState(), the exact
+     * projection/event policy used by Barrier V2 and run closure.
+     *
+     * @param  list<stdClass>  $objects
+     */
+    public function analyzeItem(
+        stdClass $run,
+        stdClass $item,
+        array $objects,
+    ): ReconciliationItemOperationalAnalysis {
+        $runId = (string) ($run->run_id ?? '');
+        $itemId = (int) ($item->id ?? 0);
+        if (! $this->canonicalUuid($runId) || $itemId < 1 || ! array_is_list($objects)
+            || count($objects) > self::MAX_ITEMS) {
+            return ReconciliationItemOperationalAnalysis::inconsistent();
+        }
+        foreach ($objects as $object) {
+            if (! $object instanceof stdClass) {
+                return ReconciliationItemOperationalAnalysis::inconsistent();
+            }
+        }
+        try {
+            $db = $this->database->connection();
+            $durableRun = $db->table('media_backfill_runs')->useWritePdo()->where('run_id', $runId)->first();
+            $durableItem = $db->table('media_backfill_items')->useWritePdo()->where('id', $itemId)->first();
+            $durableObjects = $db->table('media_backfill_objects')->useWritePdo()->where('item_id', $itemId)
+                ->orderBy('id')->limit(self::MAX_ITEMS + 1)->get()->all();
+        } catch (Throwable) {
+            return ReconciliationItemOperationalAnalysis::inconsistent();
+        }
+        if (! $durableRun instanceof stdClass || ! $durableItem instanceof stdClass
+            || count($durableObjects) > self::MAX_ITEMS
+            || (array) $durableRun !== (array) $run || (array) $durableItem !== (array) $item
+            || array_map(static fn (stdClass $row): array => (array) $row, $durableObjects)
+                !== array_map(static fn (stdClass $row): array => (array) $row, $objects)) {
+            return ReconciliationItemOperationalAnalysis::inconsistent();
+        }
+
+        $selection = $this->runSelection($run);
+        $entityId = (int) ($item->entity_id ?? 0);
+        if ($selection === null || $itemId < 1 || $entityId <= $selection['after_id']
+            || $entityId > $selection['upper_bound']
+            || (string) ($item->run_id ?? '') !== (string) ($run->run_id ?? '')
+            || ($item->domain ?? null) !== $selection['domain']->value) {
+            return ReconciliationItemOperationalAnalysis::inconsistent();
+        }
+
+        $previousObjectId = 0;
+        foreach ($objects as $object) {
+            $objectId = (int) ($object->id ?? 0);
+            if ($objectId <= $previousObjectId || (int) ($object->item_id ?? 0) !== $itemId) {
+                return ReconciliationItemOperationalAnalysis::inconsistent();
+            }
+            $previousObjectId = $objectId;
+        }
+
+        $referencedEvents = [];
+        try {
+            $semantic = $this->itemState($run, $item, $objects, $referencedEvents);
+        } catch (Throwable) {
+            return ReconciliationItemOperationalAnalysis::inconsistent();
+        }
+        if ($semantic === null
+            || ($entityId <= $selection['checkpoint'] && $semantic['phase'] !== ItemPhase::Finished)) {
+            return ReconciliationItemOperationalAnalysis::inconsistent();
+        }
+
+        $ambiguousWriteObjectIds = [];
+        $cleanupBlockerObjectIds = [];
+        $hasDeletedCleanup = false;
+        foreach ($objects as $object) {
+            $write = ObjectWriteState::tryFrom((string) ($object->write_state ?? ''));
+            $cleanup = CleanupState::tryFrom((string) ($object->cleanup_state ?? ''));
+            if ($write === null || $cleanup === null) {
+                return ReconciliationItemOperationalAnalysis::inconsistent();
+            }
+            if (in_array($write, [ObjectWriteState::Intent, ObjectWriteState::Unknown], true)) {
+                $ambiguousWriteObjectIds[] = (int) $object->id;
+            }
+            if (in_array($cleanup, [CleanupState::Pending, CleanupState::Failed, CleanupState::Unknown], true)) {
+                $cleanupBlockerObjectIds[] = (int) $object->id;
+            }
+            $hasDeletedCleanup = $hasDeletedCleanup || $cleanup === CleanupState::Deleted;
+        }
+
+        $unfinished = $semantic['phase'] !== ItemPhase::Finished;
+        $noEffectEligible = $this->noEffectHistoryIsEligible($item, $objects);
+        $resolution = is_string($item->reconciliation_result ?? null)
+            ? ItemReconciliationResult::tryFrom($item->reconciliation_result)
+            : null;
+        if ($semantic['resolved']) {
+            $state = $resolution === ItemReconciliationResult::ForwardAccepted
+                ? ReconciliationItemOperationalState::ResolvedForward
+                : ReconciliationItemOperationalState::ResolvedNoEffect;
+        } elseif (! $unfinished && $ambiguousWriteObjectIds === []) {
+            $state = ReconciliationItemOperationalState::OrdinaryNonBlocking;
+        } elseif ($unfinished && $noEffectEligible) {
+            $state = ReconciliationItemOperationalState::NoEffectCandidate;
+        } elseif ($objects !== [] && ! $hasDeletedCleanup && $this->objectPlanIsValid(
+            $item,
+            PreflightClassification::LegacyBackfillable,
+            $objects,
+            true,
+        )) {
+            $state = ReconciliationItemOperationalState::ForwardCandidate;
+        } else {
+            $state = ReconciliationItemOperationalState::UnresolvedBlocked;
+        }
+
+        return new ReconciliationItemOperationalAnalysis(
+            $state,
+            $unfinished,
+            $ambiguousWriteObjectIds,
+            $cleanupBlockerObjectIds,
+            $noEffectEligible,
+            $state === ReconciliationItemOperationalState::ForwardCandidate,
+        );
     }
 
     /**
@@ -532,6 +653,21 @@ final class ReconciliationStateValidator
                 : ($object->kind ?? null) === ObjectKind::Variant->value
                     && (int) ($object->expected_size ?? 0) === $descriptor->size
                     && ($object->mime_type ?? null) === $descriptor->mimeType;
+            try {
+                $kind = is_string($object->kind ?? null) ? ObjectKind::tryFrom($object->kind) : null;
+                if ($kind === null) {
+                    return false;
+                }
+                new TargetObject(
+                    $key,
+                    $kind,
+                    (string) ($object->expected_sha256 ?? ''),
+                    (int) ($object->expected_size ?? 0),
+                    (string) ($object->mime_type ?? ''),
+                );
+            } catch (Throwable) {
+                return false;
+            }
             if (! $valid) {
                 return false;
             }
@@ -596,8 +732,7 @@ final class ReconciliationStateValidator
     /** @param list<stdClass> $objects */
     private function noEffectIsValid(stdClass $item, array $objects, stdClass $event): bool
     {
-        if (($item->phase ?? null) === ItemPhase::Finished->value
-            || ($item->apply_result ?? null) !== null || ($item->finished_at ?? null) !== null) {
+        if (! $this->noEffectHistoryIsEligible($item, $objects)) {
             return false;
         }
         $facts = [];
@@ -607,19 +742,6 @@ final class ReconciliationStateValidator
                 return false;
             }
             $attribution = $this->classifier->attributionFor($object);
-            $write = ObjectWriteState::tryFrom((string) ($object->write_state ?? ''));
-            $create = is_string($object->create_state ?? null) ? CreateState::tryFrom($object->create_state) : null;
-            if (! in_array($attribution, [ObjectAttribution::NotDispatched,
-                ObjectAttribution::RejectedCollision, ObjectAttribution::FailedWithoutWrite], true)
-                || ! in_array($write, [ObjectWriteState::Planned, ObjectWriteState::Rejected], true)
-                || ! in_array($create, [null, CreateState::Rejected, CreateState::Failed], true)
-                || ($object->cleanup_state ?? null) !== CleanupState::NotRequired->value
-                || ($object->etag ?? null) !== null || ($object->version_id ?? null) !== null
-                || ($object->write_confirmed_at ?? null) !== null
-                || ($object->cleanup_attempted_at ?? null) !== null
-                || ($object->cleanup_finished_at ?? null) !== null) {
-                return false;
-            }
             $facts[] = [
                 'object_id' => (int) $object->id,
                 'write_state' => (string) $object->write_state,
@@ -643,6 +765,33 @@ final class ReconciliationStateValidator
         ];
 
         return $evidence === $expected;
+    }
+
+    /** Immutable APPLY facts only. No domain or storage observation is consulted. @param list<stdClass> $objects */
+    private function noEffectHistoryIsEligible(stdClass $item, array $objects): bool
+    {
+        if (($item->phase ?? null) === ItemPhase::Finished->value
+            || ($item->apply_result ?? null) !== null || ($item->finished_at ?? null) !== null) {
+            return false;
+        }
+        foreach ($objects as $object) {
+            $attribution = $this->classifier->attributionFor($object);
+            $write = ObjectWriteState::tryFrom((string) ($object->write_state ?? ''));
+            $create = is_string($object->create_state ?? null) ? CreateState::tryFrom($object->create_state) : null;
+            if (! in_array($attribution, [ObjectAttribution::NotDispatched,
+                ObjectAttribution::RejectedCollision, ObjectAttribution::FailedWithoutWrite], true)
+                || ! in_array($write, [ObjectWriteState::Planned, ObjectWriteState::Rejected], true)
+                || ! in_array($create, [null, CreateState::Rejected, CreateState::Failed], true)
+                || ($object->cleanup_state ?? null) !== CleanupState::NotRequired->value
+                || ($object->etag ?? null) !== null || ($object->version_id ?? null) !== null
+                || ($object->write_confirmed_at ?? null) !== null
+                || ($object->cleanup_attempted_at ?? null) !== null
+                || ($object->cleanup_finished_at ?? null) !== null) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
