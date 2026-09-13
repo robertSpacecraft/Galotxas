@@ -703,7 +703,7 @@ class BackfillReconciliationCoordinatorTest extends TestCase
         $this->assertSame(1, $releaseCalls());
     }
 
-    public function test_c2_adds_no_operational_wiring_and_journal_public_api_remains_exactly_five_methods(): void
+    public function test_c3_command_is_the_only_operational_coordinator_caller_and_journal_api_remains_five_methods(): void
     {
         $methods = array_map(
             static fn (\ReflectionMethod $method): string => $method->getName(),
@@ -718,18 +718,20 @@ class BackfillReconciliationCoordinatorTest extends TestCase
             'recordNoEffectItemResolution',
         ], array_values(array_filter($methods, static fn (string $method): bool => $method !== '__construct')));
 
+        $callers = [];
         foreach ([app_path('Console'), base_path('routes'), app_path('Http'), app_path('Jobs')] as $path) {
             if (! is_dir($path)) {
                 continue;
             }
             foreach (File::allFiles($path) as $file) {
-                $this->assertStringNotContainsString(
-                    'ReconciliationCoordinator',
-                    (string) File::get($file->getPathname()),
-                    $file->getPathname(),
-                );
+                if (str_contains((string) File::get($file->getPathname()), 'ReconciliationCoordinator')) {
+                    $callers[] = $file->getPathname();
+                }
             }
         }
+        $this->assertSame([
+            app_path('Console/Commands/ResponsiveBackfillReconcileRunCommand.php'),
+        ], $callers);
         $guard = new ManagedMediaWriterFreezeGuard;
         try {
             $guard->assertEstablished(ReconciliationBackendMode::S3);
