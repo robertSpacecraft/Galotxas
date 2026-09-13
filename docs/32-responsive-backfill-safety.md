@@ -179,6 +179,22 @@ revalidación de dominio/storage. El writer y el creador exclusivo no cambian:
 su commit de intent ya atraviesa el guard autoritativo antes de llamar a
 storage.
 
+P1.D.2-C1 está completado y aceptado hasta producción como fundación
+exclusivamente read-only. Su gate valida la identidad y topología actuales, el
+adaptador runtime local/S3 exacto y las capacidades de lectura requeridas sin
+probes de escritura, borrado, copia o listing. La observación de claves exactas
+calcula SHA-256 y tamaño desde los bytes leídos y valida MIME, estructura y
+descriptor; `absent_now` permanece puntual y ni ETag ni VersionId sustituyen
+estos hechos o acreditan ownership.
+
+C1 no autoriza ninguna mutación de reconciliación, tampoco cuando el adaptador
+S3 real supera el gate. La ventana entre observación de storage y commit DB, la
+congelación de writers externos y la secuencia de mantenimiento, lock, identidad
+y revalidación inmediata siguen siendo gates pendientes y obligatorios de C2.
+La elegibilidad no-effect expuesta por C1 es sólo DB, hace cero observación de
+storage y rechaza todo indicio de dispatch, creación, recibo o actividad de
+cleanup. Cleanup `pending`/`failed`/`unknown` continúa bloqueando.
+
 | Registro | Transiciones |
 | --- | --- |
 | Run | `active → completed / failed / interrupted`; terminal no vuelve a active |

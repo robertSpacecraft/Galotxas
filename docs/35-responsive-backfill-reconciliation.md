@@ -4,6 +4,7 @@
 > **D2-B1 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
 > **D2-B2 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
 > **D2-B3 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
+> **D2-C1 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
 > P1.D.1C-B3 permanece aceptado hasta producción. No se ha autorizado ni
 > ejecutado ningún APPLY real.
 
@@ -143,8 +144,9 @@ histórica no restringe esta clasificación funcional: `not_dispatched`,
 `created_receipt`, `rejected_collision`, `failed_without_write` y
 `attempt_ambiguous` se conservan sin alteración y ninguna implica ownership por
 la igualdad actual. Este resultado es sólo un candidato read-only: el histórico,
-incluido `publication_unknown`, permanece sin cambios y la revalidación de
-referencia, owner live y master queda explícitamente pendiente para D2-C.
+incluido `publication_unknown`, permanece sin cambios. C1 aporta la revalidación
+exacta de referencia, owner live y master, pero D2-A no la invoca y la resolución
+operacional permanece pendiente del coordinador C2.
 
 Los demás resultados de item son `no_publication_observed_now`,
 `cleanup_attention_candidate`, `ambiguous_blocked` e
@@ -410,9 +412,10 @@ payload se limita a 16.384 bytes y `evidence_version` es 1.
 
 ### Evidencia v1 de aceptación forward
 
-`ForwardItemEvidence` es el snapshot tipado que D2-C deberá construir tras
-observar y revalidar. El repositorio **no hace I/O de storage**: valida la
-evidencia contra los hechos inmutables del journal.
+`ForwardItemEvidence` es el snapshot tipado que C1 ya puede construir tras
+observar y revalidar; C2 será su consumidor operacional. El repositorio **no
+hace I/O de storage**: valida la evidencia contra los hechos inmutables del
+journal.
 
 La evidencia atestigua momento de observación, hash de identidad de storage,
 modo de backend, hash de la identidad de referencia del dominio, hash de la
@@ -664,10 +667,127 @@ la reconciliación read-only terminó con exit 0; las mutaciones de journal y la
 escrituras/borrados de storage fueron cero; y `recovery barrier modified` fue
 `no`. No se autorizó ni ejecutó ninguna reconciliación mutante real.
 
+## D2-C1: base de evidencia operacional exacta
+
+> **COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
+> El commit `a73475e4289fcfb235cd3a15be323fe54744f825` está desplegado y
+> aceptado en staging y producción. C1 es read-only y no hace alcanzables las
+> mutaciones B2/B3.
+
+D2-C se divide en tres bloques independientes: C1 aporta evidencia operacional
+exacta; C2 compondrá el coordinador interno para un único run; C3 cableará más
+tarde un CLI mutante explícito. C1 no contiene coordinador, comando, endpoint,
+job, provider, ruta ni llamador de `ReconciliationJournal`. Su API pública sigue
+teniendo exactamente cinco operaciones:
+
+- `beginRunReconciliation`;
+- `closeRunAfterReconciliation`;
+- `recordBlockedAttempt`;
+- `recordForwardItemResolution`;
+- `recordNoEffectItemResolution`.
+
+### Gate de lectura y observación exacta
+
+`StorageObservationCapability` compara la `StorageIdentity`, la topología
+configurada y la instancia runtime real. Para local exige el adaptador Flysystem
+local soportado y el mapping canónico de path; para S3 exige
+`Illuminate\Filesystem\AwsS3V3Adapter`,
+`League\Flysystem\AwsS3V3\AwsS3V3Adapter` y capacidad instalada de HEAD/GET.
+Sólo acredita `fileExists`, tamaño y stream de lectura de clave exacta: no hace
+probes de escritura, borrado, copia o listing, no expone configuración sensible
+y falla cerrado ante identidad, configuración, adaptador o capacidad no
+concordante.
+
+`ExactObjectObserver` conserva las cuatro clasificaciones D2-A y añade el valor
+tipado `ExactObjectObservation`: `absent_now`, `expected_content_present`,
+`different_content_present` y `unreadable`. Sólo el caso exacto transporta el
+SHA-256 y tamaño calculados desde los bytes acotados realmente leídos, el MIME
+derivado de bytes/estructura y las atestaciones de descriptor y estructura. Los
+demás estados no fabrican hechos observados. Los bytes, excepciones de storage,
+credenciales y secretos no cruzan la frontera. ETag y VersionId no se usan como
+prueba de contenido u ownership.
+
+### Revalidación actual y análisis DB-only
+
+`ManagedMediaCurrentStateValidator` reutiliza el registro canónico de
+referencias para exigir entidad y referencia actuales exactas, identidad de
+referencia canónica, un único owner vivo del dominio y entidad seleccionados,
+master key sin deriva y compatibilidad de metadatos. La master se lee de forma
+acotada y debe concordar en SHA-256, MIME, estructura y descriptor con la
+historia y el candidato. Este camino no escribe dominio ni storage.
+
+`ReconciliationStateValidator::analyzeItem()` reutiliza la misma semántica
+interna DB-only de Barrier V2 y distingue historia ordinaria no bloqueante,
+candidato no-effect, candidato forward, resolución forward/no-effect exacta y
+estado inconsistente. Punteros parciales, cruzados, extranjeros o malformados
+fallan cerrado. La atención de cleanup permanece separada y sigue bloqueando;
+el análisis no modifica la barrera ni expone mutaciones.
+
+### Construcción read-only de evidencia forward
+
+`ForwardItemEvidenceBuilder` sólo devuelve el `ForwardItemEvidence` existente
+de B2 tras validar parentage y selección, candidato y plan exactos, estado
+actual de dominio/owner/master, cada objeto esperado y la ausencia puntual de
+cualquier target canónico V1 fuera del candidato. Esa comprobación recorre un
+universo finito de keys generadas por la aplicación y nunca usa listing. El
+builder revalida los hechos durables y la capacidad actual después de observar,
+pero no inserta eventos, cambia proyecciones ni cierra runs.
+
+La fuente canónica del SHA esperado de cada variante es
+`media_backfill_objects.expected_sha256`, calculado desde los bytes preparados
+antes del dispatch histórico. `ManifestImage` no contiene ese SHA y no se
+fabrica uno desde geometría, ETag o bytes actuales. El objeto manifest
+planificado debe concordar además con el `candidate_manifest_sha256` durable.
+La evidencia por objeto conserva los hechos realmente observados y se ordena
+por ID durable ascendente. Cleanup `deleted` invalida forward; cleanup
+`pending`, `failed` o `unknown` puede coexistir con evidencia forward, pero
+permanece visible y bloqueante y C1 no lo despeja.
+
+### Frontera no-effect y seguridad operacional pendiente
+
+La elegibilidad no-effect de C1 se deriva sólo de hechos APPLY inmutables en DB
+y ejecuta cero observaciones de storage. No consulta deriva actual de entidad,
+owner o master y nunca convierte ausencia actual en prueba de no escritura.
+Todo `intent`, `unknown`, `created`, recibo, confirmación de escritura o actividad
+de cleanup la invalida. Los checkpoints y todos los hechos APPLY permanecen
+inmutables; no existen cleanup, ausencia confirmada ni inferencia de ownership
+por igualdad actual de bytes.
+
+La base de observación S3 de C1 incluye un gate runtime validado para capacidad
+de lectura exacta sobre el adaptador real; esto no afirma que staging o
+producción hayan leído un objeto concreto ni autoriza una reconciliación forward
+mutante en S3. C1 no resuelve el TOCTOU entre storage y MariaDB ni congela
+writers externos. Antes de cualquier mutación, C2 deberá exigir mantenimiento,
+adquirir y conservar el advisory lock de reconciliación, probar que identidad
+actual, identidad durable del run e identidad del lock son exactas, congelar
+writers bajo el modelo aceptado y revalidar DB, dominio, storage, capacidad y
+lock inmediatamente antes de cada operación item-atomic de
+`ReconciliationJournal`. Si no puede probar ese contrato para S3, deberá
+bloquearlo sin degradar la evidencia.
+
+### Validación y aceptación de D2-C1
+
+La auditoría humana dio PASS sobre los 13 PHP exactos del bloque. La validación
+local pasó con 328 tests / 3.645 aserciones focales y 1.614 tests / 16.224
+aserciones en la suite backend completa, ambas con exit 0. `php -l` sobre los 13
+PHP, Pint limitado a los afectados y `git diff --check` pasaron. No hubo
+migración ni cambio de configuración y `ApplyItemPublisher` permaneció intacto.
+
+Staging y producción aceptaron el mismo commit sobre MariaDB, modo `s3` y disco
+`media_s3`. En ambos se comprobaron los adaptadores runtime Laravel/Flysystem y
+el retorno correcto de `StorageObservationCapability::currentDisk()` con exit 0,
+además de la resolución de los servicios C1, Barrier V2 puntualmente `clear`, la
+API de cinco métodos y el comando read-only con exit 0. Los nueve conteos de
+journal/proyecciones fueron cero antes y después, por lo que no se ejercitó GET
+ni lectura exacta de ningún objeto en esos entornos. Hubo cero mutaciones de
+journal, cero escrituras/borrados de storage y la barrera no cambió. No se
+ejecutó reconciliación mutante real.
+
 ## Siguiente bloque
 
-D2-B3 está completado y aceptado hasta producción. El siguiente bloque técnico
-es D2-C, que observará y revalidará para construir la evidencia que B2 valida;
-sigue siendo trabajo futuro. El diseño y las primitivas de cleanup seguro y
-ausencia confirmada local o S3 no existen todavía; la reconciliación destructiva
-sigue siendo posterior. P1.D.2 y P1.D permanecen abiertos.
+D2-C1 está completado y aceptado hasta producción. El siguiente bloque activo
+es P1.D.2-C2, coordinador interno de reconciliación de exactamente un run y sin
+wiring CLI. C3 añadirá después el comando mutante explícito. El diseño y las
+primitivas de cleanup seguro y ausencia confirmada local o S3 no existen; la
+reconciliación destructiva sigue siendo posterior. P1.D.2 y P1.D permanecen
+abiertos.

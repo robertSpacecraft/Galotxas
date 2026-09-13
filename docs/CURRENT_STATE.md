@@ -34,6 +34,7 @@ Sublínea activa: P1.D — backfill de masters legacy.
 | P1.D.2-B1 — esquema y representación durable read-only | completado hasta producción |
 | P1.D.2-B2 — APIs internas item-atomic de resolución | completado hasta producción |
 | P1.D.2-B3 — cierre tardío de run, Barrier V2 y guards APPLY | completado y aceptado hasta producción |
+| P1.D.2-C1 — base de evidencia operacional exacta | completado y aceptado hasta producción |
 
 P1.D.1C-A está completado hasta producción. Su smoke de producción terminó correctamente con exit 0, cero bloqueos y cero escrituras de storage.
 
@@ -104,9 +105,10 @@ de un run, `--limit` acota el trabajo sobre items y un detalle truncado se marca
 explícitamente sin convertirlo en inconsistencia. Las contradicciones entre run
 e item se propagan fail-closed a las clasificaciones de item, objeto y resumen
 global. La clasificación de conjunto funcional exacto es independiente de la
-atribución histórica y sigue siendo sólo un candidato read-only pendiente de
-revalidación de dominio en D2-C. D2-A no implementa cleanup automático local ni
-cleanup S3.
+atribución histórica y sigue siendo sólo un candidato read-only: C1 ya aporta
+la revalidación exacta de dominio y evidencia, pero su uso operacional para
+resolver permanece pendiente de C2. D2-A no implementa cleanup automático local
+ni cleanup S3.
 
 P1.D.1C-B3 permanece aceptado hasta producción. El despliegue de D2-A no
 autoriza ningún APPLY real: durante su aceptación no hubo APPLY operacional,
@@ -214,9 +216,8 @@ diff dio PASS.
 En el cierre de B2, D2-B3 era el siguiente bloque: cierre tardío de run,
 Barrier V2 y guards de APPLY frente a proyecciones reconciliadas. La frontera
 heredada era que las proyecciones B2 no despejaban los cuatro predicados hasta
-que B3 los extendiera explícitamente. D2-C (observación/revalidación de storage
-para construir la evidencia forward) sigue siendo trabajo futuro no iniciado.
-P1.D.2 y P1.D permanecen abiertos.
+que B3 los extendiera explícitamente. D2-C se descompone después en C1, C2 y C3;
+el cierre de C1 se documenta más abajo. P1.D.2 y P1.D permanecen abiertos.
 
 ## Cierre de P1.D.2-B3
 
@@ -262,8 +263,47 @@ y después, Barrier V2 devolvió `clear` con exit 0 y la API pública de
 `ReconciliationJournal` mostró exactamente sus cinco métodos soportados con
 exit 0. `--execute` siguió rechazado con exit 2 y la reconciliación read-only
 terminó con exit 0; hubo cero mutaciones de journal, cero escrituras/borrados de
-storage y ninguna modificación de la barrera. El siguiente bloque técnico es
-P1.D.2-C; P1.D.2 y P1.D permanecen abiertos.
+storage y ninguna modificación de la barrera. Después de B3 comenzó la
+descomposición de P1.D.2-C; C1 queda cerrado a continuación. P1.D.2 y P1.D
+permanecen abiertos.
+
+## Cierre de P1.D.2-C1
+
+El commit `a73475e4289fcfb235cd3a15be323fe54744f825` está desplegado y
+aceptado en staging y producción. C1 añade únicamente la base read-only de
+evidencia operacional exacta para el futuro coordinador C2: gate de capacidad
+que contrasta identidad, topología y adaptador real local/S3; observaciones
+tipadas de clave exacta; revalidación del estado actual de entidad, referencia,
+owner único y master; análisis operacional DB-only compartido por
+`ReconciliationStateValidator`; y construcción read-only del
+`ForwardItemEvidence` B2 desde hechos durables y observados exactos.
+
+La fuente canónica del SHA esperado de cada variante es
+`media_backfill_objects.expected_sha256`; el SHA del manifest planificado debe
+concordar con `candidate_manifest_sha256`. La elegibilidad no-effect se obtiene
+sólo de historia APPLY inmutable y hace cero observaciones de storage. C1 no
+añade migración ni configuración, no modifica `ApplyItemPublisher`, no incorpora
+coordinador, CLI ni llamador de `ReconciliationJournal`, y no escribe, borra,
+copia o enumera storage. `absent_now` sigue siendo puntual; los bytes actuales
+exactos no acreditan ownership histórico y cleanup continúa sin resolución.
+
+La aceptación no mutante confirmó en staging y producción MariaDB, modo `s3`,
+disco `media_s3`, los adaptadores runtime Laravel y Flysystem esperados y la
+resolución de los servicios C1. En ambos entornos Barrier V2 se observó `clear`,
+el comando read-only terminó con exit 0, los nueve conteos de
+journal/proyecciones permanecieron en cero y hubo cero mutaciones de journal y
+cero escrituras/borrados de storage. La API pública de `ReconciliationJournal`
+conservó exactamente sus cinco métodos.
+
+Esta aceptación del gate de capacidad runtime para lectura exacta sobre el
+adaptador S3 real no incluyó la lectura de ningún objeto concreto, porque los
+conteos de journal/proyecciones eran cero, y no autoriza una reconciliación
+forward mutante en S3. C1 no resuelve el TOCTOU storage/DB ni la congelación de
+escritores externos. El siguiente bloque activo es P1.D.2-C2, coordinador
+interno de reconciliación de un único run; debe imponer mantenimiento, lock,
+identidad, congelación de writers y revalidación inmediata antes de toda
+mutación durable. C3 conservará por separado el wiring del CLI mutante. P1.D.2
+y P1.D permanecen abiertos.
 
 ## Documentos de referencia
 
@@ -271,7 +311,7 @@ P1.D.2-C; P1.D.2 y P1.D permanecen abiertos.
 - [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md) — journal, identidad, lock, mantenimiento y escritura exclusiva (P1.D.1B).
 - [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md) — dry-run y wiring CLI APPLY aceptados hasta producción.
 - [34-responsive-backfill-apply-design.md](34-responsive-backfill-apply-design.md) — diseño aprobado de APPLY; B1/B2/B3-A/B3-B y B3 aceptados hasta producción.
-- [35-responsive-backfill-reconciliation.md](35-responsive-backfill-reconciliation.md) — D2-A, D2-B1, D2-B2 y D2-B3 aceptados hasta producción; D2-C sigue pendiente.
+- [35-responsive-backfill-reconciliation.md](35-responsive-backfill-reconciliation.md) — D2-A, D2-B1, D2-B2, D2-B3 y D2-C1 aceptados hasta producción; D2-C2 es el siguiente bloque.
 
 ## Invariante de traspaso
 
