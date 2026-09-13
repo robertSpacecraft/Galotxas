@@ -11,12 +11,14 @@ use App\Services\Media\Backfill\ManagedMediaReference;
 use App\Services\Media\Backfill\ManagedMediaReferenceRegistry;
 use App\Services\Media\Backfill\PreflightClassification;
 use App\Services\Media\Backfill\PreflightResult;
+use App\Services\Media\Backfill\Reconciliation\ReconciliationJournal;
 use App\Services\Media\Backfill\ResponsiveBackfillApply;
 use App\Services\Media\Backfill\ResponsiveBackfillPreflight;
 use App\Services\Media\Backfill\Safety\AdvisoryLockHandle;
 use App\Services\Media\Backfill\Safety\ApplyJournal;
 use App\Services\Media\Backfill\Safety\ApplyMaintenanceGuard;
 use App\Services\Media\Backfill\Safety\ApplyResult;
+use App\Services\Media\Backfill\Safety\ApplyRunSelection;
 use App\Services\Media\Backfill\Safety\BackfillSafetyException;
 use App\Services\Media\Backfill\Safety\CleanupState;
 use App\Services\Media\Backfill\Safety\CreateReceipt;
@@ -130,6 +132,40 @@ class ResponsiveBackfillApplyTest extends TestCase
 
         $this->assertSame(ApplyOutcome::ReconciliationRequired, $report->outcome);
         $this->assertNoJournalOrStorage();
+    }
+
+    public function test_explicit_reconciliation_required_safety_error_maps_to_typed_apply_outcome(): void
+    {
+        $journal = new ReconciliationRequiredApplyJournal(app('db'));
+        $report = $this->coordinator(
+            registry: new InMemoryApplyRegistry([]),
+            journal: $journal,
+        )->run($this->invocation());
+
+        $this->assertSame(ApplyOutcome::ReconciliationRequired, $report->outcome);
+        $this->assertNull($report->runState);
+        $this->assertSame(0, DB::table('media_backfill_runs')->count());
+    }
+
+    public function test_new_apply_is_allowed_after_clean_reconciled_terminal_history(): void
+    {
+        $journal = app(ApplyJournal::class);
+        $oldRun = $journal->createApplyRun($this->identity(), new ApplyRunSelection(
+            ManagedMediaDomain::News,
+            0,
+            1000,
+            0,
+        ));
+        $journal->finishRun($oldRun, RunState::Completed);
+        app(ReconciliationJournal::class)->beginRunReconciliation($oldRun, $this->reconciliationUuid(1),
+            $this->reconciliationMoment(), $this->reconciliationContext());
+        $this->releaseBackfillLock();
+
+        $report = $this->coordinator(registry: new InMemoryApplyRegistry([]))->run($this->invocation());
+
+        $this->assertSame(ApplyOutcome::Success, $report->outcome);
+        $this->assertSame(RunState::Completed, $report->runState);
+        $this->assertSame(2, DB::table('media_backfill_runs')->count());
     }
 
     public function test_advisory_lock_busy_returns_typed_outcome(): void
@@ -1300,6 +1336,17 @@ final class ObservingApplyJournal extends ApplyJournal
             throw new BackfillSafetyException(SafetyError::JournalUnavailable);
         }
         parent::finishRun($runId, $state, $summary, $error);
+    }
+}
+
+final class ReconciliationRequiredApplyJournal extends ApplyJournal
+{
+    public function createApplyRun(
+        StorageIdentity $identity,
+        ApplyRunSelection $selection,
+        ?string $codeRevision = null,
+    ): string {
+        throw new BackfillSafetyException(SafetyError::ReconciliationRequired);
     }
 }
 

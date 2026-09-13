@@ -169,9 +169,11 @@ relajar las invariantes de seguridad anteriores:
   intervalo. La igualdad es no-op; los IDs dispersos son válidos. Si el límite
   superior queda por debajo de `after_id`, el rango es vacío y el checkpoint
   permanece en `after_id` sin evidencia ficticia.
-- `recoveryBarrier()` devuelve el estado tipado `clear`/`blocked` mediante
-  consultas `EXISTS` read-only sobre la conexión de escritura. Un fallo de
-  journal se distingue mediante el error tipado existente.
+- La implementación B1 de `recoveryBarrier()` devolvía el estado tipado
+  `clear`/`blocked` mediante consultas `EXISTS` read-only sobre la conexión de
+  escritura. B3 conserva el tipo y la lectura DB-only, incorporando la
+  validación semántica documentada más abajo. Un fallo de journal se distingue
+  mediante el error tipado existente.
 
 ## Barrera de recuperación
 
@@ -184,6 +186,22 @@ run activo, item no terminado, escritura `intent`/`unknown` o cleanup
 `pending`/`failed`/`unknown`. No bloquea sólo por un run terminal ni por un recibo
 terminal `failed` sin escritura o `rejected` por colisión. El coordinador B3-A
 la invoca antes de crear su propio run activo.
+
+D2-B3, implementado localmente y pendiente de auditoría/promoción, convierte
+esta consulta en Barrier V2 sin I/O de storage. El run activo sigue bloqueando
+siempre. Sólo un evento/proyección semánticamente válido y concordante puede
+despejar el item no terminado exacto (`forward_accepted` o
+`closed_no_effect`) o la escritura ambigua exacta (`forward_retained` bajo el
+mismo evento forward del item). Cleanup `pending`/`failed`/`unknown` nunca se
+despeja. Todo estado parcial, desconocido, stale, extranjero o cruzado permanece
+bloqueado.
+
+Los caminos normales de APPLY no reanudan historia reconciliada: el helper
+autoritativo de bloqueo de run rechaza cualquier run que ya tenga un evento o
+proyección de reconciliación mediante `SafetyError::ReconciliationRequired`, y
+el publicador repite el guard antes de revalidar dominio o storage. El
+coordinador conserva sus gates existentes y mapea explícitamente ese error a
+`ApplyOutcome::ReconciliationRequired`; no existe flag de bypass ni `--resume`.
 
 ## Códigos de salida
 

@@ -13,6 +13,7 @@ use App\Services\Media\Backfill\ObjectInspection;
 use App\Services\Media\Backfill\ObjectInspectionState;
 use App\Services\Media\Backfill\PreflightClassification;
 use App\Services\Media\Backfill\PreflightResult;
+use App\Services\Media\Backfill\Reconciliation\ReconciliationJournal;
 use App\Services\Media\Backfill\ResponsiveBackfillPreflight;
 use App\Services\Media\Backfill\ResponsiveMediaInspector;
 use App\Services\Media\Backfill\Safety\AdvisoryLockHandle;
@@ -65,6 +66,7 @@ class BackfillApplyItemPublisherTest extends TestCase
     protected function tearDown(): void
     {
         try {
+            $this->releaseBackfillLock();
             if (DB::transactionLevel() > 0) {
                 DB::rollBack(0);
             }
@@ -558,6 +560,46 @@ class BackfillApplyItemPublisherTest extends TestCase
         $this->assertSame(CleanupState::NotRequired->value, $object->cleanup_state);
         $this->assertSame(ApplyResult::PublicationUnknown->value, $candidate['journal']->item($candidate['item'])->apply_result);
         $this->assertSame($candidate['master_files'], $this->storageSnapshot());
+    }
+
+    public function test_reconciliation_attempt_freezes_publisher_before_domain_or_storage_revalidation(): void
+    {
+        $candidate = $this->candidate();
+        $context = $this->reconciliationContext();
+        app(ReconciliationJournal::class)->beginRunReconciliation(
+            $candidate['run'],
+            $this->reconciliationUuid(1),
+            $this->reconciliationMoment(),
+            $context,
+        );
+        $registry = Mockery::mock(ManagedMediaReferenceRegistry::class);
+        $registry->shouldNotReceive('find');
+        $preflight = Mockery::mock(ResponsiveBackfillPreflight::class);
+        $preflight->shouldNotReceive('inspect');
+        $inspector = Mockery::mock(ResponsiveMediaInspector::class);
+        $inspector->shouldNotReceive('inspectManifest');
+        $writer = Mockery::mock(JournaledObjectWriter::class);
+        $writer->shouldNotReceive('create');
+        $publisher = new ApplyItemPublisher(
+            $candidate['journal'],
+            $registry,
+            $preflight,
+            $inspector,
+            app(ResponsiveMediaKeys::class),
+            $writer,
+            app(ApplyMaintenanceGuard::class),
+            app('db'),
+        );
+        $before = $this->storageSnapshot();
+
+        $this->assertSafetyError(
+            SafetyError::ReconciliationRequired,
+            fn () => $publisher->publish($candidate['run'], $candidate['item'], $context->lock),
+        );
+
+        $this->assertSame($before, $this->storageSnapshot());
+        $this->assertSame('inspected', $candidate['journal']->item($candidate['item'])->phase);
+        $this->assertSame(0, DB::table('media_backfill_objects')->count());
     }
 
     private function candidate(int $width = 400, int $height = 200): array

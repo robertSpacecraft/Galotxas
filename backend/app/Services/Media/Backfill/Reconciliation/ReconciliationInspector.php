@@ -30,6 +30,7 @@ class ReconciliationInspector
         private readonly ObjectEvidenceClassifier $classifier,
         private readonly CandidateManifestReader $candidates,
         private readonly ReconciliationEventValidator $events,
+        private readonly ReconciliationStateValidator $states,
         private readonly DatabaseManager $database,
     ) {}
 
@@ -118,9 +119,7 @@ class ReconciliationInspector
         $reconciliationEvent = ReconciliationEventPointer::from($run->reconciliation_event_id ?? null);
         // A run pointer may only name a valid late-closure event; D2-B2 never writes one.
         $runLinkValid = $reconciliationEvent->valid && (! $reconciliationEvent->present
-            || $this->events->projectionEvent($run->reconciliation_event_id ?? null,
-                ReconciliationEventType::RunClosedAfterReconciliation, (string) ($run->run_id ?? ''), null,
-                $run->storage_identity_hash ?? null) !== null);
+            || $this->states->runClosureProjectionIsValid($run));
         $identityMatches = $this->storageIdentityMatches($run);
         $itemsTruncated = $counts['total_items'] > count($itemRows);
         $childInconsistent = false;

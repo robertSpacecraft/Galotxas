@@ -26,10 +26,10 @@ use stdClass;
 use Throwable;
 
 /**
- * Private D2 mutation repository: append-only reconciliation events plus terminal item/object
- * projections. It performs no storage observation, write, delete, cleanup, confirmed absence,
- * run closure or checkpoint change, and the APPLY history stays byte-identical. The future
- * coordinator owns the advisory lock and supplies an already observed evidence snapshot.
+ * Private D2 mutation repository: append-only reconciliation events, terminal item/object
+ * projections and the explicit B3 active-to-interrupted run closure. It performs no storage
+ * observation, write, delete, cleanup, confirmed absence or checkpoint change. The future
+ * coordinator owns the advisory lock and supplies any storage-derived item evidence.
  */
 class ReconciliationJournal
 {
@@ -45,6 +45,7 @@ class ReconciliationJournal
         private readonly ObjectEvidenceClassifier $classifier,
         private readonly CandidateManifestReader $candidates,
         private readonly ReconciliationEventValidator $events,
+        private readonly ReconciliationStateValidator $states,
     ) {}
 
     /** Immutable provenance that one attempt began for one exact run; changes no projection. */
@@ -156,6 +157,166 @@ class ReconciliationJournal
                 ];
             },
         );
+    }
+
+    /**
+     * Atomically journals the only supported late run transition. The closure is derived entirely
+     * from locked durable state and can only move an active APPLY run to interrupted.
+     */
+    public function closeRunAfterReconciliation(
+        string $runId,
+        string $eventId,
+        DateTimeInterface $observedAt,
+        ReconciliationContext $context,
+    ): ReconciliationEventRecord {
+        return $this->safe(function () use ($runId, $eventId, $observedAt, $context) {
+            $this->assertIdentifiers($runId, null, $eventId, $context);
+            $observed = $this->timestamp($observedAt);
+            $databaseTimestamp = substr($observed, 0, 10).' '.substr($observed, 11, 8);
+            $this->assertConnection();
+            $this->assertOperationalContext($context);
+
+            return $this->transaction(function (Connection $db) use (
+                $runId,
+                $eventId,
+                $context,
+                $observed,
+                $databaseTimestamp,
+            ) {
+                $run = $this->lockedRunForClosure($db, $runId, $context);
+                $items = $this->lockedRunItems($db, $runId);
+                $objects = $this->lockedRunObjects($db, $runId, $items);
+                $existing = $db->table(self::EVENTS)->where('event_id', $eventId)->lockForUpdate()->first();
+                if ($existing !== null) {
+                    if (! $this->events->isStructurallyValid($existing)) {
+                        $this->fail(ReconciliationError::InconsistentJournal);
+                    }
+                    if (($existing->attempt_id ?? null) !== $context->attemptId
+                        || ($existing->run_id ?? null) !== $runId
+                        || ($existing->item_id ?? null) !== null
+                        || ($existing->event_type ?? null) !== ReconciliationEventType::RunClosedAfterReconciliation->value
+                        || ($existing->storage_identity_hash ?? null) !== $context->identity->hash
+                        || ($existing->backend_mode ?? null) !== $context->backendMode->value
+                        || ($existing->code_revision ?? null) !== $context->codeRevision) {
+                        $this->fail(ReconciliationError::ReplayConflict);
+                    }
+                }
+                $this->assertAttempt(
+                    $db,
+                    ReconciliationEventType::RunClosedAfterReconciliation,
+                    $run,
+                    $eventId,
+                    $context,
+                );
+                $start = $this->events->attemptStart(
+                    $context->attemptId,
+                    $runId,
+                    $run->storage_identity_hash,
+                );
+                $analysis = $start === null ? null : $this->states->evaluate($run, $items, $objects, $start);
+                if ($analysis === null) {
+                    $this->fail(ReconciliationError::InconsistentJournal);
+                }
+                if (! $analysis['resolved']) {
+                    $this->fail(ReconciliationError::IllegalResolution);
+                }
+                $evidence = [
+                    'v' => self::EVIDENCE_VERSION,
+                    'kind' => ReconciliationEventType::RunClosedAfterReconciliation->value,
+                    'observed_at' => $observed,
+                    'storage_identity_hash' => $context->identity->hash,
+                    'backend_mode' => $context->backendMode->value,
+                    'from_state' => RunState::Active->value,
+                    'to_state' => RunState::Interrupted->value,
+                    'items_total' => $analysis['items_total'],
+                    'objects_total' => $analysis['objects_total'],
+                    'item_blockers_resolved' => $analysis['item_blockers_resolved'],
+                    'write_blockers_resolved' => $analysis['write_blockers_resolved'],
+                    'cleanup_blockers_remaining' => $analysis['cleanup_blockers_remaining'],
+                    'resolution_snapshot_sha256' => $analysis['resolution_snapshot_sha256'],
+                ];
+                [$json, $sha] = $this->encode($evidence);
+                $state = RunState::tryFrom((string) ($run->state ?? ''));
+                $pointer = $run->reconciliation_event_id ?? null;
+                if ($pointer !== null && (! is_string($pointer) || ! $this->canonicalUuid($pointer))) {
+                    $this->fail(ReconciliationError::InconsistentJournal);
+                }
+                if (is_string($pointer) && $pointer !== $eventId) {
+                    $this->fail(ReconciliationError::ReplayConflict);
+                }
+                if ($state !== RunState::Active) {
+                    if ($state !== RunState::Interrupted) {
+                        $this->fail(ReconciliationError::IllegalResolution);
+                    }
+                    if ($pointer === null) {
+                        if ($existing !== null) {
+                            $this->assertReplayable($existing,
+                                ReconciliationEventType::RunClosedAfterReconciliation,
+                                $runId, null, $context, $json, $sha);
+                            $this->fail(ReconciliationError::InconsistentJournal);
+                        }
+                        $this->fail(ReconciliationError::IllegalResolution);
+                    }
+                    if ($existing === null) {
+                        $this->fail(ReconciliationError::InconsistentJournal);
+                    }
+                    $this->assertReplayable($existing, ReconciliationEventType::RunClosedAfterReconciliation,
+                        $runId, null, $context, $json, $sha);
+                    if (! $this->states->closureProjectionIsValid($run, $existing, $analysis)) {
+                        $this->fail(ReconciliationError::InconsistentJournal);
+                    }
+                    $this->assertStillOperational($context);
+
+                    return $this->record(ReconciliationEventType::RunClosedAfterReconciliation,
+                        $eventId, $context, true, [null, 0]);
+                }
+                if (($run->finished_at ?? null) !== null || $pointer !== null) {
+                    $this->fail(ReconciliationError::InconsistentJournal);
+                }
+                if ($existing !== null) {
+                    $this->assertReplayable($existing, ReconciliationEventType::RunClosedAfterReconciliation,
+                        $runId, null, $context, $json, $sha);
+                    $this->fail(ReconciliationError::InconsistentJournal);
+                }
+                $row = [
+                    'event_id' => $eventId,
+                    'attempt_id' => $context->attemptId,
+                    'run_id' => $runId,
+                    'item_id' => null,
+                    'event_type' => ReconciliationEventType::RunClosedAfterReconciliation->value,
+                    'evidence_version' => self::EVIDENCE_VERSION,
+                    'storage_identity_hash' => $context->identity->hash,
+                    'backend_mode' => $context->backendMode->value,
+                    'code_revision' => $context->codeRevision,
+                    'evidence_sha256' => $sha,
+                    'evidence_json' => $json,
+                    'created_at' => $databaseTimestamp,
+                ];
+                if (! $this->events->isStructurallyValid((object) $row)) {
+                    $this->fail(ReconciliationError::InconsistentJournal);
+                }
+                $db->table(self::EVENTS)->insert($row);
+                $updated = $db->table('media_backfill_runs')->where('run_id', $runId)
+                    ->where('state', RunState::Active->value)->whereNull('finished_at')
+                    ->whereNull('reconciliation_event_id')->update([
+                        'state' => RunState::Interrupted->value,
+                        'finished_at' => $databaseTimestamp,
+                        'reconciliation_event_id' => $eventId,
+                        'updated_at' => $databaseTimestamp,
+                    ]);
+                if ($updated !== 1) {
+                    $this->fail(ReconciliationError::InconsistentJournal);
+                }
+                $fresh = $db->table('media_backfill_runs')->where('run_id', $runId)->first();
+                if ($fresh === null || ! $this->states->closureProjectionIsValid($fresh, (object) $row, $analysis)) {
+                    $this->fail(ReconciliationError::InconsistentJournal);
+                }
+                $this->assertStillOperational($context);
+
+                return $this->record(ReconciliationEventType::RunClosedAfterReconciliation,
+                    $eventId, $context, false, [null, 0]);
+            });
+        });
     }
 
     /** @param Closure(Connection, stdClass, ?stdClass, list<stdClass>): array{array<string, mixed>, ?Closure, ?Closure} $prepare */
@@ -285,6 +446,80 @@ class ReconciliationJournal
         }
 
         return $run;
+    }
+
+    private function lockedRunForClosure(
+        Connection $db,
+        string $runId,
+        ReconciliationContext $context,
+    ): stdClass {
+        $run = $db->table('media_backfill_runs')->where('run_id', $runId)->lockForUpdate()->first();
+        if ($run === null) {
+            $this->fail(ReconciliationError::InvalidInput);
+        }
+        if (! is_string($run->storage_identity_hash ?? null)
+            || preg_match('/\A[0-9a-f]{64}\z/D', $run->storage_identity_hash) !== 1) {
+            $this->fail(ReconciliationError::InconsistentJournal);
+        }
+        if (! hash_equals($run->storage_identity_hash, $context->identity->hash)) {
+            $this->fail(ReconciliationError::IdentityMismatch);
+        }
+        $state = is_string($run->state ?? null) ? RunState::tryFrom($run->state) : null;
+        if (($run->mode ?? null) !== JournalMode::Apply->value || $state === null
+            || ($state === RunState::Active) !== (($run->finished_at ?? null) === null)) {
+            $this->fail(ReconciliationError::InconsistentJournal);
+        }
+        $this->runSelection($run);
+
+        return $run;
+    }
+
+    /** @return list<stdClass> */
+    private function lockedRunItems(Connection $db, string $runId): array
+    {
+        $ids = $db->table('media_backfill_items')->where('run_id', $runId)
+            ->orderBy('id')->limit(self::MAX_OBJECTS + 1)->pluck('id')->all();
+        if (count($ids) > self::MAX_OBJECTS) {
+            $this->fail(ReconciliationError::InconsistentJournal);
+        }
+        $items = [];
+        foreach ($ids as $id) {
+            $item = $db->table('media_backfill_items')->where('id', (int) $id)->lockForUpdate()->first();
+            if ($item === null || (string) ($item->run_id ?? '') !== $runId) {
+                $this->fail(ReconciliationError::InconsistentJournal);
+            }
+            $items[] = $item;
+        }
+        if ($db->table('media_backfill_items')->where('run_id', $runId)->count() !== count($items)) {
+            $this->fail(ReconciliationError::InconsistentJournal);
+        }
+
+        return $items;
+    }
+
+    /** @param list<stdClass> $items @return list<stdClass> */
+    private function lockedRunObjects(Connection $db, string $runId, array $items): array
+    {
+        $ids = $db->table('media_backfill_objects as objects')
+            ->join('media_backfill_items as items', 'items.id', '=', 'objects.item_id')
+            ->where('items.run_id', $runId)->select('objects.id')->orderBy('objects.id')->pluck('objects.id')->all();
+        $itemIds = array_fill_keys(array_map(static fn (stdClass $item): int => (int) $item->id, $items), true);
+        $objects = [];
+        foreach ($ids as $id) {
+            $object = $db->table('media_backfill_objects')->where('id', (int) $id)->lockForUpdate()->first();
+            if ($object === null || ! isset($itemIds[(int) ($object->item_id ?? 0)])) {
+                $this->fail(ReconciliationError::InconsistentJournal);
+            }
+            $objects[] = $object;
+        }
+        $count = $db->table('media_backfill_objects as objects')
+            ->join('media_backfill_items as items', 'items.id', '=', 'objects.item_id')
+            ->where('items.run_id', $runId)->count();
+        if ($count !== count($objects)) {
+            $this->fail(ReconciliationError::InconsistentJournal);
+        }
+
+        return $objects;
     }
 
     /** @return array{ManagedMediaDomain, int, int, int} */

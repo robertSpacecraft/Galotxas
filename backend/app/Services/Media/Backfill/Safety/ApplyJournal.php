@@ -6,6 +6,7 @@ use App\Services\Media\Backfill\InspectionReason;
 use App\Services\Media\Backfill\ManagedMediaDomain;
 use App\Services\Media\Backfill\PreflightClassification;
 use App\Services\Media\Backfill\PreflightResult;
+use App\Services\Media\Backfill\Reconciliation\ReconciliationStateValidator;
 use App\Services\Media\MediaObjectKeyGenerator;
 use App\Services\Media\ResponsiveManifest;
 use App\Services\Media\ResponsiveMediaKeys;
@@ -20,7 +21,10 @@ use Throwable;
 /** Private operational repository. No domain writes, storage I/O or automatic retries. */
 class ApplyJournal
 {
-    public function __construct(private readonly DatabaseManager $database) {}
+    public function __construct(
+        private readonly DatabaseManager $database,
+        private readonly ?ReconciliationStateValidator $reconciliation = null,
+    ) {}
 
     public function createApplyRun(StorageIdentity $identity, ApplyRunSelection $selection, ?string $codeRevision = null): string
     {
@@ -411,15 +415,27 @@ class ApplyJournal
             if ($db->getDriverName() !== 'mariadb') {
                 throw new BackfillSafetyException(SafetyError::JournalUnavailable);
             }
-            if ($db->table('media_backfill_runs')->useWritePdo()->where('state', RunState::Active->value)->exists()
-                || $db->table('media_backfill_items')->useWritePdo()->where('phase', '!=', ItemPhase::Finished->value)->exists()
-                || $db->table('media_backfill_objects')->useWritePdo()
-                    ->where(fn ($query) => $query->whereIn('write_state', [ObjectWriteState::Intent->value, ObjectWriteState::Unknown->value])
-                        ->orWhereIn('cleanup_state', [CleanupState::Pending->value, CleanupState::Failed->value, CleanupState::Unknown->value]))->exists()) {
-                return RecoveryBarrierState::Blocked;
-            }
 
-            return RecoveryBarrierState::Clear;
+            return $this->reconciliation()->barrierIsClear($db)
+                ? RecoveryBarrierState::Clear
+                : RecoveryBarrierState::Blocked;
+        });
+    }
+
+    /** Early DB-only publisher guard; lockRun() remains the authoritative mutation guard. */
+    public function assertRunMutable(string $runId): void
+    {
+        $this->safe(function () use ($runId) {
+            if (! $this->isCanonicalUuid($runId)) {
+                throw new BackfillSafetyException(SafetyError::InvalidInput);
+            }
+            $db = $this->database->connection();
+            if ($db->getDriverName() !== 'mariadb') {
+                throw new BackfillSafetyException(SafetyError::JournalUnavailable);
+            }
+            if ($this->reconciliation()->hasRunFootprintOn($db, $runId)) {
+                throw new BackfillSafetyException(SafetyError::ReconciliationRequired);
+            }
         });
     }
 
@@ -436,7 +452,11 @@ class ApplyJournal
     private function lockRun(Connection $db, string $id, bool $active = true): stdClass
     {
         $run = $db->table('media_backfill_runs')->where('run_id', $id)->lockForUpdate()->first();
-        $this->require($run !== null && $run->mode === JournalMode::Apply->value && (! $active || $run->state === RunState::Active->value));
+        $this->require($run !== null && $run->mode === JournalMode::Apply->value);
+        if ($this->reconciliation()->hasRunFootprintOn($db, $id)) {
+            throw new BackfillSafetyException(SafetyError::ReconciliationRequired);
+        }
+        $this->require(! $active || $run->state === RunState::Active->value);
 
         return $run;
     }
@@ -538,6 +558,11 @@ class ApplyJournal
         if (! $condition) {
             throw new BackfillSafetyException(SafetyError::IllegalTransition);
         }
+    }
+
+    private function reconciliation(): ReconciliationStateValidator
+    {
+        return $this->reconciliation ?? app(ReconciliationStateValidator::class);
     }
 
     private function isCanonicalUuid(string $value): bool

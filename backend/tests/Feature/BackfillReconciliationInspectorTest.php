@@ -904,10 +904,17 @@ class BackfillReconciliationInspectorTest extends TestCase
     private function foreignForwardEvent(bool $otherRun, ?string $runId = null, ?ApplyJournal $journal = null): string
     {
         $journal ??= app(ApplyJournal::class);
-        $runId = $otherRun ? $journal->createApplyRun($this->identity(), $this->applySelection()) : $runId;
-        [$itemId] = $this->candidateItem($journal, $runId, 200);
+        $eventRun = $journal->createApplyRun($this->identity(), $this->applySelection());
+        [$itemId] = $this->candidateItem($journal, $eventRun, 200);
+        $event = $this->acceptForward($eventRun, $itemId, 91, 4, 5);
+        if (! $otherRun && $runId !== null) {
+            DB::table(self::EVENTS)->whereIn('event_id', [
+                $this->reconciliationUuid(4),
+                $this->reconciliationUuid(5),
+            ])->update(['run_id' => $runId]);
+        }
 
-        return $this->acceptForward($runId, $itemId, 91, 4, 5);
+        return $event;
     }
 
     public function test_unknown_durable_projection_is_invalid_unresolved_and_read_only(): void

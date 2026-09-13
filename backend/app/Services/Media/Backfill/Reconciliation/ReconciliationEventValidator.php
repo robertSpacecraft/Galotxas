@@ -163,6 +163,7 @@ final class ReconciliationEventValidator
                 is_string($evidence['reason']) ? $evidence['reason'] : '') !== null,
             ReconciliationEventType::ItemForwardAccepted => $this->forwardBodyIsValid($evidence),
             ReconciliationEventType::ItemNoEffectClosed => $this->noEffectBodyIsValid($evidence),
+            ReconciliationEventType::RunClosedAfterReconciliation => $this->closureBodyIsValid($evidence),
             default => true,
         };
     }
@@ -171,16 +172,34 @@ final class ReconciliationEventValidator
     private function expectedKeys(ReconciliationEventType $type): array
     {
         return match ($type) {
-            // The run closure payload belongs to D2-B3; B2 only validates the shared envelope.
-            ReconciliationEventType::AttemptStarted,
-            ReconciliationEventType::RunClosedAfterReconciliation => self::ENVELOPE,
+            ReconciliationEventType::AttemptStarted => self::ENVELOPE,
             ReconciliationEventType::AttemptBlocked => [...self::ENVELOPE, 'reason'],
             ReconciliationEventType::ItemNoEffectClosed => [...self::ENVELOPE, 'objects'],
             ReconciliationEventType::ItemForwardAccepted => [...self::ENVELOPE, 'reference_identity_sha256',
                 'master_key_sha256', 'master_sha256', 'candidate_manifest_sha256', 'unique_live_owner_revalidated',
                 'live_owner_domain', 'live_owner_entity_id', 'manifest_structure_validated',
                 'no_unexpected_canonical_target', 'objects'],
+            ReconciliationEventType::RunClosedAfterReconciliation => [...self::ENVELOPE,
+                'from_state', 'to_state', 'items_total', 'objects_total', 'item_blockers_resolved',
+                'write_blockers_resolved', 'cleanup_blockers_remaining', 'resolution_snapshot_sha256'],
         };
+    }
+
+    /** @param array<mixed> $evidence */
+    private function closureBodyIsValid(array $evidence): bool
+    {
+        foreach (['items_total', 'objects_total', 'item_blockers_resolved',
+            'write_blockers_resolved', 'cleanup_blockers_remaining'] as $count) {
+            if (! is_int($evidence[$count]) || $evidence[$count] < 0) {
+                return false;
+            }
+        }
+
+        return $evidence['from_state'] === 'active'
+            && $evidence['to_state'] === 'interrupted'
+            && $evidence['cleanup_blockers_remaining'] === 0
+            && is_string($evidence['resolution_snapshot_sha256'])
+            && $this->sha256($evidence['resolution_snapshot_sha256']);
     }
 
     /** @param array<mixed> $evidence */

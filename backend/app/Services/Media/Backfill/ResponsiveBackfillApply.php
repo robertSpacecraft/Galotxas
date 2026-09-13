@@ -735,7 +735,8 @@ class ResponsiveBackfillApply
         if ($error instanceof BackfillSafetyException) {
             return match ($error->reason) {
                 SafetyError::MaintenanceRequired => ApplyOutcome::MaintenanceRequired,
-                SafetyError::JournalUnavailable, SafetyError::PublicationUnknown => ApplyOutcome::ReconciliationRequired,
+                SafetyError::JournalUnavailable, SafetyError::PublicationUnknown,
+                SafetyError::ReconciliationRequired => ApplyOutcome::ReconciliationRequired,
                 default => ApplyOutcome::SafeFailure,
             };
         }
@@ -750,6 +751,7 @@ class ResponsiveBackfillApply
             SafetyError::AmbientTransaction,
             SafetyError::IllegalTransition,
             SafetyError::PublicationUnknown,
+            SafetyError::ReconciliationRequired,
         ], true);
     }
 

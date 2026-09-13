@@ -2,14 +2,18 @@
 
 namespace Tests\Feature;
 
+use App\Services\Media\Backfill\Reconciliation\CandidateManifestReader;
 use App\Services\Media\Backfill\Reconciliation\ForwardObjectEvidence;
 use App\Services\Media\Backfill\Reconciliation\ItemReconciliationResult;
+use App\Services\Media\Backfill\Reconciliation\ObjectEvidenceClassifier;
 use App\Services\Media\Backfill\Reconciliation\ReconciliationBackendMode;
 use App\Services\Media\Backfill\Reconciliation\ReconciliationBlockReason;
 use App\Services\Media\Backfill\Reconciliation\ReconciliationError;
 use App\Services\Media\Backfill\Reconciliation\ReconciliationEventType;
+use App\Services\Media\Backfill\Reconciliation\ReconciliationEventValidator;
 use App\Services\Media\Backfill\Reconciliation\ReconciliationException;
 use App\Services\Media\Backfill\Reconciliation\ReconciliationJournal;
+use App\Services\Media\Backfill\Reconciliation\ReconciliationStateValidator;
 use App\Services\Media\Backfill\Safety\ApplyJournal;
 use App\Services\Media\Backfill\Safety\ApplyMaintenanceGuard;
 use App\Services\Media\Backfill\Safety\ApplyResult;
@@ -24,6 +28,7 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
 use Mockery;
 use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionClass;
@@ -65,6 +70,10 @@ class BackfillReconciliationJournalTest extends TestCase
     public function test_attempt_started_records_provenance_for_active_and_terminal_runs(): void
     {
         [$journal, $runId, $itemId] = $this->candidatePlan();
+        $terminalRun = $journal->createApplyRun($this->identity(), $this->applySelection());
+        $terminalItem = $journal->snapshot($terminalRun, $this->excludedItem(124));
+        $journal->finishItem($terminalItem, ApplyResult::Skipped);
+        $journal->finishRun($terminalRun, RunState::Completed, ['skipped' => 1]);
         $history = $this->applyHistory();
 
         $record = $this->journal()->beginRunReconciliation($runId, $this->reconciliationUuid(1), $this->reconciliationMoment(), $this->reconciliationContext());
@@ -96,9 +105,7 @@ class BackfillReconciliationJournalTest extends TestCase
         $this->assertNull(DB::table('media_backfill_runs')->where('run_id', $runId)->value('reconciliation_event_id'));
         $this->assertNull(DB::table('media_backfill_items')->where('id', $itemId)->value('reconciliation_result'));
 
-        $journal->finishItem($itemId, ApplyResult::Skipped);
-        $journal->finishRun($runId, RunState::Completed, ['skipped' => 1]);
-        $terminal = $this->journal()->beginRunReconciliation($runId, $this->reconciliationUuid(2), $this->reconciliationMoment(), $this->reconciliationContext(91));
+        $terminal = $this->journal()->beginRunReconciliation($terminalRun, $this->reconciliationUuid(2), $this->reconciliationMoment(), $this->reconciliationContext(91));
         $this->assertFalse($terminal->replayed);
         $this->assertSame(2, DB::table(self::EVENTS)->count());
     }
@@ -656,7 +663,7 @@ class BackfillReconciliationJournalTest extends TestCase
         $this->assertSame($before, $this->journalSnapshot());
     }
 
-    public function test_forward_acceptance_never_clears_an_unresolved_write_blocker(): void
+    public function test_forward_acceptance_clears_its_exact_terminal_write_blockers(): void
     {
         [$journal, $runId, $itemId] = $this->candidatePlan();
         $this->applyScenario($journal, $itemId, 'finished_publication_unknown');
@@ -667,11 +674,11 @@ class BackfillReconciliationJournalTest extends TestCase
         $this->journal()->recordForwardItemResolution($runId, $itemId, $this->reconciliationUuid(2), $this->forwardEvidenceFor($itemId), $context);
 
         $this->assertForwardProjected($itemId, $this->reconciliationUuid(2));
-        $this->assertSame(RecoveryBarrierState::Blocked, $journal->recoveryBarrier());
+        $this->assertSame(RecoveryBarrierState::Clear, $journal->recoveryBarrier());
         $this->assertSame('unknown', DB::table('media_backfill_objects')->where('item_id', $itemId)->value('write_state'));
     }
 
-    public function test_no_effect_never_clears_the_unfinished_item_blocker(): void
+    public function test_no_effect_clears_its_exact_terminal_item_blocker(): void
     {
         [$journal, $runId, $itemId] = $this->candidatePlan();
         $journal->finishRun($runId, RunState::Interrupted);
@@ -683,21 +690,19 @@ class BackfillReconciliationJournalTest extends TestCase
         $this->assertSame('closed_no_effect',
             DB::table('media_backfill_items')->where('id', $itemId)->value('reconciliation_result'));
         $this->assertSame('revalidated', DB::table('media_backfill_items')->where('id', $itemId)->value('phase'));
-        $this->assertSame(RecoveryBarrierState::Blocked, $journal->recoveryBarrier());
+        $this->assertSame(RecoveryBarrierState::Clear, $journal->recoveryBarrier());
     }
 
-    public function test_recovery_barrier_still_uses_exactly_its_four_historical_predicates(): void
+    public function test_recovery_barrier_delegates_to_the_db_only_b3_semantic_validator(): void
     {
         $method = new ReflectionMethod(ApplyJournal::class, 'recoveryBarrier');
         $lines = file($method->getFileName());
         $source = implode('', array_slice($lines, $method->getStartLine() - 1,
             $method->getEndLine() - $method->getStartLine() + 1));
 
-        $this->assertStringContainsString("where('state', RunState::Active->value)", $source);
-        $this->assertStringContainsString("where('phase', '!=', ItemPhase::Finished->value)", $source);
-        $this->assertStringContainsString("whereIn('write_state', [ObjectWriteState::Intent->value, ObjectWriteState::Unknown->value])", $source);
-        $this->assertStringContainsString("orWhereIn('cleanup_state', [CleanupState::Pending->value, CleanupState::Failed->value, CleanupState::Unknown->value])", $source);
-        $this->assertStringNotContainsString('reconciliation', $source);
+        $this->assertStringContainsString('barrierIsClear', $source);
+        $this->assertStringContainsString('ReconciliationStateValidator', file_get_contents(
+            app_path('Services/Media/Backfill/Safety/ApplyJournal.php')));
         $this->assertStringNotContainsString('Storage', $source);
     }
 
@@ -719,6 +724,7 @@ class BackfillReconciliationJournalTest extends TestCase
             'App\\Services\\Media\\Backfill\\Reconciliation\\ObjectEvidenceClassifier',
             'App\\Services\\Media\\Backfill\\Reconciliation\\CandidateManifestReader',
             'App\\Services\\Media\\Backfill\\Reconciliation\\ReconciliationEventValidator',
+            'App\\Services\\Media\\Backfill\\Reconciliation\\ReconciliationStateValidator',
         ], $dependencies);
         foreach (['closeReconciledRun', 'recordCleanupResolution', 'recordForwardObjectResolution',
             'confirmAbsence', 'advanceCheckpoint', 'finishRun', 'finishItem', 'updateCleanup', 'recordReceipt',
@@ -731,8 +737,8 @@ class BackfillReconciliationJournalTest extends TestCase
             (new ReflectionClass(ReconciliationJournal::class))->getMethods(ReflectionMethod::IS_PUBLIC),
         ), ['__construct']));
         sort($public);
-        $this->assertSame(['beginRunReconciliation', 'recordBlockedAttempt', 'recordForwardItemResolution',
-            'recordNoEffectItemResolution'], $public);
+        $this->assertSame(['beginRunReconciliation', 'closeRunAfterReconciliation', 'recordBlockedAttempt',
+            'recordForwardItemResolution', 'recordNoEffectItemResolution'], $public);
 
         foreach ([app_path('Console'), app_path('Http'), app_path('Providers'), app_path('Jobs'),
             base_path('routes'), base_path('bootstrap')] as $root) {
@@ -875,6 +881,515 @@ class BackfillReconciliationJournalTest extends TestCase
             DB::table('media_backfill_items')->where('id', $itemId)->value('preflight_classification'));
     }
 
+    public function test_empty_active_run_closes_only_to_interrupted_with_exact_evidence_and_replays(): void
+    {
+        $journal = app(ApplyJournal::class);
+        $runId = $journal->createApplyRun($this->identity(), $this->applySelection(), str_repeat('b', 40));
+        $context = $this->reconciliationContext();
+        $this->journal()->beginRunReconciliation($runId, $this->reconciliationUuid(1),
+            $this->reconciliationMoment(), $context);
+        $before = (array) DB::table('media_backfill_runs')->where('run_id', $runId)->first();
+
+        $record = $this->journal()->closeRunAfterReconciliation(
+            $runId,
+            $this->reconciliationUuid(2),
+            $this->reconciliationMoment(),
+            $context,
+        );
+
+        $this->assertSame(ReconciliationEventType::RunClosedAfterReconciliation, $record->type);
+        $this->assertFalse($record->replayed);
+        $this->assertNull($record->itemResult);
+        $this->assertSame(0, $record->objectsResolved);
+        $run = (array) DB::table('media_backfill_runs')->where('run_id', $runId)->first();
+        $this->assertSame('interrupted', $run['state']);
+        $this->assertSame('2026-09-12 10:00:00', (string) $run['finished_at']);
+        $this->assertSame('2026-09-12 10:00:00', (string) $run['updated_at']);
+        $this->assertSame($this->reconciliationUuid(2), $run['reconciliation_event_id']);
+        foreach (array_keys($before) as $column) {
+            if (! in_array($column, ['state', 'finished_at', 'updated_at', 'reconciliation_event_id'], true)) {
+                $this->assertSame($before[$column], $run[$column], $column);
+            }
+        }
+        $event = DB::table(self::EVENTS)->where('event_id', $this->reconciliationUuid(2))->first();
+        $this->assertSame($runId, $event->run_id);
+        $this->assertNull($event->item_id);
+        $this->assertSame($context->attemptId, $event->attempt_id);
+        $this->assertSame($context->identity->hash, $event->storage_identity_hash);
+        $this->assertSame($context->backendMode->value, $event->backend_mode);
+        $this->assertSame($context->codeRevision, $event->code_revision);
+        $this->assertSame('2026-09-12 10:00:00', (string) $event->created_at);
+        $this->assertMatchesRegularExpression(
+            '/\A\{"v":1,"kind":"run_closed_after_reconciliation","observed_at":"2026-09-12T10:00:00Z",'
+                .'"storage_identity_hash":"[0-9a-f]{64}","backend_mode":"local","from_state":"active",'
+                .'"to_state":"interrupted","items_total":0,"objects_total":0,"item_blockers_resolved":0,'
+                .'"write_blockers_resolved":0,"cleanup_blockers_remaining":0,'
+                .'"resolution_snapshot_sha256":"[0-9a-f]{64}"\}\z/',
+            $event->evidence_json,
+        );
+        $this->assertSame(hash('sha256', $event->evidence_json), $event->evidence_sha256);
+        $this->assertSame(RecoveryBarrierState::Clear, $journal->recoveryBarrier());
+
+        $replay = $this->journal()->closeRunAfterReconciliation($runId, $this->reconciliationUuid(2),
+            $this->reconciliationMoment(), $context);
+        $this->assertTrue($replay->replayed);
+        $this->assertReconciliationError(
+            ReconciliationError::ReplayConflict,
+            fn () => $this->journal()->closeRunAfterReconciliation($runId, $this->reconciliationUuid(2),
+                $this->reconciliationMoment('10:00:01'), $context),
+        );
+        $this->assertSame(2, DB::table(self::EVENTS)->count());
+    }
+
+    #[DataProvider('terminalRunStates')]
+    public function test_first_closure_execution_rejects_every_terminal_run_state(RunState $state): void
+    {
+        $journal = app(ApplyJournal::class);
+        $runId = $journal->createApplyRun($this->identity(), $this->applySelection());
+        $journal->finishRun($runId, $state);
+        $context = $this->reconciliationContext();
+        $this->journal()->beginRunReconciliation($runId, $this->reconciliationUuid(1),
+            $this->reconciliationMoment(), $context);
+
+        $this->assertReconciliationError(
+            ReconciliationError::IllegalResolution,
+            fn () => $this->journal()->closeRunAfterReconciliation($runId, $this->reconciliationUuid(2),
+                $this->reconciliationMoment(), $context),
+        );
+        $this->assertSame($state->value, $journal->run($runId)->state);
+        $this->assertNull($journal->run($runId)->reconciliation_event_id);
+    }
+
+    public static function terminalRunStates(): array
+    {
+        return [
+            'completed' => [RunState::Completed],
+            'failed' => [RunState::Failed],
+            'interrupted' => [RunState::Interrupted],
+        ];
+    }
+
+    public function test_closure_rejects_an_ambient_caller_transaction(): void
+    {
+        $journal = app(ApplyJournal::class);
+        $runId = $journal->createApplyRun($this->identity(), $this->applySelection());
+        $context = $this->reconciliationContext();
+        $this->journal()->beginRunReconciliation($runId, $this->reconciliationUuid(1),
+            $this->reconciliationMoment(), $context);
+        DB::beginTransaction();
+        try {
+            $this->assertReconciliationError(
+                ReconciliationError::AmbientTransaction,
+                fn () => $this->journal()->closeRunAfterReconciliation($runId, $this->reconciliationUuid(2),
+                    $this->reconciliationMoment(), $context),
+            );
+        } finally {
+            DB::rollBack();
+        }
+        $this->assertSame('active', $journal->run($runId)->state);
+    }
+
+    public function test_fully_resolved_active_run_closes_and_barrier_v2_clears_exact_item_and_write_blockers(): void
+    {
+        [$journal, $runId, $itemId, $objects] = $this->candidatePlan();
+        $journal->commitIntent($objects['variant']);
+        $context = $this->reconciliationContext();
+        $this->journal()->beginRunReconciliation($runId, $this->reconciliationUuid(1),
+            $this->reconciliationMoment(), $context);
+        $this->journal()->recordForwardItemResolution($runId, $itemId, $this->reconciliationUuid(2),
+            $this->forwardEvidenceFor($itemId), $context);
+        $itemBefore = (array) DB::table('media_backfill_items')->where('id', $itemId)->first();
+        $objectsBefore = DB::table('media_backfill_objects')->where('item_id', $itemId)->orderBy('id')
+            ->get()->map(static fn ($row): array => (array) $row)->all();
+
+        $this->assertSame(RecoveryBarrierState::Blocked, $journal->recoveryBarrier(), 'active always blocks');
+        $this->journal()->closeRunAfterReconciliation($runId, $this->reconciliationUuid(3),
+            $this->reconciliationMoment(), $context);
+
+        $evidence = json_decode(DB::table(self::EVENTS)->where('event_id', $this->reconciliationUuid(3))
+            ->value('evidence_json'), true, flags: JSON_THROW_ON_ERROR);
+        $this->assertSame(1, $evidence['items_total']);
+        $this->assertSame(2, $evidence['objects_total']);
+        $this->assertSame(1, $evidence['item_blockers_resolved']);
+        $this->assertSame(1, $evidence['write_blockers_resolved']);
+        $this->assertSame(0, $evidence['cleanup_blockers_remaining']);
+        $this->assertSame(RecoveryBarrierState::Clear, $journal->recoveryBarrier());
+        $this->assertSame('writing', $journal->item($itemId)->phase);
+        $this->assertSame('intent', $journal->object($objects['variant'])->write_state);
+        $this->assertSame($itemBefore, (array) DB::table('media_backfill_items')->where('id', $itemId)->first());
+        $this->assertSame($objectsBefore, DB::table('media_backfill_objects')->where('item_id', $itemId)
+            ->orderBy('id')->get()->map(static fn ($row): array => (array) $row)->all());
+    }
+
+    public function test_closed_no_effect_resolves_only_the_exact_item_for_late_closure(): void
+    {
+        [$journal, $runId, $itemId] = $this->candidatePlan();
+        $context = $this->reconciliationContext();
+        $this->journal()->beginRunReconciliation($runId, $this->reconciliationUuid(1),
+            $this->reconciliationMoment(), $context);
+        $this->journal()->recordNoEffectItemResolution($runId, $itemId, $this->reconciliationUuid(2),
+            $this->reconciliationMoment(), $context);
+        $this->journal()->closeRunAfterReconciliation($runId, $this->reconciliationUuid(3),
+            $this->reconciliationMoment(), $context);
+
+        $evidence = json_decode(DB::table(self::EVENTS)->where('event_id', $this->reconciliationUuid(3))
+            ->value('evidence_json'), true, flags: JSON_THROW_ON_ERROR);
+        $this->assertSame(1, $evidence['item_blockers_resolved']);
+        $this->assertSame(0, $evidence['write_blockers_resolved']);
+        $this->assertSame('revalidated', $journal->item($itemId)->phase);
+        $this->assertSame(RecoveryBarrierState::Clear, $journal->recoveryBarrier());
+    }
+
+    public function test_late_closure_rejects_unresolved_item_write_cleanup_and_malformed_resolution(): void
+    {
+        foreach (['item', 'write', 'cleanup', 'malformed'] as $index => $case) {
+            DB::table(self::EVENTS)->delete();
+            DB::table('media_backfill_objects')->delete();
+            DB::table('media_backfill_items')->delete();
+            DB::table('media_backfill_runs')->delete();
+            $this->releaseBackfillLock();
+            [$journal, $runId, $itemId, $objects] = $this->candidatePlan();
+            if ($case === 'write') {
+                $this->finishUnknown($journal, $itemId, $this->objectIds($itemId));
+            } elseif ($case === 'cleanup') {
+                $this->finishCleanupIncomplete($journal, $itemId, $objects['variant']);
+            }
+            $attempt = 90 + $index;
+            $context = $this->reconciliationContext($attempt);
+            $this->journal()->beginRunReconciliation($runId, $this->reconciliationUuid(10 + $index),
+                $this->reconciliationMoment(), $context);
+            if ($case === 'malformed') {
+                $eventId = $this->reconciliationUuid(20 + $index);
+                $this->journal()->recordNoEffectItemResolution($runId, $itemId, $eventId,
+                    $this->reconciliationMoment(), $context);
+                DB::table(self::EVENTS)->where('event_id', $eventId)
+                    ->update(['evidence_sha256' => str_repeat('0', 64)]);
+            }
+            $expected = $case === 'malformed'
+                ? ReconciliationError::InconsistentJournal
+                : ReconciliationError::IllegalResolution;
+            $this->assertReconciliationError(
+                $expected,
+                fn () => $this->journal()->closeRunAfterReconciliation($runId,
+                    $this->reconciliationUuid(30 + $index), $this->reconciliationMoment(), $context),
+                $case,
+            );
+            $this->assertSame('active', DB::table('media_backfill_runs')->where('run_id', $runId)->value('state'));
+            $this->assertNull(DB::table('media_backfill_runs')->where('run_id', $runId)
+                ->value('reconciliation_event_id'));
+        }
+    }
+
+    public function test_closure_failures_roll_back_event_and_run_projection(): void
+    {
+        foreach (['insert into `media_backfill_reconciliation_events`', 'update `media_backfill_runs`'] as $index => $needle) {
+            DB::table(self::EVENTS)->delete();
+            DB::table('media_backfill_runs')->delete();
+            $this->releaseBackfillLock();
+            $journal = app(ApplyJournal::class);
+            $runId = $journal->createApplyRun($this->identity(), $this->applySelection());
+            $context = $this->reconciliationContext(90 + $index);
+            $this->journal()->beginRunReconciliation($runId, $this->reconciliationUuid(1 + $index),
+                $this->reconciliationMoment(), $context);
+            $before = $this->journalSnapshot();
+            $this->failOnce($needle);
+
+            $this->assertReconciliationError(
+                ReconciliationError::JournalUnavailable,
+                fn () => $this->journal()->closeRunAfterReconciliation($runId,
+                    $this->reconciliationUuid(10 + $index), $this->reconciliationMoment(), $context),
+                $needle,
+            );
+            $this->assertSame($before, $this->journalSnapshot(), $needle);
+        }
+    }
+
+    public function test_closure_lock_loss_immediately_before_commit_rolls_back_everything(): void
+    {
+        $journal = app(ApplyJournal::class);
+        $runId = $journal->createApplyRun($this->identity(), $this->applySelection());
+        $context = $this->reconciliationContext();
+        $this->journal()->beginRunReconciliation($runId, $this->reconciliationUuid(1),
+            $this->reconciliationMoment(), $context);
+        $before = $this->journalSnapshot();
+        $this->killLockOnce('update `media_backfill_runs`');
+
+        $this->assertReconciliationError(
+            ReconciliationError::LockLost,
+            fn () => $this->journal()->closeRunAfterReconciliation($runId, $this->reconciliationUuid(2),
+                $this->reconciliationMoment(), $context),
+        );
+        $this->assertSame($before, $this->journalSnapshot());
+    }
+
+    public function test_closure_maintenance_loss_immediately_before_commit_rolls_back_everything(): void
+    {
+        $journal = app(ApplyJournal::class);
+        $runId = $journal->createApplyRun($this->identity(), $this->applySelection());
+        $context = $this->reconciliationContext();
+        $this->journal()->beginRunReconciliation($runId, $this->reconciliationUuid(1),
+            $this->reconciliationMoment(), $context);
+        $before = $this->journalSnapshot();
+        $calls = 0;
+        $guard = Mockery::mock(ApplyMaintenanceGuard::class);
+        $guard->shouldReceive('assertAllowed')->twice()->andReturnUsing(function () use (&$calls) {
+            if (++$calls === 2) {
+                throw new BackfillSafetyException(SafetyError::MaintenanceRequired);
+            }
+        });
+        $repository = new ReconciliationJournal(
+            app('db'),
+            $guard,
+            app(ObjectEvidenceClassifier::class),
+            app(CandidateManifestReader::class),
+            app(ReconciliationEventValidator::class),
+            app(ReconciliationStateValidator::class),
+        );
+
+        $this->assertReconciliationError(
+            ReconciliationError::MaintenanceRequired,
+            fn () => $repository->closeRunAfterReconciliation($runId, $this->reconciliationUuid(2),
+                $this->reconciliationMoment(), $context),
+        );
+        $this->assertSame($before, $this->journalSnapshot());
+    }
+
+    public function test_closure_replay_rejects_partial_and_competing_run_projections(): void
+    {
+        $journal = app(ApplyJournal::class);
+        $runId = $journal->createApplyRun($this->identity(), $this->applySelection());
+        $context = $this->reconciliationContext();
+        $this->journal()->beginRunReconciliation($runId, $this->reconciliationUuid(1),
+            $this->reconciliationMoment(), $context);
+        $this->journal()->closeRunAfterReconciliation($runId, $this->reconciliationUuid(2),
+            $this->reconciliationMoment(), $context);
+
+        Schema::withoutForeignKeyConstraints(fn () => DB::table('media_backfill_runs')->where('run_id', $runId)
+            ->update(['reconciliation_event_id' => null]));
+        $this->assertReconciliationError(
+            ReconciliationError::InconsistentJournal,
+            fn () => $this->journal()->closeRunAfterReconciliation($runId, $this->reconciliationUuid(2),
+                $this->reconciliationMoment(), $context),
+        );
+        Schema::withoutForeignKeyConstraints(fn () => DB::table('media_backfill_runs')->where('run_id', $runId)
+            ->update(['reconciliation_event_id' => $this->reconciliationUuid(1)]));
+        $this->assertReconciliationError(
+            ReconciliationError::ReplayConflict,
+            fn () => $this->journal()->closeRunAfterReconciliation($runId, $this->reconciliationUuid(2),
+                $this->reconciliationMoment(), $context),
+        );
+    }
+
+    public function test_barrier_v2_preserves_clean_history_and_an_unrelated_run_blocks_globally(): void
+    {
+        $journal = app(ApplyJournal::class);
+        $cleanRun = $journal->createApplyRun($this->identity(), $this->applySelection());
+        $cleanItem = $journal->snapshot($cleanRun, $this->excludedItem(123));
+        $journal->finishItem($cleanItem, ApplyResult::Skipped);
+        $journal->finishRun($cleanRun, RunState::Completed);
+        $this->assertSame(RecoveryBarrierState::Clear, $journal->recoveryBarrier());
+
+        $blockingRun = $journal->createApplyRun($this->identity(), $this->applySelection());
+        $this->assertSame(RecoveryBarrierState::Blocked, $journal->recoveryBarrier());
+        $this->assertSame('active', $journal->run($blockingRun)->state);
+    }
+
+    public function test_barrier_v2_fails_closed_for_an_incomplete_published_object_plan(): void
+    {
+        [$journal, $runId, $itemId] = $this->candidatePlan();
+        foreach ($this->objectIds($itemId) as $objectId) {
+            $this->receipt($journal, $objectId,
+                new CreateReceipt(CreateState::Created, 'private-etag', 'private-version'));
+        }
+        $journal->finishItem($itemId, ApplyResult::Published);
+        $journal->finishRun($runId, RunState::Completed);
+        $this->assertSame(RecoveryBarrierState::Clear, $journal->recoveryBarrier());
+
+        DB::table('media_backfill_objects')->where('item_id', $itemId)->orderBy('id')->limit(1)->delete();
+
+        $this->assertSame(RecoveryBarrierState::Blocked, $journal->recoveryBarrier());
+    }
+
+    public function test_barrier_v2_keeps_an_unresolved_sibling_blocking(): void
+    {
+        $journal = app(ApplyJournal::class);
+        $runId = $journal->createApplyRun($this->identity(), $this->applySelection());
+        [$first] = $this->candidateItem($journal, $runId, 123);
+        $second = $journal->snapshot($runId, $this->excludedItem(124));
+        $journal->finishRun($runId, RunState::Interrupted);
+        $context = $this->reconciliationContext();
+        $this->journal()->beginRunReconciliation($runId, $this->reconciliationUuid(1),
+            $this->reconciliationMoment(), $context);
+        $this->journal()->recordNoEffectItemResolution($runId, $first, $this->reconciliationUuid(2),
+            $this->reconciliationMoment(), $context);
+
+        $this->assertNull($journal->item($second)->reconciliation_result);
+        $this->assertSame(RecoveryBarrierState::Blocked, $journal->recoveryBarrier());
+    }
+
+    #[DataProvider('unresolvedCleanupStates')]
+    public function test_barrier_v2_never_allows_forward_projection_to_clear_cleanup(CleanupState $cleanup): void
+    {
+        [$journal, $runId, $itemId, $objects] = $this->candidatePlan();
+        $this->receipt($journal, $objects['variant'],
+            new CreateReceipt(CreateState::Created, 'private-etag', 'private-version'));
+        $journal->updateCleanup($objects['variant'], CleanupState::Pending);
+        if ($cleanup !== CleanupState::Pending) {
+            $journal->updateCleanup($objects['variant'], $cleanup);
+        }
+        $journal->finishItem($itemId, ApplyResult::FailedCleanupIncomplete);
+        $journal->finishRun($runId, RunState::Failed);
+        $this->acceptForward($runId, $itemId, 90, 1, 2);
+
+        $this->assertSame($cleanup->value, $journal->object($objects['variant'])->cleanup_state);
+        $this->assertSame(RecoveryBarrierState::Blocked, $journal->recoveryBarrier());
+    }
+
+    public static function unresolvedCleanupStates(): array
+    {
+        return [
+            'pending' => [CleanupState::Pending],
+            'failed' => [CleanupState::Failed],
+            'unknown' => [CleanupState::Unknown],
+        ];
+    }
+
+    #[DataProvider('invalidBarrierProjectionCases')]
+    public function test_barrier_v2_fails_closed_for_every_invalid_projection_shape(string $case): void
+    {
+        [$journal, $runId, $itemId, $objects] = $this->candidatePlan();
+        $journal->finishRun($runId, RunState::Interrupted);
+        if ($case === 'pre-d2 null') {
+            $this->assertSame(RecoveryBarrierState::Blocked, $journal->recoveryBarrier());
+
+            return;
+        }
+        $context = $this->reconciliationContext();
+        $start = $this->reconciliationUuid(1);
+        $resolution = $this->reconciliationUuid(2);
+        $this->journal()->beginRunReconciliation($runId, $start, $this->reconciliationMoment(), $context);
+        if ($case === 'attempt events only') {
+            $this->journal()->recordBlockedAttempt($runId, $itemId, $resolution,
+                ReconciliationBlockReason::EvidenceMismatch, $this->reconciliationMoment(), $context);
+            $this->assertSame(RecoveryBarrierState::Blocked, $journal->recoveryBarrier());
+
+            return;
+        }
+        $this->journal()->recordNoEffectItemResolution($runId, $itemId, $resolution,
+            $this->reconciliationMoment(), $context);
+        $this->assertSame(RecoveryBarrierState::Clear, $journal->recoveryBarrier(), 'valid control');
+        $event = DB::table(self::EVENTS)->where('event_id', $resolution)->first();
+        $evidence = json_decode($event->evidence_json, true, flags: JSON_THROW_ON_ERROR);
+        $update = match ($case) {
+            'unknown enum' => ['reconciliation_result' => 'future_result'],
+            'half pair' => ['reconciliation_event_id' => null],
+            default => null,
+        };
+        if ($update !== null) {
+            DB::table('media_backfill_items')->where('id', $itemId)->update($update);
+        } else {
+            match ($case) {
+                'missing event' => Schema::withoutForeignKeyConstraints(
+                    fn () => DB::table(self::EVENTS)->where('event_id', $resolution)->delete()),
+                'wrong type' => DB::table('media_backfill_items')->where('id', $itemId)
+                    ->update(['reconciliation_event_id' => $start]),
+                'wrong run' => Schema::withoutForeignKeyConstraints(
+                    fn () => DB::table(self::EVENTS)->where('event_id', $resolution)
+                        ->update(['run_id' => $this->reconciliationUuid(999)])),
+                'wrong item' => Schema::withoutForeignKeyConstraints(
+                    fn () => DB::table(self::EVENTS)->where('event_id', $resolution)
+                        ->update(['item_id' => 999999])),
+                'missing attempt start' => DB::table(self::EVENTS)->where('event_id', $start)->delete(),
+                'storage identity mismatch' => $this->rewriteEventEnvelope(
+                    $resolution,
+                    $evidence,
+                    ['storage_identity_hash' => str_repeat('b', 64)],
+                    ['storage_identity_hash' => str_repeat('b', 64)],
+                ),
+                'backend mismatch' => $this->rewriteEventEnvelope(
+                    $resolution,
+                    $evidence,
+                    ['backend_mode' => ReconciliationBackendMode::S3->value],
+                    ['backend_mode' => ReconciliationBackendMode::S3->value],
+                ),
+                'revision mismatch' => DB::table(self::EVENTS)->where('event_id', $resolution)
+                    ->update(['code_revision' => str_repeat('b', 40)]),
+                'stale evidence' => $this->rewriteEventEnvelope(
+                    $resolution,
+                    $evidence,
+                    ['objects' => array_replace($evidence['objects'], [0 => array_replace(
+                        $evidence['objects'][0],
+                        ['attribution' => 'failed_without_write'],
+                    )])],
+                ),
+                'corrupt evidence hash' => DB::table(self::EVENTS)->where('event_id', $resolution)
+                    ->update(['evidence_sha256' => str_repeat('0', 64)]),
+                'object projection under no effect' => DB::table('media_backfill_objects')
+                    ->where('id', $objects['variant'])->update([
+                        'reconciliation_resolution' => 'forward_retained',
+                        'reconciliation_event_id' => $resolution,
+                    ]),
+                'run pointer wrong type' => DB::table('media_backfill_runs')->where('run_id', $runId)
+                    ->update(['reconciliation_event_id' => $start]),
+            };
+        }
+
+        $this->assertSame(RecoveryBarrierState::Blocked, $journal->recoveryBarrier(), $case);
+    }
+
+    public static function invalidBarrierProjectionCases(): array
+    {
+        return array_combine([
+            'pre-d2 null', 'attempt events only', 'unknown enum', 'half pair', 'missing event',
+            'wrong type', 'wrong run', 'wrong item', 'missing attempt start', 'storage identity mismatch',
+            'backend mismatch', 'revision mismatch', 'stale evidence', 'corrupt evidence hash',
+            'object projection under no effect', 'run pointer wrong type',
+        ], array_map(static fn (string $case): array => [$case], [
+            'pre-d2 null', 'attempt events only', 'unknown enum', 'half pair', 'missing event',
+            'wrong type', 'wrong run', 'wrong item', 'missing attempt start', 'storage identity mismatch',
+            'backend mismatch', 'revision mismatch', 'stale evidence', 'corrupt evidence hash',
+            'object projection under no effect', 'run pointer wrong type',
+        ]));
+    }
+
+    #[DataProvider('brokenForwardCrossProjectionCases')]
+    public function test_barrier_v2_requires_the_complete_exact_forward_event_set(string $case): void
+    {
+        [$journal, $runId, $itemId, $objects] = $this->candidatePlan();
+        $this->finishUnknown($journal, $itemId, $this->objectIds($itemId));
+        $journal->finishRun($runId, RunState::Interrupted);
+        $first = $this->acceptForward($runId, $itemId, 90, 1, 2);
+        $this->assertSame(RecoveryBarrierState::Clear, $journal->recoveryBarrier());
+
+        if ($case === 'forward retained without parent') {
+            DB::table('media_backfill_items')->where('id', $itemId)
+                ->update(['reconciliation_result' => null, 'reconciliation_event_id' => null]);
+        } elseif ($case === 'partial object set') {
+            DB::table('media_backfill_objects')->where('id', $objects['variant'])
+                ->update(['reconciliation_resolution' => null, 'reconciliation_event_id' => null]);
+        } else {
+            DB::table('media_backfill_items')->where('id', $itemId)
+                ->update(['reconciliation_result' => null, 'reconciliation_event_id' => null]);
+            DB::table('media_backfill_objects')->where('item_id', $itemId)
+                ->update(['reconciliation_resolution' => null, 'reconciliation_event_id' => null]);
+            $second = $this->acceptForward($runId, $itemId, 92, 6, 7);
+            $this->assertNotSame($first, $second);
+            DB::table('media_backfill_objects')->where('id', $objects['variant'])
+                ->update(['reconciliation_event_id' => $first]);
+        }
+
+        $this->assertSame(RecoveryBarrierState::Blocked, $journal->recoveryBarrier(), $case);
+    }
+
+    public static function brokenForwardCrossProjectionCases(): array
+    {
+        return [
+            'forward retained without parent' => ['forward retained without parent'],
+            'partial object set' => ['partial object set'],
+            'crossed exact event ids' => ['crossed exact event ids'],
+        ];
+    }
+
     private function corruptAttemptStart(string $case, string $runId, int $itemId): void
     {
         $startId = $this->reconciliationUuid(1);
@@ -911,6 +1426,20 @@ class BackfillReconciliationJournalTest extends TestCase
             'unsupported evidence version' => ['evidence_version' => 2],
         };
         DB::table(self::EVENTS)->where('event_id', $startId)->update($update);
+    }
+
+    /** @param array<string, mixed> $evidence @param array<string, mixed> $changes @param array<string, mixed> $row */
+    private function rewriteEventEnvelope(
+        string $eventId,
+        array $evidence,
+        array $changes,
+        array $row = [],
+    ): void {
+        $json = json_encode(array_replace($evidence, $changes), JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+        DB::table(self::EVENTS)->where('event_id', $eventId)->update($row + [
+            'evidence_json' => $json,
+            'evidence_sha256' => hash('sha256', $json),
+        ]);
     }
 
     /** @return array{evidence_json: string, evidence_sha256: string} */

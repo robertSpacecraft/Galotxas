@@ -3,6 +3,7 @@
 > **D2-A COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
 > **D2-B1 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
 > **D2-B2 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
+> **D2-B3 IMPLEMENTADO LOCALMENTE / PENDIENTE DE AUDITORÍA HUMANA Y PROMOCIÓN.**
 > P1.D.1C-B3 permanece aceptado hasta producción. No se ha autorizado ni
 > ejecutado ningún APPLY real.
 
@@ -537,14 +538,110 @@ mutación: 280 tests y 3.216 aserciones, exit 0. Suite backend completa: 1.549
 tests y 15.550 aserciones, exit 0. `php -l` sobre todos los PHP afectados, Pint
 limitado a esos archivos y `git diff --check`: PASS.
 
+## D2-B3: cierre tardío, Barrier V2 y guards de APPLY
+
+> **IMPLEMENTADO LOCALMENTE / PENDIENTE DE AUDITORÍA HUMANA Y PROMOCIÓN.**
+> No está cerrado, desplegado ni aceptado en staging/producción.
+
+`ReconciliationStateValidator` centraliza una única lectura semántica DB-only
+de los hechos APPLY, las proyecciones y sus eventos. La usan Barrier V2, las
+precondiciones de cierre y la validación read-only del puntero de run. Valida
+selección, bounds y checkpoint; parentage y rango de todos los descendientes;
+coherencia de fase/resultado/candidato y estados write/create/receipt/cleanup;
+pares completos de proyección; tipo, parentage, intento, identidad, backend,
+revisión, hash y cuerpo exacto del evento. No usa fingerprints para igualdad y
+no observa ni muta storage.
+
+### Overrides exactos de Barrier V2
+
+Los cuatro predicados históricos siguen siendo la base:
+
+| Predicado histórico | Único override B3 |
+| --- | --- |
+| run `active` | ninguno; sólo deja de existir tras el cierre atómico del run |
+| item no `finished` | `forward_accepted` o `closed_no_effect` válido del item exacto |
+| write `intent`/`unknown` | `forward_retained` válido bajo el mismo evento `forward_accepted` exacto del item |
+| cleanup `pending`/`failed`/`unknown` | ninguno |
+
+`attempt_started`, `attempt_blocked` y un `forward_retained` aislado no despejan
+nada. `closed_no_effect` no despeja objetos; forward no despeja cleanup. Los
+`NULL` pre-D2 despejan cero predicados bloqueantes. Un valor desconocido, par
+parcial, evento ausente o de tipo/padre/run incorrecto, procedencia de intento
+inválida, identidad/backend/revisión discordante, IDs cruzados, conjunto
+forward parcial o evidencia stale/corrupta bloquea. Un `NULL` ordinario sobre
+historia que ya no satisface ningún predicado bloqueante sigue siendo normal.
+
+### Cierre tardío del run
+
+`ReconciliationJournal` añade exactamente una quinta operación pública:
+
+```text
+closeRunAfterReconciliation(runId, eventId, observedAt, context)
+```
+
+Sin payload ni contadores del llamador, bloquea el run, todos sus items por ID
+ascendente y después todos sus objetos por ID ascendente. Exige MariaDB, cero
+transacción ambiente, mantenimiento, lock propio, identidad actual/contexto/
+lock/run concordante, un único `attempt_started` válido, modo APPLY, estado
+`active`, `finished_at` y puntero de run nulos, selección y descendientes
+coherentes, todo blocker de item/write exactamente resuelto y cero cleanup
+blockers. Otros runs no intervienen en el cierre de este run.
+
+El evento v1 `run_closed_after_reconciliation` tiene, en orden canónico:
+`v`, `kind`, `observed_at`, `storage_identity_hash`, `backend_mode`,
+`from_state`, `to_state`, `items_total`, `objects_total`,
+`item_blockers_resolved`, `write_blockers_resolved`,
+`cleanup_blockers_remaining` y `resolution_snapshot_sha256`. Los estados son
+siempre `active → interrupted`, los conteos se derivan de las filas bloqueadas,
+cleanup es cero y el digest es SHA-256 sobre un preimage JSON versionado y de
+orden fijo que cubre las identidades/selección/checkpoint usadas, todos los
+hechos descendientes relevantes, punteros exactos y eventos/procedencia
+referenciados. El mismo helper construye el digest para escritura, replay y
+validación.
+
+Evento, `run.finished_at` y `run.updated_at` comparten exactamente el timestamp
+canónico observado. En una transacción se inserta el evento append-only y sólo
+se cambian `state`, `finished_at`, `reconciliation_event_id` y `updated_at` del
+run exacto. Nunca se produce `completed` o `failed`; resumen, error, inicio,
+heartbeat, checkpoints y todos los hechos APPLY de items/objetos permanecen
+intactos. Inmediatamente antes del commit se recomprueban mantenimiento y lock.
+
+Replay con el mismo evento, intento, evidencia, contexto y proyección terminal
+es no-op y devuelve `replayed=true`. Evidencia/contexto divergente o puntero
+competidor es `replay_conflict`; evento/proyección parcial es
+`inconsistent_journal`; un terminal sin la proyección exacta es
+`illegal_resolution`. Nunca se reparan estados parciales. El puntero del run
+sólo puede nombrar este tipo de evento.
+
+### Congelación de APPLY y límites
+
+El helper bloqueado común de `ApplyJournal` rechaza el run exacto con
+`SafetyError::ReconciliationRequired` si existe cualquier evento o cualquier
+proyección de run/item/objeto. `ApplyItemPublisher` ejecuta además un guard
+temprano antes de revalidar dominio o storage. El outcome APPLY se mapea de
+forma explícita a `reconciliation_required`; la conducta no reconciliada
+permanece igual y un nuevo APPLY independiente puede comenzar tras una historia
+terminal reconciliada si Barrier V2 está clear.
+
+B3 reutiliza sin cambios el esquema B1 y no añade migración. No implementa
+cleanup, ausencia confirmada, setter genérico de objeto, observación o mutación
+de storage, coordinador D2-C, comando, endpoint, job, provider, ruta ni frontend.
+No se ha ejecutado ninguna reconciliación real.
+
+### Validación local de D2-B3
+
+El foco B3 (`BackfillReconciliationJournal`, `BackfillApplyJournal`,
+`BackfillApplyItemPublisher`, `ResponsiveBackfillApply` y
+`BackfillReconciliationInspector`) pasa con 278 tests y 3.529 aserciones. La
+suite backend completa pasa con 1.594 tests y 15.925 aserciones. Ambas se
+ejecutaron una vez con exit 0 mediante el runner Docker/MariaDB aislado; no se
+usó SQLite. `php -l` sobre todos los PHP afectados, Pint limitado a esos
+archivos y `git diff --check`: PASS.
+
 ## Siguiente bloque
 
-D2-B2 está completado y aceptado hasta producción. D2-B3 es el siguiente
-bloque: cierre tardío de run, Barrier V2 y guards de APPLY frente a
-proyecciones reconciliadas. Hasta que D2-B3 se implemente y acepte,
-`recoveryBarrier()` conserva exactamente sus cuatro predicados históricos y
-ninguna proyección B2 despeja un bloqueo. D2-C, que observará y revalidará
-para construir la evidencia que B2 valida, sigue siendo trabajo futuro. El
-diseño y las primitivas de cleanup seguro, ausencia confirmada local o S3 no
-existen todavía y la reconciliación destructiva sigue siendo trabajo
-posterior. D2-B, P1.D.2 y P1.D no están completos.
+D2-B3 permanece implementado localmente y pendiente de auditoría/promoción.
+D2-C, que observará y revalidará para construir la evidencia que B2 valida,
+sigue siendo trabajo futuro. El diseño y las primitivas de cleanup seguro y
+ausencia confirmada local o S3 no existen todavía; la reconciliación destructiva
+sigue siendo posterior. D2-B, P1.D.2 y P1.D no están completos.

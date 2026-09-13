@@ -44,6 +44,7 @@ class ApplyItemPublisher
 
     public function publish(string $runId, int $itemId, AdvisoryLockHandle $lock): ApplyResult
     {
+        $this->journal->assertRunMutable($runId);
         [$item, $domain, $snapshotManifest] = $this->candidate($runId, $itemId);
         $this->guardEnvironment($runId, $itemId, $lock, []);
 

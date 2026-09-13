@@ -8,6 +8,7 @@ use App\Services\Media\Backfill\ManagedMediaDomain;
 use App\Services\Media\Backfill\ManagedMediaReference;
 use App\Services\Media\Backfill\PreflightClassification;
 use App\Services\Media\Backfill\PreflightResult;
+use App\Services\Media\Backfill\Reconciliation\ReconciliationJournal;
 use App\Services\Media\Backfill\Safety\ApplyJournal;
 use App\Services\Media\Backfill\Safety\ApplyMaintenanceGuard;
 use App\Services\Media\Backfill\Safety\ApplyResult;
@@ -52,6 +53,7 @@ class BackfillApplyJournalTest extends TestCase
     protected function tearDown(): void
     {
         try {
+            $this->releaseBackfillLock();
             if (DB::transactionLevel() > 0) {
                 DB::rollBack(0);
             }
@@ -626,5 +628,63 @@ class BackfillApplyJournalTest extends TestCase
     public static function storageReceipts(): array
     {
         return [[CreateState::Created, 'created'], [CreateState::Rejected, 'rejected'], [CreateState::Unknown, 'unknown'], [CreateState::Failed, 'rejected']];
+    }
+
+    #[DataProvider('reconciliationFootprints')]
+    public function test_any_reconciliation_footprint_freezes_normal_apply_mutation(string $footprint): void
+    {
+        [$journal, $run, $item, $object] = $this->plannedObject();
+        if ($footprint === 'attempt event') {
+            app(ReconciliationJournal::class)->beginRunReconciliation($run, $this->reconciliationUuid(1),
+                $this->reconciliationMoment(), $this->reconciliationContext());
+        } elseif ($footprint === 'item projection') {
+            DB::table('media_backfill_items')->where('id', $item)
+                ->update(['reconciliation_result' => 'closed_no_effect']);
+        } elseif ($footprint === 'object projection') {
+            DB::table('media_backfill_objects')->where('id', $object)
+                ->update(['reconciliation_resolution' => 'forward_retained']);
+        } else {
+            DB::table('media_backfill_objects')->delete();
+            DB::table('media_backfill_items')->delete();
+            DB::table('media_backfill_runs')->delete();
+            $run = $journal->createApplyRun($this->identity(), $this->applySelection());
+            $context = $this->reconciliationContext();
+            app(ReconciliationJournal::class)->beginRunReconciliation($run, $this->reconciliationUuid(1),
+                $this->reconciliationMoment(), $context);
+            app(ReconciliationJournal::class)->closeRunAfterReconciliation($run, $this->reconciliationUuid(2),
+                $this->reconciliationMoment(), $context);
+        }
+        $before = (array) DB::table('media_backfill_runs')->where('run_id', $run)->first();
+
+        $this->assertSafetyError(SafetyError::ReconciliationRequired, fn () => $journal->heartbeat($run));
+
+        $this->assertSame($before, (array) DB::table('media_backfill_runs')->where('run_id', $run)->first());
+    }
+
+    public static function reconciliationFootprints(): array
+    {
+        return [
+            'attempt event' => ['attempt event'],
+            'item projection' => ['item projection'],
+            'object projection' => ['object projection'],
+            'run closure pointer' => ['run closure pointer'],
+        ];
+    }
+
+    public function test_writer_makes_zero_storage_calls_when_reconciliation_guard_trips(): void
+    {
+        [$journal, $run, , $object, , $bytes] = $this->plannedObject();
+        $context = $this->reconciliationContext();
+        app(ReconciliationJournal::class)->beginRunReconciliation($run, $this->reconciliationUuid(1),
+            $this->reconciliationMoment(), $context);
+        $creator = Mockery::mock(ExclusiveObjectCreator::class);
+        $creator->shouldNotReceive('create');
+        $writer = new JournaledObjectWriter($journal, app(ApplyMaintenanceGuard::class), $creator, app('db'));
+
+        $this->assertSafetyError(
+            SafetyError::ReconciliationRequired,
+            fn () => $writer->create($object, $bytes, $context->lock),
+        );
+        $this->assertSame('planned', $journal->object($object)->write_state);
     }
 }

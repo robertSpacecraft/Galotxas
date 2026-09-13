@@ -117,9 +117,10 @@ Funciona con IDs dispersos: acredita evidencia terminal contigua de la
 invocación journalizada, no reconstrucción exhaustiva del historial de la tabla
 ni autorización de resume. Un run terminal no admite avance.
 
-`recoveryBarrier()` usa lecturas `EXISTS` sobre la conexión de escritura y no
-materializa historiales. Devuelve `blocked` ante cualquier run activo, item no
-terminado, escritura `intent`/`unknown` o cleanup `pending`/`failed`/`unknown`.
+Hasta B2, `recoveryBarrier()` usaba lecturas `EXISTS` sobre la conexión de
+escritura y no materializaba historiales. Devolvía `blocked` ante cualquier run
+activo, item no terminado, escritura `intent`/`unknown` o cleanup
+`pending`/`failed`/`unknown`.
 Un historial terminal completamente resuelto, incluido fallo conocido sin
 escritura o colisión rechazada terminal, devuelve `clear`. La consulta no hace
 I/O de storage, no muta ni reconcilia; el futuro runner deberá ejecutarla antes
@@ -152,6 +153,31 @@ eventos y punteros vive en un ayudante read-only compartido con la inspección.
 El contrato completo se documenta en
 [35-responsive-backfill-reconciliation.md](35-responsive-backfill-reconciliation.md).
 `recoveryBarrier()` no cambia en B2.
+
+P1.D.2-B3 está **implementado localmente y pendiente de auditoría humana y
+promoción**. Convierte esa consulta en Barrier V2 mediante un validador
+semántico compartido y DB-only. Conserva los cuatro predicados históricos, con
+estos únicos overrides:
+
+- un item no `finished` sólo deja de bloquear si su par resultado/puntero nombra
+  un `item_forward_accepted` o `item_no_effect_closed` válido para ese mismo
+  run, item, intento e identidad;
+- una escritura `intent`/`unknown` sólo deja de bloquear si el item tiene un
+  `forward_accepted` válido y el objeto tiene `forward_retained` con el mismo
+  `reconciliation_event_id` durable.
+
+Un run `active` siempre bloquea hasta el cierre tardío B3. Cleanup `pending`,
+`failed` o `unknown` nunca admite override. Valores desconocidos, pares
+valor/puntero parciales, eventos ausentes, parentage o procedencia discordantes,
+IDs cruzados, evidencia stale/corrupta y los `NULL` pre-D2 sobre un predicado
+históricamente bloqueante fallan cerrado. La barrera no observa storage.
+
+Además, `ApplyJournal` rechaza con `SafetyError::ReconciliationRequired` toda
+mutación normal del run exacto desde que existe cualquier evento o proyección
+de reconciliación. `ApplyItemPublisher` aplica el mismo guard antes de toda
+revalidación de dominio/storage. El writer y el creador exclusivo no cambian:
+su commit de intent ya atraviesa el guard autoritativo antes de llamar a
+storage.
 
 | Registro | Transiciones |
 | --- | --- |

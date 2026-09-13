@@ -14,4 +14,5 @@ enum SafetyError: string
     case UnsupportedStorage = 'unsupported_storage';
     case IdentityMismatch = 'identity_mismatch';
     case PublicationUnknown = 'publication_unknown';
+    case ReconciliationRequired = 'reconciliation_required';
 }
