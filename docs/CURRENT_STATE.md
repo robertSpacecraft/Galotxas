@@ -35,6 +35,7 @@ Sublínea activa: P1.D — backfill de masters legacy.
 | P1.D.2-B2 — APIs internas item-atomic de resolución | completado hasta producción |
 | P1.D.2-B3 — cierre tardío de run, Barrier V2 y guards APPLY | completado y aceptado hasta producción |
 | P1.D.2-C1 — base de evidencia operacional exacta | completado y aceptado hasta producción |
+| P1.D.2-C2 — coordinador interno exact-one-run | completado y aceptado hasta producción |
 
 P1.D.1C-A está completado hasta producción. Su smoke de producción terminó correctamente con exit 0, cero bloqueos y cero escrituras de storage.
 
@@ -298,12 +299,65 @@ conservó exactamente sus cinco métodos.
 Esta aceptación del gate de capacidad runtime para lectura exacta sobre el
 adaptador S3 real no incluyó la lectura de ningún objeto concreto, porque los
 conteos de journal/proyecciones eran cero, y no autoriza una reconciliación
-forward mutante en S3. C1 no resuelve el TOCTOU storage/DB ni la congelación de
-escritores externos. El siguiente bloque activo es P1.D.2-C2, coordinador
-interno de reconciliación de un único run; debe imponer mantenimiento, lock,
-identidad, congelación de writers y revalidación inmediata antes de toda
-mutación durable. C3 conservará por separado el wiring del CLI mutante. P1.D.2
-y P1.D permanecen abiertos.
+forward mutante en S3. C1 no resolvió el TOCTOU storage/DB ni la congelación de
+escritores externos. El coordinador C2 queda cerrado a continuación y C3
+conserva por separado el wiring del CLI mutante. P1.D.2 y P1.D permanecen
+abiertos.
+
+## Cierre de P1.D.2-C2
+
+El commit `36274f27029178af82ec6f5c686b8a9c2ce2a621` está desplegado y
+aceptado en staging y producción. Añade el coordinador interno
+`ReconciliationCoordinator::run(ReconciliationInvocation):
+ReconciliationReport` para exactamente un UUID canónico de run, sin selector
+de item/objeto, límite de mutación ni llamador operacional. Recorre como máximo
+1000 items durables completos por ID ascendente, lee mediante write PDO y
+mantiene mantenimiento, lock consultivo, identidad y capability gate en cada
+frontera de mutación. Sólo muta mediante las cinco operaciones existentes de
+`ReconciliationJournal`.
+
+El camino DB-only no-effect queda disponible dentro del coordinador interno.
+Su elegibilidad procede exclusivamente de historia APPLY inmutable, observa
+cero objetos y no consulta la deriva actual de entidad, referencia o master.
+Los checkpoints y hechos APPLY no cambian. En cambio, el writer freeze global
+no es demostrable con el runtime actual: mantenimiento no detiene por sí solo
+peticiones en curso, procesos directos/workers ni clientes externos/S3, y el
+advisory lock sólo congela código cooperante. Por ello
+`ManagedMediaWriterFreezeGuard` rechaza local y S3 con
+`storage_observation_untrusted`, sin override permisivo, antes de observar
+objetos o registrar una resolución forward. La ruta de doble observación existe
+estructuralmente, pero forward no está disponible.
+
+Un cierre B3 válido existente devuelve `AlreadyClosed` sin evento nuevo. Un
+run terminal `completed`, `failed` o `interrupted`, sin cierre B3 y ya resuelto
+según la evaluación compartida completa, devuelve
+`NoReconciliationRequired` sin attempt, evento ni proyección. Un run activo
+resuelto sí inicia attempt y sólo puede cerrar mediante la transición B3
+`active → interrupted`. Los terminales failed/interrupted con items pendientes
+pueden resolver no-effect elegible, pero nunca reciben un primer cierre B3.
+
+La validación local final pasó con 33 tests / 660 aserciones focales, 314 tests /
+4.126 aserciones en el foco combinado C1/B2/B3/APPLY y 1.647 tests / 16.884
+aserciones en la suite backend completa sobre MariaDB aislada; `php -l`, Pint,
+`git diff --check` y la auditoría humana también pasaron. C2 no añadió
+migración, configuración, cleanup, ausencia confirmada ni escritura, borrado,
+copia, movimiento o listing de storage.
+
+Los smokes de staging y producción fueron no destructivos: MariaDB,
+`media_s3`, backend `s3`, adaptadores Laravel/Flysystem esperados, servicios C2
+resolubles, capability gate correcto, writer-freeze rechazado fail-closed, API
+del journal de cinco métodos, CLI mutante ausente, comando read-only con exit 0,
+`--execute` rechazado con exit 2 y Barrier V2 puntualmente `clear`. Los nueve
+conteos de journal/proyecciones permanecieron en cero. No se invocó
+`ReconciliationCoordinator::run()`, no hubo reconciliación real ni lectura de
+un objeto S3 concreto para aceptar C2, no se activó mantenimiento y no se mutó
+storage.
+
+El siguiente bloque es P1.D.2-C3. C3 posee exclusivamente el CLI mutante
+explícito y el mapeo de exits; debe reflejar el rechazo forward actual sin
+anunciar esa capacidad como disponible. No se ha autorizado ni ejecutado APPLY
+real, no se ha ejecutado reconciliación mutante real en entornos compartidos y
+cleanup continúa sin implementar. P1.D.2 y P1.D permanecen abiertos.
 
 ## Documentos de referencia
 
@@ -311,7 +365,7 @@ y P1.D permanecen abiertos.
 - [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md) — journal, identidad, lock, mantenimiento y escritura exclusiva (P1.D.1B).
 - [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md) — dry-run y wiring CLI APPLY aceptados hasta producción.
 - [34-responsive-backfill-apply-design.md](34-responsive-backfill-apply-design.md) — diseño aprobado de APPLY; B1/B2/B3-A/B3-B y B3 aceptados hasta producción.
-- [35-responsive-backfill-reconciliation.md](35-responsive-backfill-reconciliation.md) — D2-A, D2-B1, D2-B2, D2-B3 y D2-C1 aceptados hasta producción; D2-C2 es el siguiente bloque.
+- [35-responsive-backfill-reconciliation.md](35-responsive-backfill-reconciliation.md) — D2-A, D2-B1, D2-B2, D2-B3, D2-C1 y D2-C2 aceptados hasta producción; D2-C3 es el siguiente bloque.
 
 ## Invariante de traspaso
 

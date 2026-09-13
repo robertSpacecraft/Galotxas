@@ -187,13 +187,30 @@ calcula SHA-256 y tamaño desde los bytes leídos y valida MIME, estructura y
 descriptor; `absent_now` permanece puntual y ni ETag ni VersionId sustituyen
 estos hechos o acreditan ownership.
 
-C1 no autoriza ninguna mutación de reconciliación, tampoco cuando el adaptador
-S3 real supera el gate. La ventana entre observación de storage y commit DB, la
-congelación de writers externos y la secuencia de mantenimiento, lock, identidad
-y revalidación inmediata siguen siendo gates pendientes y obligatorios de C2.
-La elegibilidad no-effect expuesta por C1 es sólo DB, hace cero observación de
-storage y rechaza todo indicio de dispatch, creación, recibo o actividad de
-cleanup. Cleanup `pending`/`failed`/`unknown` continúa bloqueando.
+P1.D.2-C2 está completado y aceptado hasta producción en el commit
+`36274f27029178af82ec6f5c686b8a9c2ce2a621`. Añade un coordinador interno para
+exactamente un run, dueño del ciclo completo de mantenimiento, lock, identidad,
+modo backend, capability gate y revalidación inmediata. Recorre como máximo
+1000 items completos en orden durable y sólo muta mediante
+`ReconciliationJournal`, cuya API pública conserva exactamente cinco métodos.
+No usa una transacción MariaDB global alrededor del trabajo y no añade CLI ni
+otro llamador operacional.
+
+C2 habilita únicamente el cierre no-effect DB-only dentro de ese coordinador:
+la prueba procede de historia APPLY inmutable, hace cero observación de objetos
+y no depende del estado actual de entidad, referencia o master. Todo indicio de
+intent, unknown, creación, recibo/confirmación o cleanup lo rechaza. Los
+checkpoints y hechos APPLY permanecen inmutables.
+
+La auditoría C2 concluyó que la congelación global de writers no es demostrable.
+Mantenimiento no acredita la detención de peticiones en curso, procesos
+directos, workers o clientes externos/S3, y el advisory lock sólo excluye código
+cooperante. `ManagedMediaWriterFreezeGuard` carece de override permisivo y
+rechaza tanto local como S3 con `storage_observation_untrusted`, antes de leer
+objetos o registrar forward. Por tanto, el gate S3 de C1 sigue acreditando sólo
+adaptador, topología y capacidad de lectura: no autoriza forward. Cleanup
+`pending`/`failed`/`unknown` continúa bloqueando y C2 no limpia, borra, confirma
+ausencia ni muta storage.
 
 | Registro | Transiciones |
 | --- | --- |

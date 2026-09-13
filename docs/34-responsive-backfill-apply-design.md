@@ -262,6 +262,7 @@ comprobó que workers estuvieran detenidos.
 B3-B y P1.D.1C-B3 están completados y aceptados hasta producción. Esto no
 autoriza una ejecución operativa: no se ha ejecutado ningún APPLY bajo
 mantenimiento ni backfill/publicación de media. P1.D.1C-B, P1.D, D2 y D3
-continúan abiertos. D2 reconciliación es el siguiente bloque; un APPLY real en
-staging requerirá capacidad de seguridad/reconciliación suficiente y una
-autorización operacional separada.
+continúan abiertos. La reconciliación D2 está aceptada hasta C2 y C3, todavía
+sin implementar, es el siguiente bloque; un APPLY real en staging requerirá
+capacidad de seguridad/reconciliación suficiente y una autorización operacional
+separada.

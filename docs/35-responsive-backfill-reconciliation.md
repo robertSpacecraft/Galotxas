@@ -5,6 +5,7 @@
 > **D2-B2 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
 > **D2-B3 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
 > **D2-C1 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
+> **D2-C2 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
 > P1.D.1C-B3 permanece aceptado hasta producción. No se ha autorizado ni
 > ejecutado ningún APPLY real.
 
@@ -675,7 +676,7 @@ escrituras/borrados de storage fueron cero; y `recovery barrier modified` fue
 > mutaciones B2/B3.
 
 D2-C se divide en tres bloques independientes: C1 aporta evidencia operacional
-exacta; C2 compondrá el coordinador interno para un único run; C3 cableará más
+exacta; C2 compone el coordinador interno para un único run; C3 cableará más
 tarde un CLI mutante explícito. C1 no contiene coordinador, comando, endpoint,
 job, provider, ruta ni llamador de `ReconciliationJournal`. Su API pública sigue
 teniendo exactamente cinco operaciones:
@@ -757,13 +758,9 @@ La base de observación S3 de C1 incluye un gate runtime validado para capacidad
 de lectura exacta sobre el adaptador real; esto no afirma que staging o
 producción hayan leído un objeto concreto ni autoriza una reconciliación forward
 mutante en S3. C1 no resuelve el TOCTOU entre storage y MariaDB ni congela
-writers externos. Antes de cualquier mutación, C2 deberá exigir mantenimiento,
-adquirir y conservar el advisory lock de reconciliación, probar que identidad
-actual, identidad durable del run e identidad del lock son exactas, congelar
-writers bajo el modelo aceptado y revalidar DB, dominio, storage, capacidad y
-lock inmediatamente antes de cada operación item-atomic de
-`ReconciliationJournal`. Si no puede probar ese contrato para S3, deberá
-bloquearlo sin degradar la evidencia.
+writers externos. C2, descrito a continuación, aplica mantenimiento, advisory
+lock, identidad y revalidación inmediata, pero rechaza forward porque el modelo
+actual no puede demostrar el writer freeze global exigido.
 
 ### Validación y aceptación de D2-C1
 
@@ -783,11 +780,175 @@ ni lectura exacta de ningún objeto en esos entornos. Hubo cero mutaciones de
 journal, cero escrituras/borrados de storage y la barrera no cambió. No se
 ejecutó reconciliación mutante real.
 
+## D2-C2: coordinador interno exact-one-run
+
+> **COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
+> El commit `36274f27029178af82ec6f5c686b8a9c2ce2a621`
+> (`feat(media): añadir coordinador de reconciliación`) está desplegado y
+> aceptado en staging y producción. Su parent es
+> `881c84453d3f15481a01e0eabf200f4762054f16`.
+
+C2 añade exclusivamente el límite interno:
+
+```text
+ReconciliationCoordinator::run(
+    ReconciliationInvocation $invocation
+): ReconciliationReport
+```
+
+Cada invocation recibe exactamente un UUID canónico de run. No admite selector
+de item u objeto, mutation limit ni paginación que pueda cerrar un recorrido
+parcial. Carga el run mediante write PDO y recorre el conjunto durable completo
+por ID de item ascendente, con un máximo fail-closed de 1000 items. No mantiene
+una transacción MariaDB global alrededor del recorrido o del I/O de storage.
+
+Antes de progresar exige mantenimiento, identidad actual válida, modo/backend y
+capability gate exactos, adquiere el mismo advisory lock de APPLY y demuestra
+su ownership inmediatamente y en cada frontera de mutación. La identidad
+actual, la durable del run y la del lock deben concordar. Revalida selección,
+rango, checkpoints, parentage, hechos APPLY, eventos y proyecciones mediante los
+validadores compartidos. Una pérdida de lock o una liberación incierta tras
+progreso no puede devolver éxito limpio.
+
+Si necesita trabajar, crea un nuevo `attempt_started` mediante
+`beginRunReconciliation()`. Un retry obtiene otro `attempt_id` y otro
+`event_id`, pero los descendientes ya resueltos sólo se omiten cuando la
+validación semántica compartida acredita su proyección y evento exactos. El
+primer blocker detiene el recorrido y puede añadir como máximo un
+`attempt_blocked` saneado en esa invocation; el progreso item-atomic anterior
+permanece durable. Historia, selección, parentage o proyecciones malformadas
+fallan cerrado.
+
+### No-effect DB-only
+
+C2 hace operativa dentro del coordinador interno únicamente la rama no-effect.
+Su elegibilidad deriva de forma exclusiva de los hechos APPLY inmutables en DB:
+`not_dispatched`, `rejected_collision` o `failed_without_write` según la forma
+exacta aceptada por el validador. No observa objetos ni usa el estado actual de
+entidad, referencia, owner o master como prueba; la deriva actual de esos hechos
+es deliberadamente irrelevante. La identidad y topología runtime globales sí
+deben seguir concordando.
+
+Antes de `recordNoEffectItemResolution()` se repiten mantenimiento, lock,
+identidad, backend y capability gate, se recarga el run/item desde write PDO y
+se confirma otra vez la elegibilidad DB-only. Un snapshot elegible sin objetos
+planificados sigue soportado. Cualquier intent, unknown, created, recibo,
+confirmación de escritura o actividad de cleanup lo invalida. No se modifican
+los hechos APPLY ni checkpoints y no se introduce observación de storage.
+
+### Forward rechazado fail-closed
+
+La auditoría de writers C2 concluyó que el runtime actual no puede demostrar
+una congelación global. Los writers normales del ciclo de vida pueden escribir
+media administrada; mantenimiento bloquea tráfico HTTP normal nuevo, pero no
+acredita la detención de peticiones en curso, invocaciones directas, workers,
+servicios o clientes externos/S3. El advisory lock sólo excluye a componentes
+cooperantes y no todos los writers del lifecycle participan en él.
+
+`ManagedMediaWriterFreezeGuard` es deliberadamente no bypassable, no acepta un
+booleano permisivo del caller y rechaza **local y S3** con
+`storage_observation_untrusted`. El rechazo sucede antes de observar objetos y
+antes de `recordForwardItemResolution()`. Por tanto, forward está implementado
+estructuralmente pero no disponible operacionalmente. C1 sólo acreditó el
+adaptador, la topología y la capacidad de lectura exacta S3; ni C1 ni C2
+autorizan forward S3.
+
+Tras una futura prueba real de writer freeze, la rama ya estructura dos pasadas
+independientes de `ForwardItemEvidenceBuilder`: análisis DB, revalidación actual
+de dominio/referencia/owner/master, plan exacto, observación exacta del conjunto
+y ausencia puntual del universo canónico V1 no candidato; después repite gates,
+recarga, análisis, revalidación y observación, y sólo la evidencia final podría
+llegar al journal. Con el guard actual esta secuencia no es alcanzable.
+
+### No-op, cleanup y cierre
+
+Un cierre B3 válido existente devuelve `AlreadyClosed` como no-op real y no
+añade evento. Un run terminal `completed`, `failed` o `interrupted`, sin puntero
+de cierre B3 pero con evaluación compartida completa ya resuelta, devuelve
+`NoReconciliationRequired`: no crea attempt, evento ni proyección y declara
+`durableProgressOccurred=false`. En ambos casos se revalidan los gates antes de
+retornar y se informa la Barrier V2 global; otro run puede mantenerla bloqueada
+sin invalidar el resultado del run seleccionado.
+
+Un run activo ya resuelto no entra en ese no-op: inicia un attempt y sólo puede
+cerrar mediante la operación B3 `active → interrupted`. Un run terminal failed
+o interrupted con blockers pendientes puede resolver items no-effect elegibles,
+pero nunca recibe un primer cierre B3. El cierre automático sólo se intenta tras
+recorrido completo sin blocker, revalidación DB compartida integral, cero
+cleanup blockers y todas las precondiciones B3.
+
+C2 no hace cleanup. Cleanup `deleted` invalida forward y cleanup `pending`,
+`failed` o `unknown` permanece bloqueante y evita el cierre. No hay escritura,
+borrado, copia, movimiento, rename o listing de storage; ausencia confirmada;
+inferencia de ownership desde bytes actuales; ni avance de checkpoint.
+`absent_now` continúa siendo una observación puntual.
+
+Toda mutación usa exclusivamente `ReconciliationJournal`, cuya API pública
+permanece exactamente en cinco operaciones:
+
+- `beginRunReconciliation`;
+- `closeRunAfterReconciliation`;
+- `recordBlockedAttempt`;
+- `recordForwardItemResolution`;
+- `recordNoEffectItemResolution`.
+
+C2 no añade migración ni configuración y no modifica directamente eventos o
+proyecciones. Tampoco incorpora command Artisan mutante, endpoint, job, route,
+scheduler ni provider wiring. El CLI mutante explícito corresponde a C3:
+
+```text
+php artisan media:responsive-backfill-reconcile-run --run=<uuid> --execute
+```
+
+Ese comando no existe todavía. El CLI D2-A read-only permanece intacto y
+rechaza `--execute` con exit 2.
+
+### Validación local de D2-C2
+
+La suite focal del coordinador pasó con 33 tests / 660 aserciones; el foco
+combinado C1/B2/B3/APPLY pasó con 314 tests / 4.126 aserciones; y la suite
+backend oficial completa pasó con 1.647 tests / 16.884 aserciones sobre MariaDB
+aislada. `php -l` sobre los PHP nuevos/modificados, Pint limitado a los
+afectados, `git diff --check` y la auditoría humana de implementación: PASS.
+
+### Aceptación de staging y producción de D2-C2
+
+| Entorno | Proyecto | Environment | Servicio backend | Deployment | Estado |
+| --- | --- | --- | --- | --- | --- |
+| staging | `8cef1db0-14bc-4d81-a1b9-d16f55e63728` | `60e4c050-1404-44c3-a7ea-c1c5b0cf1eee` | `4739ea72-bbbe-4b95-8f2d-ebf157aa77d1` | `e9af8ed3-d29c-47ef-9b26-f1f65b574874` | `SUCCESS` |
+| producción | `87540113-7f61-4081-9b8f-5172e7d43e7a` | `5cdac336-8763-4e92-ba72-9d7f24e4e4aa` | `9c6bfc33-8ee1-41f5-a2dc-11215ddf5bdd` | `5868cc88-daf3-4c6f-9373-3861ff7b346c` | `SUCCESS` |
+
+Ambos entornos ejecutaron el mismo smoke no destructivo sobre el SHA exacto
+`36274f27029178af82ec6f5c686b8a9c2ce2a621`. Antes y después, los nueve
+conteos —runs, items, objetos, eventos y las cinco proyecciones de
+reconciliación no nulas— fueron cero. Se confirmó MariaDB, disco `media_s3`,
+backend `s3`, `StorageObservationCapability::currentDisk()` en PASS, el adapter
+Laravel `Illuminate\Filesystem\AwsS3V3Adapter` y el adapter Flysystem
+`League\Flysystem\AwsS3V3\AwsS3V3Adapter`.
+
+También se resolvieron `ReconciliationCoordinator`,
+`ManagedMediaWriterFreezeGuard`, `ReconciliationStateValidator` y
+`ForwardItemEvidenceBuilder`; el gate directo de writer freeze devolvió
+`storage_observation_untrusted`; la API pública de `ReconciliationJournal`
+conservó cinco métodos; y hubo cero coincidencias de CLI mutante C2/C3. El
+comando read-only con `--execute` devolvió exit 2, la inspección read-only
+terminó con exit 0 y Barrier V2 se observó puntualmente `clear`.
+
+La precisión de esta aceptación es deliberada: el smoke compartido no activó
+mantenimiento ni invocó `ReconciliationCoordinator::run()`. No creó attempt,
+run, item, objeto o evento; no realizó una reconciliación DB-only no-effect ni
+forward; no leyó un objeto S3 concreto para C2; y no escribió o borró storage.
+Con cero filas no había nada legítimo que reconciliar. Es una aceptación de
+despliegue, runtime y rechazo fail-closed, no una autorización de forward.
+
 ## Siguiente bloque
 
-D2-C1 está completado y aceptado hasta producción. El siguiente bloque activo
-es P1.D.2-C2, coordinador interno de reconciliación de exactamente un run y sin
-wiring CLI. C3 añadirá después el comando mutante explícito. El diseño y las
+D2-C2 está completado y aceptado hasta producción. El siguiente bloque activo
+es P1.D.2-C3, propietario del comando mutante explícito y su mapeo de exits. C3
+no puede debilitar el writer-freeze C2: con el guard actual, toda invocation que
+contenga un candidato forward debe reflejar fielmente el rechazo fail-closed y
+no anunciar forward como disponible. No se ha autorizado ni ejecutado APPLY
+real ni reconciliación mutante real en staging o producción. El diseño y las
 primitivas de cleanup seguro y ausencia confirmada local o S3 no existen; la
 reconciliación destructiva sigue siendo posterior. P1.D.2 y P1.D permanecen
 abiertos.
