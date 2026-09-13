@@ -3,7 +3,7 @@
 > **D2-A COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
 > **D2-B1 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
 > **D2-B2 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
-> **D2-B3 IMPLEMENTADO LOCALMENTE / PENDIENTE DE AUDITORÍA HUMANA Y PROMOCIÓN.**
+> **D2-B3 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
 > P1.D.1C-B3 permanece aceptado hasta producción. No se ha autorizado ni
 > ejecutado ningún APPLY real.
 
@@ -540,8 +540,9 @@ limitado a esos archivos y `git diff --check`: PASS.
 
 ## D2-B3: cierre tardío, Barrier V2 y guards de APPLY
 
-> **IMPLEMENTADO LOCALMENTE / PENDIENTE DE AUDITORÍA HUMANA Y PROMOCIÓN.**
-> No está cerrado, desplegado ni aceptado en staging/producción.
+> **COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
+> El commit `255688b914a6659136c73bb74a0eb6601cf941fe` está desplegado y
+> aceptado en staging y producción.
 
 `ReconciliationStateValidator` centraliza una única lectura semántica DB-only
 de los hechos APPLY, las proyecciones y sus eventos. La usan Barrier V2, las
@@ -636,12 +637,37 @@ El foco B3 (`BackfillReconciliationJournal`, `BackfillApplyJournal`,
 suite backend completa pasa con 1.594 tests y 15.925 aserciones. Ambas se
 ejecutaron una vez con exit 0 mediante el runner Docker/MariaDB aislado; no se
 usó SQLite. `php -l` sobre todos los PHP afectados, Pint limitado a esos
-archivos y `git diff --check`: PASS.
+archivos, `git diff --check` y la auditoría humana del diff: PASS.
+
+### Aceptación hasta producción de D2-B3
+
+El commit exacto `255688b914a6659136c73bb74a0eb6601cf941fe`
+(`feat(media): añadir Barrier V2 y cierre reconciliado`) se desplegó con estado
+`SUCCESS` en Railway staging mediante
+`85fb1c6c-d301-4974-b8b2-10a269aa199d` y en Railway producción mediante
+`680ef57a-336f-457c-9b52-e7a704ad7206`. Ambos entornos usaron el driver
+MariaDB y no requirieron migración para B3.
+
+En staging y producción, los nueve conteos de runs/items/objects/eventos y
+proyecciones no nulas fueron cero antes y después. Barrier V2 devolvió `clear`
+con `BARRIER_EXIT=0` y la API pública de `ReconciliationJournal` presentó
+exactamente, con `API_EXIT=0`:
+
+- `beginRunReconciliation`;
+- `closeRunAfterReconciliation`;
+- `recordBlockedAttempt`;
+- `recordForwardItemResolution`;
+- `recordNoEffectItemResolution`.
+
+En ambos entornos, `--execute` continuó sin soporte y fue rechazado con exit 2;
+la reconciliación read-only terminó con exit 0; las mutaciones de journal y las
+escrituras/borrados de storage fueron cero; y `recovery barrier modified` fue
+`no`. No se autorizó ni ejecutó ninguna reconciliación mutante real.
 
 ## Siguiente bloque
 
-D2-B3 permanece implementado localmente y pendiente de auditoría/promoción.
-D2-C, que observará y revalidará para construir la evidencia que B2 valida,
+D2-B3 está completado y aceptado hasta producción. El siguiente bloque técnico
+es D2-C, que observará y revalidará para construir la evidencia que B2 valida;
 sigue siendo trabajo futuro. El diseño y las primitivas de cleanup seguro y
 ausencia confirmada local o S3 no existen todavía; la reconciliación destructiva
-sigue siendo posterior. D2-B, P1.D.2 y P1.D no están completos.
+sigue siendo posterior. P1.D.2 y P1.D permanecen abiertos.

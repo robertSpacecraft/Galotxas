@@ -33,7 +33,7 @@ Sublínea activa: P1.D — backfill de masters legacy.
 | P1.D.2-A — inspector/clasificador de reconciliación read-only | completado hasta producción |
 | P1.D.2-B1 — esquema y representación durable read-only | completado hasta producción |
 | P1.D.2-B2 — APIs internas item-atomic de resolución | completado hasta producción |
-| P1.D.2-B3 — cierre tardío de run, Barrier V2 y guards APPLY | implementado localmente; pendiente de auditoría humana y promoción |
+| P1.D.2-B3 — cierre tardío de run, Barrier V2 y guards APPLY | completado y aceptado hasta producción |
 
 P1.D.1C-A está completado hasta producción. Su smoke de producción terminó correctamente con exit 0, cero bloqueos y cero escrituras de storage.
 
@@ -218,16 +218,17 @@ que B3 los extendiera explícitamente. D2-C (observación/revalidación de stora
 para construir la evidencia forward) sigue siendo trabajo futuro no iniciado.
 P1.D.2 y P1.D permanecen abiertos.
 
-## Implementación local de P1.D.2-B3
+## Cierre de P1.D.2-B3
 
-P1.D.2-B3 está **implementado localmente y pendiente de auditoría humana y
-promoción**. No está cerrado ni desplegado. Añade un validador semántico
-compartido y exclusivamente DB para Barrier V2, las precondiciones de cierre y
-la validación del puntero de run. Una proyección `forward_accepted` válida puede
-despejar sólo el item exacto y las escrituras `intent`/`unknown` de sus objetos
-`forward_retained` bajo el mismo `reconciliation_event_id`; `closed_no_effect`
-despeja sólo su item exacto. Un run activo y todo cleanup `pending`, `failed` o
-`unknown` siguen bloqueando siempre.
+El commit `255688b914a6659136c73bb74a0eb6601cf941fe` está desplegado y
+aceptado en staging y producción. P1.D.2-B3 queda cerrado hasta producción.
+Añade un validador semántico compartido y exclusivamente DB para Barrier V2,
+las precondiciones de cierre y la validación del puntero de run. Una proyección
+`forward_accepted` válida puede despejar sólo el item exacto y las escrituras
+`intent`/`unknown` de sus objetos `forward_retained` bajo el mismo
+`reconciliation_event_id`; `closed_no_effect` despeja sólo su item exacto. Un
+run activo y todo cleanup `pending`, `failed` o `unknown` siguen bloqueando
+siempre.
 
 `ReconciliationJournal` gana una única operación pública,
 `closeRunAfterReconciliation()`. Bajo una sola transacción y orden de bloqueo
@@ -252,7 +253,17 @@ reconciliación real. P1.D.2 y P1.D permanecen abiertos.
 Validación local B3: foco de cinco suites con 278 tests / 3.529 aserciones y
 suite backend completa con 1.594 tests / 15.925 aserciones, ambas mediante el
 runner Docker/MariaDB aislado y con exit 0. `php -l` sobre todos los PHP
-afectados, Pint limitado a esos archivos y `git diff --check`: PASS.
+afectados, Pint limitado a esos archivos, `git diff --check` y auditoría humana
+del diff: PASS.
+
+La aceptación de staging y producción fue no mutante y usó MariaDB. En ambos
+entornos, los nueve conteos de journal/proyecciones permanecieron en cero antes
+y después, Barrier V2 devolvió `clear` con exit 0 y la API pública de
+`ReconciliationJournal` mostró exactamente sus cinco métodos soportados con
+exit 0. `--execute` siguió rechazado con exit 2 y la reconciliación read-only
+terminó con exit 0; hubo cero mutaciones de journal, cero escrituras/borrados de
+storage y ninguna modificación de la barrera. El siguiente bloque técnico es
+P1.D.2-C; P1.D.2 y P1.D permanecen abiertos.
 
 ## Documentos de referencia
 
@@ -260,7 +271,7 @@ afectados, Pint limitado a esos archivos y `git diff --check`: PASS.
 - [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md) — journal, identidad, lock, mantenimiento y escritura exclusiva (P1.D.1B).
 - [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md) — dry-run y wiring CLI APPLY aceptados hasta producción.
 - [34-responsive-backfill-apply-design.md](34-responsive-backfill-apply-design.md) — diseño aprobado de APPLY; B1/B2/B3-A/B3-B y B3 aceptados hasta producción.
-- [35-responsive-backfill-reconciliation.md](35-responsive-backfill-reconciliation.md) — D2-A, D2-B1 y D2-B2 aceptados hasta producción; D2-B3 implementado localmente y pendiente de auditoría/promoción.
+- [35-responsive-backfill-reconciliation.md](35-responsive-backfill-reconciliation.md) — D2-A, D2-B1, D2-B2 y D2-B3 aceptados hasta producción; D2-C sigue pendiente.
 
 ## Invariante de traspaso
 

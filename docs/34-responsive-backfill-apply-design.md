@@ -187,14 +187,14 @@ run activo, item no terminado, escritura `intent`/`unknown` o cleanup
 terminal `failed` sin escritura o `rejected` por colisión. El coordinador B3-A
 la invoca antes de crear su propio run activo.
 
-D2-B3, implementado localmente y pendiente de auditoría/promoción, convierte
-esta consulta en Barrier V2 sin I/O de storage. El run activo sigue bloqueando
-siempre. Sólo un evento/proyección semánticamente válido y concordante puede
-despejar el item no terminado exacto (`forward_accepted` o
-`closed_no_effect`) o la escritura ambigua exacta (`forward_retained` bajo el
-mismo evento forward del item). Cleanup `pending`/`failed`/`unknown` nunca se
-despeja. Todo estado parcial, desconocido, stale, extranjero o cruzado permanece
-bloqueado.
+D2-B3, completado y aceptado hasta producción en el commit
+`255688b914a6659136c73bb74a0eb6601cf941fe`, convierte esta consulta en Barrier
+V2 sin I/O de storage. El run activo sigue bloqueando siempre. Sólo un
+evento/proyección semánticamente válido y concordante puede despejar el item no
+terminado exacto (`forward_accepted` o `closed_no_effect`) o la escritura
+ambigua exacta (`forward_retained` bajo el mismo evento forward del item).
+Cleanup `pending`/`failed`/`unknown` nunca se despeja. Todo estado parcial,
+desconocido, stale, extranjero o cruzado permanece bloqueado.
 
 Los caminos normales de APPLY no reanudan historia reconciliada: el helper
 autoritativo de bloqueo de run rechaza cualquier run que ya tenga un evento o

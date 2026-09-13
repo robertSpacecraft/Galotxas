@@ -154,10 +154,10 @@ El contrato completo se documenta en
 [35-responsive-backfill-reconciliation.md](35-responsive-backfill-reconciliation.md).
 `recoveryBarrier()` no cambia en B2.
 
-P1.D.2-B3 está **implementado localmente y pendiente de auditoría humana y
-promoción**. Convierte esa consulta en Barrier V2 mediante un validador
-semántico compartido y DB-only. Conserva los cuatro predicados históricos, con
-estos únicos overrides:
+P1.D.2-B3 está **completado y aceptado hasta producción** en el commit
+`255688b914a6659136c73bb74a0eb6601cf941fe`. Convierte esa consulta en Barrier
+V2 mediante un validador semántico compartido y DB-only. Conserva los cuatro
+predicados históricos, con estos únicos overrides:
 
 - un item no `finished` sólo deja de bloquear si su par resultado/puntero nombra
   un `item_forward_accepted` o `item_no_effect_closed` válido para ese mismo
