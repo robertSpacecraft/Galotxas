@@ -599,7 +599,18 @@ competición; no se fabricaron escenarios. La optimización automática mediante
 variantes responsive, compresión y mejoras de entrega permanece en el bloque
 P1 independiente y no forma parte de 6.C.
 
-### 5. 5.7 — Hardening P1/P2 vigente
+### 5. 5.7 — Hardening P1/P2 vigente (SIGUIENTE BLOQUE CANÓNICO)
+
+P1.D — backfill de masters legacy — queda completado mediante P1.D.2 cerrado
+hasta producción y P1.D.3 aceptado en staging. D3 ejecutó un único canary APPLY
+autorizado sobre `news#1`, bajo mantenimiento y freeze auditado: el run
+`cf2a56f9-6af0-400d-8af6-55304aa2544b` terminó correctamente, publicó cuatro
+variantes y un manifest y recibió aceptación visual humana. Fue una aceptación
+del camino normal, no un backfill completo de staging o producción. No hubo
+APPLY ni reconciliación mutante en producción, y ninguna mutación productiva es
+necesaria para el cierre de P1.D. Una migración productiva futura será una
+actividad operacional separada, con nueva autorización, inventario, freeze y
+gates; no altera el orden del roadmap.
 
 Comenzará con una auditoría actual y se dividirá en microbloques, no en una
 bolsa heredada única. Entre la deuda todavía identificada están la edición
@@ -764,9 +775,12 @@ repiten aquí:
 - limpiar rutas/componentes heredados y duplicados sin alterar el contrato;
 - retirar adaptadores de compatibilidad cuando sus consumidores hayan migrado;
 - mantener auditorías periódicas de npm y Composer.
-- completar P1.D con backfill controlado de masters legacy y evaluar después
-  la caché HTTP larga únicamente si se prueba que las keys publicadas son
-  inmutables; P1.C queda validado localmente y pendiente de staging.
+- conservar explícitas las limitaciones operativas posteriores a P1.D: el
+  canary no acredita migración completa, forward reconciliation y cleanup no
+  están disponibles, no existe `--resume` y un futuro APPLY productivo exige
+  autorización y gates nuevos; evaluar la caché HTTP larga sólo si se prueba
+  que las keys publicadas son inmutables. P1.C conserva pendiente su matriz
+  completa de validación en staging, aunque `news#1` recibió aceptación visual.
 
 ## Calidad
 

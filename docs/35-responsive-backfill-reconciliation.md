@@ -7,9 +7,10 @@
 > **D2-C1 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
 > **D2-C2 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
 > **D2-C3 COMPLETADO / ACEPTADO HASTA PRODUCCIÓN.**
-> **P1.D.2 CERRADO HASTA PRODUCCIÓN / P1.D PERMANECE ABIERTO.**
-> P1.D.1C-B3 permanece aceptado hasta producción. No se ha autorizado ni
-> ejecutado ningún APPLY real.
+> **P1.D.2 CERRADO HASTA PRODUCCIÓN / D3 ACEPTADO EN STAGING / P1.D COMPLETADO.**
+> P1.D.1C-B3 permanece aceptado hasta producción. D3 ejecutó exactamente un
+> APPLY real acotado en staging; no se ejecutó APPLY ni reconciliación mutante
+> en producción.
 
 ## Aceptación de D2-A hasta producción
 
@@ -1055,16 +1056,30 @@ script y su encabezado pegado seguía diciendo `STAGING ACCEPTANCE`; la
 ejecución y el deployment de la tabla anterior corresponden efectivamente a
 producción.
 
-## Cierre de P1.D.2 y siguiente bloque
+## Cierre de P1.D.2 y frontera preservada tras D3
 
 P1.D.2 queda cerrado hasta producción mediante la cadena completa D2-A,
 D2-B1, D2-B2, D2-B3, D2-C1, D2-C2 y D2-C3. Este cierre no incorpora cleanup ni
 ausencia confirmada, no habilita forward, no resuelve la congelación global de
 writers y no acredita una reconciliación mutante real en staging o producción.
-Tampoco autoriza o acredita un APPLY real.
 
-P1.D permanece abierto. El siguiente bloque activo es P1.D.3 (D3), propietario
-de la aceptación operacional final y del cierre de P1.D. Cualquier APPLY real
-bajo mantenimiento sigue requiriendo autorización explícita del operador; no
-se ha autorizado ni ejecutado ninguno. Tampoco se ha ejecutado una mutación
-real de reconciliación en entornos compartidos.
+P1.D.3 ejecutó después exactamente un APPLY autorizado y limitado a `news#1`
+en staging. El run `cf2a56f9-6af0-400d-8af6-55304aa2544b` quedó `completed`,
+con un item `published`, cinco objetos `created`, cleanup `not_required`, cero
+eventos de reconciliación y Barrier V2 `clear`. El dry-run posterior quedó sin
+candidatas ni blockers y la inspección global read-only mostró cero runs
+activos, items sin terminar u objetos no resueltos, cero mutaciones de journal,
+cero escrituras/borrados de storage y exit 0. Por ello no se ejecutó ni era
+necesaria una reconciliación mutante para el canary exitoso.
+
+Esta aceptación del camino normal no prueba las rutas de recuperación.
+`ManagedMediaWriterFreezeGuard` continúa fallando cerrado y mantiene forward
+no disponible; cleanup y ausencia confirmada siguen sin implementar, y un
+blocker de cleanup no puede despejarse automáticamente. Tampoco hubo retry ni
+cleanup. Estas limitaciones no son fallos de D3.
+
+P1.D queda completado con el cierre documental D3. No se ejecutó APPLY ni
+reconciliación mutante en producción y no se requiere ninguna mutación de datos
+productivos para cerrarlo. Cualquier APPLY productivo futuro será una migración
+operacional distinta, explícitamente autorizada y precedida por inventario,
+freeze y gates nuevos; no es un bloque de implementación pendiente de P1.D.

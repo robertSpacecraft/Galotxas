@@ -3,9 +3,12 @@
 ## Estado
 
 P1.C está implementado y probado automáticamente en local. La implementación
-ha superado la reauditoría humana local; la validación en staging sigue pendiente. Este bloque no ejecuta backfill,
-no despliega y no cambia almacenamiento, lifecycle, CMS, workers, migraciones o
-el modelo de autorización del avatar.
+ha superado la reauditoría humana local. D3 aportó aceptación visual humana en
+staging para la imagen responsive de una noticia después de un canary APPLY,
+pero no ejecutó el checklist completo de P1.C en todos los dominios, viewports y
+fallos; esa validación amplia de staging sigue pendiente. Este bloque no ejecuta
+backfill, no despliega y no cambia almacenamiento, lifecycle, CMS, workers,
+migraciones o el modelo de autorización del avatar.
 
 ## Contrato aditivo
 
@@ -32,7 +35,9 @@ lee y valida correctamente, el descriptor añade:
 Las keys internas, manifests y URLs temporales no forman parte del JSON. Un
 manifest ausente, ilegible, incompleto, inválido o de otro perfil produce el
 descriptor master anterior sin inventar variantes. Los registros de
-competición legacy pueden continuar sin `width` y `height` hasta P1.D.
+competición legacy pueden continuar sin `width` y `height` hasta que una futura
+migración operacional los procese; el cierre de P1.D mediante un canary no
+equivale a un backfill completo.
 
 La resolución del manifest usa una caché local a esta responsabilidad:
 
@@ -124,15 +129,21 @@ sobre MariaDB aislada y 732 tests frontend en 95 archivos, todos correctos.
   cuando cubren el ancho físico, usa la master privada cuando no bastan o si
   falla una variante y no expone tokens ni URLs firmadas.
 
-## Pendiente de P1.D o posterior
+## Relación con P1.D cerrado y trabajo posterior
 
 La fundación read-only P1.D.1A y la compatibilidad privada con masters
 preservadas se documentan en [31-responsive-backfill-foundation.md](31-responsive-backfill-foundation.md).
-No incorporan ejecución de backfill ni cambian el contrato público descrito aquí.
+P1.D quedó completado tras el canary estrictamente acotado de `news#1` en
+staging. La referencia pasó de `legacy_backfillable` a `responsive_ok`, se
+publicaron cuatro variantes y un manifest, y el usuario aceptó visualmente su
+renderizado. Esta evidencia no implica una migración completa de staging o
+producción ni amplía por sí sola la aceptación de P1.C a los escenarios del
+checklist anterior.
 
-P1.D debe definir y ejecutar el backfill de masters legacy, con inventario,
-idempotencia, observabilidad y recuperación propios. Tras verificar formalmente
-que una sustitución crea siempre una master key nueva y que ningún derivado se
-sobrescribe bajo la misma key, podrá estudiarse por separado
-`Cache-Control: public, max-age=31536000, immutable`. P1.C mantiene el max-age
-corto y no afirma validación de staging.
+Un futuro backfill productivo requerirá autorización operacional separada,
+inventario, freeze y gates frescos; no es un bloqueo de implementación de P1.D.
+Tras verificar formalmente que una sustitución crea siempre una master key nueva
+y que ningún derivado se sobrescribe bajo la misma key, podrá estudiarse por
+separado `Cache-Control: public, max-age=31536000, immutable`. P1.C mantiene el
+max-age corto y sólo afirma la aceptación visual de staging correspondiente al
+canary documentado.

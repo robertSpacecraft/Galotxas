@@ -6,8 +6,10 @@ P1.D.1B añade una fundación interna de backend: journal APPLY en MariaDB,
 identidad de entorno/storage, lock de sesión dedicado, guard de mantenimiento,
 creación exclusiva y escritura journalizada de un objeto. No ejecuta backfill,
 no tiene comando Artisan, CLI, runner, publicación de conjuntos, enumeración de
-media ni reconciliación. P1.D y P1 siguen abiertos; el cierre documental
-compuesto corresponde a P1.D.3.
+media ni reconciliación. En el cierre original de este bloque, P1.D y P1
+seguían abiertos y el cierre documental compuesto correspondía a P1.D.3. D3
+fue completado y aceptado posteriormente en staging y P1.D queda completado con
+su cierre documental.
 
 P1.D.1C-B1 amplía esta fundación interna con el contrato tipado de rango,
 checkpoint y barrera de recuperación que compondrá un runner posterior. B1 no
@@ -231,10 +233,48 @@ Los smokes no destructivos compartidos alcanzaron el primer gate del coordinador
 con mantenimiento desactivado y devolvieron `MaintenanceRequired / exit 3`, sin
 intento, evento, proyección ni mutación.
 
-Con C3, P1.D.2 queda cerrado hasta producción. P1.D permanece abierto y
-P1.D.3 (D3) es el siguiente bloque, propietario de la aceptación operacional
-final y del cierre de P1.D. No se ha autorizado ni ejecutado un APPLY real ni
-una reconciliación mutante real en entornos compartidos.
+Con C3, P1.D.2 queda cerrado hasta producción. Después, P1.D.3 completó la
+aceptación operacional final de P1.D mediante un canary APPLY real y acotado en
+staging; no se ha ejecutado una reconciliación mutante real en entornos
+compartidos ni un APPLY en producción.
+
+### Gates y resultado de seguridad de D3
+
+La auditoría pasó de `D — NO-GO` por información operacional incompleta a
+`B — GO ONLY FOR A STRICTLY LIMITED CANARY` únicamente después del
+descubrimiento read-only y la confirmación explícita del operador de que las
+credenciales de media de staging no se habían copiado ni estaban en uso por
+otra persona, servicio o script. Los writes normales pasaban por el backend,
+existía un solo administrador, el backup productivo era independiente y no se
+conocía otro writer externo sobre el storage de staging.
+
+Inmediatamente antes del único APPLY autorizado, Laravel estaba en
+mantenimiento, el HTTP público devolvía `503` y había cero conexiones PHP-FPM
+establecidas. MariaDB, cola `sync`, scheduler desactivado, disco privado
+`media_s3`, identidad de storage
+`e51f116a7a4b4f634d7073c7b369b91140abaf2c13dcbc9b1e3ce1e37339e695`,
+capacidad de observación y create condicional, journal vacío y Barrier V2
+`clear` coincidían con el descubrimiento. El slice exacto
+`--domain=news --after-id=0 --limit=1` seguía mostrando una candidata y cero
+blockers.
+
+El run `cf2a56f9-6af0-400d-8af6-55304aa2544b` completó la publicación de
+cuatro variantes y un manifest, sin colisión, ambigüedad o cleanup requerido.
+El journal posterior quedó en runs/items/objects/events `1/1/5/0`, con cero
+runs activos, items sin terminar, objetos ambiguos y atención de cleanup;
+Barrier V2 permaneció `clear`. El dry-run posterior fue `responsive_ok` y la
+inspección global de reconciliación fue read-only, sin mutaciones de journal ni
+storage. Mantenimiento permaneció activo hasta terminar estas comprobaciones.
+
+Este PASS del camino normal no convierte en implementadas las rutas de
+recuperación. Forward sigue no disponible porque
+`ManagedMediaWriterFreezeGuard` falla cerrado; cleanup y ausencia confirmada no
+están implementados y los blockers de cleanup no pueden despejarse
+automáticamente. El APPLY continúa siendo item-atomic, no range-atomic, y no
+existe `--resume`. Mantenimiento no demuestra por sí solo el freeze: los
+writers normales de lifecycle no honran el advisory lock de APPLY y la
+exclusión de writers S3 externos sigue siendo operacional, no code-enforced.
+Estas son limitaciones conocidas, no fallos del canary D3.
 
 | Registro | Transiciones |
 | --- | --- |

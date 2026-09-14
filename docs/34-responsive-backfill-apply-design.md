@@ -1,14 +1,15 @@
 # Diseño de APPLY para backfill responsive — P1.D.1C-B
 
-> **DISEÑO APROBADO / B3 ACEPTADO HASTA PRODUCCIÓN / APPLY REAL NO AUTORIZADO.**
+> **DISEÑO APROBADO / B3 ACEPTADO HASTA PRODUCCIÓN / D3 ACEPTADO EN STAGING.**
 > P1.D.1C-B1 está completado y aceptado hasta producción, pero sólo aporta las
 > primitivas internas de rango, checkpoint y barrera de recuperación. B2 está
 > completado y aceptado hasta producción como publicador interno de un item.
 > El coordinador interno de invocación/rango B3-A también está completado y
 > aceptado hasta producción. B3-B y el compuesto B3 están completados y
 > aceptados hasta producción; `--apply` existe en staging y producción y
-> `--resume` no existe. No se ha autorizado ni ejecutado ningún APPLY
-> operacional bajo mantenimiento.
+> `--resume` no existe. D3 ejecutó y aceptó un único APPLY real acotado a
+> `news#1` bajo mantenimiento y freeze auditado en staging. No se ejecutó
+> ningún APPLY en producción.
 
 ## Alcance
 
@@ -259,11 +260,33 @@ prohibida con `--resume` devolvió exit 2 y la invocación con forma válida
 `0/0/0` antes y después: no se creó ningún run ni se publicó media. No se
 comprobó que workers estuvieran detenidos.
 
-B3-B y P1.D.1C-B3 están completados y aceptados hasta producción. Esto no
-autoriza una ejecución operativa: no se ha ejecutado ningún APPLY bajo
-mantenimiento ni backfill/publicación de media. P1.D.2 está cerrado hasta
-producción tras el CLI mutante explícito y el mapeo de exits de C3, pero no se
-ha ejecutado ninguna reconciliación mutante real en entornos compartidos y
-forward continúa fail-closed. P1.D permanece abierto y P1.D.3 (D3) es el
-siguiente bloque, propietario de la aceptación operacional final y el cierre
-de P1.D. Un APPLY real sigue requiriendo autorización explícita del operador.
+B3-B y P1.D.1C-B3 están completados y aceptados hasta producción. P1.D.2 está
+cerrado hasta producción tras el CLI mutante explícito y el mapeo de exits de
+C3. No se ha ejecutado ninguna reconciliación mutante real en entornos
+compartidos y forward continúa fail-closed.
+
+P1.D.3 quedó completado y aceptado en staging mediante el único APPLY real
+autorizado: `--domain=news --after-id=0 --limit=1`. El run
+`cf2a56f9-6af0-400d-8af6-55304aa2544b` terminó `completed`, outcome `success`,
+checkpoint `1` y exit 0; publicó cuatro variantes y un manifest para `news#1`.
+El dry-run posterior lo clasificó `responsive_ok`, Barrier V2 quedó `clear`, la
+inspección de reconciliación no mutó journal ni storage y la restauración de
+staging recibió aceptación visual humana. La evidencia operacional completa,
+incluidos runtime, inventario, freeze y conteos saneados, está en
+[33-responsive-backfill-runner.md](33-responsive-backfill-runner.md).
+
+Esta aceptación demuestra el camino normal exitoso item-atomic bajo el
+procedimiento auditado; no demuestra atomicidad de rango, backfill completo de
+staging ni migración productiva. No existe `--resume`. Mantenimiento por sí
+solo no acredita writer freeze, los writers normales del lifecycle no respetan
+el advisory lock de APPLY y la exclusión de writers S3 externos continúa siendo
+operacional, no impuesta por código. `ApplyReport` no expone directamente el
+UUID del run y `code_revision` puede permanecer nullable; la correlación con el
+deployment es evidencia externa.
+
+P1.D queda completado con este cierre documental. No se ejecutó APPLY,
+reconciliación mutante, cleanup ni mutación de datos en producción, y no se
+requiere ninguna mutación productiva para cerrar P1.D. No existe una aceptación
+de APPLY en producción. Todo backfill futuro allí será una migración operacional
+separada, con autorización explícita, inventario, freeze y gates nuevos; el
+canary no habilita una mutación más amplia o automática.

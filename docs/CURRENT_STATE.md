@@ -16,9 +16,15 @@ No debe contener secretos, credenciales, identificadores de infraestructura, rut
 
 ## Línea de trabajo actual
 
-P1 — optimización responsive de media.
+P1.D — backfill de masters legacy — está completado. P1.D.2 quedó cerrado
+hasta producción y P1.D.3 fue completado y aceptado mediante un canary APPLY
+real, estrictamente acotado a una referencia de staging.
 
-Sublínea activa: P1.D — backfill de masters legacy.
+El siguiente bloque canónico del orden oficial es **5.7 — Hardening P1/P2
+vigente**, que debe comenzar con la auditoría actual prevista en
+`06-roadmap.md`. Un futuro backfill productivo es una actividad operacional
+separada que requiere autorización explícita; no es un bloque de implementación
+abierto ni un requisito para cerrar P1.D.
 
 | Bloque | Estado |
 | --- | --- |
@@ -38,7 +44,8 @@ Sublínea activa: P1.D — backfill de masters legacy.
 | P1.D.2-C2 — coordinador interno exact-one-run | completado y aceptado hasta producción |
 | P1.D.2-C3 — CLI mutante explícito y mapeo de exits | completado y aceptado hasta producción |
 | P1.D.2 — reconciliación de runs APPLY | cerrado hasta producción |
-| P1.D.3 (D3) — aceptación operacional final y cierre de P1.D | siguiente bloque |
+| P1.D.3 (D3) — aceptación operacional final y cierre de P1.D | completado y aceptado en staging |
+| P1.D — backfill de masters legacy | completado; cierre canónico pendiente de commit y promoción de esta documentación a `main` |
 
 P1.D.1C-A está completado hasta producción. Su smoke de producción terminó correctamente con exit 0, cero bloqueos y cero escrituras de storage.
 
@@ -77,9 +84,9 @@ El contrato permanece en un dominio explícito, `--limit` obligatorio entre 1 y
 1000, `--after-id` exclusivo opcional, sin `--resume` y con exits
 `0/2/3/4/5/6/7`.
 
-P1.D.1C-B3 está completado hasta producción. No se ha autorizado ni ejecutado
-ningún APPLY operacional bajo mantenimiento ni ningún backfill/publicación de
-media. P1.D.1C-B, P1.D, D2 y D3 continúan abiertos.
+En el cierre de P1.D.1C-B3 no se había autorizado ni ejecutado ningún APPLY
+operacional bajo mantenimiento ni ningún backfill/publicación de media;
+P1.D.1C-B, P1.D, D2 y D3 permanecían abiertos en ese momento.
 
 ## Cierre de P1.D.2-A
 
@@ -117,7 +124,7 @@ ni cleanup S3.
 P1.D.1C-B3 permanece aceptado hasta producción. El despliegue de D2-A no
 autoriza ningún APPLY real: durante su aceptación no hubo APPLY operacional,
 reconciliación mutante, publicación de storage ni creación de evidencia
-artificial. P1.D.2 y P1.D permanecen abiertos. El diseño D2-B posterior definió
+artificial. P1.D.2 y P1.D permanecían abiertos en ese cierre. El diseño D2-B posterior definió
 el modelo mínimo de resolución durable; el cierre de su primer bloque se detalla
 a continuación. Toda reconciliación mutante sigue siendo trabajo futuro.
 
@@ -157,7 +164,7 @@ rechazado con exit 2; la inspección read-only terminó con exit 0 y observó
 storage. Las APIs item-atomic de resolución forward/no-effect corresponden a
 D2-B2 y se describen a continuación. Barrier V2 y el cierre tardío de run siguen
 en D2-B3; la reconciliación destructiva/cleanup permanece para trabajo
-posterior. P1.D.2 y P1.D continúan abiertos.
+posterior. P1.D.2 y P1.D continuaban abiertos en ese cierre.
 
 ## Cierre de P1.D.2-B2
 
@@ -221,7 +228,8 @@ En el cierre de B2, D2-B3 era el siguiente bloque: cierre tardío de run,
 Barrier V2 y guards de APPLY frente a proyecciones reconciliadas. La frontera
 heredada era que las proyecciones B2 no despejaban los cuatro predicados hasta
 que B3 los extendiera explícitamente. D2-C se descompone después en C1, C2 y C3;
-el cierre de C1 se documenta más abajo. P1.D.2 y P1.D permanecen abiertos.
+el cierre de C1 se documenta más abajo. P1.D.2 y P1.D permanecían abiertos en
+ese momento.
 
 ## Cierre de P1.D.2-B3
 
@@ -253,7 +261,7 @@ el creador exclusivo ni el CLI.
 B3 no requiere migración: reutiliza íntegramente la representación B1. No añade
 cleanup, ausencia confirmada, observación o mutación de storage, coordinador
 D2-C, comando, endpoint, job, provider ni frontend. No se ha ejecutado ninguna
-reconciliación real. P1.D.2 y P1.D permanecen abiertos.
+reconciliación real. P1.D.2 y P1.D permanecían abiertos en ese cierre.
 
 Validación local B3: foco de cinco suites con 278 tests / 3.529 aserciones y
 suite backend completa con 1.594 tests / 15.925 aserciones, ambas mediante el
@@ -304,8 +312,8 @@ adaptador S3 real no incluyó la lectura de ningún objeto concreto, porque los
 conteos de journal/proyecciones eran cero, y no autoriza una reconciliación
 forward mutante en S3. C1 no resolvió el TOCTOU storage/DB ni la congelación de
 escritores externos. El coordinador C2 queda cerrado a continuación y C3
-conserva por separado el wiring del CLI mutante. P1.D.2 y P1.D permanecen
-abiertos.
+conserva por separado el wiring del CLI mutante. P1.D.2 y P1.D permanecían
+abiertos en ese cierre.
 
 ## Cierre de P1.D.2-C2
 
@@ -407,18 +415,47 @@ smoke de producción reutilizó el script cuyo encabezado textual decía
 P1.D.2 queda cerrado hasta producción mediante D2-A, D2-B1, D2-B2, D2-B3,
 D2-C1, D2-C2 y D2-C3. Esto no habilita cleanup, ausencia confirmada ni forward,
 no demuestra una congelación global de writers y no acredita una
-reconciliación mutante real en entornos compartidos. P1.D permanece abierto y
-P1.D.3 (D3) es el siguiente bloque: posee la aceptación operacional final y el
-cierre de P1.D. Cualquier APPLY real bajo mantenimiento sigue requiriendo
-autorización explícita del operador; no se ha autorizado ni ejecutado ninguno.
+reconciliación mutante real en entornos compartidos.
+
+## Cierre de P1.D.3 y P1.D
+
+El 14 de septiembre de 2026, tras un readiness audit PASS, descubrimiento
+read-only y confirmación explícita de congelación de writers, staging ejecutó
+exactamente un APPLY autorizado sobre
+`--domain=news --after-id=0 --limit=1`. El run durable
+`cf2a56f9-6af0-400d-8af6-55304aa2544b` terminó `completed`, con checkpoint
+`{"news":1}`, un item `news#1` publicado y cinco objetos creados —cuatro
+variantes y un manifest—. La ejecución transcurrió de
+`2026-09-14T16:27:50Z` a `2026-09-14T16:27:53Z` y devolvió exit 0.
+
+Los gates congelados mantuvieron identidad de storage, MariaDB, mantenimiento,
+cola `sync`, scheduler desactivado, capacidad de observación y create
+condicional, journal inicial vacío y Barrier V2 `clear`. Después del APPLY, el
+journal quedó en runs/items/objects/events `1/1/5/0`, sin runs activos, items
+sin terminar, objetos ambiguos ni atención de cleanup; el dry-run exacto
+reclasificó `news#1` como `responsive_ok` con cero candidatas y bloqueos. La
+inspección global de reconciliación fue read-only, terminó con exit 0 y declaró
+cero mutaciones de journal y cero escrituras/borrados de storage. Mantenimiento
+permaneció activo durante estas comprobaciones; después el operador restauró
+staging y confirmó visualmente que la imagen correspondiente se renderizaba
+correctamente.
+
+La aceptación acredita sólo el camino normal exitoso bajo el procedimiento de
+freeze auditado. No fue un backfill completo de staging y no acredita una
+migración productiva. No hubo retry, cleanup, reconciliación mutante, APPLY de
+producción ni mutación de datos productivos; ninguna mutación productiva es
+necesaria para cerrar P1.D. Las limitaciones de recuperación y operación
+permanecen canónicas en `32-responsive-backfill-safety.md`,
+`34-responsive-backfill-apply-design.md` y
+`35-responsive-backfill-reconciliation.md`.
 
 ## Documentos de referencia
 
 - [31-responsive-backfill-foundation.md](31-responsive-backfill-foundation.md) — fundación de lectura, inspección y preflight (P1.D.1A).
 - [32-responsive-backfill-safety.md](32-responsive-backfill-safety.md) — journal, identidad, lock, mantenimiento y escritura exclusiva (P1.D.1B).
-- [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md) — dry-run y wiring CLI APPLY aceptados hasta producción.
-- [34-responsive-backfill-apply-design.md](34-responsive-backfill-apply-design.md) — diseño aprobado de APPLY; B1/B2/B3-A/B3-B y B3 aceptados hasta producción.
-- [35-responsive-backfill-reconciliation.md](35-responsive-backfill-reconciliation.md) — P1.D.2 cerrado hasta producción mediante D2-A, D2-B1, D2-B2, D2-B3, D2-C1, D2-C2 y D2-C3; P1.D.3 (D3) es el siguiente bloque.
+- [33-responsive-backfill-runner.md](33-responsive-backfill-runner.md) — dry-run, wiring CLI y evidencia exacta del canary APPLY D3 en staging.
+- [34-responsive-backfill-apply-design.md](34-responsive-backfill-apply-design.md) — diseño aprobado de APPLY, aceptación operacional D3 y límites conservados.
+- [35-responsive-backfill-reconciliation.md](35-responsive-backfill-reconciliation.md) — P1.D.2 cerrado hasta producción y frontera de reconciliación preservada tras el canary D3.
 
 ## Invariante de traspaso
 
