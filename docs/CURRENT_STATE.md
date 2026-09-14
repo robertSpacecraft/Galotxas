@@ -45,7 +45,7 @@ abierto ni un requisito para cerrar P1.D.
 | P1.D.2-C3 — CLI mutante explícito y mapeo de exits | completado y aceptado hasta producción |
 | P1.D.2 — reconciliación de runs APPLY | cerrado hasta producción |
 | P1.D.3 (D3) — aceptación operacional final y cierre de P1.D | completado y aceptado en staging |
-| P1.D — backfill de masters legacy | completado; cierre canónico pendiente de commit y promoción de esta documentación a `main` |
+| P1.D — backfill de masters legacy | completado y cerrado canónicamente |
 
 P1.D.1C-A está completado hasta producción. Su smoke de producción terminó correctamente con exit 0, cero bloqueos y cero escrituras de storage.
 
