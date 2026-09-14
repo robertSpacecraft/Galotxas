@@ -16,15 +16,25 @@ No debe contener secretos, credenciales, identificadores de infraestructura, rut
 
 ## Línea de trabajo actual
 
-P1.D — backfill de masters legacy — está completado. P1.D.2 quedó cerrado
-hasta producción y P1.D.3 fue completado y aceptado mediante un canary APPLY
-real, estrictamente acotado a una referencia de staging.
+P1.D — backfill de masters legacy — está completado y cerrado canónicamente.
+P1.D.2 quedó cerrado hasta producción y P1.D.3 fue completado y aceptado
+mediante un canary APPLY real, estrictamente acotado a una referencia de
+staging. Un futuro backfill productivo es una actividad operacional separada
+que requiere autorización explícita; no es un bloque de implementación abierto
+ni un requisito para cerrar P1.D.
 
-El siguiente bloque canónico del orden oficial es **5.7 — Hardening P1/P2
-vigente**, que debe comenzar con la auditoría actual prevista en
-`06-roadmap.md`. Un futuro backfill productivo es una actividad operacional
-separada que requiere autorización explícita; no es un bloque de implementación
-abierto ni un requisito para cerrar P1.D.
+La auditoría CURRENT-STATE de **5.7 — Hardening P1/P2 vigente** está completada
+y su descomposición risk-first ha sido aprobada. No se encontró ningún P0. El
+siguiente bloque activo de implementación es **5.7-A — Validación estricta de
+fecha en administración de partidos**: backend/admin únicamente, sin migración
+ni cambio de API pública.
+
+La secuencia canónica del tranche P1/P2 es 5.7-A, 5.7-B, 5.7-C, 5.7-E, 5.7-F,
+5.7-J, 5.7-G, 5.7-H, 5.7-D y 5.7-Q1. Sólo podrá reordenarse si un bloque cerrado
+descubre una dependencia. E, F, J y H conservan gates explícitos antes de
+implementarse; D depende de C. Las mejoras de producto no decididas y el
+cleanup P3 no bloquean el cierre del tranche. `06-roadmap.md` conserva el
+alcance, las dependencias, las gates y los propietarios externos completos.
 
 | Bloque | Estado |
 | --- | --- |

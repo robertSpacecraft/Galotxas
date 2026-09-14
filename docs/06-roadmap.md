@@ -154,8 +154,10 @@ están en `15-mvp-editorial-and-navigation-contract.md`, y la reconciliación
 operativa final está en `29-mvp-final-acceptance-and-production-gate.md`
 (Fase 7G.7 PASS/CERRADO).
 
-La ausencia de edición avanzada de perfil, resumen directo de equipo e interfaz
-React de reprogramación continúa como P1 y no bloquea por sí misma el MVP.
+La interfaz React de reprogramación conserva un gap funcional acotado. La
+edición avanzada de perfil y el resumen directo de equipo son mejoras de
+producto sujetas a decisión explícita; la auditoría vigente de 5.7 no las
+clasifica por defecto como deuda P1/P2 de hardening.
 
 ---
 
@@ -571,8 +573,9 @@ Con 6.F.4, **6.F — Campeones de Liga y Copa** queda completado y cerrado.
 
 **Deuda visual abierta e independiente:** normalizar el fondo y la apariencia
 de Clasificación, Calendario y resultados y Copa, que conservan el fondo oscuro
-heredado frente al Resumen claro. Debe abordarse por separado, preferiblemente
-antes del rediseño Liquid Glass, y no forma parte del cierre funcional 6.F.4.
+heredado frente al Resumen claro. Su propietario canónico es 5.6 — Sistema
+visual Liquid Glass; no forma parte del cierre funcional 6.F.4 ni de 5.7. El
+dark mode permanece separado en 6.G.
 
 ### 4. 6.C — Imágenes de Temporadas, Campeonatos y Categorías (CLOSED / PASS)
 
@@ -595,11 +598,13 @@ Los commits funcionales `744b10eb98cf13098f1e68706b372fe52526a866` y
 `97d11a52acc9aa5143d706d2acae9c0af4c8d4f8` fueron aceptados localmente, en
 staging y en producción. La aceptación productiva queda limitada por la falta
 de datos representativos para todos los recorridos dependientes de
-competición; no se fabricaron escenarios. La optimización automática mediante
-variantes responsive, compresión y mejoras de entrega permanece en el bloque
-P1 independiente y no forma parte de 6.C.
+competición; no se fabricaron escenarios. En el cierre de 6.C, la optimización
+automática mediante variantes responsive, compresión y mejoras de entrega se
+difirió al programa P1 independiente. Su implementación y la maquinaria de
+backfill quedaron cerradas después con P1.D; un APPLY productivo futuro es una
+operación separada, no deuda de implementación.
 
-### 5. 5.7 — Hardening P1/P2 vigente (SIGUIENTE BLOQUE CANÓNICO)
+### 5. 5.7 — Hardening P1/P2 vigente (AUDITORÍA CERRADA / SIGUIENTE: 5.7-A)
 
 P1.D — backfill de masters legacy — queda completado mediante P1.D.2 cerrado
 hasta producción y P1.D.3 aceptado en staging. D3 ejecutó un único canary APPLY
@@ -612,11 +617,70 @@ necesaria para el cierre de P1.D. Una migración productiva futura será una
 actividad operacional separada, con nueva autorización, inventario, freeze y
 gates; no altera el orden del roadmap.
 
-Comenzará con una auditoría actual y se dividirá en microbloques, no en una
-bolsa heredada única. Entre la deuda todavía identificada están la edición
-avanzada o completa de perfil, el resumen directo de equipo y la interfaz React
-de reprogramaciones, además de lo que siga vigente tras contrastar el estado
-real. No se reabrirán tareas ya absorbidas por el MVP.
+La auditoría CURRENT-STATE está completada y aprobada. No encontró ningún P0,
+pero sí riesgos P1 creíbles de corrección, privacidad/seguridad e integridad de
+datos. 5.7 es un programa risk-first dividido en microbloques, no una bolsa
+heredada: esos riesgos preceden a gaps funcionales, y el cleanup P3 no bloquea
+el cierre del tranche P1/P2 salvo que resulte necesario para un bloque de mayor
+prioridad. No se reabren tareas absorbidas por el MVP.
+
+#### Tranche canónico P1/P2
+
+El orden siguiente es canónico. Sólo podrá reordenarse cuando un bloque cerrado
+descubra una dependencia:
+
+| Bloque | Alcance cerrado | Gate, migración o dependencia |
+| --- | --- | --- |
+| **5.7-A — Validación estricta de fecha en administración de partidos** | Rechazar fechas malformadas o fuera de rango antes de construir Carbon y añadir regresión. | **Siguiente bloque activo**. Backend/admin; sin migración ni cambio de API pública. |
+| **5.7-B — Privacidad del recurso de partidos de participante** | Minimizar los payloads autenticados de partidos/reportes y retirar campos personales o internos innecesarios, incluido el email del reportante cuando la UX no lo requiera. | Sin migración; contracción explícita de respuesta autenticada; tests y aceptación en staging. |
+| **5.7-C — Hardening de la API de reprogramaciones** | Form Requests dedicados, fecha estricta, Resources mínimos, throttling y tests de autorización, privacidad y validación. Conserva el workflow vigente. | Sin cancelación, rechazo ni estados nuevos; no se espera migración. |
+| **5.7-E — Integridad de `CategoryEntry`** | Preflight y garantías para impedir identidad ambos/ninguno, asociaciones incoherentes y duplicados. Añadirá garantías DB cuando sean seguras. | Gate previo sobre reglas exactas de identidad/duplicado; migración probable y disciplina forward-only. |
+| **5.7-F — Ocupación compartida de pistas** | Hacer común a generación y reprogramación la invariante física pista/tiempo entre competiciones, con protección concurrente. | Gate previo de política; migración/constraint desconocida hasta fijarlo. |
+| **5.7-J — Hardening de sesión de autenticación** | Bloque de arquitectura de seguridad separado para el riesgo del Bearer durable en `localStorage`. | Gate de cookies, SameSite/CSRF, CORS, expiración/revocación, transición y rollback. Trabajo cross-layer de alto riesgo; no se mezcla con B/C. |
+| **5.7-G — Normalización `Round.phase/stage` de Liga** | Normalizar escrituras nuevas y datos legacy al contrato documentado `league`/`matchday`, preservando Copa. | Migración/backfill probable y preflight de datos. |
+| **5.7-H — Unicidad DB del nombre de pista** | Preflight de duplicados, garantía DB y manejo seguro de carreras. | Gate de normalización/case-sensitivity antes de migrar. |
+| **5.7-D — Interfaz React de reprogramaciones** | Ver estado, proponer y confirmar una propuesta compatible usando exclusivamente el workflow backend actual. | Después de 5.7-C; sin cancelación, rechazo, notificaciones, rediseño de estados ni migración. |
+| **5.7-Q1 — Reparación E2E del dropdown CMS admin** | Corregir la interceptación concreta de `Crear bloque` y validar el recorrido dirigido. | P2 QA/UI; no se convierte en rediseño de navegación ni Liquid Glass. |
+
+#### Gates de producto, dominio y arquitectura
+
+No se implementarán hasta recibir una decisión explícita:
+
+- edición avanzada/completa de perfil y semántica de sus campos;
+- resumen directo de equipo;
+- borrado, archivo o soft delete de datos competitivos;
+- resultados sin tanteo por walkover, abandono o descalificación;
+- terminología o política de `official_ranking`;
+- cancelación, rechazo, expiración o corrección de reprogramaciones;
+- rectificación administrativa de reportes, modelo de evento de auditoría y
+  obligatoriedad del motivo de resolución de conflicto;
+- retirada compatible de `SeasonResource.slug`;
+- política exacta de ocupación compartida de pistas;
+- reglas exactas de identidad/duplicado de `CategoryEntry`;
+- normalización y case-sensitivity del nombre de pista;
+- topología cookie/sesión de autenticación.
+
+El vaciado explícito de campos nullable del perfil se conserva como defecto
+pequeño conocido, pero queda dentro de la gate de perfil mientras no se pruebe
+un impacto superior de privacidad o corrección.
+
+#### Deuda no bloqueante de 5.7
+
+No son requisitos para cerrar el tranche P1/P2: las 23 incidencias actuales de
+Pint, una matriz de navegadores sin defecto concreto, expansión genérica de
+smoke, OpenAPI, normalización genérica de envelopes, limpieza del árbol frontend
+no usado, división de `Dashboard.jsx` y mantenimiento general. La división de
+`Api\V1\MatchController` sólo se adelantará tras 5.7-B/C si resulta necesaria
+para mantener fronteras claras de seguridad o validación. No existirá una fase
+genérica de “limpiarlo todo”.
+
+#### Límites de propiedad
+
+Permanecen fuera de 5.7: Knowledge (5.1), navegación/páginas y rutas de
+compatibilidad (5.4), Manual (5.2), Escuela (5.3), Liquid Glass y las superficies
+oscuras heredadas de competición (5.6), dark mode (6.G), Valenciano/i18n (6.H)
+y notificaciones/correo general (6.D). Un APPLY/backfill responsive productivo
+futuro es operación autorizada sobre P1.D cerrado, no deuda de implementación.
 
 ### 6. 5.1 — Consolidación restante de Knowledge
 
@@ -725,9 +789,9 @@ selección humana de la imagen definitiva.
 # Backlog complementario post-MVP
 
 Estas capacidades y deudas siguen siendo válidas, pero no sustituyen el orden
-oficial anterior ni bloquean la release publicada. Edición de perfil,
-reprogramaciones y notificaciones ya están absorbidas por 5.7 y 6.D y no se
-repiten aquí:
+oficial anterior ni bloquean la release publicada. La reprogramación acotada
+está descompuesta en 5.7-C/D, las notificaciones pertenecen a 6.D y la edición
+avanzada de perfil permanece tras una gate de producto; no se repiten aquí:
 
 - pagos online;
 - sugerencia o asignación automática de categoría;
@@ -745,51 +809,52 @@ repiten aquí:
 
 ## API y seguridad
 
-- estudiar la migración de Bearer en `localStorage` a cookies `HttpOnly`/`SameSite` con CSRF;
-- normalizar envelopes, errores, paginación y serialización heredada;
-- resolver mediante una decisión versionada el `slug` nulo que `SeasonResource` conserva aunque `Season` no disponga de ese atributo;
-- documentar el contrato mediante OpenAPI;
-- separar o reducir los usos amplios de `MatchResource` en “mis partidos”, calendario, reprogramación y administración;
-- endurecer reprogramaciones: Form Request dedicado, rate limiting y política explícita de rectificación;
-- definir una rectificación administrativa trazable de reportes de resultado del participante;
-- persistir un motivo administrativo de resolución de conflicto si el producto lo requiere.
+- 5.7-B y 5.7-C poseen la minimización de Resources de participante y el
+  hardening acotado de reprogramaciones;
+- 5.7-J conserva como trade-off real que un XSS puede exfiltrar el Bearer
+  durable almacenado en `localStorage`; la migración no responde a un exploit
+  activo acreditado y exige su gate propia de arquitectura/despliegue;
+- normalización genérica de envelopes y OpenAPI son P3 no bloqueante y deberán
+  dividirse por contratos concretos si se priorizan;
+- `SeasonResource.slug`, la rectificación administrativa y el motivo de
+  conflicto permanecen tras sus gates explícitas, no como implementación
+  presumida.
 
 ## Competición y datos
 
-- aclarar por separado la semántica histórica de `official_ranking`;
-- revisar en bloques separados la consistencia de `Round.phase/stage`, la integridad débil de `CategoryEntry`, las cascadas destructivas heredadas y los resultados sin tanteo por walkover, abandono o descalificación;
-- Admin partidos — validar estrictamente fecha y devolver error de formulario
-  en lugar de `500`; una fecha con año inválido puede superar `date` y fallar
-  después al consumirse como `Y-m-d H:i`;
-- coordinar disponibilidad de pistas entre categorías distintas;
-- proteger generaciones concurrentes con una estrategia de bloqueo;
-- trasladar la unicidad del nombre de pista, hoy validada en formularios, a una restricción de base de datos;
-- modelar actividad/elegibilidad de pistas y restricciones por modalidad o nivel cuando exista ese requisito.
+- 5.7-A, E, F, G y H poseen respectivamente la fecha estricta de admin, la
+  integridad de `CategoryEntry`, la ocupación compartida, la normalización de
+  rondas de Liga y la unicidad DB del nombre de pista;
+- `official_ranking`, las cascadas destructivas y los resultados excepcionales
+  sin tanteo permanecen tras gates de producto/dominio;
+- la generación concurrente ya está serializada y no es deuda abierta;
+- actividad/elegibilidad o restricciones de pista por modalidad/nivel no son
+  un requisito vigente y no se mantienen como deuda.
 
 ## Mantenibilidad
 
-- resolver por separado el aviso pendiente de Railway Config as Code sin mezclarlo con el dominio deportivo;
-- mantener documentada la incompatibilidad histórica del rollback global y su estrategia DB forward-only;
-- dividir `frontend/src/pages/Dashboard.jsx` por responsabilidades;
-- reducir responsabilidades del `Api\V1\MatchController`;
-- limpiar rutas/componentes heredados y duplicados sin alterar el contrato;
-- retirar adaptadores de compatibilidad cuando sus consumidores hayan migrado;
-- mantener auditorías periódicas de npm y Composer.
-- conservar explícitas las limitaciones operativas posteriores a P1.D: el
-  canary no acredita migración completa, forward reconciliation y cleanup no
-  están disponibles, no existe `--resume` y un futuro APPLY productivo exige
-  autorización y gates nuevos; evaluar la caché HTTP larga sólo si se prueba
-  que las keys publicadas son inmutables. P1.C conserva pendiente su matriz
-  completa de validación en staging, aunque `news#1` recibió aceptación visual.
+- La división de `Dashboard.jsx`, el árbol frontend no usado y el mantenimiento
+  general son P3 no bloqueante. `Api\V1\MatchController` sólo se divide si B/C
+  demuestran que lo necesitan para preservar fronteras claras.
+- Las rutas/adaptadores de compatibilidad pertenecen a 5.4 y no se retiran en
+  5.7.
+- Railway Config-as-Code ya está representado y verificado en el repositorio;
+  la estrategia DB forward-only ya está documentada. Ninguno es deuda de
+  implementación abierta.
+- Las limitaciones posteriores a P1.D siguen siendo condiciones operativas: el
+  canary no acredita un backfill productivo completo y cualquier APPLY futuro
+  exige autorización y gates nuevos. No reabren P1.D ni forman parte de 5.7.
 
 ## Calidad
 
-- resolver la deuda E2E 67/68 del dropdown del CMS administrativo, independiente de 6.F.2 y 6.F.3A;
-- resolver las 23 incidencias Pint globales preexistentes sin mezclarlas con
-  bloques funcionales cerrados;
-- decidir si aporta valor una métrica porcentual de cobertura frontend;
-- ampliar E2E a navegadores adicionales cuando el riesgo de compatibilidad lo justifique;
-- extender el smoke más allá del relato crítico sin convertirlo en sustituto de Feature tests.
+- 5.7-Q1 posee el fallo del dropdown CMS identificado en la instantánea
+  histórica 67/68. La auditoría de 5.7 sólo descubrió 69 tests Playwright en 13
+  archivos; no los ejecutó ni acredita que pasen.
+- `pint --test` informa actualmente 23 archivos no conformes; es P3 no
+  bloqueante y no se mezclará con bloques funcionales.
+- No se adopta una métrica porcentual genérica de cobertura ni una expansión
+  genérica de smoke como deuda. Navegadores o escenarios nuevos exigirán un
+  riesgo concreto que justifique su bloque.
 
 ---
 

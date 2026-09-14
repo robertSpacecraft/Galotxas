@@ -1965,11 +1965,12 @@ Ejecutado sobre el commit funcional
   `index, follow` y canonical, mientras `/torneos` aplica `noindex, follow`
   sin canonical conforme al manifiesto.
 
-La regresión E2E global observada durante aquel ciclo quedó en **67/68**. El
+La regresión E2E global observada durante aquel ciclo quedó en la instantánea
+histórica **67/68**. El
 único fallo corresponde al dropdown Blade del CMS administrativo, que puede
 interceptar la acción `Crear bloque`; 6.F.2 no modificó administración y el
-hallazgo continúa como deuda independiente abierta. No se reescribe esa
-instantánea como 68/68.
+hallazgo continúa como deuda independiente abierta. Esa cifra no describe la
+colección ni el resultado actuales y no se reescribe como 68/68.
 
 El dataset productivo devolvía colecciones vacías en `/seasons`,
 `/championships` y `/rankings/all-time`. Por ello no se repitieron allí los
@@ -2219,9 +2220,31 @@ despliegue técnico, validación funcional del usuario y aceptación humana.
 
 ### Deuda E2E global independiente: admin CMS (abierta)
 
-La instantánea 67/68 del ciclo de 6.F.2 conserva abierto el fallo del dropdown
-Blade que puede interceptar `Crear bloque`. Es independiente tanto de 6.F.2
-como de Mi Panel y ninguno de los dos bloques modificó el panel administrativo.
+La instantánea histórica 67/68 del ciclo de 6.F.2 identificó el fallo del
+dropdown Blade que puede interceptar `Crear bloque`. El defecto continúa
+abierto e independiente tanto de 6.F.2 como de Mi Panel, pero 67/68 no se
+presenta como recuento o ejecución actual.
+
+## AUDITORÍA CURRENT-STATE 5.7 — Diagnóstico de calidad (2026-09-14)
+
+La auditoría read-only que precede a 5.7 no ejecutó suites de aplicación,
+navegadores, migraciones, seeders ni Docker. Sus cifras son diagnósticos de
+descubrimiento/check, no resultados PASS:
+
+- `playwright test --list`, con el webserver omitido, descubrió **69 tests en
+  13 archivos**; no ejecutó ninguno de ellos y no acredita una suite 69/69;
+- `pint --test` informó **23 archivos no conformes**; se usó exclusivamente el
+  modo check y no modificó archivos;
+- el fallo de dropdown CMS conserva como evidencia histórica la ejecución
+  67/68 de 6.F.2 y queda asignado a 5.7-Q1, pero no fue reproducido mediante una
+  ejecución E2E en esta auditoría;
+- los totales completos documentados para bloques anteriores, incluidos 820
+  tests backend y 708 tests frontend, son instantáneas históricas de esos
+  bloques, no el tamaño ni el resultado actual de las suites.
+
+5.7 no adopta un porcentaje global de cobertura ni una ampliación genérica del
+smoke como objetivo. La matriz de navegadores y los nuevos escenarios se
+ampliarán únicamente ante un riesgo de compatibilidad o flujo concreto.
 
 
 # 11. Evolución
@@ -2330,8 +2353,8 @@ provocar después `Carbon\InvalidFormatException` cuando el controlador
 consume `Y-m-d H:i`. No se corrigió en 6.F.3F para no mezclar scopes.
 
 Permanecen vigentes y separadas la mejora visual del PDF de competición, el
-fallo E2E 67/68 del dropdown CMS y las 23 incidencias Pint globales
-preexistentes.
+defecto del dropdown CMS identificado en la instantánea histórica 67/68 y las
+23 incidencias Pint globales preexistentes.
 
 ## PUBLIC-OFFICIAL-RESULT-API-6F3G-1 — API pública de resultados oficiales (CLOSED / PASS)
 
@@ -2371,11 +2394,13 @@ atribuyó un smoke dependiente de contenido al endpoint. La aceptación humana
 de producción fue PASS con esa limitación explícita, apoyada en la validación
 funcional local y de staging y en el despliegue técnico del SHA exacto.
 
-6.F.3G no incorpora migraciones. Permanecen abiertas e independientes la
-validación estricta de fecha de partidos, la mejora visual del PDF por
-jornadas/fases manteniendo una A4, el E2E histórico 67/68 del dropdown CMS, las
-23 incidencias Pint globales, el pipeline P1 de optimización automática de
-imágenes y el rollback rehearsal histórico no ejecutado.
+6.F.3G no incorpora migraciones. En aquel cierre permanecían abiertas e
+independientes la validación estricta de fecha de partidos, la mejora visual
+del PDF por jornadas/fases manteniendo una A4, el E2E histórico 67/68 del
+dropdown CMS, las 23 incidencias Pint globales, el pipeline P1 de optimización
+automática de imágenes y el rollback rehearsal histórico no ejecutado. P1.D
+cerró después la implementación y maquinaria de backfill; un APPLY productivo
+futuro es operación separada.
 
 ## REACT-OFFICIAL-RESULTS-6F4-1 — Presentación React del resultado oficial (CLOSED / PASS)
 
@@ -2423,13 +2448,15 @@ no se atribuye un smoke dependiente de `/categories/{id}`. El gate humano de
 producción fue PASS sobre navegación pública/general con esa limitación
 explícita.
 
-No se declara PASS para la suite E2E global: la incidencia histórica 67/68 del
-dropdown CMS permanece abierta. También siguen abiertas e independientes las
-23 incidencias Pint globales, el pipeline P1 de optimización/compresión de
-imágenes, la validación estricta de fechas de partidos ante valores como
-`20226`, la mejora visual del PDF por jornadas/fases conservando una A4, la
-normalización del fondo de Clasificación/Calendario/Copa y el rollback
-rehearsal histórico no ejecutado.
+En el cierre de 6.F.4 no se declaró PASS para la suite E2E global: la incidencia
+histórica 67/68 del dropdown CMS permanecía abierta. También permanecían
+independientes las 23 incidencias Pint globales, el pipeline P1 de
+optimización/compresión de imágenes, la validación estricta de fechas de
+partidos ante valores como `20226`, la mejora visual del PDF por jornadas/fases,
+las superficies oscuras de Clasificación/Calendario/Copa y el rollback
+rehearsal histórico no ejecutado. P1.D cerró después la implementación y
+maquinaria de backfill; las superficies oscuras pertenecen a 5.6 y la fecha
+estricta abre 5.7-A.
 
 ## COMPETITION-COVERS-6C — Portadas opcionales de competición (CLOSED / PASS)
 
