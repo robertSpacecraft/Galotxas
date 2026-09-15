@@ -291,6 +291,11 @@ El panel web actual dispone de estas áreas reales:
 
 No existen actualmente pantallas Blade específicas para una cola de solicitudes de reprogramación, métricas avanzadas o formularios públicos. La fecha y pista de un partido pueden editarse desde la categoría y los conflictos de resultados tienen su flujo propio.
 
+La edición administrativa de un partido exige una fecha canónica `Y-m-d` dentro
+del rango soportado por `DATETIME`, de `1000-01-01` a `9999-12-31`, y una hora
+`H:i`. Las fechas malformadas, inexistentes o fuera de ese rango se rechazan en
+el Form Request antes de construir el valor Carbon o ejecutar una mutación.
+
 ---
 
 # 1. Naturaleza del panel

@@ -15,7 +15,12 @@ class UpdateGameMatchRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'scheduled_date' => ['required', 'date'],
+            'scheduled_date' => [
+                'required',
+                'date_format:Y-m-d',
+                'after_or_equal:1000-01-01',
+                'before_or_equal:9999-12-31',
+            ],
             'scheduled_time' => ['required', 'date_format:H:i'],
             'venue_id' => ['required', 'exists:venues,id'],
             'status' => ['required', 'in:scheduled,submitted,validated,under_review,postponed,cancelled'],
