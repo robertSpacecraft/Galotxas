@@ -291,10 +291,19 @@ El panel web actual dispone de estas áreas reales:
 
 No existen actualmente pantallas Blade específicas para una cola de solicitudes de reprogramación, métricas avanzadas o formularios públicos. La fecha y pista de un partido pueden editarse desde la categoría y los conflictos de resultados tienen su flujo propio.
 
-La edición administrativa de un partido exige una fecha canónica `Y-m-d` dentro
-del rango soportado por `DATETIME`, de `1000-01-01` a `9999-12-31`, y una hora
-`H:i`. Las fechas malformadas, inexistentes o fuera de ese rango se rechazan en
-el Form Request antes de construir el valor Carbon o ejecutar una mutación.
+La edición administrativa de un partido exige una fecha real y canónica
+`Y-m-d`, con mínimo técnico `1000-01-01` y máximo funcional dinámico igual a la
+fecha actual de la aplicación más dos años naturales, además de una hora `H:i`.
+Las fechas históricas dentro de ese intervalo siguen permitidas. Cuando la
+fecha indicada es anterior a la fecha actual menos cinco años, todos los
+formularios de partido muestran dinámicamente un aviso no bloqueante para que
+la persona administradora compruebe si se trata de un registro histórico; el
+aviso desaparece al volver a una fecha que ya no cumple esa condición. Los
+atributos `min` y `max` del control de fecha reflejan los límites del backend.
+
+Las fechas ausentes, malformadas, inexistentes o fuera de esos límites se
+rechazan con mensajes explícitos en castellano dentro del Form Request, antes
+de construir el valor Carbon o ejecutar cualquier lógica o mutación de negocio.
 
 ---
 

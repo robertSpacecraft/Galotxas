@@ -1,6 +1,11 @@
 @extends('admin.layout')
 
 @section('content')
+    @php
+        $minimumScheduledDate = '1000-01-01';
+        $maximumScheduledDate = today()->addYearsNoOverflow(2)->toDateString();
+        $historicalScheduledDateCutoff = today()->subYearsNoOverflow(5)->toDateString();
+    @endphp
 
     <div class="row g-4">
         <div class="col-12">
@@ -454,8 +459,20 @@
                                                     form="{{ $formId }}"
                                                     value="{{ $match->scheduled_date ? $match->scheduled_date->format('Y-m-d') : '' }}"
                                                     class="form-control form-control-sm"
+                                                    min="{{ $minimumScheduledDate }}"
+                                                    max="{{ $maximumScheduledDate }}"
+                                                    data-admin-match-date="true"
+                                                    data-historical-before="{{ $historicalScheduledDateCutoff }}"
                                                     required
                                                 >
+                                                <div
+                                                    class="form-text text-warning-emphasis d-none"
+                                                    data-admin-historical-date-warning="true"
+                                                    role="status"
+                                                    aria-live="polite"
+                                                >
+                                                    Aviso: la fecha indicada es muy antigua. Comprueba que es correcta si estás registrando un partido o campeonato histórico.
+                                                </div>
                                             </td>
 
                                             <td>
@@ -611,8 +628,20 @@
                                                     form="{{ $formId }}"
                                                     value="{{ $match->scheduled_date ? $match->scheduled_date->format('Y-m-d') : '' }}"
                                                     class="form-control form-control-sm"
+                                                    min="{{ $minimumScheduledDate }}"
+                                                    max="{{ $maximumScheduledDate }}"
+                                                    data-admin-match-date="true"
+                                                    data-historical-before="{{ $historicalScheduledDateCutoff }}"
                                                     required
                                                 >
+                                                <div
+                                                    class="form-text text-warning-emphasis d-none"
+                                                    data-admin-historical-date-warning="true"
+                                                    role="status"
+                                                    aria-live="polite"
+                                                >
+                                                    Aviso: la fecha indicada es muy antigua. Comprueba que es correcta si estás registrando un partido o campeonato histórico.
+                                                </div>
                                             </td>
 
                                             <td>
@@ -713,3 +742,30 @@
     </div>
 
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const dateInputs = document.querySelectorAll('[data-admin-match-date]');
+
+            dateInputs.forEach(function (dateInput) {
+                const warning = dateInput.parentElement.querySelector('[data-admin-historical-date-warning]');
+
+                if (!warning) {
+                    return;
+                }
+
+                function updateHistoricalDateWarning() {
+                    const isHistorical = dateInput.value !== ''
+                        && dateInput.value < dateInput.dataset.historicalBefore;
+
+                    warning.classList.toggle('d-none', !isHistorical);
+                }
+
+                dateInput.addEventListener('input', updateHistoricalDateWarning);
+                dateInput.addEventListener('change', updateHistoricalDateWarning);
+                updateHistoricalDateWarning();
+            });
+        });
+    </script>
+@endpush
