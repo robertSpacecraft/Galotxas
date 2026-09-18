@@ -604,7 +604,7 @@ difirió al programa P1 independiente. Su implementación y la maquinaria de
 backfill quedaron cerradas después con P1.D; un APPLY productivo futuro es una
 operación separada, no deuda de implementación.
 
-### 5. 5.7 — Hardening P1/P2 vigente (AUDITORÍA CERRADA / SIGUIENTE: 5.7-A)
+### 5. 5.7 — Hardening P1/P2 vigente (AUDITORÍA CERRADA / SIGUIENTE: 5.7-B)
 
 P1.D — backfill de masters legacy — queda completado mediante P1.D.2 cerrado
 hasta producción y P1.D.3 aceptado en staging. D3 ejecutó un único canary APPLY
@@ -624,6 +624,24 @@ heredada: esos riesgos preceden a gaps funcionales, y el cleanup P3 no bloquea
 el cierre del tranche P1/P2 salvo que resulte necesario para un bloque de mayor
 prioridad. No se reabren tareas absorbidas por el MVP.
 
+**5.7-A queda CLOSED / PASS.** La administración valida antes de construir
+Carbon una fecha real y canónica `Y-m-d`, con mínimo técnico `1000-01-01` y
+máximo funcional dinámico `today() + 2` años naturales sin desbordamiento. Las
+fechas históricas válidas siguen permitidas; el Form Request ofrece mensajes
+explícitos en castellano y los formularios repetidos de Liga y Copa reflejan
+los límites y muestran un aviso no bloqueante por debajo de `today() - 5` años.
+No cambió la hora, pista, semántica de resultado, controlador, esquema, API
+pública, React ni workflow de reprogramaciones.
+
+La evidencia final fue 14 tests/132 aserciones focales, 54/286 en regresión
+dirigida y 1.709/17.331 en la suite backend oficial sobre MariaDB aislada,
+además de `php -l`, Pint afectado y `git diff --check` en PASS. Staging superó
+la aceptación manual completa y el código fue promovido a `main`. Producción
+carece de datos representativos para repetir esos casos dependientes de
+partidos; por decisión humana no se fabricaron datos ni se atribuye un smoke
+manual productivo no realizado. Esta limitación no reabre 5.7-A ni cierra el
+programa 5.7.
+
 #### Tranche canónico P1/P2
 
 El orden siguiente es canónico. Sólo podrá reordenarse cuando un bloque cerrado
@@ -631,8 +649,8 @@ descubra una dependencia:
 
 | Bloque | Alcance cerrado | Gate, migración o dependencia |
 | --- | --- | --- |
-| **5.7-A — Validación estricta de fecha en administración de partidos** | Rechazar fechas malformadas o fuera de rango antes de construir Carbon y añadir regresión. | **Siguiente bloque activo**. Backend/admin; sin migración ni cambio de API pública. |
-| **5.7-B — Privacidad del recurso de partidos de participante** | Minimizar los payloads autenticados de partidos/reportes y retirar campos personales o internos innecesarios, incluido el email del reportante cuando la UX no lo requiera. | Sin migración; contracción explícita de respuesta autenticada; tests y aceptación en staging. |
+| **5.7-A — Validación estricta de fecha en administración de partidos** | Fecha real/canónica, mínimo técnico, máximo funcional dinámico, mensajes en castellano y aviso histórico no bloqueante antes de Carbon o mutación. | **CLOSED / PASS**. Backend/admin; sin migración ni cambio de API pública. |
+| **5.7-B — Privacidad del recurso de partidos de participante** | Minimizar los payloads autenticados de partidos/reportes y retirar campos personales o internos innecesarios, incluido el email del reportante cuando la UX no lo requiera. | **Siguiente bloque activo**. Sin migración; contracción explícita de respuesta autenticada; tests y aceptación en staging. |
 | **5.7-C — Hardening de la API de reprogramaciones** | Form Requests dedicados, fecha estricta, Resources mínimos, throttling y tests de autorización, privacidad y validación. Conserva el workflow vigente. | Sin cancelación, rechazo ni estados nuevos; no se espera migración. |
 | **5.7-E — Integridad de `CategoryEntry`** | Preflight y garantías para impedir identidad ambos/ninguno, asociaciones incoherentes y duplicados. Añadirá garantías DB cuando sean seguras. | Gate previo sobre reglas exactas de identidad/duplicado; migración probable y disciplina forward-only. |
 | **5.7-F — Ocupación compartida de pistas** | Hacer común a generación y reprogramación la invariante física pista/tiempo entre competiciones, con protección concurrente. | Gate previo de política; migración/constraint desconocida hasta fijarlo. |
@@ -822,9 +840,9 @@ avanzada de perfil permanece tras una gate de producto; no se repiten aquí:
 
 ## Competición y datos
 
-- 5.7-A, E, F, G y H poseen respectivamente la fecha estricta de admin, la
-  integridad de `CategoryEntry`, la ocupación compartida, la normalización de
-  rondas de Liga y la unicidad DB del nombre de pista;
+- 5.7-A ya cerró la fecha estricta de administración; 5.7-E, F, G y H poseen
+  respectivamente la integridad de `CategoryEntry`, la ocupación compartida,
+  la normalización de rondas de Liga y la unicidad DB del nombre de pista;
 - `official_ranking`, las cascadas destructivas y los resultados excepcionales
   sin tanteo permanecen tras gates de producto/dominio;
 - la generación concurrente ya está serializada y no es deuda abierta;

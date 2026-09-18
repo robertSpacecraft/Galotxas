@@ -2246,6 +2246,38 @@ descubrimiento/check, no resultados PASS:
 smoke como objetivo. La matriz de navegadores y los nuevos escenarios se
 ampliarán únicamente ante un riesgo de compatibilidad o flujo concreto.
 
+## 5.7-A — Validación estricta de fecha en administración de partidos (CLOSED / PASS, 2026-09-18)
+
+Los commits funcionales `1436c1d671b91640e8d78b03874aac8257b43e70` y
+`bc37983664220c7ddb2c43e69bb3954d14f9137f` cerraron la validación estricta y
+la ventana funcional de fechas del editor administrativo de partidos. Estas
+cifras son la instantánea final de 5.7-A, no totales fijos de la suite:
+
+- `AdminGameMatchUpdateTest`: 14 tests y 132 aserciones, PASS;
+- regresión dirigida admin/partidos: 54 tests y 286 aserciones, PASS;
+- suite backend oficial: 1.709 tests y 17.331 aserciones, PASS;
+- ejecución mediante el runner aislado MariaDB, exit 0;
+- `php -l`, Pint sobre archivos afectados y `git diff --check`: PASS.
+
+La cobertura congela el tiempo y prueba fecha requerida, años de cinco
+dígitos, fecha inexistente, representación no canónica, mínimo técnico, fecha
+histórica válida, límite superior dinámico y su primer día inválido. También
+comprueba mensajes explícitos en castellano, ausencia de claves
+`validation.*`, ausencia de mutación de fecha/pista/estado/tanteos ante rechazo
+y los límites y hooks del aviso histórico en los formularios repetidos de Liga
+y Copa. El guard de resultados oficiales conservó su regresión.
+
+La aceptación manual de staging fue PASS para `0008-01-01`, `2001-01-01`, una
+fecha normal, el límite exacto `today() + 2` años, su primer día posterior,
+`2135-01-01` y la desaparición dinámica del aviso al volver de una fecha
+histórica a una normal. El código fue promovido a `main`.
+
+Producción no contiene datos de competición representativos para repetir el
+smoke manual dependiente del editor de partidos. Por decisión humana explícita
+no se fabricaron datos y no se atribuye una aceptación productiva de esos
+casos. La evidencia automatizada y de staging se acepta como suficiente para
+cerrar 5.7-A; esta limitación no lo reabre.
+
 
 # 11. Evolución
 
@@ -2344,17 +2376,17 @@ humana sin modificar datos reales. El bloque sólo añade administración Blade 
 histórico sobre el dominio existente: no incorpora migración, API pública o
 React.
 
-### Deuda independiente: validación de fecha en admin partidos (abierta)
+### Deuda independiente en el cierre de 6.F.3F: validación de fecha admin (entonces abierta)
 
-El formulario administrativo de partidos debe validar estrictamente la fecha
+El formulario administrativo de partidos debía validar estrictamente la fecha
 y devolver un error de formulario en lugar de un `500`. Una fecha con un año
-inválido, por ejemplo `20226`, puede superar la regla genérica `date` y
+inválido, por ejemplo `20226`, podía superar la regla genérica `date` y
 provocar después `Carbon\InvalidFormatException` cuando el controlador
-consume `Y-m-d H:i`. No se corrigió en 6.F.3F para no mezclar scopes.
+consumía `Y-m-d H:i`. No se corrigió en 6.F.3F para no mezclar scopes.
 
-Permanecen vigentes y separadas la mejora visual del PDF de competición, el
-defecto del dropdown CMS identificado en la instantánea histórica 67/68 y las
-23 incidencias Pint globales preexistentes.
+En aquel cierre permanecían vigentes y separadas la mejora visual del PDF de
+competición, el defecto del dropdown CMS identificado en la instantánea
+histórica 67/68 y las 23 incidencias Pint globales preexistentes.
 
 ## PUBLIC-OFFICIAL-RESULT-API-6F3G-1 — API pública de resultados oficiales (CLOSED / PASS)
 
@@ -2456,7 +2488,7 @@ partidos ante valores como `20226`, la mejora visual del PDF por jornadas/fases,
 las superficies oscuras de Clasificación/Calendario/Copa y el rollback
 rehearsal histórico no ejecutado. P1.D cerró después la implementación y
 maquinaria de backfill; las superficies oscuras pertenecen a 5.6 y la fecha
-estricta abre 5.7-A.
+estricta abrió entonces 5.7-A.
 
 ## COMPETITION-COVERS-6C — Portadas opcionales de competición (CLOSED / PASS)
 

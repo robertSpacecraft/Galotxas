@@ -24,17 +24,21 @@ que requiere autorización explícita; no es un bloque de implementación abiert
 ni un requisito para cerrar P1.D.
 
 La auditoría CURRENT-STATE de **5.7 — Hardening P1/P2 vigente** está completada
-y su descomposición risk-first ha sido aprobada. No se encontró ningún P0. El
-siguiente bloque activo de implementación es **5.7-A — Validación estricta de
-fecha en administración de partidos**: backend/admin únicamente, sin migración
-ni cambio de API pública.
+y su descomposición risk-first ha sido aprobada. No se encontró ningún P0.
+**5.7-A — Validación estricta de fecha en administración de partidos** está
+completado y cerrado canónicamente: regresión automatizada y aceptación manual
+de staging en PASS, con el código promovido a `main`. Producción no dispone de
+datos de competición representativos para repetir el smoke manual dependiente
+de partidos; no se fabricaron datos y esa limitación aceptada no reabre 5.7-A.
 
-La secuencia canónica del tranche P1/P2 es 5.7-A, 5.7-B, 5.7-C, 5.7-E, 5.7-F,
-5.7-J, 5.7-G, 5.7-H, 5.7-D y 5.7-Q1. Sólo podrá reordenarse si un bloque cerrado
-descubre una dependencia. E, F, J y H conservan gates explícitos antes de
-implementarse; D depende de C. Las mejoras de producto no decididas y el
-cleanup P3 no bloquean el cierre del tranche. `06-roadmap.md` conserva el
-alcance, las dependencias, las gates y los propietarios externos completos.
+El siguiente bloque activo es **5.7-B — Privacidad del recurso de partidos de
+participante**. La secuencia canónica restante del tranche P1/P2 es 5.7-B,
+5.7-C, 5.7-E, 5.7-F, 5.7-J, 5.7-G, 5.7-H, 5.7-D y 5.7-Q1. Sólo podrá
+reordenarse si un bloque cerrado descubre una dependencia. E, F, J y H
+conservan gates explícitos antes de implementarse; D depende de C. Las mejoras
+de producto no decididas y el cleanup P3 no bloquean el cierre del tranche.
+`06-roadmap.md` conserva el alcance, las dependencias, las gates y los
+propietarios externos completos.
 
 | Bloque | Estado |
 | --- | --- |
