@@ -2278,6 +2278,88 @@ no se fabricaron datos y no se atribuye una aceptación productiva de esos
 casos. La evidencia automatizada y de staging se acepta como suficiente para
 cerrar 5.7-A; esta limitación no lo reabre.
 
+## 5.7-B — Privacidad del recurso de partidos de participante (CLOSED / PASS, 2026-09-19)
+
+El commit funcional `1a628f2120e911daaea6f36bbc9003471c600271` cerró la
+minimización de `GET /api/v1/me/matches` y de los partidos de
+`GET /api/v1/me/calendar`, que pasan a serializarse con
+`ParticipantMatchResource`. Estas cifras son una instantánea fechada de 5.7-B,
+no totales fijos de la suite:
+
+- `ParticipantMatchPrivacyTest`: 10 tests; 152 aserciones en la primera
+  ejecución focal y **155** aserciones tras el endurecimiento final de tests;
+- regresión backend dirigida: 115 tests y 1.269 aserciones, PASS;
+- suite backend oficial: 1.719 tests y 17.482 aserciones, PASS, ejecutada
+  **antes** del endurecimiento final de tests y no repetida después;
+- frontend dirigido: 4 archivos y 21 tests, PASS;
+- ejecución backend mediante el runner aislado MariaDB, exit 0;
+- `php -l`, Pint sobre archivos afectados y `git diff --check`: PASS; la deuda
+  global de Pint no se reparó.
+
+Cronología: las ejecuciones dirigida y completa son anteriores al
+endurecimiento final. Éste fue exclusivamente de tests: añadió
+`round.category.championship.season.status` a las rutas prohibidas y sustituyó
+`assertSame` sobre `array_keys` por `assertEqualsCanonicalizing`, de modo que el
+contrato exige el conjunto exacto de claves sin fijar el orden de propiedades
+JSON. No cambió código de producción y la suite completa no se repitió por ese
+motivo. No existe un total completo posterior al endurecimiento.
+
+La cobertura Feature sobre MariaDB aislada verifica:
+
+- allowlist exacta de claves de `/me/matches` —en el partido y en la entrada
+  local— y de los partidos de `/me/calendar`, que no incluyen `winner_entry`
+  porque el controlador no carga esa relación;
+- ausencia recursiva de emails: reportante rival, propietario y validador, más
+  una comprobación general sobre el dominio de los datos de prueba;
+- ausencia de `result_reports`, comentarios y cualquier identificador o
+  timestamp de reporte, con un reporte real de comentario y email distintivos
+  creado en base de datos;
+- ausencia de `submitted_by`, `validated_by`, `submitted_by_user` y
+  `validated_by_user` aunque existan en base de datos;
+- ausencia de claves foráneas internas, timestamps y metadatos exclusivos del
+  Resource heredado, incluidos `round.order`, `slug`, `level`, `gender` y
+  `status` de categoría, `slug` y `type` de campeonato y `season.status`;
+- un tanteo almacenado en un partido `submitted` queda oculto en ambos
+  endpoints (`home_score`, `away_score` y, en `/me/matches`, `winner_entry`
+  nulos);
+- un partido `validated` publica sus tanteos y, en `/me/matches`, su
+  `winner_entry`, sin `winner_entry_id`;
+- dobles conservados: entrada de equipo y miembros, sin comentarios ni emails
+  de la pareja o del rival;
+- aislamiento de un jugador ajeno, que recibe una colección vacía;
+- agrupación por día del calendario, identidad y contexto de categoría que
+  consume `MatchCard`; `MyPanelTest` sólo retiró la aserción de
+  `home_entry_id`, campo eliminado por diseño.
+
+La regresión sin modificar cubre `PendingMatchActionsTest`, el workflow de
+resultados, dobles y Copa, la visibilidad pública/privada relevante para Mi
+Panel y workflow, el usuario activo y el rate limiting de resultados. Incluye
+`PublicMatchResourceTest`, con
+`test_admin_conflict_endpoint_keeps_internal_traceability` —el contrato
+administrativo conserva `submitted_by`, `validated_by` y el email del
+reportante—, `PublicCompetitionIdentityTest` y `AdminMatchConflictResolutionTest`.
+Los resultados públicos validados permanecen sin cambios. El frontend dirigido
+fue `Dashboard`, `PendingMatchActions`, `MatchWorkflow` y `MatchDetails`; no
+existe test de `MatchCard` y no cambió código React. Las reprogramaciones no se
+tocaron y su contrato pertenece a 5.7-C.
+
+Aceptación registrada, sin atribuir capturas de payload ni escenarios
+adicionales a los observados:
+
+- **Staging:** el SHA exacto se desplegó correctamente en Railway
+  (`backend-staging`) con healthcheck superado, y la aceptación humana fue PASS:
+  las superficies de Mi Panel y del flujo de resultados revisadas manualmente
+  se mostraron correctas y no se reportó ninguna anomalía. El caso de un
+  partido `submitted` con tanteos almacenados por la administración está
+  cubierto por los tests automatizados y no se atribuye a esa revisión manual.
+- **Producción:** el SHA exacto se desplegó con estado SUCCESS en Railway
+  (`backend-production`), con arranque y readiness correctos y tráfico HTTP de
+  salud con `200`. La evidencia es exclusivamente de despliegue y salud.
+  Producción no contiene datos de competición representativos para un smoke
+  funcional de privacidad de partidos de participante; no se fabricaron datos y
+  no se atribuye una comprobación funcional no realizada. Esa limitación no
+  reabre 5.7-B.
+
 
 # 11. Evolución
 

@@ -31,14 +31,31 @@ de staging en PASS, con el código promovido a `main`. Producción no dispone de
 datos de competición representativos para repetir el smoke manual dependiente
 de partidos; no se fabricaron datos y esa limitación aceptada no reabre 5.7-A.
 
-El siguiente bloque activo es **5.7-B — Privacidad del recurso de partidos de
-participante**. La secuencia canónica restante del tranche P1/P2 es 5.7-B,
-5.7-C, 5.7-E, 5.7-F, 5.7-J, 5.7-G, 5.7-H, 5.7-D y 5.7-Q1. Sólo podrá
-reordenarse si un bloque cerrado descubre una dependencia. E, F, J y H
-conservan gates explícitos antes de implementarse; D depende de C. Las mejoras
-de producto no decididas y el cleanup P3 no bloquean el cierre del tranche.
-`06-roadmap.md` conserva el alcance, las dependencias, las gates y los
-propietarios externos completos.
+**5.7-B — Privacidad del recurso de partidos de participante** está completado
+y cerrado canónicamente. El commit funcional es
+`1a628f2120e911daaea6f36bbc9003471c600271`, promovido a `main` por
+fast-forward antes de este cierre documental.
+`GET /me/matches` y los partidos de `GET /me/calendar` se serializan con
+`ParticipantMatchResource` mediante allowlists exactas, sin reportes,
+comentarios, emails ni trazabilidad de actores, y con tanteo y ganador sólo
+cuando el partido está `validated`. `MatchResource` administrativo,
+`PublicMatchResource` y las reprogramaciones no cambiaron. No hubo migración ni
+cambio de código React. La regresión automatizada está en PASS; staging desplegó
+el SHA exacto y la aceptación humana fue PASS; producción desplegó el SHA exacto
+y superó el arranque y la salud HTTP. Producción no dispone de datos de
+competición representativos, así que su evidencia es sólo de despliegue y salud:
+no hubo smoke funcional y no se fabricaron datos. La gate de producto/privacidad
+sobre la identidad privada de participantes y de menores en contextos
+autenticados sigue abierta y no forma parte de 5.7-B.
+
+El siguiente bloque activo es **5.7-C — Hardening de la API de
+reprogramaciones**. La secuencia canónica restante del tranche P1/P2 es 5.7-C,
+5.7-E, 5.7-F, 5.7-J, 5.7-G, 5.7-H, 5.7-D y 5.7-Q1. Sólo podrá reordenarse si un
+bloque cerrado descubre una dependencia. E, F, J y H conservan gates explícitos
+antes de implementarse; D depende de C. Las mejoras de producto no decididas y
+el cleanup P3 no bloquean el cierre del tranche. `06-roadmap.md` conserva el
+alcance, las dependencias, las gates y los propietarios externos completos, y
+el detalle de la evidencia de 5.7-B.
 
 | Bloque | Estado |
 | --- | --- |

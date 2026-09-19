@@ -604,7 +604,7 @@ difirió al programa P1 independiente. Su implementación y la maquinaria de
 backfill quedaron cerradas después con P1.D; un APPLY productivo futuro es una
 operación separada, no deuda de implementación.
 
-### 5. 5.7 — Hardening P1/P2 vigente (AUDITORÍA CERRADA / SIGUIENTE: 5.7-B)
+### 5. 5.7 — Hardening P1/P2 vigente (AUDITORÍA CERRADA / SIGUIENTE: 5.7-C)
 
 P1.D — backfill de masters legacy — queda completado mediante P1.D.2 cerrado
 hasta producción y P1.D.3 aceptado en staging. D3 ejecutó un único canary APPLY
@@ -642,6 +642,59 @@ partidos; por decisión humana no se fabricaron datos ni se atribuye un smoke
 manual productivo no realizado. Esta limitación no reabre 5.7-A ni cierra el
 programa 5.7.
 
+**5.7-B queda CLOSED / PASS.** El commit funcional
+`1a628f2120e911daaea6f36bbc9003471c600271`
+(`fix(api): minimizar recursos de partidos de participante`) sustituye el
+`MatchResource` amplio por `ParticipantMatchResource` en `GET /api/v1/me/matches`
+y en los partidos de `GET /api/v1/me/calendar`, con allowlists exactas. Ambas
+respuestas dejan de incluir `result_reports`, comentarios y email del
+reportante, `submitted_by`/`validated_by` y sus objetos de usuario, claves
+foráneas internas, timestamps y metadatos editoriales exclusivos del Resource
+heredado. La consulta de participante ya no carga `resultReports.user`,
+`resultReports.player.user`, `submittedBy` ni `validatedBy`, y
+`pending-actions` carga por sí solo `resultReports`. Los tanteos y el ganador
+siguen la semántica validada de `ParticipantMatchResource`: un tanteo
+almacenado en un partido `submitted` —estado que la administración puede
+producir— deja de exponerse hasta que el partido está `validated`, mientras los
+tanteos validados siguen visibles. `MatchResource` y `MatchResultReportResource`
+administrativos, `PublicMatchResource` —los resultados públicos validados se
+publican exactamente como antes— y los endpoints de reprogramación permanecen
+sin cambios; estos últimos pertenecen a 5.7-C. No hubo migración, cambio de
+configuración ni cambio de código React, y `03-api-contract.md` recoge el
+contrato.
+
+La evidencia automatizada es una instantánea fechada, no un total fijo:
+`ParticipantMatchPrivacyTest` con 10 tests y 155 aserciones tras un
+endurecimiento final exclusivamente de tests (10 y 152 antes de él), regresión
+backend dirigida de 115 tests y 1.269 aserciones, suite backend oficial sobre
+MariaDB aislada de 1.719 tests y 17.482 aserciones, y 21 tests frontend
+dirigidos, todos en PASS, además de `php -l`, Pint sobre archivos afectados y
+`git diff --check`. Las ejecuciones dirigida y completa son anteriores a ese
+endurecimiento final, que añadió `season.status` a las rutas prohibidas y
+sustituyó la comparación de claves sensible al orden por una de conjunto
+exacto; la suite completa no se repitió por tratarse de un cambio sólo de
+tests. La deuda global de Pint no se reparó.
+
+Staging desplegó el SHA exacto con healthcheck correcto y la aceptación humana
+fue PASS: la revisión manual de las superficies de Mi Panel y del flujo de
+resultados fue correcta y no se reportó ninguna anomalía. El caso de un partido
+`submitted` con tanteos almacenados por la administración está cubierto por
+tests automatizados y no se atribuye a esa revisión manual. El código se
+promovió a `main` por fast-forward, sin merge commit. Producción desplegó el
+mismo SHA con estado SUCCESS, arranque y readiness correctos y tráfico HTTP de
+salud con `200`, pero no dispone de datos de competición representativos para
+un smoke funcional de privacidad de partidos de participante; no se fabricaron
+datos y su evidencia es exclusivamente de despliegue y salud. Esa limitación
+no reabre 5.7-B ni cierra el programa 5.7.
+
+Permanecen abiertos, fuera de 5.7-B: la gate de producto/privacidad sobre la
+identidad privada que `ParticipantMatchResource` conserva deliberadamente
+(nombre, apellidos y alias de los participantes, rival incluido) y sobre el
+trato de la identidad de menores en contextos autenticados, frente a un
+`public_display_name` fail-closed; y la hidratación innecesaria de
+`resultReports.user` y `resultReports.player.user` en `confirmResult()`, que no
+se serializa y queda como higiene diferida.
+
 #### Tranche canónico P1/P2
 
 El orden siguiente es canónico. Sólo podrá reordenarse cuando un bloque cerrado
@@ -650,8 +703,8 @@ descubra una dependencia:
 | Bloque | Alcance cerrado | Gate, migración o dependencia |
 | --- | --- | --- |
 | **5.7-A — Validación estricta de fecha en administración de partidos** | Fecha real/canónica, mínimo técnico, máximo funcional dinámico, mensajes en castellano y aviso histórico no bloqueante antes de Carbon o mutación. | **CLOSED / PASS**. Backend/admin; sin migración ni cambio de API pública. |
-| **5.7-B — Privacidad del recurso de partidos de participante** | Minimizar los payloads autenticados de partidos/reportes y retirar campos personales o internos innecesarios, incluido el email del reportante cuando la UX no lo requiera. | **Siguiente bloque activo**. Sin migración; contracción explícita de respuesta autenticada; tests y aceptación en staging. |
-| **5.7-C — Hardening de la API de reprogramaciones** | Form Requests dedicados, fecha estricta, Resources mínimos, throttling y tests de autorización, privacidad y validación. Conserva el workflow vigente. | Sin cancelación, rechazo ni estados nuevos; no se espera migración. |
+| **5.7-B — Privacidad del recurso de partidos de participante** | Minimizar los payloads autenticados de partidos/reportes y retirar campos personales o internos innecesarios, incluido el email del reportante cuando la UX no lo requiera. | **CLOSED / PASS**. Backend/API autenticada; sin migración ni cambio de código React; staging PASS y producción con despliegue/salud PASS, sin smoke funcional por falta de datos representativos. |
+| **5.7-C — Hardening de la API de reprogramaciones** | Form Requests dedicados, fecha estricta, Resources mínimos, throttling y tests de autorización, privacidad y validación. Conserva el workflow vigente. | **Siguiente bloque activo**. Sin cancelación, rechazo ni estados nuevos; no se espera migración. |
 | **5.7-E — Integridad de `CategoryEntry`** | Preflight y garantías para impedir identidad ambos/ninguno, asociaciones incoherentes y duplicados. Añadirá garantías DB cuando sean seguras. | Gate previo sobre reglas exactas de identidad/duplicado; migración probable y disciplina forward-only. |
 | **5.7-F — Ocupación compartida de pistas** | Hacer común a generación y reprogramación la invariante física pista/tiempo entre competiciones, con protección concurrente. | Gate previo de política; migración/constraint desconocida hasta fijarlo. |
 | **5.7-J — Hardening de sesión de autenticación** | Bloque de arquitectura de seguridad separado para el riesgo del Bearer durable en `localStorage`. | Gate de cookies, SameSite/CSRF, CORS, expiración/revocación, transición y rollback. Trabajo cross-layer de alto riesgo; no se mezcla con B/C. |
@@ -676,7 +729,9 @@ No se implementarán hasta recibir una decisión explícita:
 - política exacta de ocupación compartida de pistas;
 - reglas exactas de identidad/duplicado de `CategoryEntry`;
 - normalización y case-sensitivity del nombre de pista;
-- topología cookie/sesión de autenticación.
+- topología cookie/sesión de autenticación;
+- identidad privada de participantes y trato de la identidad de menores en
+  contextos autenticados (`ParticipantMatchResource`).
 
 El vaciado explícito de campos nullable del perfil se conserva como defecto
 pequeño conocido, pero queda dentro de la gate de perfil mientras no se pruebe
@@ -688,9 +743,9 @@ No son requisitos para cerrar el tranche P1/P2: las 23 incidencias actuales de
 Pint, una matriz de navegadores sin defecto concreto, expansión genérica de
 smoke, OpenAPI, normalización genérica de envelopes, limpieza del árbol frontend
 no usado, división de `Dashboard.jsx` y mantenimiento general. La división de
-`Api\V1\MatchController` sólo se adelantará tras 5.7-B/C si resulta necesaria
-para mantener fronteras claras de seguridad o validación. No existirá una fase
-genérica de “limpiarlo todo”.
+`Api\V1\MatchController` sólo se adelantará tras 5.7-C si resulta necesaria
+para mantener fronteras claras de seguridad o validación; 5.7-B no la requirió.
+No existirá una fase genérica de “limpiarlo todo”.
 
 #### Límites de propiedad
 
@@ -827,8 +882,10 @@ avanzada de perfil permanece tras una gate de producto; no se repiten aquí:
 
 ## API y seguridad
 
-- 5.7-B y 5.7-C poseen la minimización de Resources de participante y el
-  hardening acotado de reprogramaciones;
+- 5.7-B (CLOSED / PASS) minimizó los Resources de participante de `/me/matches`
+  y `/me/calendar`; 5.7-C posee el hardening acotado de reprogramaciones, incluido
+  su Resource, y la identidad privada de participantes y de menores conserva su
+  gate de producto/privacidad;
 - 5.7-J conserva como trade-off real que un XSS puede exfiltrar el Bearer
   durable almacenado en `localStorage`; la migración no responde a un exploit
   activo acreditado y exige su gate propia de arquitectura/despliegue;
@@ -852,8 +909,8 @@ avanzada de perfil permanece tras una gate de producto; no se repiten aquí:
 ## Mantenibilidad
 
 - La división de `Dashboard.jsx`, el árbol frontend no usado y el mantenimiento
-  general son P3 no bloqueante. `Api\V1\MatchController` sólo se divide si B/C
-  demuestran que lo necesitan para preservar fronteras claras.
+  general son P3 no bloqueante. `Api\V1\MatchController` sólo se divide si 5.7-C
+  demuestra que lo necesita para preservar fronteras claras; 5.7-B no lo requirió.
 - Las rutas/adaptadores de compatibilidad pertenecen a 5.4 y no se retiran en
   5.7.
 - Railway Config-as-Code ya está representado y verificado en el repositorio;
