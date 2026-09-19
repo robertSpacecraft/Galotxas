@@ -90,7 +90,7 @@ class MatchController extends Controller
             ->get();
 
         return $this->successResponse(
-            MatchResource::collection($matches)
+            ParticipantMatchResource::collection($matches)
         );
     }
 
@@ -104,6 +104,7 @@ class MatchController extends Controller
         }
 
         $matches = $this->basePlayerMatchesQuery($player)
+            ->with('resultReports')
             ->orderBy('scheduled_date')
             ->orderBy('id')
             ->get();
@@ -407,10 +408,6 @@ class MatchController extends Controller
                 'winnerEntry.team.players.user',
                 'venue',
                 'round.category.championship.season',
-                'resultReports.user',
-                'resultReports.player.user',
-                'submittedBy',
-                'validatedBy',
             ])
             ->where(function ($query) use ($player) {
                 $query

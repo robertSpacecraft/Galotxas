@@ -14,7 +14,7 @@ class CalendarDayResource extends JsonResource
     {
         return [
             'date' => $this->resource['date'],
-            'matches' => MatchResource::collection($this->resource['matches']),
+            'matches' => ParticipantMatchResource::collection($this->resource['matches']),
         ];
     }
 }

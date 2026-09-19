@@ -305,7 +305,6 @@ class MyPanelTest extends TestCase
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.date', '2026-07-15')
             ->assertJsonPath('data.0.matches.0.id', $match->id)
-            ->assertJsonPath('data.0.matches.0.home_entry_id', $match->home_entry_id)
             ->assertJsonPath('data.0.matches.0.home_entry.player.id', $player->id)
             ->assertJsonPath('data.0.matches.0.home_entry.player.name', 'Jugador')
             ->assertJsonPath('data.0.matches.0.home_entry.player.lastname', 'Calendario')

@@ -172,9 +172,9 @@ Las rutas restantes de esta tabla exigen conjuntamente token Sanctum y usuario a
 | `POST` | `/me/player-profile` | `PlayerProfileResource` |
 | `PATCH` | `/me/player-profile` | `PlayerProfileResource`; solo apodo, mano dominante y notas |
 | `GET` | `/me/championship-registrations` | colección `ChampionshipRegistrationRequestResource` |
-| `GET` | `/me/matches` | colección del `MatchResource` privado heredado |
+| `GET` | `/me/matches` | colección `ParticipantMatchResource` |
 | `GET` | `/me/matches/pending-actions` | colección `PendingMatchActionResource` |
-| `GET` | `/me/calendar` | colección `CalendarDayResource`, con partidos en `MatchResource` |
+| `GET` | `/me/calendar` | colección `CalendarDayResource`, con partidos en `ParticipantMatchResource` |
 | `GET` | `/me/rankings` | colección `MyRankingResource` |
 | `GET` | `/matches/{gameMatch}/workflow` | `PublicMatchResource` o Resources mínimos de participante según contexto |
 | `POST` | `/matches/{gameMatch}/submit-result` | `ParticipantMatchResource` y `ParticipantMatchResultReportResource` |
@@ -563,7 +563,9 @@ Estas rutas no publican la foto ni amplían `public_competition_identity`.
 }
 ```
 
-Cada elemento de `matches` se serializa mediante `MatchResource`.
+Cada elemento de `matches` se serializa mediante `ParticipantMatchResource`, igual que `GET /api/v1/me/matches`. `MatchResource` deja de usarse en estos dos contratos de Mi Panel; los endpoints de reprogramación conservan su contrato actual hasta 5.7-C.
+
+El controlador del calendario no carga `winnerEntry`, `resultReports`, `submittedBy`, `validatedBy` ni `season`; `ParticipantMatchResource` usa `whenLoaded`, por lo que `winner_entry` no aparece en el calendario y `round.category.championship.season` es `null` en este contexto.
 
 El endpoint no devuelve modelos Eloquent directamente ni expone relaciones completas de forma implícita.
 
@@ -641,6 +643,84 @@ Los consumidores deben añadir únicamente el formato visual del porcentaje. No 
 
 ## Resultados de partidos para participantes
 
+### Contrato mínimo de partidos de participante
+
+Los siguientes payloads autenticados de Mi Panel y del flujo de resultados se
+serializan mediante `ParticipantMatchResource`:
+
+- `GET /me/matches`;
+- los partidos de `GET /me/calendar`;
+- `GET /me/matches/pending-actions`, envuelto por `PendingMatchActionResource`;
+- el `match` de participante de `GET /matches/{gameMatch}/workflow`;
+- las respuestas de `POST /matches/{gameMatch}/submit-result` y
+  `POST /matches/{gameMatch}/confirm-result`.
+
+Los endpoints de reprogramación quedan fuera de esta lista. Siguen siendo
+contextos autenticados de participante, pero conservan sin cambios
+`MatchResource` y `MatchRescheduleRequestResource`, y pertenecen a 5.7-C. La API
+administrativa conserva también el `MatchResource` amplio y
+`MatchResultReportResource`, incluidos responsables y email del reportante,
+porque la resolución de conflictos exige esa trazabilidad.
+
+La allowlist top-level es la siguiente; los objetos anidados se muestran de
+forma resumida:
+
+```json
+{
+    "id": 42,
+    "scheduled_date": "2026-07-15T18:30:00.000000Z",
+    "status": "scheduled",
+    "home_score": null,
+    "away_score": null,
+    "home_entry": {
+        "id": 7,
+        "entry_type": "player",
+        "public_display_name": "Local",
+        "player": { "id": 3, "name": "Jugador", "lastname": "Local", "nickname": "Local" },
+        "team": null
+    },
+    "away_entry": {},
+    "winner_entry": null,
+    "venue": { "id": 1, "name": "Pista Central" },
+    "round": {}
+}
+```
+
+Estos contratos excluyen explícitamente:
+
+- `result_reports` y cualquier comentario, identificador o timestamp de reporte;
+- el email y el objeto de usuario del reportante;
+- `submitted_by`, `validated_by`, `submitted_by_user` y `validated_by_user`;
+- `round_id`, `venue_id`, `home_entry_id`, `away_entry_id` y `winner_entry_id`;
+- `entry.player_id` y `entry.team_id`;
+- `created_at` y `updated_at`;
+- `round.order`, `category.slug`, `category.level`, `category.gender`,
+  `category.status`, `championship.slug`, `championship.type` y `season.status`.
+
+`home_score`, `away_score` y `winner_entry` siguen la semántica validada de
+`ParticipantMatchResource`: sólo se publican cuando el partido está `validated`.
+Un tanteo almacenado en un partido `submitted` —estado que la administración
+puede producir— no se expone por estos endpoints. Las claves opcionales dependen
+de las relaciones cargadas por cada controlador, de modo que `winner_entry` no
+aparece en el calendario.
+
+`ParticipantMatchResource` conserva deliberadamente identidad privada de los
+participantes del partido —el jugador autenticado, su pareja en dobles y el
+rival— junto a `public_display_name`: `player.id`, `player.name`,
+`player.lastname`, `player.nickname`, `team.id`, `team.name` y los miembros del
+equipo. Es el trato previsto para un contexto privado en
+`21-privacy-hardening-and-public-identity.md`, no una proyección pública. React
+lee esos campos en `MatchCard`, `PendingMatchActions` y `MatchWorkflow`. Su
+posible minimización, y el trato de la identidad de menores en contextos
+autenticados, siguen siendo una decisión de producto/privacidad pendiente y no
+forman parte de este contrato.
+
+La consulta de partidos de participante no carga `resultReports.user`,
+`resultReports.player.user`, `submittedBy` ni `validatedBy`.
+`GET /me/matches/pending-actions` añade por sí solo `resultReports` porque
+necesita el lado y el jugador de cada reporte para clasificar la acción, sin
+hidratar el usuario del reportante.
+
 ### Acciones pendientes de Mi Panel
 
 `GET /api/v1/me/matches/pending-actions` requiere Sanctum y usuario activo. Devuelve una colección plana con una entrada por partido relevante para el jugador autenticado:
@@ -716,7 +796,7 @@ La gestión privada del resultado se realiza con endpoints autenticados bajo San
 - si el jugador participa, `match` se serializa mediante `ParticipantMatchResource` y los reportes visibles se serializan mediante `ParticipantMatchResultReportResource`;
 - las respuestas de `submit-result` y `confirm-result` utilizan los mismos Resources seguros del participante.
 
-`ParticipantMatchResource` expone únicamente el partido, participantes visibles, fecha, estado, pista y jerarquía competitiva básica que necesita React. No incluye reportes, emails, responsables internos ni timestamps de trazabilidad. Los tanteos y el ganador validados sólo se incluyen cuando el partido está `validated`; no representan una versión oficial de categoría.
+`ParticipantMatchResource` expone únicamente el partido, participantes visibles, fecha, estado, pista y jerarquía competitiva básica que necesita React. No incluye reportes, emails, responsables internos ni timestamps de trazabilidad. Los tanteos y el ganador validados sólo se incluyen cuando el partido está `validated`; no representan una versión oficial de categoría. Es el mismo Resource que sirven `GET /me/matches` y los partidos de `GET /me/calendar`; su allowlist completa se describe en «Contrato mínimo de partidos de participante».
 
 `ParticipantMatchResultReportResource` expone solo lado, tanteos, estado y comentario. No incluye `user_id`, `player_id`, email ni objetos de usuario.
 
@@ -756,7 +836,7 @@ El backend expone tres endpoints autenticados independientes:
 
 La solicitud acepta `scheduled_date`, `scheduled_time`, `venue_id` y un comentario opcional de hasta 2.000 caracteres. Solo puede actuar un participante; en dobles, cualquiera de sus miembros representa al lado. El rival confirma la propuesta existente, tras lo cual se actualizan fecha y pista dentro de la misma transacción.
 
-El backend rechaza partidos cerrados y colisiones exactas de pista/fecha/hora dentro del mismo campeonato. El contrato actual usa el `MatchResource` amplio y `MatchRescheduleRequestResource`, que incluye trazabilidad autorizada para este flujo privado. El mismo lado puede actualizar su propuesta antes de que exista una propuesta rival y estos endpoints todavía no tienen rate limiting específico.
+El backend rechaza partidos cerrados y colisiones exactas de pista/fecha/hora dentro del mismo campeonato. El contrato actual usa el `MatchResource` amplio y `MatchRescheduleRequestResource`, que incluye trazabilidad autorizada para este flujo privado; la minimización de participante aplicada a `/me/matches` y `/me/calendar` no alcanza a estos endpoints, que permanecen sin cambios bajo 5.7-C. El mismo lado puede actualizar su propuesta antes de que exista una propuesta rival y estos endpoints todavía no tienen rate limiting específico.
 
 La UI React de reprogramación no está implementada y queda fuera del cierre bloqueante del MVP.
 
