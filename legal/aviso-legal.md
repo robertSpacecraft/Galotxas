@@ -2,61 +2,64 @@
 id: LEG-001
 title: Aviso legal
 slug: aviso-legal
-version: 1.0.0
+version: 1.1.0
 status: vigente
-published_at: 2026-08-06
-reviewed_at: 2026-08-06
+published_at: 2026-09-19
+reviewed_at: 2026-09-19
 owner: Club Galotxes de Monover
 source_draft: docs/legal-drafts/aviso-legal.borrador.md
 summary: Identificación del titular, condiciones de uso y responsabilidades del sitio web de Galotxas.
 ---
 # Aviso legal
 
-## Titular del sitio
+## 1. Identificación del titular
 
-Este sitio web pertenece a **Club Galotxes de Monover**, que utiliza públicamente la denominación **Club Galotxes Monòver**.
+En cumplimiento de lo dispuesto en la Ley 34/2002, de 11 de julio, de servicios de la sociedad de la información y de comercio electrónico (LSSI-CE), se informa de que el titular de este sitio web es:
 
-- CIF: G03912193.
-- Domicilio social: C/ Pierrot, 1, 1.º, 03640 Monóvar, Alicante.
-- Correo público: clubgalotxesmonover@hotmail.com.
-- Presidente y responsable web: Jorge Sánchez Romero.
+**Titular:** Club Galotxes de Monover, que utiliza públicamente la denominación Club Galotxes Monòver.
 
-La presidencia y la responsabilidad web indicadas no se presentan como acreditación de una representación legal general distinta de esas funciones. Las instalaciones deportivas habituales están en el **Centro Polideportivo de Monóvar**, Av. Novelda, s/n, 03640 Monòver, Alicante, y no constituyen el domicilio social.
+**CIF:** G03912193.
 
-## Objeto del sitio
+**Domicilio social:** C/ Pierrot, 1, 1.º, 03640 Monóvar (Alicante).
 
-Galotxas ofrece información institucional del club, conocimiento sobre el deporte, datos de competiciones, información de la Escuela de Galotxas y acceso a servicios para personas usuarias registradas. Los contenidos y servicios disponibles pueden cambiar para mantener su exactitud, seguridad y utilidad.
+**Correo electrónico:** clubgalotxesmonover@hotmail.com.
 
-## Acceso y uso
+El presente sitio web tiene como finalidad facilitar información sobre el Club Galotxes Monòver, su actividad deportiva, competiciones, eventos, noticias y demás actividades relacionadas con el Club.
 
-El acceso a las áreas públicas es libre. Algunas funciones requieren una cuenta o permisos administrativos. La persona usuaria debe utilizar el sitio de forma lícita, respetar a otras personas y no intentar acceder a información, cuentas o sistemas para los que no esté autorizada.
+## 2. Condiciones de uso
 
-No se permite interferir en el funcionamiento del servicio, introducir código malicioso, suplantar identidades ni reutilizar datos personales obtenidos del sitio para finalidades incompatibles con su publicación.
+El acceso y navegación por este sitio web atribuyen la condición de usuario e implican la aceptación de las condiciones establecidas en este Aviso Legal.
 
-## Contenidos y disponibilidad
+El usuario se compromete a utilizar el sitio web y sus contenidos de forma lícita, diligente y conforme a la legislación vigente, absteniéndose de realizar cualquier actuación que pueda dañar, inutilizar o perjudicar el funcionamiento del sitio web o los derechos e intereses del Club o de terceros.
 
-El club procura que la información sea comprensible y esté actualizada, pero no puede garantizar la disponibilidad ininterrumpida ni la ausencia absoluta de errores. Los calendarios, resultados, clasificaciones y avisos operativos pueden corregirse cuando se detecte una incidencia o cambie la información de origen.
+El Club Galotxes Monòver se reserva el derecho a modificar, actualizar o eliminar, en cualquier momento y sin previo aviso, los contenidos del sitio web y el presente Aviso Legal.
 
-El acceso puede limitarse temporalmente por mantenimiento, seguridad, fallos de terceros o causas ajenas al control razonable del club. La información del sitio no sustituye las comunicaciones oficiales que resulten exigibles en cada caso.
+## 3. Propiedad intelectual e industrial
 
-## Enlaces externos
+Los contenidos de este sitio web, incluyendo, entre otros, textos, fotografías, imágenes, logotipos, elementos gráficos y demás materiales, están protegidos por la normativa sobre propiedad intelectual e industrial y pertenecen al Club Galotxes Monòver o se utilizan con la correspondiente autorización de sus titulares.
 
-El sitio puede incluir enlaces a páginas de terceros, como los perfiles sociales del club. Esos destinos se abren únicamente tras una acción de la persona usuaria. El club no controla sus contenidos, disponibilidad o políticas y la inclusión del enlace no implica aprobación de todo lo publicado por el tercero.
+No se permite su reproducción, distribución, comunicación pública, transformación o utilización con fines comerciales sin la autorización previa del Club o del correspondiente titular de los derechos, salvo en los casos permitidos por la legislación vigente.
 
-## Propiedad intelectual y derechos de terceros
+## 4. Responsabilidad
 
-Los textos, diseño, software, identidad gráfica y demás materiales propios están protegidos conforme a la normativa aplicable. Su presencia en el sitio no concede una licencia general de explotación. Se permiten la consulta y los usos legalmente autorizados, respetando siempre la autoría y la integridad del contenido.
+El Club Galotxes Monòver procura que la información publicada en este sitio web sea correcta y esté actualizada. No obstante, no puede garantizar la inexistencia de errores u omisiones ni la disponibilidad permanente del sitio web.
 
-Los materiales de terceros conservan sus derechos y condiciones de uso. Si una persona considera que un contenido vulnera sus derechos, puede comunicarlo al correo público del club aportando la información necesaria para localizarlo y revisar la solicitud.
+El Club no será responsable de los daños o perjuicios que pudieran derivarse de interferencias, interrupciones, virus informáticos, averías u otras incidencias ajenas a su control.
 
-## Comunicación de incidencias
+## 5. Enlaces a terceros
 
-Las incidencias técnicas, errores de contenido y solicitudes relacionadas con el sitio pueden comunicarse a clubgalotxesmonover@hotmail.com. No deben enviarse por ese canal contraseñas ni información personal innecesaria.
+Este sitio web puede contener enlaces a páginas web, plataformas o servicios de terceros que se facilitan únicamente para proporcionar información o contenidos de interés.
 
-## Legislación y jurisdicción
+El Club Galotxes Monòver no controla dichos sitios externos ni es responsable de sus contenidos, disponibilidad, seguridad o políticas de privacidad.
 
-Este aviso se interpreta conforme a la normativa española que resulte aplicable. Cualquier controversia se someterá a los órganos competentes determinados por la normativa vigente, respetando las reglas imperativas de protección de consumidores y personas usuarias cuando correspondan.
+La inclusión de estos enlaces no implica necesariamente la existencia de relación, colaboración o aprobación por parte del Club respecto de sus titulares o contenidos.
 
-## Vigencia
+## 6. Protección de datos
 
-La versión y la fecha de publicación mostradas en la cabecera identifican el texto vigente. El club podrá revisarlo cuando cambien el servicio, la normativa o las circunstancias relevantes.
+El tratamiento de los datos personales realizado a través de este sitio web se regirá por lo establecido en la Política de Privacidad.
+
+## 7. Legislación aplicable
+
+El presente Aviso Legal se rige por la legislación española.
+
+Cualquier controversia relacionada con el acceso o utilización de este sitio web se resolverá conforme a la normativa aplicable y ante los juzgados y tribunales que resulten competentes de acuerdo con la legislación vigente.

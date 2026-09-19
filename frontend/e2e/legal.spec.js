@@ -4,12 +4,12 @@ const legalDocuments = [
   {
     path: '/legal/aviso-legal',
     title: 'Aviso legal',
-    section: 'Titular del sitio',
+    section: '1. Identificación del titular',
   },
   {
     path: '/legal/privacidad',
     title: 'Política de privacidad',
-    section: 'Conservación',
+    section: '5. ¿Durante cuánto tiempo conservaremos los datos?',
   },
   {
     path: '/legal/cookies',
@@ -43,8 +43,8 @@ test.describe('páginas legales versionadas', () => {
     await expect(page).toHaveURL(/\/legal\/aviso-legal$/);
     await expect(page.getByRole('heading', { name: 'Aviso legal', level: 1 })).toBeVisible();
     await expect(page.locator('main h1')).toHaveCount(1);
-    await expect(page.getByText('1.0.0')).toBeVisible();
-    await expect(page.getByText('06/08/2026')).toBeVisible();
+    await expect(page.getByText('1.1.0')).toBeVisible();
+    await expect(page.getByText('19/09/2026')).toBeVisible();
     await expect(page).toHaveTitle('Aviso legal | Club Galotxes Monòver');
   });
 
@@ -129,7 +129,7 @@ test.describe('páginas legales versionadas', () => {
     }
   });
 
-  test('evita overflow crítico a 320 px con tablas legales desplazables', async ({ page }) => {
+  test('evita overflow crítico a 320 px en las páginas legales', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 740 });
 
     for (const path of ['/legal/privacidad', '/legal/cookies']) {

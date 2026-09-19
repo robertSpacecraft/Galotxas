@@ -6,7 +6,7 @@ describe('legalRepository', () => {
   it('provides exactly the public projection and no raw source data', () => {
     expect(legalRepository.getDocuments()).toHaveLength(3);
     expect(legalRepository.getDocumentById('LEG-001')).toEqual(
-      expect.objectContaining({ route: '/legal/aviso-legal', version: '1.0.0' }),
+      expect.objectContaining({ route: '/legal/aviso-legal', version: '1.1.0' }),
     );
     expect(legalRepository.getDocumentById('LEG-999')).toBeNull();
     expect(JSON.stringify(legalRepository.getDocuments())).not.toMatch(

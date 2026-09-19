@@ -2,129 +2,96 @@
 id: LEG-002
 title: Política de privacidad
 slug: privacidad
-version: 1.1.0
+version: 1.2.0
 status: vigente
-published_at: 2026-08-06
-reviewed_at: 2026-08-06
+published_at: 2026-09-19
+reviewed_at: 2026-09-19
 owner: Club Galotxes de Monover
 source_draft: docs/legal-drafts/privacidad.borrador.md
-summary: Información sobre los tratamientos de datos personales, sus finalidades, conservación y derechos.
+summary: Información sobre el tratamiento de datos personales, sus finalidades, bases jurídicas, conservación y derechos.
 ---
 # Política de privacidad
 
-## Responsable y contacto
+## 1. Responsable del tratamiento
 
-El responsable de los tratamientos descritos es **Club Galotxes de Monover**, con denominación pública **Club Galotxes Monòver**, CIF G03912193 y domicilio social en C/ Pierrot, 1, 1.º, 03640 Monóvar, Alicante. Jorge Sánchez Romero es el presidente y responsable web confirmado.
+**Responsable:** Club Galotxes de Monover, que utiliza públicamente la denominación Club Galotxes Monòver.
 
-Para consultas sobre privacidad o para ejercer derechos puede escribirse a clubgalotxesmonover@hotmail.com. Las instalaciones deportivas habituales, Centro Polideportivo de Monóvar, Av. Novelda, s/n, 03640 Monòver, Alicante, son distintas del domicilio social.
+**CIF:** G03912193.
 
-## Finalidades y bases
+**Domicilio:** C/ Pierrot, 1, 1.º, 03640 Monóvar (Alicante).
 
-Los datos se tratan sólo para finalidades determinadas y con la información necesaria en cada contexto.
+**Correo electrónico:** clubgalotxesmonover@hotmail.com.
 
-| Contexto | Finalidad | Fundamento previsto |
-|---|---|---|
-| Cuentas y autenticación | Crear y proteger la cuenta, permitir el acceso y recuperar credenciales | Ejecución de la relación solicitada, medidas precontractuales cuando correspondan y obligaciones aplicables |
-| Relación deportiva e inscripciones | Gestionar participantes, Escuela, competiciones, equipos, partidos, resultados y comunicaciones operativas | Gestión de la relación deportiva o de la inscripción y obligaciones aplicables |
-| Contacto | Recibir, organizar y responder una consulta cuando el formulario llegue a activarse | Consentimiento asociado al envío voluntario de la consulta |
-| Seguridad y administración | Prevenir abusos, limitar peticiones, diagnosticar incidencias y proteger cuentas y sistemas | Interés legítimo sujeto a validación y ponderación, además de las obligaciones aplicables |
-| Identidad deportiva pública | Mostrar una identidad opcional en resultados y otras superficies públicas | Consentimiento específico, verificable y revocable |
-| Imágenes y redes sociales | Publicar una imagen en cada canal autorizado | Consentimiento separado por finalidad y canal u otra base acreditada para el caso concreto |
-| Junta directiva | Informar de la composición y cargos del órgano del club | Función institucional y fundamento aplicable, con publicación limitada a nombre y cargo |
+El Club tratará los datos personales de conformidad con el Reglamento (UE) 2016/679, General de Protección de Datos (RGPD), y la Ley Orgánica 3/2018, de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD).
 
-Una aceptación necesaria para participar o inscribirse no autoriza por sí sola la publicación de la identidad o de imágenes. Esos usos requieren decisiones independientes.
+## 2. ¿Qué datos personales tratamos?
 
-## Cuentas, perfiles y autenticación
+En función de la relación del usuario con el Club y de los servicios utilizados, podrán tratarse datos identificativos y de contacto, datos necesarios para la inscripción y participación como socio, jugador o participante en actividades y competiciones, así como imágenes y vídeos relacionados con las actividades del Club.
 
-El registro y el área de cuenta pueden tratar nombre, apellidos, correo, credenciales protegidas, rol, estado de cuenta y tokens de acceso. El perfil deportivo puede incluir alias, fecha de nacimiento, nivel y otros datos necesarios para la gestión. Los identificadores de mayor impacto y las notas internas quedan restringidos a los contextos autorizados y no forman parte de las proyecciones públicas.
+En el caso de menores de edad, podrán tratarse además los datos necesarios de sus padres, madres o representantes legales.
 
-React conserva el token Bearer de autenticación en `localStorage.token`. El perfil se restaura desde el servidor y no se almacena en `localStorage.user`. El cierre de sesión elimina el token local correspondiente.
+El usuario deberá facilitar únicamente datos adecuados y necesarios para la finalidad correspondiente.
 
-## Contacto
+## 3. ¿Para qué tratamos sus datos y cuál es la base jurídica?
 
-El formulario de Contacto permanece desactivado. La página pública no recoge ni conserva campos de consulta. Antes de activarlo se informará de la finalidad, el plazo, el destinatario operativo y el proveedor de correo; la persona usuaria deberá realizar una acción afirmativa no premarcada.
+Los datos personales podrán ser tratados para las siguientes finalidades:
 
-Cuando se active, la consulta podrá incluir nombre, correo, asunto y mensaje, además de datos técnicos minimizados para prevenir abuso. No debe incorporarse información innecesaria en el texto libre.
+**Consultas y contacto.** Atender las consultas y solicitudes realizadas a través del formulario de contacto o de los demás canales habilitados. La base jurídica será el consentimiento manifestado al realizar la solicitud.
 
-## Escuela de Galotxas
+**Socios, jugadores, inscripciones y actividades deportivas.** Gestionar altas, inscripciones, participación en actividades y competiciones y, en general, la relación deportiva o asociativa con el Club. La base jurídica será la ejecución de la relación con el interesado o la aplicación de medidas solicitadas por este y, cuando corresponda, el cumplimiento de las obligaciones legales aplicables.
 
-La solicitud de Escuela puede incluir datos del participante, fecha de nacimiento, teléfono y correo de contacto, nivel opcional y, cuando sea menor, datos de su representante y relación con el menor. Esta información se utiliza para tramitar y gestionar la inscripción, no para publicar al alumno.
+**Comunicaciones informativas y promocionales.** Enviar, cuando corresponda, información sobre actividades, eventos, competiciones y otras novedades del Club. La base jurídica será el consentimiento cuando este resulte necesario. El interesado podrá solicitar en cualquier momento dejar de recibir estas comunicaciones.
 
-Los centros educativos y las actividades coordinadas con ellos son información interna y no se exponen mediante la API pública de Escuela.
+**Fotografías y vídeos.** Captar y, cuando corresponda, publicar imágenes o vídeos relacionados con las actividades, competiciones y eventos del Club en la página web, redes sociales y otros canales de comunicación del Club. La base jurídica dependerá de las circunstancias del tratamiento y, cuando sea necesario, se solicitará previamente el correspondiente consentimiento o autorización.
 
-## Competición e identidad deportiva pública
+## 4. Menores de edad
 
-La gestión deportiva trata inscripciones, equipos, partidos, resultados, clasificaciones, calendarios y reprogramaciones. La API pública utiliza una proyección minimizada y no publica identificadores personales, correo, fecha de nacimiento ni el perfil privado completo.
+El Club presta especial atención a la protección de los datos personales y la imagen de los menores.
 
-Para personas adultas, el sistema puede mostrar el alias deportivo y, si no existe, el nombre con la inicial del primer apellido. Para menores o personas cuya fecha de nacimiento no consta, la regla actual es cerrada: **sin autorización verificable y vigente se muestra “Participante”**. React representa esa cadena y no reconstruye una identidad con otros campos.
+Cuando el tratamiento de datos de un menor se base en el consentimiento y este tenga menos de 14 años, dicho consentimiento deberá ser prestado por sus padres, madres o representantes legales.
 
-## Menores y autorización de identidad pública
+Cuando resulte necesario, el Club solicitará las correspondientes autorizaciones para el tratamiento y publicación de imágenes o vídeos de menores.
 
-La inscripción deportiva y la autorización para mostrar una identidad pública son independientes. La autorización pública es opcional, no condiciona la participación, no está premarcada, es específica y revocable, y registra su versión y alcance.
+Los formularios destinados a menores deberán solicitar únicamente los datos necesarios para gestionar su inscripción, participación o actividad deportiva.
 
-Los modos disponibles para menores son:
+## 5. ¿Durante cuánto tiempo conservaremos los datos?
 
-- alias;
-- nombre e inicial del primer apellido;
-- identidad anónima.
+Los datos se conservarán durante el tiempo necesario para cumplir la finalidad para la que fueron recogidos.
 
-Las iniciales también pueden permitir identificar a una persona y no se usan sin autorización. La autorización se limita a la identidad en las superficies públicas de competición descritas en el aviso y no autoriza:
+Los datos relacionados con socios, jugadores, inscripciones y actividades se conservarán mientras se mantenga la relación con el Club y, posteriormente, durante los plazos necesarios para cumplir las obligaciones legales y atender posibles responsabilidades.
 
-- imágenes en la web;
-- imágenes en redes sociales;
-- conservación en archivo histórico.
+Los datos tratados sobre la base del consentimiento se conservarán mientras este no sea retirado, sin perjuicio de los plazos que puedan resultar necesarios para atender posibles responsabilidades.
 
-El flujo exige confirmación del representante para menores de 14 años; conformidad informada del menor y confirmación del representante entre 14 y 17 años; y aplica la política propia de personas adultas desde los 18 años. La confirmación se realiza mediante un enlace de correo de un solo uso, declaración de patria potestad o tutela, vinculación inequívoca con el jugador, revisión administrativa y un mecanismo de revocación. No se solicita un documento de identidad de forma general; cualquier comprobación adicional requiere una duda justificada y una medida proporcionada.
+## 6. ¿A quién se comunicarán los datos?
 
-Si la función está desactivada o falta cualquiera de esos requisitos, cualquier menor o edad desconocida mantiene la etiqueta “Participante”. La versión y el alcance concretos se muestran en la primera capa del formulario y en el correo de confirmación.
+Los datos no serán comunicados a terceros salvo cuando sea necesario para gestionar la actividad deportiva o exista una obligación legal.
 
-## Imágenes
+Cuando corresponda, podrán comunicarse a federaciones y entidades deportivas, administraciones públicas, entidades aseguradoras y demás organismos o entidades cuya intervención resulte necesaria para gestionar la inscripción, participación o actividad deportiva.
 
-La publicación de imágenes exige acreditar procedencia, autoría o cesión, personas identificables, presencia de menores, finalidad, canales, vigencia y procedimiento de retirada. La autorización para la web no se extiende automáticamente a redes sociales ni al archivo histórico. Los archivos existentes no se consideran autorizados por el mero hecho de estar en el repositorio.
+Los proveedores que necesiten acceder a datos personales para prestar servicios al Club —por ejemplo, alojamiento web, mantenimiento o servicios tecnológicos— podrán tratarlos por cuenta del Club en calidad de encargados del tratamiento.
 
-## Administración, seguridad, logs y copias
+## 7. Servicios y plataformas de terceros
 
-Los administradores activos acceden a la información necesaria para sus funciones mediante el panel protegido. Se aplican controles de autenticación, autorización, CSRF, limitación de peticiones y registro técnico de incidencias. Los accesos y permisos deben revisarse conforme al principio de mínimo privilegio.
+El sitio web puede utilizar o integrar servicios de terceros, como herramientas de analítica, mapas, sistemas de seguridad o verificación, contenidos audiovisuales y enlaces o funcionalidades de redes sociales.
 
-Los logs pueden contener datos técnicos como dirección IP, agente de usuario, identificador de cuenta o contexto de un error. Deben minimizarse y limitarse a diagnóstico y seguridad. Las copias de seguridad son una medida operativa de recuperación y no una fuente para conservar datos indefinidamente.
+La utilización de estos servicios puede implicar el tratamiento de datos por parte de sus respectivos proveedores, de acuerdo con sus propias condiciones y políticas de privacidad.
 
-## Conservación
+La información relativa al uso de cookies y tecnologías similares puede consultarse en la Política de Cookies.
 
-| Tratamiento | Plazo o criterio |
-|---|---|
-| Consultas de Contacto | 12 meses desde el cierre |
-| Hash de IP contra abuso | 30 días como máximo, salvo incidente |
-| Solicitud de Escuela retirada, rechazada o no formalizada | 6 meses desde el cierre |
-| Alumnos de Escuela | Durante la inscripción y 2 años después |
-| Cuentas inactivas | Revisión a 24 meses; aviso y eliminación tras 30 días |
-| Logs ordinarios | 30 días |
-| Logs de seguridad | 90 días |
-| Copias de seguridad | Rotación de 30 días |
-| Autorizaciones de imágenes | Mientras se publique la imagen y 3 años después |
-| Autorizaciones de identidad de menores | Mientras se utilice la identidad y 3 años tras denegación, retirada o finalización |
-| Tokens técnicos de autorización | Hasta 30 días después de dejar de ser útiles |
-| Datos completos de competición | Mientras sean necesarios para gestión activa |
-| Resultados históricos | Conservación histórica con identidad minimizada |
-| Junta directiva | Durante el cargo y después sólo en contexto histórico justificado |
+## 8. Derechos de las personas interesadas
 
-Una reclamación, una obligación aplicable o un incidente de seguridad puede suspender el borrado de los datos estrictamente necesarios mientras subsista esa causa. Al vencer cada plazo, los datos se eliminarán o anonimizarán. No se conservarán indefinidamente por mera conveniencia y se distinguirán los datos privados operativos de los resultados históricos con identidad minimizada.
+Puede ejercer, cuando correspondan, sus derechos de acceso, rectificación, supresión, oposición, limitación del tratamiento y portabilidad, así como retirar en cualquier momento el consentimiento otorgado, sin que ello afecte a la licitud del tratamiento realizado con anterioridad.
 
-Estos criterios requieren procedimientos técnicos antes del despliegue productivo; esta versión no incorpora tareas automáticas de borrado.
+Para ejercer sus derechos puede dirigirse a:
 
-## Proveedores y transferencias
+**Club Galotxes Monòver**
 
-El despliegue previsto contempla Vercel para el frontend, Railway para backend y base de datos, GitHub para el repositorio y el servicio asociado a la dirección pública de Hotmail para ese buzón. El proveedor de correo saliente del futuro formulario todavía no se ha seleccionado.
+C/ Pierrot, 1, 1.º, 03640 Monóvar (Alicante)
 
-Antes de producción se revisarán la configuración efectiva, accesos, contratos, encargos, ubicación del tratamiento, copias, eliminación y, si existieran, transferencias internacionales y sus garantías. Esta política no atribuye una región, contrato o transferencia concreta sin verificarla.
+clubgalotxesmonover@hotmail.com
 
-## Derechos y reclamación
+Asimismo, puede presentar una reclamación ante la [Agencia Española de Protección de Datos (AEPD)](https://www.aepd.es/) si considera que el tratamiento de sus datos no se ajusta a la normativa vigente.
 
-Las personas pueden solicitar acceso, rectificación, supresión, oposición, limitación y portabilidad cuando resulten aplicables, así como retirar un consentimiento sin afectar a la licitud del tratamiento previo. La solicitud puede enviarse al correo indicado, describiendo el derecho y aportando sólo la información necesaria para verificar la identidad y responder.
+## 9. Seguridad de los datos
 
-Si una persona considera que su solicitud no ha sido atendida adecuadamente, puede reclamar ante la [Agencia Española de Protección de Datos](https://www.aepd.es/).
-
-## Seguridad y cambios
-
-El club aplica medidas técnicas y organizativas proporcionadas al contexto y revisa sus riesgos. Ningún sistema es completamente inmune a incidentes; si se detecta uno, se evaluará y gestionará conforme a las obligaciones aplicables.
-
-La política puede actualizarse por cambios normativos, operativos o técnicos. La cabecera muestra la versión y la fecha de publicación vigentes.
+El Club adoptará las medidas técnicas y organizativas apropiadas para proteger los datos personales frente a su pérdida, alteración, acceso, divulgación o tratamiento no autorizado.

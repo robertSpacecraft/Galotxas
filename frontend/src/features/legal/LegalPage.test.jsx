@@ -12,24 +12,51 @@ afterEach(() => {
 
 describe('LegalPage', () => {
   it.each([
-    ['LEG-001', '/legal/aviso-legal', 'Aviso legal', 'Objeto del sitio', '1.0.0'],
-    ['LEG-002', '/legal/privacidad', 'Política de privacidad', 'Conservación', '1.1.0'],
-    ['LEG-003', '/legal/cookies', 'Política de cookies y almacenamiento local', 'Web pública', '1.0.0'],
-  ])('renders the approved projection for %s', (pageId, route, title, section, version) => {
-    renderWithProviders(<LegalPage pageId={pageId} />, { route });
+    [
+      'LEG-001',
+      '/legal/aviso-legal',
+      'Aviso legal',
+      '1. Identificación del titular',
+      '1.1.0',
+      '19/09/2026',
+      '2026-09-19',
+    ],
+    [
+      'LEG-002',
+      '/legal/privacidad',
+      'Política de privacidad',
+      '5. ¿Durante cuánto tiempo conservaremos los datos?',
+      '1.2.0',
+      '19/09/2026',
+      '2026-09-19',
+    ],
+    [
+      'LEG-003',
+      '/legal/cookies',
+      'Política de cookies y almacenamiento local',
+      'Web pública',
+      '1.0.0',
+      '06/08/2026',
+      '2026-08-06',
+    ],
+  ])(
+    'renders the approved projection for %s',
+    (pageId, route, title, section, version, publishedLabel, publishedAt) => {
+      renderWithProviders(<LegalPage pageId={pageId} />, { route });
 
-    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
-    expect(screen.getByRole('heading', { name: title, level: 1 })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: section })).toBeInTheDocument();
-    expect(screen.getByText(version)).toBeInTheDocument();
-    expect(screen.getByText('06/08/2026')).toHaveAttribute('datetime', '2026-08-06');
+      expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+      expect(screen.getByRole('heading', { name: title, level: 1 })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: section })).toBeInTheDocument();
+      expect(screen.getByText(version)).toBeInTheDocument();
+      expect(screen.getByText(publishedLabel)).toHaveAttribute('datetime', publishedAt);
 
-    const navigation = screen.getByRole('navigation', { name: 'Información legal' });
-    expect(within(navigation).getAllByRole('link')).toHaveLength(3);
-    expect(within(navigation).getByRole('link', {
-      name: pageId === 'LEG-001' ? 'Aviso legal' : pageId === 'LEG-002' ? 'Privacidad' : 'Cookies',
-    })).toHaveAttribute('aria-current', 'page');
-  });
+      const navigation = screen.getByRole('navigation', { name: 'Información legal' });
+      expect(within(navigation).getAllByRole('link')).toHaveLength(3);
+      expect(within(navigation).getByRole('link', {
+        name: pageId === 'LEG-001' ? 'Aviso legal' : pageId === 'LEG-002' ? 'Privacidad' : 'Cookies',
+      })).toHaveAttribute('aria-current', 'page');
+    },
+  );
 
   it('applies title and description metadata from the projection', async () => {
     renderWithProviders(<LegalPage pageId="LEG-001" />, { route: '/legal/aviso-legal' });
@@ -42,11 +69,9 @@ describe('LegalPage', () => {
     expect(document.head.querySelector('link[rel="canonical"]')).not.toBeInTheDocument();
   });
 
-  it('renders legal tables responsively and external links safely', () => {
+  it('renders external legal links safely', () => {
     renderWithProviders(<LegalPage pageId="LEG-002" />, { route: '/legal/privacidad' });
 
-    expect(screen.getAllByRole('region', { name: 'Tabla legal con desplazamiento horizontal' }))
-      .toHaveLength(2);
     const aepd = screen.getByRole('link', {
       name: /Agencia Española de Protección de Datos.*se abre en una pestaña nueva/,
     });
