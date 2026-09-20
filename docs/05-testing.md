@@ -2340,8 +2340,8 @@ administrativo conserva `submitted_by`, `validated_by` y el email del
 reportante—, `PublicCompetitionIdentityTest` y `AdminMatchConflictResolutionTest`.
 Los resultados públicos validados permanecen sin cambios. El frontend dirigido
 fue `Dashboard`, `PendingMatchActions`, `MatchWorkflow` y `MatchDetails`; no
-existe test de `MatchCard` y no cambió código React. Las reprogramaciones no se
-tocaron y su contrato pertenece a 5.7-C.
+existe test de `MatchCard` y no cambió código React. En 5.7-B las
+reprogramaciones no se tocaron; su hardening se cerró posteriormente en 5.7-C.
 
 Aceptación registrada, sin atribuir capturas de payload ni escenarios
 adicionales a los observados:
@@ -2360,6 +2360,104 @@ adicionales a los observados:
   no se atribuye una comprobación funcional no realizada. Esa limitación no
   reabre 5.7-B.
 
+## 5.7-C — Hardening de la API de reprogramaciones (CLOSED / PASS, 2026-09-20)
+
+El commit funcional `2df9da1263fa4b12e98a4f15b1a761d607046f3d`
+(`fix(api): endurecer reprogramaciones de partidos`) cerró el hardening de los
+endpoints autenticados `GET /api/v1/matches/{gameMatch}/reschedule-workflow`,
+`POST /api/v1/matches/{gameMatch}/request-reschedule` y
+`POST /api/v1/matches/{gameMatch}/confirm-reschedule`. Añadió Form Requests
+dedicados, fecha estricta `Y-m-d` entre `1000-01-01` y el máximo dinámico de hoy
+más dos años mediante `addYearsNoOverflow`, hora estricta `H:i`, pista
+existente, comentario opcional de hasta 2.000 caracteres y mensajes explícitos
+en castellano. Las fechas históricas válidas permanecen admitidas; no existe
+una regla de «hoy o posterior».
+
+El contrato de partido de `GET reschedule-workflow` y de la respuesta de
+`POST confirm-reschedule` usa `ParticipantMatchResource`. Las solicitudes se
+limitan exactamente a `side`, `requested_scheduled_date`, `status`, `comment` y
+`requested_venue {id, name}`, sin IDs internos, timestamps, usuario, jugador,
+email ni trazabilidad del actor. Los eager loads de actor se retiraron y el
+workflow autoriza la participación antes de cargar identidad serializable. El
+autor de una propuesta propia `submitted` sin propuesta rival conserva
+`can_submit=true`, `can_confirm=false` y `blocked_reason=null`, de acuerdo con la
+actualización que el servicio ya permitía; el flujo validado no se reabre.
+
+La evidencia automatizada registrada es:
+
+- focal `MatchReschedule` final, repetida después de la corrección estilística
+  de Pint: **44 tests y 443 aserciones**, PASS;
+- `ApiRateLimitingTest`: **7 tests y 57 aserciones**, PASS;
+- `OfficialResultMutationGuardTest`: **27 tests y 87 aserciones**, PASS;
+- regresión backend dirigida: **116 tests y 1.091 aserciones**, PASS;
+- suite backend completa: **1.764 tests y 17.946 aserciones**, PASS, duración
+  reportada de 134,14 segundos;
+- todas las suites backend anteriores se ejecutaron mediante el runner oficial
+  sobre MariaDB aislada;
+- `php -l` sobre los diez PHP afectados, Pint focal, `git diff --check`,
+  `git diff --cached --check` previo al commit y auditoría humana exacta del
+  diff: PASS.
+
+Cronología: la regresión dirigida y la suite completa se ejecutaron antes de
+la corrección final de Pint. Pint sólo ordenó imports y sustituyó un tipo
+plenamente cualificado en un test nuevo; no cambió producción. Después se
+repitió la focal `MatchReschedule`, que mantuvo 44 tests y 443 aserciones PASS,
+y los checks de diff quedaron limpios. No se afirma que la suite completa se
+repitiera después de ese ajuste. Tampoco se realizó cleanup global de Pint; la
+deuda histórica permanece fuera de alcance.
+
+La cobertura nueva o ampliada verifica:
+
+- autenticación de los tres endpoints, usuario inactivo, ausencia de perfil de
+  jugador y jugador ajeno sin fuga de payload privado;
+- workflow singles, ambos lados, actualización de propuesta propia y
+  alineación de `can_submit`;
+- representación de lado en dobles, bloqueo del compañero y confirmación del
+  lado rival;
+- rechazo sin mutación de estados cerrados y del guard de resultado oficial;
+- colisión exacta de pista/fecha/hora dentro del mismo campeonato al solicitar
+  y recheck de ocupación al confirmar, sin canonizar el comportamiento entre
+  campeonatos;
+- límites estrictos de fecha y hora, formas no canónicas o inexistentes, pista
+  inválida/inexistente y comentario no válido o superior a 2.000 caracteres;
+- ausencia de mutación ante rechazos de validación o dominio;
+- conjuntos exactos de claves del partido y la solicitud, sin email ni actor;
+- cuota compartida de diez intentos/minuto por usuario/IP entre ambos `POST`,
+  `Retry-After`, envelope `429` estable con el mensaje «Demasiados intentos.
+  Inténtalo de nuevo más tarde.» y `data: null`, y exclusión del `GET` de la
+  cuota de escritura.
+
+El dominio existente quedó preservado: perfil requerido, resolución de lados
+singles/doubles, locks y transacciones, una solicitud por partido/lado,
+actualización propia pendiente, bloqueo de compañero, confirmación rival,
+ocupación exacta dentro del mismo campeonato, recheck al confirmar,
+`OfficialResultMutationGuard` y estados existentes. No se añadieron pruebas que
+fijen como política deseada la independencia de ocupación entre campeonatos;
+esa frontera y su protección concurrente pertenecen a 5.7-F.
+
+Railway `backend-staging` desplegó automáticamente el SHA funcional exacto con
+estado SUCCESS, arranque/readiness correctos, caches de rutas/configuración y
+Blade completadas, healthcheck superado y respuesta HTTP `200`. El usuario
+aceptó staging como correcto y autorizó la promoción. Esa aceptación se apoya
+en el build desplegado y la evidencia validada: **no se ejecutó ni se atribuye
+un walkthrough manual paso a paso de la API de reprogramaciones**.
+
+El commit fue promovido a `main` por fast-forward, sin merge commit; `HEAD`,
+`main`, `develop`, `origin/main` y `origin/develop` se verificaron en el SHA
+funcional exacto. Railway `backend-production` desplegó el mismo SHA con estado
+SUCCESS, build/push de imagen, caches de rutas y Blade, PHP-FPM ready, `/up`
+correcto y evidencia HTTP `200`. La evidencia productiva es exclusivamente
+despliegue, startup/readiness y salud:
+**no se ejecutó un smoke funcional de reprogramaciones y no se fabricaron
+datos**. Esta limitación no reabre 5.7-C por la cobertura local extensa, la
+aceptación humana explícita de staging y el despliegue saludable del SHA exacto
+en producción.
+
+No hubo migración ni cambio de código frontend, por lo que no correspondía
+ejecutar suites frontend. Tampoco cambiaron resultados públicos,
+`MatchResource` administrativo, `ParticipantMatchResource`, política de
+ocupación compartida entre campeonatos, estados de reprogramación,
+autenticación/sesión ni estructura genérica de `MatchController`.
 
 # 11. Evolución
 
