@@ -92,6 +92,46 @@ class ApiRateLimitingTest extends TestCase
             ->assertTooManyRequests();
     }
 
+    public function test_reschedule_write_endpoints_share_a_limit_while_workflow_get_is_not_throttled(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('reschedule-rate-limit')->plainTextToken;
+        $match = GameMatch::factory()->create();
+        $server = ['REMOTE_ADDR' => '192.0.2.57'];
+
+        for ($attempt = 1; $attempt <= 5; $attempt++) {
+            $this->withServerVariables($server)
+                ->withToken($token)
+                ->postJson("/api/v1/matches/{$match->id}/request-reschedule", [])
+                ->assertUnprocessable();
+        }
+
+        for ($attempt = 1; $attempt <= 5; $attempt++) {
+            $this->withServerVariables($server)
+                ->withToken($token)
+                ->postJson("/api/v1/matches/{$match->id}/confirm-reschedule", [])
+                ->assertUnprocessable();
+        }
+
+        $this->withServerVariables($server)
+            ->withToken($token)
+            ->getJson("/api/v1/matches/{$match->id}/reschedule-workflow")
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'El usuario autenticado no tiene un perfil de jugador asociado.');
+
+        $this->withServerVariables($server)
+            ->withToken($token)
+            ->postJson("/api/v1/matches/{$match->id}/request-reschedule", [])
+            ->assertTooManyRequests()
+            ->assertHeader('Retry-After')
+            ->assertExactJson([
+                'message' => 'Demasiados intentos. Inténtalo de nuevo más tarde.',
+                'data' => null,
+            ]);
+
+        $this->assertDatabaseCount('match_reschedule_requests', 0);
+    }
+
     public function test_non_sensitive_public_route_is_not_affected(): void
     {
         for ($attempt = 1; $attempt <= 6; $attempt++) {

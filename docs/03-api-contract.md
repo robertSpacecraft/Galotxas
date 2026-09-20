@@ -179,13 +179,13 @@ Las rutas restantes de esta tabla exigen conjuntamente token Sanctum y usuario a
 | `GET` | `/matches/{gameMatch}/workflow` | `PublicMatchResource` o Resources mínimos de participante según contexto |
 | `POST` | `/matches/{gameMatch}/submit-result` | `ParticipantMatchResource` y `ParticipantMatchResultReportResource` |
 | `POST` | `/matches/{gameMatch}/confirm-result` | `ParticipantMatchResource` y `ParticipantMatchResultReportResource` |
-| `GET` | `/matches/{gameMatch}/reschedule-workflow` | `MatchResource` y `MatchRescheduleRequestResource` |
+| `GET` | `/matches/{gameMatch}/reschedule-workflow` | `ParticipantMatchResource` y `MatchRescheduleRequestResource` mínimo |
 | `POST` | `/matches/{gameMatch}/request-reschedule` | `MatchRescheduleRequestResource` |
-| `POST` | `/matches/{gameMatch}/confirm-reschedule` | `MatchResource` y `MatchRescheduleRequestResource` |
+| `POST` | `/matches/{gameMatch}/confirm-reschedule` | `ParticipantMatchResource` y `MatchRescheduleRequestResource` mínimo |
 | `GET` | `/championships/{championship}/registration` | payload controlado y `ChampionshipRegistrationRequestResource` opcional |
 | `POST` | `/championships/{championship}/register` | `ChampionshipRegistrationRequestResource` |
 
-Los dos endpoints de escritura de resultados comparten un límite de diez intentos por minuto por usuario/IP. Las escrituras de reprogramación no tienen todavía un limiter específico.
+Los dos endpoints de escritura de resultados comparten un límite de diez intentos por minuto por usuario/IP. `request-reschedule` y `confirm-reschedule` comparten, de forma independiente al anterior, otro límite de diez intentos por minuto por usuario/IP; `reschedule-workflow` no consume esa cuota de escritura.
 
 Los endpoints de registro en campeonato forman parte del inicio de una operación desde la experiencia pública aunque exijan autenticación: sólo admiten campeonatos efectivamente públicos y responden `404` para una rama privada. La categoría sugerida también debe pertenecer al campeonato y ser efectivamente pública. En cambio, `/me/championship-registrations` conserva las solicitudes propias ya existentes aunque después se oculte la competición.
 
@@ -563,7 +563,7 @@ Estas rutas no publican la foto ni amplían `public_competition_identity`.
 }
 ```
 
-Cada elemento de `matches` se serializa mediante `ParticipantMatchResource`, igual que `GET /api/v1/me/matches`. `MatchResource` deja de usarse en estos dos contratos de Mi Panel; los endpoints de reprogramación conservan su contrato actual hasta 5.7-C.
+Cada elemento de `matches` se serializa mediante `ParticipantMatchResource`, igual que `GET /api/v1/me/matches`. `MatchResource` deja de usarse en estos dos contratos de Mi Panel y queda reservado al contrato administrativo amplio; los endpoints de reprogramación también utilizan el contrato mínimo de participante donde devuelven un partido.
 
 El controlador del calendario no carga `winnerEntry`, `resultReports`, `submittedBy`, `validatedBy` ni `season`; `ParticipantMatchResource` usa `whenLoaded`, por lo que `winner_entry` no aparece en el calendario y `round.category.championship.season` es `null` en este contexto.
 
@@ -645,7 +645,7 @@ Los consumidores deben añadir únicamente el formato visual del porcentaje. No 
 
 ### Contrato mínimo de partidos de participante
 
-Los siguientes payloads autenticados de Mi Panel y del flujo de resultados se
+Los siguientes payloads autenticados de Mi Panel y de los workflows privados se
 serializan mediante `ParticipantMatchResource`:
 
 - `GET /me/matches`;
@@ -653,12 +653,14 @@ serializan mediante `ParticipantMatchResource`:
 - `GET /me/matches/pending-actions`, envuelto por `PendingMatchActionResource`;
 - el `match` de participante de `GET /matches/{gameMatch}/workflow`;
 - las respuestas de `POST /matches/{gameMatch}/submit-result` y
-  `POST /matches/{gameMatch}/confirm-result`.
+  `POST /matches/{gameMatch}/confirm-result`;
+- el `match` de `GET /matches/{gameMatch}/reschedule-workflow`;
+- el `match` de la respuesta de
+  `POST /matches/{gameMatch}/confirm-reschedule`.
 
-Los endpoints de reprogramación quedan fuera de esta lista. Siguen siendo
-contextos autenticados de participante, pero conservan sin cambios
-`MatchResource` y `MatchRescheduleRequestResource`, y pertenecen a 5.7-C. La API
-administrativa conserva también el `MatchResource` amplio y
+Las respuestas de reprogramación utilizan además el
+`MatchRescheduleRequestResource` mínimo descrito en su sección. La API
+administrativa conserva el `MatchResource` amplio y
 `MatchResultReportResource`, incluidos responsables y email del reportante,
 porque la resolución de conflictos exige esa trazabilidad.
 
@@ -834,11 +836,75 @@ El backend expone tres endpoints autenticados independientes:
 - `POST /api/v1/matches/{gameMatch}/request-reschedule`;
 - `POST /api/v1/matches/{gameMatch}/confirm-reschedule`.
 
-La solicitud acepta `scheduled_date`, `scheduled_time`, `venue_id` y un comentario opcional de hasta 2.000 caracteres. Solo puede actuar un participante; en dobles, cualquiera de sus miembros representa al lado. El rival confirma la propuesta existente, tras lo cual se actualizan fecha y pista dentro de la misma transacción.
+`request-reschedule` valida mediante un Form Request dedicado:
 
-El backend rechaza partidos cerrados y colisiones exactas de pista/fecha/hora dentro del mismo campeonato. El contrato actual usa el `MatchResource` amplio y `MatchRescheduleRequestResource`, que incluye trazabilidad autorizada para este flujo privado; la minimización de participante aplicada a `/me/matches` y `/me/calendar` no alcanza a estos endpoints, que permanecen sin cambios bajo 5.7-C. El mismo lado puede actualizar su propuesta antes de que exista una propuesta rival y estos endpoints todavía no tienen rate limiting específico.
+- `scheduled_date` es obligatorio, usa estrictamente `AAAA-MM-DD` y debe estar
+  entre `1000-01-01` y la fecha equivalente a hoy más dos años, inclusive;
+- `scheduled_time` es obligatorio y usa estrictamente `HH:MM` de 24 horas;
+- `venue_id` es un entero obligatorio y debe identificar una pista existente;
+- `comment` es texto opcional de hasta 2.000 caracteres.
 
-La UI React de reprogramación no está implementada y queda fuera del cierre bloqueante del MVP.
+No existe una restricción técnica de «hoy o posterior»: las fechas históricas
+válidas dentro del intervalo están admitidas. `confirm-reschedule` no acepta
+campos mutables. La autorización deportiva permanece en el servicio de dominio:
+solo puede actuar un participante y, en dobles, cualquiera de sus miembros
+representa al lado.
+
+`GET /reschedule-workflow` y la confirmación serializan el partido mediante
+`ParticipantMatchResource`. Conservan fecha, estado, tanteos solo validados,
+participantes, pista y contexto básico de ronda/categoría/campeonato/temporada,
+pero no exponen las claves internas, responsables, reportes ni timestamps del
+`MatchResource` administrativo. En este contexto no se carga `winnerEntry`, por
+lo que `winner_entry` no aparece.
+
+Cada solicitud visible (`my_request`, `same_side_request_by_teammate`,
+`opposite_request` y la solicitud devuelta por las escrituras) tiene esta
+allowlist top-level exacta:
+
+```json
+{
+    "side": "home",
+    "requested_scheduled_date": "2026-10-10T18:30:00.000000Z",
+    "status": "submitted",
+    "comment": "Propuesta",
+    "requested_venue": { "id": 3, "name": "Pista Central" }
+}
+```
+
+No incluye id de solicitud o partido, `user_id`, `player_id`,
+`requested_venue_id`, timestamps, usuario, jugador ni email. La posición del
+objeto dentro del workflow expresa quién realizó la solicitud sin publicar al
+actor.
+
+Sin propuesta propia ni rival, `can_submit` es `true`. El autor de una propuesta
+`submitted` puede actualizarla mientras no exista una propuesta rival; durante
+ese intervalo el workflow devuelve `can_submit: true`, `can_confirm: false` y
+`blocked_reason: null`. Una solicitud de la pareja bloquea al otro miembro del
+mismo lado. Una propuesta rival pendiente habilita `can_confirm`, y su
+confirmación actualiza fecha y pista dentro de la misma transacción. Una vez
+validadas ambas solicitudes no se reabre el flujo ni se introduce otro estado.
+
+El backend rechaza partidos cerrados y colisiones exactas de pista/fecha/hora
+dentro del mismo campeonato, y vuelve a comprobar la ocupación al confirmar.
+Este límite no cubre todavía la ocupación física compartida entre campeonatos
+ni añade garantías concurrentes nuevas.
+
+Los dos `POST` comparten el limiter `match.reschedules`, de diez intentos por
+minuto para la combinación de usuario autenticado e IP. Al superar la cuota
+responden `429`, mantienen las cabeceras estándar de rate limit y usan el
+envelope estable:
+
+```json
+{
+    "message": "Demasiados intentos. Inténtalo de nuevo más tarde.",
+    "data": null
+}
+```
+
+El `GET` del workflow no está limitado por esta cuota.
+
+La UI React de reprogramación todavía no está implementada; este endurecimiento
+solo define el contrato backend que consumirá ese trabajo posterior.
 
 ---
 

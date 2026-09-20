@@ -145,8 +145,10 @@ Route::prefix('v1')->group(function () {
             ->middleware('throttle:match.results');
 
         Route::get('/matches/{gameMatch}/reschedule-workflow', [MatchController::class, 'rescheduleWorkflow']);
-        Route::post('/matches/{gameMatch}/request-reschedule', [MatchController::class, 'requestReschedule']);
-        Route::post('/matches/{gameMatch}/confirm-reschedule', [MatchController::class, 'confirmReschedule']);
+        Route::post('/matches/{gameMatch}/request-reschedule', [MatchController::class, 'requestReschedule'])
+            ->middleware('throttle:match.reschedules');
+        Route::post('/matches/{gameMatch}/confirm-reschedule', [MatchController::class, 'confirmReschedule'])
+            ->middleware('throttle:match.reschedules');
 
         // Championship registration requests (player)
         Route::get('/championships/{championship}/registration', [ChampionshipRegistrationController::class, 'show']);

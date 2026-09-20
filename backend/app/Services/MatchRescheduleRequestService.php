@@ -102,7 +102,7 @@ class MatchRescheduleRequestService
                 throw new InvalidArgumentException('Se ha producido un conflicto al guardar la solicitud. Inténtalo de nuevo.');
             }
 
-            return $request->fresh(['user', 'player.user', 'requestedVenue']);
+            return $request->fresh('requestedVenue');
         });
     }
 
@@ -182,7 +182,7 @@ class MatchRescheduleRequestService
                 'venue_id' => $oppositeRequest->requested_venue_id,
             ]);
 
-            return $confirmation->fresh(['user', 'player.user', 'requestedVenue']);
+            return $confirmation->fresh('requestedVenue');
         });
     }
 

@@ -51,7 +51,7 @@ Delega los datos de cuenta en `UserResource` y el perfil deportivo opcional en `
 
 `CalendarDayResource` serializa cada día devuelto por `GET /api/v1/me/calendar`.
 
-Mantiene la agrupación mediante `date` y delega la serialización de cada partido en `MatchResource`, evitando devolver modelos Eloquent directamente.
+Mantiene la agrupación mediante `date` y delega la serialización de cada partido en `ParticipantMatchResource`, evitando devolver modelos Eloquent directamente.
 
 ---
 
@@ -73,9 +73,14 @@ Ningún Resource calcula puntos. Los Services entregan `points` para categoría 
 
 `ParticipantMatchResource` serializa el partido devuelto a un participante desde:
 
+- `GET /api/v1/me/matches`;
+- los partidos de `GET /api/v1/me/calendar`;
+- `GET /api/v1/me/matches/pending-actions`, dentro de `PendingMatchActionResource`;
 - `GET /api/v1/matches/{gameMatch}/workflow`;
 - `POST /api/v1/matches/{gameMatch}/submit-result`;
-- `POST /api/v1/matches/{gameMatch}/confirm-result`.
+- `POST /api/v1/matches/{gameMatch}/confirm-result`;
+- `GET /api/v1/matches/{gameMatch}/reschedule-workflow`;
+- `POST /api/v1/matches/{gameMatch}/confirm-reschedule`.
 
 Expone únicamente:
 
@@ -90,6 +95,15 @@ No expone reportes agregados, responsables internos, emails, claves foráneas de
 `ParticipantMatchResultReportResource` serializa `my_report`, `same_side_report_by_teammate`, `opposite_report` y los reportes de las respuestas de escritura. Expone solo `side`, `home_score`, `away_score`, `status` y `comment`. No expone usuario, email, `user_id`, `player_id`, ids internos ni timestamps.
 
 Cuando el usuario autenticado no tiene perfil de jugador o no participa en el partido, el workflow utiliza `PublicMatchResource` y no entrega ningún reporte.
+
+`MatchRescheduleRequestResource` serializa las solicitudes visibles del workflow
+privado de reprogramación y las respuestas de sus dos escrituras. Su allowlist
+top-level exacta es `side`, `requested_scheduled_date`, `status`, `comment` y
+`requested_venue`; esta última contiene solo `id` y `name`. No expone id propio,
+`game_match_id`, `user_id`, `player_id`, `requested_venue_id`, timestamps,
+usuario, jugador, email ni otro dato del actor. Los slots `my_request`,
+`same_side_request_by_teammate` y `opposite_request` aportan el contexto de autor
+necesario sin duplicar identidad.
 
 ## Resource de acciones pendientes de partidos
 
@@ -247,12 +261,12 @@ correo, nacimiento, alcance, versión, motivo o ID de autorización.
 | `PlayerProfileResource` | perfil deportivo privado del propio usuario y respuestas de auth |
 | `MeResource` | composición privada de cuenta y perfil opcional |
 | `ChampionshipRegistrationRequestResource` | solicitudes del propio usuario y gestión administrativa |
-| `CalendarDayResource` | agrupación privada por día; delega cada partido en `MatchResource` |
+| `CalendarDayResource` | agrupación privada por día; delega cada partido en `ParticipantMatchResource` |
 | `MyRankingResource` | posición privada del jugador en sus categorías |
-| `MatchResource` | contrato amplio heredado para “mis partidos”, calendario, reprogramación y API admin |
+| `MatchResource` | contrato amplio de los endpoints API administrativos de partidos |
 | `MatchResultReportResource` | trazabilidad completa de reportes en API administrativa de conflictos |
-| `MatchRescheduleRequestResource` | workflow privado de reprogramación |
-| `ParticipantMatchResource` | workflow y respuestas de resultado del participante |
+| `MatchRescheduleRequestResource` | solicitud mínima del workflow privado de reprogramación |
+| `ParticipantMatchResource` | partidos de Mi Panel y workflows privados de resultado y reprogramación |
 | `ParticipantMatchResultReportResource` | reporte mínimo visible al participante |
 | `PendingMatchActionResource` | acción pendiente segura de Mi Panel |
 
@@ -267,16 +281,17 @@ Los tres Resources administrativos de competición evitan serializar modelos Elo
 - `PublicMatchResource` no incluye reportes, comentarios, responsables ni timestamps y solo publica tanteo/ganador cuando el partido está `validated`.
 - `ParticipantMatchResource` añade el contexto competitivo necesario, pero mantiene fuera reportes agregados, emails, responsables, claves foráneas de trazabilidad y timestamps.
 - `ParticipantMatchResultReportResource` limita cada reporte a lado, tanteo, estado y comentario.
+- `MatchRescheduleRequestResource` limita cada solicitud a lado, fecha propuesta, estado, comentario y pista básica; no identifica al actor ni expone ids técnicos o timestamps.
 - `PendingMatchActionResource` solo añade el tipo de acción y el partido mínimo del participante.
 - los tres Resources públicos CMS omiten IDs internos, estado administrativo, claves foráneas y timestamps de edición.
 - los cuatro Resources públicos de Escuela omiten contacto, programa, flags,
   órdenes, notas, timestamps, claves foráneas y cualquier dato de
   inscripciones, centros o actividades.
-- `UserResource`, `PlayerProfileResource`, `ChampionshipRegistrationRequestResource` y `MatchRescheduleRequestResource` pueden contener datos personales o administrativos y no deben reutilizarse en endpoints de lectura anónima.
+- `UserResource`, `PlayerProfileResource` y `ChampionshipRegistrationRequestResource` pueden contener datos personales o administrativos y no deben reutilizarse en endpoints de lectura anónima. `MatchRescheduleRequestResource` es mínimo, pero su comentario y propuesta pertenecen igualmente al workflow privado.
 - `ProfilePhotoResource` no contiene la key: sólo existe en el contexto propio autenticado y no debe incorporarse a Resources deportivos públicos, CMS o Sponsors.
-- `MatchResource` y `MatchResultReportResource` contienen identificadores, responsables y trazabilidad. El primero sigue usándose en varios endpoints privados heredados; ambos están prohibidos para un detalle público nuevo.
+- `MatchResource` y `MatchResultReportResource` contienen identificadores, responsables y trazabilidad del contexto administrativo; ambos están prohibidos para un detalle público o de participante nuevo.
 
-La normalización de `MatchResource` en “mis partidos”, calendario y reprogramación es deuda técnica conocida. DOC-1 documenta esa realidad sin cambiar el contrato consumido.
+`MatchResource` ya no se usa en “mis partidos”, calendario ni reprogramación. Se mantiene como contrato amplio de la API administrativa; no existe un Resource administrativo alternativo.
 
 ---
 
@@ -313,11 +328,12 @@ Ejemplos implementados actualmente:
 - PublicMatchResource
 - ParticipantMatchResource
 - ParticipantMatchResultReportResource
+- MatchRescheduleRequestResource
 - PendingMatchActionResource
 - PublicSponsorResource
-- MatchResource y MatchResultReportResource para el contexto amplio privado/administrativo heredado
+- MatchResource y MatchResultReportResource para el contexto administrativo amplio
 
-Los cinco primeros son contratos específicos por contexto. `MatchResource` y `MatchResultReportResource` forman el contrato amplio heredado que todavía comparte más de un contexto privado.
+Los seis primeros son contratos específicos por contexto. `MatchResource` y `MatchResultReportResource` forman el contrato administrativo amplio de partidos y conflictos.
 
 `PublicSponsorResource` es una allowlist cerrada: `id`, `name`, el objeto
 `logo` con URL estable y dimensiones, y `website_url` nullable. No serializa

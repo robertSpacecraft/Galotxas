@@ -47,6 +47,17 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(10)->by($userKey.'|'.$request->ip());
         });
 
+        RateLimiter::for('match.reschedules', function (Request $request) {
+            $userKey = $request->user()?->getAuthIdentifier() ?? 'guest';
+
+            return Limit::perMinute(10)
+                ->by($userKey.'|'.$request->ip())
+                ->response(fn (Request $request, array $headers) => response()->json([
+                    'message' => 'Demasiados intentos. Inténtalo de nuevo más tarde.',
+                    'data' => null,
+                ], 429, $headers));
+        });
+
         RateLimiter::for('profile-photo-mutations', function (Request $request) {
             $userKey = $request->user()?->getAuthIdentifier() ?? 'guest';
 

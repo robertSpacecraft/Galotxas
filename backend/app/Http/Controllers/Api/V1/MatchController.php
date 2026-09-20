@@ -3,13 +3,15 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\GameMatchStatus;
+use App\Enums\MatchRescheduleRequestStatus;
 use App\Enums\MatchResultReportSide;
 use App\Http\Controllers\Concerns\ApiResponse;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\ConfirmMatchRescheduleRequest;
 use App\Http\Requests\Api\ConfirmMatchResultRequest;
+use App\Http\Requests\Api\SubmitMatchRescheduleRequest;
 use App\Http\Requests\Api\SubmitMatchResultRequest;
 use App\Http\Resources\MatchRescheduleRequestResource;
-use App\Http\Resources\MatchResource;
 use App\Http\Resources\ParticipantMatchResource;
 use App\Http\Resources\ParticipantMatchResultReportResource;
 use App\Http\Resources\PendingMatchActionResource;
@@ -483,18 +485,6 @@ class MatchController extends Controller
 
     public function rescheduleWorkflow(Request $request, GameMatch $gameMatch): JsonResponse
     {
-        $gameMatch->load([
-            'homeEntry.player.user',
-            'homeEntry.team.players.user',
-            'awayEntry.player.user',
-            'awayEntry.team.players.user',
-            'venue',
-            'round.category.championship.season',
-            'rescheduleRequests.user',
-            'rescheduleRequests.player.user',
-            'rescheduleRequests.requestedVenue',
-        ]);
-
         $user = $request->user();
         $player = $user?->player;
 
@@ -502,11 +492,28 @@ class MatchController extends Controller
             return $this->errorResponse('El usuario autenticado no tiene un perfil de jugador asociado.');
         }
 
+        $gameMatch->load([
+            'homeEntry.player',
+            'homeEntry.team.players',
+            'awayEntry.player',
+            'awayEntry.team.players',
+        ]);
+
         $userSide = $this->resolvePlayerSide($gameMatch, $player);
 
         if ($userSide === null) {
             return $this->errorResponse('El jugador no participa en este partido.');
         }
+
+        $gameMatch->loadMissing([
+            'homeEntry.player.user',
+            'homeEntry.team.players.user',
+            'awayEntry.player.user',
+            'awayEntry.team.players.user',
+            'venue',
+            'round.category.championship.season',
+            'rescheduleRequests.requestedVenue',
+        ]);
 
         $myRequest = $gameMatch->rescheduleRequests->first(fn ($item) => $item->side === $userSide
             && (int) $item->player_id === (int) $player->id
@@ -534,10 +541,17 @@ class MatchController extends Controller
             || $gameMatch->status === GameMatchStatus::UNDER_REVIEW
         ) {
             $blockedReason = 'match_closed_for_reschedule';
-        } elseif ($myRequest !== null) {
-            $blockedReason = 'already_requested_by_you';
         } elseif ($sameSideRequestByTeammate !== null) {
             $blockedReason = 'already_requested_by_teammate';
+        } elseif ($myRequest !== null) {
+            if (
+                $myRequest->status === MatchRescheduleRequestStatus::SUBMITTED
+                && $oppositeRequest === null
+            ) {
+                $canSubmit = true;
+            } else {
+                $blockedReason = 'already_requested_by_you';
+            }
         } elseif ($oppositeRequest !== null) {
             $canConfirm = true;
         } else {
@@ -545,7 +559,7 @@ class MatchController extends Controller
         }
 
         return $this->successResponse([
-            'match' => new MatchResource($gameMatch),
+            'match' => new ParticipantMatchResource($gameMatch),
             'workflow' => [
                 'user_side' => $userSide->value,
                 'can_submit' => $canSubmit,
@@ -560,16 +574,11 @@ class MatchController extends Controller
     }
 
     public function requestReschedule(
-        Request $request,
+        SubmitMatchRescheduleRequest $request,
         GameMatch $gameMatch,
         MatchRescheduleRequestService $matchRescheduleRequestService
     ): JsonResponse {
-        $validated = $request->validate([
-            'scheduled_date' => ['required', 'date'],
-            'scheduled_time' => ['required', 'date_format:H:i'],
-            'venue_id' => ['required', 'exists:venues,id'],
-            'comment' => ['nullable', 'string', 'max:2000'],
-        ]);
+        $validated = $request->validated();
 
         try {
             $rescheduleRequest = $matchRescheduleRequestService->submitRequest(
@@ -591,7 +600,7 @@ class MatchController extends Controller
     }
 
     public function confirmReschedule(
-        Request $request,
+        ConfirmMatchRescheduleRequest $request,
         GameMatch $gameMatch,
         MatchRescheduleRequestService $matchRescheduleRequestService
     ): JsonResponse {
@@ -611,14 +620,11 @@ class MatchController extends Controller
             'awayEntry.team.players.user',
             'venue',
             'round.category.championship.season',
-            'rescheduleRequests.user',
-            'rescheduleRequests.player.user',
-            'rescheduleRequests.requestedVenue',
         ]);
 
         return $this->successResponse(
             [
-                'match' => new MatchResource($gameMatch),
+                'match' => new ParticipantMatchResource($gameMatch),
                 'request' => new MatchRescheduleRequestResource($rescheduleRequest),
             ],
             'Reprogramación confirmada correctamente.'
