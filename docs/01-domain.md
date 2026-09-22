@@ -38,6 +38,13 @@ Perfil deportivo asociado a un usuario.
 
 Es la persona que puede solicitar participar en campeonatos y competir cuando la administración lo autoriza.
 
+`nickname` es un apodo deportivo opcional, no un nombre de pila. Cuando existe
+se normaliza a NFC, elimina espacios exteriores y colapsa los interiores; su
+valor no vacío es único bajo la collation de MariaDB. `license_number` también
+es opcional y único, pero es un dato informativo no verificado: no acredita
+federación, elegibilidad ni edad. El `slug` se asigna al crear el perfil y queda
+estable aunque cambien el apodo o la cuenta asociada.
+
 ## Administrador
 
 Responsable de gestionar la competición.
@@ -567,13 +574,35 @@ Entre otras tareas:
 El jugador puede:
 
 - gestionar su cuenta;
-- crear su perfil deportivo y consultar sus datos;
+- crear su perfil deportivo, consultar sus datos y editar desde Mi Panel el
+  apodo deportivo, la mano dominante, el número de licencia y, con las
+  restricciones aplicables, la fecha de nacimiento;
 - solicitar inscripciones;
 - consultar calendarios;
 - consultar rankings;
 - consultar resultados.
 
-La API permite editar parcialmente apodo, mano dominante y notas. El frontend React del MVP no ofrece todavía una edición completa del perfil existente.
+La API mantiene además el soporte heredado de notas, aunque la edición mínima
+de React no lo expone. El payload de edición es cerrado: nombre civil,
+apellidos, correo, DNI, género, nivel, rol, activación, `user_id`, `slug` y
+campos de autorización no son autogestionables.
+
+`Player.birth_date` continúa siendo la única fuente de edad para identidad
+pública. Una fecha desconocida puede declararse una vez como adulta o menor y
+una persona adulta puede corregirla por otra fecha adulta. Una fecha conocida
+no puede borrarse; una persona conocida como menor no puede cambiarla y una
+persona adulta no puede pasar a menor desde Mi Panel. Un cambio real queda
+bloqueado si existe una `PublicIdentityAuthorization` pendiente o aprobada. La
+mutación se decide en backend dentro de una transacción con bloqueo del jugador
+y de las autorizaciones relevantes; no exige ni modifica DNI.
+
+La declaración general de exactitud y la confirmación específica de fecha de
+nacimiento usan el aviso versionado `NOTICE-ACCOUNT-PROFILE`. Su evidencia
+mínima separa actor y jugador sujeto y no copia fecha, nombre, correo, IP,
+agente de usuario ni texto de la casilla. Estas declaraciones no verifican la
+edad ni crean una autorización pública de menor. Una fecha previamente nula
+puede seguir sustituida por una fecha adulta falsa: es un riesgo residual
+aceptado, no un estado de «adulto verificado».
 
 No modifica directamente la estructura deportiva.
 

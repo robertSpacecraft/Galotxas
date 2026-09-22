@@ -36,9 +36,11 @@ El aviso canónico es `NOTICE-CONTACT-FORM`, versión `1.0.0`, alcance
 - derechos y correo público;
 - ausencia de decisiones automatizadas.
 
-El compilador mantiene exactamente tres páginas legales y dos avisos
-allowlisted. Rechaza ficheros desconocidos, borradores, metadatos inválidos,
-teléfonos, artefactos desactualizados y cualquier contaminación de Knowledge.
+En el cierre de 7D.2C2B, el compilador mantenía exactamente tres páginas legales
+y dos avisos allowlisted. Las ampliaciones posteriores conservan el mismo
+contrato cerrado mediante una allowlist explícita. Rechaza ficheros
+desconocidos, borradores, metadatos inválidos, teléfonos, artefactos
+desactualizados y cualquier contaminación de Knowledge.
 
 La Política de privacidad permanece en versión `1.1.0`: ya recogía base,
 campos, plazo, suspensión por reclamación, canal de derechos y proveedor de

@@ -571,7 +571,7 @@ El correo anterior aparece en cuatro clases:
 
 | Clase | Archivos | Tratamiento |
 |---|---|---|
-| Legal vigente | `legal/aviso-legal.md`, `legal/privacidad.md` y tres avisos en `legal/notices/` | No cambiar hasta confirmar buzones/aliases; después, nueva versión legal explícita |
+| Legal vigente | `legal/aviso-legal.md`, `legal/privacidad.md` y cuatro avisos en `legal/notices/` | No cambiar hasta confirmar buzones/aliases; después, nueva versión legal explícita |
 | Proyecciones generadas | JSON Legal de frontend/backend | No editar; regenerar sólo desde Legal versionado |
 | Runtime derivado | `seoMetadata.js` y plantilla de confirmación de identidad | Cambiar coordinadamente con la versión legal, no antes |
 | Tests, borradores y auditoría histórica | `SeoProvider.test.jsx`, `docs/legal-drafts/`, docs 16 y 20 | Ajustar test al contrato futuro; conservar historia cuando corresponda |

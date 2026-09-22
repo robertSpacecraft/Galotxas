@@ -511,6 +511,34 @@ Las pruebas de integración se ejecutan exclusivamente sobre la instancia MariaD
 - comportamiento de usuarios sin perfil de jugador;
 - rechazo de acceso no autenticado.
 
+## PROFILE-SELF-SERVICE-1 — Perfil editable e integridad (pendiente de aceptación)
+
+La cobertura focal sobre MariaDB verifica la unicidad nullable de apodos, la
+collation real y las colisiones tras normalizar, el fallo cerrado de la
+migración sin reparar datos y la traducción controlada de carreras de apodo y
+licencia. Incluye create/update administrativo y propio, múltiples `NULL`, NFC,
+espacios, factory/seeder y estabilidad del `slug` tras su creación.
+
+La matriz DOB cubre `NULL` a adulto o menor, adulto a adulto, rechazo de adulto
+a menor, cualquier cambio de menor conocido, borrado de una fecha conocida y
+el bypass menor → `NULL` → adulto. También cubre bloqueos con autorizaciones
+pendientes o aprobadas, edición de campos no identitarios, ausencia de
+acoplamiento a DNI, evaluación pública fail-closed y conservación de snapshots
+oficiales ya persistidos.
+
+Las pruebas de declaraciones exigen ausencia, `false`, versión incorrecta,
+reutilización de evidencia reconocida y confirmación DOB sólo ante fecha
+aportada o realmente cambiada. Verifican el esquema mínimo allowlisted y que no
+se fabrican filas históricas. Los seis estados del diagnóstico propio se
+comprueban sin filtrar datos de autorización o representante.
+
+Vitest/RTL cubre registro, aviso versionado, editor prefill, cuatro controles
+permitidos, helper de apodo, Guardar/Cancelar, restauración y foco, doble envío,
+errores `422` de apodo/licencia/DOB sin perder valores, declaraciones
+condicionales, refresco de `AuthContext` y presentación del diagnóstico. El
+estado de este bloque no se considera cierre canónico hasta revisión humana,
+aceptación de staging y evidencia productiva.
+
 ## PANEL-1 — Acciones pendientes de partidos
 
 La cobertura Feature verifica:

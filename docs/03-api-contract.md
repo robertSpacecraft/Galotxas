@@ -72,7 +72,7 @@ El inventario siguiente corresponde a `backend/routes/api.php` y a la salida de 
 
 | Método | Ruta | Salida principal |
 |---|---|---|
-| `POST` | `/auth/register` | payload controlado con token Bearer, usuario y perfil `null` |
+| `POST` | `/auth/register` | exige declaración general versionada; payload controlado con token Bearer, usuario y perfil `null` |
 | `POST` | `/auth/login` | payload controlado con token Bearer, usuario y `PlayerProfileResource` opcional |
 | `POST` | `/auth/forgot-password` | mensaje genérico sin enumerar emails |
 | `POST` | `/auth/reset-password` | mensaje controlado o error `422` |
@@ -170,7 +170,7 @@ Las rutas restantes de esta tabla exigen conjuntamente token Sanctum y usuario a
 | `GET` | `/me` | `MeResource` |
 | `GET` | `/me/player-profile` | `PlayerProfileResource` |
 | `POST` | `/me/player-profile` | `PlayerProfileResource` |
-| `PATCH` | `/me/player-profile` | `PlayerProfileResource`; solo apodo, mano dominante y notas |
+| `PATCH` | `/me/player-profile` | `PlayerProfileResource`; payload cerrado de apodo, mano dominante, licencia, nacimiento y soporte heredado de notas |
 | `GET` | `/me/championship-registrations` | colección `ChampionshipRegistrationRequestResource` |
 | `GET` | `/me/matches` | colección `ParticipantMatchResource` |
 | `GET` | `/me/matches/pending-actions` | colección `PendingMatchActionResource` |
@@ -475,6 +475,7 @@ La normalización completa del contrato API constituye una fase específica del 
             "role": "user",
             "active": true,
             "has_player": true,
+            "profile_declaration_required": false,
             "profile_photo": {
                 "url": "https://api.example.test/api/v1/me/profile-photo/image"
             }
@@ -487,6 +488,50 @@ La normalización completa del contrato API constituye una fase específica del 
 `user` se serializa mediante `UserResource` y solo expone los campos explícitos del contrato. `profile_photo` es `null` o conserva la URL estable autenticada y, con manifest válido, añade dimensiones y variantes autenticadas. No incluye `profile_photo_path`, object key, disco, URL temporal, credenciales, token de sesión, estado de verificación de email, timestamps ni otros atributos internos del modelo.
 
 La respuesta completa se compone mediante `MeResource`, que delega el perfil deportivo en `PlayerProfileResource`. Cuando el usuario no tiene perfil de jugador, `has_player` es `false` y `player` es `null`.
+
+`profile_declaration_required` indica exclusivamente si falta evidencia
+reconocida de la declaración general para el aviso vigente. El perfil propio
+añade un diagnóstico privado derivado de `PublicPlayerIdentityService`:
+
+```json
+{
+  "public_identity": {
+    "display_name": "Pilotari Blau",
+    "status": "adult_alias"
+  }
+}
+```
+
+`status` sólo puede ser `adult_alias`, `adult_name_initial`,
+`adult_no_publishable_identity`, `birth_date_unknown`,
+`minor_effective_authorization` o `minor_no_effective_authorization`. No incluye
+ID o estado de autorización, datos del representante, correo, fecha de
+nacimiento, versión legal, motivos privados o timestamps, y no se incorpora a
+Resources anónimos.
+
+`PATCH /api/v1/me/player-profile` admite sólo `nickname`, `dominant_hand`,
+`license_number`, `birth_date`, `notes` y los campos condicionales de
+declaración. Cualquier clave adicional se rechaza con `422`. Apodo y licencia
+admiten `null`; el apodo no vacío es único bajo `utf8mb4_unicode_ci` después de
+normalizar NFC y espacios, y la licencia conserva formato y mayúsculas elegidos
+tras un trim Unicode. Los conflictos esperados de ambos índices se devuelven
+como errores de campo, incluso ante una carrera de unicidad.
+
+Una fecha nula puede pasar a adulta o menor, y una fecha adulta a otra adulta,
+si se confirma específicamente la exactitud. Se rechazan fecha conocida a
+`null`, adulta a menor y cualquier cambio de una persona actualmente menor. Un
+cambio real también se rechaza cuando hay autorización pública pendiente o
+aprobada; para un menor en ese estado tampoco puede cambiarse el apodo. La mano
+dominante y la licencia siguen editables. Un DOB sin cambios no crea evidencia
+redundante. El PATCH no recibe, exige ni modifica DNI.
+
+`POST /api/v1/auth/register` exige `profile_declaration_accepted=true`,
+`profile_notice_id=NOTICE-ACCOUNT-PROFILE` y su versión vigente. `POST
+/api/v1/me/player-profile` exige esa declaración sólo para cuentas legadas sin
+evidencia reconocida y exige `birth_date_confirmed=true` sólo si se facilita
+DOB. El PATCH aplica las mismas condiciones en el primer write relevante y en
+un cambio real de DOB. La evidencia del registro de cuenta se conserva aunque
+falle después la creación opcional del perfil en la segunda petición React.
 
 7F.2D amplía de forma aditiva `user` con `profile_photo`; el resto de nombres y
 la composición `user`/`player` consumida por React se mantiene.

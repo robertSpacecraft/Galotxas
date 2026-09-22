@@ -25,14 +25,16 @@ legal/
 ├── cookies.md
 └── notices/
     ├── public-identity-minors.md
-    └── contact-form.md
+    ├── contact-form.md
+    ├── school-enrollment.md
+    └── account-profile.md
 ```
 
 `README.md` describe el proceso y no se publica. Las páginas siguen limitadas a
-los tres nombres. Desde 7D.2C2B, `notices/` admite exactamente los avisos de
-identidad de menores y Contacto; son fuentes de formulario y no una cuarta página
-pública. Cualquier otro fichero, subdirectorio o enlace simbólico hace fallar
-la compilación.
+los tres nombres. `notices/` admite exactamente los avisos de identidad de
+menores, Contacto, inscripción de Escuela y cuenta/perfil; son fuentes de
+formulario y no una cuarta página pública. Cualquier otro fichero,
+subdirectorio o enlace simbólico hace fallar la compilación.
 
 Los administradores no crean ni editan estos textos desde Blade. React tampoco
 es su fuente editorial: importa exclusivamente la proyección generada.
@@ -263,6 +265,13 @@ pública. Laravel exige su ID y versión en la inscripción y React lo obtiene d
 artefacto generado. La Política de privacidad permanece en `1.1.0` porque ya
 incluía el tratamiento y los plazos escolares; siguen existiendo tres páginas
 legales y los avisos no crean rutas propias.
+
+Seguimiento PROFILE-SELF-SERVICE-1: `NOTICE-ACCOUNT-PROFILE` 1.0.0 es el cuarto
+aviso exacto, con scope `account_profile` y enlace a Privacidad. Versiona la
+información asociada a la declaración general de transparencia/exactitud y a la
+confirmación específica de DOB. No es consentimiento genérico, prueba de edad
+ni autorización de identidad pública de menores. Laravel y React consumen las
+proyecciones regeneradas; no se crea una cuarta página legal.
 
 ## 17. Riesgos y gates pendientes
 

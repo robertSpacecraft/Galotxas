@@ -47,6 +47,13 @@ La edad procede de `Player.birth_date`; nunca se infiere de una categoría. La
 fecha declarada en Escuela sólo sirve para exigir representante y para validar
 la vinculación posterior.
 
+PROFILE-SELF-SERVICE-1 no sustituye esta fuente ni añade booleanos de edad. Una
+persona ya conocida como menor no puede cambiar ni borrar su fecha desde Mi
+Panel. Una persona adulta no puede autodeclararse menor, y cualquier cambio
+real queda bloqueado si existe una autorización vinculada pendiente o aprobada.
+La comprobación y la escritura se serializan mediante bloqueo transaccional del
+jugador y de las autorizaciones relevantes.
+
 ## 6. Modos
 
 - `alias`: sólo el alias normalizado; si falta, `Participante`.
@@ -145,6 +152,11 @@ el sujeto: se debe cerrar o revocar el expediente cuando corresponda y registrar
 una autorización nueva. Las autorizaciones aprobadas tampoco admiten
 revinculación.
 
+La vinculación administrativa bloquea también la fila `players` antes de
+asociar el expediente. Así no puede competir con una corrección DOB propia. El
+servicio de perfil nunca religa, revoca, elimina o modifica evidencia de
+autorización.
+
 ## 14. Confirmación del representante
 
 Los POST públicos de consulta, confirmación y rechazo están bajo
@@ -183,6 +195,11 @@ mínimo. La revocación libera el slot efectivo y cambia inmediatamente todas la
 proyecciones públicas a `Participante`, sin alterar inscripción, jugador ni
 resultados. El canal de derechos publicado permite solicitarla; no existe un
 token permanente de revocación.
+
+Los cambios naturales de edad no exigen una revocación automática: la eficacia
+se recalcula en cada lectura. Al cumplir 18 años la autorización deja de ser
+efectiva; al cruzar el umbral 14–17 se exige la conformidad ya definida. Mi
+Panel no crea atajos ni casillas que sustituyan esos requisitos.
 
 ## 19. Retención
 

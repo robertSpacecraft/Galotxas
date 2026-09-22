@@ -31,6 +31,16 @@ se conserva `Participante`; con ella, backend aplica exactamente `alias` o
 decisión. El dominio, seguridad y pruebas se detallan en
 `23-verifiable-minor-public-identity.md`.
 
+Seguimiento PROFILE-SELF-SERVICE-1: Mi Panel permite editar un subconjunto
+cerrado del perfil y muestra a la propia cuenta el nombre público efectivo y un
+estado grueso. Esa proyección privada reutiliza el servicio backend y nunca
+expone autorización, representante, motivo, correo, nacimiento o timestamps.
+Registro y primer write relevante exigen una declaración de transparencia y
+exactitud bajo `NOTICE-ACCOUNT-PROFILE`; aportar o cambiar DOB exige además una
+confirmación específica. La evidencia contiene sólo actor, sujeto opcional,
+tipo, aviso, versión y fecha de servidor. No es consentimiento genérico, prueba
+de edad ni autorización de identidad pública de menores.
+
 ## 4. Hallazgos de 7D.2A
 
 Las APIs deportivas públicas serializaban IDs y objetos de jugador con alias,
@@ -83,13 +93,20 @@ incompleto, falla a `Participante`.
 
 ## 9. Menores
 
-`Player.birth_date` permite distinguir edad cuando existe, pero el dominio no
-dispone de autorización explícita de identidad pública, alias autorizado o
-exclusión pública. Por ello, todo menor y toda fecha ausente devuelven
-`Participante`, incluso si existe alias. No se expone edad, nacimiento ni el
-motivo. Publicar otra identidad de menores requiere decisión de dominio,
-migración y validación jurídica posteriores; no se infiere por categoría o
-participación.
+En el cierre histórico de 7D.2B, `Player.birth_date` permitía distinguir edad
+cuando existía, pero el dominio aún no disponía de autorización explícita de
+identidad pública. Por ello aquella fase devolvía `Participante` para todo menor
+y toda fecha ausente. 7D.2C2A añadió después la autorización verificable
+descrita en el documento 23, sin exponer edad, nacimiento o motivo ni inferir
+identidad por categoría o participación.
+
+La autogestión posterior conserva esa regla cerrada. Una fecha nula declarada
+como menor sigue mostrando `Participante` salvo autorización efectiva. Una
+persona ya conocida como menor no puede alterar su DOB, y un DOB real no puede
+cambiar mientras exista autorización pendiente o aprobada. Si el menor tiene
+esa evidencia viva tampoco puede modificar el apodo; el expediente no se
+revoca, religa ni reescribe. Alcanzar 14 o 18 años se sigue evaluando en runtime
+con las reglas existentes.
 
 ## 10. Junta
 
@@ -225,6 +242,11 @@ ausencia de CSP versionada, operación productiva y purga de autorizaciones de
 menores pendientes, y proveedores productivos sin
 definir. La revisión del repositorio no sustituye auditoría de red del
 despliegue final ni validación jurídica.
+
+También permanece que una persona con DOB nula puede declarar falsamente una
+fecha adulta. La casilla, el correo y la cuenta no permiten probar la edad; el
+sistema no presenta esa mayoría como verificada. Este bloque no introduce
+documentos, comprobación manual rutinaria ni relación de guardianes.
 
 ## 27. Gates transferidos a 7D.2C
 
