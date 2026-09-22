@@ -58,7 +58,8 @@ const AuthProbe = () => {
       <button
         type="button"
         onClick={() => createPlayerProfile({
-          level: 5,
+          birth_date: '1990-01-01',
+          birth_date_confirmed: true,
           profile_declaration_accepted: true,
           profile_notice_id: 'NOTICE-ACCOUNT-PROFILE',
           profile_notice_version: '1.0.0',
@@ -244,7 +245,8 @@ describe('AuthProvider storage and bootstrap', () => {
   it('marks the general declaration as recognized after successful player creation', async () => {
     const browserUser = userEvent.setup();
     const creationPayload = {
-      level: 5,
+      birth_date: '1990-01-01',
+      birth_date_confirmed: true,
       profile_declaration_accepted: true,
       profile_notice_id: 'NOTICE-ACCOUNT-PROFILE',
       profile_notice_version: '1.0.0',

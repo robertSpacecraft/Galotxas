@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { accountProfileNotice } from '../features/legal/formNoticeRepository';
@@ -40,7 +40,7 @@ describe('Register', () => {
     for (const label of [
       'Apodo (Nickname)',
       /DNI \/ NIE/,
-      'Fecha de Nacimiento',
+      /Fecha de Nacimiento/,
       'Género',
       /Nivel de juego/,
       'Nº Licencia',
@@ -49,6 +49,10 @@ describe('Register', () => {
     ]) {
       expect(screen.getByLabelText(label)).toBeInTheDocument();
     }
+
+    expect(screen.getByLabelText('Fecha de Nacimiento *')).toBeRequired();
+    expect(screen.getByLabelText('Nivel de juego (1-10)')).not.toBeRequired();
+    expect(screen.queryByText('Nivel de juego (1-10) *')).not.toBeInTheDocument();
 
     await user.click(playerToggle);
     expect(screen.queryByLabelText('Apodo (Nickname)')).not.toBeInTheDocument();
@@ -79,7 +83,9 @@ describe('Register', () => {
     await user.click(screen.getByRole('checkbox', { name: 'Soy jugador' }));
     await user.click(screen.getByRole('checkbox', { name: /declaro que los datos facilitados son exactos y veraces/i }));
     await user.type(screen.getByLabelText('Apodo (Nickname)'), 'Ada');
+    await user.type(screen.getByLabelText('Fecha de Nacimiento *'), '1990-01-01');
     await user.type(screen.getByLabelText(/Nivel de juego/), '5');
+    await user.click(screen.getByRole('checkbox', { name: /fecha de nacimiento indicada/i }));
     await user.click(screen.getByRole('button', { name: 'Registrarse' }));
 
     await waitFor(() => {
@@ -93,11 +99,18 @@ describe('Register', () => {
         profile_notice_id: accountProfileNotice.id,
         profile_notice_version: accountProfileNotice.version,
       });
-      expect(createPlayerProfile).toHaveBeenCalledWith({ nickname: 'Ada', level: 5 });
+      expect(createPlayerProfile).toHaveBeenCalledWith({
+        nickname: 'Ada',
+        birth_date: '1990-01-01',
+        level: 5,
+        birth_date_confirmed: true,
+        profile_notice_id: accountProfileNotice.id,
+        profile_notice_version: accountProfileNotice.version,
+      });
     });
   });
 
-  it('requires the general declaration and adds DOB confirmation only when supplied', async () => {
+  it('blocks player registration before creating the account when birth date is missing', async () => {
     const user = userEvent.setup();
     renderRegister();
 
@@ -108,25 +121,60 @@ describe('Register', () => {
     await user.type(screen.getByLabelText(/Contraseña \* \(min/), 'password123');
     await user.type(screen.getByLabelText('Confirmar Contraseña *'), 'password123');
 
-    const submit = screen.getByRole('button', { name: 'Registrarse' });
-    expect(submit).toBeDisabled();
     await user.click(screen.getByRole('checkbox', { name: /declaro que los datos facilitados son exactos y veraces/i }));
     await user.click(screen.getByRole('checkbox', { name: 'Soy jugador' }));
-    expect(screen.queryByRole('checkbox', { name: /fecha de nacimiento indicada/i })).not.toBeInTheDocument();
+    const submit = screen.getByRole('button', { name: 'Registrarse' });
 
-    await user.type(screen.getByLabelText('Fecha de Nacimiento'), '1990-01-01');
-    await user.type(screen.getByLabelText(/Nivel de juego/), '5');
+    fireEvent.submit(submit.closest('form'));
+
+    expect(await screen.findByText('La fecha de nacimiento es obligatoria para crear el perfil de jugador.'))
+      .toBeInTheDocument();
+    expect(register).not.toHaveBeenCalled();
+    expect(createPlayerProfile).not.toHaveBeenCalled();
+  });
+
+  it('requires DOB confirmation and omits an unspecified level from the player payload', async () => {
+    const user = userEvent.setup();
+    renderRegister();
+
+    await user.type(screen.getByLabelText('Nombre *'), 'Ada');
+    await user.type(screen.getByLabelText('Apellidos *'), 'Lovelace');
+    await user.type(screen.getByLabelText('Correo Electrónico *'), 'ada@example.test');
+    await user.type(screen.getByLabelText('Confirmar Correo *'), 'ada@example.test');
+    await user.type(screen.getByLabelText(/Contraseña \* \(min/), 'password123');
+    await user.type(screen.getByLabelText('Confirmar Contraseña *'), 'password123');
+    await user.click(screen.getByRole('checkbox', { name: /declaro que los datos facilitados son exactos y veraces/i }));
+    await user.click(screen.getByRole('checkbox', { name: 'Soy jugador' }));
+
+    await user.type(screen.getByLabelText('Fecha de Nacimiento *'), '1990-01-01');
     const dobConfirmation = screen.getByRole('checkbox', { name: /fecha de nacimiento indicada/i });
     expect(dobConfirmation).toBeRequired();
     await user.click(dobConfirmation);
-    await user.click(submit);
+    await user.click(screen.getByRole('button', { name: 'Registrarse' }));
 
     await waitFor(() => expect(createPlayerProfile).toHaveBeenCalledWith({
       birth_date: '1990-01-01',
-      level: 5,
       birth_date_confirmed: true,
       profile_notice_id: accountProfileNotice.id,
       profile_notice_version: accountProfileNotice.version,
     }));
+  });
+
+  it('keeps account-only registration independent from player birth date', async () => {
+    const user = userEvent.setup();
+    renderRegister();
+
+    await user.type(screen.getByLabelText('Nombre *'), 'Ada');
+    await user.type(screen.getByLabelText('Apellidos *'), 'Lovelace');
+    await user.type(screen.getByLabelText('Correo Electrónico *'), 'ada@example.test');
+    await user.type(screen.getByLabelText('Confirmar Correo *'), 'ada@example.test');
+    await user.type(screen.getByLabelText(/Contraseña \* \(min/), 'password123');
+    await user.type(screen.getByLabelText('Confirmar Contraseña *'), 'password123');
+    await user.click(screen.getByRole('checkbox', { name: /declaro que los datos facilitados son exactos y veraces/i }));
+    await user.click(screen.getByRole('button', { name: 'Registrarse' }));
+
+    await waitFor(() => expect(register).toHaveBeenCalledOnce());
+    expect(createPlayerProfile).not.toHaveBeenCalled();
+    expect(screen.queryByLabelText(/Fecha de Nacimiento/)).not.toBeInTheDocument();
   });
 });

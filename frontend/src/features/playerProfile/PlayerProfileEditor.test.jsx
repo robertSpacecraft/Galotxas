@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
@@ -68,6 +68,22 @@ describe('PlayerProfileEditor', () => {
     await waitFor(() => expect(editButton).toHaveFocus());
     await user.click(editButton);
     expect(screen.getByLabelText('Apodo deportivo')).toHaveValue('Pilotari');
+  });
+
+  it('does not show a validation summary while editing a clean form', async () => {
+    const user = userEvent.setup();
+    renderEditor();
+
+    await user.click(screen.getByRole('button', { name: 'Editar perfil' }));
+    await user.type(screen.getByLabelText('Apodo deportivo'), ' Blau');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText('Mano dominante'), 'left');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+    await user.clear(screen.getByLabelText('Fecha de nacimiento'));
+    await user.type(screen.getByLabelText('Fecha de nacimiento'), '1991-02-03');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('shows declarations only when their corresponding evidence is required', async () => {
@@ -154,5 +170,58 @@ describe('PlayerProfileEditor', () => {
     expect(control.getAttribute('aria-describedby')).toContain(`profile-${field}-error`);
     await waitFor(() => expect(control).toHaveFocus());
     expect(screen.getByRole('alert')).toHaveTextContent('Revisa los campos indicados.');
+  });
+
+  it('clears the edited field and payload errors while preserving other genuine errors', async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockRejectedValue({
+      response: {
+        status: 422,
+        data: {
+          errors: {
+            nickname: ['El apodo ya está en uso.'],
+            license_number: ['La licencia ya está en uso.'],
+            payload: ['La solicitud contiene campos no permitidos.'],
+          },
+        },
+      },
+    });
+    renderEditor({ onSave });
+
+    await user.click(screen.getByRole('button', { name: 'Editar perfil' }));
+    await user.click(screen.getByRole('button', { name: 'Guardar' }));
+
+    const nickname = screen.getByLabelText('Apodo deportivo');
+    const license = screen.getByLabelText('Número de licencia');
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(nickname).toHaveAttribute('aria-invalid', 'true');
+    expect(license).toHaveAttribute('aria-invalid', 'true');
+
+    await user.type(nickname, ' X');
+
+    const alert = screen.getByRole('alert');
+    const items = within(alert).getAllByRole('listitem');
+    expect(items).toHaveLength(1);
+    expect(items[0]).toHaveTextContent('La licencia ya está en uso.');
+    expect(items[0]).not.toBeEmptyDOMElement();
+    expect(alert).not.toHaveTextContent('El apodo ya está en uso.');
+    expect(alert).not.toHaveTextContent('La solicitud contiene campos no permitidos.');
+    expect(nickname).toHaveAttribute('aria-invalid', 'false');
+    expect(license).toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('clears a generic payload error on the next field edit', async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockRejectedValue({
+      response: { status: 500, data: { message: 'No se ha podido actualizar el perfil.' } },
+    });
+    renderEditor({ onSave });
+
+    await user.click(screen.getByRole('button', { name: 'Editar perfil' }));
+    await user.click(screen.getByRole('button', { name: 'Guardar' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('No se ha podido actualizar el perfil.');
+
+    await user.selectOptions(screen.getByLabelText('Mano dominante'), 'left');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 });

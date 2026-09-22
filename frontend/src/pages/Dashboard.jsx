@@ -239,11 +239,9 @@ export default function Dashboard() {
                 filteredPlayerProfile.profile_notice_id = accountProfileNotice?.id;
                 filteredPlayerProfile.profile_notice_version = accountProfileNotice?.version;
             }
-            if (playerData.birth_date) {
-                filteredPlayerProfile.birth_date_confirmed = birthDateConfirmed;
-                filteredPlayerProfile.profile_notice_id = accountProfileNotice?.id;
-                filteredPlayerProfile.profile_notice_version = accountProfileNotice?.version;
-            }
+            filteredPlayerProfile.birth_date_confirmed = birthDateConfirmed;
+            filteredPlayerProfile.profile_notice_id = accountProfileNotice?.id;
+            filteredPlayerProfile.profile_notice_version = accountProfileNotice?.version;
             
             await createPlayerProfile(filteredPlayerProfile);
             
@@ -488,12 +486,14 @@ export default function Dashboard() {
 
                         <div className={styles.row}>
                             <div className={styles.fieldGroup}>
-                                <label>Fecha de Nacimiento</label>
+                                <label htmlFor="dashboard-player-birth-date">Fecha de Nacimiento *</label>
                                 <input
+                                    id="dashboard-player-birth-date"
                                     type="date"
                                     name="birth_date"
                                     value={playerData.birth_date}
                                     onChange={handlePlayerChange}
+                                    required
                                     className={styles.input}
                                 />
                             </div>
@@ -515,15 +515,15 @@ export default function Dashboard() {
 
                         <div className={styles.row}>
                             <div className={styles.fieldGroup}>
-                                <label>Nivel de juego (1-10) *</label>
+                                <label htmlFor="dashboard-player-level">Nivel de juego (1-10)</label>
                                 <input
+                                    id="dashboard-player-level"
                                     type="number"
                                     name="level"
                                     min="1"
                                     max="10"
                                     value={playerData.level}
                                     onChange={handlePlayerChange}
-                                    required
                                     className={styles.input}
                                     placeholder="Tu nivel"
                                 />

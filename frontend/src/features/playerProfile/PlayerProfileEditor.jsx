@@ -59,7 +59,13 @@ export function PlayerProfileEditor({ player, generalDeclarationRequired, onSave
   const setValue = (event) => {
     const { name, value } = event.target;
     setForm((current) => ({ ...current, [name]: value }));
-    setErrors((current) => ({ ...current, [name]: undefined, payload: undefined }));
+    setErrors((current) => {
+      const nextErrors = { ...current };
+      delete nextErrors[name];
+      delete nextErrors.payload;
+
+      return nextErrors;
+    });
   };
 
   const submit = async (event) => {
@@ -118,6 +124,7 @@ export function PlayerProfileEditor({ player, generalDeclarationRequired, onSave
   };
 
   const errorFor = (field) => errors[field];
+  const errorEntries = Object.entries(errors).filter(([, message]) => Boolean(message));
   const describedBy = (field, helperId) => [
     helperId,
     errorFor(field) ? `profile-${field}-error` : null,
@@ -145,11 +152,11 @@ export function PlayerProfileEditor({ player, generalDeclarationRequired, onSave
 
       {editing && (
         <form onSubmit={submit} noValidate className={styles.form}>
-          {Object.keys(errors).length > 0 && (
+          {errorEntries.length > 0 && (
             <div ref={errorSummaryRef} tabIndex={-1} role="alert" aria-live="assertive" className={styles.errorSummary}>
               <strong>Revisa los campos indicados.</strong>
               <ul>
-                {Object.entries(errors).map(([field, message]) => (
+                {errorEntries.map(([field, message]) => (
                   <li key={field}>{message}</li>
                 ))}
               </ul>

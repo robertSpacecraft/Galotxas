@@ -110,6 +110,8 @@ class MyPanelTest extends TestCase
         $this->postJson('/api/v1/me/player-profile', [
             ...$this->profileDeclarationPayload(),
             'nickname' => 'Pilotari',
+            'birth_date' => '1990-01-01',
+            'birth_date_confirmed' => true,
             'gender' => 'male',
             'level' => 6,
             'dominant_hand' => 'right',
@@ -126,6 +128,7 @@ class MyPanelTest extends TestCase
         $this->assertDatabaseHas('players', [
             'user_id' => $user->id,
             'nickname' => 'Pilotari',
+            'birth_date' => '1990-01-01',
             'level' => 6,
             'active' => true,
         ]);
@@ -195,7 +198,8 @@ class MyPanelTest extends TestCase
         $created = $this->postJson('/api/v1/me/player-profile', [
             ...$this->profileDeclarationPayload(),
             'nickname' => 'Nou perfil privat',
-            'level' => 5,
+            'birth_date' => '1990-01-01',
+            'birth_date_confirmed' => true,
         ])->assertCreated();
 
         $this->assertStringNotContainsString('profile_photo_path', $created->getContent());

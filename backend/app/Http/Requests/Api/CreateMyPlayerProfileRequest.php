@@ -35,7 +35,7 @@ class CreateMyPlayerProfileRequest extends FormRequest
                 new AdultRequiresDni,
             ],
             'birth_date' => [
-                'nullable',
+                'required',
                 'date_format:Y-m-d',
                 'before:today',
             ],
@@ -44,7 +44,7 @@ class CreateMyPlayerProfileRequest extends FormRequest
                 Rule::in(PlayerGender::values()),
             ],
             'level' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:1',
                 'max:10',
@@ -70,19 +70,16 @@ class CreateMyPlayerProfileRequest extends FormRequest
                 'accepted',
             ],
             'birth_date_confirmed' => [
-                Rule::excludeIf(fn (): bool => ! $this->filled('birth_date')),
-                Rule::requiredIf(fn (): bool => $this->filled('birth_date')),
+                'required',
                 'accepted',
             ],
             'profile_notice_id' => [
-                Rule::excludeIf(fn (): bool => ! $this->noticeRequired()),
-                Rule::requiredIf(fn (): bool => $this->noticeRequired()),
+                'required',
                 'string',
                 'max:80',
             ],
             'profile_notice_version' => [
-                Rule::excludeIf(fn (): bool => ! $this->noticeRequired()),
-                Rule::requiredIf(fn (): bool => $this->noticeRequired()),
+                'required',
                 'string',
                 'max:20',
             ],
@@ -105,10 +102,6 @@ class CreateMyPlayerProfileRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
-            if (! $this->noticeRequired()) {
-                return;
-            }
-
             if (
                 ! $validator->errors()->hasAny(['profile_notice_id', 'profile_notice_version'])
                 && ! app(AccountProfileNoticeService::class)->recognizes(
@@ -148,10 +141,5 @@ class CreateMyPlayerProfileRequest extends FormRequest
 
         return $user === null
             || ! app(ProfileDeclarationService::class)->hasRecognizedGeneral($user);
-    }
-
-    private function noticeRequired(): bool
-    {
-        return $this->generalDeclarationRequired() || $this->filled('birth_date');
     }
 }

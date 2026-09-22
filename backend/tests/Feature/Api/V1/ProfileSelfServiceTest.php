@@ -81,6 +81,8 @@ class ProfileSelfServiceTest extends TestCase
         Sanctum::actingAs($newUser);
 
         $this->postJson('/api/v1/me/player-profile', [
+            ...$this->dobConfirmationPayload(),
+            'birth_date' => '1990-01-01',
             'level' => 5,
             'nickname' => ' alias   reservado ',
             'license_number' => ' LIC-RESERVADA ',
@@ -147,8 +149,9 @@ class ProfileSelfServiceTest extends TestCase
         Sanctum::actingAs($user);
 
         $created = $this->postJson('/api/v1/me/player-profile', [
+            ...$this->dobConfirmationPayload(),
+            'birth_date' => '1990-01-01',
             'nickname' => 'Alias Inicial',
-            'level' => 5,
         ])->assertCreated();
 
         $slug = $created->json('data.slug');
@@ -401,6 +404,7 @@ class ProfileSelfServiceTest extends TestCase
         $this->assertSame('NOTICE-ACCOUNT-PROFILE', $evidence->notice_id);
         $this->assertSame('1.0.0', $evidence->notice_version);
         $this->assertNotNull($evidence->declared_at);
+        $this->assertDatabaseCount('players', 0);
         $this->assertSame([
             'id',
             'actor_user_id',
@@ -412,26 +416,95 @@ class ProfileSelfServiceTest extends TestCase
         ], Schema::getColumnListing('profile_declarations'));
     }
 
-    public function test_profile_creation_requires_dob_confirmation_only_when_dob_is_supplied(): void
+    public function test_profile_creation_requires_birth_date_confirmation_and_current_notice(): void
     {
         $user = User::factory()->create();
+        app(ProfileDeclarationService::class)->recordGeneral($user);
         Sanctum::actingAs($user);
 
         $this->postJson('/api/v1/me/player-profile', [
-            ...$this->generalDeclarationPayload(),
-            'level' => 5,
-            'birth_date' => '1990-01-01',
+            ...$this->dobConfirmationPayload(),
         ])->assertUnprocessable()
-            ->assertJsonValidationErrors('birth_date_confirmed');
+            ->assertJsonValidationErrors('birth_date');
 
         $this->postJson('/api/v1/me/player-profile', [
-            ...$this->generalDeclarationPayload(),
-            'birth_date_confirmed' => true,
-            'level' => 5,
             'birth_date' => '1990-01-01',
-        ])->assertCreated();
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'birth_date_confirmed',
+                'profile_notice_id',
+                'profile_notice_version',
+            ]);
 
-        $this->assertSame(2, ProfileDeclaration::query()->count());
+        $this->postJson('/api/v1/me/player-profile', [
+            ...$this->dobConfirmationPayload(),
+            'profile_notice_id' => 'NOTICE-UNKNOWN',
+            'profile_notice_version' => '9.9.9',
+            'birth_date' => '1990-01-01',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('profile_notice_version');
+
+        $this->assertDatabaseCount('players', 0);
+    }
+
+    public function test_profile_creation_defaults_level_and_allows_adult_or_minor_birth_dates(): void
+    {
+        $adultUser = User::factory()->create();
+        app(ProfileDeclarationService::class)->recordGeneral($adultUser);
+        Sanctum::actingAs($adultUser);
+
+        $this->postJson('/api/v1/me/player-profile', [
+            ...$this->dobConfirmationPayload(),
+            'birth_date' => '1990-01-01',
+        ])->assertCreated()
+            ->assertJsonPath('data.level', 1)
+            ->assertJsonPath('data.public_identity.status', 'adult_name_initial');
+
+        $minorUser = User::factory()->create();
+        app(ProfileDeclarationService::class)->recordGeneral($minorUser);
+        Sanctum::actingAs($minorUser);
+        $minorDate = CarbonImmutable::today()->subYears(12)->toDateString();
+
+        $this->postJson('/api/v1/me/player-profile', [
+            ...$this->dobConfirmationPayload(),
+            'birth_date' => $minorDate,
+            'level' => 7,
+        ])->assertCreated()
+            ->assertJsonPath('data.level', 7)
+            ->assertJsonPath('data.public_identity.display_name', 'Participante')
+            ->assertJsonPath('data.public_identity.status', 'minor_no_effective_authorization');
+
+        $this->assertDatabaseHas('players', [
+            'user_id' => $adultUser->id,
+            'birth_date' => '1990-01-01',
+            'level' => 1,
+        ]);
+        $this->assertDatabaseHas('players', [
+            'user_id' => $minorUser->id,
+            'birth_date' => $minorDate,
+            'level' => 7,
+        ]);
+        $this->assertSame(2, ProfileDeclaration::query()
+            ->where('declaration_kind', ProfileDeclarationService::BIRTH_DATE)
+            ->count());
+    }
+
+    public function test_profile_creation_rejects_invalid_levels(): void
+    {
+        $user = User::factory()->create();
+        app(ProfileDeclarationService::class)->recordGeneral($user);
+        Sanctum::actingAs($user);
+
+        foreach ([0, 11, 'novice'] as $level) {
+            $this->postJson('/api/v1/me/player-profile', [
+                ...$this->dobConfirmationPayload(),
+                'birth_date' => '1990-01-01',
+                'level' => $level,
+            ])->assertUnprocessable()
+                ->assertJsonValidationErrors('level');
+        }
+
+        $this->assertDatabaseCount('players', 0);
     }
 
     public function test_first_relevant_write_requires_general_declaration_and_recognized_evidence_is_reused(): void

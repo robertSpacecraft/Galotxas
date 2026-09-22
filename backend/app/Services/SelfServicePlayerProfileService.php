@@ -13,6 +13,8 @@ use Illuminate\Validation\ValidationException;
 
 class SelfServicePlayerProfileService
 {
+    private const DEFAULT_LEVEL = 1;
+
     public const KNOWN_DATE_CLEAR_ERROR =
         'No puedes eliminar una fecha de nacimiento ya registrada desde Mi Panel.';
 
@@ -48,18 +50,24 @@ class SelfServicePlayerProfileService
                     ]);
                 }
 
+                $birthDate = $attributes['birth_date'] ?? null;
+                if (! is_string($birthDate) || $birthDate === '') {
+                    throw ValidationException::withMessages([
+                        'birth_date' => 'La fecha de nacimiento es obligatoria.',
+                    ]);
+                }
+
                 $generalRequired = ! $this->declarations->hasRecognizedGeneral($lockedUser);
-                $birthDateSupplied = ($attributes['birth_date'] ?? null) !== null;
-                $this->assertDeclarations($attributes, $generalRequired, $birthDateSupplied);
+                $this->assertDeclarations($attributes, $generalRequired, true);
 
                 $player = Player::query()->create([
                     'user_id' => $lockedUser->id,
                     'nickname' => $attributes['nickname'] ?? null,
                     'slug' => $this->slugs->generate($attributes['nickname'] ?? null, $lockedUser),
                     'dni' => $attributes['dni'] ?? null,
-                    'birth_date' => $attributes['birth_date'] ?? null,
+                    'birth_date' => $birthDate,
                     'gender' => $attributes['gender'] ?? null,
-                    'level' => $attributes['level'],
+                    'level' => $attributes['level'] ?? self::DEFAULT_LEVEL,
                     'license_number' => $attributes['license_number'] ?? null,
                     'dominant_hand' => $attributes['dominant_hand'] ?? null,
                     'notes' => $attributes['notes'] ?? null,
@@ -69,9 +77,7 @@ class SelfServicePlayerProfileService
                 if ($generalRequired) {
                     $this->declarations->recordGeneral($lockedUser, $player);
                 }
-                if ($birthDateSupplied) {
-                    $this->declarations->recordBirthDate($lockedUser, $player);
-                }
+                $this->declarations->recordBirthDate($lockedUser, $player);
 
                 return $player->load(['user', 'publicIdentityAuthorizations']);
             });

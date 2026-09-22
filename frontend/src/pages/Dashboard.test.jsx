@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { meService } from '../api/me';
 import { matchesService } from '../api/matches';
+import { accountProfileNotice } from '../features/legal/formNoticeRepository';
 import { useAuth } from '../hooks/useAuth';
 import Dashboard from './Dashboard';
 
@@ -107,6 +108,53 @@ describe('Dashboard', () => {
     await waitFor(() => expect(refreshUser).toHaveBeenCalledOnce());
     expect(consoleError).not.toHaveBeenCalled();
     consoleError.mockRestore();
+  });
+
+  it('requires DOB and keeps level optional when creating a player from an existing account', async () => {
+    const user = userEvent.setup();
+    const createPlayerProfile = vi.fn().mockResolvedValue({});
+    useAuth.mockReturnValue({
+      user: {
+        name: 'Cuenta',
+        lastname: 'Sin jugador',
+        email: 'cuenta@example.test',
+        role: 'user',
+        profile_declaration_required: false,
+        player: null,
+      },
+      createPlayerProfile,
+      updatePlayerProfile: vi.fn(),
+      refreshUser: vi.fn().mockResolvedValue({}),
+      updateProfilePhoto: vi.fn(),
+    });
+
+    render(
+      <MemoryRouter>
+        <Dashboard />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Quiero ser jugador' }));
+    const birthDate = screen.getByLabelText('Fecha de Nacimiento *');
+    const level = screen.getByLabelText('Nivel de juego (1-10)');
+    expect(birthDate).toBeRequired();
+    expect(level).not.toBeRequired();
+
+    await user.click(screen.getByRole('button', { name: 'Convertirme en Jugador' }));
+    expect(createPlayerProfile).not.toHaveBeenCalled();
+
+    await user.type(birthDate, '1990-01-01');
+    const confirmation = screen.getByRole('checkbox', { name: /fecha de nacimiento indicada/i });
+    expect(confirmation).toBeRequired();
+    await user.click(confirmation);
+    await user.click(screen.getByRole('button', { name: 'Convertirme en Jugador' }));
+
+    await waitFor(() => expect(createPlayerProfile).toHaveBeenCalledWith({
+      birth_date: '1990-01-01',
+      birth_date_confirmed: true,
+      profile_notice_id: accountProfileNotice.id,
+      profile_notice_version: accountProfileNotice.version,
+    }));
   });
 
   it('exposes five related tabs and selects Resumen initially', async () => {

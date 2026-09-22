@@ -69,6 +69,14 @@ export default function Register() {
             setError('Las contraseñas no coinciden');
             return;
         }
+        if (isPlayer && !playerData.birth_date) {
+            setError('La fecha de nacimiento es obligatoria para crear el perfil de jugador.');
+            return;
+        }
+        if (isPlayer && !birthDateConfirmed) {
+            setError('Debes confirmar que la fecha de nacimiento indicada es correcta.');
+            return;
+        }
 
         setLoading(true);
         try {
@@ -97,11 +105,9 @@ export default function Register() {
                     Object.entries(preparedPlayerData).filter(([, value]) => value !== '' && value !== null)
                 );
 
-                if (playerData.birth_date) {
-                    filteredPlayerProfile.birth_date_confirmed = birthDateConfirmed;
-                    filteredPlayerProfile.profile_notice_id = accountProfileNotice?.id;
-                    filteredPlayerProfile.profile_notice_version = accountProfileNotice?.version;
-                }
+                filteredPlayerProfile.birth_date_confirmed = birthDateConfirmed;
+                filteredPlayerProfile.profile_notice_id = accountProfileNotice?.id;
+                filteredPlayerProfile.profile_notice_version = accountProfileNotice?.version;
                 
                 try {
                     await createPlayerProfile(filteredPlayerProfile);
@@ -308,7 +314,7 @@ export default function Register() {
 
                         <div className={styles.row}>
                             <div className={styles.fieldGroup}>
-                                <label htmlFor="player-birth-date">Fecha de Nacimiento</label>
+                                <label htmlFor="player-birth-date">Fecha de Nacimiento *</label>
                                 <input
                                     id="player-birth-date"
                                     type="date"
@@ -316,6 +322,7 @@ export default function Register() {
                                     autoComplete="bday"
                                     value={playerData.birth_date}
                                     onChange={handlePlayerChange}
+                                    required
                                     className={styles.input}
                                 />
                             </div>
@@ -339,7 +346,7 @@ export default function Register() {
 
                         <div className={styles.row}>
                             <div className={styles.fieldGroup}>
-                                <label htmlFor="player-level">Nivel de juego (1-10) *</label>
+                                <label htmlFor="player-level">Nivel de juego (1-10)</label>
                                 <input
                                     id="player-level"
                                     type="number"
@@ -348,7 +355,6 @@ export default function Register() {
                                     max="10"
                                     value={playerData.level}
                                     onChange={handlePlayerChange}
-                                    required={isPlayer}
                                     className={styles.input}
                                     placeholder="Tu nivel"
                                 />
