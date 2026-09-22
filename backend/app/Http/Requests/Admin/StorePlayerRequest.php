@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Enums\PlayerGender;
 use App\Rules\AdultRequiresDni;
+use App\Services\PlayerProfileNormalizer;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -27,6 +28,7 @@ class StorePlayerRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:255',
+                Rule::unique('players', 'nickname'),
             ],
             'dni' => [
                 'nullable',
@@ -73,13 +75,15 @@ class StorePlayerRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $normalizer = app(PlayerProfileNormalizer::class);
+
         $this->merge([
             'active' => $this->boolean('active'),
-            'nickname' => $this->filled('nickname') ? trim((string) $this->nickname) : null,
+            'nickname' => $normalizer->nickname($this->input('nickname')),
             'dni' => $this->filled('dni') ? strtoupper(trim((string) $this->dni)) : null,
-            'license_number' => $this->filled('license_number') ? trim((string) $this->license_number) : null,
+            'license_number' => $normalizer->licenseNumber($this->input('license_number')),
             'dominant_hand' => $this->filled('dominant_hand') ? trim((string) $this->dominant_hand) : null,
-            'notes' => $this->filled('notes') ? trim((string) $this->notes) : null,
+            'notes' => $normalizer->optionalText($this->input('notes')),
         ]);
     }
 

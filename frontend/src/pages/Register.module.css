@@ -50,6 +50,11 @@
     font-weight: 500;
 }
 
+.fieldGroup small {
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
 .inputWrapper {
     position: relative;
     display: flex;
@@ -129,6 +134,20 @@
 
 .checkbox.checked {
     background: var(--brand-primary);
+}
+
+.declarationGroup {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.65rem;
+    align-items: start;
+    line-height: 1.5;
+}
+
+.declarationGroup input {
+    width: 20px;
+    height: 20px;
+    margin-top: 0.15rem;
 }
 
 .playerSection {

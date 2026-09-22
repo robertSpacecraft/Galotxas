@@ -32,7 +32,7 @@ class SchoolEnrollmentNoticeService
         if (
             ! is_array($notice)
             || ($artifact['schemaVersion'] ?? null) !== 1
-            || count($notices ?? []) !== 3
+            || count($notices ?? []) !== 4
             || ($notice['status'] ?? null) !== 'vigente'
             || ($notice['scope'] ?? null) !== self::SCOPE
             || ($notice['privacyUrl'] ?? null) !== self::PRIVACY_URL

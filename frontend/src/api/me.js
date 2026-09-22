@@ -19,5 +19,10 @@ export const meService = {
   getRankings: async () => {
     const response = await api.get('/me/rankings');
     return response.data.data || response.data;
-  }
+  },
+
+  updatePlayerProfile: async (payload) => {
+    const response = await api.patch('/me/player-profile', payload);
+    return response.data.data;
+  },
 };

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Player;
+use App\Models\ProfileDeclaration;
 use App\Models\User;
 use App\Services\ProfilePhotoService;
 use Illuminate\Filesystem\Filesystem;
@@ -143,6 +144,38 @@ class ProfilePhotoLifecycleTest extends TestCase
 
         $this->assertDatabaseMissing('users', ['id' => $user->id]);
         Storage::disk('media_local')->assertMissing($key);
+    }
+
+    public function test_admin_can_delete_a_registered_user_without_player_and_preserve_anonymized_declaration(): void
+    {
+        $this->postJson('/api/v1/auth/register', [
+            'name' => 'Ada',
+            'lastname' => 'Lovelace',
+            'email' => 'ada-delete@example.test',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'profile_declaration_accepted' => true,
+            'profile_notice_id' => 'NOTICE-ACCOUNT-PROFILE',
+            'profile_notice_version' => '1.0.0',
+        ])->assertCreated();
+
+        $user = User::query()->where('email', 'ada-delete@example.test')->sole();
+        $declaration = ProfileDeclaration::query()->sole();
+        $this->assertFalse($user->player()->exists());
+        $this->assertSame($user->id, $declaration->actor_user_id);
+
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin)
+            ->delete(route('admin.users.destroy', $user))
+            ->assertRedirect(route('admin.users.index'))
+            ->assertSessionHas('success', 'Usuario eliminado correctamente.');
+
+        $this->assertDatabaseMissing('users', ['id' => $user->id]);
+        $this->assertDatabaseHas('profile_declarations', [
+            'id' => $declaration->id,
+            'actor_user_id' => null,
+        ]);
+        $this->assertDatabaseCount('profile_declarations', 1);
     }
 
     public function test_user_deletion_cleanup_failure_is_logged_without_restoring_the_row(): void

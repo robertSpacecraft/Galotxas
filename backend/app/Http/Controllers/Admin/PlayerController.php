@@ -12,8 +12,10 @@ use App\Models\Player;
 use App\Models\User;
 use App\Services\OfficialResultLockService;
 use App\Services\OfficialResultMutationGuard;
+use App\Services\PlayerSlugService;
+use App\Services\PlayerUniqueConstraintService;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class PlayerController extends Controller
 {
@@ -42,27 +44,32 @@ class PlayerController extends Controller
         return view('admin.players.create', compact('users', 'genderOptions', 'dominantHandOptions'));
     }
 
-    public function store(StorePlayerRequest $request)
-    {
+    public function store(
+        StorePlayerRequest $request,
+        PlayerSlugService $slugs,
+        PlayerUniqueConstraintService $uniqueConstraints,
+    ) {
         $validated = $request->validated();
 
         $user = User::findOrFail($validated['user_id']);
 
-        Player::create([
-            'user_id' => $validated['user_id'],
-            'nickname' => $validated['nickname'] ?? null,
-            'slug' => $this->generateUniqueSlug(
-                $this->resolveSlugBase($validated['nickname'] ?? null, $user)
-            ),
-            'dni' => $validated['dni'] ?? null,
-            'birth_date' => $validated['birth_date'] ?? null,
-            'gender' => $validated['gender'] ?? null,
-            'level' => $validated['level'],
-            'license_number' => $validated['license_number'] ?? null,
-            'dominant_hand' => $validated['dominant_hand'] ?? null,
-            'notes' => $validated['notes'] ?? null,
-            'active' => $validated['active'] ?? false,
-        ]);
+        try {
+            Player::create([
+                'user_id' => $validated['user_id'],
+                'nickname' => $validated['nickname'] ?? null,
+                'slug' => $slugs->generate($validated['nickname'] ?? null, $user),
+                'dni' => $validated['dni'] ?? null,
+                'birth_date' => $validated['birth_date'] ?? null,
+                'gender' => $validated['gender'] ?? null,
+                'level' => $validated['level'],
+                'license_number' => $validated['license_number'] ?? null,
+                'dominant_hand' => $validated['dominant_hand'] ?? null,
+                'notes' => $validated['notes'] ?? null,
+                'active' => $validated['active'] ?? false,
+            ]);
+        } catch (QueryException $exception) {
+            $uniqueConstraints->rethrowAsValidation($exception);
+        }
 
         return redirect()
             ->route('admin.players.index')
@@ -93,12 +100,12 @@ class PlayerController extends Controller
         return view('admin.players.edit', compact('player', 'users', 'genderOptions', 'dominantHandOptions'));
     }
 
-    public function update(UpdatePlayerRequest $request, Player $player)
-    {
+    public function update(
+        UpdatePlayerRequest $request,
+        Player $player,
+        PlayerUniqueConstraintService $uniqueConstraints,
+    ) {
         $validated = $request->validated();
-
-        $userChanged = (int) $player->user_id !== (int) $validated['user_id'];
-        $nicknameChanged = ($player->nickname ?? null) !== ($validated['nickname'] ?? null);
 
         $data = [
             'user_id' => $validated['user_id'],
@@ -113,16 +120,11 @@ class PlayerController extends Controller
             'active' => $validated['active'] ?? false,
         ];
 
-        if ($userChanged || $nicknameChanged) {
-            $user = User::findOrFail($validated['user_id']);
-
-            $data['slug'] = $this->generateUniqueSlug(
-                $this->resolveSlugBase($validated['nickname'] ?? null, $user),
-                $player->id
-            );
+        try {
+            $player->update($data);
+        } catch (QueryException $exception) {
+            $uniqueConstraints->rethrowAsValidation($exception);
         }
-
-        $player->update($data);
 
         return redirect()
             ->route('admin.players.index')
@@ -162,43 +164,5 @@ class PlayerController extends Controller
         return redirect()
             ->route('admin.players.index')
             ->with('success', 'Jugador eliminado correctamente.');
-    }
-
-    private function resolveSlugBase(?string $nickname, User $user): string
-    {
-        if (! empty($nickname)) {
-            return $nickname;
-        }
-
-        $fullName = trim(($user->name ?? '').' '.($user->lastname ?? ''));
-
-        if ($fullName !== '') {
-            return $fullName;
-        }
-
-        return $user->name ?: 'player';
-    }
-
-    private function generateUniqueSlug(string $base, ?int $ignorePlayerId = null): string
-    {
-        $slug = Str::slug($base);
-
-        if ($slug === '') {
-            $slug = 'player';
-        }
-
-        $originalSlug = $slug;
-        $counter = 1;
-
-        while (
-            Player::when($ignorePlayerId, fn ($query) => $query->where('id', '!=', $ignorePlayerId))
-                ->where('slug', $slug)
-                ->exists()
-        ) {
-            $slug = $originalSlug.'-'.$counter;
-            $counter++;
-        }
-
-        return $slug;
     }
 }

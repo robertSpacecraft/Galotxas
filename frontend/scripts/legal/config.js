@@ -83,6 +83,14 @@ export const FORM_NOTICES = Object.freeze([
     privacyUrl: '/legal/privacidad',
     order: 3,
   }),
+  Object.freeze({
+    id: 'NOTICE-ACCOUNT-PROFILE',
+    filename: 'account-profile.md',
+    title: 'Información sobre datos de cuenta y perfil deportivo',
+    scope: 'account_profile',
+    privacyUrl: '/legal/privacidad',
+    order: 4,
+  }),
 ])
 
 export const DEFAULT_LEGAL_ROOT = fileURLToPath(

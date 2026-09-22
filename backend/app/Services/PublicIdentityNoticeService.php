@@ -30,7 +30,7 @@ class PublicIdentityNoticeService
         if (
             ! is_array($notice)
             || ($artifact['schemaVersion'] ?? null) !== 1
-            || count($notices ?? []) !== 3
+            || count($notices ?? []) !== 4
             || ($notice['id'] ?? null) !== self::ID
             || ($notice['status'] ?? null) !== 'vigente'
             || ($notice['scope'] ?? null) !== PublicIdentityAuthorization::SCOPE

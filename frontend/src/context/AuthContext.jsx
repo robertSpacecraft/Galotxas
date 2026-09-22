@@ -1,5 +1,6 @@
 import { useCallback, useState, useEffect } from 'react';
 import api from '../api/client';
+import { meService } from '../api/me';
 import {
     AUTH_SESSION_CLEARED_EVENT,
     clearAuthSession,
@@ -117,7 +118,11 @@ export const AuthProvider = ({ children }) => {
     const createPlayerProfile = async (playerData) => {
         const response = await api.post('/me/player-profile', playerData);
         const newPlayer = response.data.data;
-        setUser((currentUser) => ({ ...currentUser, player: newPlayer }));
+        setUser((currentUser) => ({
+            ...currentUser,
+            player: newPlayer,
+            profile_declaration_required: false,
+        }));
         return newPlayer;
     };
 
@@ -163,6 +168,16 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
+    const updatePlayerProfile = useCallback(async (playerData) => {
+        const updatedPlayer = await meService.updatePlayerProfile(playerData);
+        setUser((currentUser) => currentUser
+            ? { ...currentUser, player: updatedPlayer }
+            : currentUser);
+        await refreshUser();
+
+        return updatedPlayer;
+    }, [refreshUser]);
+
     const updateProfilePhoto = useCallback((profilePhoto) => {
         setUser((currentUser) => currentUser
             ? { ...currentUser, profile_photo: profilePhoto }
@@ -186,6 +201,7 @@ export const AuthProvider = ({ children }) => {
         register,
         logout,
         createPlayerProfile,
+        updatePlayerProfile,
         forgotPassword,
         resetPassword,
         refreshUser,

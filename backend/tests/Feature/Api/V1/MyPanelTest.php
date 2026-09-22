@@ -64,6 +64,7 @@ class MyPanelTest extends TestCase
             'active' => true,
             'has_player' => true,
             'profile_photo' => null,
+            'profile_declaration_required' => true,
         ], $response->json('data.user'));
     }
 
@@ -107,6 +108,7 @@ class MyPanelTest extends TestCase
         $user = $this->createAuthenticatedUser();
 
         $this->postJson('/api/v1/me/player-profile', [
+            ...$this->profileDeclarationPayload(),
             'nickname' => 'Pilotari',
             'gender' => 'male',
             'level' => 6,
@@ -134,6 +136,7 @@ class MyPanelTest extends TestCase
         [, $player] = $this->createAuthenticatedPlayer();
 
         $this->patchJson('/api/v1/me/player-profile', [
+            ...$this->profileDeclarationPayload(),
             'nickname' => 'Nou Apodo',
             'dominant_hand' => 'left',
             'notes' => 'Notas actualizadas.',
@@ -174,6 +177,7 @@ class MyPanelTest extends TestCase
             $this->getJson('/api/v1/me')->assertOk(),
             $this->getJson('/api/v1/me/player-profile')->assertOk(),
             $this->patchJson('/api/v1/me/player-profile', [
+                ...$this->profileDeclarationPayload(),
                 'nickname' => 'Privado',
             ])->assertOk(),
         ];
@@ -189,6 +193,7 @@ class MyPanelTest extends TestCase
         Sanctum::actingAs($userWithoutPlayer);
 
         $created = $this->postJson('/api/v1/me/player-profile', [
+            ...$this->profileDeclarationPayload(),
             'nickname' => 'Nou perfil privat',
             'level' => 5,
         ])->assertCreated();
@@ -405,6 +410,16 @@ class MyPanelTest extends TestCase
         Sanctum::actingAs($user);
 
         return $user;
+    }
+
+    /** @return array<string, mixed> */
+    private function profileDeclarationPayload(): array
+    {
+        return [
+            'profile_declaration_accepted' => true,
+            'profile_notice_id' => 'NOTICE-ACCOUNT-PROFILE',
+            'profile_notice_version' => '1.0.0',
+        ];
     }
 
     /**

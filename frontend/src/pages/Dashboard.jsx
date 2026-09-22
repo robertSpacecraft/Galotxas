@@ -6,6 +6,8 @@ import { matchesService } from '../api/matches';
 import MatchCard from '../components/MatchCard';
 import { PendingMatchActions } from '../components/PendingMatchActions/PendingMatchActions';
 import { ProfilePhotoCard } from '../features/profilePhoto/ProfilePhotoCard';
+import { PlayerProfileEditor } from '../features/playerProfile/PlayerProfileEditor';
+import { accountProfileNotice } from '../features/legal/formNoticeRepository';
 import styles from './Dashboard.module.css';
 
 const registrationStatusLabels = {
@@ -95,7 +97,7 @@ const normalizeCalendarDays = (calendarItems) => {
 };
 
 export default function Dashboard() {
-    const { user, createPlayerProfile, refreshUser, updateProfilePhoto } = useAuth();
+    const { user, createPlayerProfile, updatePlayerProfile, refreshUser, updateProfilePhoto } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
     
@@ -103,6 +105,8 @@ export default function Dashboard() {
     const [isRegistering, setIsRegistering] = useState(location.state?.action === 'createProfile');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [generalDeclarationAccepted, setGeneralDeclarationAccepted] = useState(false);
+    const [birthDateConfirmed, setBirthDateConfirmed] = useState(false);
 
     const [registrations, setRegistrations] = useState([]);
     const [regsLoading, setRegsLoading] = useState(false);
@@ -229,6 +233,17 @@ export default function Dashboard() {
             const filteredPlayerProfile = Object.fromEntries(
                 Object.entries(preparedPlayerData).filter(([, value]) => value !== '' && value !== null)
             );
+
+            if (user?.profile_declaration_required) {
+                filteredPlayerProfile.profile_declaration_accepted = generalDeclarationAccepted;
+                filteredPlayerProfile.profile_notice_id = accountProfileNotice?.id;
+                filteredPlayerProfile.profile_notice_version = accountProfileNotice?.version;
+            }
+            if (playerData.birth_date) {
+                filteredPlayerProfile.birth_date_confirmed = birthDateConfirmed;
+                filteredPlayerProfile.profile_notice_id = accountProfileNotice?.id;
+                filteredPlayerProfile.profile_notice_version = accountProfileNotice?.version;
+            }
             
             await createPlayerProfile(filteredPlayerProfile);
             
@@ -402,11 +417,15 @@ export default function Dashboard() {
                             </div>
                             <div className={styles.infoField}>
                                 <span className={styles.label}>Mano Dominante</span>
-                                <span className={styles.value}>{user.player.dominant_hand === 'right' ? 'Diestro' : user.player.dominant_hand === 'left' ? 'Zurdo' : 'Ambidiestro'}</span>
+                                <span className={styles.value}>{user.player.dominant_hand === 'right' ? 'Diestro' : user.player.dominant_hand === 'left' ? 'Zurdo' : user.player.dominant_hand === 'both' ? 'Ambidiestro' : 'Sin especificar'}</span>
                             </div>
                             <div className={styles.infoField}>
                                 <span className={styles.label}>Nº Licencia</span>
                                 <span className={styles.value}>{user.player.license_number || 'Sin licencia'}</span>
+                            </div>
+                            <div className={styles.infoField}>
+                                <span className={styles.label}>Fecha de nacimiento</span>
+                                <span className={styles.value}>{user.player.birth_date || 'No proporcionada'}</span>
                             </div>
                             {user.player.notes && (
                                 <div className={styles.infoFieldFull}>
@@ -415,6 +434,11 @@ export default function Dashboard() {
                                 </div>
                             )}
                         </div>
+                        <PlayerProfileEditor
+                            player={user.player}
+                            generalDeclarationRequired={user.profile_declaration_required === true}
+                            onSave={updatePlayerProfile}
+                        />
                     </div>
                 )}
             </div>
@@ -436,18 +460,21 @@ export default function Dashboard() {
                     <form onSubmit={handleSubmit} className={styles.form}>
                         <div className={styles.row}>
                             <div className={styles.fieldGroup}>
-                                <label>Apodo (Nickname)</label>
+                                <label htmlFor="dashboard-player-nickname">Apodo deportivo</label>
                                 <input
+                                    id="dashboard-player-nickname"
                                     type="text"
                                     name="nickname"
                                     value={playerData.nickname}
                                     onChange={handlePlayerChange}
                                     className={styles.input}
                                     placeholder="Tu apodo en la pista"
+                                    aria-describedby="dashboard-player-nickname-help"
                                 />
+                                <small id="dashboard-player-nickname-help">Apodo deportivo por el que te conocen en la pista. No uses tu nombre habitual salvo que también sea tu apodo deportivo.</small>
                             </div>
                             <div className={styles.fieldGroup}>
-                                <label>DNI / NIE {playerData.birth_date && (new Date().getFullYear() - new Date(playerData.birth_date).getFullYear() >= 18) && '*'}</label>
+                                <label>DNI / NIE</label>
                                 <input
                                     type="text"
                                     name="dni"
@@ -541,6 +568,30 @@ export default function Dashboard() {
                                 placeholder="Algo que debamos saber..."
                             />
                         </div>
+
+                        {user?.profile_declaration_required && (
+                            <label className={styles.declarationRow}>
+                                <input
+                                    type="checkbox"
+                                    checked={generalDeclarationAccepted}
+                                    onChange={(event) => setGeneralDeclarationAccepted(event.target.checked)}
+                                    required
+                                />
+                                <span>He leído la <Link to="/legal/privacidad">Política de Privacidad</Link> y declaro que los datos facilitados son exactos y veraces.</span>
+                            </label>
+                        )}
+
+                        {playerData.birth_date && (
+                            <label className={styles.declarationRow}>
+                                <input
+                                    type="checkbox"
+                                    checked={birthDateConfirmed}
+                                    onChange={(event) => setBirthDateConfirmed(event.target.checked)}
+                                    required
+                                />
+                                <span>Confirmo que la fecha de nacimiento indicada es correcta.</span>
+                            </label>
+                        )}
 
                         <button 
                             type="submit" 

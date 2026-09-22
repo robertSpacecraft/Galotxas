@@ -70,7 +70,7 @@ class OfficialResultIdentitySnapshotTest extends TestCase
         ));
 
         foreach (['revoked', 'expired'] as $state) {
-            $minor = $this->player('Estado', $state, 'Alias sensible', '2014-01-01');
+            $minor = $this->player('Estado', $state, 'Alias sensible '.$state, '2014-01-01');
             $authorization = $this->authorization($minor, 'alias');
             $authorization->forceFill([
                 'state' => $state,

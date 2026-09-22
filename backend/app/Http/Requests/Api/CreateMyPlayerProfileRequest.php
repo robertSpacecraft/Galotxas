@@ -4,8 +4,12 @@ namespace App\Http\Requests\Api;
 
 use App\Enums\PlayerGender;
 use App\Rules\AdultRequiresDni;
+use App\Services\AccountProfileNoticeService;
+use App\Services\PlayerProfileNormalizer;
+use App\Services\ProfileDeclarationService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class CreateMyPlayerProfileRequest extends FormRequest
 {
@@ -21,6 +25,7 @@ class CreateMyPlayerProfileRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:255',
+                Rule::unique('players', 'nickname'),
             ],
             'dni' => [
                 'nullable',
@@ -31,7 +36,7 @@ class CreateMyPlayerProfileRequest extends FormRequest
             ],
             'birth_date' => [
                 'nullable',
-                'date',
+                'date_format:Y-m-d',
                 'before:today',
             ],
             'gender' => [
@@ -59,18 +64,64 @@ class CreateMyPlayerProfileRequest extends FormRequest
                 'string',
                 'max:2000',
             ],
+            'profile_declaration_accepted' => [
+                Rule::excludeIf(fn (): bool => ! $this->generalDeclarationRequired()),
+                Rule::requiredIf(fn (): bool => $this->generalDeclarationRequired()),
+                'accepted',
+            ],
+            'birth_date_confirmed' => [
+                Rule::excludeIf(fn (): bool => ! $this->filled('birth_date')),
+                Rule::requiredIf(fn (): bool => $this->filled('birth_date')),
+                'accepted',
+            ],
+            'profile_notice_id' => [
+                Rule::excludeIf(fn (): bool => ! $this->noticeRequired()),
+                Rule::requiredIf(fn (): bool => $this->noticeRequired()),
+                'string',
+                'max:80',
+            ],
+            'profile_notice_version' => [
+                Rule::excludeIf(fn (): bool => ! $this->noticeRequired()),
+                Rule::requiredIf(fn (): bool => $this->noticeRequired()),
+                'string',
+                'max:20',
+            ],
         ];
     }
 
     protected function prepareForValidation(): void
     {
+        $normalizer = app(PlayerProfileNormalizer::class);
+
         $this->merge([
-            'nickname' => $this->filled('nickname') ? trim((string) $this->nickname) : null,
+            'nickname' => $normalizer->nickname($this->input('nickname')),
             'dni' => $this->filled('dni') ? strtoupper(trim((string) $this->dni)) : null,
-            'license_number' => $this->filled('license_number') ? trim((string) $this->license_number) : null,
+            'license_number' => $normalizer->licenseNumber($this->input('license_number')),
             'dominant_hand' => $this->filled('dominant_hand') ? trim((string) $this->dominant_hand) : null,
-            'notes' => $this->filled('notes') ? trim((string) $this->notes) : null,
+            'notes' => $normalizer->optionalText($this->input('notes')),
         ]);
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            if (! $this->noticeRequired()) {
+                return;
+            }
+
+            if (
+                ! $validator->errors()->hasAny(['profile_notice_id', 'profile_notice_version'])
+                && ! app(AccountProfileNoticeService::class)->recognizes(
+                    (string) $this->input('profile_notice_id'),
+                    (string) $this->input('profile_notice_version')
+                )
+            ) {
+                $validator->errors()->add(
+                    'profile_notice_version',
+                    'La versión del aviso de cuenta y perfil no está vigente.'
+                );
+            }
+        });
     }
 
     public function attributes(): array
@@ -84,6 +135,23 @@ class CreateMyPlayerProfileRequest extends FormRequest
             'license_number' => 'número de licencia',
             'dominant_hand' => 'mano dominante',
             'notes' => 'notas',
+            'profile_declaration_accepted' => 'declaración de exactitud',
+            'birth_date_confirmed' => 'confirmación de la fecha de nacimiento',
+            'profile_notice_id' => 'aviso de cuenta y perfil',
+            'profile_notice_version' => 'versión del aviso de cuenta y perfil',
         ];
+    }
+
+    private function generalDeclarationRequired(): bool
+    {
+        $user = $this->user();
+
+        return $user === null
+            || ! app(ProfileDeclarationService::class)->hasRecognizedGeneral($user);
+    }
+
+    private function noticeRequired(): bool
+    {
+        return $this->generalDeclarationRequired() || $this->filled('birth_date');
     }
 }

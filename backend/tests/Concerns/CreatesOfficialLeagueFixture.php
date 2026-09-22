@@ -39,7 +39,7 @@ trait CreatesOfficialLeagueFixture
             ]);
             $player = Player::factory()->create([
                 'user_id' => $user->id,
-                'nickname' => 'Alias '.($index + 1),
+                'nickname' => 'Alias '.$category->id.'-'.($index + 1),
                 'birth_date' => '1990-01-01',
                 'active' => true,
             ]);
@@ -85,12 +85,12 @@ trait CreatesOfficialLeagueFixture
                 'name' => 'Equipo '.($index + 1),
             ]);
             $front = Player::factory()->create([
-                'nickname' => 'Delante '.($index + 1),
+                'nickname' => 'Delante '.$category->id.'-'.($index + 1),
                 'birth_date' => '1990-01-01',
                 'active' => true,
             ]);
             $back = Player::factory()->create([
-                'nickname' => 'Zaguero '.($index + 1),
+                'nickname' => 'Zaguero '.$category->id.'-'.($index + 1),
                 'birth_date' => '1990-01-01',
                 'active' => true,
             ]);

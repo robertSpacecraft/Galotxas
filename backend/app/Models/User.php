@@ -67,4 +67,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(SchoolEnrollment::class);
     }
+
+    public function profileDeclarations(): HasMany
+    {
+        return $this->hasMany(ProfileDeclaration::class, 'actor_user_id');
+    }
 }

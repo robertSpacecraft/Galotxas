@@ -109,7 +109,7 @@ class RankingServicesTest extends TestCase
 
     public function test_total_tie_uses_entry_id_as_final_stable_criterion(): void
     {
-        [$category, $round, $entries] = $this->createSinglesCategory(['Igual', 'Igual', 'Igual']);
+        [$category, $round, $entries] = $this->createSinglesCategory(['Igual 1', 'Igual 2', 'Igual 3']);
 
         $this->createValidatedMatch($round, $entries[0], $entries[1], 10, 0);
         $this->createValidatedMatch($round, $entries[1], $entries[2], 10, 0);
@@ -123,7 +123,11 @@ class RankingServicesTest extends TestCase
 
     public function test_entries_without_matches_have_valid_zero_statistics_and_stable_positions(): void
     {
-        [$category, , $entries] = $this->createSinglesCategory(['Sin partidos', 'Sin partidos', 'Sin partidos']);
+        [$category, , $entries] = $this->createSinglesCategory([
+            'Sin partidos 1',
+            'Sin partidos 2',
+            'Sin partidos 3',
+        ]);
 
         $ranking = $this->categoryRanking($category);
 

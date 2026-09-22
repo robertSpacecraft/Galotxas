@@ -10,9 +10,11 @@ use App\Models\CategoryOfficialResult;
 use App\Models\User;
 use App\Services\OfficializeCupResultService;
 use App\Services\OfficializeLeagueResultService;
+use App\Services\ProfileDeclarationService;
 use App\Services\ReopenCupResultService;
 use App\Services\ReopenLeagueResultService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\Concerns\CreatesOfficialCupFixture;
 use Tests\TestCase;
 
@@ -260,7 +262,19 @@ class AdminCategoryOfficialResultTest extends TestCase
         $snapshotNames = $result->leagueRows->pluck('display_name_snapshot')->all();
 
         foreach ($fixture['players']->values() as $index => $player) {
-            $player->update(['nickname' => 'NOMBRE-LIVE-SECRETO-'.($index + 1)]);
+            if ($index === 0) {
+                app(ProfileDeclarationService::class)->recordGeneral($player->user, $player);
+                Sanctum::actingAs($player->user);
+                $this->patchJson('/api/v1/me/player-profile', [
+                    'nickname' => 'NOMBRE-LIVE-SECRETO-1',
+                    'birth_date' => '1991-02-03',
+                    'birth_date_confirmed' => true,
+                    'profile_notice_id' => 'NOTICE-ACCOUNT-PROFILE',
+                    'profile_notice_version' => '1.0.0',
+                ])->assertOk();
+            } else {
+                $player->update(['nickname' => 'NOMBRE-LIVE-SECRETO-'.($index + 1)]);
+            }
             $player->user->update(['email' => "jugador{$index}@secret.example"]);
         }
 

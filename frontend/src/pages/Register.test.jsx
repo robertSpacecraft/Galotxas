@@ -1,6 +1,7 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { accountProfileNotice } from '../features/legal/formNoticeRepository';
 import { renderWithProviders } from '../test/renderWithProviders';
 import Register from './Register';
 
@@ -76,6 +77,7 @@ describe('Register', () => {
     await user.type(screen.getByLabelText(/Contraseña \* \(min/), 'password123');
     await user.type(screen.getByLabelText('Confirmar Contraseña *'), 'password123');
     await user.click(screen.getByRole('checkbox', { name: 'Soy jugador' }));
+    await user.click(screen.getByRole('checkbox', { name: /declaro que los datos facilitados son exactos y veraces/i }));
     await user.type(screen.getByLabelText('Apodo (Nickname)'), 'Ada');
     await user.type(screen.getByLabelText(/Nivel de juego/), '5');
     await user.click(screen.getByRole('button', { name: 'Registrarse' }));
@@ -87,8 +89,44 @@ describe('Register', () => {
         email: 'ada@example.test',
         password: 'password123',
         password_confirmation: 'password123',
+        profile_declaration_accepted: true,
+        profile_notice_id: accountProfileNotice.id,
+        profile_notice_version: accountProfileNotice.version,
       });
       expect(createPlayerProfile).toHaveBeenCalledWith({ nickname: 'Ada', level: 5 });
     });
+  });
+
+  it('requires the general declaration and adds DOB confirmation only when supplied', async () => {
+    const user = userEvent.setup();
+    renderRegister();
+
+    await user.type(screen.getByLabelText('Nombre *'), 'Ada');
+    await user.type(screen.getByLabelText('Apellidos *'), 'Lovelace');
+    await user.type(screen.getByLabelText('Correo Electrónico *'), 'ada@example.test');
+    await user.type(screen.getByLabelText('Confirmar Correo *'), 'ada@example.test');
+    await user.type(screen.getByLabelText(/Contraseña \* \(min/), 'password123');
+    await user.type(screen.getByLabelText('Confirmar Contraseña *'), 'password123');
+
+    const submit = screen.getByRole('button', { name: 'Registrarse' });
+    expect(submit).toBeDisabled();
+    await user.click(screen.getByRole('checkbox', { name: /declaro que los datos facilitados son exactos y veraces/i }));
+    await user.click(screen.getByRole('checkbox', { name: 'Soy jugador' }));
+    expect(screen.queryByRole('checkbox', { name: /fecha de nacimiento indicada/i })).not.toBeInTheDocument();
+
+    await user.type(screen.getByLabelText('Fecha de Nacimiento'), '1990-01-01');
+    await user.type(screen.getByLabelText(/Nivel de juego/), '5');
+    const dobConfirmation = screen.getByRole('checkbox', { name: /fecha de nacimiento indicada/i });
+    expect(dobConfirmation).toBeRequired();
+    await user.click(dobConfirmation);
+    await user.click(submit);
+
+    await waitFor(() => expect(createPlayerProfile).toHaveBeenCalledWith({
+      birth_date: '1990-01-01',
+      level: 5,
+      birth_date_confirmed: true,
+      profile_notice_id: accountProfileNotice.id,
+      profile_notice_version: accountProfileNotice.version,
+    }));
   });
 });

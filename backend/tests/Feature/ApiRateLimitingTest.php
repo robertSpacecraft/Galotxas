@@ -148,6 +148,9 @@ class ApiRateLimitingTest extends TestCase
             'email' => "rate-limit-{$attempt}@example.com",
             'password' => 'password123',
             'password_confirmation' => 'password123',
+            'profile_declaration_accepted' => true,
+            'profile_notice_id' => 'NOTICE-ACCOUNT-PROFILE',
+            'profile_notice_version' => '1.0.0',
         ];
     }
 }

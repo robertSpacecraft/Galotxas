@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { accountProfileNotice } from '../features/legal/formNoticeRepository';
 import styles from './Register.module.css';
 
 const CheckIcon = () => (
@@ -42,6 +43,8 @@ export default function Register() {
 
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [generalDeclarationAccepted, setGeneralDeclarationAccepted] = useState(false);
+    const [birthDateConfirmed, setBirthDateConfirmed] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -75,7 +78,10 @@ export default function Register() {
                 lastname: formData.lastname,
                 email: formData.email,
                 password: formData.password,
-                password_confirmation: formData.password_confirmation
+                password_confirmation: formData.password_confirmation,
+                profile_declaration_accepted: generalDeclarationAccepted,
+                profile_notice_id: accountProfileNotice?.id,
+                profile_notice_version: accountProfileNotice?.version
             });
 
             // 2. If "Soy jugador", Create Player Profile
@@ -90,6 +96,12 @@ export default function Register() {
                 const filteredPlayerProfile = Object.fromEntries(
                     Object.entries(preparedPlayerData).filter(([, value]) => value !== '' && value !== null)
                 );
+
+                if (playerData.birth_date) {
+                    filteredPlayerProfile.birth_date_confirmed = birthDateConfirmed;
+                    filteredPlayerProfile.profile_notice_id = accountProfileNotice?.id;
+                    filteredPlayerProfile.profile_notice_version = accountProfileNotice?.version;
+                }
                 
                 try {
                     await createPlayerProfile(filteredPlayerProfile);
@@ -248,6 +260,19 @@ export default function Register() {
                     <span>Soy jugador</span>
                 </label>
 
+                <label className={styles.declarationGroup} htmlFor="register-profile-declaration">
+                    <input
+                        id="register-profile-declaration"
+                        type="checkbox"
+                        checked={generalDeclarationAccepted}
+                        onChange={(event) => setGeneralDeclarationAccepted(event.target.checked)}
+                        required
+                    />
+                    <span>
+                        He leído la <Link to="/legal/privacidad" className={styles.link}>Política de Privacidad</Link> y declaro que los datos facilitados son exactos y veraces.
+                    </span>
+                </label>
+
                 {isPlayer && (
                     <div className={styles.playerSection}>
                         <h3 className={styles.sectionTitle}>Perfil de Jugador</h3>
@@ -263,10 +288,12 @@ export default function Register() {
                                     onChange={handlePlayerChange}
                                     className={styles.input}
                                     placeholder="Tu apodo en la pista"
+                                    aria-describedby="register-nickname-help"
                                 />
+                                <small id="register-nickname-help">Apodo deportivo por el que te conocen en la pista. No uses tu nombre habitual salvo que también sea tu apodo deportivo.</small>
                             </div>
                             <div className={styles.fieldGroup}>
-                                <label htmlFor="player-dni">DNI / NIE {playerData.birth_date && (new Date().getFullYear() - new Date(playerData.birth_date).getFullYear() >= 18) && '*'}</label>
+                                <label htmlFor="player-dni">DNI / NIE</label>
                                 <input
                                     id="player-dni"
                                     type="text"
@@ -369,12 +396,25 @@ export default function Register() {
                                 placeholder="Algo que debamos saber..."
                             />
                         </div>
+
+                        {playerData.birth_date && (
+                            <label className={styles.declarationGroup} htmlFor="register-birth-date-confirmed">
+                                <input
+                                    id="register-birth-date-confirmed"
+                                    type="checkbox"
+                                    checked={birthDateConfirmed}
+                                    onChange={(event) => setBirthDateConfirmed(event.target.checked)}
+                                    required
+                                />
+                                <span>Confirmo que la fecha de nacimiento indicada es correcta.</span>
+                            </label>
+                        )}
                     </div>
                 )}
 
                 <button 
                     type="submit" 
-                    disabled={loading || !isEmailValid || !isPasswordValid} 
+                    disabled={loading || !isEmailValid || !isPasswordValid || !generalDeclarationAccepted || !accountProfileNotice}
                     className={styles.submitBtn}
                 >
                     {loading ? 'Registrando...' : 'Registrarse'}

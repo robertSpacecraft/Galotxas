@@ -313,7 +313,7 @@ class PublicCompetitionIdentityTest extends TestCase
             'name' => 'Aina',
             'lastname' => 'Àlvarez Privat',
         ], [
-            'nickname' => ' ',
+            'nickname' => null,
             'birth_date' => '2014-08-07',
         ]);
         PublicIdentityAuthorization::factory()->approved()->create([
@@ -339,7 +339,7 @@ class PublicCompetitionIdentityTest extends TestCase
             'name' => 'Noa',
             'lastname' => 'Écija Privat',
         ], [
-            'nickname' => ' ',
+            'nickname' => null,
             'birth_date' => '2008-08-07',
         ]);
         PublicIdentityAuthorization::factory()->approved()->create([

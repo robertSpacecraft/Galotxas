@@ -65,4 +65,9 @@ class Player extends Model
     {
         return $this->hasMany(PublicIdentityAuthorization::class);
     }
+
+    public function profileDeclarations(): HasMany
+    {
+        return $this->hasMany(ProfileDeclaration::class, 'subject_player_id');
+    }
 }

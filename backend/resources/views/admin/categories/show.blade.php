@@ -181,7 +181,7 @@
                                 <option value="">Selecciona un jugador aprobado</option>
                                 @foreach ($availablePlayers as $player)
                                     <option value="{{ $player->id }}" {{ old('player_id') == $player->id ? 'selected' : '' }}>
-                                        {{ $player->nickname ?: ($player->user->name . ' ' . $player->user->lastname) }}
+                                        {{ $player->nickname ? ($player->nickname . ' — ' . $player->user->name . ' ' . $player->user->lastname) : ($player->user->name . ' ' . $player->user->lastname) }}
                                     </option>
                                 @endforeach
                             </select>
@@ -259,7 +259,7 @@
                                     <option value="">Selecciona jugador</option>
                                     @foreach ($teamSelectablePlayers as $player)
                                         <option value="{{ $player->id }}" {{ old('front_player_id') == $player->id ? 'selected' : '' }}>
-                                            {{ $player->nickname ?: ($player->user->name . ' ' . $player->user->lastname) }}
+                                            {{ $player->nickname ? ($player->nickname . ' — ' . $player->user->name . ' ' . $player->user->lastname) : ($player->user->name . ' ' . $player->user->lastname) }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -271,7 +271,7 @@
                                     <option value="">Selecciona jugador</option>
                                     @foreach ($teamSelectablePlayers as $player)
                                         <option value="{{ $player->id }}" {{ old('back_player_id') == $player->id ? 'selected' : '' }}>
-                                            {{ $player->nickname ?: ($player->user->name . ' ' . $player->user->lastname) }}
+                                            {{ $player->nickname ? ($player->nickname . ' — ' . $player->user->name . ' ' . $player->user->lastname) : ($player->user->name . ' ' . $player->user->lastname) }}
                                         </option>
                                     @endforeach
                                 </select>

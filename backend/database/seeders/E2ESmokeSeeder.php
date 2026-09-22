@@ -33,6 +33,7 @@ use App\Models\SchoolSchedule;
 use App\Models\Season;
 use App\Models\User;
 use App\Models\Venue;
+use App\Services\PlayerProfileNormalizer;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -667,13 +668,13 @@ class E2ESmokeSeeder extends Seeder
         Player::query()->updateOrCreate(
             ['user_id' => $user->id],
             [
-                'nickname' => $nickname,
+                'nickname' => app(PlayerProfileNormalizer::class)->nickname($nickname),
                 'slug' => $slug,
                 'dni' => $dni,
                 'birth_date' => $birthDate,
                 'gender' => PlayerGender::MALE->value,
                 'level' => 5,
-                'license_number' => $licenseNumber,
+                'license_number' => app(PlayerProfileNormalizer::class)->licenseNumber($licenseNumber),
                 'dominant_hand' => $dominantHand,
                 'notes' => 'Perfil exclusivo del escenario E2E.',
                 'active' => true,

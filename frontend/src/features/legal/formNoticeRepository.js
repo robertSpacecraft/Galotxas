@@ -7,7 +7,7 @@ export const minorPublicIdentityNotice = (() => {
 
   if (
     noticeArtifact?.schemaVersion !== 1
-    || noticeArtifact?.notices?.length !== 3
+    || noticeArtifact?.notices?.length !== 4
     || notice?.status !== 'vigente'
     || notice?.scope !== 'public_competition_identity'
   ) {
@@ -24,7 +24,7 @@ export const contactFormNotice = (() => {
 
   if (
     noticeArtifact?.schemaVersion !== 1
-    || noticeArtifact?.notices?.length !== 3
+    || noticeArtifact?.notices?.length !== 4
     || notice?.status !== 'vigente'
     || notice?.scope !== 'contact_request'
     || notice?.privacyUrl !== '/legal/privacidad'
@@ -42,9 +42,27 @@ export const schoolEnrollmentNotice = (() => {
 
   if (
     noticeArtifact?.schemaVersion !== 1
-    || noticeArtifact?.notices?.length !== 3
+    || noticeArtifact?.notices?.length !== 4
     || notice?.status !== 'vigente'
     || notice?.scope !== 'school_enrollment'
+    || notice?.privacyUrl !== '/legal/privacidad'
+  ) {
+    return null;
+  }
+
+  return notice;
+})();
+
+export const accountProfileNotice = (() => {
+  const notice = noticeArtifact?.notices?.find(
+    (candidate) => candidate.id === 'NOTICE-ACCOUNT-PROFILE',
+  );
+
+  if (
+    noticeArtifact?.schemaVersion !== 1
+    || noticeArtifact?.notices?.length !== 4
+    || notice?.status !== 'vigente'
+    || notice?.scope !== 'account_profile'
     || notice?.privacyUrl !== '/legal/privacidad'
   ) {
     return null;

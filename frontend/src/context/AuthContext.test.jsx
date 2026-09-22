@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import api from '../api/client';
 import { AUTH_SESSION_CLEARED_EVENT } from '../api/authSession';
+import { meService } from '../api/me';
 import { useAuth } from '../hooks/useAuth';
 import { AuthProvider } from './AuthContext';
 
@@ -14,14 +15,22 @@ vi.mock('../api/client', () => ({
   },
 }));
 
+vi.mock('../api/me', () => ({
+  meService: {
+    updatePlayerProfile: vi.fn(),
+  },
+}));
+
 const AuthProbe = () => {
   const [refreshOutcome, setRefreshOutcome] = useState('sin intento');
   const {
     user,
     isAuthenticated,
     login,
+    createPlayerProfile,
     refreshUser,
     logout,
+    updatePlayerProfile,
     updateProfilePhoto,
   } = useAuth();
 
@@ -43,7 +52,25 @@ const AuthProbe = () => {
       <button type="button" onClick={() => updateProfilePhoto({ url: 'private-stable-url' })}>
         Actualizar foto
       </button>
+      <button type="button" onClick={() => updatePlayerProfile({ nickname: 'Alias nuevo' })}>
+        Actualizar perfil
+      </button>
+      <button
+        type="button"
+        onClick={() => createPlayerProfile({
+          level: 5,
+          profile_declaration_accepted: true,
+          profile_notice_id: 'NOTICE-ACCOUNT-PROFILE',
+          profile_notice_version: '1.0.0',
+        })}
+      >
+        Crear perfil
+      </button>
       <p data-testid="profile-photo">{user?.profile_photo?.url || 'sin foto'}</p>
+      <p data-testid="player-nickname">{user?.player?.nickname || 'sin jugador'}</p>
+      <p data-testid="profile-declaration-state">
+        {user?.profile_declaration_required ? 'requerida' : 'reconocida'}
+      </p>
     </>
   );
 };
@@ -68,6 +95,7 @@ describe('AuthProvider storage and bootstrap', () => {
     localStorage.clear();
     api.get.mockReset();
     api.post.mockReset();
+    meService.updatePlayerProfile.mockReset();
   });
 
   it('starts anonymously and deletes a legacy stored profile', async () => {
@@ -193,6 +221,63 @@ describe('AuthProvider storage and bootstrap', () => {
     expect(screen.getByTestId('profile-photo')).toHaveTextContent('private-stable-url');
     expect(localStorage.getItem('user')).toBeNull();
     expect(localStorage).toHaveLength(1);
+  });
+
+  it('updates the player projection and refreshes the full private account context', async () => {
+    const browserUser = userEvent.setup();
+    localStorage.setItem('token', 'stored-token');
+    api.get
+      .mockResolvedValueOnce(meResponse('Perfil inicial'))
+      .mockResolvedValueOnce(meResponse('Perfil refrescado'));
+    meService.updatePlayerProfile.mockResolvedValue({ id: 7, nickname: 'Alias nuevo' });
+
+    renderAuthProvider();
+    expect(await screen.findByTestId('auth-name')).toHaveTextContent('Perfil inicial');
+    await browserUser.click(screen.getByRole('button', { name: 'Actualizar perfil' }));
+
+    await waitFor(() => expect(screen.getByTestId('auth-name')).toHaveTextContent('Perfil refrescado'));
+    expect(meService.updatePlayerProfile).toHaveBeenCalledWith({ nickname: 'Alias nuevo' });
+    expect(api.get).toHaveBeenCalledTimes(2);
+    expect(localStorage.getItem('user')).toBeNull();
+  });
+
+  it('marks the general declaration as recognized after successful player creation', async () => {
+    const browserUser = userEvent.setup();
+    const creationPayload = {
+      level: 5,
+      profile_declaration_accepted: true,
+      profile_notice_id: 'NOTICE-ACCOUNT-PROFILE',
+      profile_notice_version: '1.0.0',
+    };
+    localStorage.setItem('token', 'stored-token');
+    api.get.mockResolvedValue({
+      data: {
+        data: {
+          user: {
+            id: 1,
+            name: 'Perfil heredado',
+            role: 'user',
+            profile_declaration_required: true,
+          },
+          player: null,
+        },
+      },
+    });
+    api.post.mockResolvedValue({
+      data: {
+        data: { id: 7, nickname: 'Alias creado' },
+      },
+    });
+
+    renderAuthProvider();
+    expect(await screen.findByTestId('profile-declaration-state')).toHaveTextContent('requerida');
+    expect(screen.getByTestId('player-nickname')).toHaveTextContent('sin jugador');
+    await browserUser.click(screen.getByRole('button', { name: 'Crear perfil' }));
+
+    expect(await screen.findByTestId('player-nickname')).toHaveTextContent('Alias creado');
+    expect(screen.getByTestId('profile-declaration-state')).toHaveTextContent('reconocida');
+    expect(api.post).toHaveBeenCalledWith('/me/player-profile', creationPayload);
+    expect(api.get).toHaveBeenCalledOnce();
   });
 
   it('preserves the account and propagates an ordinary 403 during refresh', async () => {

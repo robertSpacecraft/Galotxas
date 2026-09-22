@@ -23,6 +23,46 @@ class PublicPlayerIdentityService
         return $this->resolve($player, $asOf)->displayName;
     }
 
+    /** @return array{display_name: string, status: string} */
+    public function ownProfileDiagnostic(Player $player, ?CarbonInterface $asOf = null): array
+    {
+        if ($player->birth_date === null) {
+            return [
+                'display_name' => self::NEUTRAL_LABEL,
+                'status' => 'birth_date_unknown',
+            ];
+        }
+
+        $resolved = $this->resolve($player, $asOf);
+
+        if ($this->authorizationService->isMinor($player, $asOf)) {
+            $effectiveAuthorization = $player->relationLoaded('publicIdentityAuthorizations')
+                && $player->publicIdentityAuthorizations->contains(
+                    fn ($candidate): bool => $this->authorizationService->isEffectiveFor(
+                        $candidate,
+                        $player,
+                        $asOf
+                    )
+                );
+
+            return [
+                'display_name' => $resolved->displayName,
+                'status' => $effectiveAuthorization
+                    ? 'minor_effective_authorization'
+                    : 'minor_no_effective_authorization',
+            ];
+        }
+
+        return [
+            'display_name' => $resolved->displayName,
+            'status' => match ($resolved->projection) {
+                OfficialIdentityProjection::ALIAS => 'adult_alias',
+                OfficialIdentityProjection::NAME_INITIAL => 'adult_name_initial',
+                default => 'adult_no_publishable_identity',
+            },
+        ];
+    }
+
     public function resolve(Player $player, ?CarbonInterface $asOf = null): ResolvedPublicIdentity
     {
         if ($player->birth_date === null || ! $player->relationLoaded('user')) {
@@ -96,7 +136,7 @@ class PublicPlayerIdentityService
             ? CarbonImmutable::instance($asOf)->startOfDay()
             : CarbonImmutable::today();
 
-        return $birthDate->lessThanOrEqualTo($referenceDate->subYears(18));
+        return $birthDate->addYearsNoOverflow(18)->lessThanOrEqualTo($referenceDate);
     }
 
     private function aliasProjection(Player $player): ResolvedPublicIdentity

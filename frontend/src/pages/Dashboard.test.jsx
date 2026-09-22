@@ -32,6 +32,7 @@ const playerUser = {
   email: 'player@example.test',
   role: 'user',
   profile_photo: null,
+  profile_declaration_required: false,
   player: {
     nickname: 'Pilotari',
     dni: null,
@@ -39,16 +40,23 @@ const playerUser = {
     level: 3,
     dominant_hand: 'right',
     license_number: 'E2E-1',
+    birth_date: '1990-01-01',
     notes: null,
+    public_identity: {
+      display_name: 'Pilotari',
+      status: 'adult_alias',
+    },
   },
 };
 
 const renderPlayerDashboard = () => {
   const refreshUser = vi.fn().mockResolvedValue(playerUser);
+  const updatePlayerProfile = vi.fn().mockResolvedValue(playerUser.player);
 
   useAuth.mockReturnValue({
     user: playerUser,
     createPlayerProfile: vi.fn(),
+    updatePlayerProfile,
     refreshUser,
     updateProfilePhoto: vi.fn(),
   });
@@ -59,7 +67,7 @@ const renderPlayerDashboard = () => {
     </MemoryRouter>,
   );
 
-  return { refreshUser };
+  return { refreshUser, updatePlayerProfile };
 };
 
 describe('Dashboard', () => {
@@ -83,6 +91,7 @@ describe('Dashboard', () => {
         role: 'user',
       },
       createPlayerProfile: vi.fn(),
+      updatePlayerProfile: vi.fn(),
       refreshUser,
       updateProfilePhoto: vi.fn(),
     });
@@ -215,5 +224,27 @@ describe('Dashboard', () => {
     await user.click(screen.getByRole('tab', { name: 'Mis Partidos' }));
     expect(await screen.findByText('No se pudieron cargar tus partidos en este momento.'))
       .toBeInTheDocument();
+  });
+
+  it('wires accessible profile editing to AuthContext without exposing read-only account fields', async () => {
+    const user = userEvent.setup();
+    const { updatePlayerProfile } = renderPlayerDashboard();
+
+    expect(screen.getByText(/Se muestra tu apodo deportivo/).closest('div')).toHaveTextContent('Pilotari');
+    await user.click(screen.getByRole('button', { name: 'Editar perfil' }));
+    await user.clear(screen.getByLabelText('Número de licencia'));
+    await user.type(screen.getByLabelText('Número de licencia'), 'LIC-NEW');
+    expect(screen.queryByLabelText('Correo Electrónico')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('DNI / NIE')).not.toBeInTheDocument();
+    expect(screen.queryByRole('checkbox', { name: /declaro que los datos facilitados son exactos y veraces/i }))
+      .not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Guardar' }));
+
+    await waitFor(() => expect(updatePlayerProfile).toHaveBeenCalledWith({
+      nickname: 'Pilotari',
+      dominant_hand: 'right',
+      license_number: 'LIC-NEW',
+      birth_date: '1990-01-01',
+    }));
   });
 });

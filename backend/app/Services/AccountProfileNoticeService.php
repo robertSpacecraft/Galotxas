@@ -4,11 +4,11 @@ namespace App\Services;
 
 use RuntimeException;
 
-class ContactNoticeService
+class AccountProfileNoticeService
 {
-    public const ID = 'NOTICE-CONTACT-FORM';
+    public const ID = 'NOTICE-ACCOUNT-PROFILE';
 
-    public const SCOPE = 'contact_request';
+    public const SCOPE = 'account_profile';
 
     public const PRIVACY_URL = '/legal/privacidad';
 
@@ -38,7 +38,7 @@ class ContactNoticeService
             || ($notice['privacyUrl'] ?? null) !== self::PRIVACY_URL
             || ! is_string($notice['version'] ?? null)
         ) {
-            throw new RuntimeException('La proyección legal de Contacto no es válida.');
+            throw new RuntimeException('La proyección legal de cuenta y perfil no es válida.');
         }
 
         return $this->notice = $notice;

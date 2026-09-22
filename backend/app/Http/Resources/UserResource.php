@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\ProfileDeclarationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -21,6 +22,8 @@ class UserResource extends JsonResource
             'active' => $this->active,
             'has_player' => $this->relationLoaded('player') && $this->player !== null,
             'profile_photo' => ProfilePhotoResource::forUser($this->resource),
+            'profile_declaration_required' => ! app(ProfileDeclarationService::class)
+                ->hasRecognizedGeneral($this->resource),
         ];
     }
 }

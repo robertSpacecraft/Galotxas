@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\PublicPlayerIdentityService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -12,6 +13,9 @@ class PlayerProfileResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $publicIdentity = app(PublicPlayerIdentityService::class)
+            ->ownProfileDiagnostic($this->resource);
+
         return [
             'id' => $this->id,
             'nickname' => $this->nickname,
@@ -24,6 +28,7 @@ class PlayerProfileResource extends JsonResource
             'dominant_hand' => $this->dominant_hand,
             'notes' => $this->notes,
             'active' => $this->active,
+            'public_identity' => $publicIdentity,
 
             'user' => $this->whenLoaded('user', function () {
                 return [

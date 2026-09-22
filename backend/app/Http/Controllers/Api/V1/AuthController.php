@@ -12,12 +12,14 @@ use App\Http\Requests\Api\ResetPasswordRequest;
 use App\Http\Requests\Api\UpdateMyPlayerProfileRequest;
 use App\Http\Resources\MeResource;
 use App\Http\Resources\PlayerProfileResource;
-use App\Models\Player;
 use App\Models\User;
 use App\Services\PasswordResetLinkService;
+use App\Services\ProfileDeclarationService;
+use App\Services\SelfServicePlayerProfileService;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -26,18 +28,26 @@ class AuthController extends Controller
 {
     use ApiResponse;
 
-    public function register(RegisterUserRequest $request): JsonResponse
-    {
+    public function register(
+        RegisterUserRequest $request,
+        ProfileDeclarationService $declarations,
+    ): JsonResponse {
         $validated = $request->validated();
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'lastname' => $validated['lastname'],
-            'email' => $validated['email'],
-            'password' => $validated['password'],
-            'role' => UserRole::USER->value,
-            'active' => true,
-        ]);
+        $user = DB::transaction(function () use ($validated, $declarations): User {
+            $user = User::create([
+                'name' => $validated['name'],
+                'lastname' => $validated['lastname'],
+                'email' => $validated['email'],
+                'password' => $validated['password'],
+                'role' => UserRole::USER->value,
+                'active' => true,
+            ]);
+
+            $declarations->recordGeneral($user);
+
+            return $user;
+        });
 
         $token = $user->createToken('api-token')->plainTextToken;
 
@@ -52,12 +62,13 @@ class AuthController extends Controller
                 'role' => $user->role,
                 'active' => $user->active,
                 'has_player' => false,
+                'profile_declaration_required' => false,
             ],
             'player' => null,
         ], 'Registro correcto.', status: 201);
     }
 
-    public function login(Request $request): JsonResponse
+    public function login(Request $request, ProfileDeclarationService $declarations): JsonResponse
     {
         $validated = $request->validate([
             'email' => ['required', 'email'],
@@ -65,7 +76,7 @@ class AuthController extends Controller
         ]);
 
         $user = User::query()
-            ->with('player.user')
+            ->with(['player.user', 'player.publicIdentityAuthorizations'])
             ->where('email', $validated['email'])
             ->first();
 
@@ -90,6 +101,7 @@ class AuthController extends Controller
                 'role' => $user->role,
                 'active' => $user->active,
                 'has_player' => $user->player !== null,
+                'profile_declaration_required' => ! $declarations->hasRecognizedGeneral($user),
             ],
             'player' => $user->player ? new PlayerProfileResource($user->player->load('user')) : null,
         ], 'Login correcto.');
@@ -104,14 +116,14 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
-        $user = $request->user()->load('player.user');
+        $user = $request->user()->load(['player.user', 'player.publicIdentityAuthorizations']);
 
         return $this->successResponse(new MeResource($user));
     }
 
     public function myPlayerProfile(Request $request): JsonResponse
     {
-        $user = $request->user()->load('player.user');
+        $user = $request->user()->load(['player.user', 'player.publicIdentityAuthorizations']);
 
         if (! $user->player) {
             return $this->errorResponse('El usuario autenticado no tiene un perfil de jugador asociado.');
@@ -123,7 +135,8 @@ class AuthController extends Controller
     }
 
     public function createMyPlayerProfile(
-        CreateMyPlayerProfileRequest $request
+        CreateMyPlayerProfileRequest $request,
+        SelfServicePlayerProfileService $profiles,
     ): JsonResponse {
         $user = $request->user()->load('player');
 
@@ -137,23 +150,7 @@ class AuthController extends Controller
 
         $validated = $request->validated();
 
-        $player = Player::create([
-            'user_id' => $user->id,
-            'nickname' => $validated['nickname'] ?? null,
-            'slug' => $this->generateUniquePlayerSlug(
-                $this->resolvePlayerSlugBase($validated['nickname'] ?? null, $user)
-            ),
-            'dni' => $validated['dni'] ?? null,
-            'birth_date' => $validated['birth_date'] ?? null,
-            'gender' => $validated['gender'] ?? null,
-            'level' => $validated['level'],
-            'license_number' => $validated['license_number'] ?? null,
-            'dominant_hand' => $validated['dominant_hand'] ?? null,
-            'notes' => $validated['notes'] ?? null,
-            'active' => true,
-        ]);
-
-        $player->load('user');
+        $player = $profiles->create($user, $validated);
 
         return $this->successResponse(
             new PlayerProfileResource($player),
@@ -164,9 +161,10 @@ class AuthController extends Controller
     }
 
     public function updateMyPlayerProfile(
-        UpdateMyPlayerProfileRequest $request
+        UpdateMyPlayerProfileRequest $request,
+        SelfServicePlayerProfileService $profiles,
     ): JsonResponse {
-        $user = $request->user()->load('player.user');
+        $user = $request->user()->load(['player.user', 'player.publicIdentityAuthorizations']);
 
         if (! $user->player) {
             return $this->errorResponse('El usuario autenticado no tiene un perfil de jugador asociado.');
@@ -174,16 +172,10 @@ class AuthController extends Controller
 
         $validated = $request->validated();
 
-        $user->player->update([
-            'nickname' => $validated['nickname'] ?? $user->player->nickname,
-            'dominant_hand' => $validated['dominant_hand'] ?? $user->player->dominant_hand,
-            'notes' => $validated['notes'] ?? $user->player->notes,
-        ]);
-
-        $user->player->refresh()->load('user');
+        $player = $profiles->update($user, $validated);
 
         return $this->successResponse(
-            new PlayerProfileResource($user->player),
+            new PlayerProfileResource($player),
             'Perfil de jugador actualizado correctamente.'
         );
     }
@@ -228,43 +220,5 @@ class AuthController extends Controller
             null,
             'Contraseña restablecida correctamente.'
         );
-    }
-
-    private function resolvePlayerSlugBase(?string $nickname, User $user): string
-    {
-        if (! empty($nickname)) {
-            return $nickname;
-        }
-
-        $fullName = trim(($user->name ?? '').' '.($user->lastname ?? ''));
-
-        if ($fullName !== '') {
-            return $fullName;
-        }
-
-        return $user->name ?: 'player';
-    }
-
-    private function generateUniquePlayerSlug(string $base, ?int $ignorePlayerId = null): string
-    {
-        $slug = Str::slug($base);
-
-        if ($slug === '') {
-            $slug = 'player';
-        }
-
-        $originalSlug = $slug;
-        $counter = 1;
-
-        while (
-            Player::when($ignorePlayerId, fn ($query) => $query->where('id', '!=', $ignorePlayerId))
-                ->where('slug', $slug)
-                ->exists()
-        ) {
-            $slug = $originalSlug.'-'.$counter;
-            $counter++;
-        }
-
-        return $slug;
     }
 }

@@ -138,6 +138,7 @@ class PublicIdentityAuthorizationService
         User $actor
     ): PublicIdentityAuthorization {
         return DB::transaction(function () use ($authorization, $player, $actor): PublicIdentityAuthorization {
+            $player = Player::query()->lockForUpdate()->findOrFail($player->id);
             $locked = $this->lock($authorization);
             $this->assertPending($locked);
             $enrollment = $locked->schoolEnrollment()->lockForUpdate()->first();

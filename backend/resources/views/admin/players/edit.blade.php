@@ -53,6 +53,7 @@
                         value="{{ old('nickname', $player->nickname) }}"
                         placeholder="Opcional"
                     >
+                    <div class="form-text">Apodo deportivo por el que se conoce al jugador en la pista.</div>
                 </div>
 
                 <div class="mb-3">

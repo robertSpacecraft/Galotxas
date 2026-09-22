@@ -596,6 +596,10 @@ class CategoryCompetitionPdfExportTest extends TestCase
     /** @param array<string, mixed> $attributes */
     private function playerEntry(Category $category, ?string $nickname, array $attributes = []): CategoryEntry
     {
+        if ($nickname !== null && Player::query()->where('nickname', $nickname)->exists()) {
+            $nickname .= ' '.$category->id;
+        }
+
         $player = $this->player($nickname, $attributes);
 
         return CategoryEntry::factory()->playerEntry()->create([
