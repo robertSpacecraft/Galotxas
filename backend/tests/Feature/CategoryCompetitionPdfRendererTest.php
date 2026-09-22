@@ -80,17 +80,7 @@ class CategoryCompetitionPdfRendererTest extends TestCase
         );
         $html = view('admin.categories.export-pdf', [
             'document' => $document,
-            'preset' => [
-                'margin_mm' => 8,
-                'table_font_pt' => 7.5,
-                'line_height' => 1.10,
-                'cell_padding_mm' => 0.65,
-                'title_font_pt' => 11,
-                'meta_font_pt' => 7.5,
-                'participant_font_pt' => 7.25,
-                'section_font_pt' => 9,
-                'gap_mm' => 2.0,
-            ],
+            'preset' => $this->preset(),
         ])->render();
 
         $this->assertStringContainsString('&lt;script&gt;dato privado&lt;/script&gt;', $html);
@@ -104,19 +94,45 @@ class CategoryCompetitionPdfRendererTest extends TestCase
         $this->assertStringContainsString('size: A4 portrait', $html);
     }
 
+    public function test_pdf_view_marks_group_starts_once_and_keeps_empty_results_writable(): void
+    {
+        $document = $this->document(
+            leagueRows: [
+                $this->row(groupLabel: 'Jornada 1', resultText: null, date: null, time: null, venue: null),
+                $this->row(groupLabel: 'Jornada 1', resultText: 'Aplazado'),
+                $this->row(groupLabel: 'Jornada 2', resultText: 'Cancelado'),
+            ],
+            cupRows: [
+                $this->row(groupLabel: 'Semifinal', resultText: null),
+                $this->row(groupLabel: 'Semifinal', resultText: '10-7'),
+                $this->row(groupLabel: 'Final', resultText: null),
+            ],
+        );
+        $html = view('admin.categories.export-pdf', [
+            'document' => $document,
+            'preset' => $this->preset(),
+        ])->render();
+
+        $this->assertSame(1, substr_count($html, '>Jornada 1</td>'));
+        $this->assertSame(1, substr_count($html, '>Jornada 2</td>'));
+        $this->assertSame(1, substr_count($html, '>Semifinal</td>'));
+        $this->assertSame(1, substr_count($html, '>Final</td>'));
+        $this->assertSame(4, substr_count($html, '<tr class="group-start">'));
+        $this->assertSame(2, substr_count($html, '<tr class="group-continuation">'));
+        $this->assertSame(3, substr_count($html, '<td class="result result-empty"></td>'));
+        $this->assertStringContainsString('Aplazado', $html);
+        $this->assertStringContainsString('Cancelado', $html);
+        $this->assertStringContainsString('10-7', $html);
+        $this->assertStringNotContainsString('—', $html);
+        $this->assertStringNotContainsString('Pendiente', $html);
+        $this->assertStringNotContainsString('Sin resultado', $html);
+        $this->assertStringContainsString('matches tbody tr.group-start td', $html);
+        $this->assertStringContainsString('matches td.result-empty', $html);
+    }
+
     public function test_pdf_view_includes_only_the_available_competition_sections(): void
     {
-        $preset = [
-            'margin_mm' => 8,
-            'table_font_pt' => 7.5,
-            'line_height' => 1.10,
-            'cell_padding_mm' => 0.65,
-            'title_font_pt' => 11,
-            'meta_font_pt' => 7.5,
-            'participant_font_pt' => 7.25,
-            'section_font_pt' => 9,
-            'gap_mm' => 2.0,
-        ];
+        $preset = $this->preset();
         $leagueOnly = view('admin.categories.export-pdf', [
             'document' => $this->document(leagueRows: [$this->row()]),
             'preset' => $preset,
@@ -225,16 +241,38 @@ class CategoryCompetitionPdfRendererTest extends TestCase
         );
     }
 
-    private function row(string $home = 'Alba la Ràpida'): CategoryCompetitionExportMatchRow
-    {
+    private function row(
+        string $home = 'Alba la Ràpida',
+        string $groupLabel = 'Jornada 1',
+        ?string $resultText = '10-7',
+        ?string $date = '05/09/2026',
+        ?string $time = '18:30',
+        ?string $venue = 'Trinquet Municipal',
+    ): CategoryCompetitionExportMatchRow {
         return new CategoryCompetitionExportMatchRow(
-            groupLabel: 'Jornada 1',
-            date: '05/09/2026',
-            time: '18:30',
-            venue: 'Trinquet Municipal',
+            groupLabel: $groupLabel,
+            date: $date,
+            time: $time,
+            venue: $venue,
             homeDisplayName: $home,
             awayDisplayName: 'Bernat del Túria',
-            resultText: '10-7',
+            resultText: $resultText,
         );
+    }
+
+    /** @return array<string, int|float> */
+    private function preset(): array
+    {
+        return [
+            'margin_mm' => 8,
+            'table_font_pt' => 7.5,
+            'line_height' => 1.10,
+            'cell_padding_mm' => 0.65,
+            'title_font_pt' => 11,
+            'meta_font_pt' => 7.5,
+            'participant_font_pt' => 7.25,
+            'section_font_pt' => 9,
+            'gap_mm' => 2.0,
+        ];
     }
 }

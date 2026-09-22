@@ -22,6 +22,8 @@
 
         h1 {
             margin: 0 0 {{ $preset['gap_mm'] }}mm;
+            padding-bottom: 0.7mm;
+            border-bottom: 0.5mm solid #222;
             font-size: {{ $preset['title_font_pt'] }}pt;
             line-height: 1.05;
             text-align: center;
@@ -31,18 +33,25 @@
             width: 100%;
             margin-bottom: {{ $preset['gap_mm'] }}mm;
             border-collapse: collapse;
+            border: 0.2mm solid #555;
+            background: #f2f2f2;
             font-size: {{ $preset['meta_font_pt'] }}pt;
             line-height: 1.05;
         }
 
         .meta td {
             padding: 0.25mm 0.7mm;
+            border-right: 0.15mm solid #888;
             vertical-align: top;
         }
 
         .participants-title,
         .section-title {
             margin: {{ $preset['gap_mm'] }}mm 0 0.5mm;
+            padding: 0.35mm 0.7mm;
+            border-top: 0.35mm solid #222;
+            border-bottom: 0.15mm solid #666;
+            background: #dedede;
             font-size: {{ $preset['section_font_pt'] }}pt;
             line-height: 1;
         }
@@ -64,6 +73,11 @@
             word-wrap: break-word;
         }
 
+        .participants tr,
+        .matches tr {
+            page-break-inside: avoid;
+        }
+
         .matches {
             width: 100%;
             margin: 0;
@@ -82,12 +96,25 @@
         }
 
         .matches th {
+            border-top-width: 0.35mm;
+            border-bottom-width: 0.3mm;
+            background: #d7d7d7;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .matches tbody tr.group-start td {
+            border-top: 0.45mm solid #111;
+        }
+
+        .matches .group-label {
+            background: #eeeeee;
             font-weight: 700;
             text-align: center;
         }
 
         .matches .group {
-            width: 9%;
+            width: 11%;
         }
 
         .matches .date {
@@ -107,8 +134,14 @@
         }
 
         .matches .result {
-            width: 16%;
+            width: 14%;
+            border-right-width: 0.3mm;
+            border-left-width: 0.3mm;
             text-align: center;
+        }
+
+        .matches td.result-empty {
+            background: #fff;
         }
     </style>
 </head>

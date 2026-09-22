@@ -20,16 +20,29 @@
         </tr>
     </thead>
     <tbody>
+        @php
+            $previousGroupLabel = null;
+        @endphp
         @foreach ($matches as $match)
-            <tr>
-                <td>{{ $match->groupLabel }}</td>
+            @php
+                $isGroupStart = $previousGroupLabel !== $match->groupLabel;
+            @endphp
+            <tr class="{{ $isGroupStart ? 'group-start' : 'group-continuation' }}">
+                <td class="group-label">{{ $isGroupStart ? $match->groupLabel : '' }}</td>
                 <td>{{ $match->date ?? '' }}</td>
                 <td>{{ $match->time ?? '' }}</td>
                 <td>{{ $match->venue ?? '' }}</td>
                 <td>{{ $match->homeDisplayName }}</td>
                 <td>{{ $match->awayDisplayName }}</td>
-                <td class="result">{{ $match->resultText ?? '' }}</td>
+                @if ($match->resultText === null)
+                    <td class="result result-empty"></td>
+                @else
+                    <td class="result">{{ $match->resultText }}</td>
+                @endif
             </tr>
+            @php
+                $previousGroupLabel = $match->groupLabel;
+            @endphp
         @endforeach
     </tbody>
 </table>
