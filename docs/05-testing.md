@@ -526,18 +526,26 @@ pendientes o aprobadas, edición de campos no identitarios, ausencia de
 acoplamiento a DNI, evaluación pública fail-closed y conservación de snapshots
 oficiales ya persistidos.
 
-Las pruebas de declaraciones exigen ausencia, `false`, versión incorrecta,
-reutilización de evidencia reconocida y confirmación DOB sólo ante fecha
-aportada o realmente cambiada. Verifican el esquema mínimo allowlisted y que no
-se fabrican filas históricas. Los seis estados del diagnóstico propio se
-comprueban sin filtrar datos de autorización o representante.
+Las pruebas de declaraciones exigen ausencia, `false`, versión incorrecta y
+reutilización de evidencia reconocida. Toda creación propia de Player exige DOB,
+confirmación y aviso vigente; admite fechas adultas o menores, mantiene la
+identidad menor cerrada y usa nivel `1` cuando el nivel opcional se omite. El
+PATCH conserva la confirmación condicional sólo ante fecha aportada o realmente
+cambiada, incluidas las filas heredadas con DOB nulo. También se verifican el
+esquema mínimo allowlisted y la ausencia de filas históricas fabricadas. Los
+seis estados del diagnóstico propio se comprueban sin filtrar datos de
+autorización o representante.
 
 Vitest/RTL cubre registro, aviso versionado, editor prefill, cuatro controles
 permitidos, helper de apodo, Guardar/Cancelar, restauración y foco, doble envío,
 errores `422` de apodo/licencia/DOB sin perder valores, declaraciones
-condicionales, refresco de `AuthContext` y presentación del diagnóstico. El
-estado de este bloque no se considera cierre canónico hasta revisión humana,
-aceptación de staging y evidencia productiva.
+condicionales, refresco de `AuthContext` y presentación del diagnóstico. La
+regresión del editor elimina realmente los errores corregidos, no muestra un
+resumen al editar un formulario limpio y conserva sólo los mensajes genuinos
+restantes, sin filas vacías. Registro y creación posterior desde Mi Panel
+presentan DOB obligatorio, confirmación específica y nivel opcional sin
+fabricarlo en el payload. El estado de este bloque no se considera cierre
+canónico hasta revisión humana, aceptación de staging y evidencia productiva.
 
 ## PANEL-1 — Acciones pendientes de partidos
 

@@ -587,6 +587,14 @@ de React no lo expone. El payload de edición es cerrado: nombre civil,
 apellidos, correo, DNI, género, nivel, rol, activación, `user_id`, `slug` y
 campos de autorización no son autogestionables.
 
+La creación autogestionada de un `Player` exige siempre una fecha de nacimiento
+anterior al día actual, su confirmación específica y la versión vigente de
+`NOTICE-ACCOUNT-PROFILE`. El nivel es opcional en esa creación y, si se omite o
+se envía nulo, se persiste explícitamente el valor histórico por defecto `1`;
+continúa sin ser editable desde Mi Panel. Una cuenta sin perfil no necesita
+fecha de nacimiento y los `Player` heredados con fecha nula no se rellenan ni
+se alteran automáticamente.
+
 `Player.birth_date` continúa siendo la única fuente de edad para identidad
 pública. Una fecha desconocida puede declararse una vez como adulta o menor y
 una persona adulta puede corregirla por otra fecha adulta. Una fecha conocida

@@ -527,11 +527,16 @@ redundante. El PATCH no recibe, exige ni modifica DNI.
 
 `POST /api/v1/auth/register` exige `profile_declaration_accepted=true`,
 `profile_notice_id=NOTICE-ACCOUNT-PROFILE` y su versión vigente. `POST
-/api/v1/me/player-profile` exige esa declaración sólo para cuentas legadas sin
-evidencia reconocida y exige `birth_date_confirmed=true` sólo si se facilita
-DOB. El PATCH aplica las mismas condiciones en el primer write relevante y en
-un cambio real de DOB. La evidencia del registro de cuenta se conserva aunque
-falle después la creación opcional del perfil en la segunda petición React.
+/api/v1/me/player-profile` exige siempre `birth_date` estricta `Y-m-d` anterior
+al día actual, `birth_date_confirmed=true` y el ID y versión vigentes del mismo
+aviso. `level` es opcional y nullable entre 1 y 10; si se omite o es `null`, el
+servicio persiste explícitamente el valor histórico por defecto `1`. La
+declaración general sólo se exige en ese POST para cuentas legadas sin
+evidencia reconocida. El PATCH conserva las condiciones previas: declaración
+general en el primer write relevante y confirmación DOB sólo ante una fecha
+aportada por primera vez o realmente cambiada. La evidencia del registro de
+cuenta se conserva aunque falle después la creación opcional del perfil en la
+segunda petición React. El alta de cuenta sin Player no recibe ni exige DOB.
 
 7F.2D amplía de forma aditiva `user` con `profile_photo`; el resto de nombres y
 la composición `user`/`player` consumida por React se mantiene.
