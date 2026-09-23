@@ -16,7 +16,9 @@ El único alcance admitido es `public_competition_identity`. Afecta a
 calendarios, partidos, resultados, clasificaciones, rankings e histórico
 deportivo público minimizado. La decisión se aplica en backend mediante
 `PublicPlayerIdentityService`; React no reconstruye identidad ni recibe datos
-de la autorización.
+de la autorización. El expediente puede originarse en una inscripción de
+Escuela o directamente en la ficha administrativa de un `Player` menor ya
+existente; ambos orígenes comparten el mismo alcance, evidencia y lifecycle.
 
 ## 3. Fuera de alcance
 
@@ -63,6 +65,9 @@ jugador y de las autorizaciones relevantes.
   siempre produce `Participante`.
 
 Ningún modo permite nombre completo ni fallback entre modalidades.
+`anonymous` se conserva como decisión explícita del formulario de Escuela; el
+origen administrativo directo sólo inicia `alias` o `name_initial`, porque la
+ausencia de autorización efectiva ya mantiene `Participante`.
 
 ## 7. Alcance versionado
 
@@ -88,11 +93,21 @@ revoca. MariaDB restringe alcance, modo y estado mediante enums, aplica
 integridad referencial y reserva un único `approval_slot = 1` por jugador y
 alcance. Los estados históricos no se borran al crear otra solicitud.
 
+No se requiere otro esquema para el origen directo: `school_enrollment_id` ya
+es nullable y el expediente nace con `player_id`. La creación se serializa
+bloqueando el jugador y rechaza otra autorización `pending` o `approved` para
+el mismo jugador y alcance. Una fila `approved` sigue bloqueando aunque haya
+dejado de ser efectiva por edad, flags o evidencia: debe cerrarse mediante el
+lifecycle existente, sin sustitución silenciosa.
+
 `PublicIdentityAuthorizationEvent` registra la secuencia mínima: solicitud,
 anonimato, envío o fallo, confirmación o rechazo, vinculación inicial o
 corrección del vínculo, conformidad, aprobación, denegación, revocación,
 caducidad y reenvío. Cada vínculo administrativo conserva actor y fecha; una
-corrección conserva además el identificador interno anterior y el nuevo.
+corrección conserva además el identificador interno anterior y el nuevo. En el
+origen directo, `REQUESTED` conserva como actor al administrador que registró
+la declaración previa del representante. Escuela mantiene el actor nulo de su
+solicitud pública histórica.
 
 ## 10. Tokens
 
@@ -113,10 +128,26 @@ remotos y permite revisar, confirmar o rechazar. La persistencia termina antes
 del intento de envío. Un fallo mantiene la autorización pendiente, registra un
 evento sanitizado con sólo la clase técnica y permite reenvío administrativo.
 
+El correo y la página de confirmación usan texto común a ambos orígenes:
+confirmar no publica automáticamente la identidad y el club debe completar la
+revisión. No afirman que siempre quede una vinculación posterior. Para el
+origen directo, el correo privado añade sólo el nombre registrado del menor
+vinculado, sin DOB, DNI, ID interno ni alias, para que el representante
+identifique el sujeto. Esa referencia no forma parte de lookup, confirmación,
+rechazo, logs ni eventos.
+
+La página de confirmación muestra el contenido compilado completo de
+`NOTICE-PUBLIC-IDENTITY-MINORS` antes de ofrecer las decisiones. Compara la
+versión devuelta por lookup con la versión local del aviso y falla cerrada, sin
+botones de confirmar o rechazar, si no coinciden. No persiste ni duplica el
+texto legal.
+
 `PUBLIC_IDENTITY_NOTIFICATION_ENABLED=false` es el valor por defecto. Esta fase
 no configura SMTP ni otro proveedor productivo.
 
-## 12. Escuela
+## 12. Orígenes de solicitud
+
+### 12.1. Escuela
 
 `POST /api/v1/school/enrollments` exige por separado el aviso de inscripción
 `NOTICE-SCHOOL-ENROLLMENT`, actualmente versión `1.0.0`; la Política enlazada
@@ -129,6 +160,33 @@ El formulario React presenta la sección separada, la versión, el responsable,
 la finalidad, las modalidades, sus consecuencias, confirmación posterior,
 retirada y enlace a Privacidad. No duplica el correo, no pide DNI y no persiste
 datos en almacenamiento del navegador.
+
+### 12.2. Origen directo desde Player
+
+`POST /admin/players/{player}/public-identity-authorizations` sólo está
+disponible bajo la sesión administrativa existente. Acepta un payload cerrado
+con representante, relación, correo, uno de los modos `alias` o `name_initial`,
+registro de la declaración previa del representante y la pareja vigente de
+aviso. El sujeto procede siempre del route model binding; `player_id`,
+`anonymous` y cualquier campo adicional se rechazan.
+
+La casilla administrativa no declara que el operador ejerza patria potestad o
+tutela. Confirma que el representante indicado ya declaró ante el Club que la
+ejerce y que solicita la tramitación. `guardian_authority_declared_at`
+representa el instante en que el Club registra esa manifestación, y
+`REQUESTED` identifica al administrador autenticado que la registró.
+
+Antes de persistir se exige DOB conocida, minoría actual, aviso reconocido,
+evidencia del representante, ausencia de otra solicitud pendiente o aprobada y
+datos suficientes para el modo exacto. `alias` requiere un alias no vacío;
+`name_initial`, nombres de pila y primer apellido; no hay fallback entre modos.
+La ausencia de expediente o el rechazo del representante mantienen
+`Participante`; administración no crea un expediente `anonymous`.
+
+Los flags de autorización y notificación bloquean toda creación directa cuando
+están desactivados, porque la confirmación por correo forma parte del flujo. El
+envío ocurre después de la transacción; un fallo conserva el expediente
+pendiente y deja disponible el reenvío existente.
 
 ## 13. Vínculo con jugador
 
@@ -151,6 +209,13 @@ diferenciado. Después de confirmar evidencia no puede cambiarse silenciosamente
 el sujeto: se debe cerrar o revocar el expediente cuando corresponda y registrar
 una autorización nueva. Las autorizaciones aprobadas tampoco admiten
 revinculación.
+
+Estas reglas de candidatos y corrección pertenecen sólo al origen Escuela. Una
+autorización directa nace vinculada de forma inequívoca al `Player` desde cuya
+ficha se solicitó, no muestra candidatos y rechaza explícitamente todo intento
+de `linkPlayer()`. El sujeto no puede cambiarse aunque aún no exista
+confirmación: cualquier corrección exige cerrar el expediente según corresponda
+y crear otro desde el jugador correcto.
 
 La vinculación administrativa bloquea también la fila `players` antes de
 asociar el expediente. Así no puede competir con una corrección DOB propia. El
@@ -217,6 +282,16 @@ revocación, reenvío e historial. El reenvío está limitado y reemplaza el tok
 anterior. No existen borrado, exportación ni edición retroactiva desde la
 interfaz.
 
+La ficha de un jugador menor muestra la proyección resuelta por
+`PublicPlayerIdentityService`, el expediente relevante y, cuando no existe un
+bloqueo `pending`/`approved`, el formulario directo. DOB ausente, mayoría de
+edad, flags desactivados o ausencia de un modo afirmativo proyectable no ofrecen
+acciones que vayan a fallar. La casilla registra una manifestación previa del
+representante, no una declaración de patria potestad del administrador. El
+detalle distingue visualmente el origen: Escuela conserva candidatos y
+relinking previo a evidencia; Player muestra el sujeto fijo y ninguna
+selección.
+
 ## 21. Seguridad
 
 Los flags de autorización y notificación nacen desactivados. Las rutas públicas
@@ -228,7 +303,10 @@ autorización administrativa existentes.
 ## 22. Privacidad
 
 Se almacena sólo la evidencia necesaria: correo normalizado, representante y
-relación ya aportados a Escuela, versión, fechas y actores. No se guarda token
+relación aportados en Escuela o en la solicitud administrativa directa,
+versión, fechas y actores. En el origen directo, la fecha de declaración es el
+momento de registro por el Club y el evento de solicitud conserva al admin que
+lo hizo. No se guarda token
 en claro, DNI, IP completa, payload de correo ni texto legal duplicado. Los
 eventos usan metadata allowlisted y no replican correo o notas.
 
@@ -242,6 +320,15 @@ limiting, correo fake y fallido, historial, permisos, independencia de Escuela
 y privacidad de la API. Vitest/RTL cubre formulario, versiones, modos, foco,
 errores, doble envío, aislamiento, captura y retirada inmediata del fragmento,
 almacenamientos, logs, navegación atrás, recarga y decisión pública.
+
+MINOR-PUBLIC-IDENTITY-DIRECT-1 añade pruebas de creación directa, flags,
+proyección posible, rechazo de `anonymous`, actor de solicitud, semántica de la
+declaración, estados bloqueantes e históricos, notificación posterior a
+persistencia, referencia privada mínima en correo, payload admin cerrado, ficha
+de Player, detalle de ambos orígenes, rechazo de relink, confirmación pública
+sin PII, aviso íntegro con versión coincidente y aprobación/revocación en los
+dos grupos de edad. `PublicIdentityAuthorizationTest` conserva la regresión
+completa del origen Escuela.
 
 ## 24. E2E
 
@@ -282,6 +369,31 @@ URL HTTPS, secreto de aplicación, política de logs, responsable de atención,
 procedimiento de vinculación y dudas de representación, revocación, conservación
 y borrado, backup, staging, rollback y aceptación humana. La activación de
 Contacto tiene gates propios y no deriva de este flujo.
+
+### 27.1. Aceptación humana del origen directo
+
+El recorrido local usa sólo datos ficticios y un capturador SMTP desechable
+ligado a loopback; no usa el mailer `log`, no consulta hashes en MariaDB y no
+añade endpoints o visualización administrativa del token:
+
+1. activar temporalmente ambos flags únicamente en el entorno local;
+2. configurar el mailer local contra el capturador SMTP y abrir la ficha de un
+   `Player` menor ficticio;
+3. crear la solicitud desde la card de identidad pública;
+4. recuperar el enlace exclusivamente desde la bandeja local del capturador y
+   comprobar que el correo identifica al menor correcto; abrirlo, verificar el
+   aviso específico y confirmar la decisión;
+5. si tiene entre 14 y 17 años, registrar la conformidad informada;
+6. aprobar y comprobar en una superficie pública de competición que deja de
+   mostrarse `Participante` y aparece exactamente el modo elegido;
+7. revocar y comprobar la retirada inmediata a `Participante`.
+
+En staging este recorrido sólo procede dentro de una ventana autorizada, con
+datos ficticios, flags temporales y un canal de correo seguro accesible al
+operador. El token nunca se obtiene desde la base de datos, logs, una respuesta
+admin o un mecanismo de depuración del producto. Sin entrega real configurada,
+la automatización con `Mail::fake()` es la única evidencia disponible y el
+walkthrough de correo queda pendiente.
 
 ## 28. Criterios de cierre
 

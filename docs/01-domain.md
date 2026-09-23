@@ -771,13 +771,29 @@ Desde 7D.2C2A, la inscripción conserva por separado la versión de Privacidad
 aceptada y puede originar una `PublicIdentityAuthorization` opcional para el
 único alcance `public_competition_identity`. La autorización usa los estados
 `pending`, `approved`, `denied`, `revoked` y `expired`, y los modos `alias`,
-`name_initial` y `anonymous`. Nace ligada a la inscripción, no al jugador: la
-vinculación sólo se completa administrativamente cuando `Player.birth_date`
-coincide exactamente. Confirmación del representante, revisión y, entre 14 y
-17 años, conformidad registrada son requisitos acumulativos. Sin cualquiera de
-ellos, con flag desactivado o tras revocación, la proyección es `Participante`.
-Al alcanzar 18 años deja de aplicarse la autorización del representante y rige
-la política adulta vigente.
+`name_initial` y `anonymous`. Cuando se solicita en Escuela, nace ligada a la
+inscripción, no al jugador: la vinculación sólo se completa
+administrativamente cuando `Player.birth_date` coincide exactamente.
+Confirmación del representante, revisión y, entre 14 y 17 años, conformidad
+registrada son requisitos acumulativos. Sin cualquiera de ellos, con flag
+desactivado o tras revocación, la proyección es `Participante`. Al alcanzar 18
+años deja de aplicarse la autorización del representante y rige la política
+adulta vigente.
+
+MINOR-PUBLIC-IDENTITY-DIRECT-1 añade un segundo origen sin cambiar ese
+lifecycle: administración puede iniciar la autorización desde un `Player`
+menor ya existente. En ese caso nace con `player_id`, sin inscripción de
+Escuela, y el sujeto no admite revinculación. Este origen sólo permite las
+solicitudes afirmativas `alias` y `name_initial`; ausencia o rechazo mantienen
+`Participante` sin crear un expediente `anonymous` desde administración. El
+administrador registra una declaración previa del representante sobre patria
+potestad o tutela, no la formula en nombre propio; el instante queda en
+`guardian_authority_declared_at` y el evento `REQUESTED` identifica al admin
+que realizó el registro. DOB ausente o adulta, datos no proyectables para el
+modo, aviso no vigente, evidencia incompleta, flags incompatibles y otra
+autorización pendiente o aprobada fallan antes de crear el expediente. Los
+estados históricos denegado, revocado o caducado no bloquean una nueva
+solicitud.
 
 Desde 7E, `SchoolEnrollment` registra actores y fechas de corrección,
 activación, rechazo y baja. Pendientes no formalizadas y rechazadas vencen a

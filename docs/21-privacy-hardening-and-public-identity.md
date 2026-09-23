@@ -41,6 +41,18 @@ confirmación específica. La evidencia contiene sólo actor, sujeto opcional,
 tipo, aviso, versión y fecha de servidor. No es consentimiento genérico, prueba
 de edad ni autorización de identidad pública de menores.
 
+Seguimiento MINOR-PUBLIC-IDENTITY-DIRECT-1: administración puede iniciar la
+misma autorización para un `Player` menor ya existente, sin crear ni depender
+de una inscripción de Escuela. El expediente nace con `player_id`, conserva
+`school_enrollment_id = null`, reutiliza aviso, token, confirmación, revisión,
+conformidad 14–17, revocación y proyección fail-closed, y no admite
+revinculación a otro jugador. Sólo admite `alias` o `name_initial`; la ausencia
+de autorización y el rechazo conservan `Participante`. El admin registra una
+declaración previa del representante y queda como actor del evento de solicitud,
+sin atribuirse patria potestad o tutela. Antes de decidir, la página muestra el
+aviso específico compilado y falla cerrada si su versión no coincide con la del
+expediente.
+
 ## 4. Hallazgos de 7D.2A
 
 Las APIs deportivas públicas serializaban IDs y objetos de jugador con alias,
@@ -107,6 +119,16 @@ cambiar mientras exista autorización pendiente o aprobada. Si el menor tiene
 esa evidencia viva tampoco puede modificar el apodo; el expediente no se
 revoca, religa ni reescribe. Alcanzar 14 o 18 años se sigue evaluando en runtime
 con las reglas existentes.
+
+La solicitud administrativa directa sólo se ofrece para un `Player` con fecha
+de nacimiento conocida que todavía sea menor. Un expediente pendiente o
+aprobado para el mismo jugador y alcance bloquea otra solicitud; los estados
+históricos `denied`, `revoked` y `expired` permiten iniciar una nueva. Los modos
+directos `alias` y `name_initial` exigen además un dato realmente proyectable y
+el canal de notificación activo. No existe creación directa `anonymous`: sin
+autorización efectiva o tras rechazo se conserva `Participante`. El correo
+privado identifica al menor mediante su nombre registrado, sin añadir esa
+referencia ni otro dato personal a lookup, confirmación o rechazo.
 
 ## 10. Junta
 
@@ -218,6 +240,13 @@ rankings, equipos, prevención de lazy loading y regresión de `/me` y Blade.
 Vitest cubre proyección fail-closed, login, bootstrap `/me`, legado, logout,
 `401`, `419`, `403` ordinario, `403` de usuario inactivo, continuidad del Bearer,
 errores sin payload privado y ausencia de perfil persistido.
+
+La extensión directa añade cobertura de servicio y administración para DOB,
+minoría, modos, aviso, evidencia del representante, flags, duplicados,
+históricos, hash del token, fallo de correo recuperable, payload cerrado,
+sujeto no revinculable, confirmación pública sin PII y lifecycle completo de
+menores de 14 y de 14–17 años. La suite histórica de Escuela continúa siendo la
+regresión del origen basado en inscripción.
 
 ## 24. E2E
 

@@ -1442,6 +1442,48 @@ La retención de tres años para evidencia y la purga técnica a treinta días s
 documentan y no se automatizan en este bloque. Los jobs productivos permanecen
 como gate posterior.
 
+### MINOR-PUBLIC-IDENTITY-DIRECT-1 — Solicitud desde Player existente
+
+La regresión específica usa `DirectPublicIdentityAuthorizationTest` sobre
+MariaDB. Cubre creación directa para `alias` y `name_initial`, rechazo cerrado
+de `anonymous`, actor admin en `REQUESTED`, declaración previa del
+representante registrada por el Club, DOB desconocida, mayoría de edad, modo o
+aviso inválidos, evidencia incompleta y proyecciones imposibles; bloqueo por
+`pending`/`approved` y reapertura tras `denied`/`revoked`/`expired`; hash y no
+persistencia del token en claro; flags, correo fake, referencia privada mínima
+del menor y fallo de envío recuperable.
+
+La cobertura administrativa comprueba sesión admin, ficha de menor, ausencia
+de formulario para adulto o DOB desconocida, estado actual, payload cerrado sin
+`player_id`, filtros, detalle directo sin candidatos y rechazo explícito de
+relink. La API pública se recorre con lookup, confirmación, rechazo, uso único y
+caducidad sin PII ni origen. La aprobación prueba por separado menores de 14 y
+de 14–17, conformidad, modos exactos, rechazo a `Participante`, flag
+fail-closed y revocación inmediata. Vitest exige que la versión devuelta por
+lookup coincida con la compilada, muestra el aviso específico completo antes de
+decidir y mantiene el cierre sin acciones ante cualquier discrepancia.
+
+La regresión `PublicIdentityAuthorizationTest` sigue siendo obligatoria para
+demostrar que el origen Escuela conserva candidatos, vinculación y corrección
+previas a evidencia. La validación focal del bloque se ejecuta con:
+
+```bash
+bash backend/scripts/run-tests.sh --filter='(DirectPublicIdentityAuthorization|PublicIdentityAuthorization|PublicCompetitionIdentity|AdminPlayer|ProfileSelfService)Test'
+```
+
+Resultado tras el microfix pre-stage: selección focal completa, 62 tests y
+674 aserciones, PASS; suite backend oficial sobre MariaDB, 1.816 tests y 18.390
+aserciones, PASS. El test React focal ejecutó 8 casos, PASS; lint y build
+frontend finalizaron sin errores. La proyección legal permaneció determinista:
+3 documentos y 4 avisos, incluido `NOTICE-PUBLIC-IDENTITY-MINORS` `1.0.0` sin
+cambios.
+
+El copy React se valida con su test focal, lint y build. `legal:build` y
+`legal:check` deben permanecer deterministas aunque el aviso
+`NOTICE-PUBLIC-IDENTITY-MINORS` `1.0.0` no cambie. El walkthrough humano seguro,
+sin backdoor ni lectura de tokens desde base de datos o logs, está documentado
+en `23-verifiable-minor-public-identity.md`.
+
 ## CONTACT-OPERATION-PRIVACY-LAYER-1 — Operación de Contacto
 
 7D.2C2B añade Feature tests sobre MariaDB para migración incremental, casts,
