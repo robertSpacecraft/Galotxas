@@ -357,6 +357,10 @@ Route::prefix('admin')->group(function () {
             ->name('admin.players.index');
         Route::get('/players/create', [PlayerController::class, 'create'])
             ->name('admin.players.create');
+        Route::post(
+            '/players/{player}/public-identity-authorizations',
+            [PublicIdentityAuthorizationController::class, 'storeForPlayer']
+        )->name('admin.players.public-identity-authorizations.store');
         Route::get('/players/{player}', [PlayerController::class, 'show'])
             ->name('admin.players.show');
         Route::post('/players', [PlayerController::class, 'store'])

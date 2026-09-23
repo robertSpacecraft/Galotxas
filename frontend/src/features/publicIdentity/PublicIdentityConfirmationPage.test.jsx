@@ -53,6 +53,15 @@ describe('PublicIdentityConfirmationPage', () => {
 
     expect(window.location.hash).toBe('');
     expect(await screen.findByText(/Se ha solicitado el modo/)).toHaveTextContent('Alias deportivo');
+    expect(screen.getByRole('heading', { name: 'Autorización de identidad pública de menores' }))
+      .toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Responsable y finalidad' }))
+      .toBeInTheDocument();
+    expect(screen.getByText(/Aviso NOTICE-PUBLIC-IDENTITY-MINORS, versión/))
+      .toHaveTextContent('1.0.0');
+    expect(screen.getByText(/Confirmar no publica automáticamente/))
+      .toHaveTextContent('el club debe completar su revisión antes de publicarla');
+    expect(document.body).not.toHaveTextContent('vincularla al jugador');
     expect(publicIdentityService.lookup).toHaveBeenCalledWith(
       validToken,
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
@@ -94,6 +103,26 @@ describe('PublicIdentityConfirmationPage', () => {
       .toBeInTheDocument();
     expect(document.body).not.toHaveTextContent('correo');
     expect(document.body).not.toHaveTextContent('fecha de nacimiento');
+  });
+
+  it('fails closed when lookup and compiled notice versions do not match', async () => {
+    publicIdentityService.lookup.mockResolvedValue({
+      mode: 'alias',
+      scope: 'public_competition_identity',
+      notice_version: '0.9.0',
+    });
+
+    renderPage();
+
+    expect(await screen.findByRole('heading', { name: 'Enlace no disponible' }))
+      .toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Confirmar autorización' }))
+      .not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Rechazar/ })).not.toBeInTheDocument();
+    expect(screen.queryByText('Autorización de identidad pública de menores'))
+      .not.toBeInTheDocument();
+    expect(publicIdentityService.confirm).not.toHaveBeenCalled();
+    expect(publicIdentityService.deny).not.toHaveBeenCalled();
   });
 
   it.each(['invalid', 'used', 'expired'])(

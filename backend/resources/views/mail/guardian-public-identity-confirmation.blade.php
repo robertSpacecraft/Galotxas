@@ -6,6 +6,12 @@
         Club Galotxes de Monover ha recibido una solicitud opcional para mostrar
         la identidad de una persona menor en la competición pública.
     </p>
+    @if ($minorReference)
+        <p>
+            Persona menor a la que se refiere la solicitud:
+            <strong>{{ $minorReference }}</strong>.
+        </p>
+    @endif
     <p>
         Modo solicitado: <strong>{{ $authorization->mode->label() }}</strong>.<br>
         Alcance: calendarios, partidos, resultados, clasificaciones, rankings e
@@ -20,7 +26,7 @@
     <p><a href="{{ $confirmationUrl }}">Revisar, confirmar o rechazar la solicitud</a></p>
     <p>
         Confirmar no publica automáticamente ninguna identidad: el club debe
-        revisar y vincular después la solicitud con el jugador correcto. Puedes
+        completar su revisión antes de publicarla. Puedes
         retirar una autorización escribiendo a clubgalotxesmonover@hotmail.com.
     </p>
     <p>

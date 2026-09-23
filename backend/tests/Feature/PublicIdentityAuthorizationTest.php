@@ -71,6 +71,7 @@ class PublicIdentityAuthorizationTest extends TestCase
         $this->assertDatabaseHas('public_identity_authorization_events', [
             'public_identity_authorization_id' => $authorization->id,
             'type' => PublicIdentityAuthorizationEventType::REQUESTED->value,
+            'actor_user_id' => null,
         ]);
 
         Mail::assertSent(GuardianPublicIdentityConfirmation::class, function ($mail) use ($authorization): bool {
@@ -82,6 +83,7 @@ class PublicIdentityAuthorizationTest extends TestCase
                 $mail->privacyUrl
             );
             $this->assertStringContainsString('href="'.$mail->privacyUrl.'"', $rendered);
+            $this->assertNull($mail->minorReference);
             $this->assertStringNotContainsString('Menor Privado', $rendered);
             $this->assertStringNotContainsString('guardian@example.test', $rendered);
 

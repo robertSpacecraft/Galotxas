@@ -34,6 +34,24 @@
   color: #003366;
 }
 
+.notice {
+  margin: 1.5rem 0;
+  border: 1px solid #c9d8e6;
+  border-radius: 10px;
+  padding: 1rem;
+  background: #f8fbfe;
+}
+
+.notice > h2 {
+  margin-top: 0;
+}
+
+.notice > p:last-child {
+  margin-bottom: 0;
+  color: #4b5563;
+  font-weight: 700;
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;

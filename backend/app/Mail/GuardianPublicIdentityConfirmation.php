@@ -8,6 +8,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Str;
 
 class GuardianPublicIdentityConfirmation extends Mailable
 {
@@ -17,6 +18,8 @@ class GuardianPublicIdentityConfirmation extends Mailable
 
     public readonly string $privacyUrl;
 
+    public readonly ?string $minorReference;
+
     public function __construct(
         public readonly PublicIdentityAuthorization $authorization,
         string $plainToken
@@ -25,6 +28,7 @@ class GuardianPublicIdentityConfirmation extends Mailable
         $this->confirmationUrl = $frontendUrl
             .'/public-identity/confirm#token='.rawurlencode($plainToken);
         $this->privacyUrl = $frontendUrl.'/legal/privacidad';
+        $this->minorReference = $this->directMinorReference();
     }
 
     public function envelope(): Envelope
@@ -41,5 +45,20 @@ class GuardianPublicIdentityConfirmation extends Mailable
     public function attachments(): array
     {
         return [];
+    }
+
+    private function directMinorReference(): ?string
+    {
+        if ($this->authorization->school_enrollment_id !== null) {
+            return null;
+        }
+
+        $this->authorization->loadMissing('player.user');
+        $reference = Str::of(
+            ($this->authorization->player?->user?->name ?? '').' '
+            .($this->authorization->player?->user?->lastname ?? '')
+        )->squish()->toString();
+
+        return $reference !== '' ? $reference : null;
     }
 }

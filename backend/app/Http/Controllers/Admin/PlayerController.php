@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\OfficialResultMutationImpact;
 use App\Enums\PlayerGender;
+use App\Enums\PublicIdentityAuthorizationMode;
+use App\Enums\PublicIdentityAuthorizationState;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StorePlayerRequest;
 use App\Http\Requests\Admin\UpdatePlayerRequest;
@@ -14,6 +16,9 @@ use App\Services\OfficialResultLockService;
 use App\Services\OfficialResultMutationGuard;
 use App\Services\PlayerSlugService;
 use App\Services\PlayerUniqueConstraintService;
+use App\Services\PublicIdentityAuthorizationService;
+use App\Services\PublicIdentityNoticeService;
+use App\Services\PublicPlayerIdentityService;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
@@ -76,11 +81,57 @@ class PlayerController extends Controller
             ->with('success', 'Jugador creado correctamente.');
     }
 
-    public function show(Player $player)
-    {
-        $player->load('user', 'teams', 'entries.category');
+    public function show(
+        Player $player,
+        PublicIdentityAuthorizationService $authorizationService,
+        PublicIdentityNoticeService $noticeService,
+        PublicPlayerIdentityService $publicIdentityService,
+    ) {
+        $player->load([
+            'user',
+            'teams',
+            'entries.category',
+            'publicIdentityAuthorizations' => fn ($query) => $query->ordered(),
+        ]);
 
-        return view('admin.players.show', compact('player'));
+        $isMinor = $authorizationService->isMinor($player);
+        $blockingAuthorization = $player->publicIdentityAuthorizations->first(
+            fn ($authorization): bool => in_array($authorization->state, [
+                PublicIdentityAuthorizationState::PENDING,
+                PublicIdentityAuthorizationState::APPROVED,
+            ], true)
+        );
+        $displayAuthorization = $blockingAuthorization
+            ?? $player->publicIdentityAuthorizations->first();
+        $authorizationEnabled = (bool) config('public_identity.authorization_enabled');
+        $notificationEnabled = (bool) config('public_identity.notification_enabled');
+        $canRequest = $isMinor
+            && $authorizationEnabled
+            && $notificationEnabled
+            && $blockingAuthorization === null;
+        $availableModes = $canRequest
+            ? collect([
+                PublicIdentityAuthorizationMode::ALIAS,
+                PublicIdentityAuthorizationMode::NAME_INITIAL,
+            ])
+                ->filter(fn (PublicIdentityAuthorizationMode $mode): bool => $authorizationService
+                    ->playerSupportsMode($player, $mode))
+                ->values()
+            : collect();
+
+        return view('admin.players.show', [
+            'player' => $player,
+            'isMinor' => $isMinor,
+            'publicIdentityDisplayName' => $publicIdentityService->displayName($player),
+            'displayAuthorization' => $displayAuthorization,
+            'blockingAuthorization' => $blockingAuthorization,
+            'authorizationEnabled' => $authorizationEnabled,
+            'notificationEnabled' => $notificationEnabled,
+            'availableAuthorizationModes' => $availableModes,
+            'publicIdentityNotice' => $canRequest && $availableModes->isNotEmpty()
+                ? $noticeService->current()
+                : null,
+        ]);
     }
 
     public function edit(Player $player)

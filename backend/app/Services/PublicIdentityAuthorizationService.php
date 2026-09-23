@@ -19,7 +19,8 @@ class PublicIdentityAuthorizationService
 {
     public function __construct(
         private readonly PublicIdentityNoticeService $noticeService,
-        private readonly PublicIdentityAuthorizationEventService $eventService
+        private readonly PublicIdentityAuthorizationEventService $eventService,
+        private readonly UnicodeTextService $text,
     ) {}
 
     /**
@@ -40,19 +41,164 @@ class PublicIdentityAuthorizationService
             ]);
         }
 
+        return $this->createAuthorization(
+            $enrollment,
+            null,
+            $mode,
+            Str::lower(trim($enrollment->contact_email)),
+            $enrollment->guardian_name,
+            $enrollment->guardian_relationship,
+            $notice,
+            $now,
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @return array{authorization: PublicIdentityAuthorization, token: string|null}
+     */
+    public function createForPlayer(Player $player, User $actor, array $attributes): array
+    {
+        if (! config('public_identity.authorization_enabled')) {
+            $this->fail('public_identity_authorization', 'La solicitud de identidad pública está desactivada.');
+        }
+
+        $mode = is_string($attributes['mode'] ?? null)
+            ? PublicIdentityAuthorizationMode::tryFrom($attributes['mode'])
+            : null;
+        if (! in_array($mode, [
+            PublicIdentityAuthorizationMode::ALIAS,
+            PublicIdentityAuthorizationMode::NAME_INITIAL,
+        ], true)) {
+            $this->fail('mode', 'El modo de identidad pública no es válido.');
+        }
+        if (! config('public_identity.notification_enabled')) {
+            $this->fail(
+                'notification',
+                'El envío de confirmaciones está desactivado. No puede iniciarse una solicitud directa.'
+            );
+        }
+
+        $notice = $this->noticeService->current();
+        $noticeId = $attributes['notice_id'] ?? null;
+        $noticeVersion = $attributes['notice_version'] ?? null;
+        if (
+            ! is_string($noticeId)
+            || ! is_string($noticeVersion)
+            || ! $this->noticeService->recognizes(
+                $noticeId,
+                $noticeVersion,
+                PublicIdentityAuthorization::SCOPE
+            )
+        ) {
+            $this->fail('notice_version', 'El aviso de autorización no está vigente.');
+        }
+
+        $guardianName = $this->normalizedRequiredText(
+            $attributes['guardian_name'] ?? null,
+            'guardian_name',
+            'El nombre del representante es obligatorio.'
+        );
+        $guardianRelationship = $this->normalizedRequiredText(
+            $attributes['guardian_relationship'] ?? null,
+            'guardian_relationship',
+            'La relación del representante es obligatoria.'
+        );
+        $guardianEmail = is_string($attributes['guardian_email'] ?? null)
+            ? Str::lower(trim($attributes['guardian_email']))
+            : '';
+        if ($guardianEmail === '' || filter_var($guardianEmail, FILTER_VALIDATE_EMAIL) === false) {
+            $this->fail('guardian_email', 'El correo del representante no es válido.');
+        }
+        if (! in_array(
+            $attributes['guardian_authority_declared'] ?? null,
+            ['yes', 'on', '1', 1, true, 'true'],
+            true
+        )) {
+            $this->fail(
+                'guardian_authority_declared',
+                'Debe constar que el representante declaró ante el Club ejercer la patria potestad o tutela.'
+            );
+        }
+
+        return DB::transaction(function () use (
+            $player,
+            $mode,
+            $guardianEmail,
+            $guardianName,
+            $guardianRelationship,
+            $notice,
+            $actor
+        ): array {
+            $lockedPlayer = Player::query()
+                ->with('user')
+                ->lockForUpdate()
+                ->findOrFail($player->id);
+
+            if ($lockedPlayer->birth_date === null) {
+                $this->fail('player', 'El jugador necesita una fecha de nacimiento para solicitar esta autorización.');
+            }
+            if (! $this->isMinor($lockedPlayer)) {
+                $this->fail('player', 'La autorización de representante sólo está disponible para jugadores menores.');
+            }
+            if (PublicIdentityAuthorization::query()
+                ->where('player_id', $lockedPlayer->id)
+                ->where('scope', PublicIdentityAuthorization::SCOPE)
+                ->whereIn('state', [
+                    PublicIdentityAuthorizationState::PENDING->value,
+                    PublicIdentityAuthorizationState::APPROVED->value,
+                ])
+                ->exists()) {
+                $this->fail(
+                    'player',
+                    'El jugador ya tiene una solicitud pendiente o aprobada para este alcance.'
+                );
+            }
+
+            $this->assertPlayerSupportsMode($lockedPlayer, $mode);
+
+            return $this->createAuthorization(
+                null,
+                $lockedPlayer,
+                $mode,
+                $guardianEmail,
+                $guardianName,
+                $guardianRelationship,
+                $notice,
+                CarbonImmutable::now(),
+                $actor,
+            );
+        });
+    }
+
+    /**
+     * @param  array<string, mixed>  $notice
+     * @return array{authorization: PublicIdentityAuthorization, token: string|null}
+     */
+    private function createAuthorization(
+        ?SchoolEnrollment $enrollment,
+        ?Player $player,
+        PublicIdentityAuthorizationMode $mode,
+        string $guardianEmail,
+        string $guardianName,
+        string $guardianRelationship,
+        array $notice,
+        CarbonImmutable $now,
+        ?User $actor = null,
+    ): array {
         $authorization = new PublicIdentityAuthorization;
         $authorization->forceFill([
-            'school_enrollment_id' => $enrollment->id,
-            'player_id' => null,
+            'school_enrollment_id' => $enrollment?->id,
+            'player_id' => $player?->id,
             'scope' => PublicIdentityAuthorization::SCOPE,
             'mode' => $mode,
             'state' => $mode === PublicIdentityAuthorizationMode::ANONYMOUS
                 ? PublicIdentityAuthorizationState::DENIED
                 : PublicIdentityAuthorizationState::PENDING,
             'approval_slot' => null,
-            'guardian_email' => Str::lower(trim($enrollment->contact_email)),
-            'guardian_name' => $enrollment->guardian_name,
-            'guardian_relationship' => $enrollment->guardian_relationship,
+            'guardian_email' => $guardianEmail,
+            'guardian_name' => $guardianName,
+            'guardian_relationship' => $guardianRelationship,
             'guardian_authority_declared_at' => $now,
             'notice_id' => $notice['id'],
             'notice_version' => $notice['version'],
@@ -76,7 +222,8 @@ class PublicIdentityAuthorizationService
             $authorization,
             $mode === PublicIdentityAuthorizationMode::ANONYMOUS
                 ? PublicIdentityAuthorizationEventType::ANONYMOUS_SELECTED
-                : PublicIdentityAuthorizationEventType::REQUESTED
+                : PublicIdentityAuthorizationEventType::REQUESTED,
+            $actor,
         );
 
         return ['authorization' => $authorization->refresh(), 'token' => $token];
@@ -141,6 +288,14 @@ class PublicIdentityAuthorizationService
             $player = Player::query()->lockForUpdate()->findOrFail($player->id);
             $locked = $this->lock($authorization);
             $this->assertPending($locked);
+
+            if ($locked->school_enrollment_id === null) {
+                $this->fail(
+                    'player_id',
+                    'Una autorización creada desde un jugador no puede vincularse a otro jugador.'
+                );
+            }
+
             $enrollment = $locked->schoolEnrollment()->lockForUpdate()->first();
             $previousPlayerId = $locked->player_id;
 
@@ -374,6 +529,18 @@ class PublicIdentityAuthorizationService
             && $birthDate->addYearsNoOverflow(18)->isAfter($referenceDate);
     }
 
+    public function playerSupportsMode(
+        Player $player,
+        PublicIdentityAuthorizationMode $mode
+    ): bool {
+        return match ($mode) {
+            PublicIdentityAuthorizationMode::ALIAS => $this->text->squish($player->nickname) !== '',
+            PublicIdentityAuthorizationMode::NAME_INITIAL => $this->text->squish($player->user?->name) !== ''
+                && $this->text->squish($player->user?->lastname) !== '',
+            PublicIdentityAuthorizationMode::ANONYMOUS => true,
+        };
+    }
+
     private function decideToken(string $plainToken, bool $confirmed): bool
     {
         return DB::transaction(function () use ($plainToken, $confirmed): bool {
@@ -458,6 +625,38 @@ class PublicIdentityAuthorizationService
     private function freshToken(): string
     {
         return Str::random(64);
+    }
+
+    private function assertPlayerSupportsMode(
+        Player $player,
+        PublicIdentityAuthorizationMode $mode
+    ): void {
+        if (
+            $mode === PublicIdentityAuthorizationMode::ALIAS
+            && ! $this->playerSupportsMode($player, $mode)
+        ) {
+            $this->fail('mode', 'El jugador no tiene un alias deportivo publicable.');
+        }
+
+        if (
+            $mode === PublicIdentityAuthorizationMode::NAME_INITIAL
+            && ! $this->playerSupportsMode($player, $mode)
+        ) {
+            $this->fail(
+                'mode',
+                'El jugador no tiene nombre y primer apellido suficientes para publicar nombre e inicial.'
+            );
+        }
+    }
+
+    private function normalizedRequiredText(mixed $value, string $field, string $message): string
+    {
+        $normalized = is_string($value) ? $this->text->squish($value) : '';
+        if ($normalized === '') {
+            $this->fail($field, $message);
+        }
+
+        return $normalized;
     }
 
     private function nullableReason(?string $reason): ?string

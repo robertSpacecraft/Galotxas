@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { PageMetadata } from '../../components/PublicLanding/PageMetadata';
+import { LegalRenderer } from '../legal/LegalRenderer';
+import { minorPublicIdentityNotice } from '../legal/formNoticeRepository';
 import { publicIdentityService } from './publicIdentityService';
 import styles from './PublicIdentityConfirmationPage.module.css';
 
@@ -37,7 +39,14 @@ export const PublicIdentityConfirmationPage = () => {
     if (token.current.length >= 40) {
       publicIdentityService.lookup(token.current, { signal: controller.signal })
         .then((data) => {
-          setState({ status: data ? 'ready' : 'invalid', data });
+          const noticeMatches = data
+            && minorPublicIdentityNotice
+            && data.scope === minorPublicIdentityNotice.scope
+            && data.notice_version === minorPublicIdentityNotice.version;
+          setState({
+            status: noticeMatches ? 'ready' : 'invalid',
+            data: noticeMatches ? data : null,
+          });
         })
         .catch((error) => {
           if (error.name === 'CanceledError') return;
@@ -101,10 +110,21 @@ export const PublicIdentityConfirmationPage = () => {
               competición.
             </p>
             <p>
-              Aviso versión {state.data.notice_version}. La inscripción y la participación
-              no dependen de esta decisión. Confirmar no publica automáticamente la identidad:
-              el club debe revisarla y vincularla al jugador correcto.
+              La inscripción y la participación no dependen de esta decisión. Confirmar no
+              publica automáticamente la identidad: el club debe completar su revisión antes
+              de publicarla.
             </p>
+            <aside
+              className={styles.notice}
+              aria-labelledby="public-identity-notice-title"
+            >
+              <h2 id="public-identity-notice-title">{minorPublicIdentityNotice.title}</h2>
+              <LegalRenderer blocks={minorPublicIdentityNotice.blocks} />
+              <p>
+                Aviso {minorPublicIdentityNotice.id}, versión{' '}
+                {minorPublicIdentityNotice.version}.
+              </p>
+            </aside>
             <div className={styles.actions}>
               <button
                 type="button"

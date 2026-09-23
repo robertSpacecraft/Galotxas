@@ -10,6 +10,7 @@ use App\Http\Requests\Admin\ListPublicIdentityAuthorizationRequest;
 use App\Http\Requests\Admin\RecordPublicIdentityMinorAssentRequest;
 use App\Http\Requests\Admin\ResendPublicIdentityAuthorizationRequest;
 use App\Http\Requests\Admin\ReviewPublicIdentityAuthorizationRequest;
+use App\Http\Requests\Admin\StorePlayerPublicIdentityAuthorizationRequest;
 use App\Models\Player;
 use App\Models\PublicIdentityAuthorization;
 use App\Services\PublicIdentityAuthorizationNotificationService;
@@ -31,19 +32,48 @@ class PublicIdentityAuthorizationController extends Controller
             ->when(isset($filters['from']), fn ($query) => $query->whereDate('requested_at', '>=', $filters['from']))
             ->when(isset($filters['to']), fn ($query) => $query->whereDate('requested_at', '<=', $filters['to']))
             ->when(($filters['age_group'] ?? null) === 'unlinked', fn ($query) => $query->whereNull('player_id'))
-            ->when(($filters['age_group'] ?? null) === 'under_14', fn ($query) => $query->whereHas(
-                'schoolEnrollment',
-                fn ($enrollment) => $enrollment->whereDate('participant_birth_date', '>', $today->subYears(14))
+            ->when(($filters['age_group'] ?? null) === 'under_14', fn ($query) => $query->where(
+                fn ($age) => $age
+                    ->whereHas(
+                        'schoolEnrollment',
+                        fn ($enrollment) => $enrollment->whereDate('participant_birth_date', '>', $today->subYears(14))
+                    )
+                    ->orWhere(fn ($direct) => $direct
+                        ->whereNull('school_enrollment_id')
+                        ->whereHas(
+                            'player',
+                            fn ($player) => $player->whereDate('birth_date', '>', $today->subYears(14))
+                        ))
             ))
-            ->when(($filters['age_group'] ?? null) === '14_to_17', fn ($query) => $query->whereHas(
-                'schoolEnrollment',
-                fn ($enrollment) => $enrollment
-                    ->whereDate('participant_birth_date', '<=', $today->subYears(14))
-                    ->whereDate('participant_birth_date', '>', $today->subYears(18))
+            ->when(($filters['age_group'] ?? null) === '14_to_17', fn ($query) => $query->where(
+                fn ($age) => $age
+                    ->whereHas(
+                        'schoolEnrollment',
+                        fn ($enrollment) => $enrollment
+                            ->whereDate('participant_birth_date', '<=', $today->subYears(14))
+                            ->whereDate('participant_birth_date', '>', $today->subYears(18))
+                    )
+                    ->orWhere(fn ($direct) => $direct
+                        ->whereNull('school_enrollment_id')
+                        ->whereHas(
+                            'player',
+                            fn ($player) => $player
+                                ->whereDate('birth_date', '<=', $today->subYears(14))
+                                ->whereDate('birth_date', '>', $today->subYears(18))
+                        ))
             ))
-            ->when(($filters['age_group'] ?? null) === 'adult', fn ($query) => $query->whereHas(
-                'schoolEnrollment',
-                fn ($enrollment) => $enrollment->whereDate('participant_birth_date', '<=', $today->subYears(18))
+            ->when(($filters['age_group'] ?? null) === 'adult', fn ($query) => $query->where(
+                fn ($age) => $age
+                    ->whereHas(
+                        'schoolEnrollment',
+                        fn ($enrollment) => $enrollment->whereDate('participant_birth_date', '<=', $today->subYears(18))
+                    )
+                    ->orWhere(fn ($direct) => $direct
+                        ->whereNull('school_enrollment_id')
+                        ->whereHas(
+                            'player',
+                            fn ($player) => $player->whereDate('birth_date', '<=', $today->subYears(18))
+                        ))
             ))
             ->ordered()
             ->paginate(25)
@@ -70,11 +100,10 @@ class PublicIdentityAuthorizationController extends Controller
             'events.actor',
         ]);
         $birthDate = $publicIdentityAuthorization->schoolEnrollment?->participant_birth_date;
+        $players = collect();
 
-        return view('admin.public-identity-authorizations.show', [
-            'authorization' => $publicIdentityAuthorization,
-            'notice' => $noticeService->current(),
-            'players' => Player::query()
+        if ($publicIdentityAuthorization->school_enrollment_id !== null) {
+            $players = Player::query()
                 ->with('user')
                 ->when(
                     $birthDate !== null,
@@ -82,8 +111,34 @@ class PublicIdentityAuthorizationController extends Controller
                     fn ($query) => $query->whereRaw('1 = 0')
                 )
                 ->orderBy('id')
-                ->get(),
+                ->get();
+        }
+
+        return view('admin.public-identity-authorizations.show', [
+            'authorization' => $publicIdentityAuthorization,
+            'notice' => $noticeService->current(),
+            'players' => $players,
         ]);
+    }
+
+    public function storeForPlayer(
+        StorePlayerPublicIdentityAuthorizationRequest $request,
+        Player $player,
+        PublicIdentityAuthorizationService $service,
+        PublicIdentityAuthorizationNotificationService $notificationService
+    ) {
+        $result = $service->createForPlayer($player, $request->user(), $request->validated());
+        $authorization = $result['authorization'];
+
+        if ($result['token'] !== null && ! $notificationService->send($authorization, $result['token'])) {
+            return redirect()
+                ->route('admin.public-identity-authorizations.show', $authorization)
+                ->with('error', 'La solicitud quedó creada y sigue pendiente, pero el correo no pudo enviarse. Puedes reenviarlo desde este detalle.');
+        }
+
+        return redirect()
+            ->route('admin.public-identity-authorizations.show', $authorization)
+            ->with('success', 'La solicitud quedó creada y la confirmación fue enviada.');
     }
 
     public function linkPlayer(

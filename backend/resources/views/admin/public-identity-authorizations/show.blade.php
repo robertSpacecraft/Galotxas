@@ -46,41 +46,56 @@
                 <div class="card page-card mb-4">
                     <div class="card-header fw-bold">Sujeto</div>
                     <div class="card-body">
-                        <p><strong>Inscripción:</strong> {{ $authorization->schoolEnrollment?->participant_name ?? 'No asociada' }}</p>
-                        <p><strong>Nacimiento declarado:</strong> {{ $authorization->schoolEnrollment?->participant_birth_date?->format('d/m/Y') ?? '—' }}</p>
-                        <p><strong>Jugador vinculado:</strong> {{ $authorization->player ? $authorization->player->user->name.' '.$authorization->player->user->lastname : 'Sin vincular' }}</p>
-                        @if ($authorization->state === \App\Enums\PublicIdentityAuthorizationState::PENDING && (!$authorization->player_id || !$authorization->guardian_confirmed_at))
-                            <p class="text-secondary">
-                                La fecha de nacimiento sólo determina compatibilidad. Debes comprobar expresamente que la inscripción y el jugador corresponden a la misma persona.
+                        @if ($authorization->school_enrollment_id === null)
+                            <p><strong>Origen:</strong> Solicitud directa desde la ficha del jugador</p>
+                            <p class="mb-0">
+                                <strong>Jugador sujeto:</strong>
+                                {{ trim(($authorization->player?->user?->name ?? '').' '.($authorization->player?->user?->lastname ?? '')) ?: 'Jugador no disponible' }}
+                                @if ($authorization->player)
+                                    · <a href="{{ route('admin.players.show', $authorization->player) }}">Ver ficha</a>
+                                @endif
                             </p>
-                            @if ($players->isEmpty())
-                                <div class="alert alert-warning mb-0">No hay jugadores compatibles con la fecha declarada. La autorización debe permanecer pendiente.</div>
-                            @else
-                            <form method="POST" action="{{ route('admin.public-identity-authorizations.link-player', $authorization) }}">
-                                @csrf
-                                <label for="player_id" class="form-label">Jugador compatible</label>
-                                <select id="player_id" name="player_id" class="form-select mb-2" required>
-                                    <option value="">Selecciona un jugador</option>
-                                    @foreach ($players as $player)
-                                        <option value="{{ $player->id }}" @selected((string) old('player_id') === (string) $player->id)>
-                                            {{ $player->user->name }} {{ $player->user->lastname }}{{ $player->nickname ? ' · '.$player->nickname : '' }} — {{ $player->birth_date->format('d/m/Y') }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <input type="hidden" name="link_confirmed" value="0">
-                                <div class="form-check mb-3">
-                                    <input class="form-check-input" id="link_confirmed" name="link_confirmed" type="checkbox" value="1" required @checked(old('link_confirmed'))>
-                                    <label class="form-check-label" for="link_confirmed">
-                                        Confirmo que he comprobado que la inscripción y el jugador seleccionado corresponden a la misma persona.
-                                    </label>
-                                </div>
-                                <button class="btn btn-outline-primary" type="submit">Vincular de forma explícita</button>
-                            </form>
-                            @endif
-                        @elseif ($authorization->state === \App\Enums\PublicIdentityAuthorizationState::PENDING && $authorization->player_id && $authorization->guardian_confirmed_at)
-                            <div class="alert alert-secondary mb-0">
-                                El sujeto ya tiene evidencia confirmada. Para corregir el jugador, cierra o revoca esta solicitud y registra una autorización nueva.
+                            <div class="alert alert-info mt-3 mb-0">
+                                El expediente nació vinculado a este jugador y no admite selección ni revinculación.
                             </div>
+                        @else
+                            <p><strong>Origen:</strong> Inscripción de Escuela</p>
+                            <p><strong>Inscripción:</strong> {{ $authorization->schoolEnrollment?->participant_name ?? 'No asociada' }}</p>
+                            <p><strong>Nacimiento declarado:</strong> {{ $authorization->schoolEnrollment?->participant_birth_date?->format('d/m/Y') ?? '—' }}</p>
+                            <p><strong>Jugador vinculado:</strong> {{ $authorization->player ? $authorization->player->user->name.' '.$authorization->player->user->lastname : 'Sin vincular' }}</p>
+                            @if ($authorization->state === \App\Enums\PublicIdentityAuthorizationState::PENDING && (!$authorization->player_id || !$authorization->guardian_confirmed_at))
+                                <p class="text-secondary">
+                                    La fecha de nacimiento sólo determina compatibilidad. Debes comprobar expresamente que la inscripción y el jugador corresponden a la misma persona.
+                                </p>
+                                @if ($players->isEmpty())
+                                    <div class="alert alert-warning mb-0">No hay jugadores compatibles con la fecha declarada. La autorización debe permanecer pendiente.</div>
+                                @else
+                                <form method="POST" action="{{ route('admin.public-identity-authorizations.link-player', $authorization) }}">
+                                    @csrf
+                                    <label for="player_id" class="form-label">Jugador compatible</label>
+                                    <select id="player_id" name="player_id" class="form-select mb-2" required>
+                                        <option value="">Selecciona un jugador</option>
+                                        @foreach ($players as $player)
+                                            <option value="{{ $player->id }}" @selected((string) old('player_id') === (string) $player->id)>
+                                                {{ $player->user->name }} {{ $player->user->lastname }}{{ $player->nickname ? ' · '.$player->nickname : '' }} — {{ $player->birth_date->format('d/m/Y') }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <input type="hidden" name="link_confirmed" value="0">
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" id="link_confirmed" name="link_confirmed" type="checkbox" value="1" required @checked(old('link_confirmed'))>
+                                        <label class="form-check-label" for="link_confirmed">
+                                            Confirmo que he comprobado que la inscripción y el jugador seleccionado corresponden a la misma persona.
+                                        </label>
+                                    </div>
+                                    <button class="btn btn-outline-primary" type="submit">Vincular de forma explícita</button>
+                                </form>
+                                @endif
+                            @elseif ($authorization->state === \App\Enums\PublicIdentityAuthorizationState::PENDING && $authorization->player_id && $authorization->guardian_confirmed_at)
+                                <div class="alert alert-secondary mb-0">
+                                    El sujeto ya tiene evidencia confirmada. Para corregir el jugador, cierra o revoca esta solicitud y registra una autorización nueva.
+                                </div>
+                            @endif
                         @endif
                     </div>
                 </div>
