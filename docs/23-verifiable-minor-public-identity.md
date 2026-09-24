@@ -391,9 +391,14 @@ añade endpoints o visualización administrativa del token:
 En staging este recorrido sólo procede dentro de una ventana autorizada, con
 datos ficticios, flags temporales y un canal de correo seguro accesible al
 operador. El token nunca se obtiene desde la base de datos, logs, una respuesta
-admin o un mecanismo de depuración del producto. Sin entrega real configurada,
-la automatización con `Mail::fake()` es la única evidencia disponible y el
-walkthrough de correo queda pendiente.
+admin o un mecanismo de depuración del producto. Mientras no existía entrega real configurada, la automatización con
+`Mail::fake()` constituía la única evidencia disponible y el walkthrough de
+correo permanecía pendiente. Su cierre operativo posterior se registra en
+27.2.
+
+### 27.2. Aceptación en staging y activación en producción (MINOR-PUBLIC-IDENTITY-DIRECT-1)
+
+En el cierre de MINOR-PUBLIC-IDENTITY-DIRECT-1, se documentó y validó operativamente la capacidad del origen directo. En staging, los flags se habilitaron temporalmente para la ventana de aceptación. La primera entrega de staging no abandonó la aplicación al estar configurado `MAIL_MAILER=array` (diagnóstico de configuración de entorno, no defecto de aplicación); tras reconfigurar staging a `resend` y redesplegar, la entrega real de correo tuvo éxito. El flujo de confirmación por el representante (cuyo correo privado identifica al menor por su nombre registrado) y la proyección pública se aceptaron con datos ficticios. Producción fue desplegada y los flags de autorización y notificación de identidad pública fueron habilitados allí, reutilizando la infraestructura de Resend existente. La confirmación pública y la API permanecen minimizadas y la identidad privada en contextos autenticados mantiene su separación.
 
 ## 28. Criterios de cierre
 

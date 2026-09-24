@@ -511,7 +511,7 @@ Las pruebas de integración se ejecutan exclusivamente sobre la instancia MariaD
 - comportamiento de usuarios sin perfil de jugador;
 - rechazo de acceso no autenticado.
 
-## PROFILE-SELF-SERVICE-1 — Perfil editable e integridad (pendiente de aceptación)
+## PROFILE-SELF-SERVICE-1 — Perfil editable e integridad (CLOSED / PASS)
 
 La cobertura focal sobre MariaDB verifica la unicidad nullable de apodos, la
 collation real y las colisiones tras normalizar, el fallo cerrado de la
@@ -544,8 +544,9 @@ regresión del editor elimina realmente los errores corregidos, no muestra un
 resumen al editar un formulario limpio y conserva sólo los mensajes genuinos
 restantes, sin filas vacías. Registro y creación posterior desde Mi Panel
 presentan DOB obligatorio, confirmación específica y nivel opcional sin
-fabricarlo en el payload. El estado de este bloque no se considera cierre
-canónico hasta revisión humana, aceptación de staging y evidencia productiva.
+fabricarlo en el payload. El cierre canónico acredita revisión humana completada, aceptación de staging
+completada, despliegue productivo y aplicación de migraciones productivas
+requeridas.
 
 ## PANEL-1 — Acciones pendientes de partidos
 
