@@ -203,7 +203,7 @@ Todas las rutas `/api/v1/admin/*` exigen Sanctum, usuario activo y `IsAdmin`.
 | `GET`, `PUT/PATCH`, `DELETE` | `/admin/championships/{championship}` | `UpdateChampionshipRequest` en `PUT/PATCH` | `AdminChampionshipResource` con `200`; borrado `204` |
 | `GET`, `POST` | `/admin/categories` | `Api\Admin\StoreCategoryRequest` en `POST` | `AdminCategoryResource`; `200` al listar y `201` al crear |
 | `GET`, `PUT/PATCH`, `DELETE` | `/admin/categories/{category}` | `UpdateCategoryRequest` en `PUT/PATCH` | `AdminCategoryResource` con `200`; borrado `204` |
-| `POST` | `/admin/categories/{category}/entries` | `CategoryEntry` directo heredado |
+| `POST` | `/admin/categories/{category}/entries` | `StoreCategoryEntryRequest`; `CategoryEntry` directo heredado con `201`; `422` de dominio y `409` de resultado oficial |
 | `GET` | `/admin/matches/under-review` | colección `MatchResource` |
 | `GET` | `/admin/matches/{gameMatch}/conflict` | `MatchResource` y colección `MatchResultReportResource` |
 | `POST` | `/admin/matches/{gameMatch}/resolve-conflict` | `MatchResource` y colección `MatchResultReportResource` |
@@ -256,7 +256,7 @@ responde `404`. Las variantes mantienen `public, max-age=60`.
 
 El `SeasonResource` público heredado conserva una clave `slug`, cuyo valor real es `null` porque `Season` y su tabla no tienen ese atributo. Se mantiene para no introducir una ruptura de contrato sin versionado; añadir, calcular o retirar ese campo es deuda contractual independiente de este endurecimiento administrativo.
 
-El endpoint independiente `POST /admin/categories/{category}/entries` administra participantes de categoría y conserva su contrato heredado; no forma parte del CRUD de entidades endurecido en COMPETITION-ADMIN-API-1. Los endpoints operativos de partidos e inscripciones conservan asimismo sus contratos anteriores.
+El endpoint independiente `POST /admin/categories/{category}/entries` administra participantes de categoría y conserva su respuesta heredada —el modelo `CategoryEntry` creado, con `201`—; no forma parte del CRUD de entidades endurecido en COMPETITION-ADMIN-API-1. Desde 5.7-E valida su payload con `StoreCategoryEntryRequest` (`entry_type` `player` o `team` con exactamente el identificador correspondiente; `422` con `errors` por campo) y delega el dominio en `CategoryEntryService`: modalidad del campeonato, unicidad por categoría, inscripción `approved` y, para equipos, equipo de la misma categoría con dos jugadores distintos delantero y zaguero. Toda violación de dominio, incluida una carrera detectada por la base de datos, devuelve `422` con `{message, errors: {campo: [mensaje]}}` sin detalles SQL, y un resultado oficial vigente sigue devolviendo `409`. El cliente no elige `status`: toda entrada creada nace `approved`, por lo que el modelo devuelto incluye ahora `status: "approved"`. Los endpoints operativos de partidos e inscripciones conservan asimismo sus contratos anteriores.
 
 ### Separación respecto al panel Blade
 

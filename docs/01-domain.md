@@ -634,6 +634,51 @@ Las siguientes reglas forman parte del comportamiento esperado del sistema:
   resultados oficiales versionados;
 - el frontend representa el dominio, pero no lo determina.
 
+## Integridad de la identidad competitiva (`CategoryEntry`)
+
+5.7-E (implementación completa; pendiente de revisión humana, aceptación de
+staging y migración remota autorizada) fija estas reglas como invariantes:
+
+- un `CategoryEntry` referencia exactamente una identidad:
+  `entry_type='player'` exige `player_id` y `team_id` nulo;
+  `entry_type='team'` exige `team_id` y `player_id` nulo. No existen entradas
+  sin identidad, con ambas ni con un tipo que no coincida con su origen;
+- una identidad aparece como máximo una vez por categoría, con independencia de
+  `status`. No hay unicidad por estado: una fila heredada `pending` o
+  `rejected` sigue impidiendo una entrada nueva de la misma identidad. La
+  unicidad de base de datos es por categoría (`(category_id, player_id)` y
+  `(category_id, team_id)`) y no sustituye la regla funcional de
+  `CategoryRegistration`, vigente y sin cambios: un jugador no puede estar
+  asignado a dos categorías del mismo campeonato;
+- la modalidad del campeonato decide el tipo: las categorías de individuales
+  sólo admiten entradas de jugador y las de dobles sólo de equipo;
+- una entrada de jugador exige una inscripción `approved` en esa categoría; una
+  de equipo exige un equipo de la misma categoría formado por dos jugadores
+  distintos —delantero y zaguero— con inscripción `approved` en ella;
+- toda escritura de entradas pasa por `CategoryEntryService`, que exige el
+  guard de resultados oficiales y el orden de locks canónico. Las entradas
+  nuevas de los flujos administrativos nacen `approved`; `status` no recibe
+  `CHECK` ni un ciclo de vida nuevo;
+- cambiar el `type` de un campeonato se rechaza mientras cualquiera de sus
+  categorías tenga inscripciones, entradas o equipos; nunca se convierten,
+  eliminan ni reparan datos;
+- las altas y bajas de inscripción de dobles usan el mismo guard y los mismos
+  locks que las de individuales, y no puede retirarse la inscripción de un
+  jugador que pertenece a un equipo de la categoría;
+- MariaDB refuerza la identidad con un `CHECK` y dos `UNIQUE` por categoría. La
+  migración es forward-only y aborta con diagnóstico, sin reparar nada, si
+  existen datos heredados incoherentes;
+- las acciones `ON DELETE` de las claves foráneas no cambian. Borrar un jugador
+  puede dejar un equipo de dobles con un solo miembro; ese caso pertenece a la
+  gate separada de borrado/archivo de datos competitivos y
+  `invalid_team_composition` de la readiness sigue siendo su respaldo
+  fail-closed;
+- la regla funcional de `CategoryRegistration` —un jugador no puede estar
+  asignado a dos categorías del mismo campeonato— sigue vigente y continúa
+  comprobándose sólo en la aplicación al inscribir. No existe garantía DB a ese
+  nivel y 5.7-E no serializa de forma concurrente esa comprobación entre las
+  categorías del campeonato: es deuda de seguimiento explícita, fuera de 5.7-E.
+
 ---
 
 # 11. Pistas

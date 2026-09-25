@@ -331,6 +331,13 @@ El orden completo y obligatorio es:
 5. `CategoryEntry` y `Team`.
 
 Todos esos locks y la escritura protegida comparten la misma transacción.
+Desde 5.7-E `CategoryEntryService` es el único punto de escritura de
+`CategoryEntry`: `lockForParticipantMutation()` aplica el guard de impacto
+`PARTICIPANTS` y adquiere categoría, resultados vigentes, rondas, partidos,
+entradas, equipos y miembros en este mismo orden, y devuelve el
+`OfficialResultLock` que exigen sus métodos de escritura. Las inscripciones y
+equipos de individuales y dobles, la API administrativa heredada de entradas y
+el borrado de jugadores reutilizan esa disciplina.
 `OfficialResultMutationGuard` clasifica el impacto antes de mutar: Liga y
 participantes consultan ambas partes oficiales, mientras semifinal y Final de
 Copa dependen de la parte Copa. El tercer puesto inequívoco queda fuera de v1;
@@ -345,8 +352,12 @@ un force-delete ni una operación normal que elimine historia oficial.
 
 `ChampionshipMutationService` centraliza la actualización de campeonato: sólo
 cuando cambia `type` adquiere los locks de todas sus categorías y protege el
-cambio de reglas; estado, visibilidad y metadatos admitidos siguen siendo
-mutables. Los writers de resultados, calendario, generación de Liga/Copa y
+cambio de reglas; además rechaza el cambio, con un error de validación sobre
+`type`, mientras existan inscripciones, entradas o equipos en esas categorías
+(5.7-E). Las entradas y equipos se toman de las filas ya bloqueadas en el orden
+canónico y las inscripciones se leen con una lectura bloqueante al final de ese
+orden, para que la comprobación observe datos confirmados. Estado, visibilidad y
+metadatos admitidos siguen siendo mutables. Los writers de resultados, calendario, generación de Liga/Copa y
 composición de participantes reutilizan los mismos servicios en lugar de
 implementar prechecks aislados.
 

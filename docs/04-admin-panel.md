@@ -211,6 +211,7 @@ Las rutas `/admin/championships` y `/admin/seasons/{season}/championships/create
 - La temporada se elige entre registros existentes. Nombre, tipo, estado del campeonato y estado de inscripciones son obligatorios; los valores se validan contra los casos admitidos por el dominio actual.
 - Descripción, fechas del campeonato y fechas de inscripción son opcionales. Cada fecha final debe ser igual o posterior a la fecha inicial de su mismo intervalo cuando ambas se informan.
 - La creación y actualización reciben exclusivamente datos validados y persisten de forma explícita todos los campos administrables, incluidos los valores nulos al limpiar campos opcionales.
+- El tipo (`singles` o `doubles`) no puede cambiarse mientras las categorías del campeonato tengan inscripciones, participantes o equipos: el formulario muestra el motivo en el campo Tipo y no modifica, convierte ni elimina ningún dato. Con un resultado oficial vigente sigue rigiendo el bloqueo por resultados oficiales.
 - La edición recupera todos los valores persistidos y da prioridad a `old()` después de un error de validación.
 - El `slug` continúa derivándose del nombre. Los identificadores y timestamps permanecen gestionados por Laravel.
 - El formulario admite una única portada opcional y ofrece preview privado, subida, sustitución y retirada. No expone ni permite escribir directamente `image_path`.
@@ -425,7 +426,10 @@ Reglas funcionales:
 - `CategoryEntry` representa la unidad competitiva final;
 - en individuales el `CategoryEntry` referencia al jugador;
 - en dobles referencia al equipo;
-- debe respetarse la estructura del campeonato.
+- debe respetarse la estructura del campeonato;
+- en individuales la inscripción crea exactamente un `CategoryEntry` `approved`. Si el jugador ya tiene en la categoría una entrada exactamente coherente —tipo `player`, ese jugador, sin equipo y `approved`— se reutiliza; cualquier otra entrada existente (`pending`, `rejected`, otro estado o incoherente) aborta la inscripción con un error controlado, sin modificarla, sustituirla ni crear otra, y la inscripción recién creada se revierte;
+- la inscripción y la retirada en dobles pasan por el mismo guard de resultados oficiales y los mismos locks que en individuales;
+- no puede retirarse la inscripción de un jugador que pertenece a un equipo de la categoría; la comprobación se hace dentro de la transacción bloqueada.
 
 ---
 
@@ -434,6 +438,8 @@ Reglas funcionales:
 En campeonatos de dobles el administrador crea equipos con jugadores aprobados.
 
 Posteriormente se crean los correspondientes `CategoryEntry` que competirán en la categoría.
+
+El equipo, sus dos miembros (delantero y zaguero) y su `CategoryEntry` `approved` se crean en una única transacción protegida por el guard de resultados oficiales; los dos jugadores deben tener inscripción aprobada en la categoría y no pertenecer ya a otro equipo de ella. Eliminar el equipo elimina también su entrada. El estado `status` de una entrada no dispone de ciclo de vida administrativo.
 
 ---
 

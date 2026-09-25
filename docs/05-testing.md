@@ -2538,6 +2538,95 @@ ejecutar suites frontend. Tampoco cambiaron resultados públicos,
 ocupación compartida entre campeonatos, estados de reprogramación,
 autenticación/sesión ni estructura genérica de `MatchController`.
 
+## 5.7-E — Integridad de `CategoryEntry` (IMPLEMENTACIÓN COMPLETA / PENDIENTE DE ACEPTACIÓN OPERACIONAL, 2026-09-24)
+
+Estado: implementado en `develop` sin commit del agente. **No está CLOSED**: falta
+la revisión humana, la aceptación en staging, la migración remota autorizada y una
+suite backend completa posterior a la corrección de revisión 1.
+La evidencia siguiente es sólo local, sobre MariaDB 11.4 aislada con el runner
+oficial (`backend/scripts/run-tests.sh`; en este checkout se invocó como
+`bash backend/scripts/run-tests.sh` porque el archivo no tiene el bit
+ejecutable):
+
+- focales por clase, en la ejecución previa a la corrección de revisión 1:
+  `AdminCategoryEntryApiTest` 20 tests; `Admin/CategoryParticipantFlowsTest`
+  15 tests/61 aserciones; `ChampionshipTypeChangeIntegrityTest` 11/50;
+  `CategoryEntryIdentityMigrationTest` 18/77; `CategoryEntryServiceTest` 14/40;
+  `CategoryEntryConcurrencyTest` 4/43; `CupOfficializationReadinessTest` 11 tests;
+- suite backend completa, ejecutada después de Pint y **antes de la corrección de
+  revisión 1**: 1.898 tests y 18.773 aserciones en 145,06 segundos, PASS. No es la
+  evidencia final del bloque;
+- `php -l`, Pint limitado a los archivos afectados y `git diff --check` de esa
+  ejecución: PASS. No se limpió la deuda global de Pint;
+- corrección de revisión 1 (la inscripción de individuales falla cerrada ante una
+  entrada previa no `approved` o incoherente): la suite focal directamente
+  afectada —`CategoryEntryServiceTest`, `Admin/CategoryParticipantFlowsTest`,
+  `AdminCategoryEntryApiTest`, `CategoryRegistrationAdminTest` y
+  `AdminRegistrationRequestTest`— pasó 78 tests y 305 aserciones. Los recuentos por
+  clase anteriores de `CategoryEntryServiceTest` y `Admin/CategoryParticipantFlowsTest`
+  ya no son vigentes. `php -l`, Pint sobre los cuatro PHP tocados y
+  `git diff --check` también pasaron tras esa corrección;
+- **pendiente**: una suite backend completa posterior a la corrección de revisión 1.
+  Hasta entonces no se atribuye a este bloque un resultado completo final;
+- no se ejecutaron sondas remotas, staging, producción, E2E Playwright ni
+  suites frontend: el bloque no toca React.
+
+La cobertura verifica el contrato de la API administrativa (`201` con
+`status: approved`; `422` para identidad ambos/ninguno, tipo y origen
+incoherentes, modalidad, equipo ajeno, composición inválida, inscripción
+ausente y duplicados; `409` de resultado oficial que precede al `422`), el
+servicio por separado (XOR y tipo sin pasar por el FormRequest), los flujos
+Blade (una sola entrada `approved`; la inscripción reutiliza sólo una entrada previa
+exactamente coherente y `approved` y falla cerrada, revirtiendo la inscripción y sin
+modificar la fila, ante `pending`, `rejected`, otro estado o una identidad incoherente;
+equipo con sus miembros, altas y bajas,
+retirada de una inscripción de dobles bloqueada por su equipo, guard de
+resultados oficiales también en dobles y borrado de un jugador sólo inscrito en
+dobles), el bloqueo del cambio de tipo con inscripciones, entradas o equipos y
+su permisividad sin ellos, la migración y las carreras.
+
+La migración se prueba sin transacción envolvente, como `SeasonActiveMigrationTest`:
+esquema con `CHECK` y `UNIQUE` con nombre, acciones `CASCADE` intactas, clave
+foránea de categoría indexada y aplicada, rechazo `4025`/`1062` traducibles,
+NULL repetibles y misma identidad en otra categoría sin colisión de índice (la
+unicidad de base de datos es por categoría; la exclusividad por campeonato es una
+regla funcional de inscripción que el índice no impone), aborto previo a
+cualquier cambio de esquema —sin reparar filas— para las cuatro formas
+malformadas y los duplicados de jugador y de equipo, diagnóstico agregado y
+`down()` forward-only. Se conserva su estado restaurando las garantías en cada
+`tearDown`.
+
+Las carreras usan procesos reales con barreras (`tests/Support/CategoryEntryRaceWorker.php`):
+dos peticiones administrativas idénticas producen exactamente una entrada y un
+`422` controlado sin SQL, y un escritor que omite las comprobaciones de
+aplicación y el mutex de categoría es detenido por el `UNIQUE` con el error
+traducido. Dos comprobaciones de mutación desechables —desactivar los prechecks
+de duplicado y, además, romper la traducción— confirmaron que la primera cae
+sobre el respaldo DB con el mismo `422` y que la segunda hace fallar los seis
+tests relevantes; el código se restauró íntegro.
+
+Fixtures cambiados por imposibilidad de persistir filas malformadas: en
+`CupOfficializationReadinessTest`, los tres casos que dejaban una entrada sin
+origen o con tipo incoherente mediante `update()` pasan a evaluarse con entradas
+en memoria sin guardar a través de `evaluateLocked()`, de modo que el respaldo
+fail-closed de la readiness para datos heredados o escritos por SQL conserva su
+cobertura.
+
+Hallazgo del experimento DDL local: MariaDB 11.4.10 acepta el `CHECK` sobre
+columnas con claves foráneas `ON DELETE CASCADE`; un único `ALTER` es atómico
+ante datos sucios; y InnoDB sustituye el índice implícito de la clave foránea
+de `category_id` por el `UNIQUE` compuesto, que pasa a servirla. Por eso los
+tests de migración crean un índice auxiliar antes de retirar las garantías.
+
+Riesgos y seguimiento que este bloque no cierra: la regla funcional de
+`CategoryRegistration` —un jugador no puede estar asignado a dos categorías del
+mismo campeonato— sigue vigente y se comprueba sólo en la aplicación, sin
+serialización concurrente entre las categorías del campeonato; las cascadas
+`ON DELETE` y sus consecuencias (equipo con un miembro tras borrar un jugador)
+pertenecen a la gate de borrado; y las sondas de datos remotas de solo lectura deben autorizarse y ejecutarse
+antes de cualquier migración en staging o producción. Falta además una suite
+backend completa posterior a la corrección de revisión 1.
+
 # 11. Evolución
 
 La cobertura de pruebas debe crecer junto con el proyecto.

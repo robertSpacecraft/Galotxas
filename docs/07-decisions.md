@@ -2721,3 +2721,82 @@ Consecuencias:
 - 6.C fue aceptado funcionalmente en local, staging y producción. El dataset
   productivo no permite recorrer todos los casos dependientes de competición y
   esa limitación no se presenta como una prueba ejecutada.
+
+
+---
+
+# ADR-057 — Identidad competitiva única y verificable de `CategoryEntry`
+
+Estado: Aceptada (implementación completa; pendiente de aceptación operacional)
+
+Fecha: 2026-09-24
+
+Contexto:
+- `category_entries` sólo garantizaba claves foráneas: permitía filas sin
+  identidad, con jugador y equipo a la vez, con un tipo que no coincidía con su
+  origen y con la misma identidad repetida en una categoría. Los snapshots
+  oficiales ya imponían un `CHECK` equivalente, pero la fuente viva no.
+- Generación de Liga y Copa, rankings, dashboard y oficialización confían en la
+  entrada como participante; los lectores infieren la identidad de formas
+  distintas (`entry_type`, claves foráneas o ambas).
+- La API administrativa heredada creaba entradas con validación superficial y
+  con el `status` por defecto `pending`, que ningún flujo aprueba después.
+- Los escritores Blade repartían reglas entre controladores, y los de dobles no
+  usaban el guard de resultados oficiales ni bloqueaban la comprobación de
+  pertenencia a un equipo.
+
+Decisión:
+- Exigir que una entrada referencie exactamente un jugador (`player`) o un
+  equipo (`team`), coherente con su tipo, y que cada identidad aparezca como
+  máximo una vez por categoría con independencia de `status`.
+- Aplicar la modalidad del campeonato en escritura y rechazar, sin convertir ni
+  reparar datos, el cambio de `type` mientras existan inscripciones, entradas o
+  equipos.
+- Concentrar toda escritura de entradas en `CategoryEntryService`, que exige el
+  `OfficialResultLock` devuelto por el guard de impacto `PARTICIPANTS` y el orden
+  de locks canónico, y que valida identidad, modalidad, duplicados, inscripción
+  aprobada y composición del equipo.
+- Respaldar la garantía en MariaDB con un único `ALTER` que añade el `CHECK`
+  `category_entries_identity_check` y los `UNIQUE`
+  `category_entries_category_player_unique` y
+  `category_entries_category_team_unique`. La migración es forward-only, aborta
+  antes de cualquier cambio de esquema si hay datos heredados incoherentes y
+  no repara, fusiona ni elimina filas.
+- Traducir los fallos `1062` y `4025` de la base de datos a la misma excepción
+  de dominio controlada (`422`), sin exponer SQL; el `409` de resultados
+  oficiales no cambia.
+- La API heredada conserva ruta y respuesta, valida con un FormRequest y crea
+  entradas `approved`.
+- No modificar las acciones `ON DELETE`, no añadir un `CHECK` sobre `status` ni
+  un ciclo de vida de entradas, y no añadir `championship_id` ni triggers.
+
+Alternativas descartadas:
+- unicidad acotada por estado con una columna generada: exigiría un vocabulario
+  de estados y un flujo de reingreso que no existen;
+- reglas de modalidad, equipo o composición mediante triggers o claves
+  compuestas: sin precedente en el repositorio y frágiles frente a
+  `teams.category_id` nullable con `SET NULL`;
+- reparar o depurar automáticamente los datos heredados: inventaría identidad;
+- serializar en este bloque de forma concurrente la regla funcional vigente de
+  exclusividad de jugador entre categorías del mismo campeonato, hoy comprobada
+  sólo en la aplicación: exigiría estado denormalizado o un lock de campeonato y
+  amplía el alcance.
+
+Consecuencias:
+- El flujo de inscripción de individuales sólo reutiliza una entrada existente si
+  ya es exactamente coherente y `approved`; cualquier otra falla cerrada y revierte
+  la inscripción, porque no existe un ciclo de vida de `status` que promueva o
+  repare una entrada heredada.
+- Los lectores existentes no necesitan cambios: con el `CHECK`, los predicados
+  por `entry_type` y por clave foránea son equivalentes. La readiness conserva
+  sus comprobaciones defensivas para datos escritos por SQL.
+- Las tres pruebas de readiness que persistían filas malformadas se evalúan con
+  entradas en memoria.
+- El índice implícito de la clave foránea de `category_id` queda sustituido por
+  el `UNIQUE` compuesto, que la sirve; no hay cambio de semántica.
+- Persiste como deuda la serialización concurrente de la regla funcional de
+  exclusividad de jugador entre categorías de un mismo campeonato, que sigue
+  vigente y comprobada sólo en la aplicación, y, en la gate de borrado, el equipo
+  que queda con un miembro tras eliminar un jugador.
+- La migración remota exige sondas de solo lectura previas, autorización
+  explícita y el gate de backup/dump de ADR-041.

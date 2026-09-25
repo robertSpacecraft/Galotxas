@@ -604,7 +604,7 @@ difirió al programa P1 independiente. Su implementación y la maquinaria de
 backfill quedaron cerradas después con P1.D; un APPLY productivo futuro es una
 operación separada, no deuda de implementación.
 
-### 5. 5.7 — Hardening P1/P2 vigente (AUDITORÍA CERRADA / SIGUIENTE: 5.7-E)
+### 5. 5.7 — Hardening P1/P2 vigente (AUDITORÍA CERRADA / 5.7-E IMPLEMENTADO, PENDIENTE DE ACEPTACIÓN)
 
 P1.D — backfill de masters legacy — queda completado mediante P1.D.2 cerrado
 hasta producción y P1.D.3 aceptado en staging. D3 ejecutó un único canary APPLY
@@ -741,6 +741,24 @@ un `public_display_name` fail-closed; y la hidratación innecesaria de
 `resultReports.user` y `resultReports.player.user` en `confirmResult()`, que no
 se serializa y queda como higiene diferida.
 
+**5.7-E queda IMPLEMENTADO, sin cerrar.** Las reglas decididas son: identidad
+exacta `player` XOR `team` con tipo coherente con su origen; unicidad
+`(category_id, player_id)` y `(category_id, team_id)` con independencia de
+`status`; modalidad del campeonato en escritura; bloqueo del cambio de `type`
+mientras existan inscripciones, entradas o equipos; guard y locks también para
+las altas y bajas de inscripción de dobles; y la API administrativa heredada
+convertida en un escritor validado que crea entradas `approved`. Un único
+`CategoryEntryService` concentra la disciplina, y una migración forward-only
+añade un `CHECK` y dos `UNIQUE` con preflight fail-closed, sin reparar datos.
+Las acciones `ON DELETE` y el estado `status` no cambian. La evidencia local
+está en `05-testing.md`. Permanecen pendientes la revisión humana, la
+aceptación en staging y la migración remota, precedida por sondas de datos de
+solo lectura que requieren autorización explícita. Deuda de seguimiento: la
+regla funcional de inscripción vigente —un jugador no puede estar asignado a dos
+categorías del mismo campeonato— se comprueba sólo en la aplicación y su
+serialización concurrente entre las categorías del campeonato sigue sin
+resolverse.
+
 #### Tranche canónico P1/P2
 
 El orden siguiente es canónico. Sólo podrá reordenarse cuando un bloque cerrado
@@ -751,7 +769,7 @@ descubra una dependencia:
 | **5.7-A — Validación estricta de fecha en administración de partidos** | Fecha real/canónica, mínimo técnico, máximo funcional dinámico, mensajes en castellano y aviso histórico no bloqueante antes de Carbon o mutación. | **CLOSED / PASS**. Backend/admin; sin migración ni cambio de API pública. |
 | **5.7-B — Privacidad del recurso de partidos de participante** | Minimizar los payloads autenticados de partidos/reportes y retirar campos personales o internos innecesarios, incluido el email del reportante cuando la UX no lo requiera. | **CLOSED / PASS**. Backend/API autenticada; sin migración ni cambio de código React; staging PASS y producción con despliegue/salud PASS, sin smoke funcional por falta de datos representativos. |
 | **5.7-C — Hardening de la API de reprogramaciones** | Form Requests dedicados, fecha estricta, Resources mínimos, throttling y tests de autorización, privacidad y validación. Conserva el workflow vigente. | **CLOSED / PASS**. Sin migración ni cambio frontend; staging aceptado sin walkthrough manual de API y producción con despliegue/readiness/salud PASS, sin smoke funcional. |
-| **5.7-E — Integridad de `CategoryEntry`** | Preflight y garantías para impedir identidad ambos/ninguno, asociaciones incoherentes y duplicados. Añadirá garantías DB cuando sean seguras. | **Siguiente bloque activo**. Gate previo sobre reglas exactas de identidad/duplicado; migración probable y disciplina forward-only. |
+| **5.7-E — Integridad de `CategoryEntry`** | Preflight y garantías para impedir identidad ambos/ninguno, asociaciones incoherentes y duplicados. Añadirá garantías DB cuando sean seguras. | **Implementación completa en `develop`; pendiente de revisión humana, aceptación de staging y migración remota autorizada (no CLOSED)**. Reglas de identidad/duplicado decididas y aplicadas; migración forward-only con preflight fail-closed. |
 | **5.7-F — Ocupación compartida de pistas** | Hacer común a generación y reprogramación la invariante física pista/tiempo entre competiciones, con protección concurrente. | Gate previo de política; migración/constraint desconocida hasta fijarlo. |
 | **5.7-J — Hardening de sesión de autenticación** | Bloque de arquitectura de seguridad separado para el riesgo del Bearer durable en `localStorage`. | Gate de cookies, SameSite/CSRF, CORS, expiración/revocación, transición y rollback. Trabajo cross-layer de alto riesgo; no se mezcla con B/C. |
 | **5.7-G — Normalización `Round.phase/stage` de Liga** | Normalizar escrituras nuevas y datos legacy al contrato documentado `league`/`matchday`, preservando Copa. | Migración/backfill probable y preflight de datos. |
@@ -773,7 +791,7 @@ No se implementarán hasta recibir una decisión explícita:
   obligatoriedad del motivo de resolución de conflicto;
 - retirada compatible de `SeasonResource.slug`;
 - política exacta de ocupación compartida de pistas;
-- reglas exactas de identidad/duplicado de `CategoryEntry`;
+- reglas exactas de identidad/duplicado de `CategoryEntry` (decididas y aplicadas en 5.7-E, pendiente de aceptación);
 - normalización y case-sensitivity del nombre de pista;
 - topología cookie/sesión de autenticación;
 - identidad privada de participantes y trato de la identidad de menores en
