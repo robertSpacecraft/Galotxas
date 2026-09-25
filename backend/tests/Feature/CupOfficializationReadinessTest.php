@@ -2,12 +2,16 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
 use App\Models\CategoryEntry;
 use App\Models\CategoryOfficialResult;
 use App\Models\GameMatch;
 use App\Models\Player;
 use App\Models\Round;
+use App\Models\Team;
 use App\Services\EvaluateCupOfficializationReadinessService;
+use App\Services\OfficialResultLock;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\Concerns\CreatesOfficialCupFixture;
@@ -38,16 +42,17 @@ class CupOfficializationReadinessTest extends TestCase
         $insufficient['entries']->last()->update(['status' => 'rejected']);
         $this->assertNotReadyWith($insufficient['category']->id, 'insufficient_entries');
 
+        // The identity CHECK makes these shapes unpersistable, so the readiness
+        // backstop for legacy or direct-SQL rows is exercised on unsaved entries.
         $badType = $this->createReadySinglesCup();
-        $badType['entries']->first()->update([
-            'entry_type' => 'team',
-            'player_id' => null,
-        ]);
-        $this->assertNotReadyWith($badType['category']->id, 'incoherent_entry_type');
+        $this->assertNotReadyWithUnsavedEntries($badType['category']->id, 'incoherent_entry_type', function ($entries): void {
+            $entries->first()->setAttribute('entry_type', 'team')->setAttribute('player_id', null);
+        });
 
         $missing = $this->createReadySinglesCup();
-        $missing['entries']->first()->update(['player_id' => null]);
-        $this->assertNotReadyWith($missing['category']->id, 'missing_entry_source');
+        $this->assertNotReadyWithUnsavedEntries($missing['category']->id, 'missing_entry_source', function ($entries): void {
+            $entries->first()->setAttribute('player_id', null);
+        });
 
         $doubles = $this->createReadyDoublesCup();
         DB::table('team_members')
@@ -57,8 +62,9 @@ class CupOfficializationReadinessTest extends TestCase
         $this->assertNotReadyWith($doubles['category']->id, 'invalid_team_composition');
 
         $missingTeam = $this->createReadyDoublesCup();
-        $missingTeam['entries']->first()->update(['team_id' => null]);
-        $this->assertNotReadyWith($missingTeam['category']->id, 'missing_entry_source');
+        $this->assertNotReadyWithUnsavedEntries($missingTeam['category']->id, 'missing_entry_source', function ($entries): void {
+            $entries->first()->setAttribute('team_id', null);
+        });
     }
 
     public function test_rejects_missing_duplicate_or_ambiguous_cup_structure(): void
@@ -391,6 +397,39 @@ class CupOfficializationReadinessTest extends TestCase
         return $stage === 'semifinal'
             ? $fixture['semifinalMatches']->first()
             : $fixture['finalMatch'];
+    }
+
+    private function assertNotReadyWithUnsavedEntries(int $categoryId, string $code, callable $tamper): void
+    {
+        $category = Category::query()->with('championship')->findOrFail($categoryId);
+        $rounds = Round::query()->where('category_id', $categoryId)->orderBy('id')->get();
+        $matches = GameMatch::query()
+            ->whereIn('round_id', $rounds->modelKeys())
+            ->orderBy('round_id')
+            ->orderBy('id')
+            ->get();
+        $entries = CategoryEntry::query()->where('category_id', $categoryId)->orderBy('id')->get();
+        $teams = Team::query()->where('category_id', $categoryId)->orderBy('id')->get();
+        $teamMembers = DB::table('team_members')
+            ->whereIn('team_id', $teams->modelKeys())
+            ->orderBy('team_id')
+            ->orderBy('player_id')
+            ->orderBy('id')
+            ->get();
+
+        $tamper($entries);
+
+        $readiness = app(EvaluateCupOfficializationReadinessService::class)->evaluateLocked(
+            new OfficialResultLock($category, new EloquentCollection),
+            ['rounds' => $rounds, 'matches' => $matches],
+            ['entries' => $entries, 'teams' => $teams, 'team_members' => $teamMembers],
+        );
+
+        $this->assertFalse($readiness->isReady());
+        $this->assertContains($code, $readiness->reasonCodes());
+
+        $stored = CategoryEntry::query()->where('category_id', $categoryId)->orderBy('id')->firstOrFail();
+        $this->assertTrue(($stored->player_id === null) !== ($stored->team_id === null));
     }
 
     private function assertNotReadyWith(int $categoryId, string $code): void

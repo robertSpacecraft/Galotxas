@@ -5,9 +5,12 @@ namespace App\Services;
 use App\Enums\ChampionshipType;
 use App\Enums\OfficialResultMutationImpact;
 use App\Models\Category;
+use App\Models\CategoryRegistration;
 use App\Models\Championship;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class ChampionshipMutationService
 {
@@ -48,7 +51,9 @@ class ChampionshipMutationService
                     OfficialResultMutationImpact::COMPETITION_RULES
                 );
                 $this->locks->lockRoundsAndMatches($categoryIds);
-                $this->locks->lockEntriesAndTeams($categoryIds);
+                $participants = $this->locks->lockEntriesAndTeams($categoryIds);
+
+                $this->assertTypeChangeIsSafe($categoryIds, $participants);
             }
 
             $championship->fill([
@@ -69,5 +74,46 @@ class ChampionshipMutationService
 
             return $championship->refresh();
         });
+    }
+
+    /**
+     * A singles/doubles change would leave registrations, entries and teams that
+     * contradict the new modality, so it is rejected instead of repaired. Entries
+     * and teams come from the rows already locked in the canonical order; the
+     * registrations are read with a locking read so the check sees committed data.
+     *
+     * @param  Collection<int, int>  $categoryIds
+     * @param  array{entries: Collection<int, mixed>, teams: Collection<int, mixed>}  $participants
+     */
+    private function assertTypeChangeIsSafe(Collection $categoryIds, array $participants): void
+    {
+        $registrations = $categoryIds->isEmpty()
+            ? 0
+            : CategoryRegistration::query()
+                ->whereIn('category_id', $categoryIds->all())
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->pluck('id')
+                ->count();
+
+        $dependencies = array_filter([
+            'inscripciones' => $registrations,
+            'participantes' => $participants['entries']->count(),
+            'equipos' => $participants['teams']->count(),
+        ]);
+
+        if ($dependencies === []) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'type' => sprintf(
+                'No se puede cambiar el tipo del campeonato mientras sus categorías tengan %s. '
+                .'Retira primero esa configuración de competición.',
+                collect($dependencies)
+                    ->map(fn (int $count, string $label): string => sprintf('%s (%d)', $label, $count))
+                    ->implode(', ')
+            ),
+        ]);
     }
 }

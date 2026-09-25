@@ -194,6 +194,9 @@ class PlayerController extends Controller
                         'entries',
                         fn ($entryQuery) => $entryQuery->where('player_id', $player->id)
                     )->orWhereHas(
+                        'registrations',
+                        fn ($registrationQuery) => $registrationQuery->where('player_id', $player->id)
+                    )->orWhereHas(
                         'teams.players',
                         fn ($playerQuery) => $playerQuery->where('players.id', $player->id)
                     );

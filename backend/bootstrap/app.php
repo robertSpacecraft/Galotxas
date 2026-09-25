@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\CategoryEntryIntegrityException;
 use App\Exceptions\OfficialResultHistoryDeletionBlockedException;
 use App\Exceptions\OfficialResultMutationBlockedException;
 use App\Http\Controllers\LivenessController;
@@ -50,6 +51,17 @@ return Application::configure(basePath: dirname(__DIR__))
                     'message' => $exception->getMessage(),
                     'data' => null,
                 ], 409);
+            }
+
+            return back()->with('error', $exception->getMessage());
+        });
+
+        $exceptions->render(function (CategoryEntryIntegrityException $exception, Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $exception->getMessage(),
+                    'errors' => [$exception->field => [$exception->getMessage()]],
+                ], 422);
             }
 
             return back()->with('error', $exception->getMessage());

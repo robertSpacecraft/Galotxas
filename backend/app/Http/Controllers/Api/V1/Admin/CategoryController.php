@@ -2,20 +2,18 @@
 
 namespace App\Http\Controllers\Api\V1\Admin;
 
-use App\Enums\OfficialResultMutationImpact;
 use App\Http\Controllers\Concerns\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateCategoryRequest;
+use App\Http\Requests\Api\Admin\StoreCategoryEntryRequest;
 use App\Http\Requests\Api\Admin\StoreCategoryRequest;
 use App\Http\Resources\AdminCategoryResource;
 use App\Models\Category;
 use App\Models\Championship;
+use App\Services\CategoryEntryService;
 use App\Services\CategoryMutationService;
-use App\Services\OfficialResultLockService;
-use App\Services\OfficialResultMutationGuard;
 use App\Services\OfficialResultProtectedDeletionService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
@@ -78,26 +76,21 @@ class CategoryController extends Controller
     }
 
     public function storeEntry(
-        Request $request,
+        StoreCategoryEntryRequest $request,
         Category $category,
-        OfficialResultMutationGuard $mutationGuard,
-        OfficialResultLockService $locks,
+        CategoryEntryService $entries,
     ) {
-        $validated = $request->validate([
-            'entry_type' => 'required|in:player,team',
-            'player_id' => 'nullable|exists:players,id',
-            'team_id' => 'nullable|exists:teams,id',
-        ]);
+        $validated = $request->validated();
 
-        return DB::transaction(function () use ($category, $validated, $mutationGuard, $locks) {
-            $categoryLock = $mutationGuard->lockAndGuard(
-                $category,
-                OfficialResultMutationImpact::PARTICIPANTS
+        return DB::transaction(function () use ($category, $validated, $entries) {
+            $lock = $entries->lockForParticipantMutation($category);
+
+            return $entries->create(
+                $lock,
+                $validated['entry_type'],
+                isset($validated['player_id']) ? (int) $validated['player_id'] : null,
+                isset($validated['team_id']) ? (int) $validated['team_id'] : null,
             );
-            $locks->lockRoundsAndMatches([$categoryLock->category->id]);
-            $locks->lockEntriesAndTeams([$categoryLock->category->id]);
-
-            return $categoryLock->category->entries()->create($validated);
         });
     }
 }
