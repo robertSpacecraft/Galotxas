@@ -636,8 +636,7 @@ Las siguientes reglas forman parte del comportamiento esperado del sistema:
 
 ## Integridad de la identidad competitiva (`CategoryEntry`)
 
-5.7-E (implementación completa; pendiente de revisión humana, aceptación de
-staging y migración remota autorizada) fija estas reglas como invariantes:
+5.7-E (CLOSED / PASS) fija estas reglas como invariantes:
 
 - un `CategoryEntry` referencia exactamente una identidad:
   `entry_type='player'` exige `player_id` y `team_id` nulo;

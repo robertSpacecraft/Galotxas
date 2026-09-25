@@ -2538,13 +2538,10 @@ ejecutar suites frontend. Tampoco cambiaron resultados públicos,
 ocupación compartida entre campeonatos, estados de reprogramación,
 autenticación/sesión ni estructura genérica de `MatchController`.
 
-## 5.7-E — Integridad de `CategoryEntry` (IMPLEMENTACIÓN COMPLETA / PENDIENTE DE ACEPTACIÓN OPERACIONAL, 2026-09-24)
+## 5.7-E — Integridad de `CategoryEntry` (CLOSED / PASS, 2026-09-25)
 
-Estado: implementado en `develop` sin commit del agente. **No está CLOSED**: falta
-la revisión humana, la aceptación en staging, la migración remota autorizada y una
-suite backend completa posterior a la corrección de revisión 1.
-La evidencia siguiente es sólo local, sobre MariaDB 11.4 aislada con el runner
-oficial (`backend/scripts/run-tests.sh`; en este checkout se invocó como
+Estado: **CLOSED**. La evidencia inicial en `develop` (local, MariaDB 11.4 aislada)
+incluyó:
 `bash backend/scripts/run-tests.sh` porque el archivo no tiene el bit
 ejecutable):
 
@@ -2566,10 +2563,9 @@ ejecutable):
   clase anteriores de `CategoryEntryServiceTest` y `Admin/CategoryParticipantFlowsTest`
   ya no son vigentes. `php -l`, Pint sobre los cuatro PHP tocados y
   `git diff --check` también pasaron tras esa corrección;
-- **pendiente**: una suite backend completa posterior a la corrección de revisión 1.
-  Hasta entonces no se atribuye a este bloque un resultado completo final;
-- no se ejecutaron sondas remotas, staging, producción, E2E Playwright ni
-  suites frontend: el bloque no toca React.
+- la suite backend completa posterior a la corrección de revisión 1: PASS;
+- staging: preflight P0-P21 en PASS; 11 filas (todas player/approved); probes P1-P21 en 0. Migración aplicada sin cambios en el recuento. Aceptación humana PASS;
+- producción: preflight P0-P21 en PASS; 78 filas (todas player/approved); probes P1-P21 en 0. Migración completada y cierre autorizado.
 
 La cobertura verifica el contrato de la API administrativa (`201` con
 `status: approved`; `422` para identidad ambos/ninguno, tipo y origen

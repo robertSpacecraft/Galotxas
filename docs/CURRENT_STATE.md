@@ -67,10 +67,11 @@ funcional de reprogramación ni datos fabricados.
 - **CATEGORY-COMPETITION-PDF-VISUAL-1** está completado y cerrado canónicamente (refinamiento visual de la exportación PDF por jornadas/fases manteniendo una A4).
 - **MINOR-PUBLIC-IDENTITY-DIRECT-1** está completado, cerrado canónicamente y **operativo en producción**. El administrador inicia la solicitud directa desde un Player menor existente y el representante la confirma por correo. Para edades 14-17 se requiere adicionalmente la conformidad informada del menor registrada administrativamente. La identidad pública verificable se actualiza. La gate de privacidad sobre la identidad privada en contextos autenticados permanece abierta.
 
-El siguiente bloque activo es **5.7-E — Integridad de `CategoryEntry`**. La
-secuencia canónica restante del tranche P1/P2 es 5.7-E, 5.7-F, 5.7-J, 5.7-G,
+**5.7-E — Integridad de CategoryEntry** está completado y cerrado canónicamente.
+El siguiente bloque activo es **5.7-F — Ocupación compartida de pistas**. La
+secuencia canónica restante del tranche P1/P2 es 5.7-F, 5.7-J, 5.7-G,
 5.7-H, 5.7-D y 5.7-Q1. Sólo podrá reordenarse si un bloque cerrado descubre una
-dependencia. E, F, J y H conservan gates explícitos antes de implementarse; la
+dependencia. F, J y H conservan gates explícitos antes de implementarse; la
 dependencia backend de D quedó satisfecha por C, pero D mantiene su posición
 canónica posterior. Las mejoras de producto no decididas y el cleanup P3 no
 bloquean el cierre del tranche. `06-roadmap.md` y `05-testing.md` conservan el
