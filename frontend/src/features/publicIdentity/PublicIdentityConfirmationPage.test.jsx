@@ -40,7 +40,7 @@ describe('PublicIdentityConfirmationPage', () => {
       return Promise.resolve({
         mode: 'alias',
         scope: 'public_competition_identity',
-        notice_version: '1.0.0',
+        notice_version: '1.1.0',
         expires_at: '2026-08-08T10:00:00+02:00',
       });
     });
@@ -58,7 +58,7 @@ describe('PublicIdentityConfirmationPage', () => {
     expect(screen.getByRole('heading', { name: 'Responsable y finalidad' }))
       .toBeInTheDocument();
     expect(screen.getByText(/Aviso NOTICE-PUBLIC-IDENTITY-MINORS, versión/))
-      .toHaveTextContent('1.0.0');
+      .toHaveTextContent('1.1.0');
     expect(screen.getByText(/Confirmar no publica automáticamente/))
       .toHaveTextContent('el club debe completar su revisión antes de publicarla');
     expect(document.body).not.toHaveTextContent('vincularla al jugador');
@@ -91,7 +91,7 @@ describe('PublicIdentityConfirmationPage', () => {
     publicIdentityService.lookup.mockResolvedValue({
       mode: 'name_initial',
       scope: 'public_competition_identity',
-      notice_version: '1.0.0',
+      notice_version: '1.1.0',
     });
     publicIdentityService.deny.mockResolvedValue({ data: { received: true } });
 
@@ -145,7 +145,7 @@ describe('PublicIdentityConfirmationPage', () => {
     publicIdentityService.lookup.mockResolvedValue({
       mode: 'alias',
       scope: 'public_competition_identity',
-      notice_version: '1.0.0',
+      notice_version: '1.1.0',
     });
     window.history.replaceState(null, '', '/previous-page');
     window.history.pushState(null, '', `/public-identity/confirm#token=${validToken}`);
@@ -175,7 +175,7 @@ describe('PublicIdentityConfirmationPage', () => {
     publicIdentityService.lookup.mockResolvedValue({
       mode: 'alias',
       scope: 'public_competition_identity',
-      notice_version: '1.0.0',
+      notice_version: '1.1.0',
     });
     publicIdentityService.confirm.mockReturnValue(new Promise((resolve) => {
       resolveConfirmation = resolve;

@@ -167,7 +167,7 @@ describe('SchoolEnrollmentForm', () => {
         identityAuthorization={{
           enabled: true,
           notice_id: 'NOTICE-PUBLIC-IDENTITY-MINORS',
-          notice_version: '1.0.0',
+          notice_version: '1.1.0',
           scope: 'public_competition_identity',
           modes: ['alias', 'name_initial', 'anonymous'],
         }}
@@ -190,7 +190,7 @@ describe('SchoolEnrollmentForm', () => {
     expect(schoolService.createEnrollment).toHaveBeenCalledWith(expect.objectContaining({
       public_identity_authorization: {
         mode: 'alias',
-        notice_version: '1.0.0',
+        notice_version: '1.1.0',
         guardian_authority_declared: true,
       },
       privacy_acknowledged: true,
@@ -213,7 +213,7 @@ describe('SchoolEnrollmentForm', () => {
       <SchoolEnrollmentForm
         levels={levels}
         reloadOverview={reloadOverview}
-        identityAuthorization={{ enabled: true, notice_version: '1.0.0' }}
+        identityAuthorization={{ enabled: true, notice_version: '1.1.0' }}
       />,
     );
 
@@ -237,7 +237,7 @@ describe('SchoolEnrollmentForm', () => {
       privacy_notice_version: '1.0.0',
       public_identity_authorization: {
         mode,
-        notice_version: '1.0.0',
+        notice_version: '1.1.0',
         ...(requiresAuthority ? { guardian_authority_declared: true } : {}),
       },
     }));
@@ -250,7 +250,7 @@ describe('SchoolEnrollmentForm', () => {
       <SchoolEnrollmentForm
         levels={levels}
         reloadOverview={reloadOverview}
-        identityAuthorization={{ enabled: true, notice_version: '1.0.0' }}
+        identityAuthorization={{ enabled: true, notice_version: '1.1.0' }}
       />,
     );
 

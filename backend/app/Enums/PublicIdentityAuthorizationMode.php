@@ -17,6 +17,24 @@ enum PublicIdentityAuthorizationMode: string
         };
     }
 
+    /**
+     * NAME_INITIAL also authorizes alias use under the same public-identity
+     * authorization lifecycle.
+     */
+    public function allowsAlias(): bool
+    {
+        return match ($this) {
+            self::ALIAS, self::NAME_INITIAL => true,
+            self::ANONYMOUS => false,
+        };
+    }
+
+    /** Whether this mode authorizes use of name + initial. */
+    public function allowsNameInitial(): bool
+    {
+        return $this === self::NAME_INITIAL;
+    }
+
     /** @return list<string> */
     public static function values(): array
     {

@@ -79,7 +79,7 @@ test.describe.serial('autorización verificable de identidad pública de menores
       .toBeChecked();
     await expect(identityGroup.getByRole('radio', { name: /Autorizar sólo el alias/ }))
       .not.toBeChecked();
-    await expect(page.getByText('Aviso NOTICE-PUBLIC-IDENTITY-MINORS, versión 1.0.0.'))
+    await expect(page.getByText('Aviso NOTICE-PUBLIC-IDENTITY-MINORS, versión 1.1.0.'))
       .toBeVisible();
     await expect(page.getByRole('link', { name: 'Política de privacidad' }).first())
       .toHaveAttribute('href', '/legal/privacidad');

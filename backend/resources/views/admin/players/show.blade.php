@@ -155,6 +155,7 @@
                             @if (! $availableAuthorizationModes->contains(\App\Enums\PublicIdentityAuthorizationMode::NAME_INITIAL))
                                 <div class="form-text">Nombre e inicial no disponibles: faltan nombres de pila o primer apellido.</div>
                             @endif
+                            <div class="form-text">El modo “Nombre e inicial” autoriza tanto el nombre con inicial como el alias deportivo asociado al jugador mientras la autorización siga vigente.</div>
                         </div>
 
                         <div class="col-12">

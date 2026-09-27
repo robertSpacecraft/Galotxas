@@ -627,7 +627,7 @@ class E2ESmokeSeeder extends Seeder
             'guardian_relationship' => $enrollment->guardian_relationship,
             'guardian_authority_declared_at' => CarbonImmutable::now(),
             'notice_id' => 'NOTICE-PUBLIC-IDENTITY-MINORS',
-            'notice_version' => '1.0.0',
+            'notice_version' => '1.1.0',
             'requested_at' => CarbonImmutable::now(),
             'confirmation_token_hash' => hash('sha256', $plainToken),
             'confirmation_token_expires_at' => $tokenExpiresAt ?? CarbonImmutable::now()->addDays(2),

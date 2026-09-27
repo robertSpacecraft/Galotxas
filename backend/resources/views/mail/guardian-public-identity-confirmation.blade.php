@@ -14,6 +14,9 @@
     @endif
     <p>
         Modo solicitado: <strong>{{ $authorization->mode->label() }}</strong>.<br>
+        @if ($authorization->mode === \App\Enums\PublicIdentityAuthorizationMode::NAME_INITIAL)
+            Esta modalidad autoriza nombres de pila con la inicial del primer apellido y también el uso del alias deportivo que conste asociado al jugador mientras la autorización siga vigente.<br>
+        @endif
         Alcance: calendarios, partidos, resultados, clasificaciones, rankings e
         histórico de competición.<br>
         Aviso: {{ $authorization->notice_id }} versión {{ $authorization->notice_version }}.

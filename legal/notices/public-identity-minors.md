@@ -1,10 +1,10 @@
 ---
 id: NOTICE-PUBLIC-IDENTITY-MINORS
 title: Autorización de identidad pública de menores
-version: 1.0.0
+version: 1.1.0
 status: vigente
 published_at: 2026-08-06
-reviewed_at: 2026-08-06
+reviewed_at: 2026-09-27
 owner: Club Galotxes de Monover
 scope: public_competition_identity
 summary: Información específica para decidir cómo se muestra la identidad de una persona menor en la competición pública.
@@ -19,8 +19,8 @@ La inscripción en la Escuela, la participación deportiva y esta autorización 
 
 ## Modos disponibles
 
-- **Alias deportivo:** se mostrará exclusivamente el alias registrado. Si no existe uno válido, se mostrará “Participante”.
-- **Nombre e inicial:** se mostrarán los nombres de pila y la inicial Unicode del primer apellido. Una inicial también puede permitir identificar a la persona.
+- **Alias deportivo:** se mostrará exclusivamente el alias deportivo que conste asociado al jugador en cada momento mientras la autorización siga vigente. Si no existe uno válido, se mostrará “Participante”.
+- **Nombre e inicial:** se mostrarán los nombres de pila y la inicial Unicode del primer apellido. Esta autorización incluye también el uso del alias deportivo que conste asociado al jugador en cada momento mientras la autorización siga vigente, en las superficies que lo requieran. Una inicial también puede permitir identificar a la persona.
 - **Identidad anónima:** se mostrará “Participante”. Esta opción registra expresamente que no se autoriza una identidad individual.
 
 No se publicarán mediante esta autorización el correo, el teléfono, la fecha de nacimiento, el nombre del representante, documentos de identidad ni otros datos del perfil privado.

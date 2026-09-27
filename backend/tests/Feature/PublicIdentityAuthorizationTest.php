@@ -66,7 +66,9 @@ class PublicIdentityAuthorizationTest extends TestCase
         $this->assertSame(PublicIdentityAuthorizationState::PENDING, $authorization->state);
         $this->assertSame('guardian@example.test', $authorization->guardian_email);
         $this->assertSame('NOTICE-PUBLIC-IDENTITY-MINORS', $authorization->notice_id);
-        $this->assertSame('1.0.0', $authorization->notice_version);
+        $this->assertSame('1.1.0', $authorization->notice_version);
+        $this->assertTrue($authorization->mode->allowsAlias());
+        $this->assertFalse($authorization->mode->allowsNameInitial());
         $this->assertMatchesRegularExpression('/^[a-f0-9]{64}$/', $authorization->confirmation_token_hash);
         $this->assertDatabaseHas('public_identity_authorization_events', [
             'public_identity_authorization_id' => $authorization->id,
@@ -95,6 +97,8 @@ class PublicIdentityAuthorizationTest extends TestCase
     {
         Mail::fake();
         $authorization = $this->requestAuthorization('name_initial');
+        $this->assertTrue($authorization->mode->allowsNameInitial());
+        $this->assertTrue($authorization->mode->allowsAlias());
         $token = $this->sentToken();
 
         $lookup = $this->postJson('/api/v1/public-identity/confirmation/lookup', ['token' => $token])
@@ -268,6 +272,21 @@ class PublicIdentityAuthorizationTest extends TestCase
         $this->postJson('/api/v1/public-identity/confirmation/lookup', [
             'token' => str_repeat('a', 64),
         ])->assertNotFound();
+        $this->assertDatabaseCount('school_enrollments', 0);
+        $this->assertDatabaseCount('public_identity_authorizations', 0);
+    }
+
+    public function test_school_enrollment_rejects_deprecated_notice_version_1_0_0(): void
+    {
+        SchoolProgram::factory()->operationallyReady()->enrollmentsOpen()->create();
+
+        $payload = $this->minorPayload('alias');
+        $payload['public_identity_authorization']['notice_version'] = '1.0.0';
+
+        $this->postJson('/api/v1/school/enrollments', $payload)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('public_identity_authorization.notice_version');
+
         $this->assertDatabaseCount('school_enrollments', 0);
         $this->assertDatabaseCount('public_identity_authorizations', 0);
     }
@@ -541,7 +560,7 @@ class PublicIdentityAuthorizationTest extends TestCase
             'privacy_notice_version' => '1.0.0',
             'public_identity_authorization' => [
                 'mode' => $mode,
-                'notice_version' => '1.0.0',
+                'notice_version' => '1.1.0',
                 ...($mode === 'anonymous' ? [] : ['guardian_authority_declared' => true]),
             ],
         ];

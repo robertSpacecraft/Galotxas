@@ -107,7 +107,7 @@ export const PublicIdentityConfirmationPage = () => {
             <p>
               Se ha solicitado el modo <strong>{modeLabels[state.data.mode]}</strong> para
               calendarios, partidos, resultados, clasificaciones, rankings e histórico de
-              competición.
+              competición.{state.data.mode === 'name_initial' ? ' Esta modalidad autoriza los nombres de pila con la inicial del primer apellido y también el uso del alias deportivo que conste asociado al jugador mientras la autorización siga vigente.' : ''}
             </p>
             <p>
               La inscripción y la participación no dependen de esta decisión. Confirmar no

@@ -27,7 +27,7 @@ class PublicIdentityAuthorizationFactory extends Factory
             'guardian_relationship' => 'Madre, padre o tutor legal',
             'guardian_authority_declared_at' => CarbonImmutable::now(),
             'notice_id' => 'NOTICE-PUBLIC-IDENTITY-MINORS',
-            'notice_version' => '1.0.0',
+            'notice_version' => '1.1.0',
             'requested_at' => CarbonImmutable::now(),
             'guardian_confirmed_at' => null,
             'guardian_denied_at' => null,

@@ -62,7 +62,7 @@ class DirectPublicIdentityAuthorizationTest extends TestCase
         $this->assertSame(PublicIdentityAuthorizationState::PENDING, $authorization->state);
         $this->assertSame(PublicIdentityAuthorization::SCOPE, $authorization->scope);
         $this->assertSame('NOTICE-PUBLIC-IDENTITY-MINORS', $authorization->notice_id);
-        $this->assertSame('1.0.0', $authorization->notice_version);
+        $this->assertSame('1.1.0', $authorization->notice_version);
         $this->assertSame('guardian@example.test', $authorization->guardian_email);
         $this->assertSame('Representante Legal', $authorization->guardian_name);
         $this->assertNotNull($authorization->guardian_authority_declared_at);
@@ -130,6 +130,11 @@ class DirectPublicIdentityAuthorizationTest extends TestCase
         $this->assertServiceRejected(
             $validMinor,
             [...$this->attributes('alias'), 'notice_version' => '0.9.0'],
+            'notice_version'
+        );
+        $this->assertServiceRejected(
+            $validMinor,
+            [...$this->attributes('alias'), 'notice_version' => '1.0.0'],
             'notice_version'
         );
         $this->assertServiceRejected(
@@ -547,6 +552,62 @@ class DirectPublicIdentityAuthorizationTest extends TestCase
         $this->assertSame('María del Mar L.', $this->displayName($player));
     }
 
+    public function test_name_initial_grants_both_capabilities_in_single_lifecycle_with_default_projection_unchanged(): void
+    {
+        $player = $this->minorPlayer(
+            ['nickname' => 'El Coet'],
+            ['name' => 'Vicent', 'lastname' => 'Navarro Martí']
+        );
+
+        $result = $this->service()->createForPlayer(
+            $player,
+            $this->admin,
+            $this->attributes('name_initial')
+        );
+        $authorization = $result['authorization'];
+
+        // Capabilities: name_initial allows BOTH name_initial and alias
+        $this->assertTrue($authorization->mode->allowsNameInitial());
+        $this->assertTrue($authorization->mode->allowsAlias());
+
+        // Single authorization lifecycle: one token, one confirmation, one approval
+        $this->assertTrue($this->service()->confirm($result['token']));
+        $this->service()->approve($authorization, $this->admin);
+
+        $fresh = $authorization->fresh();
+        $this->assertSame(PublicIdentityAuthorizationState::APPROVED, $fresh->state);
+
+        // Default public projection remains name + initial, NOT alias and NOT combined format
+        $displayName = $this->displayName($player);
+        $this->assertSame('Vicent N.', $displayName);
+        $this->assertStringNotContainsString('El Coet', $displayName);
+        $this->assertStringNotContainsString('(', $displayName);
+    }
+
+    public function test_alias_mode_authorizes_only_alias_and_projects_alias(): void
+    {
+        $player = $this->minorPlayer(
+            ['nickname' => 'El Coet'],
+            ['name' => 'Vicent', 'lastname' => 'Navarro Martí']
+        );
+
+        $result = $this->service()->createForPlayer(
+            $player,
+            $this->admin,
+            $this->attributes('alias')
+        );
+        $authorization = $result['authorization'];
+
+        // Capabilities: alias mode allows ONLY alias, not name_initial
+        $this->assertTrue($authorization->mode->allowsAlias());
+        $this->assertFalse($authorization->mode->allowsNameInitial());
+
+        $this->assertTrue($this->service()->confirm($result['token']));
+        $this->service()->approve($authorization, $this->admin);
+
+        $this->assertSame('El Coet', $this->displayName($player));
+    }
+
     private function service(): PublicIdentityAuthorizationService
     {
         return app(PublicIdentityAuthorizationService::class);
@@ -581,7 +642,7 @@ class DirectPublicIdentityAuthorizationTest extends TestCase
             'mode' => $mode,
             'guardian_authority_declared' => $authorityDeclared,
             'notice_id' => 'NOTICE-PUBLIC-IDENTITY-MINORS',
-            'notice_version' => '1.0.0',
+            'notice_version' => '1.1.0',
         ];
     }
 

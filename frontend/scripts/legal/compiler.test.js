@@ -75,7 +75,7 @@ describe('legal compiler', () => {
     expect(artifact.notices).toHaveLength(4)
     expect(artifact.notices[0]).toMatchObject({
       id: 'NOTICE-PUBLIC-IDENTITY-MINORS',
-      version: '1.0.0',
+      version: '1.1.0',
       status: 'vigente',
       scope: 'public_competition_identity',
       owner: 'Club Galotxes de Monover',

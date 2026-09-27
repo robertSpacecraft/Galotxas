@@ -58,24 +58,33 @@ jugador y de las autorizaciones relevantes.
 
 ## 6. Modos
 
-- `alias`: sólo el alias normalizado; si falta, `Participante`.
-- `name_initial`: nombres de pila e inicial Unicode del primer apellido; si
-  faltan datos, `Participante`.
+- `alias`: autoriza exclusivamente el alias deportivo que conste asociado al
+  jugador en cada momento mientras la autorización siga vigente; si no existe
+  uno válido, se muestra `Participante`.
+- `name_initial`: autoriza nombres de pila e inicial Unicode del primer apellido;
+  esta autorización habilita asimismo el uso del alias deportivo que conste
+  asociado al jugador en cada momento mientras la autorización siga vigente, en
+  aquellas superficies que lo requieran, dentro del mismo flujo de autorización.
+  La proyección pública por defecto permanece como nombre e inicial; si faltan
+  datos, se muestra `Participante`.
 - `anonymous`: registra expresamente la ausencia de identidad individual y
   siempre produce `Participante`.
 
-Ningún modo permite nombre completo ni fallback entre modalidades.
-`anonymous` se conserva como decisión explícita del formulario de Escuela; el
-origen administrativo directo sólo inicia `alias` o `name_initial`, porque la
-ausencia de autorización efectiva ya mantiene `Participante`.
+Ningún modo permite nombre completo ni renderizado simultáneo `Nombre I. (Alias)`.
+`name_initial` subsume el alcance del alias sin requerir una segunda autorización
+ni introducir un modo `both`. `anonymous` se conserva como decisión explícita
+del formulario de Escuela; el origen administrativo directo sólo inicia `alias` o
+`name_initial`, porque la ausencia de autorización efectiva ya mantiene
+`Participante`.
 
 ## 7. Alcance versionado
 
 La autorización guarda el alcance cerrado y la pareja `notice_id` y
 `notice_version`. Sólo se reconoce
-`NOTICE-PUBLIC-IDENTITY-MINORS` versión `1.0.0`, compilada desde
-`legal/notices/public-identity-minors.md`. Un alcance o versión desconocidos
-invalidan la eficacia.
+`NOTICE-PUBLIC-IDENTITY-MINORS` versión `1.1.0` (actualizada desde `1.0.0`
+mediante `MINOR-PUBLIC-IDENTITY-MODE-HIERARCHY-1` al ampliarse el alcance de
+`name_initial`), compilada desde `legal/notices/public-identity-minors.md`. Un
+alcance o versión desconocidos invalidan la eficacia.
 
 ## 8. Estados
 
@@ -179,7 +188,7 @@ representa el instante en que el Club registra esa manifestación, y
 Antes de persistir se exige DOB conocida, minoría actual, aviso reconocido,
 evidencia del representante, ausencia de otra solicitud pendiente o aprobada y
 datos suficientes para el modo exacto. `alias` requiere un alias no vacío;
-`name_initial`, nombres de pila y primer apellido; no hay fallback entre modos.
+`name_initial`, nombres de pila y primer apellido (sin requerir alias preexistente para solicitarlo).
 La ausencia de expediente o el rechazo del representante mantienen
 `Participante`; administración no crea un expediente `anonymous`.
 
@@ -415,3 +424,5 @@ sus 61 escenarios E2E cierran 7D. Fase 7, despliegue y MVP continúan pendientes
 ---
 
 **Nota de seguimiento posterior (Fase 7F.2):** Tras la aceptación de staging, ciertas decisiones (como el modelo de navegación en Competición y el aplazamiento de noticias y multimedia persistente) han sido promovidas o refinadas en la Fase 7F.2. Ver `docs/28-preproduction-product-refinement.md` y `ADR-042`.
+
+**Nota de seguimiento posterior (MINOR-PUBLIC-IDENTITY-MODE-HIERARCHY-1):** Se establece la semántica jerárquica de autorizaciones de menores. El modo `name_initial` autoriza tanto nombres de pila e inicial como el uso del alias deportivo asociado al jugador en cada momento mientras la autorización siga vigente, en las superficies que lo requieran, manteniendo la proyección pública por defecto como nombre e inicial (sin introducir formato combinado ni modo `both`). El aviso `NOTICE-PUBLIC-IDENTITY-MINORS` se actualiza a la versión `1.1.0`.

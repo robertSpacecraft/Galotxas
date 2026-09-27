@@ -2875,3 +2875,21 @@ oficiales y de competición para recorrer todos los casos dependientes de datos;
 esa limitación de aceptación no se convierte en un PASS inventado. Tampoco se
 acredita un ensayo histórico de rollback ni una prueba de persistencia de media
 tras redeploy en staging.
+
+## MINOR-PUBLIC-IDENTITY-MODE-HIERARCHY-1 — Semántica jerárquica de identidad pública de menores
+
+Este bloque establece la semántica jerárquica de autorizaciones de menores sin introducir un nuevo modo `both` y sin requerir un segundo flujo de autorización.
+
+El modelo de capacidades centralizado en `PublicIdentityAuthorizationMode` garantiza:
+- `alias`: `allowsAlias() === true`, `allowsNameInitial() === false`. Proyección pública por defecto: alias deportivo.
+- `name_initial`: `allowsAlias() === true`, `allowsNameInitial() === true`. Proyección pública por defecto: nombre e inicial (sin formato combinado `Nombre I. (Alias)`).
+- `anonymous`: `allowsAlias() === false`, `allowsNameInitial() === false`. Proyección pública: `Participante`.
+
+El aviso legal `NOTICE-PUBLIC-IDENTITY-MINORS` se actualiza de la versión `1.0.0` a la `1.1.0` y sus artefactos se regeneran de forma determinista con `legal:build`.
+
+Cobertura y verificación:
+- Unit: `Tests\Unit\PublicIdentityAuthorizationModeTest` verifica el contrato de capacidades `allowsAlias()` y `allowsNameInitial()`, así como los labels y valores canónicos del enum.
+- Feature (origen directo): `DirectPublicIdentityAuthorizationTest` cubre la creación, confirmación y aprobación de `name_initial` en un único ciclo de vida confiriendo ambas capacidades, preservando la proyección pública por defecto intacta (`Nombre I.`), el comportamiento exclusivo de `alias`, y el rechazo estricto de versiones de aviso desactualizadas (`1.0.0`, `0.9.0`).
+- Feature (origen Escuela): `PublicIdentityAuthorizationTest` cubre la solicitud de Escuela con el aviso `1.1.0`, la verificación de capacidades y el rechazo estricto de versiones obsoletas (`1.0.0`).
+- Frontend Unit: `PublicIdentityConfirmationPage.test.jsx` y `SchoolEnrollmentForm.test.jsx` se actualizan a la versión `1.1.0` del aviso de identidad pública, validando la visualización, textos informativos y el fail-closed ante versiones no coincidentes.
+- E2E: `frontend/e2e/public-identity.spec.js` y `E2ESmokeSeeder` sincronizan la versión esperada `1.1.0`.

@@ -489,7 +489,7 @@ export const SchoolEnrollmentForm = ({
                   checked={fields.public_identity_mode === 'alias'}
                   onChange={handleChange}
                 />
-                Autorizar sólo el alias deportivo; sin alias se mostrará “Participante”
+                Autorizar sólo el alias deportivo (el que conste en cada momento); sin alias se mostrará “Participante”
               </label>
               <label>
                 <input
@@ -499,7 +499,7 @@ export const SchoolEnrollmentForm = ({
                   checked={fields.public_identity_mode === 'name_initial'}
                   onChange={handleChange}
                 />
-                Autorizar nombres de pila e inicial del primer apellido; la inicial puede
+                Autorizar nombres de pila e inicial del primer apellido (incluye el alias deportivo asociado en cada momento); la inicial puede
                 permitir identificar al menor
               </label>
             </div>

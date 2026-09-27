@@ -273,6 +273,13 @@ confirmación específica de DOB. No es consentimiento genérico, prueba de edad
 ni autorización de identidad pública de menores. Laravel y React consumen las
 proyecciones regeneradas; no se crea una cuarta página legal.
 
+Seguimiento MINOR-PUBLIC-IDENTITY-MODE-HIERARCHY-1: `NOTICE-PUBLIC-IDENTITY-MINORS`
+se actualiza a la versión `1.1.0` al modificarse el alcance material de
+`name_initial`, que pasa a autorizar asimismo el alias deportivo que conste
+asociado al jugador en cada momento mientras la autorización siga vigente, en
+las superficies que lo requieran. El compilador y la validación reconocen la
+nueva versión `1.1.0`.
+
 ## 17. Riesgos y gates pendientes
 
 Permanecen abiertos:
