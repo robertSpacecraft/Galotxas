@@ -2619,9 +2619,7 @@ Riesgos y seguimiento que este bloque no cierra: la regla funcional de
 mismo campeonato— sigue vigente y se comprueba sólo en la aplicación, sin
 serialización concurrente entre las categorías del campeonato; las cascadas
 `ON DELETE` y sus consecuencias (equipo con un miembro tras borrar un jugador)
-pertenecen a la gate de borrado; y las sondas de datos remotas de solo lectura deben autorizarse y ejecutarse
-antes de cualquier migración en staging o producción. Falta además una suite
-backend completa posterior a la corrección de revisión 1.
+pertenecen a la gate de borrado.
 
 # 11. Evolución
 
