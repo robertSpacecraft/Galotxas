@@ -334,8 +334,8 @@ Route::prefix('admin')->group(function () {
         Route::delete('/categories/{category}/teams/{team}', [CategoryTeamController::class, 'destroy'])
             ->name('admin.categories.teams.destroy');
 
-        Route::post('/categories/{category}/generate-league', [AdminCategoryController::class, 'generateLeague'])
-            ->name('admin.categories.generate-league');
+        Route::post('/championships/{championship}/generate-league', [AdminChampionshipController::class, 'generateLeague'])
+            ->name('admin.championships.generate-league');
 
         Route::patch('/categories/{category}/matches/{match}', [GameMatchController::class, 'update'])
             ->name('admin.categories.matches.update');

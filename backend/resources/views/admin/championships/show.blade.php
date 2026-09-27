@@ -11,6 +11,13 @@
             </div>
 
             <div class="d-flex gap-2">
+                <form method="POST" action="{{ route('admin.championships.generate-league', $championship) }}">
+                    @csrf
+                    <button type="submit" class="btn btn-success"
+                            onclick="return confirm('¿Generar el calendario de liga de todas las categorías? El calendario anterior solo se sustituirá si no tiene historial.');">
+                        {{ $hasLeagueCalendar ? 'Regenerar calendario de liga' : 'Generar calendario de liga' }}
+                    </button>
+                </form>
                 <a href="{{ route('admin.seasons.championships', $championship->season) }}"
                    class="btn btn-outline-secondary">
                     Volver a temporada

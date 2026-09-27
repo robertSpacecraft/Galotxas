@@ -12,8 +12,13 @@ use App\Models\Championship;
 use App\Models\ChampionshipRegistrationRequest;
 use App\Models\Season;
 use App\Services\ChampionshipMutationService;
+use App\Services\GenerateLeagueScheduleService;
 use App\Services\OfficialResultProtectedDeletionService;
 use App\Services\Ranking\BuildChampionshipRankingService;
+use DomainException;
+use Illuminate\Database\QueryException;
+use InvalidArgumentException;
+use RuntimeException;
 
 class ChampionshipController extends Controller
 {
@@ -74,7 +79,23 @@ class ChampionshipController extends Controller
             'championship' => $championship,
             'championshipRanking' => $championshipRanking,
             'registrationRequests' => $registrationRequests,
+            'hasLeagueCalendar' => $championship->categories()->whereHas('rounds', fn ($query) => $query->where('type', 'league'))->exists(),
         ]);
+    }
+
+    public function generateLeague(Championship $championship, GenerateLeagueScheduleService $service)
+    {
+        try {
+            $service->generate($championship);
+        } catch (QueryException $exception) {
+            report($exception);
+
+            return back()->with('error', 'No se pudo guardar el calendario completo. Reintenta la operación; si persiste, revisa la integridad de los datos.');
+        } catch (DomainException|InvalidArgumentException|RuntimeException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        return back()->with('success', 'Calendario de liga del campeonato generado correctamente.');
     }
 
     public function edit(Championship $championship)

@@ -16,7 +16,6 @@ use App\Models\Venue;
 use App\Services\Admin\CategoryOfficialResultsPresentationService;
 use App\Services\CategoryMutationService;
 use App\Services\GenerateCupService;
-use App\Services\GenerateLeagueScheduleService;
 use App\Services\OfficialResultProtectedDeletionService;
 use App\Services\Ranking\BuildCategoryRankingService;
 use Throwable;
@@ -150,17 +149,6 @@ class CategoryController extends Controller
             'hasCompetitionMatches' => $hasCompetitionMatches,
             'officialResults' => $officialResults->prepare($category),
         ]);
-    }
-
-    public function generateLeague(Category $category, GenerateLeagueScheduleService $service)
-    {
-        try {
-            $service->generate($category);
-
-            return back()->with('success', 'Liga generada correctamente.');
-        } catch (Throwable $e) {
-            return back()->with('error', $e->getMessage());
-        }
     }
 
     public function edit(Category $category)

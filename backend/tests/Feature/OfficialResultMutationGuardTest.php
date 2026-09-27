@@ -350,7 +350,7 @@ class OfficialResultMutationGuardTest extends TestCase
         $this->official($category, $part);
 
         $this->expectException(OfficialResultMutationBlockedException::class);
-        app(GenerateLeagueScheduleService::class)->generate($category);
+        app(GenerateLeagueScheduleService::class)->generate($category->championship);
     }
 
     public static function officialPartProvider(): array

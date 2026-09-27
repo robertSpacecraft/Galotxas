@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Models\Category;
+use App\Models\Championship;
 use App\Models\GameMatch;
 use App\Models\User;
 use App\Models\Venue;
@@ -84,7 +84,7 @@ try {
                 })(),
                 'generate_league' => (function () use ($payload): array {
                     app(GenerateLeagueScheduleService::class)->generate(
-                        Category::query()->findOrFail((int) $payload['category_id'])
+                        Championship::query()->findOrFail((int) $payload['championship_id'])
                     );
 
                     return ['status' => 'ok'];
@@ -141,6 +141,9 @@ try {
     if ($action === 'delete_venue') {
         $runAction();
     } else {
+        if ($action === 'generate_league') {
+            DB::statement('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+        }
         DB::transaction($runAction);
     }
 } catch (Throwable $exception) {

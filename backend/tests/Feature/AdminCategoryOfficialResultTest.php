@@ -597,7 +597,7 @@ class AdminCategoryOfficialResultTest extends TestCase
             ->assertSee('Liga')
             ->assertSee('Copa')
             ->assertSee(route('admin.categories.registrations.store', $category), false)
-            ->assertSee(route('admin.categories.generate-league', $category), false)
+            ->assertSee(route('admin.championships.show', $category->championship), false)
             ->assertSee(route('admin.categories.generate-cup', $category), false)
             ->assertSee(route('admin.categories.generate-finals', $category), false)
             ->assertSee(route('admin.categories.matches.update', [$category, $match]), false);

@@ -132,17 +132,17 @@ class VenueOccupancyConcurrencyTest extends TestCase
         $this->assertSame([$firstVenue->id, $secondVenue->id], $secondOutcome['venue_ids']);
     }
 
-    public function test_two_category_generators_serialize_and_create_no_global_collision(): void
+    public function test_two_championship_generators_serialize_and_create_no_global_collision(): void
     {
-        Venue::factory()->create();
+        Venue::factory()->create(['court_number' => 2]);
         $firstCategory = $this->categoryWithEntries();
         $secondCategory = $this->categoryWithEntries();
 
         [$firstOutcome, $secondOutcome] = $this->blockingRace(
             'generate_league',
-            ['category_id' => $firstCategory->id],
+            ['championship_id' => $firstCategory->championship_id],
             'generate_league',
-            ['category_id' => $secondCategory->id],
+            ['championship_id' => $secondCategory->championship_id],
             'for update',
         );
 
@@ -155,6 +155,45 @@ class VenueOccupancyConcurrencyTest extends TestCase
             fn (GameMatch $match): string => $match->venue_id.'|'.$match->scheduled_date->format('Y-m-d H:i:s')
         );
         $this->assertCount($occupying->count(), $keys->unique());
+        $this->assertCount(12, $occupying);
+    }
+
+    public function test_competing_championship_capacity_failure_leaves_no_partial_calendar(): void
+    {
+        Venue::factory()->create(['court_number' => 2]);
+        $first = $this->categoryWithEntries();
+        $second = $this->categoryWithEntries();
+        foreach ([$first, $second] as $category) {
+            CategoryEntry::factory()->count(6)->playerEntry()->create([
+                'category_id' => $category->id,
+                'status' => 'approved',
+            ]);
+        }
+
+        [$winner, $loser] = $this->blockingRace(
+            'generate_league', ['championship_id' => $first->championship_id],
+            'generate_league', ['championship_id' => $second->championship_id],
+            'for update',
+        );
+        $this->assertSame('ok', $winner['status']);
+        $this->assertSame('exception', $loser['status']);
+        $this->assertSame(\RuntimeException::class, $loser['class']);
+        $this->assertSame(0, $second->rounds()->count());
+        $this->assertSame(45, GameMatch::query()->count());
+    }
+
+    public function test_two_generations_of_the_same_championship_serialize_full_replacement(): void
+    {
+        Venue::factory()->create(['court_number' => 2]);
+        $category = $this->categoryWithEntries();
+        $payload = ['championship_id' => $category->championship_id];
+        [$first, $second] = $this->blockingRace(
+            'generate_league', $payload, 'generate_league', $payload, 'for update',
+        );
+        $this->assertSame('ok', $first['status']);
+        $this->assertSame('ok', $second['status']);
+        $this->assertSame(3, $category->rounds()->count());
+        $this->assertSame(6, GameMatch::count());
     }
 
     public function test_different_venues_do_not_create_a_false_concurrent_conflict(): void
@@ -329,9 +368,13 @@ class VenueOccupancyConcurrencyTest extends TestCase
         $championship = Championship::factory()->create([
             'type' => 'singles',
             'start_date' => '2026-07-03',
+            'end_date' => '2026-09-11',
         ]);
         $category = Category::factory()->create([
             'championship_id' => $championship->id,
+            'age_group' => 'open',
+            'gender' => 'female',
+            'level' => 2,
         ]);
         CategoryEntry::factory()->count(4)->playerEntry()->create([
             'category_id' => $category->id,

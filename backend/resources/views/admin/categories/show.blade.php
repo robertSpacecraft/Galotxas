@@ -589,13 +589,9 @@
                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
                         <h2 class="h4 section-title mb-0">Liga</h2>
 
-                        <form method="POST" action="{{ route('admin.categories.generate-league', $category) }}">
-                            @csrf
-                            <button type="submit" class="btn btn-success"
-                                    onclick="return confirm('¿Generar la liga automáticamente?')">
-                                Generar liga
-                            </button>
-                        </form>
+                        <a href="{{ route('admin.championships.show', $category->championship) }}" class="btn btn-outline-success">
+                            Gestionar calendario del campeonato
+                        </a>
                     </div>
 
                     @forelse ($leagueRounds as $round)
