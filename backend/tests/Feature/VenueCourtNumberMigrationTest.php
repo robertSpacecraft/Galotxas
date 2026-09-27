@@ -13,6 +13,15 @@ class VenueCourtNumberMigrationTest extends TestCase
 {
     use DatabaseTruncation;
 
+    protected function tearDown(): void
+    {
+        try {
+            $this->truncateDatabaseTables();
+        } finally {
+            parent::tearDown();
+        }
+    }
+
     public function test_schema_has_nullable_unique_positive_court_number(): void
     {
         $this->assertTrue(Schema::hasColumn('venues', 'court_number'));

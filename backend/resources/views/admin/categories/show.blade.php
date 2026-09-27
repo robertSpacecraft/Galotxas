@@ -103,6 +103,13 @@
 
                         <div class="col-md-3">
                             <div class="border rounded p-3 bg-light">
+                                <div class="small text-secondary">Grupo de edad</div>
+                                <div class="fw-semibold">{{ $category->age_group?->label() ?? 'Sin clasificar' }}</div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="border rounded p-3 bg-light">
                                 <div class="small text-secondary">Estado</div>
                                 <div class="fw-semibold">{{ $category->status }}</div>
                             </div>

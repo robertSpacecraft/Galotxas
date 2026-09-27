@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\CategoryAgeGroup;
 use App\Enums\CategoryGender;
 use App\Enums\ChampionshipType;
 use App\Enums\SeasonStatus;
@@ -95,6 +96,7 @@ class CompetitionVisibilityFoundationTest extends TestCase
             'description' => null,
             'level' => null,
             'gender' => CategoryGender::MIXED->value,
+            'age_group' => CategoryAgeGroup::OPEN->value,
             'status' => 'pending',
             'is_public' => true,
         ])->assertCreated()->assertJsonPath('data.is_public', true);
@@ -129,6 +131,7 @@ class CompetitionVisibilityFoundationTest extends TestCase
             'description' => null,
             'level' => null,
             'gender' => CategoryGender::MIXED->value,
+            'age_group' => CategoryAgeGroup::OPEN->value,
             'status' => 'pending',
             'is_public' => false,
         ])

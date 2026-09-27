@@ -46,6 +46,7 @@
                         <th>Nombre</th>
                         <th>Nivel</th>
                         <th>Género</th>
+                        <th>Grupo de edad</th>
                         <th>Estado</th>
                         <th>Visibilidad</th>
                         <th class="text-end">Acciones</th>
@@ -59,6 +60,7 @@
                             <td class="fw-semibold">{{ $category->name }}</td>
                             <td>{{ $category->level }}</td>
                             <td>{{ $category->gender?->label() }}</td>
+                            <td>{{ $category->age_group?->label() ?? 'Sin clasificar' }}</td>
                             <td><span class="badge text-bg-secondary">{{ $category->status }}</span></td>
                             <td>
                                 <span class="badge {{ $category->is_public ? 'text-bg-success' : 'text-bg-secondary' }}">
@@ -94,7 +96,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center text-secondary py-4">
+                            <td colspan="8" class="text-center text-secondary py-4">
                                 No hay categorías registradas en este campeonato.
                             </td>
                         </tr>

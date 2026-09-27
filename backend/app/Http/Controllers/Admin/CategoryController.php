@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\CategoryAgeGroup;
 use App\Enums\CategoryGender;
 use App\Enums\CategoryStatus;
 use App\Http\Controllers\Controller;
@@ -40,6 +41,7 @@ class CategoryController extends Controller
                 'championship_id' => $championship->id,
                 'status' => CategoryStatus::PENDING->value,
             ]),
+            'ageGroupOptions' => CategoryAgeGroup::cases(),
             'genderOptions' => CategoryGender::cases(),
             'levelOptions' => range(1, 10),
             'statusOptions' => CategoryStatus::cases(),
@@ -168,6 +170,7 @@ class CategoryController extends Controller
         return view('admin.categories.edit', [
             'championship' => $category->championship,
             'category' => $category,
+            'ageGroupOptions' => CategoryAgeGroup::cases(),
             'genderOptions' => CategoryGender::cases(),
             'levelOptions' => range(1, 10),
             'statusOptions' => CategoryStatus::cases(),

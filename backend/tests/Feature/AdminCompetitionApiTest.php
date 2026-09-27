@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\CategoryAgeGroup;
 use App\Enums\CategoryGender;
 use App\Enums\CategoryStatus;
 use App\Enums\ChampionshipRegistrationStatus;
@@ -340,6 +341,7 @@ class AdminCompetitionApiTest extends TestCase
         ])->assertCreated()
             ->assertJsonPath('message', 'Categoría creada correctamente.')
             ->assertJsonPath('data.slug', 'categoria-api-completa')
+            ->assertJsonPath('data.age_group', CategoryAgeGroup::OPEN->value)
             ->assertJsonPath('data.is_public', true)
             ->assertJsonPath('data.championship.id', $publicChampionship->id)
             ->assertJsonPath('data.championship.season.id', $publicSeason->id)
@@ -357,6 +359,7 @@ class AdminCompetitionApiTest extends TestCase
             'description' => 'Descripción administrativa completa.',
             'level' => 4,
             'gender' => CategoryGender::MIXED->value,
+            'age_group' => CategoryAgeGroup::OPEN->value,
             'status' => CategoryStatus::PENDING->value,
             'is_public' => true,
         ]);
@@ -375,9 +378,10 @@ class AdminCompetitionApiTest extends TestCase
             'name' => '',
             'level' => 11,
             'gender' => 'invalid',
+            'age_group' => 'invalid',
             'status' => 'invalid',
         ])->assertUnprocessable()
-            ->assertJsonValidationErrors(['championship_id', 'name', 'level', 'gender', 'status']);
+            ->assertJsonValidationErrors(['championship_id', 'name', 'level', 'gender', 'age_group', 'status']);
 
         $category->image_path = 'images/categoria-protegida.jpg';
         $category->save();
@@ -387,6 +391,7 @@ class AdminCompetitionApiTest extends TestCase
             'description' => null,
             'level' => null,
             'gender' => CategoryGender::FEMALE->value,
+            'age_group' => CategoryAgeGroup::YOUTH->value,
             'status' => CategoryStatus::ACTIVE->value,
             'is_public' => false,
             'championship_id' => $otherPublicChampionship->id,
@@ -404,6 +409,7 @@ class AdminCompetitionApiTest extends TestCase
             ->assertJsonPath('data.slug', 'categoria-api-actualizada')
             ->assertJsonPath('data.description', null)
             ->assertJsonPath('data.level', null)
+            ->assertJsonPath('data.age_group', CategoryAgeGroup::YOUTH->value)
             ->assertJsonPath('data.is_public', false)
             ->assertJsonMissingPath('data.image_path');
 
@@ -535,6 +541,7 @@ class AdminCompetitionApiTest extends TestCase
             'description' => 'Descripción administrativa completa.',
             'level' => 4,
             'gender' => CategoryGender::MIXED->value,
+            'age_group' => CategoryAgeGroup::OPEN->value,
             'status' => CategoryStatus::PENDING->value,
             'is_public' => true,
         ];
@@ -595,6 +602,7 @@ class AdminCompetitionApiTest extends TestCase
             'description',
             'level',
             'gender',
+            'age_group',
             'status',
             'is_public',
             'championship',

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\CategoryAgeGroup;
 use App\Enums\CategoryGender;
 use App\Enums\CategoryStatus;
 use App\Http\Requests\Admin\Concerns\ValidatesCompetitionImage;
@@ -28,6 +29,7 @@ class StoreCategoryRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:5000'],
             'level' => ['nullable', 'integer', 'min:1', 'max:10'],
             'gender' => ['required', new Enum(CategoryGender::class)],
+            'age_group' => ['required', new Enum(CategoryAgeGroup::class)],
             'status' => ['required', new Enum(CategoryStatus::class)],
             'is_public' => ['required', 'boolean'],
         ];

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CategoryAgeGroup;
 use App\Enums\CategoryGender;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,6 +20,7 @@ class Category extends Model
         'slug',
         'level',
         'gender',
+        'age_group',
         'description',
         'image_path',
         'status',
@@ -29,6 +31,7 @@ class Category extends Model
     ];
 
     protected $casts = [
+        'age_group' => CategoryAgeGroup::class,
         'gender' => CategoryGender::class,
         'is_public' => 'boolean',
     ];

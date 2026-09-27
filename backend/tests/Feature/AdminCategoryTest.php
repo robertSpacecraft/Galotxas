@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\CategoryAgeGroup;
 use App\Enums\CategoryGender;
 use App\Enums\CategoryStatus;
 use App\Models\Category;
@@ -36,6 +37,7 @@ class AdminCategoryTest extends TestCase
             'description' => 'Descripció existent',
             'level' => 7,
             'gender' => CategoryGender::MIXED->value,
+            'age_group' => CategoryAgeGroup::YOUTH->value,
             'status' => CategoryStatus::ACTIVE->value,
             'is_public' => true,
         ]);
@@ -47,6 +49,7 @@ class AdminCategoryTest extends TestCase
             ->assertSee('Nueva categoría')
             ->assertSee('Campionat principal')
             ->assertSee('id="description"', false)
+            ->assertSee('id="age_group"', false)
             ->assertSee('id="status"', false)
             ->assertSee('id="is_public"', false)
             ->assertSee('Campeonato: Público')
@@ -56,6 +59,12 @@ class AdminCategoryTest extends TestCase
 
         foreach (CategoryGender::cases() as $gender) {
             $createResponse->assertSee('value="'.$gender->value.'"', false);
+        }
+
+        foreach (CategoryAgeGroup::cases() as $ageGroup) {
+            $createResponse
+                ->assertSee('value="'.$ageGroup->value.'"', false)
+                ->assertSee($ageGroup->label());
         }
 
         foreach (CategoryStatus::cases() as $status) {
@@ -75,6 +84,7 @@ class AdminCategoryTest extends TestCase
 
         $this->assertOptionSelected($editResponse, '7');
         $this->assertOptionSelected($editResponse, CategoryGender::MIXED->value);
+        $this->assertOptionSelected($editResponse, CategoryAgeGroup::YOUTH->value);
         $this->assertOptionSelected($editResponse, CategoryStatus::ACTIVE->value);
         $this->assertVisibilityChecked($editResponse);
     }
@@ -151,6 +161,7 @@ class AdminCategoryTest extends TestCase
                 'description' => 'Descripció administrativa completa.',
                 'level' => 8,
                 'gender' => CategoryGender::FEMALE->value,
+                'age_group' => CategoryAgeGroup::YOUTH->value,
                 'status' => CategoryStatus::ACTIVE->value,
                 'image_path' => 'categories/no-permitido.jpg',
             ])
@@ -167,6 +178,7 @@ class AdminCategoryTest extends TestCase
             'description' => 'Descripció administrativa completa.',
             'level' => 8,
             'gender' => CategoryGender::FEMALE->value,
+            'age_group' => CategoryAgeGroup::YOUTH->value,
             'status' => CategoryStatus::ACTIVE->value,
             'image_path' => null,
             'is_public' => 0,
@@ -191,6 +203,7 @@ class AdminCategoryTest extends TestCase
             'name' => 'Categoria sense opcionals',
             'description' => null,
             'level' => null,
+            'age_group' => CategoryAgeGroup::OPEN->value,
             'image_path' => null,
         ]);
     }
@@ -206,9 +219,10 @@ class AdminCategoryTest extends TestCase
                 'description' => str_repeat('a', 5001),
                 'level' => 11,
                 'gender' => 'open',
+                'age_group' => 'senior',
                 'status' => 'finished',
             ]))
-            ->assertSessionHasErrors(['name', 'description', 'level', 'gender', 'status']);
+            ->assertSessionHasErrors(['name', 'description', 'level', 'gender', 'age_group', 'status']);
 
         $this->actingAs($admin)
             ->post(route('admin.categories.store', $championship), $this->validPayload([
@@ -217,6 +231,20 @@ class AdminCategoryTest extends TestCase
             ->assertSessionHasErrors('name');
 
         $this->assertDatabaseCount('categories', 0);
+    }
+
+    public function test_creation_requires_an_explicit_age_group(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $championship = Championship::factory()->create();
+        $payload = $this->validPayload(['name' => 'Categoría sin clasificación']);
+        unset($payload['age_group']);
+
+        $this->actingAs($admin)
+            ->post(route('admin.categories.store', $championship), $payload)
+            ->assertSessionHasErrors('age_group');
+
+        $this->assertDatabaseMissing('categories', ['name' => 'Categoría sin clasificación']);
     }
 
     public function test_creation_requires_an_existing_championship_route_binding(): void
@@ -241,6 +269,7 @@ class AdminCategoryTest extends TestCase
             'description' => 'Text editable',
             'level' => 4,
             'gender' => CategoryGender::MALE->value,
+            'age_group' => CategoryAgeGroup::YOUTH->value,
             'status' => CategoryStatus::ACTIVE->value,
             'image_path' => 'categories/existent.jpg',
             'is_public' => true,
@@ -257,6 +286,7 @@ class AdminCategoryTest extends TestCase
 
         $this->assertOptionSelected($response, '4');
         $this->assertOptionSelected($response, CategoryGender::MALE->value);
+        $this->assertOptionSelected($response, CategoryAgeGroup::YOUTH->value);
         $this->assertOptionSelected($response, CategoryStatus::ACTIVE->value);
         $this->assertVisibilityChecked($response);
     }
@@ -280,6 +310,7 @@ class AdminCategoryTest extends TestCase
             'description' => str_repeat('d', 5001),
             'level' => 9,
             'gender' => CategoryGender::FEMALE->value,
+            'age_group' => CategoryAgeGroup::YOUTH->value,
             'status' => CategoryStatus::ACTIVE->value,
             'is_public' => 0,
         ]);
@@ -300,6 +331,7 @@ class AdminCategoryTest extends TestCase
 
         $this->assertOptionSelected($response, '9');
         $this->assertOptionSelected($response, CategoryGender::FEMALE->value);
+        $this->assertOptionSelected($response, CategoryAgeGroup::YOUTH->value);
         $this->assertOptionSelected($response, CategoryStatus::ACTIVE->value);
         $this->assertVisibilityNotChecked($response);
     }
@@ -333,6 +365,7 @@ class AdminCategoryTest extends TestCase
                 'description' => 'Descripció actualitzada',
                 'level' => 10,
                 'gender' => CategoryGender::MIXED->value,
+                'age_group' => CategoryAgeGroup::YOUTH->value,
                 'status' => CategoryStatus::ACTIVE->value,
                 'image_path' => 'categories/no-sustituir.jpg',
                 'is_public' => 0,
@@ -351,6 +384,7 @@ class AdminCategoryTest extends TestCase
             'description' => 'Descripció actualitzada',
             'level' => 10,
             'gender' => CategoryGender::MIXED->value,
+            'age_group' => CategoryAgeGroup::YOUTH->value,
             'status' => CategoryStatus::ACTIVE->value,
             'image_path' => 'categories/conservar.jpg',
             'is_public' => 0,
@@ -358,6 +392,30 @@ class AdminCategoryTest extends TestCase
         $this->assertDatabaseHas('category_registrations', ['id' => $registration->id]);
         $this->assertDatabaseHas('category_entries', ['id' => $entry->id]);
         $this->assertDatabaseHas('rounds', ['id' => $round->id]);
+    }
+
+    public function test_admin_update_can_change_age_group_in_both_directions(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $category = Category::factory()->create([
+            'age_group' => CategoryAgeGroup::OPEN->value,
+        ]);
+
+        $this->actingAs($admin)
+            ->put(route('admin.categories.update', $category), $this->validPayload([
+                'name' => $category->name,
+                'age_group' => CategoryAgeGroup::YOUTH->value,
+            ]))
+            ->assertSessionHasNoErrors();
+        $this->assertSame(CategoryAgeGroup::YOUTH, $category->fresh()->age_group);
+
+        $this->actingAs($admin)
+            ->put(route('admin.categories.update', $category), $this->validPayload([
+                'name' => $category->name,
+                'age_group' => CategoryAgeGroup::OPEN->value,
+            ]))
+            ->assertSessionHasNoErrors();
+        $this->assertSame(CategoryAgeGroup::OPEN, $category->fresh()->age_group);
     }
 
     public function test_update_can_clear_nullable_fields_without_clearing_image_path(): void
@@ -393,6 +451,7 @@ class AdminCategoryTest extends TestCase
             'description' => 'No canviar',
             'level' => 3,
             'gender' => CategoryGender::MALE->value,
+            'age_group' => CategoryAgeGroup::YOUTH->value,
             'status' => CategoryStatus::ACTIVE->value,
             'image_path' => 'categories/intacta.jpg',
         ]);
@@ -412,6 +471,7 @@ class AdminCategoryTest extends TestCase
         $this->assertSame('No canviar', $category->description);
         $this->assertSame(3, $category->level);
         $this->assertSame(CategoryGender::MALE, $category->gender);
+        $this->assertSame(CategoryAgeGroup::YOUTH, $category->age_group);
         $this->assertSame(CategoryStatus::ACTIVE->value, $category->status);
         $this->assertSame('categories/intacta.jpg', $category->image_path);
     }
@@ -422,6 +482,7 @@ class AdminCategoryTest extends TestCase
         $category = Category::factory()->create([
             'name' => 'Categoria relacional',
             'description' => 'Descripció visible al detall',
+            'age_group' => CategoryAgeGroup::YOUTH->value,
             'status' => CategoryStatus::ACTIVE->value,
         ]);
         $player = Player::factory()->create(['nickname' => 'JugadorVinculat']);
@@ -434,13 +495,64 @@ class AdminCategoryTest extends TestCase
             ->get(route('admin.championships.categories', $category->championship))
             ->assertOk()
             ->assertSee('Categoria relacional')
+            ->assertSee('Juvenil')
             ->assertSee(CategoryStatus::ACTIVE->value);
 
         $this->actingAs($admin)
             ->get(route('admin.categories.show', $category))
             ->assertOk()
+            ->assertSee('Grupo de edad')
+            ->assertSee('Juvenil')
             ->assertSee('Descripció visible al detall')
             ->assertSee('JugadorVinculat');
+    }
+
+    public function test_legacy_null_age_group_remains_readable_but_edit_requires_classification(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $category = Category::factory()->create([
+            'name' => 'Categoría juvenil legacy',
+            'age_group' => null,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.championships.categories', $category->championship))
+            ->assertOk()
+            ->assertSee('Categoría juvenil legacy')
+            ->assertSee('Sin clasificar');
+
+        $payload = $this->validPayload(['name' => $category->name]);
+        unset($payload['age_group']);
+
+        $this->actingAs($admin)
+            ->put(route('admin.categories.update', $category), $payload)
+            ->assertSessionHasErrors('age_group');
+
+        $this->assertNull($category->fresh()->age_group);
+
+        $this->actingAs($admin)
+            ->put(route('admin.categories.update', $category), $this->validPayload([
+                'name' => $category->name,
+                'age_group' => CategoryAgeGroup::YOUTH->value,
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(CategoryAgeGroup::YOUTH, $category->fresh()->age_group);
+    }
+
+    public function test_category_name_does_not_determine_age_group(): void
+    {
+        $namedYouth = Category::factory()->create([
+            'name' => 'Juvenil',
+            'age_group' => CategoryAgeGroup::OPEN->value,
+        ]);
+        $namedOpen = Category::factory()->create([
+            'name' => 'Categoría abierta',
+            'age_group' => CategoryAgeGroup::YOUTH->value,
+        ]);
+
+        $this->assertSame(CategoryAgeGroup::OPEN, $namedYouth->age_group);
+        $this->assertSame(CategoryAgeGroup::YOUTH, $namedOpen->age_group);
     }
 
     public function test_public_category_contract_remains_unchanged(): void
@@ -463,6 +575,7 @@ class AdminCategoryTest extends TestCase
             ->assertJsonPath('message', null)
             ->assertJsonPath('data.id', $category->id)
             ->assertJsonPath('data.status', CategoryStatus::PENDING->value)
+            ->assertJsonMissingPath('data.age_group')
             ->assertJsonMissingPath('data.description')
             ->assertJsonMissingPath('data.image_path');
 
@@ -711,6 +824,7 @@ class AdminCategoryTest extends TestCase
             'description' => 'Descripció vàlida.',
             'level' => 5,
             'gender' => CategoryGender::MALE->value,
+            'age_group' => CategoryAgeGroup::OPEN->value,
             'status' => CategoryStatus::PENDING->value,
             'is_public' => 0,
         ], $overrides);

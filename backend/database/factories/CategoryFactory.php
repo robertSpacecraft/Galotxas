@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\CategoryAgeGroup;
 use App\Enums\CategoryGender;
 use App\Models\Category;
 use App\Models\Championship;
@@ -28,6 +29,7 @@ class CategoryFactory extends Factory
                 CategoryGender::FEMALE->value,
                 CategoryGender::MIXED->value,
             ]),
+            'age_group' => CategoryAgeGroup::OPEN->value,
             'description' => $this->faker->sentence(),
             'image_path' => null,
             'status' => 'active',

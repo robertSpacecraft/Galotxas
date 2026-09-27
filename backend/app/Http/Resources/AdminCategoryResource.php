@@ -20,6 +20,7 @@ class AdminCategoryResource extends JsonResource
             'description' => $this->description,
             'level' => $this->level,
             'gender' => $this->gender?->value ?? $this->gender,
+            'age_group' => $this->age_group?->value ?? $this->age_group,
             'status' => $this->status,
             'is_public' => (bool) $this->is_public,
             'championship' => $this->whenLoaded('championship', fn () => [

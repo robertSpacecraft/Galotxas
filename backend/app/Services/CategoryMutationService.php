@@ -34,6 +34,7 @@ class CategoryMutationService
                 'description' => $attributes['description'] ?? null,
                 'level' => $attributes['level'] ?? null,
                 'gender' => $attributes['gender'],
+                'age_group' => $attributes['age_group'],
                 'status' => $attributes['status'],
             ]);
             $category->is_public = (bool) $attributes['is_public'];

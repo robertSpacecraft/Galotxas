@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\CategoryAgeGroup;
 use App\Enums\OfficialResultCompetitionPart;
 use App\Enums\OfficialResultMutationImpact;
 use App\Exceptions\OfficialResultHistoryDeletionBlockedException;
@@ -572,6 +573,7 @@ class OfficialResultMutationGuardTest extends TestCase
                 'description' => 'Contenido editorial actualizado',
                 'level' => 3,
                 'gender' => 'mixed',
+                'age_group' => CategoryAgeGroup::OPEN->value,
                 'status' => 'active',
                 'is_public' => false,
             ])

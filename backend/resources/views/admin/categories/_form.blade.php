@@ -28,7 +28,7 @@
         </div>
     </div>
 
-    <div class="col-md-6">
+    <div class="col-md-4">
         <label for="name" class="form-label">Nombre</label>
         <input
             id="name"
@@ -81,6 +81,27 @@
             @endforeach
         </select>
         @error('gender')
+        <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+    </div>
+
+    <div class="col-md-2">
+        <label for="age_group" class="form-label">Grupo de edad</label>
+        <select
+            id="age_group"
+            name="age_group"
+            class="form-select @error('age_group') is-invalid @enderror"
+            required
+        >
+            <option value="">Selecciona grupo</option>
+            @foreach ($ageGroupOptions as $ageGroup)
+                <option
+                    value="{{ $ageGroup->value }}"
+                    @selected(old('age_group', $category->age_group?->value) === $ageGroup->value)
+                >{{ $ageGroup->label() }}</option>
+            @endforeach
+        </select>
+        @error('age_group')
         <div class="invalid-feedback">{{ $message }}</div>
         @enderror
     </div>
