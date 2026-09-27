@@ -15,6 +15,7 @@ class MatchResultService
 
     public function __construct(
         private readonly OfficialResultMutationGuard $mutationGuard,
+        private readonly VenueOccupancyService $occupancy,
         ?MatchScoreRulesService $scoreRules = null,
     ) {
         $this->scoreRules = $scoreRules ?? new MatchScoreRulesService;
@@ -129,6 +130,13 @@ class MatchResultService
                 $this->validateScores($lockedMatch, $homeScore, $awayScore, $status);
             }
 
+            $this->occupancy->assertTargetCanBePersisted(
+                $lockedMatch,
+                $scheduledAt,
+                $venueId,
+                $status,
+            );
+
             $updateData = [
                 'scheduled_date' => $scheduledAt,
                 'venue_id' => $venueId,
@@ -165,7 +173,9 @@ class MatchResultService
                 ];
             }
 
-            $lockedMatch->update($updateData);
+            $this->occupancy->withConflictTranslation(
+                fn (): bool => $lockedMatch->update($updateData)
+            );
 
             return $lockedMatch->refresh();
         });

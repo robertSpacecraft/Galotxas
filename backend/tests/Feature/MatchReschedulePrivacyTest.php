@@ -99,7 +99,7 @@ class MatchReschedulePrivacyTest extends TestCase
             $match,
             $homePlayer->user,
             '2026-10-10',
-            '18:30',
+            '18:00',
             $requestedVenue->id,
             self::PRIVATE_COMMENT,
         );
@@ -188,7 +188,7 @@ class MatchReschedulePrivacyTest extends TestCase
             $match,
             $homePlayers[0]->user->fresh(),
             '2026-10-10',
-            '18:30',
+            '18:00',
             $requestedVenue->id,
             self::PRIVATE_COMMENT,
         );
@@ -222,7 +222,7 @@ class MatchReschedulePrivacyTest extends TestCase
             $match,
             $homePlayer->user,
             '2026-10-10',
-            '18:30',
+            '18:00',
             $requestedVenue->id,
             self::PRIVATE_COMMENT,
         );
@@ -308,7 +308,7 @@ class MatchReschedulePrivacyTest extends TestCase
     {
         return [
             'scheduled_date' => '2026-10-10',
-            'scheduled_time' => '18:30',
+            'scheduled_time' => '18:00',
             'venue_id' => $venue->id,
             'comment' => self::PRIVATE_COMMENT,
         ];

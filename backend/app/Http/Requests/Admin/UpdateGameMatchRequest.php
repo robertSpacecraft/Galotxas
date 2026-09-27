@@ -41,6 +41,8 @@ class UpdateGameMatchRequest extends FormRequest
             'scheduled_date.date_format' => 'La fecha del partido debe ser una fecha válida con formato AAAA-MM-DD.',
             'scheduled_date.after_or_equal' => 'La fecha del partido no puede ser anterior al 01/01/1000.',
             'scheduled_date.before_or_equal' => 'La fecha del partido no puede ser posterior a dos años desde hoy.',
+            'scheduled_time.required' => 'La hora del partido es obligatoria.',
+            'scheduled_time.date_format' => 'La hora del partido debe ser una hora válida con formato HH:MM.',
         ];
     }
 

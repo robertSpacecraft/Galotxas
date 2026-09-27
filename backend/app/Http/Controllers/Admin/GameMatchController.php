@@ -7,7 +7,7 @@ use App\Http\Requests\Admin\UpdateGameMatchRequest;
 use App\Models\Category;
 use App\Models\GameMatch;
 use App\Services\MatchResultService;
-use Carbon\Carbon;
+use App\Services\MatchScheduleTimePolicy;
 use InvalidArgumentException;
 
 class GameMatchController extends Controller
@@ -16,7 +16,8 @@ class GameMatchController extends Controller
         UpdateGameMatchRequest $request,
         Category $category,
         GameMatch $match,
-        MatchResultService $matchResultService
+        MatchResultService $matchResultService,
+        MatchScheduleTimePolicy $timePolicy,
     ) {
         $match->loadMissing('round');
 
@@ -26,10 +27,17 @@ class GameMatchController extends Controller
 
         $validated = $request->validated();
 
-        $scheduledAt = Carbon::createFromFormat(
-            'Y-m-d H:i',
-            $validated['scheduled_date'].' '.$validated['scheduled_time']
+        $scheduledAt = $timePolicy->fromHumanInput(
+            $validated['scheduled_date'],
+            $validated['scheduled_time'],
         );
+
+        if (
+            $match->scheduled_date !== null
+            && $match->scheduled_date->format('Y-m-d H:i') === $scheduledAt->format('Y-m-d H:i')
+        ) {
+            $scheduledAt = $match->scheduled_date->copy();
+        }
 
         $homeScore = $validated['home_score'] !== null ? (int) $validated['home_score'] : null;
         $awayScore = $validated['away_score'] !== null ? (int) $validated['away_score'] : null;

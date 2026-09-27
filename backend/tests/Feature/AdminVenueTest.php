@@ -5,12 +5,12 @@ namespace Tests\Feature;
 use App\Models\GameMatch;
 use App\Models\User;
 use App\Models\Venue;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Tests\TestCase;
 
 class AdminVenueTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTruncation;
 
     public function test_admin_can_list_venues(): void
     {

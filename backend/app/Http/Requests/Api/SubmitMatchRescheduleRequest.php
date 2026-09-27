@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Services\MatchScheduleTimePolicy;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class SubmitMatchRescheduleRequest extends FormRequest
 {
@@ -47,5 +49,20 @@ class SubmitMatchRescheduleRequest extends FormRequest
             'comment.string' => 'El comentario debe ser un texto válido.',
             'comment.max' => 'El comentario no puede superar los 2.000 caracteres.',
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            if (
+                ! $validator->errors()->has('scheduled_time')
+                && ! str_ends_with($this->string('scheduled_time')->toString(), ':00')
+            ) {
+                $validator->errors()->add(
+                    'scheduled_time',
+                    MatchScheduleTimePolicy::NON_CANONICAL_MESSAGE
+                );
+            }
+        });
     }
 }

@@ -325,7 +325,7 @@ class OfficialResultMutationGuardTest extends TestCase
             $match,
             $homePlayer->user,
             '2026-11-01',
-            '18:30',
+            '18:00',
             $requestedVenue->id,
             'Cambio solicitado',
         );

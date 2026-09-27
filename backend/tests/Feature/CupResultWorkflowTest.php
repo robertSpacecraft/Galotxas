@@ -24,7 +24,7 @@ class CupResultWorkflowTest extends TestCase
         $this->actingAs($admin)
             ->patch(route('admin.categories.matches.update', [$match->round->category, $match]), [
                 'scheduled_date' => '2026-09-12',
-                'scheduled_time' => '18:30',
+                'scheduled_time' => '18:00',
                 'venue_id' => $venue->id,
                 'status' => 'validated',
                 'home_score' => 10,
@@ -132,7 +132,7 @@ class CupResultWorkflowTest extends TestCase
             ->from(route('admin.categories.show', $match->round->category))
             ->patch(route('admin.categories.matches.update', [$match->round->category, $match]), [
                 'scheduled_date' => '2026-09-12',
-                'scheduled_time' => '18:30',
+                'scheduled_time' => '18:00',
                 'venue_id' => $venue->id,
                 'status' => 'scheduled',
                 'home_score' => 10,

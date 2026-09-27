@@ -396,7 +396,7 @@ class LeagueOfficialResultLifecycleTest extends TestCase
         app(MatchResultService::class)->updateFromAdmin(
             $match,
             $fixture['category']->id,
-            CarbonImmutable::now()->addDay(),
+            CarbonImmutable::now()->addDay()->startOfHour(),
             $match->venue_id,
             'validated',
             10,

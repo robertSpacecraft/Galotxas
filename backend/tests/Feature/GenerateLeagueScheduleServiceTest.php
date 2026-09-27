@@ -181,6 +181,111 @@ class GenerateLeagueScheduleServiceTest extends TestCase
         $this->assertSame($matchCount, $this->leagueMatches($category)->count());
     }
 
+    public function test_generation_skips_a_globally_occupied_slot_and_preserves_candidate_order(): void
+    {
+        $venue = Venue::factory()->create(['name' => 'Pista global']);
+        $occupied = GameMatch::factory()->create([
+            'venue_id' => $venue->id,
+            'scheduled_date' => '2026-07-03 17:00:00',
+            'status' => 'scheduled',
+        ]);
+        $category = $this->createCategoryWithEntries('singles', 4);
+
+        $this->service()->generate($category);
+
+        $firstRoundDates = Round::query()
+            ->where('category_id', $category->id)
+            ->where('type', 'league')
+            ->orderBy('order')
+            ->firstOrFail()
+            ->matches()
+            ->orderBy('id')
+            ->get()
+            ->map(fn (GameMatch $match): string => $match->scheduled_date->format('Y-m-d H:i:s'))
+            ->all();
+
+        $this->assertNotSame(
+            $category->championship_id,
+            $occupied->round->category->championship_id
+        );
+        $this->assertSame([
+            '2026-07-03 18:00:00',
+            '2026-07-03 19:00:00',
+        ], $firstRoundDates);
+    }
+
+    public function test_generation_skips_every_canonical_slot_overlapping_a_legacy_half_hour(): void
+    {
+        $venue = Venue::factory()->create(['name' => 'Pista legacy']);
+        GameMatch::factory()->create([
+            'venue_id' => $venue->id,
+            'scheduled_date' => '2026-07-03 17:30:00',
+            'status' => 'scheduled',
+        ]);
+        $category = $this->createCategoryWithEntries('singles', 4);
+
+        $this->service()->generate($category);
+
+        $firstRoundDates = Round::query()
+            ->where('category_id', $category->id)
+            ->where('type', 'league')
+            ->orderBy('order')
+            ->firstOrFail()
+            ->matches()
+            ->orderBy('id')
+            ->pluck('scheduled_date')
+            ->map(fn ($date): string => (string) $date)
+            ->all();
+
+        $this->assertSame([
+            '2026-07-03 19:00:00',
+            '2026-07-03 20:00:00',
+        ], $firstRoundDates);
+    }
+
+    public function test_global_occupancy_capacity_failure_rolls_back_every_round_and_match(): void
+    {
+        $venue = Venue::factory()->create(['name' => 'Pista global única']);
+        GameMatch::factory()->create([
+            'venue_id' => $venue->id,
+            'scheduled_date' => '2026-07-03 17:00:00',
+            'status' => 'validated',
+        ]);
+        $category = $this->createCategoryWithEntries('singles', 14);
+
+        $this->assertGenerationFails(
+            $category,
+            'No hay suficientes pistas configuradas para programar la jornada 1 sin colisiones en los horarios disponibles.'
+        );
+
+        $this->assertNoLeagueDataExists($category);
+    }
+
+    public function test_current_generator_uses_saturday_seventeen_and_does_not_add_saturday_twenty(): void
+    {
+        Venue::factory()->create(['name' => 'Pista grid F1']);
+        $category = $this->createCategoryWithEntries('singles', 14);
+
+        $this->service()->generate($category);
+
+        $firstRoundDates = Round::query()
+            ->where('category_id', $category->id)
+            ->where('type', 'league')
+            ->orderBy('order')
+            ->firstOrFail()
+            ->matches()
+            ->pluck('scheduled_date')
+            ->map(fn ($date): string => (string) $date)
+            ->sort()
+            ->values()
+            ->all();
+
+        $this->assertContains('2026-07-04 17:00:00', $firstRoundDates);
+        $this->assertNotContains('2026-07-04 17:30:00', $firstRoundDates);
+        $this->assertNotContains('2026-07-04 20:00:00', $firstRoundDates);
+        $this->assertCount(7, $firstRoundDates);
+    }
+
     private function createCategoryWithEntries(string $type, int $entryCount, int $level = 2): Category
     {
         $championship = Championship::factory()->create([

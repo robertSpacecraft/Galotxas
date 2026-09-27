@@ -97,7 +97,7 @@ try {
                     return app(MatchResultService::class)->updateFromAdmin(
                         $match,
                         (int) $categoryId,
-                        CarbonImmutable::now()->addDay(),
+                        CarbonImmutable::now()->addDay()->startOfHour(),
                         (int) $match->venue_id,
                         GameMatchStatus::VALIDATED->value,
                         10,
@@ -112,7 +112,7 @@ try {
                     return app(MatchResultService::class)->updateFromAdmin(
                         $match,
                         (int) $categoryId,
-                        CarbonImmutable::now()->addDay(),
+                        CarbonImmutable::now()->addDay()->startOfHour(),
                         (int) $match->venue_id,
                         GameMatchStatus::VALIDATED->value,
                         $homeWon ? 8 : 10,

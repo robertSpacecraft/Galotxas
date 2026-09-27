@@ -28,6 +28,10 @@ class GameMatch extends Model
         'validated_by',
     ];
 
+    protected $hidden = [
+        'occupancy_guard',
+    ];
+
     protected $casts = [
         'scheduled_date' => 'datetime',
         'status' => GameMatchStatus::class,

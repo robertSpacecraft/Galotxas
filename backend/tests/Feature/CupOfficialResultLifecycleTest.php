@@ -346,7 +346,7 @@ class CupOfficialResultLifecycleTest extends TestCase
         app(MatchResultService::class)->updateFromAdmin(
             $cupMatch,
             $fixture['category']->id,
-            CarbonImmutable::now()->addDay(),
+            CarbonImmutable::now()->addDay()->startOfHour(),
             $venue->id,
             GameMatchStatus::VALIDATED->value,
             10,
@@ -359,7 +359,7 @@ class CupOfficialResultLifecycleTest extends TestCase
         app(MatchResultService::class)->updateFromAdmin(
             $leagueMatch,
             $fixture['category']->id,
-            CarbonImmutable::now()->addDay(),
+            CarbonImmutable::now()->addDay()->startOfHour(),
             $venue->id,
             GameMatchStatus::VALIDATED->value,
             10,
@@ -470,7 +470,7 @@ class CupOfficialResultLifecycleTest extends TestCase
         app(MatchResultService::class)->updateFromAdmin(
             $fixture['thirdPlaceMatch'],
             $fixture['category']->id,
-            CarbonImmutable::now()->addDay(),
+            CarbonImmutable::now()->addDay()->startOfHour(),
             $venue->id,
             GameMatchStatus::VALIDATED->value,
             10,
@@ -487,7 +487,7 @@ class CupOfficialResultLifecycleTest extends TestCase
         app(MatchResultService::class)->updateFromAdmin(
             $match,
             $categoryId,
-            CarbonImmutable::now()->addDay(),
+            CarbonImmutable::now()->addDay()->startOfHour(),
             Venue::factory()->create()->id,
             GameMatchStatus::VALIDATED->value,
             10,

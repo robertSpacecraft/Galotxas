@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreVenueRequest;
 use App\Http\Requests\Admin\UpdateVenueRequest;
 use App\Models\Venue;
+use App\Services\VenueDeletionService;
 
 class VenueController extends Controller
 {
@@ -47,15 +48,13 @@ class VenueController extends Controller
             ->with('success', 'Pista actualizada correctamente.');
     }
 
-    public function destroy(Venue $venue)
+    public function destroy(Venue $venue, VenueDeletionService $deletionService)
     {
-        if ($venue->isInUse()) {
+        if (! $deletionService->deleteIfUnused($venue)) {
             return redirect()
                 ->route('admin.venues.index')
                 ->with('error', 'No se puede eliminar la pista porque está asociada a partidos o solicitudes de reprogramación.');
         }
-
-        $venue->delete();
 
         return redirect()
             ->route('admin.venues.index')

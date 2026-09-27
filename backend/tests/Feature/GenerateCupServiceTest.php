@@ -268,7 +268,7 @@ class GenerateCupServiceTest extends TestCase
         $this->actingAs($admin)
             ->patch(route('admin.categories.matches.update', [$category, $final]), [
                 'scheduled_date' => '2026-09-20',
-                'scheduled_time' => '19:15',
+                'scheduled_time' => '19:00',
                 'venue_id' => $venue->id,
                 'status' => 'scheduled',
                 'home_score' => null,
@@ -280,10 +280,50 @@ class GenerateCupServiceTest extends TestCase
         $this->assertDatabaseHas('game_matches', [
             'id' => $final->id,
             'venue_id' => $venue->id,
-            'scheduled_date' => '2026-09-20 19:15:00',
+            'scheduled_date' => '2026-09-20 19:00:00',
             'status' => 'scheduled',
             'home_score' => null,
             'away_score' => null,
+        ]);
+    }
+
+    public function test_admin_cannot_schedule_an_unscheduled_cup_final_into_a_globally_occupied_slot(): void
+    {
+        [$category] = $this->createValidatedSemifinals();
+        app(GenerateCupService::class)->generateFinals($category);
+
+        $final = Round::query()
+            ->where('category_id', $category->id)
+            ->where('stage', 'final')
+            ->firstOrFail()
+            ->matches()
+            ->firstOrFail();
+        $venue = Venue::factory()->create();
+        GameMatch::factory()->create([
+            'venue_id' => $venue->id,
+            'scheduled_date' => '2026-09-20 19:00:00',
+            'status' => 'scheduled',
+        ]);
+
+        $this->actingAs(User::factory()->admin()->create())
+            ->patch(route('admin.categories.matches.update', [$category, $final]), [
+                'scheduled_date' => '2026-09-20',
+                'scheduled_time' => '19:00',
+                'venue_id' => $venue->id,
+                'status' => 'scheduled',
+                'home_score' => null,
+                'away_score' => null,
+            ])
+            ->assertSessionHas(
+                'error',
+                'La pista seleccionada ya está ocupada en esa fecha y hora por otro partido.'
+            );
+
+        $this->assertDatabaseHas('game_matches', [
+            'id' => $final->id,
+            'venue_id' => null,
+            'scheduled_date' => null,
+            'status' => 'scheduled',
         ]);
     }
 

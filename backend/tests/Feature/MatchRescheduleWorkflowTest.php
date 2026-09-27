@@ -4,10 +4,13 @@ namespace Tests\Feature;
 
 use App\Enums\OfficialResultCompetitionPart;
 use App\Exceptions\OfficialResultMutationBlockedException;
+use App\Models\Category;
 use App\Models\CategoryOfficialResult;
+use App\Models\Championship;
 use App\Models\GameMatch;
 use App\Models\MatchRescheduleRequest;
 use App\Models\Player;
+use App\Models\Round;
 use App\Models\User;
 use App\Models\Venue;
 use App\Services\MatchRescheduleRequestService;
@@ -159,7 +162,7 @@ class MatchRescheduleWorkflowTest extends TestCase
         $this->actingAs($awayPlayer->user)
             ->postJson($this->requestUrl($awayMatch), $this->validPayload($awayVenue, [
                 'scheduled_date' => '2026-10-11',
-                'scheduled_time' => '19:45',
+                'scheduled_time' => '19:00',
                 'comment' => 'Propuesta visitante',
             ]))
             ->assertOk()
@@ -170,7 +173,7 @@ class MatchRescheduleWorkflowTest extends TestCase
             'game_match_id' => $homeMatch->id,
             'player_id' => $homePlayer->id,
             'side' => 'home',
-            'requested_scheduled_date' => '2026-10-10 18:30:00',
+            'requested_scheduled_date' => '2026-10-10 18:00:00',
             'requested_venue_id' => $homeVenue->id,
             'status' => 'submitted',
             'comment' => 'Propuesta local',
@@ -179,7 +182,7 @@ class MatchRescheduleWorkflowTest extends TestCase
             'game_match_id' => $awayMatch->id,
             'player_id' => $awayPlayer->id,
             'side' => 'away',
-            'requested_scheduled_date' => '2026-10-11 19:45:00',
+            'requested_scheduled_date' => '2026-10-11 19:00:00',
             'requested_venue_id' => $awayVenue->id,
             'status' => 'submitted',
             'comment' => 'Propuesta visitante',
@@ -211,7 +214,7 @@ class MatchRescheduleWorkflowTest extends TestCase
         $this->actingAs($homePlayer->user)
             ->postJson($this->requestUrl($match), $this->validPayload($secondVenue, [
                 'scheduled_date' => '2026-11-02',
-                'scheduled_time' => '20:15',
+                'scheduled_time' => '20:00',
                 'comment' => 'Propuesta actualizada',
             ]))
             ->assertOk()
@@ -223,7 +226,7 @@ class MatchRescheduleWorkflowTest extends TestCase
             'id' => $requestId,
             'game_match_id' => $match->id,
             'side' => 'home',
-            'requested_scheduled_date' => '2026-11-02 20:15:00',
+            'requested_scheduled_date' => '2026-11-02 20:00:00',
             'requested_venue_id' => $secondVenue->id,
             'status' => 'submitted',
             'comment' => 'Propuesta actualizada',
@@ -265,7 +268,7 @@ class MatchRescheduleWorkflowTest extends TestCase
         $this->actingAs($homePlayer->user)
             ->postJson($this->requestUrl($match), $this->validPayload($requestedVenue, [
                 'scheduled_date' => '2026-11-05',
-                'scheduled_time' => '19:15',
+                'scheduled_time' => '19:00',
                 'comment' => 'Cambio acordado',
             ]))
             ->assertOk();
@@ -274,7 +277,7 @@ class MatchRescheduleWorkflowTest extends TestCase
             ->postJson($this->confirmUrl($match))
             ->assertOk()
             ->assertJsonPath('message', 'Reprogramación confirmada correctamente.')
-            ->assertJsonPath('data.match.scheduled_date', '2026-11-05T19:15:00.000000Z')
+            ->assertJsonPath('data.match.scheduled_date', '2026-11-05T19:00:00.000000Z')
             ->assertJsonPath('data.match.venue.id', $requestedVenue->id)
             ->assertJsonPath('data.match.status', 'scheduled')
             ->assertJsonPath('data.request.side', 'away')
@@ -286,7 +289,7 @@ class MatchRescheduleWorkflowTest extends TestCase
             ->count());
         $this->assertDatabaseHas('game_matches', [
             'id' => $match->id,
-            'scheduled_date' => '2026-11-05 19:15:00',
+            'scheduled_date' => '2026-11-05 19:00:00',
             'venue_id' => $requestedVenue->id,
             'status' => 'scheduled',
         ]);
@@ -350,7 +353,7 @@ class MatchRescheduleWorkflowTest extends TestCase
                 $match,
                 $homePlayer->user,
                 '2026-10-10',
-                '18:30',
+                '18:00',
                 $requestedVenue->id,
                 'Propuesta preservada',
             );
@@ -386,22 +389,249 @@ class MatchRescheduleWorkflowTest extends TestCase
         }
     }
 
-    public function test_same_championship_exact_occupancy_conflict_rejects_submission(): void
+    #[DataProvider('occupyingMatchStatuses')]
+    public function test_same_championship_exact_occupancy_conflict_rejects_submission(string $status): void
     {
         [$match, $homePlayer] = $this->createMatch();
         $requestedVenue = Venue::factory()->create();
-        $this->createOccupyingMatch($match, $requestedVenue, '2026-10-10 18:30:00');
+        $this->createOccupyingMatch(
+            $match,
+            $requestedVenue,
+            '2026-10-10 18:00:00',
+            $status,
+        );
 
         $this->actingAs($homePlayer->user)
             ->postJson($this->requestUrl($match), $this->validPayload($requestedVenue))
             ->assertUnprocessable()
             ->assertJsonPath(
                 'message',
-                'La pista seleccionada ya está ocupada en esa fecha y hora para otro partido del mismo campeonato.'
+                'La pista seleccionada ya está ocupada en esa fecha y hora por otro partido.'
             );
 
         $this->assertDatabaseCount('match_reschedule_requests', 0);
         $this->assertSame('2026-09-20 17:00:00', $match->fresh()->scheduled_date->format('Y-m-d H:i:s'));
+    }
+
+    public static function occupyingMatchStatuses(): array
+    {
+        return [
+            'scheduled' => ['scheduled'],
+            'submitted' => ['submitted'],
+            'under review' => ['under_review'],
+            'validated' => ['validated'],
+        ];
+    }
+
+    public function test_soft_submission_conflict_is_global_across_categories_in_one_championship(): void
+    {
+        [$match, $homePlayer] = $this->createMatch();
+        $requestedVenue = Venue::factory()->create();
+        $otherCategory = Category::factory()->create([
+            'championship_id' => $match->round->category->championship_id,
+        ]);
+        $otherRound = Round::factory()->create([
+            'category_id' => $otherCategory->id,
+            'type' => 'league',
+            'phase' => 'league',
+            'stage' => 'matchday',
+        ]);
+        GameMatch::factory()->create([
+            'round_id' => $otherRound->id,
+            'venue_id' => $requestedVenue->id,
+            'home_entry_id' => $match->home_entry_id,
+            'away_entry_id' => $match->away_entry_id,
+            'scheduled_date' => '2026-10-10 18:00:00',
+            'status' => 'scheduled',
+        ]);
+
+        $this->actingAs($homePlayer->user)
+            ->postJson($this->requestUrl($match), $this->validPayload($requestedVenue))
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'La pista seleccionada ya está ocupada en esa fecha y hora por otro partido.');
+    }
+
+    public function test_soft_submission_conflict_is_global_across_championships_in_one_season(): void
+    {
+        [$match, $homePlayer] = $this->createMatch();
+        $requestedVenue = Venue::factory()->create();
+        $otherChampionship = Championship::factory()->create([
+            'season_id' => $match->round->category->championship->season_id,
+            'type' => 'singles',
+        ]);
+        $otherCategory = Category::factory()->create([
+            'championship_id' => $otherChampionship->id,
+        ]);
+        $otherRound = Round::factory()->create([
+            'category_id' => $otherCategory->id,
+            'type' => 'league',
+            'phase' => 'league',
+            'stage' => 'matchday',
+        ]);
+        GameMatch::factory()->create([
+            'round_id' => $otherRound->id,
+            'venue_id' => $requestedVenue->id,
+            'home_entry_id' => $match->home_entry_id,
+            'away_entry_id' => $match->away_entry_id,
+            'scheduled_date' => '2026-10-10 18:00:00',
+            'status' => 'scheduled',
+        ]);
+
+        $this->actingAs($homePlayer->user)
+            ->postJson($this->requestUrl($match), $this->validPayload($requestedVenue))
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'La pista seleccionada ya está ocupada en esa fecha y hora por otro partido.');
+    }
+
+    public function test_soft_submission_conflict_is_global_across_championships_and_seasons(): void
+    {
+        [$match, $homePlayer] = $this->createMatch();
+        $requestedVenue = Venue::factory()->create();
+        [$occupying] = $this->createSinglesResultMatch([
+            'venue_id' => $requestedVenue->id,
+            'scheduled_date' => '2026-10-10 18:00:00',
+        ]);
+
+        $this->assertNotSame(
+            $match->round->category->championship_id,
+            $occupying->round->category->championship_id
+        );
+        $this->assertNotSame(
+            $match->round->category->championship->season_id,
+            $occupying->round->category->championship->season_id
+        );
+
+        $this->actingAs($homePlayer->user)
+            ->postJson($this->requestUrl($match), $this->validPayload($requestedVenue))
+            ->assertUnprocessable()
+            ->assertJsonPath(
+                'message',
+                'La pista seleccionada ya está ocupada en esa fecha y hora por otro partido.'
+            );
+
+        $this->assertDatabaseCount('match_reschedule_requests', 0);
+    }
+
+    #[DataProvider('releasedMatchStatuses')]
+    public function test_released_matches_do_not_block_a_soft_proposal(string $status): void
+    {
+        [$match, $homePlayer] = $this->createMatch();
+        $requestedVenue = Venue::factory()->create();
+        $this->createSinglesResultMatch([
+            'venue_id' => $requestedVenue->id,
+            'scheduled_date' => '2026-10-10 18:00:00',
+            'status' => $status,
+        ]);
+
+        $this->actingAs($homePlayer->user)
+            ->postJson($this->requestUrl($match), $this->validPayload($requestedVenue))
+            ->assertOk();
+    }
+
+    public function test_legacy_half_hour_occupancy_blocks_an_overlapping_soft_proposal(): void
+    {
+        [$match, $homePlayer] = $this->createMatch();
+        $requestedVenue = Venue::factory()->create();
+        $this->createSinglesResultMatch([
+            'venue_id' => $requestedVenue->id,
+            'scheduled_date' => '2026-10-10 17:30:00',
+            'status' => 'scheduled',
+        ]);
+
+        $this->actingAs($homePlayer->user)
+            ->postJson($this->requestUrl($match), $this->validPayload($requestedVenue))
+            ->assertUnprocessable()
+            ->assertJsonPath(
+                'message',
+                'La pista seleccionada ya está ocupada en esa fecha y hora por otro partido.'
+            );
+
+        $this->assertDatabaseCount('match_reschedule_requests', 0);
+    }
+
+    public static function releasedMatchStatuses(): array
+    {
+        return [
+            'postponed' => ['postponed'],
+            'cancelled' => ['cancelled'],
+        ];
+    }
+
+    public function test_proposals_do_not_reserve_but_confirmation_is_authoritative(): void
+    {
+        [$firstMatch, $firstHome, $firstAway] = $this->createMatch();
+        [$secondMatch, $secondHome, $secondAway] = $this->createMatch();
+        $requestedVenue = Venue::factory()->create();
+
+        $this->actingAs($firstHome->user)
+            ->postJson($this->requestUrl($firstMatch), $this->validPayload($requestedVenue))
+            ->assertOk();
+        $this->actingAs($secondHome->user)
+            ->postJson($this->requestUrl($secondMatch), $this->validPayload($requestedVenue))
+            ->assertOk();
+
+        $this->assertSame(2, MatchRescheduleRequest::query()->where('status', 'submitted')->count());
+
+        $this->actingAs($firstAway->user)
+            ->postJson($this->confirmUrl($firstMatch))
+            ->assertOk();
+
+        $secondOriginalDate = $secondMatch->scheduled_date->format('Y-m-d H:i:s');
+        $secondOriginalVenue = $secondMatch->venue_id;
+
+        $this->actingAs($secondAway->user)
+            ->postJson($this->confirmUrl($secondMatch))
+            ->assertUnprocessable()
+            ->assertJsonPath(
+                'message',
+                'La pista seleccionada ya está ocupada en esa fecha y hora por otro partido.'
+            );
+
+        $this->assertDatabaseHas('game_matches', [
+            'id' => $secondMatch->id,
+            'scheduled_date' => $secondOriginalDate,
+            'venue_id' => $secondOriginalVenue,
+        ]);
+        $this->assertDatabaseHas('match_reschedule_requests', [
+            'game_match_id' => $secondMatch->id,
+            'side' => 'home',
+            'status' => 'submitted',
+        ]);
+    }
+
+    public function test_confirmation_rejects_a_legacy_non_canonical_proposal_without_rewriting_it(): void
+    {
+        [$match, $homePlayer, $awayPlayer] = $this->createMatch();
+        $requestedVenue = Venue::factory()->create();
+        $originalDate = $match->scheduled_date->format('Y-m-d H:i:s');
+        $originalVenueId = $match->venue_id;
+
+        $proposal = MatchRescheduleRequest::query()->create([
+            'game_match_id' => $match->id,
+            'user_id' => $homePlayer->user_id,
+            'player_id' => $homePlayer->id,
+            'side' => 'home',
+            'requested_scheduled_date' => '2026-10-10 17:30:23',
+            'requested_venue_id' => $requestedVenue->id,
+            'status' => 'submitted',
+            'comment' => 'Propuesta anterior a F1',
+        ]);
+
+        $this->actingAs($awayPlayer->user)
+            ->postJson($this->confirmUrl($match))
+            ->assertUnprocessable()
+            ->assertJsonPath(
+                'message',
+                'Los partidos que ocupan pista deben comenzar a una hora exacta (HH:00).'
+            );
+
+        $this->assertSame('2026-10-10 17:30:23', $proposal->fresh()->requested_scheduled_date->format('Y-m-d H:i:s'));
+        $this->assertSame('submitted', $proposal->fresh()->status->value);
+        $this->assertDatabaseHas('game_matches', [
+            'id' => $match->id,
+            'scheduled_date' => $originalDate,
+            'venue_id' => $originalVenueId,
+        ]);
     }
 
     public function test_occupancy_is_rechecked_on_confirmation_without_partial_mutation(): void
@@ -414,14 +644,14 @@ class MatchRescheduleWorkflowTest extends TestCase
             ->postJson($this->requestUrl($match), $this->validPayload($requestedVenue))
             ->assertOk();
 
-        $this->createOccupyingMatch($match, $requestedVenue, '2026-10-10 18:30:00');
+        $this->createOccupyingMatch($match, $requestedVenue, '2026-10-10 18:00:00');
 
         $this->actingAs($awayPlayer->user)
             ->postJson($this->confirmUrl($match))
             ->assertUnprocessable()
             ->assertJsonPath(
                 'message',
-                'La pista seleccionada ya está ocupada en esa fecha y hora para otro partido del mismo campeonato.'
+                'La pista seleccionada ya está ocupada en esa fecha y hora por otro partido.'
             );
 
         $this->assertDatabaseCount('match_reschedule_requests', 1);
@@ -530,7 +760,7 @@ class MatchRescheduleWorkflowTest extends TestCase
 
         $this->assertDatabaseHas('match_reschedule_requests', [
             'game_match_id' => $match->id,
-            'requested_scheduled_date' => $scheduledDate.' 18:30:00',
+            'requested_scheduled_date' => $scheduledDate.' 18:00:00',
             'requested_venue_id' => $requestedVenue->id,
         ]);
     }
@@ -570,11 +800,13 @@ class MatchRescheduleWorkflowTest extends TestCase
     {
         return [
             'missing' => [null],
-            'single-digit hour' => ['7:30'],
-            'seconds included' => ['18:30:00'],
+            'single-digit hour' => ['7:00'],
+            'seconds included' => ['18:00:00'],
             'hour overflow' => ['24:00'],
             'minute overflow' => ['18:60'],
-            'array' => [['18:30']],
+            'non-canonical quarter' => ['17:15'],
+            'non-canonical half hour' => ['17:30'],
+            'array' => [['18:00']],
         ];
     }
 
@@ -600,7 +832,7 @@ class MatchRescheduleWorkflowTest extends TestCase
     {
         return [
             'start of day' => ['00:00'],
-            'end of day' => ['23:59'],
+            'end of day' => ['23:00'],
         ];
     }
 
@@ -673,21 +905,25 @@ class MatchRescheduleWorkflowTest extends TestCase
     {
         return array_merge([
             'scheduled_date' => '2026-10-10',
-            'scheduled_time' => '18:30',
+            'scheduled_time' => '18:00',
             'venue_id' => $venue->id,
             'comment' => null,
         ], $overrides);
     }
 
-    private function createOccupyingMatch(GameMatch $match, Venue $venue, string $scheduledDate): GameMatch
-    {
+    private function createOccupyingMatch(
+        GameMatch $match,
+        Venue $venue,
+        string $scheduledDate,
+        string $status = 'scheduled',
+    ): GameMatch {
         return GameMatch::factory()->create([
             'round_id' => $match->round_id,
             'venue_id' => $venue->id,
             'home_entry_id' => $match->home_entry_id,
             'away_entry_id' => $match->away_entry_id,
             'scheduled_date' => $scheduledDate,
-            'status' => 'scheduled',
+            'status' => $status,
         ]);
     }
 

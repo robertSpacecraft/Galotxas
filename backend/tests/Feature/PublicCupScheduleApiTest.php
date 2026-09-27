@@ -53,18 +53,21 @@ class PublicCupScheduleApiTest extends TestCase
         $thirdPlaceRound = $this->cupRound($category, '3º y 4º', 201, 'third_place');
 
         $this->cupMatch($semifinalRound, $homeEntry, $awayEntry, $venue, [
+            'scheduled_date' => '2026-09-12 17:00:00',
             'status' => 'scheduled',
             'home_score' => 10,
             'away_score' => 8,
             'winner_entry_id' => $homeEntry->id,
         ]);
         $final = $this->cupMatch($finalRound, $homeEntry, $awayEntry, $venue, [
+            'scheduled_date' => '2026-09-12 18:00:00',
             'status' => 'validated',
             'home_score' => 10,
             'away_score' => 7,
             'winner_entry_id' => $homeEntry->id,
         ]);
         $this->cupMatch($thirdPlaceRound, $homeEntry, $awayEntry, $venue, [
+            'scheduled_date' => '2026-09-12 19:00:00',
             'status' => 'validated',
             'home_score' => 6,
             'away_score' => 10,
@@ -127,7 +130,7 @@ class PublicCupScheduleApiTest extends TestCase
             'venue_id' => $venue->id,
             'home_entry_id' => $homeEntry->id,
             'away_entry_id' => $awayEntry->id,
-            'scheduled_date' => '2026-09-12 18:30:00',
+            'scheduled_date' => '2026-09-12 18:00:00',
             ...$overrides,
         ]);
     }

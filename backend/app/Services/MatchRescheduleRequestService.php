@@ -10,7 +10,6 @@ use App\Models\GameMatch;
 use App\Models\MatchRescheduleRequest;
 use App\Models\Player;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -19,6 +18,8 @@ class MatchRescheduleRequestService
 {
     public function __construct(
         private readonly OfficialResultMutationGuard $mutationGuard,
+        private readonly MatchScheduleTimePolicy $timePolicy,
+        private readonly VenueOccupancyService $occupancy,
     ) {}
 
     public function submitRequest(
@@ -35,7 +36,8 @@ class MatchRescheduleRequestService
             throw new InvalidArgumentException('El usuario autenticado no tiene un perfil de jugador asociado.');
         }
 
-        $requestedDateTime = Carbon::createFromFormat('Y-m-d H:i', $scheduledDate.' '.$scheduledTime);
+        $requestedDateTime = $this->timePolicy->fromHumanInput($scheduledDate, $scheduledTime);
+        $this->timePolicy->assertCanonicalStart($requestedDateTime);
 
         return DB::transaction(function () use ($match, $user, $player, $requestedDateTime, $venueId, $comment) {
             /** @var GameMatch $lockedMatch */
@@ -80,7 +82,7 @@ class MatchRescheduleRequestService
                 throw new InvalidArgumentException('Ya existe una solicitud rival pendiente. Debes confirmarla, no crear una nueva.');
             }
 
-            $this->assertScheduleIsAvailable($lockedMatch, $requestedDateTime, $venueId);
+            $this->occupancy->assertSoftAvailable($lockedMatch, $requestedDateTime, $venueId);
 
             try {
                 /** @var MatchRescheduleRequest $request */
@@ -155,32 +157,49 @@ class MatchRescheduleRequestService
                 throw new InvalidArgumentException('No existe ninguna solicitud rival para confirmar.');
             }
 
-            $this->assertScheduleIsAvailable(
+            $requestedDateTime = $oppositeRequest->requested_scheduled_date;
+            $requestedVenueId = (int) $oppositeRequest->requested_venue_id;
+
+            $this->timePolicy->assertCanonicalStart($requestedDateTime);
+            $this->occupancy->assertTargetCanBePersisted(
                 $lockedMatch,
-                $oppositeRequest->requested_scheduled_date,
-                $oppositeRequest->requested_venue_id
+                $requestedDateTime,
+                $requestedVenueId,
+                $lockedMatch->status,
             );
 
             /** @var MatchRescheduleRequest $confirmation */
-            $confirmation = MatchRescheduleRequest::query()->create([
-                'game_match_id' => $lockedMatch->id,
-                'user_id' => $user->id,
-                'player_id' => $player->id,
-                'side' => $side->value,
-                'requested_scheduled_date' => $oppositeRequest->requested_scheduled_date,
-                'requested_venue_id' => $oppositeRequest->requested_venue_id,
-                'status' => MatchRescheduleRequestStatus::VALIDATED->value,
-                'comment' => null,
-            ]);
+            $confirmation = $this->occupancy->withConflictTranslation(function () use (
+                $lockedMatch,
+                $oppositeRequest,
+                $player,
+                $requestedDateTime,
+                $requestedVenueId,
+                $side,
+                $user,
+            ): MatchRescheduleRequest {
+                $confirmation = MatchRescheduleRequest::query()->create([
+                    'game_match_id' => $lockedMatch->id,
+                    'user_id' => $user->id,
+                    'player_id' => $player->id,
+                    'side' => $side->value,
+                    'requested_scheduled_date' => $requestedDateTime,
+                    'requested_venue_id' => $requestedVenueId,
+                    'status' => MatchRescheduleRequestStatus::VALIDATED->value,
+                    'comment' => null,
+                ]);
 
-            $oppositeRequest->update([
-                'status' => MatchRescheduleRequestStatus::VALIDATED->value,
-            ]);
+                $oppositeRequest->update([
+                    'status' => MatchRescheduleRequestStatus::VALIDATED->value,
+                ]);
 
-            $lockedMatch->update([
-                'scheduled_date' => $oppositeRequest->requested_scheduled_date,
-                'venue_id' => $oppositeRequest->requested_venue_id,
-            ]);
+                $lockedMatch->update([
+                    'scheduled_date' => $requestedDateTime,
+                    'venue_id' => $requestedVenueId,
+                ]);
+
+                return $confirmation;
+            });
 
             return $confirmation->fresh('requestedVenue');
         });
@@ -229,30 +248,5 @@ class MatchRescheduleRequestService
         }
 
         return false;
-    }
-
-    protected function assertScheduleIsAvailable(
-        GameMatch $match,
-        Carbon $requestedDateTime,
-        int $venueId
-    ): void {
-        $championshipId = $match->round?->category?->championship_id;
-
-        if (! $championshipId) {
-            throw new InvalidArgumentException('No se ha podido determinar el campeonato del partido.');
-        }
-
-        $exists = GameMatch::query()
-            ->whereKeyNot($match->id)
-            ->where('venue_id', $venueId)
-            ->where('scheduled_date', $requestedDateTime)
-            ->whereHas('round.category', function ($query) use ($championshipId) {
-                $query->where('championship_id', $championshipId);
-            })
-            ->exists();
-
-        if ($exists) {
-            throw new InvalidArgumentException('La pista seleccionada ya está ocupada en esa fecha y hora para otro partido del mismo campeonato.');
-        }
     }
 }

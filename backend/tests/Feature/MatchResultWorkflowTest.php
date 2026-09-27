@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\MatchResultReportService;
 use App\Services\MatchResultService;
 use App\Services\OfficialResultMutationGuard;
+use App\Services\VenueOccupancyService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use RuntimeException;
 use Tests\Concerns\CreatesMatchResultWorkflow;
@@ -332,7 +333,7 @@ class MatchResultWorkflowTest extends TestCase
         [$match, $homePlayer, $awayPlayer] = $this->createSinglesResultMatch();
         app(MatchResultReportService::class)->submitReport($match, $homePlayer->user, 10, 7);
 
-        $failingResultService = new class(app(OfficialResultMutationGuard::class)) extends MatchResultService
+        $failingResultService = new class(app(OfficialResultMutationGuard::class), app(VenueOccupancyService::class)) extends MatchResultService
         {
             public function resolveWinnerEntryId(GameMatch $match, int $homeScore, int $awayScore): int
             {

@@ -3,10 +3,10 @@
 namespace App\Services;
 
 use App\Enums\OfficialResultMutationImpact;
+use App\Exceptions\VenueOccupancyConflictException;
 use App\Models\Category;
 use App\Models\GameMatch;
 use App\Models\Round;
-use App\Models\Venue;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +17,8 @@ class GenerateLeagueScheduleService
     public function __construct(
         private readonly OfficialResultMutationGuard $mutationGuard,
         private readonly OfficialResultLockService $locks,
+        private readonly MatchScheduleTimePolicy $timePolicy,
+        private readonly VenueOccupancyService $occupancy,
     ) {}
 
     /**
@@ -59,7 +61,7 @@ class GenerateLeagueScheduleService
                 throw new RuntimeException('La categoría ya tiene partidos de liga generados.');
             }
 
-            $venueIds = $this->resolveVenueIds();
+            $venueIds = $this->occupancy->lockAllVenues()->modelKeys();
 
             if ($venueIds === []) {
                 throw new RuntimeException('No hay pistas configuradas. Crea al menos una pista desde el panel de administración antes de generar la liga.');
@@ -78,37 +80,51 @@ class GenerateLeagueScheduleService
                     'type' => 'league',
                 ]);
 
-                $slots = $this->buildWeekendSlots($startDate->copy()->addWeeks($roundIndex), $venueIds);
+                $slots = $this->occupancy->availableSlots(
+                    $this->buildWeekendSlots(
+                        $startDate->copy()->addWeeks($roundIndex),
+                        $venueIds
+                    )
+                );
 
                 if (count($roundPairings) > count($slots)) {
                     throw new RuntimeException('No hay suficientes pistas configuradas para programar la jornada '.$roundNumber.' sin colisiones en los horarios disponibles.');
                 }
 
-                foreach ($roundPairings as $matchIndex => $pairing) {
-                    $slot = $slots[$matchIndex];
+                foreach ($roundPairings as $pairing) {
+                    $created = false;
 
-                    GameMatch::create([
-                        'round_id' => $round->id,
-                        'venue_id' => $slot['venue_id'],
-                        'home_entry_id' => $pairing['home']->id,
-                        'away_entry_id' => $pairing['away']->id,
-                        'scheduled_date' => $slot['scheduled_at'],
-                        'status' => 'scheduled',
-                    ]);
+                    while ($slot = array_shift($slots)) {
+                        $this->timePolicy->assertCanonicalStart($slot['scheduled_at']);
+
+                        try {
+                            $this->occupancy->withConflictTranslation(
+                                fn (): GameMatch => GameMatch::create([
+                                    'round_id' => $round->id,
+                                    'venue_id' => $slot['venue_id'],
+                                    'home_entry_id' => $pairing['home']->id,
+                                    'away_entry_id' => $pairing['away']->id,
+                                    'scheduled_date' => $slot['scheduled_at'],
+                                    'status' => 'scheduled',
+                                ])
+                            );
+                            $created = true;
+
+                            break;
+                        } catch (VenueOccupancyConflictException) {
+                            // Under REPEATABLE READ a generator that waited for the
+                            // Venue lock can retain an older consistent-read snapshot.
+                            // The named UNIQUE is the current-state backstop; continue
+                            // with the next deterministic candidate in this round.
+                        }
+                    }
+
+                    if (! $created) {
+                        throw new RuntimeException('No hay suficientes pistas configuradas para programar la jornada '.$roundNumber.' sin colisiones en los horarios disponibles.');
+                    }
                 }
             }
         });
-    }
-
-    /**
-     * Devuelve una sola vez los IDs de todas las pistas en orden estable.
-     */
-    private function resolveVenueIds(): array
-    {
-        return Venue::query()
-            ->orderBy('id')
-            ->pluck('id')
-            ->all();
     }
 
     /**
@@ -140,7 +156,7 @@ class GenerateLeagueScheduleService
         $slots = [];
 
         $fridayHours = ['17:00', '18:00', '19:00', '20:00'];
-        $saturdayHours = ['17:30', '18:00', '19:00'];
+        $saturdayHours = ['17:00', '18:00', '19:00'];
 
         foreach ($fridayHours as $hour) {
             foreach ($venueIds as $venueId) {
