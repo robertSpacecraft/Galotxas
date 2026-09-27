@@ -12,6 +12,15 @@ class AdminVenueTest extends TestCase
 {
     use DatabaseTruncation;
 
+    protected function tearDown(): void
+    {
+        try {
+            $this->truncateDatabaseTables();
+        } finally {
+            parent::tearDown();
+        }
+    }
+
     public function test_admin_can_list_venues(): void
     {
         $admin = User::factory()->admin()->create();
