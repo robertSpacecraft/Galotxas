@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\CategoryAgeGroup;
 use App\Models\Category;
 use App\Models\CategoryOfficialResult;
 use App\Models\Championship;
@@ -573,6 +574,7 @@ class ResponsiveUploadLifecycleTest extends TestCase
             ], $image),
             default => app(CategoryMutationService::class)->create(Championship::factory()->publiclyVisible()->create(), [
                 'name' => 'Category', 'status' => 'draft', 'is_public' => true, 'gender' => 'mixed',
+                'age_group' => CategoryAgeGroup::OPEN->value,
             ], $image),
         };
     }
@@ -594,6 +596,7 @@ class ResponsiveUploadLifecycleTest extends TestCase
             ], $image, $remove),
             default => app(CategoryMutationService::class)->update($entity, [
                 'name' => $entity->name, 'status' => $entity->status, 'is_public' => true, 'gender' => $entity->gender->value,
+                'age_group' => CategoryAgeGroup::OPEN->value,
             ], $image, $remove),
         };
     }

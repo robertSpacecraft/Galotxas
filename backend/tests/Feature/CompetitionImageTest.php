@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\CategoryAgeGroup;
 use App\Exceptions\OfficialResultMutationBlockedException;
 use App\Models\Category;
 use App\Models\CategoryOfficialResult;
@@ -612,6 +613,7 @@ class CompetitionImageTest extends TestCase
             default => [
                 'name' => $entity->name, 'status' => $entity->status, 'is_public' => true,
                 'level' => $entity->level, 'gender' => $entity->gender->value,
+                'age_group' => CategoryAgeGroup::OPEN->value,
             ],
         };
     }
