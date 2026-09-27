@@ -8,6 +8,7 @@ use App\Models\CategoryEntry;
 use App\Models\Championship;
 use App\Models\GameMatch;
 use App\Models\Player;
+use App\Models\Round;
 use App\Models\User;
 use App\Models\Venue;
 use App\Services\MatchRescheduleRequestService;
@@ -355,6 +356,59 @@ class VenueOccupancyConcurrencyTest extends TestCase
     }
 
     /** @return array{GameMatch, Player, Player} */
+    public function test_two_cup_generators_serialize_and_choose_disjoint_slots(): void
+    {
+        Venue::factory()->create(['court_number' => 2]);
+        $first = $this->categoryWithEntries();
+        $second = $this->categoryWithEntries();
+        [$winner, $next] = $this->blockingRace(
+            'generate_cup', ['category_id' => $first->id],
+            'generate_cup', ['category_id' => $second->id],
+            'for update',
+        );
+        $this->assertSame('ok', $winner['status'], json_encode($winner));
+        $this->assertSame('ok', $next['status'], json_encode($next));
+        $matches = GameMatch::orderBy('scheduled_date')->get();
+        $this->assertCount(4, $matches);
+        $this->assertSame(['17:00', '18:00', '19:00', '20:00'], $matches->map(fn ($m) => $m->scheduled_date->format('H:i'))->all());
+        $this->assertSame(4, $matches->pluck('scheduled_date')->unique()->count());
+    }
+
+    public function test_competing_cup_finals_cannot_acquire_the_only_required_slot_or_leave_a_partial_pair(): void
+    {
+        Venue::factory()->create(['court_number' => 2]);
+        $required = Venue::factory()->create(['court_number' => 4]);
+        $first = $this->categoryWithEntries();
+        $second = $this->categoryWithEntries();
+        foreach ([$first, $second] as $category) {
+            $category->update(['gender' => 'male', 'level' => 1]);
+            $entries = $category->entries()->orderBy('id')->get();
+            $semi = Round::factory()->create([
+                'category_id' => $category->id, 'type' => 'cup', 'phase' => 'cup', 'stage' => 'semifinal',
+            ]);
+            foreach ([0, 2] as $i) {
+                GameMatch::factory()->create([
+                    'round_id' => $semi->id, 'home_entry_id' => $entries[$i]->id, 'away_entry_id' => $entries[$i + 1]->id,
+                    'status' => 'validated', 'home_score' => 10, 'away_score' => 5,
+                    'venue_id' => null, 'scheduled_date' => null,
+                ]);
+            }
+        }
+        [$winner, $loser] = $this->blockingRace(
+            'generate_cup_finals', ['category_id' => $first->id],
+            'generate_cup_finals', ['category_id' => $second->id],
+            'for update',
+        );
+        $this->assertSame('ok', $winner['status'], json_encode($winner));
+        $this->assertSame('exception', $loser['status']);
+        $this->assertSame(\RuntimeException::class, $loser['class']);
+        $this->assertStringContainsString('No hay pistas permitidas libres para Final', $loser['message']);
+        $this->assertSame(1, GameMatch::where('venue_id', $required->id)->where('scheduled_date', '2026-09-11 20:00:00')->count());
+        $this->assertSame(3, $first->rounds()->count());
+        $this->assertSame(1, $second->rounds()->count());
+        $this->assertSame(6, GameMatch::count());
+    }
+
     private function matchAt(string $scheduledDate, string $status = 'scheduled'): array
     {
         return $this->createSinglesResultMatch([
@@ -482,7 +536,9 @@ class VenueOccupancyConcurrencyTest extends TestCase
             usleep(50_000);
         }
 
-        $this->fail('El segundo proceso no llegó a bloquearse esperando la pista del primero.');
+        $this->fail('El segundo proceso no llegó a bloquearse esperando la pista del primero. Consultas activas: '.json_encode(
+            collect(DB::select('SHOW FULL PROCESSLIST'))->pluck('Info')->filter()->values()->all()
+        ));
     }
 
     private function hasStatement(string $needle, int $ownConnection): bool

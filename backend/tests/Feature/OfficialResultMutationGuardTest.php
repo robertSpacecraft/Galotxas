@@ -373,6 +373,8 @@ class OfficialResultMutationGuardTest extends TestCase
     public function test_league_official_still_allows_cup_generation(): void
     {
         $category = Category::factory()->create();
+        $category->championship->update(['start_date' => '2026-07-03', 'end_date' => '2026-09-11']);
+        Venue::factory()->create(['court_number' => 2]);
         CategoryEntry::factory()->count(4)->playerEntry()->create([
             'category_id' => $category->id,
             'status' => 'approved',

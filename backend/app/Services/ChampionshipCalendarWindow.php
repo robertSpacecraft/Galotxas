@@ -12,7 +12,7 @@ class ChampionshipCalendarWindow
     public function weekends(Championship $championship, int $requiredRounds): array
     {
         if (! $championship->start_date || ! $championship->end_date) {
-            throw new RuntimeException('Define las fechas de inicio y fin del campeonato antes de generar la liga.');
+            throw new RuntimeException('Define las fechas de inicio y fin del campeonato antes de generar el calendario.');
         }
 
         $friday = $championship->start_date->copy()->startOfDay();

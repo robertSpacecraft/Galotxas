@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Models\Category;
 use App\Models\Championship;
 use App\Models\GameMatch;
 use App\Models\User;
 use App\Models\Venue;
+use App\Services\GenerateCupService;
 use App\Services\GenerateLeagueScheduleService;
 use App\Services\MatchRescheduleRequestService;
 use App\Services\MatchResultService;
@@ -89,6 +91,20 @@ try {
 
                     return ['status' => 'ok'];
                 })(),
+                'generate_cup' => (function () use ($payload): array {
+                    app(GenerateCupService::class)->generateSemifinals(
+                        Category::query()->findOrFail((int) $payload['category_id'])
+                    );
+
+                    return ['status' => 'ok'];
+                })(),
+                'generate_cup_finals' => (function () use ($payload): array {
+                    app(GenerateCupService::class)->generateFinals(
+                        Category::query()->findOrFail((int) $payload['category_id'])
+                    );
+
+                    return ['status' => 'ok'];
+                })(),
                 'delete_venue' => [
                     'status' => 'ok',
                     'deleted' => app(VenueDeletionService::class)->deleteIfUnused(
@@ -141,7 +157,7 @@ try {
     if ($action === 'delete_venue') {
         $runAction();
     } else {
-        if ($action === 'generate_league') {
+        if (in_array($action, ['generate_league', 'generate_cup', 'generate_cup_finals'], true)) {
             DB::statement('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
         }
         DB::transaction($runAction);
