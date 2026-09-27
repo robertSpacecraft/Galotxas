@@ -28,6 +28,7 @@
                         <table class="table table-bordered table-striped align-middle mb-0">
                             <thead class="table-dark">
                             <tr>
+                                <th>Número de pista</th>
                                 <th>Nombre</th>
                                 <th>Ubicación</th>
                                 <th>Descripción</th>
@@ -41,6 +42,9 @@
                                     $isInUse = $venue->matches_count > 0 || $venue->reschedule_requests_count > 0;
                                 @endphp
                                 <tr>
+                                    <td>
+                                        {{ $venue->court_number !== null ? $venue->court_number : 'Sin clasificar' }}
+                                    </td>
                                     <td>{{ $venue->name }}</td>
                                     <td>{{ $venue->location ?: '-' }}</td>
                                     <td>{{ $venue->description ?: '-' }}</td>

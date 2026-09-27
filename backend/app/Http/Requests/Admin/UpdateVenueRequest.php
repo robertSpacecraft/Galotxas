@@ -15,6 +15,13 @@ class UpdateVenueRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'court_number' => [
+                'required',
+                'integer',
+                'min:1',
+                'max:4294967295',
+                Rule::unique('venues', 'court_number')->ignore($this->route('venue')),
+            ],
             'name' => [
                 'required',
                 'string',
@@ -23,6 +30,13 @@ class UpdateVenueRequest extends FormRequest
             ],
             'location' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'court_number' => 'número de pista',
         ];
     }
 }

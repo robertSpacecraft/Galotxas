@@ -11,10 +11,18 @@ class Venue extends Model
     use HasFactory;
 
     protected $fillable = [
+        'court_number',
         'name',
         'location',
         'description',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'court_number' => 'integer',
+        ];
+    }
 
     public function matches(): HasMany
     {

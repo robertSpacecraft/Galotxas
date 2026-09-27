@@ -12,7 +12,24 @@
 @endif
 
 <div class="row g-3">
-    <div class="col-md-6">
+    <div class="col-md-4">
+        <label for="court_number" class="form-label">Número de pista</label>
+        <input
+            id="court_number"
+            type="number"
+            name="court_number"
+            class="form-control @error('court_number') is-invalid @enderror"
+            value="{{ old('court_number', $venue->court_number ?? '') }}"
+            min="1"
+            step="1"
+            required
+        >
+        @error('court_number')
+        <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+    </div>
+
+    <div class="col-md-4">
         <label for="name" class="form-label">Nombre</label>
         <input
             id="name"
@@ -28,7 +45,7 @@
         @enderror
     </div>
 
-    <div class="col-md-6">
+    <div class="col-md-4">
         <label for="location" class="form-label">Ubicación</label>
         <input
             id="location"
