@@ -1030,7 +1030,9 @@ El modelo no dispone de `active`, por lo que no existe un scope de activas que p
 
 ## Generación reproducible de liga
 
-SCHEDULE-1 incorpora cobertura Feature para:
+SCHEDULE-1 incorporó originalmente la cobertura Feature siguiente. Es evidencia
+histórica del generador por categoría, no el contrato vigente: 5.7-F4 lo
+sustituye por planificación global de campeonato (véase la sección 5.7-F).
 
 - fallo sin pistas, mensaje administrativo accionable y ausencia de jornadas o partidos parciales;
 - pistas con IDs no consecutivos y nombres personalizados;
@@ -1042,7 +1044,9 @@ SCHEDULE-1 incorpora cobertura Feature para:
 - protección frente a regeneración duplicada;
 - regresión de copa y finales mediante la suite competitiva existente.
 
-La cobertura de SCHEDULE-1 valida colisiones dentro de cada categoría generada. La coordinación de horarios entre categorías diferentes queda fuera de este bloque.
+La cobertura original de SCHEDULE-1 validaba colisiones dentro de cada categoría
+generada; la coordinación entre categorías quedó fuera de aquel bloque y está
+implementada en 5.7-F.
 
 
 # 10. Pruebas de gobernanza y publicación
@@ -2875,6 +2879,125 @@ oficiales y de competición para recorrer todos los casos dependientes de datos;
 esa limitación de aceptación no se convierte en un PASS inventado. Tampoco se
 acredita un ensayo histórico de rollback ni una prueba de persistencia de media
 tras redeploy en staging.
+
+## 5.7-F — Ocupación global y planificación (STAGING PASS, producción pendiente)
+
+Estado: **IMPLEMENTADO / REGRESIÓN LOCAL PASS / STAGING PASS / PRODUCCIÓN
+PENDIENTE**, sin cierre canónico. Evidencia local y aceptación de staging
+comunicadas y verificadas por el usuario; esta pasada documental no ejecutó
+tests ni probes remotos. No consta migración o remediación de F en producción.
+
+### Checkpoint y regresión local final
+
+| Pieza | Commit exacto |
+| --- | --- |
+| F1 — ocupación global | `ace03f4d4e864543f374456b1733f7efd86c1150` |
+| Aislamiento de tests de pistas | `50bca1e090b84e54d82d5c43f63ed207069f0329` |
+| F2 — identidad de pista | `343ee8f2a49dce2f04853a8b65f3c063bd7c8f1e` |
+| F3 — clasificación de categoría | `0d4e36767150552c2bf25347d539d70dea593ec7` |
+| F4 — Liga global | `a8e0f371a16776cd57006da0d2ee958ac124873b` |
+| F5 — Copa programada | `276636b9b10f1340c32f244672a70486407d9bc0` |
+| Reparación exclusiva de fixtures | `c8e4c2643aba636ad7e8dcc871e078e0d21f8a1b` |
+
+Suite backend completa final: **2047 passed / 19457 assertions / 159,86 s**.
+`git diff --check`: PASS; árbol limpio tras commitear la reparación de fixtures.
+El run anterior con 27 fallos/2020 PASS no era la aceptación final: faltaba el
+`age_group` explícito en helpers de Category de `CompetitionImageTest` y
+`ResponsiveUploadLifecycleTest`. `c8e4c26` sólo añadió
+`CategoryAgeGroup::OPEN->value` e imports en esos dos tests; no hizo opcional
+la validación, no añadió default productivo y no modificó migraciones.
+
+La cobertura relevante está en `GameMatchVenueOccupancyMigrationTest`,
+`AdminGameMatchUpdateTest`,
+`MatchRescheduleWorkflowTest`, `AdminVenueTest`, `VenueOccupancyConcurrencyTest`,
+`VenueCourtNumberMigrationTest`, `CategoryAgeGroupMigrationTest`,
+`AdminCategoryTest`, `GenerateLeagueScheduleServiceTest`,
+`GenerateCupServiceTest` y `OfficialResultMutationGuardTest`.
+No se atribuye una ejecución frontend/E2E nueva para este bloque backend/Blade.
+
+### Rollout y garantía DB aceptados en staging
+
+1. Se aplicó selectivamente F2
+   `2026_09_27_000001_add_court_number_to_venues_table`.
+2. Se aplicó selectivamente F3
+   `2026_09_27_000002_add_age_group_to_categories_table`.
+3. Una persona asignó explícitamente los números a pistas reales, sin inferencia:
+
+   | `court_number` | Venue ID |
+   | --- | --- |
+   | 1 | 2 |
+   | 2 | 3 |
+   | 3 | 4 |
+   | 4 | 1 |
+   | 5 | 5 |
+   | 6 | 6 |
+
+   Venue 1 conserva el nombre `Galotxa 4 Antonio Marhuenda "Caragol"`.
+   Esta tabla es evidencia operacional puntual de staging, no una regla ID → pista.
+4. F1 permaneció pendiente durante la aceptación del planificador.
+5. El preflight read-only posterior dio `duplicate_slot_groups=0`,
+   `overlap_pairs=0`, `noncanonical_occupying_starts=0`,
+   `partial_occupying_slots=0`.
+6. F1 `2026_09_27_000000_enforce_game_match_venue_occupancy` se aplicó
+   correctamente en **batch 14**: columna generada STORED `occupancy_guard`,
+   índice `game_matches_venue_occupancy_unique`
+   `(venue_id, scheduled_date, occupancy_guard)`.
+7. Una prueba directa de colisión DB, sin Laravel, fue rechazada por MariaDB:
+   SQLSTATE `23000`, driver `1062`, constraint nombrado detectado;
+   filas antes/después **459/459**, `database unchanged=true`.
+
+El preflight bloquea duplicados exactos y solapamientos físicos ocupantes; un
+legacy no canónico aislado sólo es diagnóstico y no se repara. La aplicación
+detecta intervalos de una hora (adyacencia permitida); la DB protege igualdad
+exacta de slot, no implementa un constraint de solapamiento ni CHECK de HH:00.
+
+### Escenario A — saturación global singles
+
+- Dataset privado sintético `STAGING-F57`, no datos de negocio productivos:
+  8 categorías × 10 jugadores aprobados; 9 rondas/fines de semana,
+  **72 Round / 360 GameMatch**, exactamente 40 partidos por fin de semana.
+- Liga desde **2028-01-07 hasta 2028-03-03**; anclajes **2028-03-10 y
+  2028-03-17** reservados para Copa. Colisiones físicas=0, inicios inválidos=0,
+  partidos en pista 1=0.
+- Primera masculina abierta nivel 1: 45 partidos, pista incorrecta=0.
+  Pista 6: **72** partidos, juvenil=45, abierta masculina nivel 6=27.
+- Regeneración: partidos 360/360, rondas 72/72; IDs antiguos de partidos y
+  rondas sobrevivientes=0; hashes del plan determinista idénticos,
+  colisiones=0.
+
+### Escenario B — Copa singles
+
+- Liga validada **18/18**. Seis semifinales el primer viernes reservado,
+  ninguna en pista 1; colisiones=0.
+- Generar Final antes de validar semifinales falló correctamente.
+- En el segundo viernes, **2028-05-05**: Final juvenil 18:00/pista 2;
+  femenina 19:00/pista 2; abierta masculina nivel 1 20:00/pista 4.
+  Todos los terceros puestos a las 17:00, ninguno en pista 1;
+  colisiones=0.
+
+### Escenario C — doubles
+
+- Liga: **12 partidos**, 6 primera masculina abierta nivel 1, todos en pista 1;
+  6 femeninos, ninguno en pista 1. Colisiones físicas=0; validados **12/12**.
+- Cuatro semifinales el primer viernes reservado, ninguna en pista 1.
+- Finales del **2028-06-30**: primera masculina abierta nivel 1
+  20:00/pista 1; femenina 19:00/pista 2. Terceros puestos a las 17:00,
+  nunca en pista 1; colisiones=0.
+
+### Cleanup y frontera de aceptación
+
+El dataset privado sintético `STAGING-F57` fue eliminado completamente después
+de aceptar los escenarios: `qa_seasons=0`, `qa_championships=0`,
+`qa_categories=0`, `qa_teams=0`, `qa_users=0`. Las asignaciones de
+`court_number` de pistas reales se retuvieron deliberadamente. La QA usó
+clasificaciones explícitas; no acredita clasificación de todas las categorías
+legacy de staging.
+
+La aceptación es **STAGING PASS**, no cierre productivo. El orden de timestamps
+F1/F2/F3 obliga a evitar `migrate` general a ciegas en legacy. El runbook
+prescribe F2/F3 selectivos, clasificación humana, decisión explícita ante
+historia/solapamientos, preflight limpio y F1, sin reparar datos automáticamente.
+**5.7-J sólo comienza después del cierre productivo de F.**
 
 ## MINOR-PUBLIC-IDENTITY-MODE-HIERARCHY-1 — Semántica jerárquica de identidad pública de menores
 

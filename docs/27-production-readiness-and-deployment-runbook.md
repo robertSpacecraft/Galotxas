@@ -344,7 +344,9 @@ explícitamente con los comandos inferiores).* En una DB vacía o una release co
 3. activar maintenance sólo si la migración o compatibilidad lo exige;
 4. ejecutar `php artisan migrate:status`;
 5. revisar la lista exacta;
-6. ejecutar una vez `php artisan migrate --force` desde la release nueva;
+6. ejecutar las migraciones aprobadas desde la release nueva: normalmente
+   `php artisan migrate --force`; **5.7-F en legacy requiere el rollout selectivo
+   por `--path` descrito debajo, no una ejecución general a ciegas**;
 7. repetir `migrate:status` y `deploy:check`;
 8. comprobar `/up`, API y smoke;
 9. retirar maintenance si se activó.
@@ -353,6 +355,100 @@ No se usa `migrate:fresh`, `db:wipe`, `migrate:reset`, rollback automático ni
 `E2ESmokeSeeder`. `DatabaseSeeder` contiene credenciales/datos de demo y queda
 prohibido. Ante un fallo se prefiere corregir hacia delante; restaurar una DB
 requiere decisión humana y el runbook de restore.
+
+### 5.7-F — Rollout selectivo de ocupación y metadatos
+
+**STAGING PASS / PRODUCCIÓN PENDIENTE.** No se ha ejecutado migración ni
+remediación productiva de F. Este procedimiento documenta la aceptación de
+staging y el gate futuro de producción, no autoriza operaciones remotas.
+Se conservan los gates anteriores de preflight, backup/restore, compatibilidad
+código/esquema y mantenimiento cuando corresponda; Git y despliegue permanecen
+bajo control humano.
+
+El orden de timestamps es F1 `000000` (ocupación), F2 `000001`
+(`court_number`), F3 `000002` (`age_group`). Una migración general en legacy
+puede intentar F1 antes de disponer de metadatos para regenerar con seguridad
+el calendario antiguo. No debilitar F1 para hacer pasar el despliegue.
+
+**Congelación de writers para producción:** F2/F3 son adiciones nullable
+compatibles hacia atrás y pueden instalarse selectivamente bajo los gates
+operacionales normales. Si la plataforma exige desplegar la nueva release
+para ejecutar sus archivos de migración, no exponerla a escrituras ordinarias
+de categorías, pistas o competición mientras falte el esquema F2/F3 requerido:
+usar mantenimiento o una congelación equivalente explícitamente verificada.
+Antes de cualquier regeneración/remediación remota de Liga, y como muy tarde
+inmediatamente antes del **preflight FINAL de F1**, congelar los writers de
+competición y mantener esa congelación sin interrupción durante cualquier
+remediación/regeneración final autorizada, el preflight final, la migración F1
+y la verificación de `migrate:status`/esquema. Sólo pueden escribir las
+operaciones de remediación expresamente autorizadas; tras ellas se repite el
+preflight final bajo la misma congelación. No puede existir un hueco entre
+preflight limpio y DDL donde writers legacy o de una release antigua introduzcan
+ocupación. Sin mantenimiento completo, el operador debe demostrar explícitamente
+que ninguna release antigua ni worker puede seguir escribiendo competición,
+que todos los writers activos ejecutan la nueva política global de ocupación
+de Venue y que no hay writers externos/manuales activos; en caso contrario,
+**STOP y usar mantenimiento**. Mantenimiento por sí solo no detiene workers,
+peticiones en curso ni clientes externos: también deben detenerse o drenarse
+los writers correspondientes y verificar su congelación efectiva. Las escrituras
+normales sólo se reanudan después de verificar F1. Este requisito de seguridad
+productiva no acredita ni presupone uso de mantenimiento durante staging.
+
+1. Inspeccionar producción **read-only**, con autorización, y registrar la
+   lista exacta de migraciones pendientes, pistas/categorías sin clasificar,
+   datos competitivos e historia, duplicados exactos y solapamientos ocupantes.
+   No adivinar números a partir del ID/nombre ni edad desde nombre/nivel.
+2. Tras los gates operacionales y autorización de esquema, aplicar **sólo F2
+   y F3**, en este orden y por path exacto desde el directorio backend:
+
+   ```bash
+   php artisan migrate --force --path=database/migrations/2026_09_27_000001_add_court_number_to_venues_table.php
+   php artisan migrate --force --path=database/migrations/2026_09_27_000002_add_age_group_to_categories_table.php
+   ```
+
+3. Clasificar explícitamente mediante decisión humana las pistas y categorías
+   necesarias; ambas migraciones preservan legacy NULL, sin backfill.
+   Toda edición de Category exige `age_group`; la legibilidad de NULL no
+   acredita que pueda generarse un calendario con metadatos ausentes.
+4. Revisar el calendario legacy y blockers F1. Si hay Liga solapada, verificar
+   si es exclusivamente fixture `scheduled` sin resultados, informes,
+   reprogramaciones, oficialidad histórica ni Copa/estructura dependiente.
+   **Si existe historia o resultados, STOP**: obtener una decisión explícita de
+   remediación. No borrar, mover, redondear ni desprogramar automáticamente.
+5. Desplegar/usar el planificador global sólo con sus precondiciones satisfechas:
+   metadatos, pistas permitidas, 2–10 aprobados por categoría, fechas/capacidad
+   y seguridad de reemplazo. Cualquier regeneración/remediación remota requiere
+   autorización explícita. F4 permite reemplazo completo atómico sin historia;
+   no es una reparación individual ni elimina Copa. F1 puede seguir pendiente
+   durante esta fase controlada, como en staging.
+6. Obtener y registrar **preflight F1 limpio de duplicados exactos y
+   solapamientos físicos ocupantes**, con inventarios de inicios no canónicos
+   y slots parciales. Sólo participan `scheduled`, `submitted`, `under_review`,
+   `validated` con slot completo. Legacy no canónico aislado es diagnóstico,
+   no blocker; no se redondea. `postponed`/`cancelled` y NULL/NULL no ocupan.
+7. Aplicar F1 por path exacto, después de esos gates:
+
+   ```bash
+   php artisan migrate --force --path=database/migrations/2026_09_27_000000_enforce_game_match_venue_occupancy.php
+   ```
+
+8. Verificar `migrate:status`, esquema y garantía: `occupancy_guard` STORED
+   dependiente del status, UNIQUE `game_matches_venue_occupancy_unique`
+   `(venue_id, scheduled_date, occupancy_guard)`, FK preservada y controles
+   de disponibilidad aplicativa. Una prueba DB directa de colisión requiere
+   autorización explícita y garantía de no persistencia; no ejecutar escrituras
+   productivas como si fueran probes read-only.
+
+La aceptación staging aplicó F2/F3 primero, conservó F1 pendiente durante QA,
+asignó números de pista por una persona y aplicó F1 en batch 14 tras los cuatro
+conteos de preflight en cero. MariaDB rechazó una colisión directa con
+SQLSTATE 23000/1062 por el índice nombrado; filas 459/459, DB sin cambios.
+El dataset sintético privado `STAGING-F57` se eliminó completamente; se retuvo
+la identidad explícita de pistas reales, sin afirmar clasificación de todas
+las categorías legacy. Conteos y escenarios: [05-testing.md](05-testing.md#57-f--ocupación-global-y-planificación-staging-pass-producción-pendiente).
+
+F queda abierto hasta migración/aceptación productiva y cierre canónico
+explícito. Sólo entonces comienza 5.7-J, seguido de G → H → D → Q1.
 
 El administrador inicial se crea en la consola privada del backend:
 

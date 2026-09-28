@@ -113,6 +113,15 @@ Temporada
 
 Esta estructura constituye la organización oficial del dominio.
 
+## Clasificación estructural de categorías
+
+`Category.age_group` usa `CategoryAgeGroup`: `open` (Abierta) y `youth`
+(Juvenil). Clasifica la categoría, no la edad de cada participante; nunca se
+infiere del nombre, nivel, género, modalidad, ID u orden de creación. El campo
+DB es nullable para preservar legacy sin backfill; NULL se muestra como
+«Sin clasificar» y continúa legible. Crear o editar por administración exige
+clasificación explícita. Género y nivel conservan sus dimensiones propias.
+
 ## Ciclo de vida de temporada y oficialidad
 
 `SeasonStatus` admite `planned`, `active`, `finished` y `cancelled`. Las nuevas temporadas nacen `planned`; el default histórico `pending` ya no forma parte de este contrato. El dominio admite cero o una temporada `active`, pero nunca dos o más. Backend y MariaDB son la fuente de verdad de esta invariante: React no la impone y puede conservar el fallback defensivo de presentación introducido en 6.F.2 sin convertirlo en una regla deportiva del cliente.
@@ -460,10 +469,29 @@ El flujo implementado tiene dos pasos manuales:
 
 Las rondas quedan identificadas estructuralmente como `phase=cup` y con
 `stage=semifinal`, `stage=final` o `stage=third_place`; el nombre visible no es
-la autoridad para la experiencia pública. Los partidos nuevos nacen
-`scheduled`, sin fecha ni pista, y el administrador completa después ambos
-datos obligatorios. La regeneración sustituye únicamente las finales previas y
-no crea duplicados.
+la autoridad para la experiencia pública. Desde 5.7-F5, `GenerateCupService`
+crea partidos `scheduled` con fecha y Venue reales, sujetos a ocupación global.
+`ChampionshipCalendarWindow` comparte con Liga los dos últimos anclajes viernes
+inclusivos entre `start_date` y `end_date`; Copa sólo usa viernes, nunca sábado:
+
+- semifinales el primer viernes reservado, 17/18/19/20; pistas 2–5 antes de
+  pista 6 overflow, incluso para primera masculina;
+- tercer puesto el segundo viernes a las 17, con la misma política general;
+- Final juvenil (cualquier género/nivel) y abierta mixta a las 18; abierta
+  femenina a las 19; abierta masculina a las 20. NULL `age_group` aborta;
+- sólo la Final de abierta masculina nivel 1 exige una pista especial:
+  singles pista 4 y doubles pista 1, sin fallback si falta o está ocupada.
+  Las demás Finales usan 2–5 y 6 overflow, nunca 1.
+
+`CupSchedulePolicy` usa únicamente metadatos estructurales. No cambia ranking,
+scoring ni crea placeholders. Cada generación es atómica. La regeneración de
+semifinales reemplaza Copa sólo sin historia; regenerar Final/tercer puesto
+reemplaza únicamente esa pareja y conserva las semifinales validadas. Estados
+distintos de `scheduled`, tanteos, ganador, actores de resultados, informes,
+reprogramaciones o historial oficial de Copa bloquean el reemplazo de las
+filas afectadas y el borrado. Un fallo de planificación/persistencia restaura
+la estructura previa. Los guards de oficialidad siguen vigentes; un oficial
+únicamente de Liga no impide generar Copa.
 
 Un resultado administrativo sólo admite tanteos con estado `submitted` o
 `validated`; combinar tanteos con `scheduled`, `postponed`, `cancelled` o
@@ -693,15 +721,75 @@ Reglas actuales:
 - una pista asociada a un partido o a una solicitud de reprogramación no puede eliminarse desde el panel, preservando el calendario y su trazabilidad;
 - una pista sin relaciones puede eliminarse;
 - `DefaultVenueSeeder` crea por nombre el conjunto mínimo `Pista 1` a `Pista 5` sin sobrescribir registros existentes, pero el generador no depende de ese seeder ni de esos nombres;
-- la generación de liga utiliza todas las pistas existentes, ordenadas de forma estable por ID;
-- si no existe ninguna pista, la generación se detiene antes de crear jornadas o partidos y solicita al administrador configurar al menos una;
-- cada pista conserva los siete huecos semanales existentes: viernes a las 17:00, 18:00, 19:00 y 20:00, y sábado a las 17:30, 18:00 y 19:00;
-- una pista puede reutilizarse dentro de la jornada únicamente en horas distintas;
-- si los cruces de una jornada superan los huecos disponibles, la generación falla sin dejar datos parciales.
+- `court_number` es la identidad física estructural, positiva y única cuando
+  no es NULL. Admin exige el número al crear/editar, sin máximo artificial de 6.
+  Legacy NULL permanece legible, sin inferencia/backfill de nombres o IDs;
+  el seeder por nombre no clasifica esas pistas;
+- Liga/Copa sólo consideran números canónicos 1–6; NULL o números extra no
+  aportan capacidad automática. Nombres e IDs nunca expresan elegibilidad;
+- falta de una pista obligatoria, metadatos, ventana o capacidad aborta la
+  generación sin dejar datos parciales.
 
-La modalidad, el nivel o el nombre de una pista no restringen su uso automático mientras el esquema no disponga de una configuración explícita de elegibilidad.
+## Ocupación física global (5.7-F1)
 
-La garantía de no colisión se aplica a la categoría generada. La coordinación de ocupación entre calendarios de categorías distintas conserva el comportamiento heredado y requiere un bloque futuro de disponibilidad compartida.
+Cada partido ocupante usa una hora de Venue, globalmente entre todas las
+categorías, campeonatos y temporadas que comparten la tabla. `scheduled`,
+`submitted`, `under_review`, `validated` ocupan cuando fecha/pista están
+completas; `postponed` y `cancelled` liberan aunque conserven ambas para
+trazabilidad. Slots incompletos o NULL/NULL no ocupan.
+
+Adquirir o mover ocupación exige HH:00:00; administración/reprogramación pueden
+usar cualquier día/hora entera, no sólo el grid automático. Conservar el mismo
+slot legacy ocupante permite actualizaciones ajenas al horario sin redondear
+minutos/segundos; liberarlo también se permite. Reactivarlo o moverlo exige
+horario canónico. Propuestas de reprogramación no reservan, y la confirmación
+revalida de forma autoritativa.
+
+`VenueOccupancyService` detecta intervalos solapados de una hora, incluidos
+legacy no canónicos; la adyacencia es válida. Se serializan Venues en un lote
+ordenado después de los locks de competición/partido, sin orden inverso.
+MariaDB añade el backstop exacto `game_matches_venue_occupancy_unique`
+`(venue_id, scheduled_date, occupancy_guard)`; no es un constraint DB de
+intervalos ni CHECK de hora entera. El preflight bloquea duplicados/solapamientos
+ocupantes antes de DDL; legacy aislado no canónico y slots parciales sólo se
+diagnostican, sin reparación. El borrado de Venue comprueba relaciones dentro
+de una transacción bajo lock, sin locks inversos a GameMatch.
+
+## Liga global de campeonato (5.7-F4)
+
+`GenerateLeagueScheduleService::generate(Championship)` reemplaza el trigger
+por categoría: una operación atómica abarca todas las categorías, cada una con
+2–10 `CategoryEntry` aprobadas y `age_group` explícito. No hay generador
+productivo de Liga por categoría. Round-robin a una vuelta: N par genera N−1
+rondas; N impar, N rondas con descanso sin partido placeholder.
+
+`ChampionshipCalendarWindow` toma los viernes `>= start_date` y `<= end_date`:
+si empieza viernes usa ese día, si no el siguiente viernes. Reserva los últimos
+dos para Copa; la ventana debe contener el máximo de rondas de Liga + 2.
+Cada ordinal de ronda comparte fin de semana entre categorías; viernes y
+sábado tienen 17/18/19/20, sin festivos. El anclaje viernes determina
+elegibilidad del fin de semana. Fechas ausentes/insuficientes abortan.
+
+`LeagueWeekendAllocator` resuelve globalmente cada fin de semana mediante flujo
+de coste mínimo determinista sobre disponibilidad externa. `LeagueCourtPolicy`
+define primera masculina como abierta/male/nivel 1: singles sólo 4/5 y nunca
+1; doubles sólo 1, exclusiva. Las demás categorías usan 2–5 y 6 overflow.
+Minimiza cantidad de partidos en 6 y luego prioriza juvenil, abierta nivel 6,
+5, 4, 3, nivel 2 femenina, nivel 2 masculina, nivel 1 femenina; primera
+masculina no es elegible para 6. Abiertas que no encajan (p.ej. mixed nivel
+1/2 o nivel ausente/no soportado) sólo usan capacidad normal.
+
+Regeneración sustituye la Liga completa únicamente si sigue `scheduled`, sin
+tanteos/ganador/actores de resultados, informes, reprogramaciones, historial
+oficial ni Copa/otra estructura dependiente. Se preserva todo por rollback
+ante fallo; no se elimina Copa ni se reparan partidos individuales. Se
+considera ocupación externa a la Liga sustituida, incluso de otras temporadas.
+La operación raíz usa READ COMMITTED y el orden Championship → Category/
+oficialidad → rounds/matches → participantes/dependencias → Venues.
+
+El contrato está implementado y aceptado en staging; el cierre productivo de
+5.7-F sigue pendiente. Unicidad DB de nombres (5.7-H), normalización de
+`Round.phase/stage` (5.7-G) y UI React (5.7-D) no se absorben aquí.
 
 ---
 

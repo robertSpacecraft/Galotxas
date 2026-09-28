@@ -781,14 +781,63 @@ descubra una dependencia:
 | **5.7-B — Privacidad del recurso de partidos de participante** | Minimizar los payloads autenticados de partidos/reportes y retirar campos personales o internos innecesarios, incluido el email del reportante cuando la UX no lo requiera. | **CLOSED / PASS**. Backend/API autenticada; sin migración ni cambio de código React; staging PASS y producción con despliegue/salud PASS, sin smoke funcional por falta de datos representativos. |
 | **5.7-C — Hardening de la API de reprogramaciones** | Form Requests dedicados, fecha estricta, Resources mínimos, throttling y tests de autorización, privacidad y validación. Conserva el workflow vigente. | **CLOSED / PASS**. Sin migración ni cambio frontend; staging aceptado sin walkthrough manual de API y producción con despliegue/readiness/salud PASS, sin smoke funcional. |
 | **5.7-E — Integridad de `CategoryEntry`** | Preflight y garantías para impedir identidad ambos/ninguno, asociaciones incoherentes y duplicados. Añadirá garantías DB cuando sean seguras. | **CLOSED / PASS**. Reglas de identidad/duplicado decididas y aplicadas; preflights y migración aplicados en staging y producción con éxito. |
-| **5.7-F — Ocupación compartida de pistas** | Hacer común a generación y reprogramación la invariante física pista/tiempo entre competiciones, con protección concurrente. | Gate previo de política; migración/constraint desconocida hasta fijarlo. |
+| **5.7-F — Ocupación global y planificación de Liga/Copa** | F1: ocupación física global y concurrencia; F2: `Venue.court_number`; F3: `Category.age_group`; F4: Liga atómica por campeonato; F5: Copa programada por categoría. | **IMPLEMENTADO / REGRESIÓN LOCAL PASS / STAGING PASS / PRODUCCIÓN PENDIENTE**. Tres migraciones conocidas; rollout selectivo F2 → F3 → clasificación/remediación autorizada → preflight limpio → F1. No CLOSED. |
 | **5.7-J — Hardening de sesión de autenticación** | Bloque de arquitectura de seguridad separado para el riesgo del Bearer durable en `localStorage`. | Gate de cookies, SameSite/CSRF, CORS, expiración/revocación, transición y rollback. Trabajo cross-layer de alto riesgo; no se mezcla con B/C. |
 | **5.7-G — Normalización `Round.phase/stage` de Liga** | Normalizar escrituras nuevas y datos legacy al contrato documentado `league`/`matchday`, preservando Copa. | Migración/backfill probable y preflight de datos. |
 | **5.7-H — Unicidad DB del nombre de pista** | Preflight de duplicados, garantía DB y manejo seguro de carreras. | Gate de normalización/case-sensitivity antes de migrar. |
 | **5.7-D — Interfaz React de reprogramaciones** | Ver estado, proponer y confirmar una propuesta compatible usando exclusivamente el workflow backend actual. | Dependencia backend satisfecha por 5.7-C; conserva su posición canónica posterior, sin cancelación, rechazo, notificaciones, rediseño de estados ni migración. |
 | **5.7-Q1 — Reparación E2E del dropdown CMS admin** | Corregir la interceptación concreta de `Crear bloque` y validar el recorrido dirigido. | P2 QA/UI; no se convierte en rediseño de navegación ni Liquid Glass. |
 
-#### Gates de producto, dominio y arquitectura
+#### 5.7-F — Contrato implementado y gate productivo
+
+Los commits funcionales son F1 `ace03f4`, F2 `343ee8f`, F3 `0d4e367`,
+F4 `a8e0f37` y F5 `276636b`. `50bca1e` aisló tests de pistas;
+`c8e4c26` alineó exclusivamente fixtures de imágenes con la clasificación
+obligatoria, sin cambiar producción.
+
+- Ocupación global de una hora entre categorías, campeonatos y temporadas:
+  `scheduled`, `submitted`, `under_review`, `validated` ocupan;
+  `postponed`/`cancelled` liberan. Nuevas adquisiciones/movimientos exigen
+  HH:00:00; legacy aislado no canónico se preserva. Aplicación detecta
+  intervalos solapados y MariaDB protege el slot exacto con
+  `game_matches_venue_occupancy_unique` sobre
+  `(venue_id, scheduled_date, occupancy_guard)`.
+- `court_number` positivo y único, y `age_group=open|youth`, permanecen
+  nullable para legacy, sin inferencia ni backfill. Admin exige metadatos
+  explícitos al crear/editar. Los planificadores sólo usan pistas numeradas 1–6.
+- Liga: una operación por Championship, todas sus categorías con 2–10 entradas
+  aprobadas, round-robin y descansos sin placeholders, una ronda por fin de
+  semana, viernes/sábado 17/18/19/20. Reserva los últimos dos anclajes viernes
+  inclusivos de la ventana para Copa. Asignación global determinista de coste
+  mínimo; pista 6 sólo overflow con prioridad estructural. Primera masculina
+  abierta de nivel 1: singles sólo 4/5, doubles sólo 1; ninguna otra categoría
+  usa 1. Regeneración atómica únicamente de Liga programada sin historia,
+  resultados, informes, reprogramaciones, oficialidad histórica ni Copa dependiente.
+- Copa continúa por Category desde el ranking (1v4, 2v3). Semifinales el primer
+  viernes reservado 17/18/19/20; tercer puesto el segundo a las 17. Final
+  juvenil/abierta mixta 18, abierta femenina 19, abierta masculina 20.
+  Primera masculina sólo en la Final: singles pista 4, doubles pista 1;
+  semifinales/tercer puesto usan 2–5 y 6 overflow. Finales requieren ambas
+  semifinales validadas y sin empate. Se conserva historia y oficialidad.
+
+Regresión local final: **2047 PASS / 19457 aserciones / 159,86 s**.
+Staging aceptó tres escenarios sintéticos privados: saturación singles
+(360 partidos, 72 rondas, regeneración determinista), Copa singles y doubles;
+cero colisiones. F2/F3 se aplicaron selectivamente, la identidad de pistas fue
+asignada por una persona, y F1 se aplicó en batch 14 tras preflight limpio.
+Una colisión DB directa fue rechazada con 1062 por el índice nombrado sin
+cambiar las 459 filas. El dataset `STAGING-F57` se eliminó por completo;
+la asignación de números a pistas reales se retuvo. Evidencia detallada en
+[05-testing.md](05-testing.md#57-f--ocupación-global-y-planificación-staging-pass-producción-pendiente).
+
+**No hay migración/remediación productiva ejecutada ni cierre canónico de F.**
+La secuencia segura por paths exactos está en
+[el runbook](27-production-readiness-and-deployment-runbook.md#57-f--rollout-selectivo-de-ocupación-y-metadatos).
+5.7-J no está activo: empieza sólo después del cierre productivo de F y conserva
+su gate propia. Continúa J → G → H → D → Q1. F no absorbe unicidad del nombre
+de Venue (H), normalización `Round.phase/stage` (G) ni UI React (D).
+
+#### Gates pendientes de producto, dominio y arquitectura
 
 No se implementarán hasta recibir una decisión explícita:
 
@@ -801,7 +850,6 @@ No se implementarán hasta recibir una decisión explícita:
 - rectificación administrativa de reportes, modelo de evento de auditoría y
   obligatoriedad del motivo de resolución de conflicto;
 - retirada compatible de `SeasonResource.slug`;
-- política exacta de ocupación compartida de pistas;
 - reglas exactas de identidad/duplicado de `CategoryEntry` (decididas y aplicadas en 5.7-E, cerrado);
 - normalización y case-sensitivity del nombre de pista;
 - topología cookie/sesión de autenticación;
@@ -979,8 +1027,9 @@ avanzada de perfil permanece tras una gate de producto; no se repiten aquí:
 - `official_ranking`, las cascadas destructivas y los resultados excepcionales
   sin tanteo permanecen tras gates de producto/dominio;
 - la generación concurrente ya está serializada y no es deuda abierta;
-- actividad/elegibilidad o restricciones de pista por modalidad/nivel no son
-  un requisito vigente y no se mantienen como deuda.
+- F ya implementa restricciones estructurales de pista por modalidad/nivel y
+  clasificación de edad, con staging PASS y producción pendiente;
+  restricciones adicionales de actividad/elegibilidad no forman parte del bloque.
 
 ## Mantenibilidad
 
