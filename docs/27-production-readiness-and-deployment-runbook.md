@@ -358,9 +358,9 @@ requiere decisión humana y el runbook de restore.
 
 ### 5.7-F — Rollout selectivo de ocupación y metadatos
 
-**STAGING PASS / PRODUCCIÓN PENDIENTE.** No se ha ejecutado migración ni
-remediación productiva de F. Este procedimiento documenta la aceptación de
-staging y el gate futuro de producción, no autoriza operaciones remotas.
+**CLOSED / PASS — rollout ejecutado con éxito en producción para esta release.**
+El procedimiento siguiente se conserva como historial y guía segura reutilizable
+para futuros rollouts legacy; no constituye autorización de operaciones remotas.
 Se conservan los gates anteriores de preflight, backup/restore, compatibilidad
 código/esquema y mantenimiento cuando corresponda; Git y despliegue permanecen
 bajo control humano.
@@ -445,10 +445,31 @@ conteos de preflight en cero. MariaDB rechazó una colisión directa con
 SQLSTATE 23000/1062 por el índice nombrado; filas 459/459, DB sin cambios.
 El dataset sintético privado `STAGING-F57` se eliminó completamente; se retuvo
 la identidad explícita de pistas reales, sin afirmar clasificación de todas
-las categorías legacy. Conteos y escenarios: [05-testing.md](05-testing.md#57-f--ocupación-global-y-planificación-staging-pass-producción-pendiente).
+las categorías legacy. Conteos y escenarios: [05-testing.md](05-testing.md#57-f--ocupación-global-y-planificación-producción-pass--closed).
 
-F queda abierto hasta migración/aceptación productiva y cierre canónico
-explícito. Sólo entonces comienza 5.7-J, seguido de G → H → D → Q1.
+**Ejecución productiva completada:** congelación continua de writers con
+mantenimiento Laravel persistido mediante `APP_MAINTENANCE_DRIVER=cache` y
+`APP_MAINTENANCE_STORE=database`, conservado por la nueva release tras redeploy.
+No había queue worker, schedule worker ni otro proceso writer en el contenedor
+backend. Secuencia por paths exactos: F2 (Ran, batch 9) → F3 (Ran, batch 10) →
+clasificación humana explícita de pistas/categorías → descarte guardado y
+expresamente autorizado de exactamente dos informes legacy de un partido
+restablecido a scheduled → regeneración por `GenerateLeagueScheduleService` →
+preflight FINAL de F1 con sus cuatro conteos en cero → F1 (Ran, batch 11).
+Las precondiciones sin historia se verificaron tras el descarte; esta decisión
+puntual no permite borrar historia automáticamente en futuras operaciones.
+
+La auditoría de producción dio 69 rondas y 311 partidos scheduled, sin
+colisiones ni incumplimientos de horarios/pistas y conservando los anclajes de
+Copa. Esquema generado e índice único verificados; el probe de duplicado dentro
+de una transacción revertida fue rechazado con SQLSTATE 23000/1062 por la
+constraint nombrada, filas 311/311 y DB sin cambios por el probe. Después se
+levantó mantenimiento, la aceptación humana fue PASS y el resultado real se
+reintrodujo por el workflow normal. Evidencia operacional detallada y distinta
+de la regresión automatizada en [05-testing.md](05-testing.md#57-f--ocupación-global-y-planificación-producción-pass--closed).
+
+**5.7-F CLOSED / PASS; 5.7-J ACTIVE / NEXT**, con su gate propia de
+arquitectura/seguridad pendiente. Orden posterior J → G → H → D → Q1.
 
 El administrador inicial se crea en la consola privada del backend:
 

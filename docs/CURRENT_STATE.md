@@ -69,25 +69,25 @@ funcional de reprogramación ni datos fabricados.
 
 **5.7-E — Integridad de CategoryEntry** está completado y cerrado canónicamente.
 **5.7-F — Ocupación global de pistas y planificación de Liga/Copa** está
-**IMPLEMENTADO / REGRESIÓN LOCAL PASS / STAGING PASS / PRODUCCIÓN PENDIENTE**.
-No está cerrado canónicamente. F1–F5 están implementados; el checkpoint local
-incluye `c8e4c26`, reparación exclusiva de fixtures para el `age_group` requerido.
-La suite backend final verificada dio 2047 tests / 19457 aserciones (159,86 s).
-Staging aceptó Liga global, regeneración y Copa singles/doubles con datos
-sintéticos privados `STAGING-F57`, ya eliminados; sólo se retuvo la
-clasificación explícita de las pistas reales. No se presupone que todas las
-categorías legacy estén clasificadas.
+**CLOSED / PASS**. F1–F5 y la alineación exclusiva de fixtures `c8e4c26`
+conservan la regresión local PASS (2047 tests / 19457 aserciones / 159,86 s)
+y la aceptación sintética de staging PASS; `STAGING-F57` fue eliminado y la
+clasificación explícita de pistas reales se retuvo.
 
-**No se ha ejecutado migración ni remediación de 5.7-F en producción.** El gate
-pendiente exige preflight read-only, F2/F3 por `--path`, clasificación humana,
-revisión del calendario legacy y preflight limpio antes de F1; no usar una
-migración general a ciegas. El procedimiento está en
-`27-production-readiness-and-deployment-runbook.md`; contrato y evidencia en
-`01-domain.md`, `06-roadmap.md` y `05-testing.md`.
+Producción completó el rollout bajo congelación continua de writers y
+mantenimiento persistente entre releases: F2 → F3 → clasificación humana →
+remediación expresamente autorizada de dos informes legacy → regeneración F4 →
+preflight final limpio → F1. La auditoría dio 69 rondas y 311 partidos
+programados, sin colisiones ni inicios/pistas inválidos; MariaDB rechazó la
+ocupación duplicada con 1062 en una transacción revertida (311/311 filas).
+Tras levantar mantenimiento, la aceptación humana fue PASS y el resultado real
+se reintrodujo por el workflow normal. Contrato, evidencia y procedimiento
+reutilizable: `01-domain.md`, `06-roadmap.md`, `05-testing.md` y
+`27-production-readiness-and-deployment-runbook.md`.
 
-**5.7-J será el siguiente bloque canónico sólo tras el cierre productivo de
-5.7-F; todavía no está activo.** Se conserva el orden posterior
-5.7-J → 5.7-G → 5.7-H → 5.7-D → 5.7-Q1. Sólo podrá reordenarse si un bloque
+**5.7-J — Hardening de sesión de autenticación es el bloque canónico
+ACTIVE / NEXT**, con su gate de arquitectura/seguridad todavía pendiente.
+Se conserva el orden 5.7-J → 5.7-G → 5.7-H → 5.7-D → 5.7-Q1. Sólo podrá reordenarse si un bloque
 cerrado descubre una dependencia. J y H conservan gates explícitos; la
 dependencia backend de D quedó satisfecha por C, pero D mantiene su posición
 canónica posterior. Las mejoras de producto no decididas y el cleanup P3 no

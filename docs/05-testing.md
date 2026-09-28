@@ -2880,12 +2880,13 @@ esa limitación de aceptación no se convierte en un PASS inventado. Tampoco se
 acredita un ensayo histórico de rollback ni una prueba de persistencia de media
 tras redeploy en staging.
 
-## 5.7-F — Ocupación global y planificación (STAGING PASS, producción pendiente)
+## 5.7-F — Ocupación global y planificación (producción PASS / CLOSED)
 
-Estado: **IMPLEMENTADO / REGRESIÓN LOCAL PASS / STAGING PASS / PRODUCCIÓN
-PENDIENTE**, sin cierre canónico. Evidencia local y aceptación de staging
-comunicadas y verificadas por el usuario; esta pasada documental no ejecutó
-tests ni probes remotos. No consta migración o remediación de F en producción.
+Estado: **CLOSED / PASS**. Se conservan separadamente la regresión automatizada
+local, la aceptación sintética de staging y la verificación operacional/de datos
+y aceptación humana de producción comunicadas por el usuario. No se ejecutó
+una nueva suite automatizada durante el rollout productivo ni en este cierre
+documental; los probes DB son verificaciones operacionales.
 
 ### Checkpoint y regresión local final
 
@@ -2993,11 +2994,103 @@ de aceptar los escenarios: `qa_seasons=0`, `qa_championships=0`,
 clasificaciones explícitas; no acredita clasificación de todas las categorías
 legacy de staging.
 
-La aceptación es **STAGING PASS**, no cierre productivo. El orden de timestamps
-F1/F2/F3 obliga a evitar `migrate` general a ciegas en legacy. El runbook
-prescribe F2/F3 selectivos, clasificación humana, decisión explícita ante
-historia/solapamientos, preflight limpio y F1, sin reparar datos automáticamente.
-**5.7-J sólo comienza después del cierre productivo de F.**
+La aceptación sintética de staging fue **PASS**. No se confunde con la
+verificación operacional sobre datos reales de producción que sigue. El orden
+de timestamps F1/F2/F3 exige evitar `migrate` general a ciegas en legacy:
+F2/F3 selectivos, clasificación humana, decisión explícita ante historia,
+preflight limpio y F1, sin reparación automática.
+
+### Producción — rollout operacional y aceptación humana PASS
+
+Se mantuvo una congelación continua de writers mediante mantenimiento Laravel
+persistido con `APP_MAINTENANCE_DRIVER=cache` y
+`APP_MAINTENANCE_STORE=database`. La nueva release conservó mantenimiento tras
+redeploy. No había queue worker, schedule worker ni otro proceso writer en el
+contenedor backend.
+
+F2 y F3 se aplicaron deliberadamente antes de F1, por paths exactos:
+`database/migrations/2026_09_27_000001_add_court_number_to_venues_table.php` y
+`database/migrations/2026_09_27_000002_add_age_group_to_categories_table.php`.
+Los seis Venues reales fueron clasificados por una persona: Venue IDs
+1, 2, 3, 4, 5, 6 → `court_number` 1, 2, 3, 4, 5, 6 respectivamente.
+Para Championship 1, la clasificación humana aprobada fue categorías
+1, 2, 3, 4, 5, 6, 8, 9 → `open`; categoría 7 → `youth`.
+Es evidencia puntual de producción, sin inferencia ni backfill automático.
+
+Antes de regenerar, el único bloqueo restante de reemplazo eran exactamente
+dos informes de resultado legacy validados de un único partido ya restablecido
+a `scheduled`. El usuario decidió expresamente descartarlos para reintroducir
+el mismo resultado real por el workflow normal tras generar el calendario.
+El borrado guardado eliminó exactamente esas dos filas. La precondición
+posterior fue `non_scheduled=0`, `matches_with_history_fields=0`,
+`result_reports=0`, `reschedules=0`, `official_results=0`.
+Esta decisión puntual no cambia los guards de regeneración ni autoriza futuros
+borrados de historia.
+
+`GenerateLeagueScheduleService` regeneró el campeonato real. Auditoría posterior:
+
+| Métrica | Valor |
+| --- | --- |
+| Rondas de Liga | 69 |
+| Partidos / scheduled | 311 / 311 |
+| Grupos de slot duplicado / pares solapados | 0 / 0 |
+| Inicios generados inválidos | 0 |
+| Partidos singles en pista 1 | 0 |
+| Primera abierta masculina nivel 1 en pistas inválidas | 0 |
+| Informes / reprogramaciones / resultados oficiales | 0 / 0 / 0 |
+
+Estos conteos describen el punto de auditoría previo a reintroducir el resultado.
+
+| Anclaje viernes | Partidos del fin de semana |
+| --- | --- |
+| 2026-10-02 | 39 |
+| 2026-10-09 | 39 |
+| 2026-10-16 | 39 |
+| 2026-10-23 | 39 |
+| 2026-10-30 | 39 |
+| 2026-11-06 | 33 |
+| 2026-11-13 | 33 |
+| 2026-11-20 | 25 |
+| 2026-11-27 | 25 |
+
+No se programó Liga desde 2026-12-04, preservando los dos últimos anclajes
+viernes para Copa.
+
+| Pista | Partidos |
+| --- | --- |
+| 2 | 70 |
+| 3 | 68 |
+| 4 | 68 |
+| 5 | 68 |
+| 6 | 37 |
+
+La pista 6 sólo se usó por la categoría juvenil (22) y abierta masculina
+nivel 6 (15).
+
+Bajo la misma congelación, el preflight final de F1 dio
+`duplicate_slot_groups=0`, `overlap_pairs=0`,
+`noncanonical_occupying_starts=0`, `partial_occupying_slots=0`.
+Se aplicó por path exacto
+`database/migrations/2026_09_27_000000_enforce_game_match_venue_occupancy.php`.
+Estado final: F1 **Ran / batch 11**, F2 **Ran / batch 9**,
+F3 **Ran / batch 10**.
+
+Se verificó `game_matches.occupancy_guard`: `TINYINT` nullable, STORED GENERATED,
+1 para `scheduled/submitted/under_review/validated`, NULL en los demás estados.
+Se verificó el índice UNIQUE `game_matches_venue_occupancy_unique` sobre
+`(venue_id, scheduled_date, occupancy_guard)`.
+Una inserción directa de ocupación duplicada en una transacción revertida fue
+rechazada por MariaDB con **SQLSTATE 23000 / driver 1062**, detectando
+correctamente la constraint nombrada. Filas antes/después **311/311**;
+`database unchanged=true`. Este probe acredita la garantía DB operacional,
+no una ejecución de la suite automatizada ni ausencia de otras mutaciones
+expresamente autorizadas durante el rollout.
+
+Después se levantó mantenimiento. El usuario confirmó comportamiento correcto
+en producción y reintrodujo el resultado real por el workflow normal tras la
+regeneración. **Aceptación productiva PASS; 5.7-F CLOSED / PASS.**
+**5.7-J es ACTIVE / NEXT**, con su gate de arquitectura/seguridad sin resolver;
+orden posterior J → G → H → D → Q1.
 
 ## MINOR-PUBLIC-IDENTITY-MODE-HIERARCHY-1 — Semántica jerárquica de identidad pública de menores
 

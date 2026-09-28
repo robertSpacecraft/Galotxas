@@ -787,8 +787,8 @@ considera ocupación externa a la Liga sustituida, incluso de otras temporadas.
 La operación raíz usa READ COMMITTED y el orden Championship → Category/
 oficialidad → rounds/matches → participantes/dependencias → Venues.
 
-El contrato está implementado y aceptado en staging; el cierre productivo de
-5.7-F sigue pendiente. Unicidad DB de nombres (5.7-H), normalización de
+El contrato está implementado y aceptado en staging y producción;
+5.7-F está CLOSED / PASS. Unicidad DB de nombres (5.7-H), normalización de
 `Round.phase/stage` (5.7-G) y UI React (5.7-D) no se absorben aquí.
 
 ---

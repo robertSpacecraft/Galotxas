@@ -781,14 +781,14 @@ descubra una dependencia:
 | **5.7-B — Privacidad del recurso de partidos de participante** | Minimizar los payloads autenticados de partidos/reportes y retirar campos personales o internos innecesarios, incluido el email del reportante cuando la UX no lo requiera. | **CLOSED / PASS**. Backend/API autenticada; sin migración ni cambio de código React; staging PASS y producción con despliegue/salud PASS, sin smoke funcional por falta de datos representativos. |
 | **5.7-C — Hardening de la API de reprogramaciones** | Form Requests dedicados, fecha estricta, Resources mínimos, throttling y tests de autorización, privacidad y validación. Conserva el workflow vigente. | **CLOSED / PASS**. Sin migración ni cambio frontend; staging aceptado sin walkthrough manual de API y producción con despliegue/readiness/salud PASS, sin smoke funcional. |
 | **5.7-E — Integridad de `CategoryEntry`** | Preflight y garantías para impedir identidad ambos/ninguno, asociaciones incoherentes y duplicados. Añadirá garantías DB cuando sean seguras. | **CLOSED / PASS**. Reglas de identidad/duplicado decididas y aplicadas; preflights y migración aplicados en staging y producción con éxito. |
-| **5.7-F — Ocupación global y planificación de Liga/Copa** | F1: ocupación física global y concurrencia; F2: `Venue.court_number`; F3: `Category.age_group`; F4: Liga atómica por campeonato; F5: Copa programada por categoría. | **IMPLEMENTADO / REGRESIÓN LOCAL PASS / STAGING PASS / PRODUCCIÓN PENDIENTE**. Tres migraciones conocidas; rollout selectivo F2 → F3 → clasificación/remediación autorizada → preflight limpio → F1. No CLOSED. |
-| **5.7-J — Hardening de sesión de autenticación** | Bloque de arquitectura de seguridad separado para el riesgo del Bearer durable en `localStorage`. | Gate de cookies, SameSite/CSRF, CORS, expiración/revocación, transición y rollback. Trabajo cross-layer de alto riesgo; no se mezcla con B/C. |
+| **5.7-F — Ocupación global y planificación de Liga/Copa** | F1: ocupación física global y concurrencia; F2: `Venue.court_number`; F3: `Category.age_group`; F4: Liga atómica por campeonato; F5: Copa programada por categoría. | **CLOSED / PASS**. Regresión local, staging y aceptación productiva PASS; rollout selectivo completado bajo congelación continua de writers. |
+| **5.7-J — Hardening de sesión de autenticación** | Bloque de arquitectura de seguridad separado para el riesgo del Bearer durable en `localStorage`. | **ACTIVE / NEXT**. Gate de cookies, SameSite/CSRF, CORS, expiración/revocación, transición y rollback. Trabajo cross-layer de alto riesgo; no se mezcla con B/C. |
 | **5.7-G — Normalización `Round.phase/stage` de Liga** | Normalizar escrituras nuevas y datos legacy al contrato documentado `league`/`matchday`, preservando Copa. | Migración/backfill probable y preflight de datos. |
 | **5.7-H — Unicidad DB del nombre de pista** | Preflight de duplicados, garantía DB y manejo seguro de carreras. | Gate de normalización/case-sensitivity antes de migrar. |
 | **5.7-D — Interfaz React de reprogramaciones** | Ver estado, proponer y confirmar una propuesta compatible usando exclusivamente el workflow backend actual. | Dependencia backend satisfecha por 5.7-C; conserva su posición canónica posterior, sin cancelación, rechazo, notificaciones, rediseño de estados ni migración. |
 | **5.7-Q1 — Reparación E2E del dropdown CMS admin** | Corregir la interceptación concreta de `Crear bloque` y validar el recorrido dirigido. | P2 QA/UI; no se convierte en rediseño de navegación ni Liquid Glass. |
 
-#### 5.7-F — Contrato implementado y gate productivo
+#### 5.7-F — Contrato implementado y cierre productivo
 
 Los commits funcionales son F1 `ace03f4`, F2 `343ee8f`, F3 `0d4e367`,
 F4 `a8e0f37` y F5 `276636b`. `50bca1e` aisló tests de pistas;
@@ -828,13 +828,22 @@ asignada por una persona, y F1 se aplicó en batch 14 tras preflight limpio.
 Una colisión DB directa fue rechazada con 1062 por el índice nombrado sin
 cambiar las 459 filas. El dataset `STAGING-F57` se eliminó por completo;
 la asignación de números a pistas reales se retuvo. Evidencia detallada en
-[05-testing.md](05-testing.md#57-f--ocupación-global-y-planificación-staging-pass-producción-pendiente).
+[05-testing.md](05-testing.md#57-f--ocupación-global-y-planificación-producción-pass--closed).
 
-**No hay migración/remediación productiva ejecutada ni cierre canónico de F.**
-La secuencia segura por paths exactos está en
+**Producción completada; 5.7-F CLOSED / PASS.** Bajo mantenimiento persistente
+y congelación continua de writers se aplicaron F2 (batch 9) y F3 (batch 10),
+clasificación humana explícita, remediación autorizada de exactamente dos
+informes legacy y regeneración mediante `GenerateLeagueScheduleService`.
+La auditoría registró 69 rondas / 311 partidos programados y cero colisiones,
+inicios inválidos o incumplimientos de pistas. El preflight final tuvo sus
+cuatro conteos en cero y F1 se aplicó por path exacto (batch 11). El probe DB
+operacional revertido fue rechazado con SQLSTATE 23000/1062 por el índice
+nombrado, sin cambiar las 311 filas. Se levantó mantenimiento y la aceptación
+humana fue PASS; el resultado descartado se reintrodujo por el workflow normal.
+Detalle en testing y procedimiento seguro reutilizable en
 [el runbook](27-production-readiness-and-deployment-runbook.md#57-f--rollout-selectivo-de-ocupación-y-metadatos).
-5.7-J no está activo: empieza sólo después del cierre productivo de F y conserva
-su gate propia. Continúa J → G → H → D → Q1. F no absorbe unicidad del nombre
+**5.7-J es ahora ACTIVE / NEXT**, con su gate propia todavía sin resolver.
+Continúa J → G → H → D → Q1. F no absorbe unicidad del nombre
 de Venue (H), normalización `Round.phase/stage` (G) ni UI React (D).
 
 #### Gates pendientes de producto, dominio y arquitectura
@@ -1028,7 +1037,7 @@ avanzada de perfil permanece tras una gate de producto; no se repiten aquí:
   sin tanteo permanecen tras gates de producto/dominio;
 - la generación concurrente ya está serializada y no es deuda abierta;
 - F ya implementa restricciones estructurales de pista por modalidad/nivel y
-  clasificación de edad, con staging PASS y producción pendiente;
+  clasificación de edad, con staging y producción PASS y cierre canónico;
   restricciones adicionales de actividad/elegibilidad no forman parte del bloque.
 
 ## Mantenibilidad
