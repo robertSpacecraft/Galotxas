@@ -1,3 +1,4 @@
+import { formatCompetitionDateTime } from '../utils/competitionDate';
 import { Link } from 'react-router-dom';
 import { getMatchDetailPath } from '../navigation/competitionRoutes';
 import { getPublicCompetitionDisplayName } from '../utils/publicCompetitionIdentity';
@@ -56,17 +57,7 @@ export default function MatchCard({
     const statusLabel = translateStatus
         ? translateStatus(match.status)
         : match.status || 'Estado por determinar';
-    const scheduledDate = (() => {
-        if (!match.scheduled_date) return 'Fecha por determinar';
-
-        const date = new Date(match.scheduled_date);
-        return Number.isNaN(date.getTime())
-            ? 'Fecha por determinar'
-            : new Intl.DateTimeFormat('es-ES', {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-            }).format(date);
-    })();
+    const scheduledDate = formatCompetitionDateTime(match.scheduled_date);
     const score = (value) => canShowScore && value !== null && value !== undefined ? value : '-';
     const detailPath = getMatchDetailPath(match.id);
 

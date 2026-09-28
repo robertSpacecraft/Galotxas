@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\CompetitionScheduleDateTimeFormatter;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -25,7 +26,7 @@ class CategoryScheduleRoundResource extends JsonResource
 
                     return [
                         'id' => $match->id,
-                        'scheduled_date' => $match->scheduled_date?->toISOString(),
+                        'scheduled_date' => CompetitionScheduleDateTimeFormatter::format($match->scheduled_date),
                         'status' => $match->status?->value ?? $match->status,
                         'home_score' => $isValidated ? $match->home_score : null,
                         'away_score' => $isValidated ? $match->away_score : null,

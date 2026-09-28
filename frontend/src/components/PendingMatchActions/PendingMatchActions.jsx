@@ -1,3 +1,4 @@
+import { formatCompetitionDateTime } from '../../utils/competitionDate';
 import { Link } from 'react-router-dom';
 import styles from './PendingMatchActions.module.css';
 
@@ -31,22 +32,7 @@ const getEntryName = (entry) => {
   return 'Participante';
 };
 
-const formatDateTime = (value) => {
-  if (!value) {
-    return 'Fecha por determinar';
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat('es-ES', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(date);
-};
+const formatDateTime = (value) => formatCompetitionDateTime(value, value || 'Fecha por determinar');
 
 export function PendingMatchActions({ actions, loading, error }) {
   const safeActions = Array.isArray(actions) ? actions : [];

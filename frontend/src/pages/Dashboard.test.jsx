@@ -81,6 +81,24 @@ describe('Dashboard', () => {
     matchesService.getPendingActions.mockResolvedValue([]);
   });
 
+  it.each([
+    ['2026-10-23T17:00:00+02:00', '23 oct 2026, 17:00', 'viernes, 23 de octubre de 2026'],
+    ['2026-10-30T17:00:00+01:00', '30 oct 2026, 17:00', 'viernes, 30 de octubre de 2026'],
+    ['2026-11-06T18:00:00+01:00', '6 nov 2026, 18:00', 'viernes, 6 de noviembre de 2026'],
+  ])('shows Madrid time in Mis Partidos and Calendario: %s', async (scheduledDate, label, heading) => {
+    const user = userEvent.setup();
+    const match = { id: 42, scheduled_date: scheduledDate, status: 'scheduled' };
+    meService.getMatches.mockResolvedValue([match]);
+    meService.getCalendar.mockResolvedValue([{ date: scheduledDate.slice(0, 10), matches: [match] }]);
+    renderPlayerDashboard();
+
+    await user.click(screen.getByRole('tab', { name: 'Mis Partidos' }));
+    expect(await screen.findByText(label)).toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'Calendario' }));
+    expect(await screen.findByText(label)).toBeInTheDocument();
+    expect(screen.getByText(heading)).toBeInTheDocument();
+  });
+
   it('does not log again when AuthContext has already handled a failed initial refresh', async () => {
     const refreshUser = vi.fn().mockRejectedValue({ response: { status: 401 } });
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});

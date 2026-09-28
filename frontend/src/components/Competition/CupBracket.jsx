@@ -1,3 +1,4 @@
+import { formatCompetitionDateTime } from '../../utils/competitionDate';
 import { Link } from 'react-router-dom';
 import { getMatchDetailPath } from '../../navigation/competitionRoutes';
 import { getPublicCompetitionDisplayName } from '../../utils/publicCompetitionIdentity';
@@ -10,17 +11,7 @@ const STAGES = [
   { id: 'third_place', title: 'Tercer y cuarto puesto', matchLabel: 'Tercer y cuarto puesto' },
 ];
 
-const formatScheduledDate = (value) => {
-  if (!value) return null;
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-
-  return new Intl.DateTimeFormat('es-ES', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(date);
-};
+const formatScheduledDate = (value) => formatCompetitionDateTime(value, null);
 
 function CupMatch({ match, label }) {
   const homeName = getPublicCompetitionDisplayName(match?.home_entry);

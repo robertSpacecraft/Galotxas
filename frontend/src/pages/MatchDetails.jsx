@@ -1,3 +1,4 @@
+import { formatCompetitionDateTime } from '../utils/competitionDate';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { MatchWorkflow } from '../components/MatchWorkflow/MatchWorkflow';
@@ -12,22 +13,7 @@ import { getPublicCompetitionDisplayName } from '../utils/publicCompetitionIdent
 import { getMatchStatusLabel } from './Competition/competitionPresentation';
 import styles from './MatchDetails.module.css';
 
-const formatDateTime = (value) => {
-    if (!value) {
-        return 'Fecha sin definir';
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-        return value;
-    }
-
-    return new Intl.DateTimeFormat('es-ES', {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-    }).format(date);
-};
+const formatDateTime = (value) => formatCompetitionDateTime(value, value || 'Fecha sin definir');
 
 const scoreValue = (value) => value ?? '-';
 

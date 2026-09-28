@@ -277,7 +277,7 @@ class MatchRescheduleWorkflowTest extends TestCase
             ->postJson($this->confirmUrl($match))
             ->assertOk()
             ->assertJsonPath('message', 'Reprogramación confirmada correctamente.')
-            ->assertJsonPath('data.match.scheduled_date', '2026-11-05T19:00:00.000000Z')
+            ->assertJsonPath('data.match.scheduled_date', '2026-11-05T19:00:00+01:00')
             ->assertJsonPath('data.match.venue.id', $requestedVenue->id)
             ->assertJsonPath('data.match.status', 'scheduled')
             ->assertJsonPath('data.request.side', 'away')

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\CompetitionScheduleDateTimeFormatter;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -20,7 +21,7 @@ class MatchResource extends JsonResource
             'away_entry_id' => $this->away_entry_id,
             'winner_entry_id' => $this->winner_entry_id,
 
-            'scheduled_date' => $this->scheduled_date?->toISOString(),
+            'scheduled_date' => CompetitionScheduleDateTimeFormatter::format($this->scheduled_date),
             'status' => $this->status?->value,
             'home_score' => $this->home_score,
             'away_score' => $this->away_score,

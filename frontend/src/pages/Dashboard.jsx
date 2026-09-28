@@ -1,3 +1,4 @@
+import { formatCompetitionDate } from '../utils/competitionDate';
 import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -56,24 +57,12 @@ const getDisplayName = (value, fallback = '-') => {
     return value.name || value.title || fallback;
 };
 
-const formatCalendarDate = (date) => {
-    if (!date) {
-        return 'Por programar';
-    }
-
-    const parsedDate = new Date(date + 'T00:00:00');
-
-    if (Number.isNaN(parsedDate.getTime())) {
-        return date;
-    }
-
-    return parsedDate.toLocaleDateString('es-ES', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-    });
-};
+const formatCalendarDate = (date) => formatCompetitionDate(date, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+}, date || 'Por programar');
 
 const normalizeCalendarDays = (calendarItems) => {
     if (!Array.isArray(calendarItems)) {

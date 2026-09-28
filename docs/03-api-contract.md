@@ -714,13 +714,25 @@ administrativa conserva el `MatchResource` amplio y
 `MatchResultReportResource`, incluidos responsables y email del reportante,
 porque la resolución de conflictos exige esa trazabilidad.
 
+Las fechas de programación de competición (`scheduled_date` en partidos y
+`requested_scheduled_date` en propuestas de reprogramación) se almacenan como
+hora civil local de Monòver, sin zona en MariaDB. La API conserva esos
+componentes y los interpreta en `Europe/Madrid`, serializando ISO-8601 con
+offset explícito según la fecha: `2026-10-23 17:00:00` devuelve
+`2026-10-23T17:00:00+02:00` y `2026-10-30 17:00:00` devuelve
+`2026-10-30T17:00:00+01:00`. Se aplica a los Resources de participante,
+público, administración, calendario de categoría y reprogramación. React debe
+presentar estas fechas explícitamente en `Europe/Madrid`, independientemente
+de la zona del dispositivo. No cambia la persistencia, el orden de los
+partidos ni los timestamps reales UTC (`created_at`, `updated_at`, etc.).
+
 La allowlist top-level es la siguiente; los objetos anidados se muestran de
 forma resumida:
 
 ```json
 {
     "id": 42,
-    "scheduled_date": "2026-07-15T18:30:00.000000Z",
+    "scheduled_date": "2026-07-15T18:30:00+02:00",
     "status": "scheduled",
     "home_score": null,
     "away_score": null,
@@ -785,7 +797,7 @@ hidratar el usuario del reportante.
             "type": "confirm_result",
             "match": {
                 "id": 42,
-                "scheduled_date": "2026-07-15T18:30:00.000000Z",
+                "scheduled_date": "2026-07-15T18:30:00+02:00",
                 "status": "submitted",
                 "home_score": null,
                 "away_score": null,
@@ -914,7 +926,7 @@ allowlist top-level exacta:
 ```json
 {
     "side": "home",
-    "requested_scheduled_date": "2026-10-10T18:30:00.000000Z",
+    "requested_scheduled_date": "2026-10-10T18:30:00+02:00",
     "status": "submitted",
     "comment": "Propuesta",
     "requested_venue": { "id": 3, "name": "Pista Central" }
