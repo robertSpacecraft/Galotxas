@@ -20,17 +20,33 @@ use App\Services\PublicIdentityAuthorizationService;
 use App\Services\PublicIdentityNoticeService;
 use App\Services\PublicPlayerIdentityService;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class PlayerController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $players = Player::with('user')
-            ->orderByDesc('id')
-            ->paginate(15);
+        $search = trim($request->string('q')->toString());
 
-        return view('admin.players.index', compact('players'));
+        $query = Player::with('user')->orderByDesc('id');
+
+        if ($search !== '') {
+            $pattern = '%'.addcslashes($search, '\\%_').'%';
+
+            $query->where(fn ($players) => $players
+                ->where('nickname', 'like', $pattern)
+                ->orWhereHas('user', fn ($user) => $user->where(fn ($identity) => $identity
+                    ->where('name', 'like', $pattern)
+                    ->orWhere('lastname', 'like', $pattern)
+                    ->orWhere('email', 'like', $pattern))));
+        }
+
+        $players = $query->paginate(15)->appends([
+            'q' => $search !== '' ? $search : null,
+        ]);
+
+        return view('admin.players.index', compact('players', 'search'));
     }
 
     public function create()

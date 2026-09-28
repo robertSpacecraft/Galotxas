@@ -11,6 +11,35 @@
         </a>
     </div>
 
+    <div class="card page-card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ route('admin.players.index') }}" class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label for="q" class="form-label">Buscar</label>
+
+                    <input
+                        type="search"
+                        name="q"
+                        id="q"
+                        value="{{ $search }}"
+                        class="form-control"
+                        placeholder="Nombre, apellidos, email o apodo"
+                    >
+                </div>
+
+                <div class="col-md-auto d-flex gap-2">
+                    <button type="submit" class="btn btn-outline-primary">Buscar</button>
+
+                    @if ($search !== '')
+                        <a href="{{ route('admin.players.index') }}" class="btn btn-outline-secondary">
+                            Limpiar
+                        </a>
+                    @endif
+                </div>
+            </form>
+        </div>
+    </div>
+
     @if (session('success'))
         <div class="alert alert-success">
             {{ session('success') }}
@@ -87,6 +116,10 @@
 
         <div class="mt-4">
             {{ $players->links() }}
+        </div>
+    @elseif ($search !== '')
+        <div class="alert alert-info mb-0">
+            No se han encontrado jugadores con los criterios indicados.
         </div>
     @else
         <div class="alert alert-info mb-0">

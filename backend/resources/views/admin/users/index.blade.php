@@ -18,6 +18,19 @@
     <div class="card page-card mb-4">
         <div class="card-body">
             <form method="GET" action="{{ route('admin.users.index') }}" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label for="q" class="form-label">Buscar</label>
+
+                    <input
+                        type="search"
+                        name="q"
+                        id="q"
+                        value="{{ $search }}"
+                        class="form-control"
+                        placeholder="Nombre, apellidos, email o apodo"
+                    >
+                </div>
+
                 <div class="col-md-4">
                     <label for="player_filter" class="form-label">Filtrar</label>
 
@@ -31,9 +44,9 @@
                 <div class="col-md-auto d-flex gap-2">
                     <button type="submit" class="btn btn-outline-primary">Aplicar</button>
 
-                    @if($playerFilter !== 'all')
+                    @if($search !== '' || $playerFilter !== 'all')
                         <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary">
-                            Quitar filtro
+                            Limpiar
                         </a>
                     @endif
                 </div>
@@ -135,7 +148,11 @@
                     @empty
                         <tr>
                             <td colspan="8" class="text-center text-muted py-4">
-                                No hay usuarios disponibles.
+                                @if($search !== '' || $playerFilter !== 'all')
+                                    No se han encontrado usuarios con los criterios indicados.
+                                @else
+                                    No hay usuarios disponibles.
+                                @endif
                             </td>
                         </tr>
                     @endforelse

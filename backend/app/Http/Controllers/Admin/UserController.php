@@ -15,6 +15,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $playerFilter = $request->get('player_filter', 'all');
+        $search = trim($request->string('q')->toString());
 
         $query = User::with('player')->orderByDesc('id');
 
@@ -26,11 +27,22 @@ class UserController extends Controller
             $query->doesntHave('player');
         }
 
+        if ($search !== '') {
+            $pattern = '%'.addcslashes($search, '\\%_').'%';
+
+            $query->where(fn ($users) => $users
+                ->where('name', 'like', $pattern)
+                ->orWhere('lastname', 'like', $pattern)
+                ->orWhere('email', 'like', $pattern)
+                ->orWhereHas('player', fn ($player) => $player->where('nickname', 'like', $pattern)));
+        }
+
         $users = $query->paginate(15)->appends([
             'player_filter' => $playerFilter,
+            'q' => $search !== '' ? $search : null,
         ]);
 
-        return view('admin.users.index', compact('users', 'playerFilter'));
+        return view('admin.users.index', compact('users', 'playerFilter', 'search'));
     }
 
     public function create()

@@ -74,14 +74,29 @@
                                     </button>
                                 </form>
                             @else
-                                <p class="text-secondary mb-2">
-                                    Corrige estas condiciones antes de oficializar:
-                                </p>
-                                <ul class="small mb-3">
-                                    @foreach ($part['issues'] as $issue)
-                                        <li>{{ $issue }}</li>
-                                    @endforeach
-                                </ul>
+                                @php($issueCount = count($part['issues']))
+                                @if ($issueCount > 0)
+                                    <p class="text-secondary mb-2">
+                                        {{ $issueCount }}
+                                        {{ $issueCount === 1 ? 'condición pendiente' : 'condiciones pendientes' }}
+                                        para poder oficializar la {{ $part['label'] }}.
+                                    </p>
+                                    <details class="small mb-3">
+                                        <summary>Ver detalles ({{ $issueCount }})</summary>
+                                        <p class="text-secondary mt-2 mb-1">
+                                            Corrige estas condiciones antes de oficializar:
+                                        </p>
+                                        <ul class="mb-0">
+                                            @foreach ($part['issues'] as $issue)
+                                                <li>{{ $issue }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </details>
+                                @else
+                                    <p class="text-secondary mb-3">
+                                        La {{ $part['label'] }} todavía no está lista para oficializar.
+                                    </p>
+                                @endif
                                 <button type="button" class="btn btn-outline-secondary" disabled aria-disabled="true">
                                     Oficializar {{ $part['label'] }}
                                 </button>

@@ -13,6 +13,7 @@ use App\Services\OfficializeLeagueResultService;
 use App\Services\ProfileDeclarationService;
 use App\Services\ReopenCupResultService;
 use App\Services\ReopenLeagueResultService;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\Concerns\CreatesOfficialCupFixture;
@@ -50,7 +51,17 @@ class AdminCategoryOfficialResultTest extends TestCase
             ->assertSee('Falta la ronda de semifinales.')
             ->assertSee('Falta la ronda final.')
             ->assertSee('Oficializar Liga')
-            ->assertSee('Oficializar Copa');
+            ->assertSee('Oficializar Copa')
+            ->assertSee('para poder oficializar la Liga.')
+            ->assertSee('para poder oficializar la Copa.');
+
+        $this->assertIssuesOnlyInsideCollapsedDetails($html, [
+            'Hay 0 inscripciones aprobadas; se necesitan al menos 3 para oficializar la Liga.',
+            'Hay 0 inscripciones aprobadas; se necesitan al menos 4 para oficializar la Copa.',
+            'No existe ninguna jornada de Liga.',
+            'Falta la ronda de semifinales.',
+            'Falta la ronda final.',
+        ]);
 
         $this->assertOfficializationUnavailable(
             $html,
@@ -77,8 +88,13 @@ class AdminCategoryOfficialResultTest extends TestCase
         $response
             ->assertOk()
             ->assertSee('Lista para oficializar')
+            ->assertSee('La fuente actual cumple todas las condiciones para crear una versión histórica.')
             ->assertSee('Oficializar Liga')
-            ->assertSee('Oficializar Copa');
+            ->assertSee('Oficializar Copa')
+            ->assertDontSee('No lista para oficializar')
+            ->assertDontSee('pendientes para poder oficializar')
+            ->assertDontSee('pendiente para poder oficializar')
+            ->assertDontSee('Ver detalles (');
 
         $this->assertOfficializationPostAvailable(
             $html,
@@ -89,6 +105,107 @@ class AdminCategoryOfficialResultTest extends TestCase
             $html,
             'Copa',
             route('admin.categories.official-results.cup.officialize', $fixture['category']),
+        );
+    }
+
+    public function test_many_readiness_issues_render_as_compact_count_with_every_issue_in_disclosure(): void
+    {
+        $category = Category::factory()->create();
+        $leagueIssues = array_map(
+            fn (int $number): string => "El partido todavía no está validado (partido #{$number}).",
+            range(1, 45),
+        );
+        $cupIssue = 'Falta la ronda final.';
+
+        $html = $this->renderOfficialResultsPartial($category, [
+            'league' => $this->notReadyPart('Liga', $leagueIssues),
+            'cup' => $this->notReadyPart('Copa', [$cupIssue]),
+        ]);
+
+        $this->assertStringContainsString('No lista para oficializar', $html);
+        $this->assertMatchesRegularExpression(
+            '/45\s+condiciones pendientes\s+para poder oficializar la Liga\./',
+            $html,
+        );
+        $this->assertStringContainsString('<summary>Ver detalles (45)</summary>', $html);
+        $this->assertMatchesRegularExpression(
+            '/1\s+condición pendiente\s+para poder oficializar la Copa\./',
+            $html,
+        );
+        $this->assertStringContainsString('<summary>Ver detalles (1)</summary>', $html);
+        $this->assertStringNotContainsString('1 condiciones', $html);
+
+        $this->assertIssuesOnlyInsideCollapsedDetails($html, [...$leagueIssues, $cupIssue]);
+
+        preg_match_all('/<details\b[^>]*>.*?<\/details>/s', $html, $details);
+        $this->assertCount(2, $details[0]);
+        $this->assertSame(45, substr_count($details[0][0], '<li>'));
+        $this->assertSame(1, substr_count($details[0][1], '<li>'));
+
+        $this->assertOfficializationUnavailable(
+            $html,
+            'Liga',
+            route('admin.categories.official-results.league.officialize', $category),
+        );
+        $this->assertOfficializationUnavailable(
+            $html,
+            'Copa',
+            route('admin.categories.official-results.cup.officialize', $category),
+        );
+    }
+
+    public function test_not_ready_part_without_issues_renders_neutral_message_and_disabled_action(): void
+    {
+        $category = Category::factory()->create();
+
+        $html = $this->renderOfficialResultsPartial($category, [
+            'league' => $this->notReadyPart('Liga', []),
+            'cup' => $this->notReadyPart('Copa', []),
+        ]);
+
+        $this->assertStringContainsString('La Liga todavía no está lista para oficializar.', $html);
+        $this->assertStringContainsString('La Copa todavía no está lista para oficializar.', $html);
+        $this->assertStringNotContainsString('0 condiciones', $html);
+        $this->assertStringNotContainsString('<details', $html);
+        $this->assertStringNotContainsString('Ver detalles', $html);
+
+        $this->assertOfficializationUnavailable(
+            $html,
+            'Liga',
+            route('admin.categories.official-results.league.officialize', $category),
+        );
+        $this->assertOfficializationUnavailable(
+            $html,
+            'Copa',
+            route('admin.categories.official-results.cup.officialize', $category),
+        );
+    }
+
+    public function test_failed_officialization_feedback_remains_fully_visible_outside_disclosures(): void
+    {
+        $admin = $this->createActiveAdmin();
+        $category = Category::factory()->create();
+        $feedbackIssue = 'El partido todavía no está validado (partido #987654).';
+
+        $response = $this->actingAs($admin)
+            ->withSession([
+                'error' => 'La Liga ya no reúne las condiciones para oficializarse.',
+                'official_result_issues' => [$feedbackIssue],
+            ])
+            ->get(route('admin.categories.show', $category));
+
+        $html = $response->getContent();
+
+        $response
+            ->assertOk()
+            ->assertSee('La Liga ya no reúne las condiciones para oficializarse.')
+            ->assertSee($feedbackIssue);
+
+        $withoutDetails = preg_replace('/<details\b[^>]*>.*?<\/details>/s', '', $html);
+        $this->assertMatchesRegularExpression(
+            '/<div class="alert alert-danger">\s*La Liga ya no reúne las condiciones para oficializarse\.'
+                .'\s*<ul class="mb-0 mt-2">\s*<li>'.preg_quote($feedbackIssue, '/').'<\/li>/s',
+            $withoutDetails,
         );
     }
 
@@ -627,6 +744,54 @@ class AdminCategoryOfficialResultTest extends TestCase
             'cup_winner' => $result->cupWinner?->getAttributes(),
             'match_snapshots' => $result->matchSnapshots->map->getAttributes()->all(),
         ];
+    }
+
+    /**
+     * @param  array<string, array{label: string, current: null, ready: bool, issues: list<string>}>  $parts
+     */
+    private function renderOfficialResultsPartial(Category $category, array $parts): string
+    {
+        return view('admin.categories._official-results', [
+            'category' => $category,
+            'officialResults' => [
+                'parts' => $parts,
+                'history' => new Collection,
+            ],
+        ])->render();
+    }
+
+    /**
+     * @param  list<string>  $issues
+     * @return array{label: string, current: null, ready: false, issues: list<string>}
+     */
+    private function notReadyPart(string $label, array $issues): array
+    {
+        return [
+            'label' => $label,
+            'current' => null,
+            'ready' => false,
+            'issues' => $issues,
+        ];
+    }
+
+    /** @param list<string> $issues */
+    private function assertIssuesOnlyInsideCollapsedDetails(string $html, array $issues): void
+    {
+        preg_match_all('/<details\b([^>]*)>.*?<\/details>/s', $html, $details);
+
+        $this->assertNotEmpty($details[0]);
+
+        foreach ($details[1] as $attributes) {
+            $this->assertDoesNotMatchRegularExpression('/\bopen\b/', $attributes);
+        }
+
+        $insideDetails = implode("\n", $details[0]);
+        $outsideDetails = preg_replace('/<details\b[^>]*>.*?<\/details>/s', '', $html);
+
+        foreach ($issues as $issue) {
+            $this->assertStringContainsString('<li>'.e($issue).'</li>', $insideDetails);
+            $this->assertStringNotContainsString(e($issue), $outsideDetails);
+        }
     }
 
     private function assertOfficializationUnavailable(string $html, string $label, string $action): void
