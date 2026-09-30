@@ -2800,3 +2800,26 @@ Consecuencias:
   que queda con un miembro tras eliminar un jugador.
 - La migración remota exige sondas de solo lectura previas, autorización
   explícita y el gate de backup/dump de ADR-041.
+
+# ADR-058 — Revocación total defensiva de credenciales
+
+Estado: Aceptada
+
+Fecha aproximada: 2026-09
+
+Contexto:
+- ADR-035 estableció que el logout normal de la API revoca únicamente el token de acceso actual (Sanctum), no todos los tokens, lo cual sigue siendo válido y necesario para permitir múltiples dispositivos.
+- Existía un riesgo de seguridad de que un usuario desactivado o un administrador que restablece o cambia su contraseña pudiera mantener otras sesiones activas (ya sea mediante otros tokens no revocados o sesiones de base de datos) o que la reactivación revalidara credenciales antiguas.
+
+Decisión:
+- Un restablecimiento exitoso de contraseña, un cambio de contraseña por parte de un administrador y la desactivación explícita de un usuario (`active=false`) provocarán la revocación inmediata de todos sus personal access tokens (Sanctum) y todas sus sesiones duraderas de base de datos.
+- La reactivación de un usuario no restaura las credenciales previas; el usuario deberá iniciar sesión nuevamente para obtener un nuevo token.
+- El middleware `EnsureUserIsActive` deja de revocar únicamente el token en uso y se convierte en una ruta defensiva de revocación total.
+- El logout normal a través de la API preservará deliberadamente su semántica actual (revocar sólo el token de la sesión desde la que se invoca).
+- Si un administrador cambia su propia contraseña o se desactiva a sí mismo, su sesión en Blade terminará explícitamente, obligándole a re-autenticarse.
+
+Consecuencias:
+- Sustituye parcialmente a ADR-035 únicamente en lo que respecta a la revocación por inactividad y restablecimiento de contraseña. El historial de ADR-035 sobre el logout normal y el token actual no se reescribe.
+- Protege el sistema frente a credenciales filtradas o compromisos de cuenta detectados, asegurando que un usuario desactivado no conserva ninguna vía de acceso subyacente.
+- El riesgo de que un token sea extraído mediante XSS se mitiga al disponer de un botón de emergencia (desactivación/cambio de contraseña). El cambio de arquitectura a cookies (J2) no es un requisito previo para esta capa defensiva fundamental.
+- No se requiere migración de esquema. Las tablas `sessions` y `personal_access_tokens` existentes, junto con la arquitectura Bearer/localStorage actual, son suficientes para J1 hasta que se aborde la migración J2.

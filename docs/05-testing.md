@@ -3089,8 +3089,6 @@ expresamente autorizadas durante el rollout.
 Después se levantó mantenimiento. El usuario confirmó comportamiento correcto
 en producción y reintrodujo el resultado real por el workflow normal tras la
 regeneración. **Aceptación productiva PASS; 5.7-F CLOSED / PASS.**
-**5.7-J es ACTIVE / NEXT**, con su gate de arquitectura/seguridad sin resolver;
-orden posterior J → G → H → D → Q1.
 
 ## MINOR-PUBLIC-IDENTITY-MODE-HIERARCHY-1 — Semántica jerárquica de identidad pública de menores
 
@@ -3109,3 +3107,17 @@ Cobertura y verificación:
 - Feature (origen Escuela): `PublicIdentityAuthorizationTest` cubre la solicitud de Escuela con el aviso `1.1.0`, la verificación de capacidades y el rechazo estricto de versiones obsoletas (`1.0.0`).
 - Frontend Unit: `PublicIdentityConfirmationPage.test.jsx` y `SchoolEnrollmentForm.test.jsx` se actualizan a la versión `1.1.0` del aviso de identidad pública, validando la visualización, textos informativos y el fail-closed ante versiones no coincidentes.
 - E2E: `frontend/e2e/public-identity.spec.js` y `E2ESmokeSeeder` sincronizan la versión esperada `1.1.0`.
+
+## 5.7-J J1 — Fundación de revocación
+
+Este bloque establece la semántica de revocación de credenciales en base de datos.
+Un restablecimiento de contraseña exitoso, un cambio de contraseña por un administrador o la desactivación de una cuenta (`active=false`) revocan ahora de forma inmediata todos los personal access tokens (Sanctum) y todas las sesiones duraderas de base de datos del usuario afectado.
+El middleware `EnsureUserIsActive` opera como ruta defensiva de revocación total, no únicamente del token actual. El logout normal de la API mantiene su comportamiento de revocar sólo el token actual.
+
+**Evidencia de validación:**
+- Focal: 31 tests pasados / 213 aserciones.
+- Regresión backend proporcional: 17 clases / 221 tests pasados / 2265 aserciones.
+- La suite backend completa no se ejecutó.
+- No se requirieron pruebas frontend porque J1 no modificó código frontend.
+
+**Estado:** J1 CLOSED / PASS localmente. A la espera de aceptación en staging/producción. 5.7-J permanece ACTIVE (J2 NEXT). Orden posterior conserva J → G → H → D → Q1.

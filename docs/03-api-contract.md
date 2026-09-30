@@ -419,7 +419,7 @@ Estrategia actual:
 - `POST /api/v1/auth/logout` revoca el token actual en backend;
 - ante `401` o `419`, React elimina el token, cualquier dato legado y el estado en memoria;
 - un `403` de autorización ordinario conserva la sesión y propaga el error, sin redirigir a login;
-- el `403` contractual `El usuario está inactivo.` sí limpia la autenticación porque `EnsureUserIsActive` revoca ese token en servidor.
+- el `403` contractual `El usuario está inactivo.` sí limpia la autenticación porque `EnsureUserIsActive` revoca todos los tokens y sesiones del usuario en el servidor.
 
 En este contrato, `401` identifica credencial ausente, inválida o revocada;
 `403`, una identidad válida sin autorización, salvo la excepción explícita de

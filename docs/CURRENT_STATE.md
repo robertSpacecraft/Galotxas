@@ -85,8 +85,7 @@ se reintrodujo por el workflow normal. Contrato, evidencia y procedimiento
 reutilizable: `01-domain.md`, `06-roadmap.md`, `05-testing.md` y
 `27-production-readiness-and-deployment-runbook.md`.
 
-**5.7-J — Hardening de sesión de autenticación es el bloque canónico
-ACTIVE / NEXT**, con su gate de arquitectura/seguridad todavía pendiente.
+**5.7-J — Hardening de sesión de autenticación es el bloque canónico ACTIVE**. J1 (fundación de revocación) está CLOSED / PASS localmente. J2 (arquitectura de sesión para SPA) es NEXT.
 Se conserva el orden 5.7-J → 5.7-G → 5.7-H → 5.7-D → 5.7-Q1. Sólo podrá reordenarse si un bloque
 cerrado descubre una dependencia. J y H conservan gates explícitos; la
 dependencia backend de D quedó satisfecha por C, pero D mantiene su posición

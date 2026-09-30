@@ -165,7 +165,7 @@ La arquitectura actual conserva exclusivamente el Bearer en
 sólo en memoria. Logout, `401` y `419` limpian token, dato legado y estado
 React. Un `403` de autorización ordinario conserva Cuenta y propaga el error;
 la excepción explícita es `El usuario está inactivo.`, porque
-`EnsureUserIsActive` revoca ese token en servidor antes de responder `403`.
+`EnsureUserIsActive` revoca todos los tokens y sesiones del usuario en el servidor antes de responder `403`.
 El `419` se reserva para expiración de sesión/CSRF cuando aplique; las rutas API
 Bearer actuales no lo emiten de forma ordinaria.
 El token legible por JavaScript mantiene un riesgo XSS residual: este bloque no

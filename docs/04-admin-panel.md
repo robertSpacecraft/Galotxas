@@ -292,6 +292,8 @@ El panel web actual dispone de estas áreas reales:
 
 No existen actualmente pantallas Blade específicas para una cola de solicitudes de reprogramación, métricas avanzadas o formularios públicos. La fecha y pista de un partido pueden editarse desde la categoría y los conflictos de resultados tienen su flujo propio.
 
+En la gestión de Usuarios, un cambio de contraseña o la desactivación de la cuenta (`active=false`) revocan inmediatamente todos los tokens de acceso personal y sesiones de base de datos del usuario afectado. Si un administrador cambia su propia contraseña o se desactiva a sí mismo, su sesión Blade actual se termina explícitamente y debe iniciar sesión de nuevo.
+
 La edición administrativa de un partido exige una fecha real y canónica
 `Y-m-d`, con mínimo técnico `1000-01-01` y máximo funcional dinámico igual a la
 fecha actual de la aplicación más dos años naturales, además de una hora `H:i`.

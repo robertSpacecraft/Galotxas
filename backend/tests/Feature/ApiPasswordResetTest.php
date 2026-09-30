@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -14,10 +16,12 @@ use Mockery;
 use Symfony\Component\Mailer\Exception\TransportException;
 use Symfony\Component\Mailer\SentMessage;
 use Symfony\Component\Mailer\Transport\AbstractTransport;
+use Tests\Concerns\InteractsWithUserCredentials;
 use Tests\TestCase;
 
 class ApiPasswordResetTest extends TestCase
 {
+    use InteractsWithUserCredentials;
     use RefreshDatabase;
 
     private const GENERIC_MESSAGE = 'Si el correo existe, recibirás instrucciones para restablecer la contraseña.';
@@ -104,6 +108,103 @@ class ApiPasswordResetTest extends TestCase
             'password' => 'another-password-123',
             'password_confirmation' => 'another-password-123',
         ])->assertUnprocessable();
+    }
+
+    public function test_successful_reset_revokes_every_credential_of_the_user_only(): void
+    {
+        Event::fake([PasswordReset::class]);
+        $user = User::factory()->create();
+        $other = User::factory()->create();
+        $firstToken = $user->createToken('api-token')->plainTextToken;
+        $secondToken = $user->createToken('api-token')->plainTextToken;
+        $this->createDurableSession($user);
+        $this->createDurableSession($user);
+        $otherToken = $other->createToken('api-token')->plainTextToken;
+        $this->createDurableSession($other);
+        $resetToken = Password::broker()->createToken($user);
+
+        $this->postJson('/api/v1/auth/reset-password', [
+            'email' => $user->email,
+            'token' => $resetToken,
+            'password' => 'new-password-123',
+            'password_confirmation' => 'new-password-123',
+        ])->assertOk()->assertExactJson([
+            'message' => 'Contraseña restablecida correctamente.',
+            'data' => null,
+        ]);
+
+        $this->assertTrue(Hash::check('new-password-123', $user->fresh()->password));
+        $this->assertDatabaseMissing('password_reset_tokens', ['email' => $user->email]);
+        Event::assertDispatched(
+            PasswordReset::class,
+            fn (PasswordReset $event): bool => $event->user->is($user)
+        );
+        $this->assertCredentialCounts($user, tokens: 0, sessions: 0);
+        $this->assertCredentialCounts($other, tokens: 1, sessions: 1);
+        $this->assertTokenStatus($firstToken, 401);
+        $this->assertTokenStatus($secondToken, 401);
+        $this->assertTokenStatus($otherToken, 200);
+
+        $freshToken = $this->postJson('/api/v1/auth/login', [
+            'email' => $user->email,
+            'password' => 'new-password-123',
+        ])->assertOk()->json('data.token');
+
+        $this->assertIsString($freshToken);
+        $this->assertCredentialCounts($user, tokens: 1, sessions: 0);
+        $this->assertTokenStatus($freshToken, 200);
+    }
+
+    public function test_rejected_reset_attempts_preserve_existing_credentials(): void
+    {
+        $user = User::factory()->create();
+        $apiToken = $user->createToken('api-token')->plainTextToken;
+        $this->createDurableSession($user);
+        $resetToken = Password::broker()->createToken($user);
+
+        $this->postJson('/api/v1/auth/reset-password', [
+            'email' => $user->email,
+            'token' => 'invalid-token',
+            'password' => 'new-password-123',
+            'password_confirmation' => 'new-password-123',
+        ])->assertUnprocessable()->assertJsonPath('data', null);
+
+        $this->postJson('/api/v1/auth/reset-password', [
+            'email' => $user->email,
+            'token' => $resetToken,
+            'password' => 'new-password-123',
+            'password_confirmation' => 'different-password',
+        ])->assertUnprocessable()->assertJsonValidationErrors(['password']);
+
+        $this->assertTrue(Hash::check('password', $user->fresh()->password));
+        $this->assertTrue(Password::broker()->tokenExists($user, $resetToken));
+        $this->assertCredentialCounts($user, tokens: 1, sessions: 1);
+        $this->assertTokenStatus($apiToken, 200);
+    }
+
+    public function test_expired_reset_token_preserves_existing_credentials(): void
+    {
+        $user = User::factory()->create();
+        $apiToken = $user->createToken('api-token')->plainTextToken;
+        $this->createDurableSession($user);
+        $resetToken = Password::broker()->createToken($user);
+
+        $this->travel(61)->minutes();
+
+        try {
+            $this->postJson('/api/v1/auth/reset-password', [
+                'email' => $user->email,
+                'token' => $resetToken,
+                'password' => 'new-password-123',
+                'password_confirmation' => 'new-password-123',
+            ])->assertUnprocessable()->assertJsonPath('data', null);
+        } finally {
+            $this->travelBack();
+        }
+
+        $this->assertTrue(Hash::check('password', $user->fresh()->password));
+        $this->assertCredentialCounts($user, tokens: 1, sessions: 1);
+        $this->assertTokenStatus($apiToken, 200);
     }
 
     public function test_expired_reset_token_returns_a_controlled_error(): void

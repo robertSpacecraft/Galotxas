@@ -4,10 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\InteractsWithUserCredentials;
 use Tests\TestCase;
 
 class EnsureUserIsActiveTest extends TestCase
 {
+    use InteractsWithUserCredentials;
     use RefreshDatabase;
 
     public function test_active_authenticated_user_can_access_private_api(): void
@@ -19,9 +21,14 @@ class EnsureUserIsActiveTest extends TestCase
             ->assertOk();
     }
 
-    public function test_inactive_user_receives_forbidden_and_current_token_is_revoked(): void
+    public function test_inactive_user_receives_forbidden_and_every_credential_is_revoked(): void
     {
         [$user, $token, $tokenId] = $this->createUserWithToken(active: false);
+        $secondToken = $user->createToken('api-token');
+        $this->createDurableSession($user);
+        $this->createDurableSession($user);
+        [$other, $otherToken] = $this->createUserWithToken();
+        $this->createDurableSession($other);
 
         $this->withToken($token)
             ->getJson('/api/v1/me')
@@ -34,12 +41,15 @@ class EnsureUserIsActiveTest extends TestCase
         $this->assertDatabaseMissing('personal_access_tokens', [
             'id' => $tokenId,
         ]);
+        $this->assertDatabaseMissing('personal_access_tokens', [
+            'id' => $secondToken->accessToken->id,
+        ]);
+        $this->assertCredentialCounts($user, tokens: 0, sessions: 0);
+        $this->assertCredentialCounts($other, tokens: 1, sessions: 1);
 
-        $this->app['auth']->forgetGuards();
-
-        $this->withToken($token)
-            ->getJson('/api/v1/me')
-            ->assertUnauthorized();
+        $this->assertTokenStatus($token, 401);
+        $this->assertTokenStatus($secondToken->plainTextToken, 401);
+        $this->assertTokenStatus($otherToken, 200);
     }
 
     public function test_inactive_user_cannot_access_another_private_endpoint(): void

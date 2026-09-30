@@ -8,7 +8,10 @@ use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\User;
 use App\Services\ProfilePhotoService;
+use App\Services\UserAuthenticationRevocationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -90,8 +93,11 @@ class UserController extends Controller
         return view('admin.users.edit', compact('user', 'roleOptions'));
     }
 
-    public function update(UpdateUserRequest $request, User $user)
-    {
+    public function update(
+        UpdateUserRequest $request,
+        User $user,
+        UserAuthenticationRevocationService $revocations
+    ) {
         $validated = $request->validated();
 
         $data = [
@@ -102,11 +108,34 @@ class UserController extends Controller
             'active' => $validated['active'] ?? false,
         ];
 
-        if (! empty($validated['password'])) {
+        $passwordChanged = ! empty($validated['password']);
+        $deactivated = $user->active && ! $data['active'];
+
+        if ($passwordChanged) {
             $data['password'] = $validated['password'];
         }
 
-        $user->update($data);
+        $revokeCredentials = $passwordChanged || $deactivated;
+
+        DB::transaction(function () use ($user, $data, $revokeCredentials, $revocations): void {
+            $user->update($data);
+
+            if ($revokeCredentials) {
+                $revocations->revokeAll($user);
+            }
+        });
+
+        if ($revokeCredentials && $request->user()->is($user)) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('admin.login')->withErrors([
+                'email' => $deactivated
+                    ? 'Tu usuario está inactivo.'
+                    : 'Tu contraseña se ha actualizado. Vuelve a iniciar sesión.',
+            ]);
+        }
 
         return redirect()
             ->route('admin.users.index')

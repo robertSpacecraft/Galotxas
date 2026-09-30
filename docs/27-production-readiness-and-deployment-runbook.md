@@ -468,7 +468,7 @@ levantó mantenimiento, la aceptación humana fue PASS y el resultado real se
 reintrodujo por el workflow normal. Evidencia operacional detallada y distinta
 de la regresión automatizada en [05-testing.md](05-testing.md#57-f--ocupación-global-y-planificación-producción-pass--closed).
 
-**5.7-F CLOSED / PASS; 5.7-J ACTIVE / NEXT**, con su gate propia de
+**5.7-F CLOSED / PASS; 5.7-J ACTIVE (J1 CLOSED / PASS, J2 NEXT)**, con su gate propia de
 arquitectura/seguridad pendiente. Orden posterior J → G → H → D → Q1.
 
 El administrador inicial se crea en la consola privada del backend:

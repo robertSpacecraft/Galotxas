@@ -16,6 +16,7 @@ use App\Models\User;
 use App\Services\PasswordResetLinkService;
 use App\Services\ProfileDeclarationService;
 use App\Services\SelfServicePlayerProfileService;
+use App\Services\UserAuthenticationRevocationService;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -192,25 +193,29 @@ class AuthController extends Controller
         );
     }
 
-    public function resetPassword(ResetPasswordRequest $request): JsonResponse
-    {
+    public function resetPassword(
+        ResetPasswordRequest $request,
+        UserAuthenticationRevocationService $revocations
+    ): JsonResponse {
         $validated = $request->validated();
 
-        $status = Password::reset(
+        $status = DB::transaction(fn () => Password::reset(
             [
                 'email' => $validated['email'],
                 'password' => $validated['password'],
                 'token' => $validated['token'],
             ],
-            function ($user, $password) {
+            function ($user, $password) use ($revocations) {
                 $user->forceFill([
                     'password' => $password,
                     'remember_token' => Str::random(60),
                 ])->save();
 
+                $revocations->revokeAll($user);
+
                 event(new PasswordReset($user));
             }
-        );
+        ));
 
         if ($status !== Password::PASSWORD_RESET) {
             return $this->errorResponse(__($status), [], 422);
