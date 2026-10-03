@@ -3139,7 +3139,7 @@ Capacidad de backend desactivada por defecto (`SPA_SESSION_AUTH_ENABLED=false`) 
 
 ## 5.7-J J3 — Migración de React a sesión por cookie HttpOnly
 
-React usa la cookie de sesión SPA HttpOnly, `X-Galotxas-Auth-Mode: session`, CSRF en memoria y `/me` como verdad del servidor (ADR-060). No hay migración ni operación de datos. Estado: funcional/local PASS; pendiente de despliegue y aceptación en staging.
+React usa la cookie de sesión SPA HttpOnly, `X-Galotxas-Auth-Mode: session`, CSRF en memoria y `/me` como verdad del servidor (ADR-060). No hay migración ni operación de datos. Estado: funcional/local PASS; despliegue y aceptación manual real en staging PASS (commit `526cf7f`); rollout de producción pendiente.
 
 **Cambio de infraestructura E2E (intencionado):** el stack E2E ejecuta con `SPA_SESSION_AUTH_ENABLED=true` y `SESSION_DRIVER=database`; el healthcheck de `web` usa `/up` porque `/` necesita la tabla `sessions` antes de migrar; el runner comparte la red de `web` (`network_mode: service:web`) y navegador, Vite y API quedan en `127.0.0.1`. Es infraestructura de pruebas necesaria para que la semántica de sitio y origen de la cookie (host-only, `SameSite=Lax`) coincida con la arquitectura real; con el runner en una red distinta (`http://web`) la cookie nunca se enviaría.
 
@@ -3160,4 +3160,6 @@ React usa la cookie de sesión SPA HttpOnly, `X-Galotxas-Auth-Mode: session`, CS
 
 **Legal:** `legal/cookies.md` (LEG-003) 1.1.0; `legal:build` regeneró únicamente `frontend/src/generated/legal/public-legal.json` y `legal:check` quedó en PASS.
 
-**Estado:** J3 funcional/local PASS, pendiente de despliegue y aceptación en staging. 5.7-J permanece ACTIVE; J4 pendiente tras J3. Orden posterior conserva J → G → H → D → Q1.
+**Aceptación manual real en staging — PASS** (commit `526cf7f369eabbc11e0c1b4cbbbda6ca8fec98c4`, `feat(auth): migrate SPA to cookie sessions`; sin incidencias observadas): navegación pública anónima; login por sesión SPA; estado autenticado tras Ctrl+F5/recarga; acceso a la zona protegida; mutación autenticada con CSRF; inscripción de Escuela autenticada; logout y rechazo posterior de la ruta protegida; inscripción de Escuela anónima; registro y flujo de perfil de jugador; sesión mantenida tras la recarga del registro; restablecimiento de contraseña que exige un nuevo login.
+
+**Estado:** J3 funcional/local PASS, despliegue en staging PASS y aceptación manual real en staging PASS; rollout de producción pendiente (no está en producción). 5.7-J permanece ACTIVE; J4 pendiente tras la aceptación de producción de J3. Orden posterior conserva J → G → H → D → Q1.

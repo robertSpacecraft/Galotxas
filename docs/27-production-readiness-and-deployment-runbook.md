@@ -281,7 +281,7 @@ nunca de forma global; el panel Blade usa su propia sesión. Por ello:
 ### Sesión SPA de transición (5.7-J J2, apagada por defecto)
 
 J2 añadió al backend una sesión de primera parte para la SPA y J3 la consume
-desde React (pendiente de staging; ningún usuario de producción la utiliza
+desde React (aceptado en staging, commit `526cf7f`; ningún usuario de producción la utiliza
 todavía). Variables
 (sin secretos): `SPA_SESSION_AUTH_ENABLED=false` por defecto y
 `SPA_SESSION_COOKIE=galotxas-spa-session`. Con el flag activo, `deploy:check`
@@ -510,7 +510,7 @@ levantó mantenimiento, la aceptación humana fue PASS y el resultado real se
 reintrodujo por el workflow normal. Evidencia operacional detallada y distinta
 de la regresión automatizada en [05-testing.md](05-testing.md#57-f--ocupación-global-y-planificación-producción-pass--closed).
 
-**5.7-F CLOSED / PASS; 5.7-J ACTIVE (J1 CLOSED / PASS; J2 local PASS, OFF por defecto, pendiente de staging; J3 NEXT tras J2)**, con su gate propia de
+**5.7-F CLOSED / PASS; 5.7-J ACTIVE (J1 CLOSED / PASS; J2 CLOSED / PASS, OFF por defecto en producción; J3 staging PASS, producción pendiente; J4 pendiente)**, con su gate propia de
 arquitectura/seguridad pendiente. Orden posterior J → G → H → D → Q1.
 
 El administrador inicial se crea en la consola privada del backend:

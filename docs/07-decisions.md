@@ -2851,7 +2851,7 @@ Consecuencias:
 
 # ADR-060 — Migración de React a sesión por cookie HttpOnly (5.7-J J3)
 
-Estado: Aceptada (funcional y PASS en local; pendiente de despliegue y aceptación operacional en staging; no activa en producción)
+Estado: Aceptada (funcional y PASS en local; despliegue y aceptación manual real en staging PASS, commit `526cf7f`; rollout de producción pendiente; no activa en producción)
 
 Fecha aproximada: 2026-10
 
