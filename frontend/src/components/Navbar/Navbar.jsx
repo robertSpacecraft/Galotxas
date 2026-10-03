@@ -21,7 +21,8 @@ const closedNavigationState = (pathname) => ({
 });
 
 export const Navbar = () => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, authStatus, retrySessionRestore } = useAuth();
+  const [logoutErrorUserId, setLogoutErrorUserId] = useState(null);
   const location = useLocation();
   const headerRef = useRef(null);
   const menuToggleRef = useRef(null);
@@ -110,9 +111,17 @@ export const Navbar = () => {
     disclosureId: openDisclosureId === itemId ? null : itemId,
   });
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    setLogoutErrorUserId(null);
+    const closed = await logout();
+
+    if (closed === false) {
+      setLogoutErrorUserId(user?.id ?? 'unknown');
+
+      return;
+    }
+
     closeNavigation();
-    logout();
   };
 
   return (
@@ -212,13 +221,24 @@ export const Navbar = () => {
         </ul>
 
         <div className={styles.authSection} role="group" aria-label="Cuenta">
-          {isAuthenticated ? (
+          {authStatus === 'restoring' ? (
+            <span className={styles.accountPlaceholder} aria-hidden="true" />
+          ) : authStatus === 'failed' ? (
+            <button type="button" onClick={() => retrySessionRestore()} className={styles.logoutBtn}>
+              Reintentar sesión
+            </button>
+          ) : isAuthenticated ? (
             <div className={styles.userGreeting}>
               <span className={styles.welcomeText}>
                 Hola, <span className={styles.userName} title={user?.name}>{user?.name}</span>!
               </span>
               <Link to="/player" className={styles.miPanelLink} onClick={closeNavigation}>Mi Panel</Link>
               <button type="button" onClick={handleLogout} className={styles.logoutBtn}>Salir</button>
+              {logoutErrorUserId !== null && logoutErrorUserId === (user?.id ?? 'unknown') && (
+                <p role="alert" className={styles.logoutError}>
+                  No se ha podido cerrar la sesión. Inténtalo de nuevo.
+                </p>
+              )}
             </div>
           ) : (
             <Link to="/login" className={styles.playerAreaBtn} onClick={closeNavigation}>Iniciar sesión</Link>

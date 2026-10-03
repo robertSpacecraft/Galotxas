@@ -1,0 +1,28 @@
+.container {
+  display: flex;
+  min-height: 12rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem 1rem;
+  color: #003366;
+  font-weight: 700;
+  text-align: center;
+}
+
+.retry {
+  min-height: 44px;
+  border: 1px solid #ccd3db;
+  border-radius: 0.25rem;
+  padding: 0.4rem 1rem;
+  background: transparent;
+  color: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.retry:focus-visible {
+  outline: 3px solid #005a9c;
+  outline-offset: 3px;
+}

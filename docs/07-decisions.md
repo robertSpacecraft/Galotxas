@@ -2826,7 +2826,7 @@ Consecuencias:
 
 # ADR-059 — Sesión SPA de doble modo (5.7-J J2)
 
-Estado: Aceptada (implementación backend local PASS; capacidad apagada por defecto; pendiente de aceptación en staging y promoción)
+Estado: Aceptada (validada en staging; capacidad apagada por defecto)
 
 Fecha aproximada: 2026-10
 
@@ -2847,4 +2847,35 @@ Consecuencias:
 - Con el flag apagado el comportamiento es el de ADR-008/ADR-035/ADR-058; React sigue usando Bearer y `localStorage`, y el XSS sobre ese token sigue siendo un riesgo abierto hasta J3. Estos ADR no se reescriben; ADR-008 y la parte de almacenamiento de ADR-035 se sustituirán cuando J3 esté aceptado en producción.
 - Pendiente fuera de J2: migración de React (J3), `school/enrollments` no consume la identidad de sesión por ser una ruta pública sin estado, expiración de tokens, revocación global y corte de los PAT legacy de la SPA, y la actualización de `legal/cookies.md` antes de activar J3.
 - Límites conocidos: la cookie no usa prefijo `__Host-` por mantener HTTP local; la validación same-site usa una heurística simple de dominio registrable.
+- No requiere migración de esquema ni operación sobre datos.
+
+# ADR-060 — Migración de React a sesión por cookie HttpOnly (5.7-J J3)
+
+Estado: Aceptada (funcional y PASS en local; pendiente de despliegue y aceptación operacional en staging; no activa en producción)
+
+Fecha aproximada: 2026-10
+
+Contexto:
+- ADR-059 dejó el backend preparado y validado en staging, pero React seguía enviando el Bearer guardado en `localStorage`, expuesto a exfiltración por XSS.
+- Ante un rollback, un frontend que cambia de modo no debe degradar en silencio a anónimo una acción hecha con intención de sesión. El backend sigue aceptando Bearer, pero no se garantiza la continuidad de los bundles antiguos ya abiertos (ver la limpieza compartida de `localStorage.token` más abajo).
+
+Decisión:
+- Corte del navegador de Bearer/`localStorage` a la cookie de sesión SPA HttpOnly: `credentials: include`, `X-Galotxas-Auth-Mode: session`, `/auth/session/login|register|logout` y `/me`. Login y registro no reciben ni guardan ningún PAT, y el cliente normal no emite `Authorization`.
+- El token CSRF (no es una credencial de autenticación) se obtiene de `/auth/csrf`, se mantiene sólo en memoria y se envía como `X-CSRF-TOKEN` únicamente en peticiones mutantes. Un primer `419` refresca el CSRF una vez (refresh de vuelo único compartido por las peticiones concurrentes) y reintenta una vez; `/auth/csrf` nunca se reintenta; un segundo `419` invalida la sesión local sin bucle. `401` y el `403` de usuario inactivo invalidan; un `403` ordinario no.
+- Arranque con verdad del servidor: `GET /me` forzado en modo sesión. Sin cookie SPA el backend permanece sin estado y responde `401`; no se pide `/auth/csrf` ni se crea sesión anónima, y no se persiste ningún indicador de sesión.
+- Modelo de restauración de cuatro estados (`restoring`, `anonymous`, `authenticated`, `failed`). `AuthProvider` siempre renderiza sus hijos: las rutas públicas se pintan al instante. Sólo esperan `ProtectedRoute`, el área de cuenta del Navbar y Login. Un fallo de red o 5xx no se representa como anónimo confirmado y ofrece reintento.
+- Sincronización entre pestañas con `BroadcastChannel` `galotxas-auth`, que sólo transporta el tipo de evento y un identificador de pestaña: un cierre de sesión limpia las demás y un cambio de sesión provoca un nuevo `/me`; sin soporte hay consistencia eventual en la siguiente petición.
+- Limpieza única del Bearer heredado: se captura `localStorage.token`, se elimina de inmediato, se intenta un `/auth/logout` aislado y best-effort y nunca se restaura ni se canjea por una sesión. No revoca globalmente los PAT de otros dispositivos.
+- Un logout sin confirmación del servidor devuelve `false`, conserva la sesión local y muestra un error accesible. Tras un restablecimiento de contraseña (que ejecuta la revocación total de J1) React limpia su estado y avisa a las demás pestañas; el usuario inicia sesión de nuevo.
+- Inscripción de Escuela: el marcador de ruta `SpaSessionWhenClaimed` conserva la ruta pública y sin estado sin cabecera de modo (y con Bearer legacy); con la cabecera nunca se guarda como anónima: `403` con el flag apagado, `401` sin sesión autenticada y vínculo con el usuario con sesión válida. El origen exacto sigue exigiéndolo `SpaSessionMode`.
+- La compatibilidad Bearer del backend, los endpoints legacy y `HasApiTokens` se mantienen temporalmente para rollback, para clientes que aún posean un PAT y para J4. Como `localStorage` es compartido por las pestañas del mismo origen, la limpieza de J3 puede retirar el token de una pestaña antigua ya abierta en el mismo perfil de navegador: su continuidad no está garantizada y pedir un nuevo inicio de sesión es aceptable e intencionado.
+- La infraestructura E2E adopta SPA session activada, driver `database`, runner con la red de `web` en `127.0.0.1` y healthcheck `/up`, para que la semántica de sitio y origen de la cookie coincida con la arquitectura real.
+
+Consecuencias:
+- Cuando J3 esté aceptado operacionalmente, queda sustituido el almacenamiento en `localStorage` de ADR-008 y de la parte de almacenamiento de ADR-035. Hasta entonces no se reescriben y producción conserva el comportamiento Bearer.
+- Rollback: primero devolver el frontend a la versión Bearer anterior; sólo después, si se desea, apagar `SPA_SESSION_AUTH_ENABLED`. Apagar el flag con el frontend J3 activo hace que sus peticiones con intención de sesión fallen cerradas (los `403` de `RequireSpaSessionMode`/`SpaSessionWhenClaimed`) en lugar de degradarse a anónimas.
+- Un arranque anónimo emite un `GET /me` con `401` esperado, visible en la consola del navegador; es aceptable y no bloquea el contenido público.
+- La cookie de sesión es la credencial del navegador: está protegida frente a la lectura por JavaScript, pero no frente a acciones realizadas dentro de la página. No se añade CSP, expiración de PAT, logout global ni sesión absoluta.
+- `legal/cookies.md` (LEG-003) se actualiza a 1.1.0 y se regenera la proyección legal.
+- Pendiente fuera de J3: aceptación en staging y rollout de producción; J4 para corte y limpieza de PAT legacy; expiración de tokens de clientes externos; heurística same-site simple y ausencia de prefijo `__Host-` (heredadas de ADR-059).
 - No requiere migración de esquema ni operación sobre datos.

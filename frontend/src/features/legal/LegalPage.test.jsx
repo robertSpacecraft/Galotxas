@@ -35,9 +35,9 @@ describe('LegalPage', () => {
       '/legal/cookies',
       'Política de cookies y almacenamiento local',
       'Web pública',
-      '1.0.0',
-      '06/08/2026',
-      '2026-08-06',
+      '1.1.0',
+      '03/10/2026',
+      '2026-10-03',
     ],
   ])(
     'renders the approved projection for %s',

@@ -99,6 +99,10 @@ class SpaSessionMode
             return true;
         }
 
+        if (in_array(SpaSessionWhenClaimed::class, $middleware, true)) {
+            return $request->cookies->has((string) config('spa_session.cookie'));
+        }
+
         $protected = array_filter(
             $middleware,
             static fn ($name): bool => is_string($name) && str_starts_with($name, 'auth')

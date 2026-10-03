@@ -1,4 +1,5 @@
 import { deflateSync } from 'node:zlib';
+import { collectConsoleErrors } from './support/sessionAuth.js';
 import { expect, test } from '@playwright/test';
 
 const backendBaseURL = process.env.E2E_BACKEND_URL || 'http://127.0.0.1:8081';
@@ -106,9 +107,7 @@ const deleteSponsor = async (page, name) => {
 
 test('administra y publica colaboradores antes del footer con lifecycle multimedia completo', async ({ page }) => {
   const consoleErrors = [];
-  page.on('console', (message) => {
-    if (message.type() === 'error') consoleErrors.push(message.text());
-  });
+  collectConsoleErrors(page, consoleErrors);
 
   await loginAdmin(page);
   await createSponsor(page, {

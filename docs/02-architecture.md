@@ -645,12 +645,18 @@ React y Laravel y no crea una cuarta página legal pública. Los tokens sólo se
 guardan como hash y viajan al frontend en el fragmento de una ruta aislada;
 confirmación y decisiones los envían en el cuerpo de POST.
 
-React persiste sólo el Bearer en `localStorage.token`, elimina el antiguo
-`localStorage.user` y restaura el perfil en memoria mediante `/me`. Logout y
-`401`/`419` limpian la sesión; un `403` ordinario conserva Cuenta, mientras el
-`403` explícito de usuario inactivo limpia el token ya revocado en servidor.
-Sanctum continúa sin expiración global y el riesgo XSS del Bearer sigue abierto;
-J2 (backend, OFF por defecto) prepara su sustitución en J3 sin cambiar este flujo.
+Desde 5.7-J J3 React autentica con la cookie de sesión SPA HttpOnly
+(`credentials: include`, `X-Galotxas-Auth-Mode: session`), mantiene el token
+CSRF sólo en memoria, restaura el perfil en memoria mediante `/me` (verdad del
+servidor) y ya no guarda ni envía el Bearer; sólo elimina una vez un
+`localStorage.token`/`localStorage.user` heredado y revoca ese token de forma
+best-effort. El estado de restauración (`restoring`, `anonymous`,
+`authenticated`, `failed`) permite pintar al instante el contenido público;
+sólo `ProtectedRoute`, la cuenta del Navbar y Login esperan. Un `403` ordinario
+conserva Cuenta; `401` y el `403` de usuario inactivo limpian la sesión local y
+las demás pestañas (`BroadcastChannel` `galotxas-auth`). Producción sigue con
+el frontend Bearer hasta el rollout de J3 (ADR-060); Sanctum continúa sin
+expiración global para los PAT legacy hasta J4.
 Google Fonts, Bunny Fonts y jsDelivr se
 retiran en favor de fuentes de sistema y recursos locales del panel. La
 selección real de hosting, base, correo, backups y región pertenece a 7F.
@@ -938,10 +944,12 @@ scheduler. `/up` es una liveness sin sesión ni DB; la readiness detallada se
 ejecuta mediante `php artisan deploy:check`. Las migraciones son manuales y
 forward-only conforme a ADR-041.
 
-React continúa usando Bearer Sanctum: CORS admite exclusivamente el origen
-frontend configurado y, mientras `SPA_SESSION_AUTH_ENABLED=false` (estado
-vigente), no habilita credenciales cross-origin. 5.7-J J2 añade en backend una
-sesión SPA aislada y desactivada por defecto que React aún no usa (ADR-059). Blade conserva
+El código de React (J3) usa la sesión SPA; el frontend desplegado en producción
+sigue con Bearer Sanctum hasta el rollout. CORS admite exclusivamente el origen
+frontend configurado y habilita credenciales sólo con
+`SPA_SESSION_AUTH_ENABLED=true` (hoy `false` en producción). 5.7-J J2 añadió en
+backend una sesión SPA aislada y desactivada por defecto que J3 consume
+(ADR-059, ADR-060). Blade conserva
 sesión DB con cookie Secure/HttpOnly/SameSite. Los proxies de Railway sólo se
 confían mediante variable explícita y el smoke debe acreditar el esquema HTTPS.
 
@@ -1019,7 +1027,7 @@ Laravel lee el objeto privado mediante stream y responde directamente `200`
 con el binario y cabeceras privadas; no emite `Location` ni URL prefirmada. Esta
 excepción evita la cadena cross-origin API → `302` → bucket en la descarga XHR
 autenticada. Los logos públicos de Sponsor mantienen el redirect S3 temporal.
-React descarga el binario con Bearer, crea un object URL sólo en memoria y lo
+React descarga el binario con la cookie de sesión (Bearer hasta el rollout de J3), crea un object URL sólo en memoria y lo
 revoca al sustituir, borrar o desmontar. El fallback son las iniciales de la
 cuenta.
 

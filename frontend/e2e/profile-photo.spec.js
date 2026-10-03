@@ -1,4 +1,10 @@
 import { deflateSync } from 'node:zlib';
+import {
+  collectConsoleErrors,
+  expectHttpOnlySessionCookie,
+  expectNoStoredAuth,
+  sessionRequestHeaders,
+} from './support/sessionAuth.js';
 import { expect, test } from '@playwright/test';
 
 const backendBaseURL = process.env.E2E_BACKEND_URL || 'http://127.0.0.1:8081';
@@ -80,20 +86,15 @@ const assertNoPrivateReference = (payload) => {
 };
 
 const authenticatedHeaders = async (page) => {
-  const token = await page.evaluate(() => localStorage.getItem('token'));
-  expect(token).toBeTruthy();
+  await expectNoStoredAuth(page);
+  await expectHttpOnlySessionCookie(page);
 
-  return {
-    Accept: 'application/json',
-    Authorization: `Bearer ${token}`,
-  };
+  return sessionRequestHeaders(page);
 };
 
 test('gestiona la foto privada en Mi Panel sin exponer claves ni identidad pública', async ({ page }) => {
   const consoleErrors = [];
-  page.on('console', (message) => {
-    if (message.type() === 'error') consoleErrors.push(message.text());
-  });
+  collectConsoleErrors(page, consoleErrors);
 
   await login(page);
   const photoSection = page.getByRole('region', { name: 'Foto de perfil' });

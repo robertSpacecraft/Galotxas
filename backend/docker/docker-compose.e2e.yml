@@ -30,7 +30,8 @@ services:
       DB_USERNAME: galotxas_e2e
       DB_PASSWORD: galotxas_e2e
       CACHE_STORE: array
-      SESSION_DRIVER: cookie
+      SESSION_DRIVER: database
+      SPA_SESSION_AUTH_ENABLED: "true"
       QUEUE_CONNECTION: sync
       # Fuerza un fallo controlado para verificar que la autorización persiste sin proveedor real.
       MAIL_MAILER: public-identity-e2e-failure
@@ -75,7 +76,7 @@ services:
     depends_on:
       - app
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/up"]
       interval: 2s
       timeout: 5s
       retries: 30
@@ -102,13 +103,16 @@ services:
   runner:
     image: mcr.microsoft.com/playwright:v1.61.1-noble
     profiles: ["runner"]
+    # Comparte la red de `web`: navegador, Vite y API quedan en el mismo host
+    # (127.0.0.1) para que la cookie de sesión SPA sea de la misma web.
+    network_mode: "service:web"
     working_dir: /workspace/frontend
     user: "${E2E_UID:-1000}:${E2E_GID:-1000}"
     volumes:
       - ../..:/workspace
     environment:
       E2E_BASE_URL: "${E2E_BASE_URL:-}"
-      E2E_BACKEND_URL: "${E2E_BACKEND_URL:-http://web}"
+      E2E_BACKEND_URL: "${E2E_BACKEND_URL:-http://127.0.0.1}"
       E2E_FRONTEND_PORT: "${E2E_FRONTEND_PORT:-5174}"
       E2E_NOINDEX_FRONTEND_PORT: "${E2E_NOINDEX_FRONTEND_PORT:-5175}"
       E2E_SKIP_WEBSERVER: "${E2E_SKIP_WEBSERVER:-}"
@@ -120,8 +124,6 @@ services:
     depends_on:
       web:
         condition: service_healthy
-    networks:
-      - e2e
 
 networks:
   e2e:

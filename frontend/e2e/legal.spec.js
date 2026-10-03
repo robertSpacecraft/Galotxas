@@ -84,7 +84,8 @@ test.describe('páginas legales versionadas', () => {
     const remoteRequests = [];
     page.on('request', (request) => {
       const url = request.url();
-      if (/\/api\/v1\//.test(url)) apiRequests.push(url);
+      // /me es la comprobación anónima de la sesión SPA (5.7-J J3), no contenido legal.
+      if (/\/api\/v1\//.test(url) && !/\/api\/v1\/me$/.test(url)) apiRequests.push(url);
       if (/fonts\.(googleapis|gstatic)|fonts\.bunny|cdn\.jsdelivr/.test(url)) {
         remoteRequests.push(url);
       }

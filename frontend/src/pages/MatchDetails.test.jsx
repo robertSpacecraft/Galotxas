@@ -39,7 +39,7 @@ describe('MatchDetails', () => {
     renderWithProviders(<MatchDetails />, {
       route: '/matches/18',
       routePath: '/matches/:matchId',
-      authValue: { token: null },
+      authValue: { isAuthenticated: false },
     });
 
     expect(await screen.findByRole('heading', {
@@ -65,7 +65,7 @@ describe('MatchDetails', () => {
     renderWithProviders(<MatchDetails />, {
       route: '/matches/18',
       routePath: '/matches/:matchId',
-      authValue: { token: null },
+      authValue: { isAuthenticated: false },
     });
 
     expect(await screen.findByRole('alert')).toHaveTextContent('No se ha podido cargar el partido.');

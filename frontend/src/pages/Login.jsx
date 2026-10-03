@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { AuthRestoreFeedback } from '../components/AuthRestoreFeedback/AuthRestoreFeedback';
 import styles from './Login.module.css';
 
 export default function Login() {
@@ -10,7 +11,15 @@ export default function Login() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-    const { login, isAuthenticated } = useAuth();
+    const { login, isAuthenticated, authStatus, retrySessionRestore } = useAuth();
+
+    if (authStatus === 'restoring' || authStatus === 'failed') {
+        return (
+            <div className={`page-container ${styles.loginContainer}`}>
+                <AuthRestoreFeedback status={authStatus} onRetry={() => retrySessionRestore()} />
+            </div>
+        );
+    }
 
     if (isAuthenticated) {
         return <Navigate to="/player" replace />;

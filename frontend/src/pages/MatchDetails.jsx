@@ -19,7 +19,7 @@ const scoreValue = (value) => value ?? '-';
 
 export default function MatchDetails() {
     const { matchId } = useParams();
-    const { token } = useAuth();
+    const { isAuthenticated } = useAuth();
 
     const [match, setMatch] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -138,7 +138,7 @@ export default function MatchDetails() {
                 </div>
             </header>
 
-            {token ? (
+            {isAuthenticated ? (
                 <MatchWorkflow matchId={matchId} onMatchChange={handleWorkflowMatchChange} />
             ) : (
                 <section className={styles.workflowPrompt}>

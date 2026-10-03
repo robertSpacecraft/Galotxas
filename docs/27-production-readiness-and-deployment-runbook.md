@@ -107,7 +107,7 @@ Prohibiciones comunes:
 | Railway | Servicios backend y MariaDB activos para staging | `backend-production` desplegado con autodeploy de `main` activo (PASS) |
 | MariaDB | DB de staging operativa, migraciones completadas | DB productiva operativa, migraciones aplicadas manualmente (PASS) |
 | CORS | Origen exacto, sin patrones, wildcard o cookies CORS | Validado en producción (PASS) |
-| Auth | Sanctum Bearer existente; contratos 401/403/419 intactos | Registro y reset de password validados extremo a extremo en producción (PASS) |
+| Auth | Sanctum Bearer existente (frontend anterior a J3); contratos 401/403/419 intactos | Registro y reset de password validados extremo a extremo en producción (PASS) |
 | Sesión Blade | Cookie Secure/HttpOnly/SameSite y driver DB en ejemplos | Admin productivo login validado (PASS) |
 | Proxy/HTTPS | `TRUSTED_PROXIES` y cabeceras Traefik | Validado en producción (PASS) |
 | Salud | `/up` mínimo, independiente de DB; readiness CLI | `/up` verificado en producción (PASS) |
@@ -262,9 +262,10 @@ tener supervisión, reintentos, failed jobs y runbook antes de cambiar
 
 ## CORS, autenticación, sesiones y cabeceras
 
-React conserva el token Sanctum Bearer y lo envía mediante `Authorization`.
-React no usa todavía cookies y `statefulApi()` no se habilita nunca de forma
-global; el panel Blade sí usa sesión. Por ello:
+El frontend desplegado en producción conserva el token Sanctum Bearer y lo
+envía mediante `Authorization`; el código de J3 usa la cookie de sesión SPA y se
+desplegará según "Sesión SPA de transición". `statefulApi()` no se habilita
+nunca de forma global; el panel Blade usa su propia sesión. Por ello:
 
 - CORS afecta sólo `api/*`;
 - se permite un origen exacto por entorno;
@@ -279,8 +280,9 @@ global; el panel Blade sí usa sesión. Por ello:
 
 ### Sesión SPA de transición (5.7-J J2, apagada por defecto)
 
-J2 añade al backend una sesión de primera parte para la SPA que **ningún
-usuario utiliza todavía**: React sigue con Bearer y J3 la consumirá. Variables
+J2 añadió al backend una sesión de primera parte para la SPA y J3 la consume
+desde React (pendiente de staging; ningún usuario de producción la utiliza
+todavía). Variables
 (sin secretos): `SPA_SESSION_AUTH_ENABLED=false` por defecto y
 `SPA_SESSION_COOKIE=galotxas-spa-session`. Con el flag activo, `deploy:check`
 exige: CORS con credenciales y origen exacto, cookie SPA distinta de la de
@@ -291,9 +293,29 @@ registrable (heurística simple de dos etiquetas). Valores previstos: local
 `https://api-staging.galotxesmonover.es` /
 `https://staging.galotxesmonover.es`; producción
 `https://api.galotxesmonover.es` / `https://galotxesmonover.es`; `CORS_ALLOWED_ORIGINS`
-igual a `FRONTEND_URL`. Orden de despliegue: backend con el flag apagado,
-`deploy:check`, activar en staging y aceptar; producción permanece apagada
-hasta que J3 esté aceptado. Revertir es apagar el flag; Bearer sigue válido.
+igual a `FRONTEND_URL`.
+
+Rollout de producción de J3 (no ejecutado):
+
+1. Producción ejecuta hoy el backend J2 con `SPA_SESSION_AUTH_ENABLED=false`.
+2. Activar `SPA_SESSION_AUTH_ENABLED=true` y ejecutar `deploy:check`.
+3. Verificar que el frontend de producción anterior sigue funcionando con Bearer.
+4. Desplegar el frontend J3.
+5. Verificar: navegación pública anónima, login, recarga, zona protegida,
+   una mutación, logout, registro con perfil, restablecimiento de contraseña y
+   la inscripción de Escuela anónima y autenticada.
+6. El backend sigue aceptando Bearer legacy durante la transición J3/J4 (compatibilidad de rollback y de clientes que aún tengan un PAT). Una pestaña antigua ya abierta **no** tiene garantizada la continuidad: la limpieza de migración de J3 elimina el `localStorage.token` compartido por todas las pestañas del mismo origen, de modo que si otra pestaña carga J3 la antigua puede perder su token y pedir un nuevo inicio de sesión. Es aceptable e intencionado.
+7. J4 resolverá más adelante la limpieza y retirada de los PAT legacy.
+
+Rollback (orden obligatorio):
+
+1. Devolver primero el frontend (Vercel) a la versión Bearer anterior.
+2. Verificar que el frontend anterior funciona.
+3. Sólo entonces, si se desea, poner `SPA_SESSION_AUTH_ENABLED=false`.
+
+No apagar el flag mientras el frontend J3 siga activo: un cliente J3 que declara
+modo sesión debe fallar cerrado (`403`) y no degradarse en silencio a anónimo.
+Bearer sigue válido en el backend durante todo el proceso.
 
 El bucket privado de `media-staging` mantiene CORS de lectura limitado a
 `GET`/`HEAD` y al origen exacto `https://staging.galotxesmonover.es`;
@@ -1197,7 +1219,7 @@ posterior, sin bloquear la release publicada:
 - HSTS/CSP, otros uploads, worker y scheduler continúan aplazados;
 - la SPA mantiene metadata client-side y la respuesta HTTP de rutas React no
   constituye SSR;
-- el token Bearer continúa en `localStorage`, según la decisión vigente;
+- el token Bearer continúa en `localStorage` en el frontend de producción hasta el rollout de J3 (ADR-060);
 - las prioridades P1/P2 de
   `29-mvp-final-acceptance-and-production-gate.md` permanecen post-MVP.
 

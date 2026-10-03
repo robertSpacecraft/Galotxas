@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { collectConsoleErrors } from './support/sessionAuth.js';
 
 const tabLabels = [
   'Resumen',
@@ -28,10 +29,6 @@ const playerUser = {
 };
 
 const mockPrivateApi = async (page, privateRequests) => {
-  await page.addInitScript(() => {
-    localStorage.setItem('token', 'dashboard-navigation-e2e-token');
-  });
-
   await page.route('**/api/v1/**', async (route) => {
     const request = route.request();
     const pathname = new URL(request.url()).pathname;
@@ -40,7 +37,9 @@ const mockPrivateApi = async (page, privateRequests) => {
       privateRequests.push(pathname);
     }
 
-    const data = pathname === '/api/v1/me' ? { user: playerUser } : [];
+    let data = [];
+    if (pathname === '/api/v1/me') data = { user: playerUser };
+    if (pathname === '/api/v1/auth/csrf') data = { csrf_token: 'dashboard-navigation-e2e-csrf' };
 
     await route.fulfill({
       status: 200,
@@ -74,9 +73,7 @@ const readTabsLayout = async (tablist) => tablist.evaluate((container) => {
 test('Mi Panel mantiene sus cinco secciones visibles, accesibles y funcionales', async ({ page }) => {
   const consoleErrors = [];
   const privateRequests = [];
-  page.on('console', (message) => {
-    if (message.type() === 'error') consoleErrors.push(message.text());
-  });
+  collectConsoleErrors(page, consoleErrors);
 
   await mockPrivateApi(page, privateRequests);
   await page.goto('/player');

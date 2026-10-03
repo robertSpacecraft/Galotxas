@@ -142,10 +142,10 @@ describe('legal compiler', () => {
 
     expect(first.artifact.documents).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        version: '1.0.0',
+        version: '1.1.0',
         status: 'vigente',
-        publishedAt: '2026-08-06',
-        reviewedAt: '2026-08-06',
+        publishedAt: '2026-10-03',
+        reviewedAt: '2026-10-03',
         owner: 'Club Galotxes de Monover',
       }),
     ]))

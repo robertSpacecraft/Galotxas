@@ -224,6 +224,23 @@
   transform: translateY(-2px);
 }
 
+.accountPlaceholder {
+  display: inline-block;
+  width: 9.5rem;
+  height: 44px;
+  border-radius: 0.5rem;
+  background: #e5e9ee;
+}
+
+.logoutError {
+  flex-basis: 100%;
+  margin: 0;
+  color: #b42318;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: right;
+}
+
 .userGreeting {
   display: flex;
   min-width: 0;

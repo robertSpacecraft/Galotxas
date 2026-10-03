@@ -1,6 +1,7 @@
 import { lazy } from 'react';
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import api from './api/client';
 import { championshipsService } from './api/championships';
 import { cmsService } from './api/cms';
 import { contactService } from './features/contact/contactService';
@@ -70,6 +71,8 @@ const openAppAt = (pathname) => {
 describe('App public routes', () => {
   beforeEach(() => {
     localStorage.clear();
+    // Arranque anónimo: la comprobación de sesión (/me) responde 401.
+    vi.spyOn(api, 'get').mockRejectedValue({ response: { status: 401 } });
     championshipsService.getSeasons.mockResolvedValue([]);
     championshipsService.getChampionships.mockResolvedValue([]);
     championshipsService.getAllTimeRanking.mockResolvedValue([]);

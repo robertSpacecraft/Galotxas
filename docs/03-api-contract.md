@@ -406,20 +406,23 @@ Los datos sensibles nunca deben exponerse mediante endpoints públicos.
 
 ## Autenticación desde React
 
-El frontend React consume la API autenticada mediante tokens Bearer emitidos por Laravel Sanctum en los endpoints de autenticación.
+Desde 5.7-J J3 el frontend React consume la API autenticada mediante la sesión de primera parte descrita en "Sesión SPA de transición" y ya no usa tokens Bearer en el uso normal del navegador. Los endpoints Bearer siguen disponibles en el backend durante la transición (rollback y J4). El código de J3 está pendiente de despliegue y aceptación en staging; producción sigue ejecutando el frontend Bearer anterior hasta su rollout.
 
-Estrategia actual:
+Estrategia actual del cliente React:
 
-- el token se conserva en `localStorage` bajo la clave `token`;
-- el perfil autenticado se conserva sólo en memoria y se restaura mediante `GET /me`;
-- cualquier `localStorage.user` legado se elimina sin migrar su contenido;
+- la autenticación es la cookie de sesión SPA HttpOnly, enviada con `credentials: include`; el cliente nunca envía `Authorization`;
+- las peticiones de sesión llevan `X-Galotxas-Auth-Mode: session` (forzada en `/me`, `/auth/csrf` y `/auth/session/*`; en el resto, mientras se espera una sesión);
+- el perfil autenticado se conserva sólo en memoria y se restaura mediante `GET /me`, que es la verdad del servidor; un `401` es anónimo confirmado y no se pide `/auth/csrf` ni se crea sesión;
+- el token CSRF devuelto por `GET /auth/csrf` (y por login, registro y logout) se mantiene sólo en memoria y se envía como `X-CSRF-TOKEN` únicamente en `POST`, `PUT`, `PATCH` y `DELETE` de sesión; no es una credencial de autenticación;
 - el cliente Axios obtiene su URL base de `VITE_API_BASE_URL`; sin variable usa el backend local durante desarrollo y `/api/v1` en producción;
-- el cliente Axios añade `Authorization: Bearer <token>` cuando existe token local;
-- `GET /api/v1/me` se utiliza para refrescar los datos de la cuenta y su perfil de jugador;
-- `POST /api/v1/auth/logout` revoca el token actual en backend;
-- ante `401` o `419`, React elimina el token, cualquier dato legado y el estado en memoria;
+- login, registro y logout usan `POST /auth/session/login|register|logout`; no se recibe ningún PAT;
+- ante un primer `419` el cliente refresca el CSRF una vez (las peticiones concurrentes comparten el refresh) y reintenta la petición una vez; `/auth/csrf` no se reintenta y un segundo `419` invalida la sesión local sin bucle;
+- ante `401` o el `403` contractual `El usuario está inactivo.`, React borra el estado en memoria, el CSRF y la expectativa de sesión, y avisa a las demás pestañas;
 - un `403` de autorización ordinario conserva la sesión y propaga el error, sin redirigir a login;
-- el `403` contractual `El usuario está inactivo.` sí limpia la autenticación porque `EnsureUserIsActive` revoca todos los tokens y sesiones del usuario en el servidor.
+- el estado de restauración es `restoring`, `anonymous`, `authenticated` o `failed`; un fallo de red o 5xx de `/me` es `failed` (con reintento), nunca anónimo confirmado;
+- las pestañas se sincronizan por `BroadcastChannel` `galotxas-auth` (sólo tipo de evento e identificador de pestaña); sin soporte hay consistencia eventual en la siguiente petición;
+- un logout sin confirmación del servidor conserva la sesión local; `401`/`419` en logout dejan el estado anónimo;
+- migración: un `localStorage.token` heredado se retira una vez, se intenta revocar con un `POST /auth/logout` Bearer aislado y best-effort, y nunca se restaura ni se canjea por una sesión; cualquier `localStorage.user` legado se elimina sin migrar.
 
 En este contrato, `401` identifica credencial ausente, inválida o revocada;
 `403`, una identidad válida sin autorización, salvo la excepción explícita de
@@ -428,7 +431,7 @@ API Bearer actuales no generan `419` de forma ordinaria.
 
 ### Sesión SPA de transición (5.7-J J2)
 
-Capacidad de backend **apagada por defecto** (`SPA_SESSION_AUTH_ENABLED=false`); con el flag apagado la API se comporta exactamente como el contrato Bearer anterior y las rutas siguientes responden `403`. React no la usa todavía (J3).
+Capacidad de backend **apagada por defecto** (`SPA_SESSION_AUTH_ENABLED=false`); con el flag apagado la API se comporta exactamente como el contrato Bearer anterior y las rutas siguientes responden `403`. React la usa desde J3 (pendiente de despliegue).
 
 Un request entra en modo sesión sólo si se cumple todo: flag activo; cabecera `X-Galotxas-Auth-Mode: session`; `Origin` exactamente igual a `FRONTEND_URL`; ninguna cabecera `Authorization`; y ruta de sesión o ruta `auth:*` con la cookie SPA presente. Nunca se deduce del `Origin`/`Referer` y los clientes Bearer, incluso desde el origen de la SPA, no reciben CSRF, cookie ni sesión. El tráfico público/anónimo permanece sin estado y no exige CSRF por venir de un origen propio.
 
@@ -441,15 +444,13 @@ Un request entra en modo sesión sólo si se cumple todo: flag activo; cabecera 
 
 Cookie SPA: `SPA_SESSION_COOKIE` (por defecto `galotxas-spa-session`), host-only en el host de la API, `HttpOnly`, `Secure` en staging/producción, `SameSite=Lax`, `path=/`, distinta de la de Blade. Las peticiones mutantes de sesión exigen `X-CSRF-TOKEN` (`419` si falta o no coincide); J3 debe usar el token devuelto por login/registro/logout y volver a pedir `/auth/csrf` ante un `419`. Las respuestas de modo sesión usan `Cache-Control: no-store, private`. CORS con credenciales sólo con el flag activo, siempre con origen exacto. Un usuario inactivo recibe el `403` habitual y J1 purga todos sus tokens y sesiones.
 
-La estrategia forma parte del estado MVP actual. Una futura migración a cookies `HttpOnly`/`SameSite` con protección CSRF requerirá un bloque específico porque modifica el modelo de consumo del frontend y no debe mezclarse con cambios funcionales menores.
+Inscripción de Escuela (`POST /school/enrollments`): sigue siendo pública, anónima y sin estado, y compatible con Bearer. La ruta lleva el marcador `SpaSessionWhenClaimed`: sin cabecera de modo (o con `Authorization`) no cambia nada; con `X-Galotxas-Auth-Mode: session` nunca se guarda como anónima. Con el flag apagado responde `403` (mismo cuerpo que las rutas de sesión); con el flag activo exige modo sesión (origen exacto) y sesión autenticada o responde `401`; una sesión válida vincula la inscripción al usuario. Olvidar/restablecer contraseña siguen siendo anónimos y no crean sesión; un restablecimiento correcto aplica la revocación total de J1 y React limpia su estado local y el de las demás pestañas.
 
-Sanctum no define expiración global. 7D.2B conserva únicamente el token sin
-caducidad propia hasta logout, limpieza por `401`, `419`, el `403` explícito de
-usuario inactivo o acción del navegador;
-`/me` hidrata cada recarga válida. Expiración, información
-de privacidad y la migración de React a cookies HttpOnly (J3) son gates
-productivos pendientes; la revocación total en reset, cambio administrativo
-de contraseña y desactivación se implementó en J1.
+Sanctum no define expiración global para los PAT. La revocación total en reset,
+cambio administrativo de contraseña y desactivación se implementó en J1 y la
+migración de React a cookie HttpOnly en J3 (pendiente de aceptación en staging).
+La expiración de tokens de clientes externos y el corte y limpieza de los PAT
+legacy de la SPA (J4) siguen pendientes.
 
 ---
 

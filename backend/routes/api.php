@@ -36,6 +36,7 @@ use App\Http\Middleware\EnsureContactFormIsEnabled;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\IsAdmin;
 use App\Http\Middleware\RequireSpaSessionMode;
+use App\Http\Middleware\SpaSessionWhenClaimed;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -101,7 +102,7 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/school', SchoolController::class);
     Route::post('/school/enrollments', [SchoolEnrollmentController::class, 'store'])
-        ->middleware('throttle:school-enrollments');
+        ->middleware([SpaSessionWhenClaimed::class, 'throttle:school-enrollments']);
 
     Route::get('/sponsors', [SponsorController::class, 'index']);
     Route::get('/sponsors/{sponsor}/logo', SponsorLogoController::class)

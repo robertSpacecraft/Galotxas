@@ -362,4 +362,48 @@ describe('Navbar', () => {
     expect(screen.getByRole('button', { name: 'Club' })).not.toHaveClass(styles.navItemActive);
     expect(screen.queryByRole('link', { name: 'Historia', hidden: true })).toBeInTheDocument();
   });
+  describe('account area and session restoration', () => {
+    const accountArea = () => screen.getByRole('group', { name: 'Cuenta' });
+    const player = { id: 3, name: 'Jugadora' };
+
+    it('renders public navigation at once and a neutral account placeholder while restoring', () => {
+      renderWithProviders(<Navbar />, {
+        authValue: { ...anonymousAuth, authStatus: 'restoring' },
+      });
+
+      expect(screen.getByRole('list', { name: 'Navegación editorial' })).toBeInTheDocument();
+      expect(within(accountArea()).queryByRole('link', { name: 'Iniciar sesión' })).not.toBeInTheDocument();
+      expect(within(accountArea()).queryByRole('button')).not.toBeInTheDocument();
+    });
+
+    it('offers a retry instead of the anonymous link when the restore failed', async () => {
+      const retrySessionRestore = vi.fn();
+      renderWithProviders(<Navbar />, {
+        authValue: { ...anonymousAuth, authStatus: 'failed', retrySessionRestore },
+      });
+
+      expect(within(accountArea()).queryByRole('link', { name: 'Iniciar sesión' })).not.toBeInTheDocument();
+      await userEvent.click(within(accountArea()).getByRole('button', { name: 'Reintentar sesión' }));
+
+      expect(retrySessionRestore).toHaveBeenCalledOnce();
+    });
+
+    it('keeps the account UI authenticated and shows an accessible error when logout is not confirmed', async () => {
+      const logout = vi.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+      renderWithProviders(<Navbar />, {
+        authValue: { user: player, isAuthenticated: true, authStatus: 'authenticated', logout },
+      });
+
+      await userEvent.click(within(accountArea()).getByRole('button', { name: 'Salir' }));
+
+      expect(await screen.findByRole('alert'))
+        .toHaveTextContent('No se ha podido cerrar la sesión. Inténtalo de nuevo.');
+      expect(within(accountArea()).getByRole('link', { name: 'Mi Panel' })).toBeInTheDocument();
+
+      await userEvent.click(within(accountArea()).getByRole('button', { name: 'Salir' }));
+
+      expect(logout).toHaveBeenCalledTimes(2);
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+  });
 });

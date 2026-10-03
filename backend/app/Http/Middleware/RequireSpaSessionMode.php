@@ -12,12 +12,17 @@ class RequireSpaSessionMode
     public function handle(Request $request, Closure $next): Response
     {
         if ($request->attributes->get(SpaSessionMode::ATTRIBUTE) !== true) {
-            return new JsonResponse([
-                'message' => 'La sesión SPA no está disponible para esta petición.',
-                'data' => null,
-            ], 403);
+            return self::unavailable();
         }
 
         return $next($request);
+    }
+
+    public static function unavailable(): JsonResponse
+    {
+        return new JsonResponse([
+            'message' => 'La sesión SPA no está disponible para esta petición.',
+            'data' => null,
+        ], 403);
     }
 }

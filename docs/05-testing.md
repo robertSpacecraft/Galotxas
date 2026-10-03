@@ -3135,4 +3135,29 @@ Capacidad de backend desactivada por defecto (`SPA_SESSION_AUTH_ENABLED=false`) 
 
 **Gate de compatibilidad legacy:** una sonda Playwright temporal y dirigida, con la app React sin modificar, pasó con `SPA_SESSION_AUTH_ENABLED` apagado y encendido: login, recarga con bootstrap Bearer por `/me`, logout, registro con perfil de jugador y recarga completa, un `403` ordinario que conserva el Bearer y el `403` de usuario inactivo como invalidación intencionada; sin cookie SPA, CSRF ni `419`. La sonda y sus artefactos se eliminaron y no cambió código frontend. Matiz: la ejecución con el flag encendido usó el driver de sesión `cookie` del stack E2E; el comportamiento con sesiones persistentes en base de datos lo cubren los tests backend de J2 y recibirá aceptación integrada en staging.
 
-**Estado:** implementación local y gates de compatibilidad legacy PASS. La capacidad permanece apagada por defecto y a la espera de aceptación en staging y promoción a producción; no está activa para usuarios. J3 es NEXT sólo tras la aceptación operacional de J2. 5.7-J permanece ACTIVE. Orden posterior conserva J → G → H → D → Q1.
+**Estado:** implementación local y gates de compatibilidad legacy PASS; posteriormente aceptada en staging con `SESSION_DRIVER=database` (CSRF 200, login 200, `/me` sólo con cookie 200, CSRF erróneo 419 sin perder la sesión, logout 200, `/me` posterior 401, flujo Bearer legacy y Blade intactos). La capacidad permanece apagada por defecto. J2: CLOSED / PASS. 5.7-J permanece ACTIVE.
+
+## 5.7-J J3 — Migración de React a sesión por cookie HttpOnly
+
+React usa la cookie de sesión SPA HttpOnly, `X-Galotxas-Auth-Mode: session`, CSRF en memoria y `/me` como verdad del servidor (ADR-060). No hay migración ni operación de datos. Estado: funcional/local PASS; pendiente de despliegue y aceptación en staging.
+
+**Cambio de infraestructura E2E (intencionado):** el stack E2E ejecuta con `SPA_SESSION_AUTH_ENABLED=true` y `SESSION_DRIVER=database`; el healthcheck de `web` usa `/up` porque `/` necesita la tabla `sessions` antes de migrar; el runner comparte la red de `web` (`network_mode: service:web`) y navegador, Vite y API quedan en `127.0.0.1`. Es infraestructura de pruebas necesaria para que la semántica de sitio y origen de la cookie (host-only, `SameSite=Lax`) coincida con la arquitectura real; con el runner en una red distinta (`http://web`) la cookie nunca se enviaría.
+
+**Evidencia — frontend (Vitest):**
+- Pasada de correcciones (público inmediato, `ProtectedRoute`, Navbar, Login, logout): Vitest focal 191 pasados (`authSession`, `client`, `AuthContext`, `ProtectedRoute`, `Navbar`, `Login`, `MatchDetails` y estados de restauración).
+- Última ejecución completa: 813 pasados y 5 fallidos. Los 5 son los mismos fallos ajenos del compilador de Knowledge por el `knowledge/CLAUDE.md` versionado. La suite frontend **no** está en verde.
+- Cubren: credenciales y cabeceras del cliente, CSRF sólo en peticiones mutantes, un único refresh/reintento ante `419` (concurrente compartido, sin bucle ni reintento de `/auth/csrf`), `401`/`403` inactivo/`403` ordinario, limpieza del token heredado, arranque anónimo sin `/auth/csrf`, login/registro/logout, fallo de logout, `BroadcastChannel` (logout, re-bootstrap, sin bucles, cierre del canal), contenido público con `/me` pendiente, reintento hacia autenticado o anónimo confirmado, y los estados `restoring`/`anonymous`/`authenticated`/`failed` de `ProtectedRoute`, Navbar y Login.
+- Las expectativas de versión/fecha de LEG-003 en `LegalPage.test.jsx` y `scripts/legal/compiler.test.js` se actualizaron a 1.1.0 / 2026-10-03.
+
+**Evidencia — Playwright:**
+- Pasada de correcciones: 39/39 pasados en `auth-session`, `seo-accessibility`, `school`, `legal`, `dashboard-navigation` y `navigation-home-footer`, más los tres casos tocados de `mvp-smoke`.
+- Flujo de `auth-session.spec.js`: arranque anónimo sin cookie ni `/auth/csrf`; contenido público pintado mientras `/me` está pendiente; `/login` con cookie válida sin mostrar el formulario; login real, recarga y `/player`; sin credencial en `localStorage`/`sessionStorage` y cookie HttpOnly; logout y redirección; registro con perfil y recarga completa; `403` de usuario inactivo; un refresh/reintento por `419`; logout y cambio de cuenta entre dos pestañas; API de administración con la cookie; inscripción de Escuela anónima y autenticada.
+- Ejecución completa previa a las correcciones: 53 pasados, 7 fallidos y 18 no ejecutados. Cinco fallos son los specs obsoletos ajenos (dropdown CMS, `age_group` de Copa, `width`/`height` de la foto, `image/webp` de Sponsors y el locator duplicado de `mvp-smoke`, que aborta el bloque serial) y no se repararon; los otros dos (`legal`, `seo-accessibility`) eran de J3 y se resolvieron y verificaron después. La suite Playwright completa **no** está en verde.
+
+**Evidencia — backend (focal; no se ejecutó una suite completa nueva):**
+- Primera pasada de J3: `SpaSession*`, `SchoolEnrollmentApi` y `ProductionReadiness`, 57 tests.
+- Tras las correcciones: `SpaSession*` y `SchoolEnrollmentApi`, 35 tests / 282 aserciones, incluido `SpaSessionSchoolEnrollmentTest` (anónimo y Bearer con el flag apagado, cabecera de sesión con el flag apagado → `403` sin guardar, sesión ausente/anónima/revocada/origen ajeno → no se guarda anónima, sesión válida → vincula al usuario, CSRF requerido). Pint y `php -l` en PASS.
+
+**Legal:** `legal/cookies.md` (LEG-003) 1.1.0; `legal:build` regeneró únicamente `frontend/src/generated/legal/public-legal.json` y `legal:check` quedó en PASS.
+
+**Estado:** J3 funcional/local PASS, pendiente de despliegue y aceptación en staging. 5.7-J permanece ACTIVE; J4 pendiente tras J3. Orden posterior conserva J → G → H → D → Q1.

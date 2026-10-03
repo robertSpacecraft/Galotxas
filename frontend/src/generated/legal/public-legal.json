@@ -885,10 +885,10 @@
       "id": "LEG-003",
       "title": "Política de cookies y almacenamiento local",
       "slug": "cookies",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "vigente",
-      "publishedAt": "2026-08-06",
-      "reviewedAt": "2026-08-06",
+      "publishedAt": "2026-10-03",
+      "reviewedAt": "2026-10-03",
       "owner": "Club Galotxes de Monover",
       "summary": "Estado actual de cookies, almacenamiento local y recursos externos utilizados por Galotxas.",
       "route": "/legal/cookies",
@@ -906,8 +906,8 @@
         },
         {
           "level": 2,
-          "text": "Cuenta React y almacenamiento local",
-          "id": "cuenta-react-y-almacenamiento-local"
+          "text": "Cuenta y sesión de la API",
+          "id": "cuenta-y-sesion-de-la-api"
         },
         {
           "level": 2,
@@ -947,7 +947,7 @@
           "children": [
             {
               "type": "text",
-              "value": "Esta política describe el estado técnico auditado de Galotxas. Distingue las cookies del almacenamiento local del navegador y de los recursos que podrían solicitarse a terceros."
+              "value": "Esta política describe el estado técnico auditado de Galotxas. Distingue las cookies del almacenamiento del navegador y de los recursos que podrían solicitarse a terceros."
             }
           ]
         },
@@ -983,11 +983,11 @@
         {
           "type": "heading",
           "level": 2,
-          "id": "cuenta-react-y-almacenamiento-local",
+          "id": "cuenta-y-sesion-de-la-api",
           "children": [
             {
               "type": "text",
-              "value": "Cuenta React y almacenamiento local"
+              "value": "Cuenta y sesión de la API"
             }
           ]
         },
@@ -996,15 +996,137 @@
           "children": [
             {
               "type": "text",
-              "value": "Cuando una persona inicia sesión, React conserva el token Bearer de acceso en "
+              "value": "La zona privada de la web identifica a la persona usuaria con una cookie de sesión de primera parte emitida por la API:"
+            }
+          ]
+        },
+        {
+          "type": "unorderedList",
+          "items": [
+            {
+              "children": [
+                {
+                  "type": "strong",
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "Nombre:"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "value": " "
+                },
+                {
+                  "type": "inlineCode",
+                  "value": "galotxas-spa-session"
+                },
+                {
+                  "type": "text",
+                  "value": "."
+                }
+              ]
             },
             {
-              "type": "inlineCode",
-              "value": "localStorage.token"
+              "children": [
+                {
+                  "type": "strong",
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "Finalidad:"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "value": " cookie técnica estrictamente necesaria para mantener la sesión de la zona privada y para apoyar la protección frente a peticiones falsificadas (CSRF). No se usa para analítica ni publicidad."
+                }
+              ]
             },
             {
-              "type": "text",
-              "value": " para autenticar las peticiones a la API. Es almacenamiento local de primera parte, no una cookie. Se elimina al cerrar sesión y también ante las respuestas de sesión inválida previstas por la aplicación."
+              "children": [
+                {
+                  "type": "strong",
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "Atributos:"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "value": " "
+                },
+                {
+                  "type": "inlineCode",
+                  "value": "HttpOnly"
+                },
+                {
+                  "type": "text",
+                  "value": ", por lo que JavaScript no puede leerla; "
+                },
+                {
+                  "type": "inlineCode",
+                  "value": "Secure"
+                },
+                {
+                  "type": "text",
+                  "value": " en los entornos de staging y producción; "
+                },
+                {
+                  "type": "inlineCode",
+                  "value": "SameSite=Lax"
+                },
+                {
+                  "type": "text",
+                  "value": "; "
+                },
+                {
+                  "type": "inlineCode",
+                  "value": "Path=/"
+                },
+                {
+                  "type": "text",
+                  "value": "; asociada únicamente al dominio de la API (no se comparte con otros dominios)."
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "strong",
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "Duración:"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "value": " la configuración actual la hace caducar tras 120 minutos sin actividad. Un cambio de esa duración se reflejará en esta política."
+                }
+              ]
+            },
+            {
+              "children": [
+                {
+                  "type": "strong",
+                  "children": [
+                    {
+                      "type": "text",
+                      "value": "Separación:"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "value": " es distinta de la cookie de sesión del panel administrativo."
+                }
+              ]
             }
           ]
         },
@@ -1013,15 +1135,57 @@
           "children": [
             {
               "type": "text",
-              "value": "El perfil no se conserva en "
+              "value": "La mera visita a la web pública no crea esta cookie. Puede crearse antes de que la persona esté autenticada, cuando la aplicación prepara la protección CSRF para iniciar sesión o registrarse, y se renueva al autenticarse. Al cerrar sesión el servidor invalida la identidad autenticada, pero puede emitirse una cookie de sesión técnica sin identidad que permanece hasta su caducidad."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "La aplicación no guarda ningún token reutilizable de autenticación en "
             },
             {
               "type": "inlineCode",
-              "value": "localStorage.user"
+              "value": "localStorage"
             },
             {
               "type": "text",
-              "value": ". Cualquier valor legado con esa clave se elimina y el perfil actual se obtiene del servidor para mantenerlo sólo en memoria durante la sesión de la interfaz."
+              "value": " ni en "
+            },
+            {
+              "type": "inlineCode",
+              "value": "sessionStorage"
+            },
+            {
+              "type": "text",
+              "value": ". El identificador de sesión viaja únicamente en la cookie "
+            },
+            {
+              "type": "inlineCode",
+              "value": "HttpOnly"
+            },
+            {
+              "type": "text",
+              "value": ". El token de protección CSRF se mantiene sólo en la memoria de la aplicación mientras la página está abierta y no se guarda en el almacenamiento del navegador. El perfil de la cuenta se obtiene del servidor y se conserva en memoria durante la sesión de la interfaz."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Las versiones anteriores de la aplicación guardaban un token de acceso en "
+            },
+            {
+              "type": "inlineCode",
+              "value": "localStorage"
+            },
+            {
+              "type": "text",
+              "value": ". Al cargar la versión actual, ese valor heredado se elimina del navegador."
             }
           ]
         },

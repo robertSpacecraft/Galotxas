@@ -2,10 +2,10 @@
 id: LEG-003
 title: Política de cookies y almacenamiento local
 slug: cookies
-version: 1.0.0
+version: 1.1.0
 status: vigente
-published_at: 2026-08-06
-reviewed_at: 2026-08-06
+published_at: 2026-10-03
+reviewed_at: 2026-10-03
 owner: Club Galotxes de Monover
 source_draft: docs/legal-drafts/cookies.borrador.md
 summary: Estado actual de cookies, almacenamiento local y recursos externos utilizados por Galotxas.
@@ -14,7 +14,7 @@ summary: Estado actual de cookies, almacenamiento local y recursos externos util
 
 ## Alcance
 
-Esta política describe el estado técnico auditado de Galotxas. Distingue las cookies del almacenamiento local del navegador y de los recursos que podrían solicitarse a terceros.
+Esta política describe el estado técnico auditado de Galotxas. Distingue las cookies del almacenamiento del navegador y de los recursos que podrían solicitarse a terceros.
 
 ## Web pública
 
@@ -22,11 +22,21 @@ La web pública no utiliza actualmente cookies no esenciales según la configura
 
 Tampoco carga automáticamente Google Fonts, Bunny Fonts o recursos desde jsDelivr. Los enlaces a Facebook e Instagram son enlaces normales y sólo trasladan a la persona usuaria al servicio externo cuando decide activarlos.
 
-## Cuenta React y almacenamiento local
+## Cuenta y sesión de la API
 
-Cuando una persona inicia sesión, React conserva el token Bearer de acceso en `localStorage.token` para autenticar las peticiones a la API. Es almacenamiento local de primera parte, no una cookie. Se elimina al cerrar sesión y también ante las respuestas de sesión inválida previstas por la aplicación.
+La zona privada de la web identifica a la persona usuaria con una cookie de sesión de primera parte emitida por la API:
 
-El perfil no se conserva en `localStorage.user`. Cualquier valor legado con esa clave se elimina y el perfil actual se obtiene del servidor para mantenerlo sólo en memoria durante la sesión de la interfaz.
+- **Nombre:** `galotxas-spa-session`.
+- **Finalidad:** cookie técnica estrictamente necesaria para mantener la sesión de la zona privada y para apoyar la protección frente a peticiones falsificadas (CSRF). No se usa para analítica ni publicidad.
+- **Atributos:** `HttpOnly`, por lo que JavaScript no puede leerla; `Secure` en los entornos de staging y producción; `SameSite=Lax`; `Path=/`; asociada únicamente al dominio de la API (no se comparte con otros dominios).
+- **Duración:** la configuración actual la hace caducar tras 120 minutos sin actividad. Un cambio de esa duración se reflejará en esta política.
+- **Separación:** es distinta de la cookie de sesión del panel administrativo.
+
+La mera visita a la web pública no crea esta cookie. Puede crearse antes de que la persona esté autenticada, cuando la aplicación prepara la protección CSRF para iniciar sesión o registrarse, y se renueva al autenticarse. Al cerrar sesión el servidor invalida la identidad autenticada, pero puede emitirse una cookie de sesión técnica sin identidad que permanece hasta su caducidad.
+
+La aplicación no guarda ningún token reutilizable de autenticación en `localStorage` ni en `sessionStorage`. El identificador de sesión viaja únicamente en la cookie `HttpOnly`. El token de protección CSRF se mantiene sólo en la memoria de la aplicación mientras la página está abierta y no se guarda en el almacenamiento del navegador. El perfil de la cuenta se obtiene del servidor y se conserva en memoria durante la sesión de la interfaz.
+
+Las versiones anteriores de la aplicación guardaban un token de acceso en `localStorage`. Al cargar la versión actual, ese valor heredado se elimina del navegador.
 
 ## Administración Laravel
 

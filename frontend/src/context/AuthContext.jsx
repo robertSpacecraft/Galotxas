@@ -1,14 +1,18 @@
 import { useCallback, useState, useEffect } from 'react';
-import api from '../api/client';
+import api, { refreshSpaCsrfToken } from '../api/client';
 import { meService } from '../api/me';
 import {
+    AUTH_EVENT_SESSION_CHANGED,
+    AUTH_EVENT_SESSION_ENDED,
     AUTH_SESSION_CLEARED_EVENT,
+    broadcastAuthEvent,
+    cleanupLegacyAuthStorage,
     clearAuthSession,
-    clearStoredAuth,
-    discardLegacyStoredUser,
-    getStoredAuthToken,
+    resetSessionState,
+    setCsrfToken,
+    setSessionExpected,
     shouldInvalidateAuthSession,
-    storeAuthToken,
+    subscribeAuthEvents,
 } from '../api/authSession';
 import { AuthContext } from './authContext';
 
@@ -20,65 +24,63 @@ const normalizeAuthUser = (rawData) => {
     }
 
     delete userData.token;
+    delete userData.csrf_token;
 
     return userData;
 };
 
+const establishSession = (rawData) => {
+    setCsrfToken(rawData.csrf_token);
+    setSessionExpected(true);
+};
+
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [token, setToken] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [restoring, setRestoring] = useState(true);
+    const [sessionRestoreFailed, setSessionRestoreFailed] = useState(false);
 
-    useEffect(() => {
-        let active = true;
+    // La verdad de la sesión es el servidor: /me decide quién es el usuario.
+    const restoreSession = useCallback(async ({ reason } = {}) => {
+        if (reason !== 'sync') {
+            setRestoring(true);
+            setSessionRestoreFailed(false);
+        }
 
-        const bootstrapSession = async () => {
-            discardLegacyStoredUser();
-            const storedToken = getStoredAuthToken();
+        try {
+            const response = await api.get('/me', { sessionMode: true });
 
-            if (!storedToken) {
-                if (active) {
-                    setLoading(false);
-                }
-
-                return;
-            }
-
-            setToken(storedToken);
+            setUser(normalizeAuthUser(response.data.data));
+            setSessionExpected(true);
+            setSessionRestoreFailed(false);
 
             try {
-                const response = await api.get('/me');
-
-                if (active) {
-                    setUser(normalizeAuthUser(response.data.data));
-                }
-            } catch (error) {
-                const status = error.response?.status;
-
-                if (shouldInvalidateAuthSession(error)) {
-                    if (getStoredAuthToken()) {
-                        clearAuthSession(`bootstrap-http-${status}`);
-                    }
-                } else {
-                    console.error('No se ha podido restaurar la sesión autenticada.');
-                }
-            } finally {
-                if (active) {
-                    setLoading(false);
-                }
+                await refreshSpaCsrfToken();
+            } catch {
+                console.error('No se ha podido preparar la protección CSRF de la sesión.');
             }
-        };
-
-        void bootstrapSession();
-
-        return () => {
-            active = false;
-        };
+        } catch (error) {
+            if (shouldInvalidateAuthSession(error)) {
+                resetSessionState();
+                setUser(null);
+                setSessionRestoreFailed(false);
+            } else {
+                console.error('No se ha podido restaurar la sesión autenticada.');
+                setSessionRestoreFailed(true);
+            }
+        } finally {
+            if (reason !== 'sync') {
+                setRestoring(false);
+            }
+        }
     }, []);
 
     useEffect(() => {
+        cleanupLegacyAuthStorage();
+        void restoreSession();
+    }, [restoreSession]);
+
+    useEffect(() => {
         const handleSessionCleared = () => {
-            setToken(null);
             setUser(null);
         };
 
@@ -89,29 +91,40 @@ export const AuthProvider = ({ children }) => {
         };
     }, []);
 
+    useEffect(() => subscribeAuthEvents((type) => {
+        if (type === AUTH_EVENT_SESSION_ENDED) {
+            resetSessionState();
+            setUser(null);
+        } else if (type === AUTH_EVENT_SESSION_CHANGED) {
+            void restoreSession({ reason: 'sync' });
+        }
+    }), [restoreSession]);
+
     const login = async (email, password) => {
-        const response = await api.post('/auth/login', { email, password });
+        await refreshSpaCsrfToken();
+
+        const response = await api.post('/auth/session/login', { email, password }, { sessionMode: true });
         const rawData = response.data.data;
         const userData = normalizeAuthUser(rawData);
 
-        discardLegacyStoredUser();
-        storeAuthToken(rawData.token);
-
-        setToken(rawData.token);
+        establishSession(rawData);
         setUser(userData);
+        broadcastAuthEvent(AUTH_EVENT_SESSION_CHANGED);
+
         return userData;
     };
 
     const register = async (userDataInput) => {
-        const response = await api.post('/auth/register', userDataInput);
+        await refreshSpaCsrfToken();
+
+        const response = await api.post('/auth/session/register', userDataInput, { sessionMode: true });
         const rawData = response.data.data;
         const userData = normalizeAuthUser(rawData);
 
-        discardLegacyStoredUser();
-        storeAuthToken(rawData.token);
-
-        setToken(rawData.token);
+        establishSession(rawData);
         setUser(userData);
+        broadcastAuthEvent(AUTH_EVENT_SESSION_CHANGED);
+
         return userData;
     };
 
@@ -127,22 +140,26 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = useCallback(async () => {
-        const currentToken = getStoredAuthToken();
-
         try {
-            if (currentToken) {
-                await api.post('/auth/logout');
-            }
+            await api.post('/auth/session/logout', null, { sessionMode: true });
         } catch (error) {
             const status = error.response?.status;
-            if (status !== 401 && status !== 403 && status !== 419) {
-                console.error('No se ha podido revocar el token remoto durante el cierre de sesión.');
+
+            if (status === 401 || status === 419) {
+                // La sesión ya no existía en el servidor: el estado local pasa a anónimo.
+            } else {
+                // Sin confirmación del servidor no se afirma que la sesión se haya cerrado.
+                console.error('No se ha podido cerrar la sesión en el servidor.');
+
+                return false;
             }
-        } finally {
-            clearStoredAuth();
-            setToken(null);
-            setUser(null);
         }
+
+        resetSessionState();
+        setUser(null);
+        broadcastAuthEvent(AUTH_EVENT_SESSION_ENDED);
+
+        return true;
     }, []);
 
     const refreshUser = useCallback(async () => {
@@ -157,9 +174,7 @@ export const AuthProvider = ({ children }) => {
             const status = error.response?.status;
 
             if (shouldInvalidateAuthSession(error)) {
-                if (getStoredAuthToken()) {
-                    clearAuthSession(`refresh-http-${status}`);
-                }
+                clearAuthSession(`refresh-http-${status}`);
             } else {
                 console.error('No se han podido actualizar los datos de la cuenta.');
             }
@@ -191,12 +206,28 @@ export const AuthProvider = ({ children }) => {
 
     const resetPassword = async (data) => {
         const response = await api.post('/auth/reset-password', data);
+
+        // El servidor ya ha revocado todas las sesiones de la cuenta.
+        resetSessionState();
+        setUser(null);
+        broadcastAuthEvent(AUTH_EVENT_SESSION_ENDED);
+
         return response.data;
     };
 
+    // restoring | failed (servidor/red no alcanzable) | authenticated | anonymous (confirmado)
+    let authStatus = user ? 'authenticated' : 'anonymous';
+    if (restoring) {
+        authStatus = 'restoring';
+    } else if (!user && sessionRestoreFailed) {
+        authStatus = 'failed';
+    }
+
     const value = {
         user,
-        token,
+        authStatus,
+        sessionRestoreFailed,
+        retrySessionRestore: restoreSession,
         login,
         register,
         logout,
@@ -206,13 +237,13 @@ export const AuthProvider = ({ children }) => {
         resetPassword,
         refreshUser,
         updateProfilePhoto,
-        isAuthenticated: !!token && !!user,
+        isAuthenticated: !!user,
         isAdmin: user?.role === 'admin'
     };
 
     return (
         <AuthContext.Provider value={value}>
-            {!loading && children}
+            {children}
         </AuthContext.Provider>
     );
 };

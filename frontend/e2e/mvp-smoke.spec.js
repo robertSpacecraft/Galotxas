@@ -1,4 +1,10 @@
 import { expect, test } from '@playwright/test';
+import {
+  collectConsoleErrors,
+  expectHttpOnlySessionCookie,
+  expectNoStoredAuth,
+  spaSessionCookie,
+} from './support/sessionAuth.js';
 
 const adminBaseURL = process.env.E2E_BACKEND_URL || 'http://127.0.0.1:8081';
 
@@ -20,11 +26,7 @@ const credentials = {
 const watchCriticalConsoleErrors = (page) => {
   const errors = [];
 
-  page.on('console', (message) => {
-    if (message.type() === 'error') {
-      errors.push(message.text());
-    }
-  });
+  collectConsoleErrors(page, errors);
 
   return () => expect(errors, `Errores críticos de consola: ${errors.join('\n')}`).toEqual([]);
 };
@@ -37,10 +39,8 @@ const login = async (page, user) => {
 
   await expect(page).toHaveURL(/\/player$/);
   await expect(page.getByRole('heading', { name: 'Panel de Control' })).toBeVisible();
-  await expect.poll(() => page.evaluate(() => ({
-    hasToken: Boolean(localStorage.getItem('token')),
-    storedUser: localStorage.getItem('user'),
-  }))).toEqual({ hasToken: true, storedUser: null });
+  await expectNoStoredAuth(page);
+  await expectHttpOnlySessionCookie(page);
 };
 
 const logout = async (page) => {
@@ -48,10 +48,7 @@ const logout = async (page) => {
   await expect(
     page.getByRole('group', { name: 'Cuenta' }).getByRole('link', { name: 'Iniciar sesión' }),
   ).toBeVisible();
-  await expect.poll(() => page.evaluate(() => ({
-    token: localStorage.getItem('token'),
-    user: localStorage.getItem('user'),
-  }))).toEqual({ token: null, user: null });
+  await expectNoStoredAuth(page);
 };
 
 const fillScore = async (page, homeScore, awayScore) => {
@@ -719,42 +716,53 @@ test.describe.serial('smoke narrativo del MVP', () => {
     }
   });
 
-  test('un 401 durante el bootstrap elimina token y perfil legado', async ({ page }) => {
+  test('un token Bearer heredado se retira y se revoca sin usarse como credencial', async ({ page }) => {
+    const authorizations = [];
+    let legacyLogout = null;
+    await page.route('**/api/v1/**', async (route) => {
+      const request = route.request();
+      const headers = request.headers();
+
+      if (new URL(request.url()).pathname === '/api/v1/auth/logout') {
+        legacyLogout = headers;
+        await route.fulfill({
+          status: 401,
+          contentType: 'application/json',
+          body: JSON.stringify({ message: 'Unauthenticated.', data: null }),
+        });
+
+        return;
+      }
+
+      if (headers.authorization) authorizations.push(request.url());
+      await route.continue();
+    });
     await page.goto('/');
     await page.evaluate(() => {
-      localStorage.setItem('token', 'e2e-invalid-token');
+      localStorage.setItem('token', 'e2e-legacy-token');
       localStorage.setItem('user', JSON.stringify({ email: 'legacy@example.test' }));
     });
-    await page.route('**/api/v1/me', (route) => route.fulfill({
-      status: 401,
-      contentType: 'application/json',
-      body: JSON.stringify({ message: 'Unauthenticated.', data: null }),
-    }));
 
     await page.reload();
 
     await expect(
       page.getByRole('group', { name: 'Cuenta' }).getByRole('link', { name: 'Iniciar sesión' }),
     ).toBeVisible();
-    await expect.poll(() => page.evaluate(() => ({
-      token: localStorage.getItem('token'),
-      user: localStorage.getItem('user'),
-    }))).toEqual({ token: null, user: null });
+    await expectNoStoredAuth(page);
+    await expect.poll(() => legacyLogout?.authorization).toBe('Bearer e2e-legacy-token');
+    expect(legacyLogout['x-galotxas-auth-mode']).toBeUndefined();
+    expect(authorizations).toEqual([]);
   });
 
-  test('un 403 ordinario conserva Cuenta y el Bearer para peticiones posteriores', async ({ page }) => {
+  test('un 403 ordinario conserva Cuenta y la sesión para peticiones posteriores', async ({ page }) => {
     const consoleErrors = [];
-    page.on('console', (message) => {
-      if (message.type() === 'error') {
-        consoleErrors.push(message.text());
-      }
-    });
+    collectConsoleErrors(page, consoleErrors);
 
     await login(page, credentials.player1);
 
-    let forbiddenAuthorization = null;
+    let forbiddenHeaders = null;
     await page.route('**/api/v1/me/rankings', async (route) => {
-      forbiddenAuthorization = route.request().headers().authorization || null;
+      forbiddenHeaders = route.request().headers();
       await route.fulfill({
         status: 403,
         contentType: 'application/json',
@@ -765,25 +773,25 @@ test.describe.serial('smoke narrativo del MVP', () => {
       });
     });
 
-    await page.getByRole('button', { name: 'Rankings' }).click();
+    await page.getByRole('tab', { name: 'Rankings' }).click();
 
     await expect(page.getByText('No se pudieron cargar tus rankings en este momento.')).toBeVisible();
     await expect(
       page.getByRole('group', { name: 'Cuenta' }).getByRole('link', { name: 'Mi Panel' }),
     ).toBeVisible();
-    await expect.poll(() => page.evaluate(() => ({
-      hasToken: Boolean(localStorage.getItem('token')),
-      storedUser: localStorage.getItem('user'),
-    }))).toEqual({ hasToken: true, storedUser: null });
-    expect(forbiddenAuthorization).toMatch(/^Bearer /);
+    await expectNoStoredAuth(page);
+    expect(await spaSessionCookie(page)).toBeTruthy();
+    expect(forbiddenHeaders.authorization).toBeUndefined();
+    expect(forbiddenHeaders['x-galotxas-auth-mode']).toBe('session');
 
     await page.unroute('**/api/v1/me/rankings');
     const nextAuthenticatedRequest = page.waitForRequest('**/api/v1/me/rankings');
-    await page.getByRole('button', { name: 'Resumen' }).click();
-    await page.getByRole('button', { name: 'Rankings' }).click();
+    await page.getByRole('tab', { name: 'Resumen' }).click();
+    await page.getByRole('tab', { name: 'Rankings' }).click();
 
     const request = await nextAuthenticatedRequest;
-    expect(request.headers().authorization).toMatch(/^Bearer /);
+    expect(request.headers().authorization).toBeUndefined();
+    expect(request.headers()['x-galotxas-auth-mode']).toBe('session');
     await expect(
       page.getByRole('group', { name: 'Cuenta' }).getByRole('link', { name: 'Mi Panel' }),
     ).toBeVisible();
@@ -791,7 +799,7 @@ test.describe.serial('smoke narrativo del MVP', () => {
     expect(consoleErrors).toEqual([
       'Failed to load resource: the server responded with a status of 403 (Forbidden)',
     ]);
-    expect(JSON.stringify(consoleErrors)).not.toMatch(/Bearer|@example\.test|Pilotari E2E/);
+    expect(JSON.stringify(consoleErrors)).not.toMatch(/Bearer|csrf|@example\.test|Pilotari E2E/);
   });
 
   test('una URL desconocida muestra la 404 y permite volver a Inicio', async ({ page }) => {

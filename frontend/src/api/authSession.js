@@ -1,7 +1,49 @@
+import axios from 'axios';
+import { resolveApiBaseUrl } from './apiBaseUrl';
+
 export const AUTH_SESSION_CLEARED_EVENT = 'galotxas:auth-session-cleared';
-export const AUTH_TOKEN_STORAGE_KEY = 'token';
-export const LEGACY_AUTH_USER_STORAGE_KEY = 'user';
+export const AUTH_MODE_HEADER = 'X-Galotxas-Auth-Mode';
+export const AUTH_MODE_SESSION = 'session';
+export const CSRF_HEADER = 'X-CSRF-TOKEN';
+export const AUTH_CHANNEL_NAME = 'galotxas-auth';
+export const AUTH_EVENT_SESSION_CHANGED = 'session-changed';
+export const AUTH_EVENT_SESSION_ENDED = 'session-ended';
 export const INACTIVE_USER_AUTH_MESSAGE = 'El usuario está inactivo.';
+
+// Claves del contrato Bearer anterior (J2). Sólo se usan para limpiar el navegador.
+const LEGACY_TOKEN_STORAGE_KEY = 'token';
+const LEGACY_USER_STORAGE_KEY = 'user';
+const LEGACY_LOGOUT_TIMEOUT_MS = 5000;
+
+const SAFE_METHODS = new Set(['get', 'head', 'options']);
+
+// Estado de sesión sólo en memoria: ningún valor de este módulo se persiste.
+let csrfToken = null;
+let sessionExpected = false;
+
+export const isSafeMethod = (method) => SAFE_METHODS.has(String(method || 'get').toLowerCase());
+
+export const getCsrfToken = () => csrfToken;
+
+export const setCsrfToken = (token) => {
+  csrfToken = typeof token === 'string' && token !== '' ? token : null;
+};
+
+export const clearCsrfToken = () => {
+  csrfToken = null;
+};
+
+export const isSessionExpected = () => sessionExpected;
+
+export const setSessionExpected = (expected) => {
+  sessionExpected = expected === true;
+};
+
+/** Olvida el estado de sesión de esta pestaña sin avisar a nadie. */
+export const resetSessionState = () => {
+  clearCsrfToken();
+  setSessionExpected(false);
+};
 
 export const shouldInvalidateAuthSession = (error) => {
   const status = error?.response?.status;
@@ -14,29 +56,105 @@ export const shouldInvalidateAuthSession = (error) => {
     && error?.response?.data?.message === INACTIVE_USER_AUTH_MESSAGE;
 };
 
-export const getStoredAuthToken = () => localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+// --- Sincronización entre pestañas (sin credenciales ni datos personales) ---
 
-export const storeAuthToken = (token) => {
-  if (token) {
-    localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
-  } else {
-    localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+const TAB_ID = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+  ? crypto.randomUUID()
+  : `tab-${Math.random().toString(36).slice(2)}`;
+
+const openChannel = () => {
+  if (typeof BroadcastChannel === 'undefined') {
+    return null;
+  }
+
+  try {
+    return new BroadcastChannel(AUTH_CHANNEL_NAME);
+  } catch {
+    return null;
   }
 };
 
-export const discardLegacyStoredUser = () => {
-  localStorage.removeItem(LEGACY_AUTH_USER_STORAGE_KEY);
+export const broadcastAuthEvent = (type) => {
+  const channel = openChannel();
+
+  try {
+    channel?.postMessage({ type, source: TAB_ID });
+  } catch {
+    // Sincronización best-effort: la siguiente petición revelará el estado real.
+  } finally {
+    channel?.close();
+  }
 };
 
-export const clearStoredAuth = () => {
-  localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
-  discardLegacyStoredUser();
+/** Escucha eventos de otras pestañas. Devuelve la función que cierra el canal. */
+export const subscribeAuthEvents = (handler) => {
+  const channel = openChannel();
+
+  if (!channel) {
+    return () => {};
+  }
+
+  channel.onmessage = (event) => {
+    const message = event?.data;
+
+    if (!message || message.source === TAB_ID) {
+      return;
+    }
+
+    if (message.type === AUTH_EVENT_SESSION_CHANGED || message.type === AUTH_EVENT_SESSION_ENDED) {
+      handler(message.type);
+    }
+  };
+
+  return () => {
+    channel.onmessage = null;
+    channel.close();
+  };
 };
 
+/** Cierra la sesión local por invalidación observada, avisa a la app y a otras pestañas. */
 export const clearAuthSession = (reason) => {
-  clearStoredAuth();
+  resetSessionState();
 
   window.dispatchEvent(new CustomEvent(AUTH_SESSION_CLEARED_EVENT, {
     detail: { reason }
   }));
+  broadcastAuthEvent(AUTH_EVENT_SESSION_ENDED);
+};
+
+// --- Migración desde el contrato Bearer anterior ---
+
+/**
+ * Limpieza única del almacenamiento heredado. Retira el token y el perfil
+ * guardados por versiones anteriores y, si había token, intenta revocarlo con
+ * una petición aislada (sin interceptores de la sesión SPA). Nunca restaura ni
+ * intercambia el token por una sesión.
+ */
+export const cleanupLegacyAuthStorage = () => {
+  let legacyToken = null;
+
+  try {
+    legacyToken = localStorage.getItem(LEGACY_TOKEN_STORAGE_KEY);
+    localStorage.removeItem(LEGACY_TOKEN_STORAGE_KEY);
+    localStorage.removeItem(LEGACY_USER_STORAGE_KEY);
+  } catch {
+    return;
+  }
+
+  if (!legacyToken) {
+    return;
+  }
+
+  const baseURL = resolveApiBaseUrl({
+    configuredUrl: import.meta.env.VITE_API_BASE_URL,
+    isDevelopment: import.meta.env.DEV,
+  });
+
+  void axios.post(`${baseURL}/auth/logout`, null, {
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${legacyToken}`,
+    },
+    timeout: LEGACY_LOGOUT_TIMEOUT_MS,
+  }).catch(() => {});
 };

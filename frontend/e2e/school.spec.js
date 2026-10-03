@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { collectConsoleErrors } from './support/sessionAuth.js';
 
 const backendBaseURL = process.env.E2E_BACKEND_URL || 'http://127.0.0.1:8081';
 const adminCredentials = {
@@ -9,11 +10,7 @@ const adminCredentials = {
 const watchCriticalConsoleErrors = (page) => {
   const errors = [];
 
-  page.on('console', (message) => {
-    if (message.type() === 'error') {
-      errors.push(message.text());
-    }
-  });
+  collectConsoleErrors(page, errors);
 
   return () => expect(errors, `Errores críticos de consola: ${errors.join('\n')}`).toEqual([]);
 };
