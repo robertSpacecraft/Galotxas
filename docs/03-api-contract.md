@@ -406,7 +406,7 @@ Los datos sensibles nunca deben exponerse mediante endpoints públicos.
 
 ## Autenticación desde React
 
-Desde 5.7-J J3 el frontend React consume la API autenticada mediante la sesión de primera parte descrita en "Sesión SPA de transición" y ya no usa tokens Bearer en el uso normal del navegador. Los endpoints Bearer siguen disponibles en el backend durante la transición (rollback y J4). El código de J3 está aceptado en staging; producción sigue ejecutando el frontend Bearer anterior hasta su rollout.
+Desde 5.7-J J3 el frontend React consume la API autenticada mediante la sesión de primera parte descrita en "Sesión SPA de transición" y ya no usa tokens Bearer en el uso normal del navegador. Los endpoints Bearer siguen disponibles en el backend durante la transición (rollback y J4). J3 está aceptado en staging y en producción.
 
 Estrategia actual del cliente React:
 
@@ -448,7 +448,7 @@ Inscripción de Escuela (`POST /school/enrollments`): sigue siendo pública, an�
 
 Sanctum no define expiración global para los PAT. La revocación total en reset,
 cambio administrativo de contraseña y desactivación se implementó en J1 y la
-migración de React a cookie HttpOnly en J3 (aceptada en staging; producción pendiente).
+migración de React a cookie HttpOnly en J3 (CLOSED / PASS en staging y producción).
 La expiración de tokens de clientes externos y el corte y limpieza de los PAT
 legacy de la SPA (J4) siguen pendientes.
 

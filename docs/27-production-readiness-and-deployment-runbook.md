@@ -107,7 +107,7 @@ Prohibiciones comunes:
 | Railway | Servicios backend y MariaDB activos para staging | `backend-production` desplegado con autodeploy de `main` activo (PASS) |
 | MariaDB | DB de staging operativa, migraciones completadas | DB productiva operativa, migraciones aplicadas manualmente (PASS) |
 | CORS | Origen exacto, sin patrones, wildcard o cookies CORS | Validado en producción (PASS) |
-| Auth | Sanctum Bearer existente (frontend anterior a J3); contratos 401/403/419 intactos | Registro y reset de password validados extremo a extremo en producción (PASS) |
+| Auth | Sanctum Bearer existente (frontend anterior a J3; en producción J3 usa sesión SPA); contratos 401/403/419 intactos | Registro y reset de password validados extremo a extremo en producción (PASS) |
 | Sesión Blade | Cookie Secure/HttpOnly/SameSite y driver DB en ejemplos | Admin productivo login validado (PASS) |
 | Proxy/HTTPS | `TRUSTED_PROXIES` y cabeceras Traefik | Validado en producción (PASS) |
 | Salud | `/up` mínimo, independiente de DB; readiness CLI | `/up` verificado en producción (PASS) |
@@ -262,9 +262,9 @@ tener supervisión, reintentos, failed jobs y runbook antes de cambiar
 
 ## CORS, autenticación, sesiones y cabeceras
 
-El frontend desplegado en producción conserva el token Sanctum Bearer y lo
-envía mediante `Authorization`; el código de J3 usa la cookie de sesión SPA y se
-desplegará según "Sesión SPA de transición". `statefulApi()` no se habilita
+Desde J3 el frontend de producción usa la cookie de sesión SPA (el Bearer
+sigue aceptado por el backend durante la transición hasta J4), según "Sesión SPA
+de transición". `statefulApi()` no se habilita
 nunca de forma global; el panel Blade usa su propia sesión. Por ello:
 
 - CORS afecta sólo `api/*`;
@@ -281,8 +281,7 @@ nunca de forma global; el panel Blade usa su propia sesión. Por ello:
 ### Sesión SPA de transición (5.7-J J2, apagada por defecto)
 
 J2 añadió al backend una sesión de primera parte para la SPA y J3 la consume
-desde React (aceptado en staging, commit `526cf7f`; ningún usuario de producción la utiliza
-todavía). Variables
+desde React (CLOSED / PASS en staging y producción, commit funcional `526cf7f`). Variables
 (sin secretos): `SPA_SESSION_AUTH_ENABLED=false` por defecto y
 `SPA_SESSION_COOKIE=galotxas-spa-session`. Con el flag activo, `deploy:check`
 exige: CORS con credenciales y origen exacto, cookie SPA distinta de la de
@@ -295,9 +294,9 @@ registrable (heurística simple de dos etiquetas). Valores previstos: local
 `https://api.galotxesmonover.es` / `https://galotxesmonover.es`; `CORS_ALLOWED_ORIGINS`
 igual a `FRONTEND_URL`.
 
-Rollout de producción de J3 (no ejecutado):
+Rollout de producción de J3 (ejecutado y aceptado; commit final `f7408d5`):
 
-1. Producción ejecuta hoy el backend J2 con `SPA_SESSION_AUTH_ENABLED=false`.
+1. Producción ejecutaba el backend J2 con `SPA_SESSION_AUTH_ENABLED=false`.
 2. Activar `SPA_SESSION_AUTH_ENABLED=true` y ejecutar `deploy:check`.
 3. Verificar que el frontend de producción anterior sigue funcionando con Bearer.
 4. Desplegar el frontend J3.
@@ -306,6 +305,8 @@ Rollout de producción de J3 (no ejecutado):
    la inscripción de Escuela anónima y autenticada.
 6. El backend sigue aceptando Bearer legacy durante la transición J3/J4 (compatibilidad de rollback y de clientes que aún tengan un PAT). Una pestaña antigua ya abierta **no** tiene garantizada la continuidad: la limpieza de migración de J3 elimina el `localStorage.token` compartido por todas las pestañas del mismo origen, de modo que si otra pestaña carga J3 la antigua puede perder su token y pedir un nuevo inicio de sesión. Es aceptable e intencionado.
 7. J4 resolverá más adelante la limpieza y retirada de los PAT legacy.
+
+Evidencia de producción (PASS, sin incidencias): backend J2 `84f8b50` promovido antes de forma independiente; con el flag activo `GET /auth/csrf` respondió 200 con `Access-Control-Allow-Origin` exacto, `Access-Control-Allow-Credentials: true` y cookie `galotxas-spa-session` Secure, HttpOnly, SameSite=Lax, Path=/, sin Domain y `Max-Age=7200`; el frontend Bearer anterior se verificó antes y después de activar el flag; Railway SUCCESS y Vercel READY sobre `f7408d56c5f03b497dfe8179a06da846f0ad6655`; smoke manual real de navegación pública, login, Ctrl+F5, zona protegida, mutación reversible, ausencia de `localStorage.token`/`user`, logout, redirección de `/player` y nuevo login. `SCHOOL_ENROLLMENT_ENABLED` sigue en `false` en producción, por lo que no se probó allí la inscripción de Escuela (aceptada en staging).
 
 Rollback (orden obligatorio):
 
@@ -510,7 +511,7 @@ levantó mantenimiento, la aceptación humana fue PASS y el resultado real se
 reintrodujo por el workflow normal. Evidencia operacional detallada y distinta
 de la regresión automatizada en [05-testing.md](05-testing.md#57-f--ocupación-global-y-planificación-producción-pass--closed).
 
-**5.7-F CLOSED / PASS; 5.7-J ACTIVE (J1 CLOSED / PASS; J2 CLOSED / PASS, OFF por defecto en producción; J3 staging PASS, producción pendiente; J4 pendiente)**, con su gate propia de
+**5.7-F CLOSED / PASS; 5.7-J ACTIVE (J1 CLOSED / PASS; J2 CLOSED / PASS; J3 CLOSED / PASS en producción; J4 pendiente)**, con su gate propia de
 arquitectura/seguridad pendiente. Orden posterior J → G → H → D → Q1.
 
 El administrador inicial se crea en la consola privada del backend:
@@ -1219,7 +1220,7 @@ posterior, sin bloquear la release publicada:
 - HSTS/CSP, otros uploads, worker y scheduler continúan aplazados;
 - la SPA mantiene metadata client-side y la respuesta HTTP de rutas React no
   constituye SSR;
-- el token Bearer continúa en `localStorage` en el frontend de producción hasta el rollout de J3 (ADR-060);
+- el frontend de producción ya no guarda Bearer en `localStorage` desde J3 (ADR-060); los PAT legacy se limpian en J4;
 - las prioridades P1/P2 de
   `29-mvp-final-acceptance-and-production-gate.md` permanecen post-MVP.
 

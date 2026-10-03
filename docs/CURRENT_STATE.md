@@ -88,11 +88,10 @@ reutilizable: `01-domain.md`, `06-roadmap.md`, `05-testing.md` y
 **5.7-J — Hardening de sesión de autenticación es el bloque canónico ACTIVE**.
 J1 (fundación de revocación): CLOSED / PASS. J2 (backend de sesión SPA de doble modo): CLOSED / PASS
 en staging; la capacidad está apagada por defecto (`SPA_SESSION_AUTH_ENABLED=false`).
-J3 (migración de React a sesión por cookie HttpOnly): funcional/local PASS, despliegue en staging PASS
-y aceptación manual real en staging PASS (commit `526cf7f`); pendiente el rollout de producción.
-J3 **no está activo en producción**: producción ejecuta J2 con el flag apagado y el frontend
-Bearer anterior hasta el rollout descrito en el runbook. J4 (corte y limpieza de PAT legacy) queda
-pendiente tras la aceptación de J3. Contrato y evidencia: `03-api-contract.md`, `07-decisions.md`
+J3 (migración de React a sesión por cookie HttpOnly): CLOSED / PASS. Funcional/local, staging y
+producción (despliegue y aceptación manual real) en PASS; producción ejecuta `f7408d5` con
+`SPA_SESSION_AUTH_ENABLED=true` y el frontend usa la cookie de sesión. J4 (corte y limpieza de PAT
+legacy) es la siguiente subfase pendiente; no está implementado. 5.7-J permanece ACTIVE. Contrato y evidencia: `03-api-contract.md`, `07-decisions.md`
 (ADR-059 y ADR-060), `05-testing.md` y `legal/cookies.md` (LEG-003 1.1.0).
 Se conserva el orden 5.7-J → 5.7-G → 5.7-H → 5.7-D → 5.7-Q1. Sólo podrá reordenarse si un bloque
 cerrado descubre una dependencia. J y H conservan gates explícitos; la

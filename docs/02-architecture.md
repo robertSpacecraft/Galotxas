@@ -654,9 +654,8 @@ best-effort. El estado de restauración (`restoring`, `anonymous`,
 `authenticated`, `failed`) permite pintar al instante el contenido público;
 sólo `ProtectedRoute`, la cuenta del Navbar y Login esperan. Un `403` ordinario
 conserva Cuenta; `401` y el `403` de usuario inactivo limpian la sesión local y
-las demás pestañas (`BroadcastChannel` `galotxas-auth`). Producción sigue con
-el frontend Bearer hasta el rollout de J3 (ADR-060); Sanctum continúa sin
-expiración global para los PAT legacy hasta J4.
+las demás pestañas (`BroadcastChannel` `galotxas-auth`). J3 está en producción
+(ADR-060); Sanctum continúa sin expiración global para los PAT legacy hasta J4.
 Google Fonts, Bunny Fonts y jsDelivr se
 retiran en favor de fuentes de sistema y recursos locales del panel. La
 selección real de hosting, base, correo, backups y región pertenece a 7F.
@@ -944,10 +943,9 @@ scheduler. `/up` es una liveness sin sesión ni DB; la readiness detallada se
 ejecuta mediante `php artisan deploy:check`. Las migraciones son manuales y
 forward-only conforme a ADR-041.
 
-El código de React (J3) usa la sesión SPA; el frontend desplegado en producción
-sigue con Bearer Sanctum hasta el rollout. CORS admite exclusivamente el origen
-frontend configurado y habilita credenciales sólo con
-`SPA_SESSION_AUTH_ENABLED=true` (hoy `false` en producción). 5.7-J J2 añadió en
+React (J3) usa la sesión SPA también en producción. CORS admite exclusivamente
+el origen frontend configurado y habilita credenciales sólo con
+`SPA_SESSION_AUTH_ENABLED=true` (activo en producción). 5.7-J J2 añadió en
 backend una sesión SPA aislada y desactivada por defecto que J3 consume
 (ADR-059, ADR-060). Blade conserva
 sesión DB con cookie Secure/HttpOnly/SameSite. Los proxies de Railway sólo se
@@ -1027,7 +1025,7 @@ Laravel lee el objeto privado mediante stream y responde directamente `200`
 con el binario y cabeceras privadas; no emite `Location` ni URL prefirmada. Esta
 excepción evita la cadena cross-origin API → `302` → bucket en la descarga XHR
 autenticada. Los logos públicos de Sponsor mantienen el redirect S3 temporal.
-React descarga el binario con la cookie de sesión (Bearer hasta el rollout de J3), crea un object URL sólo en memoria y lo
+React descarga el binario con la cookie de sesión (Bearer antes de J3), crea un object URL sólo en memoria y lo
 revoca al sustituir, borrar o desmontar. El fallback son las iniciales de la
 cuenta.
 

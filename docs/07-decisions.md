@@ -2851,7 +2851,7 @@ Consecuencias:
 
 # ADR-060 — Migración de React a sesión por cookie HttpOnly (5.7-J J3)
 
-Estado: Aceptada (funcional y PASS en local; despliegue y aceptación manual real en staging PASS, commit `526cf7f`; rollout de producción pendiente; no activa en producción)
+Estado: Aceptada (J3 CLOSED / PASS: local, staging y producción con aceptación manual real; commit funcional `526cf7f`, producción en `f7408d5`)
 
 Fecha aproximada: 2026-10
 
@@ -2872,10 +2872,10 @@ Decisión:
 - La infraestructura E2E adopta SPA session activada, driver `database`, runner con la red de `web` en `127.0.0.1` y healthcheck `/up`, para que la semántica de sitio y origen de la cookie coincida con la arquitectura real.
 
 Consecuencias:
-- Cuando J3 esté aceptado operacionalmente, queda sustituido el almacenamiento en `localStorage` de ADR-008 y de la parte de almacenamiento de ADR-035. Hasta entonces no se reescriben y producción conserva el comportamiento Bearer.
+- J3 está aceptado operacionalmente en producción: queda sustituido el almacenamiento en `localStorage` de ADR-008 y de la parte de almacenamiento de ADR-035 para el navegador. Esos ADR históricos no se reescriben.
 - Rollback: primero devolver el frontend a la versión Bearer anterior; sólo después, si se desea, apagar `SPA_SESSION_AUTH_ENABLED`. Apagar el flag con el frontend J3 activo hace que sus peticiones con intención de sesión fallen cerradas (los `403` de `RequireSpaSessionMode`/`SpaSessionWhenClaimed`) en lugar de degradarse a anónimas.
 - Un arranque anónimo emite un `GET /me` con `401` esperado, visible en la consola del navegador; es aceptable y no bloquea el contenido público.
 - La cookie de sesión es la credencial del navegador: está protegida frente a la lectura por JavaScript, pero no frente a acciones realizadas dentro de la página. No se añade CSP, expiración de PAT, logout global ni sesión absoluta.
 - `legal/cookies.md` (LEG-003) se actualiza a 1.1.0 y se regenera la proyección legal.
-- Pendiente fuera de J3: aceptación en staging y rollout de producción; J4 para corte y limpieza de PAT legacy; expiración de tokens de clientes externos; heurística same-site simple y ausencia de prefijo `__Host-` (heredadas de ADR-059).
+- Pendiente fuera de J3: J4 para corte y limpieza de PAT legacy; expiración de tokens de clientes externos; heurística same-site simple y ausencia de prefijo `__Host-` (heredadas de ADR-059).
 - No requiere migración de esquema ni operación sobre datos.
