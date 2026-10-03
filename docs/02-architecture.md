@@ -649,7 +649,8 @@ React persiste sólo el Bearer en `localStorage.token`, elimina el antiguo
 `localStorage.user` y restaura el perfil en memoria mediante `/me`. Logout y
 `401`/`419` limpian la sesión; un `403` ordinario conserva Cuenta, mientras el
 `403` explícito de usuario inactivo limpia el token ya revocado en servidor.
-Sanctum continúa sin expiración global y el riesgo XSS del Bearer sigue abierto.
+Sanctum continúa sin expiración global y el riesgo XSS del Bearer sigue abierto;
+J2 (backend, OFF por defecto) prepara su sustitución en J3 sin cambiar este flujo.
 Google Fonts, Bunny Fonts y jsDelivr se
 retiran en favor de fuentes de sistema y recursos locales del panel. La
 selección real de hosting, base, correo, backups y región pertenece a 7F.
@@ -938,7 +939,9 @@ ejecuta mediante `php artisan deploy:check`. Las migraciones son manuales y
 forward-only conforme a ADR-041.
 
 React continúa usando Bearer Sanctum: CORS admite exclusivamente el origen
-frontend configurado y no habilita credenciales cross-origin. Blade conserva
+frontend configurado y, mientras `SPA_SESSION_AUTH_ENABLED=false` (estado
+vigente), no habilita credenciales cross-origin. 5.7-J J2 añade en backend una
+sesión SPA aislada y desactivada por defecto que React aún no usa (ADR-059). Blade conserva
 sesión DB con cookie Secure/HttpOnly/SameSite. Los proxies de Railway sólo se
 confían mediante variable explícita y el smoke debe acreditar el esquema HTTPS.
 

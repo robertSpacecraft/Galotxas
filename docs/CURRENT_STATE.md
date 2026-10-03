@@ -85,7 +85,12 @@ se reintrodujo por el workflow normal. Contrato, evidencia y procedimiento
 reutilizable: `01-domain.md`, `06-roadmap.md`, `05-testing.md` y
 `27-production-readiness-and-deployment-runbook.md`.
 
-**5.7-J — Hardening de sesión de autenticación es el bloque canónico ACTIVE**. J1 (fundación de revocación) está CLOSED / PASS localmente. J2 (arquitectura de sesión para SPA) es NEXT.
+**5.7-J — Hardening de sesión de autenticación es el bloque canónico ACTIVE**. J1 (fundación de revocación) está CLOSED / PASS y promovido.
+J2 (backend de sesión SPA de doble modo): implementación local y gates de compatibilidad legacy PASS;
+la capacidad está **apagada por defecto** (`SPA_SESSION_AUTH_ENABLED=false`) y a la espera de aceptación
+en staging y promoción a producción; no está activa para ningún usuario. React sigue usando Bearer con el
+token en `localStorage`. J3 (migración de React a sesión por cookie) es NEXT sólo tras la aceptación
+operacional de J2. Contrato y evidencia: `03-api-contract.md`, `07-decisions.md` (ADR-059) y `05-testing.md`.
 Se conserva el orden 5.7-J → 5.7-G → 5.7-H → 5.7-D → 5.7-Q1. Sólo podrá reordenarse si un bloque
 cerrado descubre una dependencia. J y H conservan gates explícitos; la
 dependencia backend de D quedó satisfecha por C, pero D mantiene su posición

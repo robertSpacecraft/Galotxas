@@ -3120,4 +3120,19 @@ El middleware `EnsureUserIsActive` opera como ruta defensiva de revocación tota
 - La suite backend completa no se ejecutó.
 - No se requirieron pruebas frontend porque J1 no modificó código frontend.
 
-**Estado:** J1 CLOSED / PASS localmente. A la espera de aceptación en staging/producción. 5.7-J permanece ACTIVE (J2 NEXT). Orden posterior conserva J → G → H → D → Q1.
+**Estado:** J1 CLOSED / PASS localmente. A la espera de aceptación en staging/producción. 5.7-J permanece ACTIVE (estado de J2 más abajo). Orden posterior conserva J → G → H → D → Q1.
+
+## 5.7-J J2 — Backend de sesión SPA de doble modo
+
+Capacidad de backend desactivada por defecto (`SPA_SESSION_AUTH_ENABLED=false`) que añade `GET /auth/csrf` y `POST /auth/session/login|register|logout`, cookie SPA aislada de Blade y CSRF por JSON, manteniendo el Bearer intacto (ADR-059). No hay migración ni operación de datos.
+
+**Evidencia de validación (local):**
+- `SpaSessionAuthenticationTest`: 15 tests / 163 aserciones (flag, discriminación de modo y origen, bootstrap CSRF y atributos de cookie, login/registro sin PAT, CSRF 419, logout acotado, aislamiento Blade, usuario inactivo con sesión, tráfico público sin estado, preflight CORS).
+- `ProductionReadinessTest`: 23 tests / 87 aserciones (configuraciones válidas de staging/producción, diez configuraciones inseguras bloqueadas, checks omitidos con el flag apagado).
+- Suite backend completa: 2115 tests / 20192 aserciones / 163 s (MariaDB aislada).
+- Vitest frontend: 757 pasados y 5 fallos ajenos a autenticación, causados por el `knowledge/CLAUDE.md` versionado que el compilador de Knowledge rechaza. La suite frontend **no** está en verde.
+- Playwright completo inicial: 46 pasados, 5 fallos por specs obsoletos ajenos a J2 (selector del dropdown CMS, `age_group` ausente en la PATCH de categoría de `cup`, payload de foto con `width`/`height`, tipo `image/webp` de Sponsors y un locator duplicado en `mvp-smoke`) y 18 no ejecutados porque el bloque serial abortó. Esa ejecución **no** está en verde y los specs no se modificaron.
+
+**Gate de compatibilidad legacy:** una sonda Playwright temporal y dirigida, con la app React sin modificar, pasó con `SPA_SESSION_AUTH_ENABLED` apagado y encendido: login, recarga con bootstrap Bearer por `/me`, logout, registro con perfil de jugador y recarga completa, un `403` ordinario que conserva el Bearer y el `403` de usuario inactivo como invalidación intencionada; sin cookie SPA, CSRF ni `419`. La sonda y sus artefactos se eliminaron y no cambió código frontend. Matiz: la ejecución con el flag encendido usó el driver de sesión `cookie` del stack E2E; el comportamiento con sesiones persistentes en base de datos lo cubren los tests backend de J2 y recibirá aceptación integrada en staging.
+
+**Estado:** implementación local y gates de compatibilidad legacy PASS. La capacidad permanece apagada por defecto y a la espera de aceptación en staging y promoción a producción; no está activa para usuarios. J3 es NEXT sólo tras la aceptación operacional de J2. 5.7-J permanece ACTIVE. Orden posterior conserva J → G → H → D → Q1.

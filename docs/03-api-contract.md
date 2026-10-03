@@ -161,7 +161,7 @@ frontend no infiere rondas legadas por `name` u `order`.
 
 ### Rutas autenticadas
 
-`POST /auth/logout` exige `auth:sanctum`, pero deliberadamente queda fuera de `EnsureUserIsActive` para que un usuario desactivado pueda revocar su token actual.
+`POST /auth/logout` exige `auth:sanctum`, pero deliberadamente queda fuera de `EnsureUserIsActive` para que un usuario desactivado pueda revocar su token actual. Invocado desde una sesión SPA (no un personal access token) responde `409` y remite a `POST /auth/session/logout`.
 
 Las rutas restantes de esta tabla exigen conjuntamente token Sanctum y usuario activo:
 
@@ -426,14 +426,30 @@ En este contrato, `401` identifica credencial ausente, inválida o revocada;
 usuario inactivo; y `419`, expiración de sesión/CSRF cuando aplique. Las rutas
 API Bearer actuales no generan `419` de forma ordinaria.
 
+### Sesión SPA de transición (5.7-J J2)
+
+Capacidad de backend **apagada por defecto** (`SPA_SESSION_AUTH_ENABLED=false`); con el flag apagado la API se comporta exactamente como el contrato Bearer anterior y las rutas siguientes responden `403`. React no la usa todavía (J3).
+
+Un request entra en modo sesión sólo si se cumple todo: flag activo; cabecera `X-Galotxas-Auth-Mode: session`; `Origin` exactamente igual a `FRONTEND_URL`; ninguna cabecera `Authorization`; y ruta de sesión o ruta `auth:*` con la cookie SPA presente. Nunca se deduce del `Origin`/`Referer` y los clientes Bearer, incluso desde el origen de la SPA, no reciben CSRF, cookie ni sesión. El tráfico público/anónimo permanece sin estado y no exige CSRF por venir de un origen propio.
+
+| Método | Ruta | Contrato |
+| --- | --- | --- |
+| `GET` | `/auth/csrf` | `data.csrf_token`; inicia la sesión SPA anónima; sin XSRF-TOKEN ni ID de sesión en el cuerpo |
+| `POST` | `/auth/session/login` | mismas validaciones y errores que el login Bearer; `data` = `user`, `player`, `csrf_token`; sin `token` ni `token_type`; regenera sesión y CSRF |
+| `POST` | `/auth/session/register` | mismo dominio y declaraciones; `201`; autentica; sin PAT |
+| `POST` | `/auth/session/logout` | cierra sólo la sesión SPA actual y devuelve un `csrf_token` nuevo |
+
+Cookie SPA: `SPA_SESSION_COOKIE` (por defecto `galotxas-spa-session`), host-only en el host de la API, `HttpOnly`, `Secure` en staging/producción, `SameSite=Lax`, `path=/`, distinta de la de Blade. Las peticiones mutantes de sesión exigen `X-CSRF-TOKEN` (`419` si falta o no coincide); J3 debe usar el token devuelto por login/registro/logout y volver a pedir `/auth/csrf` ante un `419`. Las respuestas de modo sesión usan `Cache-Control: no-store, private`. CORS con credenciales sólo con el flag activo, siempre con origen exacto. Un usuario inactivo recibe el `403` habitual y J1 purga todos sus tokens y sesiones.
+
 La estrategia forma parte del estado MVP actual. Una futura migración a cookies `HttpOnly`/`SameSite` con protección CSRF requerirá un bloque específico porque modifica el modelo de consumo del frontend y no debe mezclarse con cambios funcionales menores.
 
 Sanctum no define expiración global. 7D.2B conserva únicamente el token sin
 caducidad propia hasta logout, limpieza por `401`, `419`, el `403` explícito de
 usuario inactivo o acción del navegador;
-`/me` hidrata cada recarga válida. Expiración, revocación global, información
-de privacidad y una eventual migración a cookies HttpOnly son gates
-productivos pendientes.
+`/me` hidrata cada recarga válida. Expiración, información
+de privacidad y la migración de React a cookies HttpOnly (J3) son gates
+productivos pendientes; la revocación total en reset, cambio administrativo
+de contraseña y desactivación se implementó en J1.
 
 ---
 

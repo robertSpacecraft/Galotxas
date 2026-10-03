@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Enums\UserRole;
 use App\Http\Controllers\Concerns\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\CreateMyPlayerProfileRequest;
@@ -12,18 +11,17 @@ use App\Http\Requests\Api\ResetPasswordRequest;
 use App\Http\Requests\Api\UpdateMyPlayerProfileRequest;
 use App\Http\Resources\MeResource;
 use App\Http\Resources\PlayerProfileResource;
-use App\Models\User;
+use App\Services\AccountAuthenticationService;
 use App\Services\PasswordResetLinkService;
-use App\Services\ProfileDeclarationService;
 use App\Services\SelfServicePlayerProfileService;
 use App\Services\UserAuthenticationRevocationService;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
@@ -31,57 +29,29 @@ class AuthController extends Controller
 
     public function register(
         RegisterUserRequest $request,
-        ProfileDeclarationService $declarations,
+        AccountAuthenticationService $accounts,
     ): JsonResponse {
-        $validated = $request->validated();
-
-        $user = DB::transaction(function () use ($validated, $declarations): User {
-            $user = User::create([
-                'name' => $validated['name'],
-                'lastname' => $validated['lastname'],
-                'email' => $validated['email'],
-                'password' => $validated['password'],
-                'role' => UserRole::USER->value,
-                'active' => true,
-            ]);
-
-            $declarations->recordGeneral($user);
-
-            return $user;
-        });
+        $user = $accounts->register($request->validated());
 
         $token = $user->createToken('api-token')->plainTextToken;
 
         return $this->successResponse([
             'token' => $token,
             'token_type' => 'Bearer',
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'lastname' => $user->lastname,
-                'email' => $user->email,
-                'role' => $user->role,
-                'active' => $user->active,
-                'has_player' => false,
-                'profile_declaration_required' => false,
-            ],
-            'player' => null,
+            ...$accounts->registrationPayload($user),
         ], 'Registro correcto.', status: 201);
     }
 
-    public function login(Request $request, ProfileDeclarationService $declarations): JsonResponse
+    public function login(Request $request, AccountAuthenticationService $accounts): JsonResponse
     {
         $validated = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::query()
-            ->with(['player.user', 'player.publicIdentityAuthorizations'])
-            ->where('email', $validated['email'])
-            ->first();
+        $user = $accounts->findByCredentials($validated['email'], $validated['password']);
 
-        if (! $user || ! Hash::check($validated['password'], $user->password)) {
+        if (! $user) {
             return $this->errorResponse('Credenciales incorrectas.', [], 401);
         }
 
@@ -94,23 +64,23 @@ class AuthController extends Controller
         return $this->successResponse([
             'token' => $token,
             'token_type' => 'Bearer',
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'lastname' => $user->lastname,
-                'email' => $user->email,
-                'role' => $user->role,
-                'active' => $user->active,
-                'has_player' => $user->player !== null,
-                'profile_declaration_required' => ! $declarations->hasRecognizedGeneral($user),
-            ],
-            'player' => $user->player ? new PlayerProfileResource($user->player->load('user')) : null,
+            ...$accounts->loginPayload($user),
         ], 'Login correcto.');
     }
 
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $token = $request->user()->currentAccessToken();
+
+        if (! $token instanceof PersonalAccessToken) {
+            return $this->errorResponse(
+                'Esta sesión se cierra con POST /auth/session/logout.',
+                [],
+                409
+            );
+        }
+
+        $token->delete();
 
         return $this->successResponse(null, 'Logout correcto.');
     }

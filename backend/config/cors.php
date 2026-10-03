@@ -15,9 +15,12 @@ return [
         'Authorization',
         'Content-Type',
         'Origin',
+        'X-CSRF-TOKEN',
+        'X-Galotxas-Auth-Mode',
         'X-Requested-With',
     ],
     'exposed_headers' => [],
     'max_age' => 600,
-    'supports_credentials' => false,
+    // Sólo la sesión SPA (SPA_SESSION_AUTH_ENABLED) necesita credenciales CORS.
+    'supports_credentials' => (bool) env('SPA_SESSION_AUTH_ENABLED', false),
 ];

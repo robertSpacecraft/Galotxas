@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Services\DeploymentReadinessService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Mail\Transport\ResendTransport;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Mail;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class ProductionReadinessTest extends TestCase
@@ -193,6 +195,73 @@ class ProductionReadinessTest extends TestCase
         $this->assertStringContainsString('display_errors=Off', $phpConfiguration);
         $this->assertStringContainsString('fastcgi_buffer_size 16k', $developmentNginx);
         $this->assertStringContainsString('fastcgi_buffer_size 16k', $productionNginx);
+    }
+
+    public function test_deploy_check_accepts_a_valid_spa_session_configuration_in_staging_and_production(): void
+    {
+        $this->configureValidStaging();
+        $this->enableSpaSessionForReadiness();
+        $exitCode = Artisan::call('deploy:check');
+        $output = Artisan::output();
+        $this->assertSame(0, $exitCode, $output);
+        $this->assertStringContainsString('Cookie de sesión SPA', $output);
+
+        $this->configureValidProduction();
+        $this->enableSpaSessionForReadiness();
+        $exitCode = Artisan::call('deploy:check');
+        $this->assertSame(0, $exitCode, Artisan::output());
+    }
+
+    /** @return array<string, array{callable(): void, string}> */
+    public static function unsafeSpaSessionConfigurations(): array
+    {
+        return [
+            'insecure cookie' => [fn () => config()->set('session.secure', false), 'Cookie de sesión SPA'],
+            'samesite strict' => [fn () => config()->set('session.same_site', 'strict'), 'Cookie de sesión SPA'],
+            'shared session domain' => [fn () => config()->set('session.domain', '.galotxesmonover.es'), 'Cookie de sesión SPA'],
+            'cookie name shared with Blade' => [fn () => config()->set('spa_session.cookie', config('session.cookie')), 'Cookie de sesión SPA'],
+            'empty cookie name' => [fn () => config()->set('spa_session.cookie', ''), 'Cookie de sesión SPA'],
+            'cross-site API host' => [fn () => config()->set('app.url', 'https://galotxas-staging.up.railway.app'), 'Origen same-site de la SPA'],
+            'credentials without the flag' => [fn () => config()->set('spa_session.enabled', false), 'CORS'],
+            'flag without credentials' => [fn () => config()->set('cors.supports_credentials', false), 'CORS'],
+            'wildcard credentialed CORS' => [fn () => config()->set('cors.allowed_origins', ['*']), 'CORS'],
+            'sibling origin credentialed CORS' => [fn () => config()->set('cors.allowed_origins', ['https://galotxesmonover.es']), 'CORS'],
+        ];
+    }
+
+    #[DataProvider('unsafeSpaSessionConfigurations')]
+    public function test_readiness_blocks_unsafe_spa_session_configuration(callable $break, string $check): void
+    {
+        $this->configureValidStaging();
+        $this->enableSpaSessionForReadiness();
+        $break();
+
+        $blocked = collect(app(DeploymentReadinessService::class)->check())
+            ->reject(fn (array $result): bool => $result['passed'])
+            ->pluck('name')
+            ->all();
+
+        $this->assertContains($check, $blocked);
+        $this->assertSame(1, Artisan::call('deploy:check'));
+    }
+
+    public function test_spa_session_checks_are_skipped_while_the_feature_is_off(): void
+    {
+        $this->configureValidStaging();
+
+        $names = collect(app(DeploymentReadinessService::class)->check())->pluck('name')->all();
+
+        $this->assertNotContains('Cookie de sesión SPA', $names);
+        $this->assertSame(0, Artisan::call('deploy:check'));
+    }
+
+    private function enableSpaSessionForReadiness(): void
+    {
+        config()->set('spa_session.enabled', true);
+        config()->set('spa_session.cookie', 'galotxas-spa-session');
+        config()->set('session.cookie', 'galotxas-session');
+        config()->set('session.domain', null);
+        config()->set('cors.supports_credentials', true);
     }
 
     private function configureValidProduction(): void

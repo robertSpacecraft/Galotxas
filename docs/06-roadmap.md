@@ -782,7 +782,7 @@ descubra una dependencia:
 | **5.7-C — Hardening de la API de reprogramaciones** | Form Requests dedicados, fecha estricta, Resources mínimos, throttling y tests de autorización, privacidad y validación. Conserva el workflow vigente. | **CLOSED / PASS**. Sin migración ni cambio frontend; staging aceptado sin walkthrough manual de API y producción con despliegue/readiness/salud PASS, sin smoke funcional. |
 | **5.7-E — Integridad de `CategoryEntry`** | Preflight y garantías para impedir identidad ambos/ninguno, asociaciones incoherentes y duplicados. Añadirá garantías DB cuando sean seguras. | **CLOSED / PASS**. Reglas de identidad/duplicado decididas y aplicadas; preflights y migración aplicados en staging y producción con éxito. |
 | **5.7-F — Ocupación global y planificación de Liga/Copa** | F1: ocupación física global y concurrencia; F2: `Venue.court_number`; F3: `Category.age_group`; F4: Liga atómica por campeonato; F5: Copa programada por categoría. | **CLOSED / PASS**. Regresión local, staging y aceptación productiva PASS; rollout selectivo completado bajo congelación continua de writers. |
-| **5.7-J — Hardening de sesión de autenticación** | Bloque de arquitectura de seguridad separado para el riesgo del Bearer durable en `localStorage`. | **ACTIVE (J1 CLOSED / PASS, J2 NEXT)**. Gate de cookies, SameSite/CSRF, CORS, expiración/revocación, transición y rollback. Trabajo cross-layer de alto riesgo; no se mezcla con B/C. |
+| **5.7-J — Hardening de sesión de autenticación** | Bloque de arquitectura de seguridad separado para el riesgo del Bearer durable en `localStorage`. | **ACTIVE (J1 CLOSED / PASS; J2 funcionalmente completo en local, OFF por defecto y pendiente de aceptación en staging; J3 NEXT tras la aceptación operacional de J2)**. Gate de cookies, SameSite/CSRF, CORS, expiración/revocación, transición y rollback. Trabajo cross-layer de alto riesgo; no se mezcla con B/C. |
 | **5.7-G — Normalización `Round.phase/stage` de Liga** | Normalizar escrituras nuevas y datos legacy al contrato documentado `league`/`matchday`, preservando Copa. | Migración/backfill probable y preflight de datos. |
 | **5.7-H — Unicidad DB del nombre de pista** | Preflight de duplicados, garantía DB y manejo seguro de carreras. | Gate de normalización/case-sensitivity antes de migrar. |
 | **5.7-D — Interfaz React de reprogramaciones** | Ver estado, proponer y confirmar una propuesta compatible usando exclusivamente el workflow backend actual. | Dependencia backend satisfecha por 5.7-C; conserva su posición canónica posterior, sin cancelación, rechazo, notificaciones, rediseño de estados ni migración. |
@@ -842,7 +842,7 @@ nombrado, sin cambiar las 311 filas. Se levantó mantenimiento y la aceptación
 humana fue PASS; el resultado descartado se reintrodujo por el workflow normal.
 Detalle en testing y procedimiento seguro reutilizable en
 [el runbook](27-production-readiness-and-deployment-runbook.md#57-f--rollout-selectivo-de-ocupación-y-metadatos).
-**5.7-J es ahora ACTIVE** (J1 CLOSED / PASS, J2 NEXT), con su gate propia todavía sin resolver.
+**5.7-J es ahora ACTIVE** (J1 CLOSED / PASS; J2 local PASS, OFF por defecto, pendiente de staging; J3 NEXT tras J2), con su gate propia todavía sin resolver.
 Continúa J → G → H → D → Q1. F no absorbe unicidad del nombre
 de Venue (H), normalización `Round.phase/stage` (G) ni UI React (D).
 

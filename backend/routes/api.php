@@ -28,12 +28,14 @@ use App\Http\Controllers\Api\V1\SchoolController;
 use App\Http\Controllers\Api\V1\SchoolEnrollmentController;
 use App\Http\Controllers\Api\V1\SeasonController;
 use App\Http\Controllers\Api\V1\SeasonRankingController;
+use App\Http\Controllers\Api\V1\SpaSessionAuthController;
 use App\Http\Controllers\Api\V1\SponsorController;
 use App\Http\Controllers\Api\V1\SponsorLogoController;
 use App\Http\Controllers\CompetitionImageController;
 use App\Http\Middleware\EnsureContactFormIsEnabled;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\IsAdmin;
+use App\Http\Middleware\RequireSpaSessionMode;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -46,6 +48,18 @@ Route::prefix('v1')->group(function () {
         ->middleware('throttle:auth.password');
     Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])
         ->middleware('throttle:auth.password');
+
+    // Sesión SPA (transición 5.7-J): sólo en modo sesión explícito.
+    Route::middleware(RequireSpaSessionMode::class)->group(function () {
+        Route::get('/auth/csrf', [SpaSessionAuthController::class, 'csrf'])
+            ->middleware('throttle:auth.session-bootstrap');
+        Route::post('/auth/session/login', [SpaSessionAuthController::class, 'login'])
+            ->middleware('throttle:auth.login');
+        Route::post('/auth/session/register', [SpaSessionAuthController::class, 'register'])
+            ->middleware('throttle:auth.register');
+        Route::post('/auth/session/logout', [SpaSessionAuthController::class, 'logout'])
+            ->middleware('throttle:auth.session-bootstrap');
+    });
 
     // Public API
     Route::get('/seasons/{season}/image/{width}', [CompetitionImageController::class, 'seasonVariant'])

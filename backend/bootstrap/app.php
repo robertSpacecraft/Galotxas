@@ -5,6 +5,7 @@ use App\Exceptions\OfficialResultHistoryDeletionBlockedException;
 use App\Exceptions\OfficialResultMutationBlockedException;
 use App\Http\Controllers\LivenessController;
 use App\Http\Middleware\AddSecurityHeaders;
+use App\Http\Middleware\SpaSessionMode;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -32,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) use ($trustedProxies): void {
         $middleware->redirectGuestsTo(fn () => route('admin.login'));
         $middleware->append(AddSecurityHeaders::class);
+        $middleware->api(prepend: [SpaSessionMode::class]);
         $middleware->preventRequestsDuringMaintenance(except: ['up']);
 
         if ($trustedProxies !== '' && $trustedProxies !== []) {

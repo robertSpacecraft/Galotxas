@@ -263,17 +263,37 @@ tener supervisión, reintentos, failed jobs y runbook antes de cambiar
 ## CORS, autenticación, sesiones y cabeceras
 
 React conserva el token Sanctum Bearer y lo envía mediante `Authorization`.
-No se migra la autenticación a cookies ni se habilita `statefulApi`; el panel
-Blade sí usa sesión. Por ello:
+React no usa todavía cookies y `statefulApi()` no se habilita nunca de forma
+global; el panel Blade sí usa sesión. Por ello:
 
 - CORS afecta sólo `api/*`;
 - se permite un origen exacto por entorno;
-- `supports_credentials=false` y no hay wildcard;
-- `Authorization`, `Accept` y `Content-Type` están allowlisted;
+- `supports_credentials` es `false` con `SPA_SESSION_AUTH_ENABLED=false` (estado
+  vigente) y sólo es `true` si esa capacidad se activa; no hay wildcard;
+- `Authorization`, `Accept`, `Content-Type`, `X-CSRF-TOKEN` y
+  `X-Galotxas-Auth-Mode` están allowlisted;
 - el redirect de `www` evita necesitarlo como origen API; sólo se añadirá si
   una prueba real demuestra una ventana técnica previa al redirect;
 - los contratos existentes `401`, `403` y `419` no cambian;
 - Blade requiere cookie `Secure`, `HttpOnly`, `SameSite=lax` y sesión DB.
+
+### Sesión SPA de transición (5.7-J J2, apagada por defecto)
+
+J2 añade al backend una sesión de primera parte para la SPA que **ningún
+usuario utiliza todavía**: React sigue con Bearer y J3 la consumirá. Variables
+(sin secretos): `SPA_SESSION_AUTH_ENABLED=false` por defecto y
+`SPA_SESSION_COOKIE=galotxas-spa-session`. Con el flag activo, `deploy:check`
+exige: CORS con credenciales y origen exacto, cookie SPA distinta de la de
+Blade, `Secure`, `HttpOnly`, `SameSite=lax`, `SESSION_DOMAIN` sin definir
+(cookie host-only en el host de la API) y frontend/API en el mismo dominio
+registrable (heurística simple de dos etiquetas). Valores previstos: local
+`APP_URL=http://localhost:8080`, `FRONTEND_URL=http://localhost:5173`; staging
+`https://api-staging.galotxesmonover.es` /
+`https://staging.galotxesmonover.es`; producción
+`https://api.galotxesmonover.es` / `https://galotxesmonover.es`; `CORS_ALLOWED_ORIGINS`
+igual a `FRONTEND_URL`. Orden de despliegue: backend con el flag apagado,
+`deploy:check`, activar en staging y aceptar; producción permanece apagada
+hasta que J3 esté aceptado. Revertir es apagar el flag; Bearer sigue válido.
 
 El bucket privado de `media-staging` mantiene CORS de lectura limitado a
 `GET`/`HEAD` y al origen exacto `https://staging.galotxesmonover.es`;
@@ -468,7 +488,7 @@ levantó mantenimiento, la aceptación humana fue PASS y el resultado real se
 reintrodujo por el workflow normal. Evidencia operacional detallada y distinta
 de la regresión automatizada en [05-testing.md](05-testing.md#57-f--ocupación-global-y-planificación-producción-pass--closed).
 
-**5.7-F CLOSED / PASS; 5.7-J ACTIVE (J1 CLOSED / PASS, J2 NEXT)**, con su gate propia de
+**5.7-F CLOSED / PASS; 5.7-J ACTIVE (J1 CLOSED / PASS; J2 local PASS, OFF por defecto, pendiente de staging; J3 NEXT tras J2)**, con su gate propia de
 arquitectura/seguridad pendiente. Orden posterior J → G → H → D → Q1.
 
 El administrador inicial se crea en la consola privada del backend:
@@ -527,7 +547,8 @@ dispone de un transporte operativo en Railway Hobby:
    de ocho caracteres y confirmación; el broker comprueba usuario/token,
    persiste la contraseña mediante el cast `hashed`, rota `remember_token`,
    elimina el token y emite `PasswordReset`;
-8. el reset no revoca los personal access tokens Sanctum ya emitidos.
+8. desde 5.7-J J1, un reset exitoso revoca todos los personal access tokens y las
+   filas de `sessions` del usuario (ADR-058); un reset inválido o caducado no revoca nada.
 
 La cobertura existente comprueba respuesta genérica y ausencia de notificación
 para un correo desconocido, generación de la notificación estándar, reset

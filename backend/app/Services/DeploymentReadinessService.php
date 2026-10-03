@@ -61,6 +61,7 @@ class DeploymentReadinessService
 
         $this->checkDatabase($checks);
         $this->checkCors($checks, $frontendUrl);
+        $this->checkSpaSession($checks, $appUrl, $frontendUrl);
 
         $this->add(
             $checks,
@@ -192,14 +193,67 @@ class DeploymentReadinessService
             && $origins[0] === $frontendUrl
             && ! in_array('*', $origins, true)
             && config('cors.allowed_origins_patterns') === []
-            && config('cors.supports_credentials') === false;
+            && config('cors.supports_credentials') === $this->spaSessionEnabled();
 
         $this->add(
             $checks,
             'CORS',
             $valid,
-            'Debe admitir sólo el origen frontend exacto, sin wildcard ni cookies CORS.'
+            'Debe admitir sólo el origen frontend exacto, sin wildcard, y credenciales CORS únicamente con la sesión SPA activa.'
         );
+    }
+
+    private function spaSessionEnabled(): bool
+    {
+        return config('spa_session.enabled') === true;
+    }
+
+    /** @param list<array{name: string, passed: bool, detail: string}> $checks */
+    private function checkSpaSession(array &$checks, string $appUrl, string $frontendUrl): void
+    {
+        if (! $this->spaSessionEnabled()) {
+            return;
+        }
+
+        $cookie = config('spa_session.cookie');
+
+        $this->add(
+            $checks,
+            'Cookie de sesión SPA',
+            is_string($cookie)
+                && $cookie !== ''
+                && $cookie !== config('session.cookie')
+                && config('session.secure') === true
+                && config('session.http_only') === true
+                && config('session.same_site') === 'lax'
+                && config('session.domain') === null,
+            'La sesión SPA exige cookie propia distinta de Blade, Secure, HttpOnly, SameSite lax y host-only.'
+        );
+        $this->add(
+            $checks,
+            'Origen same-site de la SPA',
+            $this->sharesRegistrableDomain($appUrl, $frontendUrl),
+            'Frontend y API deben compartir el dominio registrable para que la cookie sea de primera parte.'
+        );
+    }
+
+    private function sharesRegistrableDomain(string $first, string $second): bool
+    {
+        $domain = static function (string $url): ?string {
+            $host = parse_url($url, PHP_URL_HOST);
+
+            if (! is_string($host) || $host === '') {
+                return null;
+            }
+
+            return implode('.', array_slice(explode('.', strtolower($host)), -2));
+        };
+
+        $firstDomain = $domain($first);
+
+        return $firstDomain !== null
+            && $firstDomain === $domain($second)
+            && $firstDomain !== parse_url($first, PHP_URL_HOST);
     }
 
     /** @param list<array{name: string, passed: bool, detail: string}> $checks */

@@ -2823,3 +2823,28 @@ Consecuencias:
 - Protege el sistema frente a credenciales filtradas o compromisos de cuenta detectados, asegurando que un usuario desactivado no conserva ninguna vía de acceso subyacente.
 - El riesgo de que un token sea extraído mediante XSS se mitiga al disponer de un botón de emergencia (desactivación/cambio de contraseña). El cambio de arquitectura a cookies (J2) no es un requisito previo para esta capa defensiva fundamental.
 - No se requiere migración de esquema. Las tablas `sessions` y `personal_access_tokens` existentes, junto con la arquitectura Bearer/localStorage actual, son suficientes para J1 hasta que se aborde la migración J2.
+
+# ADR-059 — Sesión SPA de doble modo (5.7-J J2)
+
+Estado: Aceptada (implementación backend local PASS; capacidad apagada por defecto; pendiente de aceptación en staging y promoción)
+
+Fecha aproximada: 2026-10
+
+Contexto:
+- La auditoría J0 mantuvo como riesgo que un XSS puede exfiltrar el Bearer durable de `localStorage`. La arquitectura objetivo (A2) es una sesión Laravel de primera parte con cookie HttpOnly, host-only en el host de la API, frontend y API en el mismo sitio (`galotxesmonover.es` / `api.galotxesmonover.es`; staging `api-staging.`).
+- `statefulApi()` de Sanctum decide el modo por `Origin`/`Referer` y aplicaría CSRF y sesión a un bundle React ya cargado que aún envía Bearer, provocando `419` y el borrado de un token válido. Tampoco encaja una cookie `XSRF-TOKEN` legible por JavaScript con una cookie host-only de la API.
+
+Decisión:
+- Endpoints dedicados (`GET /auth/csrf`, `POST /auth/session/login|register|logout`) en lugar de ramificar los endpoints legacy, para dejar intacto el contrato Bearer y simplificar el rollback; la lógica de cuenta se comparte en `AccountAuthenticationService`.
+- Señal de transición explícita `X-Galotxas-Auth-Mode: session`; además exige flag activo, `Origin` exactamente igual a `FRONTEND_URL`, ausencia total de `Authorization` y una ruta de sesión o `auth:*` con la cookie SPA, de modo que la navegación pública anónima no crea sesiones. La cabecera por sí sola nunca basta.
+- No se habilita `statefulApi()` globalmente. Un middleware (`SpaSessionMode`) ejecuta, sólo en modo sesión, un pipeline con `EncryptCookies`, `AddQueuedCookiesToResponse`, `StartSession`, un CSRF propio y `AuthenticateSession` de Sanctum.
+- Cookie SPA propia (`SPA_SESSION_COOKIE`, por defecto `galotxas-spa-session`) aislada de la de Blade: host-only, `HttpOnly`, `Secure` fuera de local, `SameSite=Lax`, `path=/`. La configuración de sesión se aplica por petición y se restaura en `finally`, reiniciando almacén de sesión y guards, para no filtrarse entre peticiones del mismo proceso; durante la petición el guard por defecto es `web`. Ambas sesiones comparten la tabla `sessions`, así que la revocación total de J1 las alcanza.
+- CSRF explícito por JSON: `/auth/csrf` devuelve el token de sesión de Laravel; sin cookie `XSRF-TOKEN`; el cliente envía `X-CSRF-TOKEN` y renueva el token tras login, registro y logout y ante `419`. El CSRF se aplica también bajo PHPUnit.
+- `SPA_SESSION_AUTH_ENABLED=false` por defecto; `supports_credentials` de CORS lo sigue y `deploy:check` valida cookie, origen y same-site cuando está activo.
+- Bearer y sesión coexisten durante la transición; el login/registro por sesión no emite personal access tokens y el logout legacy invocado desde una sesión responde `409`.
+
+Consecuencias:
+- Con el flag apagado el comportamiento es el de ADR-008/ADR-035/ADR-058; React sigue usando Bearer y `localStorage`, y el XSS sobre ese token sigue siendo un riesgo abierto hasta J3. Estos ADR no se reescriben; ADR-008 y la parte de almacenamiento de ADR-035 se sustituirán cuando J3 esté aceptado en producción.
+- Pendiente fuera de J2: migración de React (J3), `school/enrollments` no consume la identidad de sesión por ser una ruta pública sin estado, expiración de tokens, revocación global y corte de los PAT legacy de la SPA, y la actualización de `legal/cookies.md` antes de activar J3.
+- Límites conocidos: la cookie no usa prefijo `__Host-` por mantener HTTP local; la validación same-site usa una heurística simple de dominio registrable.
+- No requiere migración de esquema ni operación sobre datos.
