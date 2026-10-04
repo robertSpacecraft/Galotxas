@@ -62,6 +62,7 @@ class DeploymentReadinessService
         $this->checkDatabase($checks);
         $this->checkCors($checks, $frontendUrl);
         $this->checkSpaSession($checks, $appUrl, $frontendUrl);
+        $this->checkLegacyBearer($checks);
 
         $this->add(
             $checks,
@@ -234,6 +235,23 @@ class DeploymentReadinessService
             'Origen same-site de la SPA',
             $this->sharesRegistrableDomain($appUrl, $frontendUrl),
             'Frontend y API deben compartir el dominio registrable para que la cookie sea de primera parte.'
+        );
+    }
+
+    /** @param list<array{name: string, passed: bool, detail: string}> $checks */
+    private function checkLegacyBearer(array &$checks): void
+    {
+        $issuance = config('legacy_bearer.issuance_enabled');
+        $acceptance = config('legacy_bearer.acceptance_enabled');
+
+        $this->add(
+            $checks,
+            'Bearer legacy',
+            is_bool($issuance)
+                && is_bool($acceptance)
+                && ! ($issuance === true && $acceptance === false),
+            'LEGACY_BEARER_ISSUANCE_ENABLED y LEGACY_BEARER_ACCEPTANCE_ENABLED deben ser booleanos; '
+                .'no puede emitirse (true) con la aceptación desactivada (false).'
         );
     }
 

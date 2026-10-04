@@ -35,6 +35,8 @@ use App\Http\Controllers\CompetitionImageController;
 use App\Http\Middleware\EnsureContactFormIsEnabled;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\IsAdmin;
+use App\Http\Middleware\RejectLegacyBearer;
+use App\Http\Middleware\RequireLegacyBearerIssuance;
 use App\Http\Middleware\RequireSpaSessionMode;
 use App\Http\Middleware\SpaSessionWhenClaimed;
 use Illuminate\Support\Facades\Route;
@@ -42,9 +44,9 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->group(function () {
     // Auth
     Route::post('/auth/register', [AuthController::class, 'register'])
-        ->middleware('throttle:auth.register');
+        ->middleware(['throttle:auth.register', RequireLegacyBearerIssuance::class]);
     Route::post('/auth/login', [AuthController::class, 'login'])
-        ->middleware('throttle:auth.login');
+        ->middleware(['throttle:auth.login', RequireLegacyBearerIssuance::class]);
     Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword'])
         ->middleware('throttle:auth.password');
     Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])
@@ -102,7 +104,7 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/school', SchoolController::class);
     Route::post('/school/enrollments', [SchoolEnrollmentController::class, 'store'])
-        ->middleware([SpaSessionWhenClaimed::class, 'throttle:school-enrollments']);
+        ->middleware([RejectLegacyBearer::class, SpaSessionWhenClaimed::class, 'throttle:school-enrollments']);
 
     Route::get('/sponsors', [SponsorController::class, 'index']);
     Route::get('/sponsors/{sponsor}/logo', SponsorLogoController::class)
@@ -128,9 +130,9 @@ Route::prefix('v1')->group(function () {
 
     // Authenticated API
     Route::post('/auth/logout', [AuthController::class, 'logout'])
-        ->middleware('auth:sanctum');
+        ->middleware([RejectLegacyBearer::class, 'auth:sanctum']);
 
-    Route::middleware(['auth:sanctum', EnsureUserIsActive::class])->group(function () {
+    Route::middleware([RejectLegacyBearer::class, 'auth:sanctum', EnsureUserIsActive::class])->group(function () {
 
         // Me
         Route::get('/me', [AuthController::class, 'me']);

@@ -255,6 +255,43 @@ class ProductionReadinessTest extends TestCase
         $this->assertSame(0, Artisan::call('deploy:check'));
     }
 
+    /** @return array<string, array{bool, bool, bool}> */
+    public static function legacyBearerStates(): array
+    {
+        return [
+            'initial compatibility' => [true, true, true],
+            'stop minting' => [false, true, true],
+            'final retirement' => [false, false, true],
+            'issues credentials it refuses' => [true, false, false],
+        ];
+    }
+
+    #[DataProvider('legacyBearerStates')]
+    public function test_readiness_validates_the_legacy_bearer_state_combination(bool $issuance, bool $acceptance, bool $valid): void
+    {
+        $this->configureValidStaging();
+        config()->set('legacy_bearer.issuance_enabled', $issuance);
+        config()->set('legacy_bearer.acceptance_enabled', $acceptance);
+
+        $exitCode = Artisan::call('deploy:check');
+        $output = Artisan::output();
+
+        $this->assertSame($valid ? 0 : 1, $exitCode, $output);
+        $this->assertStringContainsString('Bearer legacy', $output);
+
+        if (! $valid) {
+            $this->assertStringContainsString('no puede emitirse (true) con la aceptación desactivada (false)', $output);
+        }
+    }
+
+    public function test_readiness_blocks_non_boolean_legacy_bearer_values(): void
+    {
+        $this->configureValidStaging();
+        config()->set('legacy_bearer.acceptance_enabled', 'flase');
+
+        $this->assertSame(1, Artisan::call('deploy:check'));
+    }
+
     private function enableSpaSessionForReadiness(): void
     {
         config()->set('spa_session.enabled', true);
