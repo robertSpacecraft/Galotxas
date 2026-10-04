@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import {
   collectConsoleErrors,
+  createSessionApiClient,
   expectHttpOnlySessionCookie,
   expectNoStoredAuth,
   sessionRequestHeaders,
@@ -287,5 +288,36 @@ test.describe('sesión SPA de cookie HttpOnly', () => {
     expect(enrollments[1]['x-galotxas-auth-mode']).toBe('session');
     expect(enrollments[1]['x-csrf-token']).toBeTruthy();
     expect(enrollments[1].authorization).toBeUndefined();
+  });
+
+  test('el cliente de sesión para preparar datos administra sin Bearer y exige CSRF en las mutaciones', async ({ request, baseURL }) => {
+    const origin = new URL(baseURL).origin;
+    const session = await createSessionApiClient(request, {
+      apiBaseURL: `${backendBaseURL}/api/v1`,
+      origin,
+      email: admin.email,
+      password: admin.password,
+    });
+
+    expect(session.headers('GET').Authorization).toBeUndefined();
+    expect(session.headers('GET')['X-CSRF-TOKEN']).toBeUndefined();
+    expect(session.headers('PATCH')['X-CSRF-TOKEN']).toBeTruthy();
+
+    const seasons = await request.get(`${backendBaseURL}/api/v1/admin/seasons`, { headers: session.headers('GET') });
+    expect(seasons.status()).toBe(200);
+
+    const withoutCsrf = await request.post(`${backendBaseURL}/api/v1/admin/seasons`, {
+      headers: session.headers('GET'),
+      data: {},
+      failOnStatusCode: false,
+    });
+    expect(withoutCsrf.status()).toBe(419);
+
+    const withCsrf = await request.post(`${backendBaseURL}/api/v1/admin/seasons`, {
+      headers: session.headers('POST'),
+      data: {},
+      failOnStatusCode: false,
+    });
+    expect(withCsrf.status()).toBe(422);
   });
 });

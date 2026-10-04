@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { createSessionApiClient } from './support/sessionAuth.js';
 
 const backendBaseURL = process.env.E2E_BACKEND_URL || 'http://127.0.0.1:8081';
 const password = 'E2E-password-123!';
@@ -82,16 +83,16 @@ const saveAdminMatch = async (page, categoryId, roundName, {
   await expect(page.locator('.alert-success')).toContainText('Partido actualizado correctamente.');
 };
 
-const getCupFixture = async (request) => {
-  const loginResponse = await request.post(`${backendBaseURL}/api/v1/auth/login`, {
-    data: { email: users.admin, password },
+const getCupFixture = async (request, origin) => {
+  const session = await createSessionApiClient(request, {
+    apiBaseURL: `${backendBaseURL}/api/v1`,
+    origin,
+    email: users.admin,
+    password,
   });
-  expect(loginResponse.ok()).toBe(true);
-  const token = (await loginResponse.json()).data.token;
-  const headers = { Authorization: `Bearer ${token}` };
 
   const championshipsResponse = await request.get(`${backendBaseURL}/api/v1/admin/championships`, {
-    headers,
+    headers: session.headers('GET'),
   });
   expect(championshipsResponse.ok()).toBe(true);
   const championships = (await championshipsResponse.json()).data;
@@ -99,14 +100,14 @@ const getCupFixture = async (request) => {
   expect(championship).toBeTruthy();
 
   const categoriesResponse = await request.get(`${backendBaseURL}/api/v1/admin/categories`, {
-    headers,
+    headers: session.headers('GET'),
   });
   expect(categoriesResponse.ok()).toBe(true);
   const category = (await categoriesResponse.json()).data
     .find(({ name }) => name === 'Copa E2E');
   expect(category).toBeTruthy();
 
-  return { championship, category, headers };
+  return { championship, category, session };
 };
 
 const setCupVisibility = async (request, fixture, isPublic) => {
@@ -128,6 +129,7 @@ const setCupVisibility = async (request, fixture, isPublic) => {
     description: fixture.category.description,
     level: fixture.category.level,
     gender: fixture.category.gender,
+    age_group: fixture.category.age_group,
     status: fixture.category.status,
     is_public: isPublic,
   };
@@ -135,22 +137,22 @@ const setCupVisibility = async (request, fixture, isPublic) => {
   if (isPublic) {
     expect((await request.patch(
       `${backendBaseURL}/api/v1/admin/championships/${fixture.championship.id}`,
-      { headers: fixture.headers, data: championshipPayload },
+      { headers: fixture.session.headers('PATCH'), data: championshipPayload },
     )).ok()).toBe(true);
     expect((await request.patch(
       `${backendBaseURL}/api/v1/admin/categories/${fixture.category.id}`,
-      { headers: fixture.headers, data: categoryPayload },
+      { headers: fixture.session.headers('PATCH'), data: categoryPayload },
     )).ok()).toBe(true);
     return;
   }
 
   expect((await request.patch(
     `${backendBaseURL}/api/v1/admin/categories/${fixture.category.id}`,
-    { headers: fixture.headers, data: categoryPayload },
+    { headers: fixture.session.headers('PATCH'), data: categoryPayload },
   )).ok()).toBe(true);
   expect((await request.patch(
     `${backendBaseURL}/api/v1/admin/championships/${fixture.championship.id}`,
-    { headers: fixture.headers, data: championshipPayload },
+    { headers: fixture.session.headers('PATCH'), data: championshipPayload },
   )).ok()).toBe(true);
 };
 
@@ -177,10 +179,10 @@ const fillResult = async (page, homeName, awayName, homeScore, awayScore) => {
   await page.getByRole('spinbutton', { name: awayName }).fill(String(awayScore));
 };
 
-test('completa Liga, semifinales, conflicto, finales y campeón público de Copa', async ({ page, request }) => {
+test('completa Liga, semifinales, conflicto, finales y campeón público de Copa', async ({ page, request, baseURL }) => {
   test.setTimeout(180_000);
 
-  const fixture = await getCupFixture(request);
+  const fixture = await getCupFixture(request, new URL(baseURL).origin);
   const { category } = fixture;
   const categoryAdminURL = `${backendBaseURL}/admin/categories/${category.id}`;
   const leagueRounds = Array.from({ length: 6 }, (_, index) => `Liga Copa E2E ${index + 1}`);
@@ -218,7 +220,7 @@ test('completa Liga, semifinales, conflicto, finales y campeón público de Copa
       await saveAdminMatch(page, category.id, 'Semifinales', {
         status: 'scheduled',
         date: `2026-09-${12 + index}`,
-        time: index === 0 ? '18:30' : '20:00',
+        time: index === 0 ? '18:00' : '20:00',
         rowIndex: index,
       });
     }
@@ -375,12 +377,15 @@ test('completa Liga, semifinales, conflicto, finales y campeón público de Copa
       await expect(page.locator('.alert-success')).toContainText('Copa reabierta correctamente');
     }
 
+    // Con historial oficial de Copa la eliminación está protegida: la Copa reabierta se conserva.
     const deleteCupButton = page.getByRole('button', { name: 'Eliminar copa' });
 
     if (await deleteCupButton.count()) {
       page.once('dialog', (dialog) => dialog.accept());
       await deleteCupButton.click();
-      await expect(page.locator('.alert-success')).toContainText('Copa eliminada correctamente.');
+      await expect(page.locator('.alert-danger')).toContainText(
+        'No se puede regenerar o eliminar la Copa: existe historial de resultados oficiales de Copa.',
+      );
     }
 
     for (const roundName of leagueRounds) {

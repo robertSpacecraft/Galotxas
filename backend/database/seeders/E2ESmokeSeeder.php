@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\CategoryAgeGroup;
 use App\Enums\CategoryGender;
 use App\Enums\ChampionshipRegistrationStatus;
 use App\Enums\ChampionshipType;
@@ -161,6 +162,7 @@ class E2ESmokeSeeder extends Seeder
             $venue = Venue::query()->updateOrCreate(
                 ['name' => 'Pista E2E'],
                 [
+                    'court_number' => 2,
                     'location' => 'Entorno aislado Playwright',
                     'description' => 'No pertenece a los datos de desarrollo.',
                 ]
@@ -537,6 +539,7 @@ class E2ESmokeSeeder extends Seeder
                 'name' => 'Copa E2E',
                 'level' => 5,
                 'gender' => CategoryGender::MALE->value,
+                'age_group' => CategoryAgeGroup::OPEN->value,
                 'description' => 'Categoría determinista para el ciclo completo de Copa.',
                 'status' => 'active',
             ]
