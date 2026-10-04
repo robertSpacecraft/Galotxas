@@ -5,10 +5,12 @@ namespace Tests\Feature;
 use App\Models\GameMatch;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\EnablesLegacyBearerCompatibility;
 use Tests\TestCase;
 
 class ApiRateLimitingTest extends TestCase
 {
+    use EnablesLegacyBearerCompatibility;
     use RefreshDatabase;
 
     public function test_login_allows_five_attempts_and_blocks_the_sixth(): void

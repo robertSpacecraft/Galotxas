@@ -1,6 +1,3 @@
-import axios from 'axios';
-import { resolveApiBaseUrl } from './apiBaseUrl';
-
 export const AUTH_SESSION_CLEARED_EVENT = 'galotxas:auth-session-cleared';
 export const AUTH_MODE_HEADER = 'X-Galotxas-Auth-Mode';
 export const AUTH_MODE_SESSION = 'session';
@@ -10,10 +7,9 @@ export const AUTH_EVENT_SESSION_CHANGED = 'session-changed';
 export const AUTH_EVENT_SESSION_ENDED = 'session-ended';
 export const INACTIVE_USER_AUTH_MESSAGE = 'El usuario está inactivo.';
 
-// Claves del contrato Bearer anterior (J2). Sólo se usan para limpiar el navegador.
+// Claves del contrato Bearer anterior. Sólo se usan para borrar almacenamiento obsoleto.
 const LEGACY_TOKEN_STORAGE_KEY = 'token';
 const LEGACY_USER_STORAGE_KEY = 'user';
-const LEGACY_LOGOUT_TIMEOUT_MS = 5000;
 
 const SAFE_METHODS = new Set(['get', 'head', 'options']);
 
@@ -125,36 +121,15 @@ export const clearAuthSession = (reason) => {
 // --- Migración desde el contrato Bearer anterior ---
 
 /**
- * Limpieza única del almacenamiento heredado. Retira el token y el perfil
- * guardados por versiones anteriores y, si había token, intenta revocarlo con
- * una petición aislada (sin interceptores de la sesión SPA). Nunca restaura ni
- * intercambia el token por una sesión.
+ * Borra el almacenamiento local heredado cuando vuelve un navegador antiguo.
+ * Nunca lee el valor, lo reutiliza ni lo transmite: sólo elimina las claves.
+ * Tolera que localStorage no esté disponible.
  */
 export const cleanupLegacyAuthStorage = () => {
-  let legacyToken = null;
-
   try {
-    legacyToken = localStorage.getItem(LEGACY_TOKEN_STORAGE_KEY);
     localStorage.removeItem(LEGACY_TOKEN_STORAGE_KEY);
     localStorage.removeItem(LEGACY_USER_STORAGE_KEY);
   } catch {
-    return;
+    // Sin almacenamiento accesible no queda nada que borrar.
   }
-
-  if (!legacyToken) {
-    return;
-  }
-
-  const baseURL = resolveApiBaseUrl({
-    configuredUrl: import.meta.env.VITE_API_BASE_URL,
-    isDevelopment: import.meta.env.DEV,
-  });
-
-  void axios.post(`${baseURL}/auth/logout`, null, {
-    headers: {
-      Accept: 'application/json',
-      Authorization: `Bearer ${legacyToken}`,
-    },
-    timeout: LEGACY_LOGOUT_TIMEOUT_MS,
-  }).catch(() => {});
 };

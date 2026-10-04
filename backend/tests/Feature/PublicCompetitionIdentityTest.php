@@ -16,10 +16,12 @@ use App\Services\PublicPlayerIdentityService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\EnablesLegacyBearerCompatibility;
 use Tests\TestCase;
 
 class PublicCompetitionIdentityTest extends TestCase
 {
+    use EnablesLegacyBearerCompatibility;
     use RefreshDatabase;
 
     protected function tearDown(): void

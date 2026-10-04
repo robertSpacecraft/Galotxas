@@ -4,11 +4,13 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\EnablesLegacyBearerCompatibility;
 use Tests\Concerns\InteractsWithUserCredentials;
 use Tests\TestCase;
 
 class EnsureUserIsActiveTest extends TestCase
 {
+    use EnablesLegacyBearerCompatibility;
     use InteractsWithUserCredentials;
     use RefreshDatabase;
 

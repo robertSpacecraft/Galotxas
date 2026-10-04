@@ -16,11 +16,13 @@ use Mockery;
 use Symfony\Component\Mailer\Exception\TransportException;
 use Symfony\Component\Mailer\SentMessage;
 use Symfony\Component\Mailer\Transport\AbstractTransport;
+use Tests\Concerns\EnablesLegacyBearerCompatibility;
 use Tests\Concerns\InteractsWithUserCredentials;
 use Tests\TestCase;
 
 class ApiPasswordResetTest extends TestCase
 {
+    use EnablesLegacyBearerCompatibility;
     use InteractsWithUserCredentials;
     use RefreshDatabase;
 

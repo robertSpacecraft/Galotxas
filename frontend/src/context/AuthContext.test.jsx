@@ -208,7 +208,7 @@ describe('AuthProvider cookie-session bootstrap', () => {
     expect(keys).toContain('user');
   });
 
-  it('cleans legacy storage before the bootstrap and never reuses the legacy token', async () => {
+  it('cleans legacy storage before the bootstrap and never sends or reuses the legacy token', async () => {
     localStorage.setItem('token', 'legacy-token');
     localStorage.setItem('user', JSON.stringify({ email: 'legacy@example.test' }));
     api.get.mockImplementation(() => {
@@ -220,20 +220,8 @@ describe('AuthProvider cookie-session bootstrap', () => {
     renderAuthProvider();
 
     expect(await screen.findByTestId('auth-state')).toHaveTextContent('anónima');
-    expect(axios.post).toHaveBeenCalledOnce();
-    expect(axios.post.mock.calls[0][2].headers.Authorization).toBe('Bearer legacy-token');
+    expect(axios.post).not.toHaveBeenCalled();
     expect(JSON.stringify(api.get.mock.calls)).not.toContain('legacy-token');
-    expect(localStorage).toHaveLength(0);
-  });
-
-  it('keeps loading the app when the legacy logout fails', async () => {
-    localStorage.setItem('token', 'legacy-token');
-    axios.post.mockRejectedValue(new Error('offline'));
-    api.get.mockRejectedValue(unauthenticated());
-
-    renderAuthProvider();
-
-    expect(await screen.findByTestId('auth-state')).toHaveTextContent('anónima');
     expect(localStorage).toHaveLength(0);
   });
 

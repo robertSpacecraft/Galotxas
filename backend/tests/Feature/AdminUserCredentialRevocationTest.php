@@ -6,11 +6,13 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Tests\Concerns\EnablesLegacyBearerCompatibility;
 use Tests\Concerns\InteractsWithUserCredentials;
 use Tests\TestCase;
 
 class AdminUserCredentialRevocationTest extends TestCase
 {
+    use EnablesLegacyBearerCompatibility;
     use InteractsWithUserCredentials;
     use RefreshDatabase;
 

@@ -12,10 +12,12 @@ use App\Models\Round;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
+use Tests\Concerns\EnablesLegacyBearerCompatibility;
 use Tests\TestCase;
 
 class MyPanelTest extends TestCase
 {
+    use EnablesLegacyBearerCompatibility;
     use RefreshDatabase;
 
     public function test_me_returns_the_current_user_and_player_profile(): void

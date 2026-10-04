@@ -4,10 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\EnablesLegacyBearerCompatibility;
 use Tests\TestCase;
 
 class ApiLogoutTest extends TestCase
 {
+    use EnablesLegacyBearerCompatibility;
     use RefreshDatabase;
 
     public function test_authenticated_user_can_logout_and_only_current_token_is_revoked(): void

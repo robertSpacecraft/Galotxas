@@ -8,11 +8,13 @@ use App\Models\User;
 use App\Services\UserAuthenticationRevocationService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\EnablesLegacyBearerCompatibility;
 use Tests\Concerns\InteractsWithSpaSession;
 use Tests\TestCase;
 
 class SpaSessionSchoolEnrollmentTest extends TestCase
 {
+    use EnablesLegacyBearerCompatibility;
     use InteractsWithSpaSession;
     use RefreshDatabase;
 

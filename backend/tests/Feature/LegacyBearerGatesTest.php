@@ -70,6 +70,12 @@ class LegacyBearerGatesTest extends TestCase
         ];
     }
 
+    private function legacyCompatibility(): void
+    {
+        config()->set('legacy_bearer.issuance_enabled', true);
+        config()->set('legacy_bearer.acceptance_enabled', true);
+    }
+
     private function acceptance(bool $enabled): void
     {
         config()->set('legacy_bearer.acceptance_enabled', $enabled);
@@ -92,10 +98,10 @@ class LegacyBearerGatesTest extends TestCase
 
     // --- Configuración por defecto -------------------------------------------------
 
-    public function test_both_controls_default_to_true(): void
+    public function test_both_controls_default_to_false(): void
     {
-        $this->assertTrue(config('legacy_bearer.issuance_enabled'));
-        $this->assertTrue(config('legacy_bearer.acceptance_enabled'));
+        $this->assertFalse(config('legacy_bearer.issuance_enabled'));
+        $this->assertFalse(config('legacy_bearer.acceptance_enabled'));
     }
 
     public function test_the_acceptance_gate_is_ordered_before_authentication_on_every_bearer_surface(): void
@@ -122,6 +128,7 @@ class LegacyBearerGatesTest extends TestCase
 
     public function test_legacy_login_and_register_still_issue_tokens_while_issuance_is_enabled(): void
     {
+        $this->legacyCompatibility();
         $user = User::factory()->create();
 
         $login = $this->postJson('/api/v1/auth/login', ['email' => $user->email, 'password' => 'password'])
@@ -233,6 +240,7 @@ class LegacyBearerGatesTest extends TestCase
 
     public function test_bearer_protected_requests_are_unchanged_while_acceptance_is_enabled(): void
     {
+        $this->legacyCompatibility();
         $user = User::factory()->create();
         $token = $user->createToken('api-token')->plainTextToken;
 
@@ -316,6 +324,7 @@ class LegacyBearerGatesTest extends TestCase
 
     public function test_legacy_logout_follows_the_acceptance_gate_and_session_logout_does_not(): void
     {
+        $this->legacyCompatibility();
         $user = User::factory()->create();
         $token = $user->createToken('api-token');
 
@@ -397,6 +406,7 @@ class LegacyBearerGatesTest extends TestCase
 
     public function test_school_bearer_association_is_preserved_while_acceptance_is_enabled(): void
     {
+        $this->legacyCompatibility();
         $this->schoolReady();
         $user = User::factory()->create();
 

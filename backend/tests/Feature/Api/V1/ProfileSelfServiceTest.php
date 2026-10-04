@@ -16,10 +16,12 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\Sanctum;
 use RuntimeException;
+use Tests\Concerns\EnablesLegacyBearerCompatibility;
 use Tests\TestCase;
 
 class ProfileSelfServiceTest extends TestCase
 {
+    use EnablesLegacyBearerCompatibility;
     use RefreshDatabase;
 
     public function test_nickname_and_license_are_normalized_and_nullable_fields_can_be_cleared(): void

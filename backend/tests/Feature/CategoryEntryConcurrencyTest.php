@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\Process\Process;
 use Tests\Concerns\CreatesCategoryParticipantFixtures;
+use Tests\Concerns\EnablesLegacyBearerCompatibility;
 use Tests\TestCase;
 
 /**
@@ -24,6 +25,7 @@ class CategoryEntryConcurrencyTest extends TestCase
 {
     use CreatesCategoryParticipantFixtures;
     use DatabaseTruncation;
+    use EnablesLegacyBearerCompatibility;
 
     protected function tearDown(): void
     {
@@ -175,7 +177,10 @@ class CategoryEntryConcurrencyTest extends TestCase
             $label,
             $waitBeforeAction ? '1' : '0',
             $holdAfterAction ? '1' : '0',
-        ], base_path(), timeout: 40);
+        ], base_path(), [
+            'LEGACY_BEARER_ISSUANCE_ENABLED' => 'true',
+            'LEGACY_BEARER_ACCEPTANCE_ENABLED' => 'true',
+        ], timeout: 40);
     }
 
     /**

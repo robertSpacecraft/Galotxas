@@ -12,10 +12,12 @@ use App\Models\Round;
 use App\Models\Season;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\EnablesLegacyBearerCompatibility;
 use Tests\TestCase;
 
 class PublicMatchResourceTest extends TestCase
 {
+    use EnablesLegacyBearerCompatibility;
     use RefreshDatabase;
 
     public function test_public_match_is_available_without_authentication_and_hides_internal_data(): void

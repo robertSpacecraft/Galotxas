@@ -716,25 +716,11 @@ test.describe.serial('smoke narrativo del MVP', () => {
     }
   });
 
-  test('un token Bearer heredado se retira y se revoca sin usarse como credencial', async ({ page }) => {
-    const authorizations = [];
-    let legacyLogout = null;
+  test('un token Bearer heredado se retira del navegador sin transmitirse', async ({ page }) => {
+    const apiRequests = [];
     await page.route('**/api/v1/**', async (route) => {
       const request = route.request();
-      const headers = request.headers();
-
-      if (new URL(request.url()).pathname === '/api/v1/auth/logout') {
-        legacyLogout = headers;
-        await route.fulfill({
-          status: 401,
-          contentType: 'application/json',
-          body: JSON.stringify({ message: 'Unauthenticated.', data: null }),
-        });
-
-        return;
-      }
-
-      if (headers.authorization) authorizations.push(request.url());
+      apiRequests.push({ pathname: new URL(request.url()).pathname, headers: request.headers() });
       await route.continue();
     });
     await page.goto('/');
@@ -742,6 +728,7 @@ test.describe.serial('smoke narrativo del MVP', () => {
       localStorage.setItem('token', 'e2e-legacy-token');
       localStorage.setItem('user', JSON.stringify({ email: 'legacy@example.test' }));
     });
+    apiRequests.length = 0;
 
     await page.reload();
 
@@ -749,9 +736,9 @@ test.describe.serial('smoke narrativo del MVP', () => {
       page.getByRole('group', { name: 'Cuenta' }).getByRole('link', { name: 'Iniciar sesión' }),
     ).toBeVisible();
     await expectNoStoredAuth(page);
-    await expect.poll(() => legacyLogout?.authorization).toBe('Bearer e2e-legacy-token');
-    expect(legacyLogout['x-galotxas-auth-mode']).toBeUndefined();
-    expect(authorizations).toEqual([]);
+    expect(apiRequests.some(({ pathname }) => pathname === '/api/v1/auth/logout')).toBe(false);
+    expect(apiRequests.filter(({ headers }) => headers.authorization)).toEqual([]);
+    expect(JSON.stringify(apiRequests)).not.toContain('e2e-legacy-token');
   });
 
   test('un 403 ordinario conserva Cuenta y la sesión para peticiones posteriores', async ({ page }) => {

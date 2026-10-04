@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Puerta de aceptación del Bearer legacy.
  *
- * Con LEGACY_BEARER_ACCEPTANCE_ENABLED=false toda petición con un intento
+ * Salvo LEGACY_BEARER_ACCEPTANCE_ENABLED=true (valor booleano exacto) toda petición con un intento
  * explícito de autenticación Bearer recibe 401 antes de que Sanctum
  * resuelva el token (no se consulta ni se toca `last_used_at`). Otros
  * esquemas de Authorization y las peticiones sin cabecera no se alteran.
@@ -20,7 +20,7 @@ class RejectLegacyBearer
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (config('legacy_bearer.acceptance_enabled') === false && $this->attemptsBearer($request)) {
+        if (config('legacy_bearer.acceptance_enabled') !== true && $this->attemptsBearer($request)) {
             return new JsonResponse([
                 'message' => 'Unauthenticated.',
                 'data' => null,

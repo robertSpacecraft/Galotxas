@@ -6,12 +6,14 @@ use App\Models\User;
 use App\Services\UserAuthenticationRevocationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Tests\Concerns\EnablesLegacyBearerCompatibility;
 use Tests\Concerns\InteractsWithSpaSession;
 use Tests\Concerns\InteractsWithUserCredentials;
 use Tests\TestCase;
 
 class SpaSessionAuthenticationTest extends TestCase
 {
+    use EnablesLegacyBearerCompatibility;
     use InteractsWithSpaSession;
     use InteractsWithUserCredentials;
     use RefreshDatabase;

@@ -7,11 +7,13 @@ use App\Services\UserAuthenticationRevocationService;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Tests\Concerns\EnablesLegacyBearerCompatibility;
 use Tests\Concerns\InteractsWithUserCredentials;
 use Tests\TestCase;
 
 class UserAuthenticationRevocationServiceTest extends TestCase
 {
+    use EnablesLegacyBearerCompatibility;
     use InteractsWithUserCredentials;
     use RefreshDatabase;
 

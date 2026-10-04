@@ -114,49 +114,83 @@ describe('legacy Bearer storage cleanup', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
-  it('removes the legacy token and profile before issuing the isolated best-effort logout', () => {
-    const post = vi.spyOn(axios, 'post').mockImplementation(() => {
-      expect(localStorage.getItem('token')).toBeNull();
-      expect(localStorage.getItem('user')).toBeNull();
+  const spyOnNetwork = () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal('fetch', fetchSpy);
 
-      return Promise.resolve({});
-    });
+    return {
+      post: vi.spyOn(axios, 'post'),
+      request: vi.spyOn(axios, 'request'),
+      fetch: fetchSpy,
+      xhr: vi.spyOn(XMLHttpRequest.prototype, 'open'),
+    };
+  };
+
+  const expectNoNetwork = (spies) => {
+    expect(spies.post).not.toHaveBeenCalled();
+    expect(spies.request).not.toHaveBeenCalled();
+    expect(spies.fetch).not.toHaveBeenCalled();
+    expect(spies.xhr).not.toHaveBeenCalled();
+  };
+
+  it('removes the legacy token and profile without any network request', () => {
+    const spies = spyOnNetwork();
     localStorage.setItem('token', 'legacy-token');
     localStorage.setItem('user', JSON.stringify({ email: 'legacy@example.test' }));
 
     cleanupLegacyAuthStorage();
 
     expect(localStorage).toHaveLength(0);
-    expect(post).toHaveBeenCalledOnce();
-    const [url, body, config] = post.mock.calls[0];
-    expect(url).toMatch(/\/auth\/logout$/);
-    expect(body).toBeNull();
-    expect(config.headers.Authorization).toBe('Bearer legacy-token');
-    expect(config.headers).not.toHaveProperty('X-Galotxas-Auth-Mode');
-    expect(config.withCredentials).toBeUndefined();
+    expectNoNetwork(spies);
   });
 
-  it('does not restore the token or throw when the legacy logout fails', async () => {
-    const post = vi.spyOn(axios, 'post').mockRejectedValue(new Error('offline'));
+  it('never reads the legacy token value', () => {
+    const getItem = vi.spyOn(Storage.prototype, 'getItem');
     localStorage.setItem('token', 'legacy-token');
+
+    cleanupLegacyAuthStorage();
+
+    expect(getItem).not.toHaveBeenCalled();
+    expect(localStorage.getItem('token')).toBeNull();
+  });
+
+  it('removes a legacy profile that has no token', () => {
+    const spies = spyOnNetwork();
+    localStorage.setItem('user', JSON.stringify({ email: 'legacy@example.test' }));
+
+    cleanupLegacyAuthStorage();
+
+    expect(localStorage).toHaveLength(0);
+    expectNoNetwork(spies);
+  });
+
+  it('keeps unrelated storage keys', () => {
+    localStorage.setItem('token', 'legacy-token');
+    localStorage.setItem('preferencia', 'x');
+
+    cleanupLegacyAuthStorage();
+
+    expect(localStorage.getItem('preferencia')).toBe('x');
+    expect(localStorage.getItem('token')).toBeNull();
+  });
+
+  it('does not throw when localStorage is unavailable', () => {
+    const spies = spyOnNetwork();
+    vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+      throw new DOMException('blocked', 'SecurityError');
+    });
 
     expect(() => cleanupLegacyAuthStorage()).not.toThrow();
-    await Promise.resolve();
-
-    expect(post).toHaveBeenCalledOnce();
-    expect(localStorage).toHaveLength(0);
+    expectNoNetwork(spies);
   });
 
-  it('only removes a legacy profile when there is no token and sends nothing', () => {
-    const post = vi.spyOn(axios, 'post');
-    localStorage.setItem('user', JSON.stringify({ email: 'legacy@example.test' }));
+  it('does not throw when the localStorage global itself is inaccessible', () => {
+    vi.stubGlobal('localStorage', undefined);
 
-    cleanupLegacyAuthStorage();
-
-    expect(localStorage).toHaveLength(0);
-    expect(post).not.toHaveBeenCalled();
+    expect(() => cleanupLegacyAuthStorage()).not.toThrow();
   });
 });
 

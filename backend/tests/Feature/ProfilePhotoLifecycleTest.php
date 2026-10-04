@@ -11,11 +11,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
+use Tests\Concerns\EnablesLegacyBearerCompatibility;
 use Tests\Concerns\InteractsWithResponsiveMedia;
 use Tests\TestCase;
 
 class ProfilePhotoLifecycleTest extends TestCase
 {
+    use EnablesLegacyBearerCompatibility;
     use InteractsWithResponsiveMedia;
     use RefreshDatabase;
 

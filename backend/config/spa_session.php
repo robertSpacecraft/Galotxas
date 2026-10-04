@@ -4,11 +4,13 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Sesión de primera parte para la SPA (transición 5.7-J)
+    | Sesión de primera parte para la SPA (5.7-J)
     |--------------------------------------------------------------------------
     |
-    | Capacidad apagada por defecto. Con `false` la API se comporta como el
-    | contrato Bearer vigente. El origen permitido es siempre FRONTEND_URL.
+    | Autenticación normal del navegador. Si falta la variable la capacidad
+    | queda apagada (fail-closed): los entornos la activan de forma explícita
+    | con SPA_SESSION_AUTH_ENABLED=true. El origen permitido es siempre
+    | FRONTEND_URL.
     |
     */
 
