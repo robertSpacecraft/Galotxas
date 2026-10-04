@@ -648,14 +648,26 @@ confirmación y decisiones los envían en el cuerpo de POST.
 Desde 5.7-J J3 React autentica con la cookie de sesión SPA HttpOnly
 (`credentials: include`, `X-Galotxas-Auth-Mode: session`), mantiene el token
 CSRF sólo en memoria, restaura el perfil en memoria mediante `/me` (verdad del
-servidor) y ya no guarda ni envía el Bearer; sólo elimina una vez un
-`localStorage.token`/`localStorage.user` heredado y revoca ese token de forma
-best-effort. El estado de restauración (`restoring`, `anonymous`,
+servidor) y no guarda ni envía Bearer. La limpieza de `localStorage` es sólo de
+borrado: elimina `localStorage.token` y `localStorage.user` heredados sin leerlos
+ni transmitirlos (no llama a `/auth/logout`). El estado de restauración (`restoring`, `anonymous`,
 `authenticated`, `failed`) permite pintar al instante el contenido público;
 sólo `ProtectedRoute`, la cuenta del Navbar y Login esperan. Un `403` ordinario
 conserva Cuenta; `401` y el `403` de usuario inactivo limpian la sesión local y
-las demás pestañas (`BroadcastChannel` `galotxas-auth`). J3 está en producción
-(ADR-060); Sanctum continúa sin expiración global para los PAT legacy hasta J4.
+las demás pestañas (`BroadcastChannel` `galotxas-auth`).
+
+Estado final de autenticación (5.7-J J4, ADR-061): la sesión por cookie SPA es la
+autenticación normal del navegador y el Bearer legacy está retirado por defecto.
+Ni el login ni el registro de la SPA emiten PAT. Los endpoints legacy
+(`/auth/login`, `/auth/register`, `/auth/logout`), los gates
+(`RequireLegacyBearerIssuance`, `RejectLegacyBearer`) y la tabla
+`personal_access_tokens` (`HasApiTokens`) permanecen sólo como infraestructura de
+compatibilidad explícita / break-glass. Para abrir un gate Bearer se exige el
+booleano exacto `true` (cualquier otro valor lo mantiene cerrado). Staging y
+producción: `SPA_SESSION_AUTH_ENABLED=true`, `LEGACY_BEARER_ISSUANCE_ENABLED=false`,
+`LEGACY_BEARER_ACCEPTANCE_ENABLED=false`, con 0 PAT de usuario tras la purga. J4
+eligió retirar y purgar en lugar de introducir una expiración global de PAT, y hoy
+no existe ningún cliente externo o móvil Bearer soportado.
 Google Fonts, Bunny Fonts y jsDelivr se
 retiran en favor de fuentes de sistema y recursos locales del panel. La
 selección real de hosting, base, correo, backups y región pertenece a 7F.
@@ -1025,7 +1037,7 @@ Laravel lee el objeto privado mediante stream y responde directamente `200`
 con el binario y cabeceras privadas; no emite `Location` ni URL prefirmada. Esta
 excepción evita la cadena cross-origin API → `302` → bucket en la descarga XHR
 autenticada. Los logos públicos de Sponsor mantienen el redirect S3 temporal.
-React descarga el binario con la cookie de sesión (Bearer antes de J3), crea un object URL sólo en memoria y lo
+React descarga el binario con la cookie de sesión (históricamente Bearer antes de J3), crea un object URL sólo en memoria y lo
 revoca al sustituir, borrar o desmontar. El fallback son las iniciales de la
 cuenta.
 

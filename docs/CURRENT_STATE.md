@@ -85,16 +85,17 @@ se reintrodujo por el workflow normal. Contrato, evidencia y procedimiento
 reutilizable: `01-domain.md`, `06-roadmap.md`, `05-testing.md` y
 `27-production-readiness-and-deployment-runbook.md`.
 
-**5.7-J — Hardening de sesión de autenticación es el bloque canónico ACTIVE**.
-J1 (fundación de revocación): CLOSED / PASS. J2 (backend de sesión SPA de doble modo): CLOSED / PASS
-en staging; la capacidad está apagada por defecto (`SPA_SESSION_AUTH_ENABLED=false`).
-J3 (migración de React a sesión por cookie HttpOnly): CLOSED / PASS. Funcional/local, staging y
-producción (despliegue y aceptación manual real) en PASS; producción ejecuta `f7408d5` con
-`SPA_SESSION_AUTH_ENABLED=true` y el frontend usa la cookie de sesión. J4 (corte y limpieza de PAT
-legacy) es la siguiente subfase pendiente; no está implementado. 5.7-J permanece ACTIVE. Contrato y evidencia: `03-api-contract.md`, `07-decisions.md`
-(ADR-059 y ADR-060), `05-testing.md` y `legal/cookies.md` (LEG-003 1.1.0).
-Se conserva el orden 5.7-J → 5.7-G → 5.7-H → 5.7-D → 5.7-Q1. Sólo podrá reordenarse si un bloque
-cerrado descubre una dependencia. J y H conservan gates explícitos; la
+**5.7-J — Hardening de sesión de autenticación: CLOSED / PASS**.
+J1 (revocación), J2 (backend de sesión SPA), J3 (React a cookie HttpOnly) y J4 (retirada
+controlada del Bearer legacy) están CLOSED / PASS. Staging y producción usan sesión SPA
+(`SPA_SESSION_AUTH_ENABLED=true`) y la emisión y aceptación Bearer están en `false/false`
+(fail-closed; sólo el booleano exacto `true` abre un gate). Tras la purga, los PAT de usuario
+son 0 en ambos entornos remotos. `bfeac1f` es el hash funcional final. J2 se desplegó
+históricamente apagada; ese no es el estado actual. Contrato y evidencia: `03-api-contract.md`,
+`07-decisions.md` (ADR-059, ADR-060 y ADR-061), `05-testing.md`, `27-production-readiness-and-deployment-runbook.md`
+y `legal/cookies.md` (LEG-003 1.1.0). **El siguiente bloque canónico es 5.7-G.**
+Orden restante canónico: 5.7-G → 5.7-H → 5.7-D → 5.7-Q1. Sólo podrá reordenarse si un bloque
+cerrado descubre una dependencia. H conserva gates explícitos; la
 dependencia backend de D quedó satisfecha por C, pero D mantiene su posición
 canónica posterior. Las mejoras de producto no decididas y el cleanup P3 no
 bloquean el cierre del tranche. `06-roadmap.md` y `05-testing.md` conservan el

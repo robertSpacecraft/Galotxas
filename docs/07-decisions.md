@@ -2826,7 +2826,7 @@ Consecuencias:
 
 # ADR-059 — Sesión SPA de doble modo (5.7-J J2)
 
-Estado: Aceptada (validada en staging; capacidad apagada por defecto)
+Estado: Aceptada (validada en staging; capacidad apagada por defecto; supuestos operativos de coexistencia Bearer y rollback sustituidos por ADR-061, conservada como registro histórico)
 
 Fecha aproximada: 2026-10
 
@@ -2851,7 +2851,7 @@ Consecuencias:
 
 # ADR-060 — Migración de React a sesión por cookie HttpOnly (5.7-J J3)
 
-Estado: Aceptada (J3 CLOSED / PASS: local, staging y producción con aceptación manual real; commit funcional `526cf7f`, producción en `f7408d5`)
+Estado: Aceptada (J3 CLOSED / PASS: local, staging y producción con aceptación manual real; commit funcional `526cf7f`, producción en `f7408d5`; la limpieza con logout remoto, la coexistencia Bearer y el rollback a Bearer quedan sustituidos por ADR-061, conservada como registro histórico)
 
 Fecha aproximada: 2026-10
 
@@ -2879,3 +2879,31 @@ Consecuencias:
 - `legal/cookies.md` (LEG-003) se actualiza a 1.1.0 y se regenera la proyección legal.
 - Pendiente fuera de J3: J4 para corte y limpieza de PAT legacy; expiración de tokens de clientes externos; heurística same-site simple y ausencia de prefijo `__Host-` (heredadas de ADR-059).
 - No requiere migración de esquema ni operación sobre datos.
+
+# ADR-061 — Retirada controlada del Bearer legacy y estado final de autenticación
+
+Estado: Aceptada (5.7-J J4 CLOSED / PASS en staging y producción; commit funcional final `bfeac1f`)
+
+Fecha aproximada: 2026-10
+
+Contexto:
+- ADR-059 introdujo la sesión SPA de doble modo y ADR-060 migró React a ella.
+- Tras J3 seguían existiendo la emisión y la aceptación de Bearer y filas históricas de PAT en `personal_access_tokens`.
+
+Decisión:
+- La sesión SPA por cookie es el único mecanismo de autenticación soportado para React y para la API de primera parte consumida por la SPA. El panel administrativo Blade conserva su sesión Laravel propia.
+- Estado final y por defecto de los gates Bearer: `LEGACY_BEARER_ISSUANCE_ENABLED=false` y `LEGACY_BEARER_ACCEPTANCE_ENABLED=false`, con semántica fail-closed estricta: sólo el booleano exacto `true` abre un gate. `true/true` permanece como compatibilidad break-glass explícita, `false/true` como estado de transición controlada y `true/false` es inválido y lo rechaza `deploy:check`.
+- Los endpoints legacy de emisión (`POST /auth/login` y `/auth/register`) permanecen en el código pero responden `403` mientras la emisión esté apagada.
+- Un intento `Authorization: Bearer` explícito se rechaza con `401` antes de Sanctum mientras la aceptación esté apagada. Si hay a la vez sesión SPA y Bearer explícito, se rechaza como Bearer: no hay fallback a la sesión.
+- Comandos operativos: `auth:legacy-pat-report` (sólo lectura, agregados, `--since` ISO 8601) y `auth:purge-legacy-pats` (dry-run por defecto; la eliminación exige `--confirm=PURGE-LEGACY-PATS` exacto y sensible a mayúsculas, ambos gates como booleanos estrictos `false`, sólo `tokenable_type` `App\Models\User`, bloques acotados, conserva otras filas, usuarios y sesiones y es repetible tras un fallo parcial).
+- La limpieza final de `localStorage` sólo elimina `token` y `user`; no los lee, no los reutiliza, no los transmite y no llama a `/auth/logout`.
+- `HasApiTokens`, `personal_access_tokens` y las rutas legacy se mantienen intencionadamente; no se elimina esquema.
+- No se introduce expiración global de PAT: no existe ningún consumidor PAT soportado que mantener vivo, y actualmente no hay cliente externo o móvil Bearer soportado.
+- Staging y producción se purgaron hasta 0 PAT de usuario.
+
+Consecuencias:
+- Se cierra la exposición a XSS causada específicamente por el almacenamiento Bearer duradero en el navegador. No se afirma que HttpOnly elimine todo el riesgo XSS/CSRF ni de seguridad.
+- El rollback operativo a un frontend Bearer anterior a J3 deja de ser el camino normal. Reabrir el Bearer es una acción break-glass explícita que exige ambos gates en `true` y, si se usa la emisión legacy, crearía PAT nuevos; los PAT purgados no regresan.
+- Sustituye los supuestos operativos vigentes de coexistencia Bearer, logout remoto legacy y rollback de ADR-059 y ADR-060, que se conservan como registro histórico.
+- La revocación de J1 sigue aplicándose a las sesiones y a cualquier PAT que existiera si se reabre la compatibilidad.
+- No requiere migración de esquema.

@@ -3165,3 +3165,41 @@ React usa la cookie de sesión SPA HttpOnly, `X-Galotxas-Auth-Mode: session`, CS
 **Aceptación en producción — rollout y aceptación manual PASS, sin incidencias. Commit final `f7408d56c5f03b497dfe8179a06da846f0ad6655` (`docs(auth): record J3 staging acceptance`), que contiene el commit funcional `526cf7f369eabbc11e0c1b4cbbbda6ca8fec98c4`. Secuencia: (1) el backend J2 (`84f8b5099d3603eb69096c4293e463b4f71e72ef`) se promovió antes de forma independiente; (2) variables `SPA_SESSION_COOKIE=galotxas-spa-session` y `SPA_SESSION_AUTH_ENABLED=false`; (3) frontend Bearer anterior verificado; (4) `SPA_SESSION_AUTH_ENABLED=true`; (5) contrato SPA verificado: `GET /api/v1/auth/csrf` 200, `Access-Control-Allow-Origin: https://galotxesmonover.es` exacto, `Access-Control-Allow-Credentials: true`, cookie `galotxas-spa-session` `Secure`, `HttpOnly`, `SameSite=Lax`, `Path=/`, sin `Domain` (host-only), `Max-Age=7200` y `csrf_token` devuelto; (6) frontend Bearer verificado de nuevo con el flag activo; (7) promoción de J3; (8) Railway producción SUCCESS y (9) Vercel producción READY sobre `f7408d56c5f03b497dfe8179a06da846f0ad6655`; (10) smoke manual real: navegación pública, login por sesión SPA, estado autenticado tras Ctrl+F5, zona protegida, mutación reversible autenticada, `localStorage.token` y `localStorage.user` ausentes, logout, `/player` rechaza el acceso anónimo y redirige a login, y nuevo login correcto. `SCHOOL_ENROLLMENT_ENABLED` sigue en `false` en producción, por lo que no se realizó ninguna mutación de inscripción de Escuela allí (intencionado; el comportamiento autenticado y anónimo ya se aceptó en staging).**
 
 **Estado:** J3 CLOSED / PASS (local, staging y producción). 5.7-J permanece ACTIVE; J4 es la siguiente subfase pendiente. Orden posterior conserva J → G → H → D → Q1.
+
+## 5.7-J J4 — Retirada y limpieza de PAT Bearer legacy
+
+**Secuencia de implementación y commits:**
+- J4.1 `ee6331fe81b0771e69fc91b92f6c6c2be2fbe1c0` — `feat(auth): add legacy PAT usage report` (`auth:legacy-pat-report`, sólo lectura).
+- J4.2/J4.3 `4f81553b1e25d42d703d179709b8886dccad43a5` — `feat(auth): gate legacy Bearer credentials` (gate de emisión y de aceptación, invariante de `deploy:check`).
+- J4.4 `59a4cac078f04fa926ca61a37bba1c17840980e2` — `test(auth): remove first-party Bearer dependencies` (E2E de Copa a sesión SPA, eliminación de `test_api.js`, mantenimiento de `cup.spec.js`).
+- J4.6 `5a72a602210fcae1caf959515383a1407dc1dba8` — `feat(auth): add safe legacy PAT purge` (`auth:purge-legacy-pats`, incluido el filtro defensivo de `tokenable_type` en el DELETE).
+- J4.7 `bfeac1f0959cf395a17ae5b9f95e89b24cfa0574` — `feat(auth): finalize legacy Bearer retirement` (defaults `false/false`, ejemplos de entorno, limpieza de `localStorage` sólo de borrado).
+- `main` y `develop` están en `bfeac1f` tras la promoción a producción. No hubo migración de esquema.
+
+**Evidencia automatizada:**
+- J4.1: comando de informe, 14 tests / 95 aserciones PASS.
+- Gates Bearer: conjunto backend dirigido en el punto de implementación, 168 tests / 1106 aserciones PASS.
+- Regresión backend previa al corte: suite completa 2164 passed / 20434 aserciones.
+- J4.6, validación focal final tras el filtro defensivo del DELETE: 86 passed / 382 aserciones; `php -l`, Pint `--test` y `git diff --check` PASS.
+- J4.7: la primera ejecución backend tras cambiar los defaults expuso 38 tests que dependían del default implícito anterior y ejercitan Bearer a propósito; se corrigieron habilitando explícitamente la compatibilidad en esos tests. No es una regresión de producto. Suite backend completa final: 2187 passed / 20529 aserciones / 0 failed. Subconjunto afectado tras Pint: 142 passed / 789 aserciones.
+- Frontend: `authSession` 22 passed; `authSession` + `AuthContext` + `client` 72 passed; ESLint `e2e` + `src` PASS; `php -l` y Pint `--test` sobre los ficheros backend afectados PASS; `git diff --check` PASS; E2E dirigido `mvp-smoke` de limpieza de almacenamiento heredado PASS.
+- **Limitación — Vitest completo:** 815 passed, 5 failed. Los 5 fallos son los mismos fallos previos conocidos del compilador de Knowledge por el `knowledge/CLAUDE.md` versionado. No se afirma Vitest completo en verde.
+- **Limitación — E2E completo (observación de J4.4):** 57 passed, 5 failed, 19 not run. Los fallos eran problemas E2E obsoletos y previos fuera del alcance de la migración de autenticación. No se afirma E2E completo en verde; los flujos dirigidos `cup.spec` y `auth-session` pasaron tras su mantenimiento.
+
+**Evidencia operativa — staging:**
+- Línea base inicial de J4.1: 11 PAT de usuario, 0 creados y 0 usados desde el corte, todos históricos/legacy.
+- Se creó y usó deliberadamente un PAT legacy de prueba del rollout: 12 PAT, 1 creado y 1 usado desde el corte.
+- Transición controlada ejercitada: `true/true` → `false/true` → `false/false`. En `false/true`: login legacy 403, registro legacy 403 y el PAT existente seguía aceptado, como se esperaba. En `false/false`: `deploy:check` PASS, el mismo PAT rechazado con 401, emisión rechazada y la SPA operativa.
+- Purga J4.6: dry-run con 12 PAT de usuario y 0 de otro `tokenable_type`; purga confirmada con 12 eliminados en un lote; informe posterior 0 PAT; nuevo dry-run 0 candidatos; smoke SPA final bajo `false/false` PASS.
+- J4.7: Railway SUCCESS y Vercel READY sobre `bfeac1f`; smoke SPA PASS; comprobación manual de compatibilidad: con `localStorage.token`/`user` obsoletos insertados y recarga, ambos se eliminaron y la aplicación siguió operativa.
+
+**Evidencia operativa — producción:**
+- Línea base inicial: 63 PAT de usuario, 0 creados desde el corte de J3 (2026-10-03T14:54:46Z), 5 usados desde ese corte y 5 con `last_used_at` ≤ 24 h; 62 de usuarios activos y 1 sin usuario; los 63 con nombre `api-token`. El código J4 previo al endurecimiento final se promovió con la compatibilidad inicialmente abierta.
+- Observación temporal del 2026-10-04 (usados desde): 00:00Z 2; 06:00Z 2; 12:00Z 2; 14:00Z 1; 15:00Z 0. No se creó ningún PAT en esas ventanas.
+- `false/true`: `deploy:check --allow-live-features` PASS; login legacy 403; registro legacy 403; flujo de login SPA PASS; informe desde 2026-10-04T15:14:16Z con 0 creados y 0 usados.
+- `false/false` (estado final): `deploy:check --allow-live-features` PASS; `/me` con Bearer 401; login/registro legacy 403/403; smoke SPA PASS; dry-run 63 PAT de usuario y 0 de otro `tokenable_type`; purga confirmada con 63 PAT de usuario eliminados en un lote, 0 restantes y 0 de otro tipo; informe posterior 0 PAT, 0 creados, 0 usados; nuevo dry-run 0 candidatos. No se afirma que una copia de seguridad se reverificara específicamente justo antes de esta purga: esa confirmación no forma parte de la evidencia registrada de J4.
+- J4.7 en producción: `main` y `develop` en `bfeac1f0959cf395a17ae5b9f95e89b24cfa0574`; Railway producción SUCCESS y Vercel producción READY sobre `bfeac1f`; `deploy:check --allow-live-features` PASS; informe de PAT legacy 0; dry-run de purga 0; smoke de navegador final PASS (login → Mi Panel → Ctrl+F5 → logout → `/player` redirige a login → nuevo login); `localStorage` sin `token` ni `user`. No se requieren más cambios de flags de autenticación.
+
+**Sin migración de esquema** en J4. `HasApiTokens`, `personal_access_tokens` y las rutas legacy permanecen intencionadamente.
+
+**Estado final:** J4 CLOSED / PASS. 5.7-J CLOSED / PASS. NEXT 5.7-G. Orden restante G → H → D → Q1.

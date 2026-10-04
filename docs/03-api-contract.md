@@ -72,8 +72,12 @@ El inventario siguiente corresponde a `backend/routes/api.php` y a la salida de 
 
 | Método | Ruta | Salida principal |
 |---|---|---|
-| `POST` | `/auth/register` | exige declaración general versionada; payload controlado con token Bearer, usuario y perfil `null` |
-| `POST` | `/auth/login` | payload controlado con token Bearer, usuario y `PlayerProfileResource` opcional |
+| `GET` | `/auth/csrf` | `data.csrf_token`; inicia la sesión SPA anónima (modo sesión, ver "Sesión SPA") |
+| `POST` | `/auth/session/login` | login de la SPA: `user`, `player` y `csrf_token`; sin PAT; cookie de sesión SPA |
+| `POST` | `/auth/session/register` | registro de la SPA; exige declaración general versionada; `201`; autentica; sin PAT |
+| `POST` | `/auth/session/logout` | cierra la sesión SPA actual y devuelve un `csrf_token` nuevo |
+| `POST` | `/auth/register` | endpoint **legacy** de compatibilidad Bearer, bajo `RequireLegacyBearerIssuance`: con la emisión apagada (estado normal) responde `403` y no crea cuenta; sólo con la emisión explícitamente `true` exige declaración general versionada y devuelve token Bearer, usuario y perfil `null` |
+| `POST` | `/auth/login` | endpoint **legacy** de compatibilidad Bearer, bajo `RequireLegacyBearerIssuance`: `403` con la emisión apagada (estado normal); con la emisión `true` devuelve token Bearer, usuario y `PlayerProfileResource` opcional |
 | `POST` | `/auth/forgot-password` | mensaje genérico sin enumerar emails |
 | `POST` | `/auth/reset-password` | mensaje controlado o error `422` |
 | `GET` | `/seasons` | colección `SeasonResource` |
@@ -103,7 +107,7 @@ El inventario siguiente corresponde a `backend/routes/api.php` y a la salida de 
 | `GET` | `/seasons/{season}/ranking` | colección `ChampionshipRankingResource` |
 | `GET` | `/rankings/all-time` | colección `AllTimeRankingResource` |
 
-Los cuatro endpoints de autenticación públicos están limitados a cinco intentos por minuto según email/IP o IP, conforme al limiter concreto. Las rutas públicas de lectura no usan ese limiter sensible.
+Limiters de autenticación: login legacy y de sesión SPA, `auth.login`, 5/min (email|IP); registro legacy y de sesión SPA, `auth.register`, 5/min (IP); olvidar/restablecer contraseña, `auth.password`, 5/min (email|IP); `GET /auth/csrf` y `POST /auth/session/logout`, `auth.session-bootstrap`, 30/min (IP). Las rutas públicas de lectura no usan estos limiters sensibles.
 
 `POST /auth/forgot-password` conserva exactamente el mismo `200` genérico para
 cuentas existentes, inexistentes y fallos del transporte de correo. Un fallo de
@@ -161,9 +165,9 @@ frontend no infiere rondas legadas por `name` u `order`.
 
 ### Rutas autenticadas
 
-`POST /auth/logout` exige `auth:sanctum`, pero deliberadamente queda fuera de `EnsureUserIsActive` para que un usuario desactivado pueda revocar su token actual. Invocado desde una sesión SPA (no un personal access token) responde `409` y remite a `POST /auth/session/logout`.
+`POST /auth/logout` es el logout **legacy** de Bearer. Exige `auth:sanctum`, pero deliberadamente queda fuera de `EnsureUserIsActive` para que un usuario desactivado pueda revocar su token actual. Con la aceptación Bearer apagada (estado final), un intento Bearer explícito se rechaza con `401` antes de Sanctum (`RejectLegacyBearer`). Invocado desde una sesión SPA (no un personal access token) responde `409` y remite a `POST /auth/session/logout`.
 
-Las rutas restantes de esta tabla exigen conjuntamente token Sanctum y usuario activo:
+Las rutas restantes de esta tabla exigen conjuntamente una identidad autenticada por `auth:sanctum` y usuario activo. `auth:sanctum` resuelve normalmente la sesión SPA (modo sesión, ver "Sesión SPA"); un token Bearer sólo es posible si la compatibilidad se reabre explícitamente (aceptación `true`):
 
 | Método | Ruta | Salida principal |
 |---|---|---|
@@ -193,7 +197,7 @@ Las rutas `/me/*` y los workflows en los que el usuario participa son contextos 
 
 ### API administrativa
 
-Todas las rutas `/api/v1/admin/*` exigen Sanctum, usuario activo y `IsAdmin`.
+Todas las rutas `/api/v1/admin/*` exigen `auth:sanctum` (sesión SPA en el uso normal), usuario activo y `IsAdmin`.
 
 | Métodos | Ruta | Request de escritura | Salida y código |
 |---|---|---|---|
@@ -406,7 +410,7 @@ Los datos sensibles nunca deben exponerse mediante endpoints públicos.
 
 ## Autenticación desde React
 
-Desde 5.7-J J3 el frontend React consume la API autenticada mediante la sesión de primera parte descrita en "Sesión SPA de transición" y ya no usa tokens Bearer en el uso normal del navegador. Los endpoints Bearer siguen disponibles en el backend durante la transición (rollback y J4). J3 está aceptado en staging y en producción.
+Desde 5.7-J J3 el frontend React consume la API autenticada mediante la sesión de primera parte descrita en "Sesión SPA" y no usa tokens Bearer. Desde 5.7-J J4 el Bearer legacy está retirado por defecto (emisión y aceptación apagadas, ver "Bearer legacy retirado"); los endpoints legacy siguen en el código sólo como infraestructura de compatibilidad explícita. No existe un cliente externo o móvil Bearer soportado.
 
 Estrategia actual del cliente React:
 
@@ -422,18 +426,18 @@ Estrategia actual del cliente React:
 - el estado de restauración es `restoring`, `anonymous`, `authenticated` o `failed`; un fallo de red o 5xx de `/me` es `failed` (con reintento), nunca anónimo confirmado;
 - las pestañas se sincronizan por `BroadcastChannel` `galotxas-auth` (sólo tipo de evento e identificador de pestaña); sin soporte hay consistencia eventual en la siguiente petición;
 - un logout sin confirmación del servidor conserva la sesión local; `401`/`419` en logout dejan el estado anónimo;
-- migración: un `localStorage.token` heredado se retira una vez, se intenta revocar con un `POST /auth/logout` Bearer aislado y best-effort, y nunca se restaura ni se canjea por una sesión; cualquier `localStorage.user` legado se elimina sin migrar.
+- limpieza: `localStorage.token` y `localStorage.user` heredados se eliminan sin leerse, reutilizarse ni transmitirse; no se llama a `/auth/logout` ni se envía ninguna cabecera `Authorization`. El token antiguo nunca se restaura ni se canjea por una sesión.
 
 En este contrato, `401` identifica credencial ausente, inválida o revocada;
 `403`, una identidad válida sin autorización, salvo la excepción explícita de
 usuario inactivo; y `419`, expiración de sesión/CSRF cuando aplique. Las rutas
 API Bearer actuales no generan `419` de forma ordinaria.
 
-### Sesión SPA de transición (5.7-J J2)
+### Sesión SPA (5.7-J J2/J3)
 
-Capacidad de backend **apagada por defecto** (`SPA_SESSION_AUTH_ENABLED=false`); con el flag apagado la API se comporta exactamente como el contrato Bearer anterior y las rutas siguientes responden `403`. React la usa desde J3 (pendiente de despliegue).
+Introducida en J2 como capacidad de backend de doble modo y adoptada por React en J3. Estado final: staging y producción ejecutan `SPA_SESSION_AUTH_ENABLED=true`. Históricamente J2 se desplegó con el flag apagado; con el flag apagado las rutas de sesión responden `403`. El runtime sigue siendo fail-closed: si falta la variable, la capacidad queda apagada.
 
-Un request entra en modo sesión sólo si se cumple todo: flag activo; cabecera `X-Galotxas-Auth-Mode: session`; `Origin` exactamente igual a `FRONTEND_URL`; ninguna cabecera `Authorization`; y ruta de sesión o ruta `auth:*` con la cookie SPA presente. Nunca se deduce del `Origin`/`Referer` y los clientes Bearer, incluso desde el origen de la SPA, no reciben CSRF, cookie ni sesión. El tráfico público/anónimo permanece sin estado y no exige CSRF por venir de un origen propio.
+Contrato explícito de modo sesión: un request entra en modo sesión sólo si se cumple todo: flag activo; cabecera `X-Galotxas-Auth-Mode: session`; `Origin` exactamente igual a `FRONTEND_URL`; ninguna cabecera `Authorization`; y ruta de sesión o ruta `auth:*` con la cookie SPA presente. Nunca se deduce del `Origin`/`Referer` y los clientes Bearer, incluso desde el origen de la SPA, no reciben CSRF, cookie ni sesión. El tráfico público/anónimo permanece sin estado y no exige CSRF por venir de un origen propio.
 
 | Método | Ruta | Contrato |
 | --- | --- | --- |
@@ -444,13 +448,19 @@ Un request entra en modo sesión sólo si se cumple todo: flag activo; cabecera 
 
 Cookie SPA: `SPA_SESSION_COOKIE` (por defecto `galotxas-spa-session`), host-only en el host de la API, `HttpOnly`, `Secure` en staging/producción, `SameSite=Lax`, `path=/`, distinta de la de Blade. Las peticiones mutantes de sesión exigen `X-CSRF-TOKEN` (`419` si falta o no coincide); J3 debe usar el token devuelto por login/registro/logout y volver a pedir `/auth/csrf` ante un `419`. Las respuestas de modo sesión usan `Cache-Control: no-store, private`. CORS con credenciales sólo con el flag activo, siempre con origen exacto. Un usuario inactivo recibe el `403` habitual y J1 purga todos sus tokens y sesiones.
 
-Inscripción de Escuela (`POST /school/enrollments`): sigue siendo pública, anónima y sin estado, y compatible con Bearer. La ruta lleva el marcador `SpaSessionWhenClaimed`: sin cabecera de modo (o con `Authorization`) no cambia nada; con `X-Galotxas-Auth-Mode: session` nunca se guarda como anónima. Con el flag apagado responde `403` (mismo cuerpo que las rutas de sesión); con el flag activo exige modo sesión (origen exacto) y sesión autenticada o responde `401`; una sesión válida vincula la inscripción al usuario. Olvidar/restablecer contraseña siguen siendo anónimos y no crean sesión; un restablecimiento correcto aplica la revocación total de J1 y React limpia su estado local y el de las demás pestañas.
+Inscripción de Escuela (`POST /school/enrollments`): sigue siendo pública, anónima y sin estado; un Bearer explícito se rechaza con `401` mientras la aceptación esté apagada (`RejectLegacyBearer`). La ruta lleva el marcador `SpaSessionWhenClaimed`: sin `X-Galotxas-Auth-Mode` y sin `Authorization` la ruta sigue siendo pública, anónima y sin estado; con `Authorization: Bearer` explícito se aplica primero `RejectLegacyBearer`, que con la aceptación apagada (estado normal) responde `401`, y sólo si la aceptación legacy se reabre explícitamente puede continuar esa compatibilidad Bearer; con intención de sesión SPA explícita (`X-Galotxas-Auth-Mode: session`) `SpaSessionWhenClaimed` aplica el contrato de sesión y nunca se guarda como anónima. Con el flag SPA apagado responde `403` (mismo cuerpo que las rutas de sesión); con el flag activo exige modo sesión (origen exacto) y sesión autenticada o responde `401`; una sesión válida vincula la inscripción al usuario. Olvidar/restablecer contraseña siguen siendo anónimos y no crean sesión; un restablecimiento correcto aplica la revocación total de J1 y React limpia su estado local y el de las demás pestañas.
 
-Sanctum no define expiración global para los PAT. La revocación total en reset,
-cambio administrativo de contraseña y desactivación se implementó en J1 y la
-migración de React a cookie HttpOnly en J3 (CLOSED / PASS en staging y producción).
-La expiración de tokens de clientes externos y el corte y limpieza de los PAT
-legacy de la SPA (J4) siguen pendientes.
+### Bearer legacy retirado (5.7-J J4)
+
+Estado final y por defecto: `LEGACY_BEARER_ISSUANCE_ENABLED=false` y `LEGACY_BEARER_ACCEPTANCE_ENABLED=false`. Los gates son fail-closed: sólo el booleano exacto `true` abre cada uno.
+
+- `POST /auth/login` y `POST /auth/register` siguen siendo rutas, protegidas por `RequireLegacyBearerIssuance`, y responden `403` mientras la emisión esté apagada.
+- `RejectLegacyBearer` se ejecuta antes de Sanctum en el grupo `auth:sanctum`, `POST /auth/logout` y `POST /school/enrollments`: un intento `Authorization: Bearer` explícito responde `401` mientras la aceptación esté apagada.
+- Una petición con sesión SPA y `Authorization: Bearer` se rechaza como Bearer; no hay fallback silencioso a la sesión.
+- Sin intención de sesión, Escuela sigue siendo pública y anónima; con intención de sesión explícita se rige por el contrato de sesión SPA.
+- Estados válidos: `false/false` (normal), `false/true` (transición controlada de parada de emisión), `true/true` (break-glass explícito); `true/false` es inválido y lo rechaza `deploy:check`.
+- Sanctum no define expiración global para los PAT: J4 optó por retirar y purgar en lugar de introducir una política de expiración, porque no existe ningún cliente Bearer soportado. `HasApiTokens` y `personal_access_tokens` permanecen intencionadamente.
+- La revocación total de J1 (reset, cambio administrativo de contraseña, desactivación) sigue aplicándose a sesiones y a cualquier PAT que existiera si se reabriera la compatibilidad.
 
 ---
 

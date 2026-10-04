@@ -782,8 +782,8 @@ descubra una dependencia:
 | **5.7-C — Hardening de la API de reprogramaciones** | Form Requests dedicados, fecha estricta, Resources mínimos, throttling y tests de autorización, privacidad y validación. Conserva el workflow vigente. | **CLOSED / PASS**. Sin migración ni cambio frontend; staging aceptado sin walkthrough manual de API y producción con despliegue/readiness/salud PASS, sin smoke funcional. |
 | **5.7-E — Integridad de `CategoryEntry`** | Preflight y garantías para impedir identidad ambos/ninguno, asociaciones incoherentes y duplicados. Añadirá garantías DB cuando sean seguras. | **CLOSED / PASS**. Reglas de identidad/duplicado decididas y aplicadas; preflights y migración aplicados en staging y producción con éxito. |
 | **5.7-F — Ocupación global y planificación de Liga/Copa** | F1: ocupación física global y concurrencia; F2: `Venue.court_number`; F3: `Category.age_group`; F4: Liga atómica por campeonato; F5: Copa programada por categoría. | **CLOSED / PASS**. Regresión local, staging y aceptación productiva PASS; rollout selectivo completado bajo congelación continua de writers. |
-| **5.7-J — Hardening de sesión de autenticación** | Bloque de arquitectura de seguridad separado para el riesgo del Bearer durable en `localStorage`. | **ACTIVE (J1 CLOSED / PASS; J2 CLOSED / PASS en staging, OFF por defecto; J3 CLOSED / PASS en local, staging y producción; J4 pendiente como siguiente subfase)**. Gate de cookies, SameSite/CSRF, CORS, expiración/revocación, transición y rollback. Trabajo cross-layer de alto riesgo; no se mezcla con B/C. |
-| **5.7-G — Normalización `Round.phase/stage` de Liga** | Normalizar escrituras nuevas y datos legacy al contrato documentado `league`/`matchday`, preservando Copa. | Migración/backfill probable y preflight de datos. |
+| **5.7-J — Hardening de sesión de autenticación** | Bloque de arquitectura de seguridad separado para el riesgo del Bearer durable en `localStorage`. | **CLOSED / PASS**. J1 (revocación), J2 (sesión SPA de doble modo), J3 (React a cookie HttpOnly) y J4 (retirada controlada del Bearer legacy y purga de PAT) cerrados. Estado final: staging y producción con sesión SPA y Bearer `false/false`, 0 PAT de usuario tras la purga; sin migración de esquema (ADR-059, ADR-060, ADR-061). |
+| **5.7-G — Normalización `Round.phase/stage` de Liga** | Normalizar escrituras nuevas y datos legacy al contrato documentado `league`/`matchday`, preservando Copa. | **NEXT**. Migración/backfill probable y preflight de datos. |
 | **5.7-H — Unicidad DB del nombre de pista** | Preflight de duplicados, garantía DB y manejo seguro de carreras. | Gate de normalización/case-sensitivity antes de migrar. |
 | **5.7-D — Interfaz React de reprogramaciones** | Ver estado, proponer y confirmar una propuesta compatible usando exclusivamente el workflow backend actual. | Dependencia backend satisfecha por 5.7-C; conserva su posición canónica posterior, sin cancelación, rechazo, notificaciones, rediseño de estados ni migración. |
 | **5.7-Q1 — Reparación E2E del dropdown CMS admin** | Corregir la interceptación concreta de `Crear bloque` y validar el recorrido dirigido. | P2 QA/UI; no se convierte en rediseño de navegación ni Liquid Glass. |
@@ -842,8 +842,8 @@ nombrado, sin cambiar las 311 filas. Se levantó mantenimiento y la aceptación
 humana fue PASS; el resultado descartado se reintrodujo por el workflow normal.
 Detalle en testing y procedimiento seguro reutilizable en
 [el runbook](27-production-readiness-and-deployment-runbook.md#57-f--rollout-selectivo-de-ocupación-y-metadatos).
-**5.7-J es ahora ACTIVE** (J1 CLOSED / PASS; J2 CLOSED / PASS en staging; J3 CLOSED / PASS en producción; J4 pendiente como siguiente subfase), con su gate propia todavía sin resolver.
-Continúa J → G → H → D → Q1. F no absorbe unicidad del nombre
+**5.7-J CLOSED / PASS** (J1, J2, J3 y J4 CLOSED / PASS; staging y producción con sesión SPA y Bearer legacy `false/false`, 0 PAT de usuario). El siguiente bloque canónico es **5.7-G**.
+El orden restante es G → H → D → Q1. F no absorbe unicidad del nombre
 de Venue (H), normalización `Round.phase/stage` (G) ni UI React (D).
 
 #### Gates pendientes de producto, dominio y arquitectura
@@ -861,7 +861,6 @@ No se implementarán hasta recibir una decisión explícita:
 - retirada compatible de `SeasonResource.slug`;
 - reglas exactas de identidad/duplicado de `CategoryEntry` (decididas y aplicadas en 5.7-E, cerrado);
 - normalización y case-sensitivity del nombre de pista;
-- topología cookie/sesión de autenticación;
 - identidad privada de participantes y trato de la identidad de menores en
   contextos autenticados (`ParticipantMatchResource`).
 
@@ -1019,9 +1018,11 @@ avanzada de perfil permanece tras una gate de producto; no se repiten aquí:
   y `/me/calendar`; 5.7-C (CLOSED / PASS) cerró el hardening acotado de
   reprogramaciones, incluido su Resource y su limiter de escritura. La identidad
   privada de participantes y de menores conserva su gate de producto/privacidad;
-- 5.7-J conserva como trade-off real que un XSS puede exfiltrar el Bearer
-  durable almacenado en `localStorage`; la migración no responde a un exploit
-  activo acreditado y exige su gate propia de arquitectura/despliegue;
+- 5.7-J (CLOSED / PASS) retiró el Bearer durable en `localStorage`: React usa
+  una cookie de sesión HttpOnly y el Bearer legacy está cerrado por defecto
+  (ADR-061). Esto elimina la exposición a XSS causada específicamente por ese
+  almacenamiento, sin pretender eliminar todo riesgo XSS/CSRF. Quedan fuera de J
+  el prefijo `__Host-` de la cookie y la heurística same-site simple (ADR-059);
 - normalización genérica de envelopes y OpenAPI son P3 no bloqueante y deberán
   dividirse por contratos concretos si se priorizan;
 - `SeasonResource.slug`, la rectificación administrativa y el motivo de
