@@ -153,6 +153,10 @@ LOG_CHANNEL=stderr
 proxy gestionado de Railway; el smoke debe acreditar `X-Forwarded-Proto` y
 generación HTTPS. No se acepta `APP_DEBUG=true` en staging.
 
+`POST /admin/login` admite cinco intentos por minuto y combinación de correo
+normalizado e IP. El limitador usa la caché compartida de MariaDB
+(`CACHE_STORE=database`), que debe estar disponible en todas las réplicas.
+
 ## Frontend y Vercel
 
 El proyecto Vercel se crea con Root Directory `frontend`. El contrato tracked
