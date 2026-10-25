@@ -203,6 +203,8 @@ El servicio Railway usa Root Directory `backend`, config as code
 con Nginx y PHP-FPM; escucha el `PORT` inyectado, oculta la versión PHP y sirve
 Laravel. El arranque sólo genera `config:cache`, `route:cache` y `view:cache`.
 No ejecuta migraciones, seeders, workers ni scheduler.
+El código de `/var/www` pertenece a root y no es escribible por PHP-FPM;
+`storage` y `bootstrap/cache` pertenecen a `laravel` para los datos temporales.
 
 Las configuraciones PHP de producción y desarrollo/pruebas desactivan
 `session.upload_progress.enabled`. Galotxas no utiliza el seguimiento nativo
