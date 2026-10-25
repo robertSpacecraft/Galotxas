@@ -200,6 +200,10 @@ con Nginx y PHP-FPM; escucha el `PORT` inyectado, oculta la versión PHP y sirve
 Laravel. El arranque sólo genera `config:cache`, `route:cache` y `view:cache`.
 No ejecuta migraciones, seeders, workers ni scheduler.
 
+Las configuraciones PHP de producción y desarrollo/pruebas desactivan
+`session.upload_progress.enabled`. Galotxas no utiliza el seguimiento nativo
+de progreso en sesión; las subidas multipart conservan sus límites existentes.
+
 Nginx reserva 16 KiB para la cabecera FastCGI: cubre redirects Blade con
 validación y `old input` sin ampliar el tamaño admitido de los cuerpos. La
 misma cifra se prueba en el stack local/E2E para evitar discrepancias.
