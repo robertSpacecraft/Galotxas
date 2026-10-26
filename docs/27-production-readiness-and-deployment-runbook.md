@@ -153,6 +153,10 @@ LOG_CHANNEL=stderr
 proxy gestionado de Railway; el smoke debe acreditar `X-Forwarded-Proto` y
 generación HTTPS. No se acepta `APP_DEBUG=true` en staging.
 
+`POST /admin/login` admite cinco intentos por minuto y combinación de correo
+normalizado e IP. El limitador usa la caché compartida de MariaDB
+(`CACHE_STORE=database`), que debe estar disponible en todas las réplicas.
+
 ## Frontend y Vercel
 
 El proyecto Vercel se crea con Root Directory `frontend`. El contrato tracked
@@ -199,6 +203,12 @@ El servicio Railway usa Root Directory `backend`, config as code
 con Nginx y PHP-FPM; escucha el `PORT` inyectado, oculta la versión PHP y sirve
 Laravel. El arranque sólo genera `config:cache`, `route:cache` y `view:cache`.
 No ejecuta migraciones, seeders, workers ni scheduler.
+El código de `/var/www` pertenece a root y no es escribible por PHP-FPM;
+`storage` y `bootstrap/cache` pertenecen a `laravel` para los datos temporales.
+
+Las configuraciones PHP de producción y desarrollo/pruebas desactivan
+`session.upload_progress.enabled`. Galotxas no utiliza el seguimiento nativo
+de progreso en sesión; las subidas multipart conservan sus límites existentes.
 
 Nginx reserva 16 KiB para la cabecera FastCGI: cubre redirects Blade con
 validación y `old input` sin ampliar el tamaño admitido de los cuerpos. La

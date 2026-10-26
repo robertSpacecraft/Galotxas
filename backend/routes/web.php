@@ -40,7 +40,9 @@ Route::view('/', 'welcome');
 Route::prefix('admin')->group(function () {
     Route::middleware('guest')->group(function () {
         Route::get('/login', [AuthController::class, 'showLoginForm'])->name('admin.login');
-        Route::post('/login', [AuthController::class, 'login'])->name('admin.login.submit');
+        Route::post('/login', [AuthController::class, 'login'])
+            ->middleware('throttle:admin.login')
+            ->name('admin.login.submit');
     });
 
     Route::middleware(['auth', IsAdmin::class])->group(function () {
