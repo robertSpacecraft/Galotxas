@@ -44,6 +44,8 @@ class GenerateLeagueScheduleServiceTest extends TestCase
         $this->generate($champ);
         $this->assertSame(3, $even->rounds()->count());
         $this->assertSame(5, $odd->rounds()->count());
+        $this->assertCanonicalLeagueRounds($even, 3);
+        $this->assertCanonicalLeagueRounds($odd, 5);
         $this->assertSame(16, GameMatch::count());
         $pairs = [];
         foreach (GameMatch::with('round', 'venue')->get() as $match) {
@@ -58,11 +60,15 @@ class GenerateLeagueScheduleServiceTest extends TestCase
         $this->assertCount(16, array_unique($pairs));
         $oddAppearances = $this->leagueMatches($odd)->flatMap(fn ($m) => [$m->home_entry_id, $m->away_entry_id])->countBy();
         $this->assertSame([4, 4, 4, 4, 4], $oddAppearances->sort()->values()->all());
+        $oldRoundIds = Round::whereIn('category_id', [$even->id, $odd->id])->pluck('id');
         $before = GameMatch::orderBy('id')->get();
         $plan = $before->map(fn ($m) => [$m->home_entry_id, $m->away_entry_id, $m->venue_id, (string) $m->scheduled_date])->all();
         $this->generate($champ);
+        $this->assertSame(0, Round::whereKey($oldRoundIds)->count());
         $this->assertSame(0, GameMatch::whereKey($before->modelKeys())->count());
         $this->assertSame($plan, GameMatch::orderBy('id')->get()->map(fn ($m) => [$m->home_entry_id, $m->away_entry_id, $m->venue_id, (string) $m->scheduled_date])->all());
+        $this->assertCanonicalLeagueRounds($even, 3);
+        $this->assertCanonicalLeagueRounds($odd, 5);
     }
 
     public function test_non_friday_start_uses_next_friday_and_reserves_final_two_anchors(): void
@@ -81,9 +87,10 @@ class GenerateLeagueScheduleServiceTest extends TestCase
     {
         $this->courts();
         $champ = $this->championship();
-        $this->category($champ, 10);
+        $category = $this->category($champ, 10);
         $this->generate($champ);
         $this->assertSame(9, Round::count());
+        $this->assertCanonicalLeagueRounds($category, 9);
         $this->assertSame(45, GameMatch::count());
         $this->assertTrue(GameMatch::get()->every(fn ($m) => $m->scheduled_date->lt('2026-09-04')));
     }
@@ -241,6 +248,7 @@ class GenerateLeagueScheduleServiceTest extends TestCase
         $this->assertDatabaseMissing('rounds', ['id' => $oldRound->id]);
         $this->assertSame(0, GameMatch::whereKey($oldMatchIds)->count());
         $this->assertSame(6, GameMatch::count());
+        $this->assertCanonicalLeagueRounds($category, 3);
         $this->assertTrue(GameMatch::get()->every(fn ($m) => $m->scheduled_date->format('i:s') === '00:00'));
     }
 
@@ -312,6 +320,51 @@ class GenerateLeagueScheduleServiceTest extends TestCase
         return array_map(fn ($v) => [$v], ['cup', 'ambiguous_cup', 'official', 'match_result_reports', 'match_reschedule_requests']);
     }
 
+    #[DataProvider('cupStages')]
+    public function test_existing_cup_blocks_league_replacement_without_altering_rounds_or_matches(string $stage): void
+    {
+        $venues = $this->courts([2]);
+        $champ = $this->championship();
+        $category = $this->category($champ, 4);
+        $this->generate($champ);
+        $this->assertCanonicalLeagueRounds($category, 3);
+        $cupRound = Round::create([
+            'category_id' => $category->id,
+            'name' => 'Copa existente',
+            'order' => 100,
+            'type' => 'cup',
+            'phase' => 'cup',
+            'stage' => $stage,
+        ]);
+        $entries = $category->entries()->orderBy('id')->get();
+        GameMatch::factory()->create([
+            'round_id' => $cupRound->id, 'venue_id' => $venues[2]->id,
+            'home_entry_id' => $entries[0]->id, 'away_entry_id' => $entries[1]->id,
+            'scheduled_date' => match ($stage) {
+                'semifinal' => '2026-09-04 17:00:00',
+                'final' => '2026-09-11 19:00:00',
+                'third_place' => '2026-09-11 17:00:00',
+            },
+            'status' => 'scheduled',
+        ]);
+        $beforeRounds = DB::table('rounds')->orderBy('id')->get();
+        $beforeMatches = DB::table('game_matches')->orderBy('id')->get();
+
+        $this->fails($champ, 'existe Copa');
+
+        $this->assertEquals($beforeRounds, DB::table('rounds')->orderBy('id')->get());
+        $this->assertEquals($beforeMatches, DB::table('game_matches')->orderBy('id')->get());
+    }
+
+    public static function cupStages(): array
+    {
+        return [
+            'semifinal' => ['semifinal'],
+            'final' => ['final'],
+            'third place' => ['third_place'],
+        ];
+    }
+
     public function test_championship_admin_action_and_removed_category_endpoint(): void
     {
         $this->courts([2]);
@@ -372,6 +425,15 @@ class GenerateLeagueScheduleServiceTest extends TestCase
     private function leagueMatches(Category $category)
     {
         return GameMatch::with('venue', 'round')->whereHas('round', fn ($q) => $q->where('category_id', $category->id)->where('type', 'league'))->orderBy('id')->get();
+    }
+
+    private function assertCanonicalLeagueRounds(Category $category, int $expectedCount): void
+    {
+        $rounds = DB::table('rounds')->where('category_id', $category->id)->get();
+        $this->assertCount($expectedCount, $rounds);
+        foreach ($rounds as $round) {
+            $this->assertSame(['league', 'league', 'matchday'], [$round->type, $round->phase, $round->stage]);
+        }
     }
 
     private function fails(Championship $champ, string $message): void

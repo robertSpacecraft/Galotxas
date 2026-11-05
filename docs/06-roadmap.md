@@ -783,10 +783,34 @@ descubra una dependencia:
 | **5.7-E — Integridad de `CategoryEntry`** | Preflight y garantías para impedir identidad ambos/ninguno, asociaciones incoherentes y duplicados. Añadirá garantías DB cuando sean seguras. | **CLOSED / PASS**. Reglas de identidad/duplicado decididas y aplicadas; preflights y migración aplicados en staging y producción con éxito. |
 | **5.7-F — Ocupación global y planificación de Liga/Copa** | F1: ocupación física global y concurrencia; F2: `Venue.court_number`; F3: `Category.age_group`; F4: Liga atómica por campeonato; F5: Copa programada por categoría. | **CLOSED / PASS**. Regresión local, staging y aceptación productiva PASS; rollout selectivo completado bajo congelación continua de writers. |
 | **5.7-J — Hardening de sesión de autenticación** | Bloque de arquitectura de seguridad separado para el riesgo del Bearer durable en `localStorage`. | **CLOSED / PASS**. J1 (revocación), J2 (sesión SPA de doble modo), J3 (React a cookie HttpOnly) y J4 (retirada controlada del Bearer legacy y purga de PAT) cerrados. Estado final: staging y producción con sesión SPA y Bearer `false/false`, 0 PAT de usuario tras la purga; sin migración de esquema (ADR-059, ADR-060, ADR-061). |
-| **5.7-G — Normalización `Round.phase/stage` de Liga** | Normalizar escrituras nuevas y datos legacy al contrato documentado `league`/`matchday`, preservando Copa. | **NEXT**. Migración/backfill probable y preflight de datos. |
+| **5.7-G — Normalización `Round.phase/stage` de Liga** | Normalizar escrituras nuevas y datos legacy al contrato documentado `league`/`matchday`, preservando Copa. | **EN CURSO**. G1–G2 implementados localmente; auditoría y normalización de datos pendientes. |
 | **5.7-H — Unicidad DB del nombre de pista** | Preflight de duplicados, garantía DB y manejo seguro de carreras. | Gate de normalización/case-sensitivity antes de migrar. |
 | **5.7-D — Interfaz React de reprogramaciones** | Ver estado, proponer y confirmar una propuesta compatible usando exclusivamente el workflow backend actual. | Dependencia backend satisfecha por 5.7-C; conserva su posición canónica posterior, sin cancelación, rechazo, notificaciones, rediseño de estados ni migración. |
 | **5.7-Q1 — Reparación E2E del dropdown CMS admin** | Corregir la interceptación concreta de `Crear bloque` y validar el recorrido dirigido. | P2 QA/UI; no se convierte en rediseño de navegación ni Liquid Glass. |
+
+#### 5.7-G — G1–G2: contrato y writer de Liga
+
+`GenerateLeagueScheduleService` persiste explícitamente cada ronda nueva con
+`type=league`, `phase=league` y `stage=matchday`, tanto en generación inicial
+como en regeneración y para todas las categorías del campeonato. La regla está
+en el `Round::create` del servicio, sin hooks ni inferencia desde nombre,
+orden o categoría. `RoundFactory` y `E2ESmokeSeeder` ya generaban esa
+clasificación y no se modifican. Copa conserva `cup/cup` y los stages
+`semifinal`, `final` y `third_place`.
+
+El único legacy reconocido por el contrato temporal es `league/NULL/NULL`.
+Readiness conserva su lectura y rechaza otras combinaciones ambiguas; no se
+modifica. La tolerancia de `assertReplaceable` también se conserva: la auditoría
+detectó que comprueba phase y stage de forma independiente y permite además
+`league/NULL/matchday` y `league/league/NULL`. Esa permisividad preexistente
+queda pendiente de revisión al abordar la retirada de compatibilidad; no amplía
+el contrato legacy reconocido.
+
+G1–G2 no auditan ni normalizan datos remotos, no añaden migraciones,
+restricciones DB, Resources ni cambios frontend. La API ya documentaba la
+clasificación canónica y su consumidor React la admite; `knowledge/` no es
+fuente de esta clasificación deportiva. El resto de 5.7-G permanece pendiente.
+Pruebas y evidencia local: `05-testing.md`.
 
 #### 5.7-F — Contrato implementado y cierre productivo
 
