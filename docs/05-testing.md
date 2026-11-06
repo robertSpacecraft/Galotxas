@@ -3256,7 +3256,8 @@ no acredita la normalización de datos legacy ni cierra el resto de 5.7-G.
 **3 Copa canónicas** y **0 formas ambiguas/desconocidas**. Las nueve legacy
 están en una sola categoría (`category_id=2`), jornadas 1–9. Los conteos e IDs
 son evidencia del entorno auditado; no se hardcodean como condición de G4.
-No se ha repetido esa auditoría ni accedido a bases remotas en este bloque.
+Durante la implementación local de G4 no se repitió esa auditoría ni se
+accedió a bases remotas. La ejecución posterior en staging se documenta abajo.
 
 `RoundMetadataNormalizationMigrationTest` inserta las formas de ronda
 directamente en MariaDB y ejecuta manualmente `up()` de la nueva migración.
@@ -3280,8 +3281,9 @@ añade DDL, CHECK ni NOT NULL, ni modifica las migraciones históricas,
 readiness, regeneración, modelos, API o frontend. El conocimiento canónico
 de `knowledge/` no es fuente de esta clasificación deportiva.
 
-**G4 implementado localmente; pendiente de backup y ejecución controlada en
-staging. No aplicado en staging ni producción.** G5 continúa pendiente.
+**G4 staging: CLOSED / PASS.** Producción permanece pendiente de su propio
+preflight, backup, migración y validación. G5 y la retirada de tolerancia
+legacy siguen pendientes de completar los gates de todos los entornos.
 
 Validación local con el runner habitual y MariaDB efímera aislada:
 
@@ -3312,3 +3314,58 @@ runner está autorizada. La validación incremental de G4 se realiza con los
 datasets insertados y la llamada manual a `up()`; no se sustituye por recrear
 el esquema. No se invocan comandos destructivos manuales ni rollbacks de
 migraciones sobre bases persistentes o remotas.
+
+### G4 — Ejecución y validación en staging (CLOSED / PASS, 2026-11-06)
+
+Staging desplegó el commit
+`221688fa628983f52be727e2a7f392a8588063fe`
+(`fix(competition): normalize legacy league round metadata`). La migración
+`2026_11_05_000000_normalize_league_round_metadata` estaba en estado
+`Pending` antes de ejecutarla y quedó registrada como **`[15] Ran`**.
+
+Se activó maintenance mode antes de la mutación para congelar writers y se
+mantuvo hasta validar el postflight. La aplicación volvió a estar live después
+de esa validación. Estado final de Laravel: Environment `staging`, Database
+`mariadb`, Queue `sync` y Maintenance Mode **`OFF`**.
+
+**Preflight final y postflight:**
+
+| Clasificación | Antes | Después |
+| --- | ---: | ---: |
+| `total` | 12 | 12 |
+| `canonical_league` | 0 | 9 |
+| `legacy_league` | 9 | 0 |
+| `canonical_cup` | 3 | 3 |
+| `ambiguous_or_unknown` | 0 | 0 |
+
+Las nueve legacy exactas eran los IDs **10–18**, `category_id=2`, nombres
+`Jornada 1` a `Jornada 9`, con `type=league`, `phase=NULL` y `stage=NULL`.
+Tras la migración esos mismos IDs quedaron en **`league/league/matchday`**.
+Las tres rondas de Copa se preservaron sin cambios:
+`cup/cup/semifinal`, `cup/cup/final` y `cup/cup/third_place`. No quedó ninguna
+fila `league/NULL/NULL` ni apareció ninguna forma ambigua o desconocida.
+
+**Backup previo a la mutación:** se creó un dump lógico comprimido de MariaDB
+antes de ejecutar la migración y se cifró mediante GPG simétrico AES-256.
+
+- Dump original:
+  `galotxas-staging-pre-5.7-G4-20261106T051623Z.sql.gz`.
+  SHA-256 del dump comprimido:
+  `aeeaa91102bf547eeba6ea3b9d6be570b062406c294f4c2e1bd791589588affb`.
+- Copia cifrada externa:
+  `galotxas-staging-db-backup-2026-11-06T05-16-23Z-pre-5.7-G4.sql.gz.gpg`,
+  **46632 bytes**. SHA-256 del archivo cifrado:
+  `2fae26cbc10f76897e37e930acefb04f7b2c16d4c3b71a739458ede1460e5ce4`.
+  Se verificó contra la copia cifrada local: ambos SHA-256 coincidieron
+  exactamente. Existe una copia cifrada externa verificada por checksum.
+
+**Aplicación selectiva**, con mantenimiento activo y backup previo:
+
+```bash
+php artisan migrate --path=database/migrations/2026_11_05_000000_normalize_league_round_metadata.php --force
+```
+
+La evidencia cierra únicamente **5.7-G4 en staging: CLOSED / PASS**. Producción
+requiere su propio preflight, backup, migración y validación. **5.7-G completo
+y G5 permanecen abiertos**; la tolerancia legacy de readiness/regeneración
+se conserva hasta completar los gates previstos en todos los entornos.
