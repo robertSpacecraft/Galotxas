@@ -3248,3 +3248,67 @@ El runner prepara el esquema de su MariaDB efímera de pruebas. No se ejecutaron
 migraciones operativas sobre desarrollo, staging ni producción, ni se
 auditaron o modificaron datos remotos. Esta evidencia corresponde sólo a G1–G2;
 no acredita la normalización de datos legacy ni cierra el resto de 5.7-G.
+
+## 5.7-G — G3 read-only y G4: migración de metadatos legacy
+
+**G3 acreditado en staging:** MariaDB **11.4.12**, **12 rondas totales**,
+**9 Liga legacy exactas `league/NULL/NULL`**, **0 Liga canónica**,
+**3 Copa canónicas** y **0 formas ambiguas/desconocidas**. Las nueve legacy
+están en una sola categoría (`category_id=2`), jornadas 1–9. Los conteos e IDs
+son evidencia del entorno auditado; no se hardcodean como condición de G4.
+No se ha repetido esa auditoría ni accedido a bases remotas en este bloque.
+
+`RoundMetadataNormalizationMigrationTest` inserta las formas de ronda
+directamente en MariaDB y ejecuta manualmente `up()` de la nueva migración.
+Usa snapshots de todos los atributos para acreditar:
+
+- normalización del legacy exacto en distintas categorías, sin inferir desde
+  nombre u orden, y preservación de Liga canónica y los tres stages de Copa;
+- dataset canónico sin legacy idempotente y tabla vacía válida;
+- rechazo de 19 formas ambiguas, incluidas las parciales con NULL, un tipo
+  desconocido, strings vacíos, mayúsculas y espacios finales. Cada dataset
+  contiene también legacy normalizable y rondas canónicas: no se ejecuta
+  ningún UPDATE y el snapshot completo se conserva;
+- diagnóstico con conteo total y muestra ordenada limitada a diez IDs;
+- rollback real en MariaDB ante discordancia entre legacy detectadas y
+  actualizadas, o ante legacy/ambigüedad introducida después del UPDATE;
+- rechazo explícito de `down()` con `forward-only`, preservando los datos.
+
+La migración sólo modifica `phase/stage` del legacy exacto dentro de una
+transacción y verifica cero legacy y cero ambiguas antes de confirmar. No
+añade DDL, CHECK ni NOT NULL, ni modifica las migraciones históricas,
+readiness, regeneración, modelos, API o frontend. El conocimiento canónico
+de `knowledge/` no es fuente de esta clasificación deportiva.
+
+**G4 implementado localmente; pendiente de backup y ejecución controlada en
+staging. No aplicado en staging ni producción.** G5 continúa pendiente.
+
+Validación local con el runner habitual y MariaDB efímera aislada:
+
+```bash
+bash backend/scripts/run-tests.sh --filter='RoundMetadataNormalizationMigrationTest'
+bash backend/scripts/run-tests.sh --filter='(GenerateLeagueScheduleService|LeagueOfficializationReadiness|CupOfficializationReadiness|GenerateCupService|OfficialResultMutationGuard|VenueOccupancyConcurrency)Test'
+bash backend/scripts/run-tests.sh
+backend/vendor/bin/pint --test backend/database/migrations/2026_11_05_000000_normalize_league_round_metadata.php backend/tests/Feature/RoundMetadataNormalizationMigrationTest.php
+php -l backend/database/migrations/2026_11_05_000000_normalize_league_round_metadata.php
+php -l backend/tests/Feature/RoundMetadataNormalizationMigrationTest.php
+git diff --check
+```
+
+- Suite focal nueva: **27 PASS / 160 aserciones / 1,42 s**.
+- Focos relacionados de Liga/Copa, readiness, guards y concurrencia de
+  regeneración: **133 PASS / 801 aserciones / 15,15 s**.
+- Suite backend completa: **2219 PASS / 20781 aserciones / 166,63 s**.
+  Ejecutada antes del ajuste exclusivamente de formato de Pint en el test
+  nuevo (espacios de negación y cuerpo de una arrow function).
+- Pint `--test` final sobre los dos PHP afectados: **PASS**. La primera
+  comprobación detectó esos ajustes de formato y se corrigieron con Pint
+  limitado a los mismos archivos.
+- Repetición focal tras Pint: **27 PASS / 160 aserciones / 1,31 s**.
+- `php -l` de ambos PHP y `git diff --check`: **PASS**.
+
+La inicialización interna de los traits de Laravel sobre la base efímera del
+runner está autorizada. La validación incremental de G4 se realiza con los
+datasets insertados y la llamada manual a `up()`; no se sustituye por recrear
+el esquema. No se invocan comandos destructivos manuales ni rollbacks de
+migraciones sobre bases persistentes o remotas.
