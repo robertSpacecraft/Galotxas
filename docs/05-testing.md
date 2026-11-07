@@ -3203,3 +3203,169 @@ React usa la cookie de sesión SPA HttpOnly, `X-Galotxas-Auth-Mode: session`, CS
 **Sin migración de esquema** en J4. `HasApiTokens`, `personal_access_tokens` y las rutas legacy permanecen intencionadamente.
 
 **Estado final:** J4 CLOSED / PASS. 5.7-J CLOSED / PASS. NEXT 5.7-G. Orden restante G → H → D → Q1.
+
+## 5.7-G — G1–G2: contrato y writer de Liga (validación local)
+
+`GenerateLeagueScheduleServiceTest` consulta directamente las filas de `rounds`
+persistidas por el servicio, sin filtrar por clasificación y sin depender de
+`RoundFactory` para probar el writer. Comprueba:
+
+- generación inicial de nueve jornadas con `league/league/matchday`;
+- generación y regeneración de dos categorías con tres y cinco jornadas,
+  clasificación canónica en todas y eliminación de las rondas anteriores;
+- reemplazo temporal de `league/NULL/NULL` sin historia por tres rondas
+  canónicas, conservando el caso de horarios legacy solapados;
+- rechazo de regeneración ante cada stage de Copa (`semifinal`, `final`,
+  `third_place`), con snapshots completos de rondas y partidos sin cambios.
+
+Se ampliaron tres tests existentes y se añadió uno parametrizado con tres
+escenarios. No se encontró dependencia accidental de NULL en las rondas nuevas
+del servicio; los NULL del fixture legacy son deliberados y se conservan.
+
+Comandos desde la raíz, con el runner Docker/MariaDB aislado del proyecto:
+
+```bash
+bash backend/scripts/run-tests.sh --filter='GenerateLeagueScheduleServiceTest'
+bash backend/scripts/run-tests.sh --filter='(LeagueOfficializationReadiness|GenerateCupService|Cup.*|PublicCupScheduleApi|OfficialResultMutationGuard)Test'
+bash backend/scripts/run-tests.sh
+backend/vendor/bin/pint --test backend/app/Services/GenerateLeagueScheduleService.php backend/tests/Feature/GenerateLeagueScheduleServiceTest.php
+php -l backend/app/Services/GenerateLeagueScheduleService.php
+php -l backend/tests/Feature/GenerateLeagueScheduleServiceTest.php
+git diff --check
+```
+
+Resultados:
+
+- Prueba previa al arreglo: 6 fallos y 28 PASS, 98 aserciones. Los seis fallos
+  detectaron exactamente `league/NULL/NULL` frente al valor canónico esperado.
+- Foco del writer tras el arreglo y Pint: **34 PASS / 198 aserciones**.
+- Readiness de Liga, Copa y guards: **140 PASS / 878 aserciones**. El filtro
+  también incluyó regresiones de ocupación y concurrencia de Liga/Copa.
+- Suite backend completa tras Pint: **2192 PASS / 20621 aserciones / 164,27 s**.
+- Pint limitado a los dos PHP afectados, `php -l` y `git diff --check`: **PASS**.
+
+El runner prepara el esquema de su MariaDB efímera de pruebas. No se ejecutaron
+migraciones operativas sobre desarrollo, staging ni producción, ni se
+auditaron o modificaron datos remotos. Esta evidencia corresponde sólo a G1–G2;
+no acredita la normalización de datos legacy ni cierra el resto de 5.7-G.
+
+## 5.7-G — G3 read-only y G4: migración de metadatos legacy
+
+**G3 acreditado en staging:** MariaDB **11.4.12**, **12 rondas totales**,
+**9 Liga legacy exactas `league/NULL/NULL`**, **0 Liga canónica**,
+**3 Copa canónicas** y **0 formas ambiguas/desconocidas**. Las nueve legacy
+están en una sola categoría (`category_id=2`), jornadas 1–9. Los conteos e IDs
+son evidencia del entorno auditado; no se hardcodean como condición de G4.
+Durante la implementación local de G4 no se repitió esa auditoría ni se
+accedió a bases remotas. La ejecución posterior en staging se documenta abajo.
+
+`RoundMetadataNormalizationMigrationTest` inserta las formas de ronda
+directamente en MariaDB y ejecuta manualmente `up()` de la nueva migración.
+Usa snapshots de todos los atributos para acreditar:
+
+- normalización del legacy exacto en distintas categorías, sin inferir desde
+  nombre u orden, y preservación de Liga canónica y los tres stages de Copa;
+- dataset canónico sin legacy idempotente y tabla vacía válida;
+- rechazo de 19 formas ambiguas, incluidas las parciales con NULL, un tipo
+  desconocido, strings vacíos, mayúsculas y espacios finales. Cada dataset
+  contiene también legacy normalizable y rondas canónicas: no se ejecuta
+  ningún UPDATE y el snapshot completo se conserva;
+- diagnóstico con conteo total y muestra ordenada limitada a diez IDs;
+- rollback real en MariaDB ante discordancia entre legacy detectadas y
+  actualizadas, o ante legacy/ambigüedad introducida después del UPDATE;
+- rechazo explícito de `down()` con `forward-only`, preservando los datos.
+
+La migración sólo modifica `phase/stage` del legacy exacto dentro de una
+transacción y verifica cero legacy y cero ambiguas antes de confirmar. No
+añade DDL, CHECK ni NOT NULL, ni modifica las migraciones históricas,
+readiness, regeneración, modelos, API o frontend. El conocimiento canónico
+de `knowledge/` no es fuente de esta clasificación deportiva.
+
+**G4 staging: CLOSED / PASS.** Producción permanece pendiente de su propio
+preflight, backup, migración y validación. G5 y la retirada de tolerancia
+legacy siguen pendientes de completar los gates de todos los entornos.
+
+Validación local con el runner habitual y MariaDB efímera aislada:
+
+```bash
+bash backend/scripts/run-tests.sh --filter='RoundMetadataNormalizationMigrationTest'
+bash backend/scripts/run-tests.sh --filter='(GenerateLeagueScheduleService|LeagueOfficializationReadiness|CupOfficializationReadiness|GenerateCupService|OfficialResultMutationGuard|VenueOccupancyConcurrency)Test'
+bash backend/scripts/run-tests.sh
+backend/vendor/bin/pint --test backend/database/migrations/2026_11_05_000000_normalize_league_round_metadata.php backend/tests/Feature/RoundMetadataNormalizationMigrationTest.php
+php -l backend/database/migrations/2026_11_05_000000_normalize_league_round_metadata.php
+php -l backend/tests/Feature/RoundMetadataNormalizationMigrationTest.php
+git diff --check
+```
+
+- Suite focal nueva: **27 PASS / 160 aserciones / 1,42 s**.
+- Focos relacionados de Liga/Copa, readiness, guards y concurrencia de
+  regeneración: **133 PASS / 801 aserciones / 15,15 s**.
+- Suite backend completa: **2219 PASS / 20781 aserciones / 166,63 s**.
+  Ejecutada antes del ajuste exclusivamente de formato de Pint en el test
+  nuevo (espacios de negación y cuerpo de una arrow function).
+- Pint `--test` final sobre los dos PHP afectados: **PASS**. La primera
+  comprobación detectó esos ajustes de formato y se corrigieron con Pint
+  limitado a los mismos archivos.
+- Repetición focal tras Pint: **27 PASS / 160 aserciones / 1,31 s**.
+- `php -l` de ambos PHP y `git diff --check`: **PASS**.
+
+La inicialización interna de los traits de Laravel sobre la base efímera del
+runner está autorizada. La validación incremental de G4 se realiza con los
+datasets insertados y la llamada manual a `up()`; no se sustituye por recrear
+el esquema. No se invocan comandos destructivos manuales ni rollbacks de
+migraciones sobre bases persistentes o remotas.
+
+### G4 — Ejecución y validación en staging (CLOSED / PASS, 2026-11-06)
+
+Staging desplegó el commit
+`221688fa628983f52be727e2a7f392a8588063fe`
+(`fix(competition): normalize legacy league round metadata`). La migración
+`2026_11_05_000000_normalize_league_round_metadata` estaba en estado
+`Pending` antes de ejecutarla y quedó registrada como **`[15] Ran`**.
+
+Se activó maintenance mode antes de la mutación para congelar writers y se
+mantuvo hasta validar el postflight. La aplicación volvió a estar live después
+de esa validación. Estado final de Laravel: Environment `staging`, Database
+`mariadb`, Queue `sync` y Maintenance Mode **`OFF`**.
+
+**Preflight final y postflight:**
+
+| Clasificación | Antes | Después |
+| --- | ---: | ---: |
+| `total` | 12 | 12 |
+| `canonical_league` | 0 | 9 |
+| `legacy_league` | 9 | 0 |
+| `canonical_cup` | 3 | 3 |
+| `ambiguous_or_unknown` | 0 | 0 |
+
+Las nueve legacy exactas eran los IDs **10–18**, `category_id=2`, nombres
+`Jornada 1` a `Jornada 9`, con `type=league`, `phase=NULL` y `stage=NULL`.
+Tras la migración esos mismos IDs quedaron en **`league/league/matchday`**.
+Las tres rondas de Copa se preservaron sin cambios:
+`cup/cup/semifinal`, `cup/cup/final` y `cup/cup/third_place`. No quedó ninguna
+fila `league/NULL/NULL` ni apareció ninguna forma ambigua o desconocida.
+
+**Backup previo a la mutación:** se creó un dump lógico comprimido de MariaDB
+antes de ejecutar la migración y se cifró mediante GPG simétrico AES-256.
+
+- Dump original:
+  `galotxas-staging-pre-5.7-G4-20261106T051623Z.sql.gz`.
+  SHA-256 del dump comprimido:
+  `aeeaa91102bf547eeba6ea3b9d6be570b062406c294f4c2e1bd791589588affb`.
+- Copia cifrada externa:
+  `galotxas-staging-db-backup-2026-11-06T05-16-23Z-pre-5.7-G4.sql.gz.gpg`,
+  **46632 bytes**. SHA-256 del archivo cifrado:
+  `2fae26cbc10f76897e37e930acefb04f7b2c16d4c3b71a739458ede1460e5ce4`.
+  Se verificó contra la copia cifrada local: ambos SHA-256 coincidieron
+  exactamente. Existe una copia cifrada externa verificada por checksum.
+
+**Aplicación selectiva**, con mantenimiento activo y backup previo:
+
+```bash
+php artisan migrate --path=database/migrations/2026_11_05_000000_normalize_league_round_metadata.php --force
+```
+
+La evidencia cierra únicamente **5.7-G4 en staging: CLOSED / PASS**. Producción
+requiere su propio preflight, backup, migración y validación. **5.7-G completo
+y G5 permanecen abiertos**; la tolerancia legacy de readiness/regeneración
+se conserva hasta completar los gates previstos en todos los entornos.

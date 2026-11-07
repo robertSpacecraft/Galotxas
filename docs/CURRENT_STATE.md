@@ -93,7 +93,15 @@ controlada del Bearer legacy) están CLOSED / PASS. Staging y producción usan s
 son 0 en ambos entornos remotos. `bfeac1f` es el hash funcional final. J2 se desplegó
 históricamente apagada; ese no es el estado actual. Contrato y evidencia: `03-api-contract.md`,
 `07-decisions.md` (ADR-059, ADR-060 y ADR-061), `05-testing.md`, `27-production-readiness-and-deployment-runbook.md`
-y `legal/cookies.md` (LEG-003 1.1.0). **El siguiente bloque canónico es 5.7-G.**
+y `legal/cookies.md` (LEG-003 1.1.0). **5.7-G está en curso:** G1–G2
+implementados (writer canónico de Liga); G3 read-only de staging acreditado.
+**G4 staging: CLOSED / PASS**: migración selectiva aplicada y validada, nueve
+legacy normalizadas, Copa preservada y staging de nuevo live. Producción
+requiere auditoría/preflight, backup, migración y validación independientes.
+5.7-G completo y G5 permanecen abiertos; la tolerancia legacy se conserva
+hasta completar los gates previstos en todos los entornos. Alcance:
+`06-roadmap.md`; evidencia G3, validación local y ejecución de G4 en staging:
+`05-testing.md`.
 Orden restante canónico: 5.7-G → 5.7-H → 5.7-D → 5.7-Q1. Sólo podrá reordenarse si un bloque
 cerrado descubre una dependencia. H conserva gates explícitos; la
 dependencia backend de D quedó satisfecha por C, pero D mantiene su posición

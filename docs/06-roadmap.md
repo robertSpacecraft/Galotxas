@@ -783,10 +783,77 @@ descubra una dependencia:
 | **5.7-E — Integridad de `CategoryEntry`** | Preflight y garantías para impedir identidad ambos/ninguno, asociaciones incoherentes y duplicados. Añadirá garantías DB cuando sean seguras. | **CLOSED / PASS**. Reglas de identidad/duplicado decididas y aplicadas; preflights y migración aplicados en staging y producción con éxito. |
 | **5.7-F — Ocupación global y planificación de Liga/Copa** | F1: ocupación física global y concurrencia; F2: `Venue.court_number`; F3: `Category.age_group`; F4: Liga atómica por campeonato; F5: Copa programada por categoría. | **CLOSED / PASS**. Regresión local, staging y aceptación productiva PASS; rollout selectivo completado bajo congelación continua de writers. |
 | **5.7-J — Hardening de sesión de autenticación** | Bloque de arquitectura de seguridad separado para el riesgo del Bearer durable en `localStorage`. | **CLOSED / PASS**. J1 (revocación), J2 (sesión SPA de doble modo), J3 (React a cookie HttpOnly) y J4 (retirada controlada del Bearer legacy y purga de PAT) cerrados. Estado final: staging y producción con sesión SPA y Bearer `false/false`, 0 PAT de usuario tras la purga; sin migración de esquema (ADR-059, ADR-060, ADR-061). |
-| **5.7-G — Normalización `Round.phase/stage` de Liga** | Normalizar escrituras nuevas y datos legacy al contrato documentado `league`/`matchday`, preservando Copa. | **NEXT**. Migración/backfill probable y preflight de datos. |
+| **5.7-G — Normalización `Round.phase/stage` de Liga** | Normalizar escrituras nuevas y datos legacy al contrato documentado `league`/`matchday`, preservando Copa. | **EN CURSO**. G1–G2 implementados; G3 read-only de staging acreditado; **G4 staging CLOSED / PASS**. Producción pendiente de preflight, backup, migración y validación propios. G5 pendiente. |
 | **5.7-H — Unicidad DB del nombre de pista** | Preflight de duplicados, garantía DB y manejo seguro de carreras. | Gate de normalización/case-sensitivity antes de migrar. |
 | **5.7-D — Interfaz React de reprogramaciones** | Ver estado, proponer y confirmar una propuesta compatible usando exclusivamente el workflow backend actual. | Dependencia backend satisfecha por 5.7-C; conserva su posición canónica posterior, sin cancelación, rechazo, notificaciones, rediseño de estados ni migración. |
 | **5.7-Q1 — Reparación E2E del dropdown CMS admin** | Corregir la interceptación concreta de `Crear bloque` y validar el recorrido dirigido. | P2 QA/UI; no se convierte en rediseño de navegación ni Liquid Glass. |
+
+#### 5.7-G — G1–G2: contrato y writer de Liga
+
+`GenerateLeagueScheduleService` persiste explícitamente cada ronda nueva con
+`type=league`, `phase=league` y `stage=matchday`, tanto en generación inicial
+como en regeneración y para todas las categorías del campeonato. La regla está
+en el `Round::create` del servicio, sin hooks ni inferencia desde nombre,
+orden o categoría. `RoundFactory` y `E2ESmokeSeeder` ya generaban esa
+clasificación y no se modifican. Copa conserva `cup/cup` y los stages
+`semifinal`, `final` y `third_place`.
+
+El único legacy reconocido por el contrato temporal es `league/NULL/NULL`.
+Readiness conserva su lectura y rechaza otras combinaciones ambiguas; no se
+modifica. La tolerancia de `assertReplaceable` también se conserva: la auditoría
+detectó que comprueba phase y stage de forma independiente y permite además
+`league/NULL/matchday` y `league/league/NULL`. Esa permisividad preexistente
+queda pendiente de revisión al abordar la retirada de compatibilidad; no amplía
+el contrato legacy reconocido.
+
+G1–G2 no auditan ni normalizan datos remotos, no añaden migraciones,
+restricciones DB, Resources ni cambios frontend. La API ya documentaba la
+clasificación canónica y su consumidor React la admite; `knowledge/` no es
+fuente de esta clasificación deportiva. G3–G4 se detallan a continuación;
+G5 permanece pendiente.
+Pruebas y evidencia local: `05-testing.md`.
+
+#### 5.7-G — G3 acreditado y G4 staging CLOSED / PASS
+
+G3 auditó staging en modo read-only sobre **MariaDB 11.4.12**: **12 rondas**,
+**9 `league/NULL/NULL`**, **0 Liga canónica**, **3 Copa canónicas** y
+**0 formas ambiguas o desconocidas**. Las nueve legacy se concentran en
+`category_id=2`, jornadas 1–9. Son hechos del dataset auditado, nunca
+precondiciones ni constantes de la migración. La ejecución posterior de G4
+en staging se resume al final de este apartado.
+
+G4 incorpora únicamente
+`2026_11_05_000000_normalize_league_round_metadata.php`, una migración de
+datos forward-only posterior a todas las anteriores. En una transacción:
+
+- El preflight acepta sólo Liga canónica, legacy exacto y las tres fases
+  canónicas de Copa. Usa `<=>` de MariaDB y comparaciones binarias para
+  rechazar también variantes de mayúsculas o espacios. Cualquier otra forma
+  aborta antes del UPDATE con conteo y hasta diez IDs de muestra ordenados;
+  la migración no repara ni infiere clasificaciones ambiguas.
+- Registra el número de legacy exactas y actualiza exclusivamente su `phase`
+  y `stage` a `league/matchday`. El número actualizado debe coincidir con el
+  detectado. `type`, nombres, órdenes, categorías y timestamps se preservan;
+  Liga canónica y Copa no cambian.
+- El postflight exige cero legacy exactas y cero formas ambiguas antes del
+  commit. Un conteo discordante o cualquier fallo provoca rollback de datos.
+  `down()` siempre rechaza el retroceso con `RuntimeException` y
+  `forward-only` en el mensaje.
+
+**G4 staging: CLOSED / PASS.** Staging desplegó el commit
+`221688fa628983f52be727e2a7f392a8588063fe` y aplicó la migración por su path
+exacto (`Pending` → `[15] Ran`), con maintenance mode activo y dump lógico
+previo más copia cifrada externa verificada por checksum. El postflight
+conservó 12 rondas: **9 Liga canónicas, 0 legacy, 3 Copa canónicas y
+0 ambiguas**. Los IDs 10–18 quedaron normalizados y Copa se preservó sin
+cambios. Tras validar se restauró la aplicación live, Maintenance Mode `OFF`.
+
+**Producción permanece pendiente de su propio preflight, backup, migración y
+validación. 5.7-G completo y G5 no están cerrados.** No se añaden restricciones
+de esquema ni cambios en modelos, writer, API o frontend; readiness y
+regeneración conservan su tolerancia legacy hasta completar los gates
+previstos en todos los entornos. Evidencia de G3, pruebas locales y ejecución
+de G4 en staging: `05-testing.md`.
 
 #### 5.7-F — Contrato implementado y cierre productivo
 

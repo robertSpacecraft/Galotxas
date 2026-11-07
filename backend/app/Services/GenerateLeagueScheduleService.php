@@ -110,6 +110,8 @@ class GenerateLeagueScheduleService
                             'name' => 'Jornada '.($week + 1),
                             'order' => $week + 1,
                             'type' => 'league',
+                            'phase' => 'league',
+                            'stage' => 'matchday',
                         ]);
                         $slot = $match['slot'];
                         $this->timePolicy->assertCanonicalStart($slot['scheduled_at']);
