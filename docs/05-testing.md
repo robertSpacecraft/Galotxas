@@ -3281,9 +3281,11 @@ añade DDL, CHECK ni NOT NULL, ni modifica las migraciones históricas,
 readiness, regeneración, modelos, API o frontend. El conocimiento canónico
 de `knowledge/` no es fuente de esta clasificación deportiva.
 
-**G4 staging: CLOSED / PASS.** Producción permanece pendiente de su propio
-preflight, backup, migración y validación. G5 y la retirada de tolerancia
-legacy siguen pendientes de completar los gates de todos los entornos.
+**G4 staging: CLOSED / PASS. G4 production: CLOSED / PASS.
+G4 global: CLOSED / PASS.** Las ejecuciones independientes de ambos entornos
+se documentan abajo. **G5: PENDING; 5.7-G completo: EN CURSO / OPEN.** La
+tolerancia legacy sigue presente en código; su retirada controlada corresponde
+a G5, con la normalización de ambos entornos ya acreditada.
 
 Validación local con el runner habitual y MariaDB efímera aislada:
 
@@ -3365,7 +3367,114 @@ antes de ejecutar la migración y se cifró mediante GPG simétrico AES-256.
 php artisan migrate --path=database/migrations/2026_11_05_000000_normalize_league_round_metadata.php --force
 ```
 
-La evidencia cierra únicamente **5.7-G4 en staging: CLOSED / PASS**. Producción
-requiere su propio preflight, backup, migración y validación. **5.7-G completo
-y G5 permanecen abiertos**; la tolerancia legacy de readiness/regeneración
-se conserva hasta completar los gates previstos en todos los entornos.
+Esta ejecución acredita **5.7-G4 en staging: CLOSED / PASS**. La ejecución
+independiente de producción se registra a continuación; la tolerancia legacy
+de readiness/regeneración sigue presente hasta su retirada controlada en G5.
+
+### G4 — Ejecución y validación en producción (CLOSED / PASS, 2026-11-07)
+
+**Auditoría previa independiente, read-only:** producción tenía **69 rondas**,
+**0 Liga canónica**, **69 Liga legacy exactas `league/NULL/NULL`**,
+**0 Copa canónicas** y **0 formas ambiguas/desconocidas**. Las 69 filas se
+repartían entre nueve categorías; no había formas no soportadas.
+
+**Freeze continuo de writers:** la configuración productiva era
+`app.maintenance.driver=cache`, `app.maintenance.store=database`,
+`cache.default=database`, `queue.default=sync` y scheduler desactivado.
+Se ejecutó `php artisan down` y se verificó Maintenance Mode `ENABLED`.
+Se identificó dinámicamente el master PHP-FPM y se le envió `SIGQUIT` para
+parada graceful; se comprobó la desaparición completa de master y workers,
+con Nginx todavía activo. Tras el drenaje, el preflight FINAL bajo freeze
+confirmó `active_innodb_transactions=0`, `other_connections=0` y
+`event_scheduler=OFF`. Los conteos y las nueve categorías coincidieron con
+la auditoría previa: 69 legacy exactas y cero canónicas o ambiguas.
+
+**Backup previo a la promoción:** se creó un dump lógico consistente de
+MariaDB, validado como no vacío, con cabecera legible de `mariadb-dump`,
+cliente MariaDB **11.4.12** y base `galotxas`. `gzip -t`: **PASS**.
+
+- Dump comprimido:
+  `galotxas-production-pre-5.7-G4-20261107T155036Z.sql.gz`, aproximadamente
+  **93 KiB**. SHA-256:
+  `e91d5764ad9eafcf2127063ada4efdff5491cd222ef4068391fe39454b9a6bb6`.
+- Cifrado mediante GPG simétrico AES-256. Copia cifrada externa:
+  `galotxas-production-db-backup-2026-11-07T15-50-36Z-pre-5.7-G4.sql.gz.gpg`,
+  **94563 bytes**. SHA-256:
+  `f45cddd2277b9dbb51477eecaf39e722df6e485f06123080ad32690917f428a1`.
+  La comprobación `gpg --decrypt ... | gzip -t` terminó con **exit 0**.
+  El SHA-256 de la copia externa almacenada coincidió exactamente con el
+  archivo cifrado local; existe una copia cifrada externa verificada por checksum.
+
+**Promoción y mantenimiento compartido:** sólo después del freeze, preflight
+final, backup, cifrado, copia externa y checksums se publicó el candidato
+`3e41e1beef0db5bad7c7ef029b134add21838e68`
+(`merge(competition): promote league round metadata normalization`), con padres
+`cbab28cc97adabac3301e1fcfbd2af32eb098d47` y
+`922a5189d8d98c70491f995a20e9bd82526adad6`.
+El deployment Railway `e48376ba-1204-4b16-b8e5-8023adbe1105` terminó
+**SUCCESS** y el anterior quedó retirado después de activar el nuevo.
+
+Tras reemplazar el contenedor se verificó Environment `production`,
+`RUNTIME_SHA=3e41e1beef0db5bad7c7ef029b134add21838e68`, Maintenance Mode
+**`ENABLED`** y la migración G4 todavía `Pending`. El mantenimiento almacenado
+en MariaDB sobrevivió al deployment: no hubo ventana con writers abiertos
+entre deployment y migración.
+
+**Migración selectiva**, con mantenimiento activo:
+
+```bash
+php artisan migrate --path=database/migrations/2026_11_05_000000_normalize_league_round_metadata.php --force
+```
+
+Resultado **`DONE`**; estado posterior **`[12] Ran`**. No se ejecutaron otras
+migraciones.
+
+**Preflight final y postflight antes de reabrir writers:**
+
+| Clasificación | Antes | Después |
+| --- | ---: | ---: |
+| `total` | 69 | 69 |
+| `canonical_league` | 0 | 69 |
+| `legacy_league` | 69 | 0 |
+| `canonical_cup` | 0 | 0 |
+| `ambiguous_or_unknown` | 0 | 0 |
+
+Distribución coincidente en auditoría previa, preflight final y postflight:
+
+| `category_id` | Antes (legacy exactas) | Después (Liga canónicas) |
+| --- | ---: | ---: |
+| 1 | 9 | 9 |
+| 2 | 7 | 7 |
+| 3 | 9 | 9 |
+| 4 | 9 | 9 |
+| 5 | 9 | 9 |
+| 6 | 5 | 5 |
+| 7 | 7 | 7 |
+| 8 | 9 | 9 |
+| 9 | 5 | 5 |
+
+Se verificaron las mismas **69 filas**, todas con `type=league`, `phase=league`
+y `stage=matchday`. Se conservaron IDs, categorías, nombres, `order`,
+`created_at` y `updated_at`; ambos timestamps permanecieron en
+`2026-09-28 14:35:34`. El postflight confirmó de nuevo
+`active_innodb_transactions=0` y `other_connections=0`.
+
+**Readiness y reapertura:** con el SHA runtime exacto, G4 **`[12] Ran`** y
+Maintenance Mode **`ENABLED`**, se ejecutó
+`php artisan deploy:check --allow-live-features`: **PASS**, todas las
+comprobaciones `OK` (environment, debug, application key, URLs, MariaDB,
+conexión DB, migraciones, CORS, sesión SPA, Bearer legacy, cookies, cache,
+queue, logs, proxy, filesystem, identidad de menores, scheduler y correo).
+Después se ejecutó `php artisan up`: Environment `production`, Maintenance
+Mode **`OFF`** y G4 **`[12] Ran`**. Smoke externo:
+`GET https://api.galotxesmonover.es/up` → **HTTP/2 200, OK**.
+
+Estado externo final de Railway: `backend-production` **Online**, deployment
+**SUCCESS**, **1/1 réplica running**, **0 warnings**, **0 criticals**,
+**0 deployments fallidos recientes** y **0 pending work**.
+
+**5.7-G4 production: CLOSED / PASS. 5.7-G4 global: CLOSED / PASS**, junto al
+cierre previo de staging. Staging y producción tienen **0 legacy y 0 ambiguas**;
+se cumplen las condiciones de datos para abordar G5. **G5: PENDING**: falta
+implementar la retirada controlada de la tolerancia legacy `league/NULL/NULL`.
+**5.7-G completo: EN CURSO / OPEN** hasta cerrar G5.
